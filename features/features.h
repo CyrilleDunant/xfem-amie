@@ -521,6 +521,13 @@ public:
     double getCurrentTime() const {
         return now ;
     }
+    
+    double getInitialTime() const {
+        if(is2D())
+            return dtree->begin()->getBoundingPoint(0).getT() ;
+        
+        return dtree3D->begin()->getBoundingPoint(0).getT() ;
+    }
 
     const Vector & getDisplacements ( int g = -1, bool stepTree = false )  ;
 

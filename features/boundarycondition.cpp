@@ -127,6 +127,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
     VirtualMachine vm ;
     int n = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+    
 
     for ( size_t idit = 0 ; idit < id.size() ; idit++ )
     {
@@ -738,6 +739,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
         case SET_STRESS_ETA:
         {
+            
             if ( e->getBehaviour()->fractured() )
             {
                 return ;
@@ -749,10 +751,12 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
             for ( size_t j = 0 ; j < id.size() ; j++ )
             {
-                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+                std::cout << "idj "<<id[j] << std::endl ;
+                for ( size_t i = (nTimePlanes-1)*e->getBoundingPoints().size()/nTimePlanes ; i < e->getBoundingPoints().size() ; i++ )
                 {
                     if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
+                        std::cout << "bpid "<< nTimePlanes << "  "<< e->getBoundingPoint ( i ).getId() << std::endl ;
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                         if ( !first )
                         {
@@ -774,21 +778,22 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                         }
                     }
                 }
+                
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( (int)(int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
                 }
 
             }
-
+            
+            
             if ( !last )
             {
                 return ;
             }
-
 
             Segment edge ( *first, *last ) ;
             GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
@@ -812,10 +817,8 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 v.push_back ( TIME_VARIABLE ) ;
             }
 
-            Vector imposed ( 3 ) ;
-            imposed[0] = 0 ;
+            Vector imposed (0., 3 ) ;
             imposed[1] = data ;
-            imposed[2] = 0 ;
 
             for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
             {
@@ -2916,15 +2919,24 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
 void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, const Function & data, Assembly * a, int axis = 0 )
 {
+
     if ( e->getBehaviour()->type == VOID_BEHAVIOUR )
     {
         return ;
     }
 
+    double nTimePlanes = 1 ;
+    if ( e->getOrder() > CONSTANT_TIME_LINEAR )
+    {
+        nTimePlanes = e->timePlanes() ;
+    }
+
     VirtualMachine vm ;
+    int n = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+    
 
 //	std::cerr << id.size() << std::endl ;
-    int n = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+
     for ( size_t i = 0 ; i < id.size() ; i++ )
     {
         switch ( condition )
@@ -3258,7 +3270,6 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             break ;
         }
 
-
         case INCREMENT_ALONG_ETA:
             if( a->getPreviousDisplacements().size() == 0 )
                 break ;
@@ -3425,32 +3436,14 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             }
 
             std::vector<Function> shapeFunctions ;
-
-            for ( size_t j = 0 ; j < id.size() ; j++ )
-            {
-                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
-                {
-                    if ( id[j].getId() == e->getBoundingPoint ( i ).getId() )
-                    {
-                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
-                    }
-                }
-                for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
-                {
-                    if ( id[j].getId() == e->getEnrichmentFunction ( i ).getDofID() )
-                    {
-                        shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
-                    }
-                }
-            }
             Point* first = nullptr ;
             Point* last = nullptr ;
 
             for ( size_t j = 0 ; j < id.size() ; j++ )
             {
-                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+                for ( size_t i = (nTimePlanes-1)*e->getBoundingPoints().size()/nTimePlanes ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ) )
+                    if ( (int)id[j].getId() == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                         if ( !first )
@@ -3473,34 +3466,34 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                         }
                     }
                 }
+                
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j].getId() == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)id[j].getId() == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
                 }
 
             }
-
-            if ( !last )
-            {
-                return ;
-            }
-
+            
             Segment edge ( *first, *last ) ;
             GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
-            for ( size_t j = 0 ; j < gpe.gaussPoints.size() ; j++ )
+            for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
-                gpe.gaussPoints[j].first = e->inLocalCoordinates ( gpe.gaussPoints[j].first ) ;
-                gpe.gaussPoints[j].second *= edge.norm() *.5 ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[j].first, Jinve[j] ) ;
+                gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
+                gpe.gaussPoints[i].second *= edge.norm() *.5 ;
+                if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+                    gpe.gaussPoints[i].second *= .5 ;
+                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
+            
 
 
             std::vector<Variable> v ( 2 ) ;
             Vector imposed ( 3 ) ;
+            imposed[0] = VirtualMachine().eval(data, edge.midPoint()) ;
 
             v[0] = XI ;
             v[1] = ETA ;
@@ -3512,7 +3505,8 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
             for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
             {
-                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( data, 0, 3, shapeFunctions[i], e, gpe, Jinve, v, false, edge.normalv ( e->getCenter() ) ) ;
+                
+                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( imposed, shapeFunctions[i], gpe, Jinve, v, false, edge.normalv ( e->getCenter() ) ) ;
 
                 a->addForceOn ( XI, forces[0], id[i].getId() ) ;
                 a->addForceOn ( ETA, forces[1], id[i].getId() ) ;
@@ -3529,32 +3523,14 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             }
 
             std::vector<Function> shapeFunctions ;
-
-            for ( size_t j = 0 ; j < id.size() ; j++ )
-            {
-                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
-                {
-                    if ( id[j].getId() == e->getBoundingPoint ( i ).getId() )
-                    {
-                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
-                    }
-                }
-                for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
-                {
-                    if ( id[j].getId() == e->getEnrichmentFunction ( i ).getDofID() )
-                    {
-                        shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
-                    }
-                }
-            }
             Point* first = nullptr ;
             Point* last = nullptr ;
 
             for ( size_t j = 0 ; j < id.size() ; j++ )
             {
-                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+                for ( size_t i = (nTimePlanes-1)*e->getBoundingPoints().size()/nTimePlanes ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ) )
+                    if ( (int)id[j].getId() == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                         if ( !first )
@@ -3577,33 +3553,34 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                         }
                     }
                 }
+                
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j].getId() == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)id[j].getId() == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
                 }
 
             }
-
+            
             if ( !last )
             {
                 return ;
             }
 
-
             Segment edge ( *first, *last ) ;
             GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
-            for ( size_t j = 0 ; j < gpe.gaussPoints.size() ; j++ )
+            for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
-                gpe.gaussPoints[j].first = e->inLocalCoordinates ( gpe.gaussPoints[j].first ) ;
-                gpe.gaussPoints[j].second *= edge.norm() *.5 ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[j].first, Jinve[j] ) ;
+                gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
+                gpe.gaussPoints[i].second *= edge.norm() *.5 ;
+                if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+                    gpe.gaussPoints[i].second *= .5 ;
+                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
-
-
+            
 
             std::vector<Variable> v ( 2 ) ;
 
@@ -3613,13 +3590,14 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 v.push_back ( TIME_VARIABLE ) ;
             }
-            Vector imposed ( 3 ) ;
-
+            Vector imposed (0.,  3 ) ;
+            imposed[1] = VirtualMachine().eval(data, 0,0,0,  e->getBoundingPoint(0).getT()) ;
+            
             VirtualMachine vm ;
 
             for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
             {
-                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( data, 1, 3, shapeFunctions[i], e,gpe, Jinve, v, false, edge.normalv ( e->getCenter() ) ) ;
+                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( imposed, shapeFunctions[i], gpe, Jinve, v, false, edge.normalv ( e->getCenter() ) ) ;
 
                 a->addForceOn ( XI, forces[0], id[i].getId() ) ;
                 a->addForceOn ( ETA, forces[1], id[i].getId() ) ;
@@ -6940,11 +6918,10 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Me
                 continue ;
             }
 
-            std::vector<Point> id  ;
-
             for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
 
+                
                 if ( isOnBoundary ( pos, i->getBoundingPoint ( j ), pmin, pmax, tol ) && isInBoundary2D ( i->getBoundingPoint ( j ), rmin, rmax ) )
                 {
                     if ( cache2d.empty() || cache2d.back() != i )
@@ -6955,7 +6932,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Me
 
                     cache.back().push_back ( i->getBoundingPoint ( j ) ) ;
                 }
-            }
+
+            }                
+            
         }
 
     }
