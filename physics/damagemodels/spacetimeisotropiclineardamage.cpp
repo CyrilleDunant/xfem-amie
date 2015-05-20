@@ -40,7 +40,7 @@ Matrix SpaceTimeIsotropicLinearDamage::applyViscous(const Matrix & m, const Poin
         return m*0 ;
     
     double factor = (p.getT()+1.)*.5 ;
-    double d = std::min(state[0]+factor*dt*accelerate*fibreFraction, thresholdDamageDensity) ;
+    double d = std::min(state[0]+factor*dt*accelerate*fibreFraction, 1.) ;
     return m*(1.-d) ;
 
 
@@ -56,7 +56,7 @@ Matrix SpaceTimeIsotropicLinearDamage::apply(const Matrix & m, const Point & p,c
         return m*0 ;
     
     double factor = (p.getT()+1.)*.5 ;
-    double d = std::min(state[0]+factor*dt*accelerate*fibreFraction, thresholdDamageDensity) ;
+    double d = std::min(state[0]+factor*dt*accelerate*fibreFraction, 1.) ;
     return m*(1.-d) ;
 
 }
@@ -84,12 +84,12 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
             fraction = s.getParent()->area() ;
         else
             fraction = s.getParent()->volume();
+        dt = s.getParent()->getBoundingPoint(s.getParent()->getBoundingPoints().size()-1).getT() - s.getParent()->getBoundingPoint(0).getT() ;
     }
 
-    change = false ;
+    change = false ;    
+    state[0] = std::min(state[0]+dt*accelerate*fibreFraction, 1.) ;
     dt = s.getParent()->getBoundingPoint(s.getParent()->getBoundingPoints().size()-1).getT() - s.getParent()->getBoundingPoint(0).getT() ;
-    
-    state[0] = std::min(state[0]+dt*accelerate*fibreFraction, thresholdDamageDensity) ;
     
     if(!s.getParent()->getBehaviour()->getFractureCriterion() || !s.getParent()->getBehaviour()->getFractureCriterion()->met())
     {
@@ -99,7 +99,7 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
     else if(!fractured() && s.getParent()->getBehaviour()->getFractureCriterion()->met())
     {
         dt *= s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-        accelerate++ ;
+        accelerate+=1 ;
         change = true ;
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
     }

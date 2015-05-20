@@ -8,6 +8,7 @@
 #include "../physics/fracturecriteria/mcft.h"
 #include "../physics/fracturecriteria/mazars.h"
 #include "../physics/damagemodels/spacetimeisotropiclineardamage.h"
+#include "../polynomial/vm_function_extra.h"
 
 #include "../physics/stiffness.h"
 #include "../physics/stiffness_and_fracture.h"
@@ -48,6 +49,7 @@ double rebarDiametre = 0.025 ; //sqrt(506e-6);//sqrt( 4.*0.000506/M_PI ) ;
 double rebarEndCover = 0.047 ;
 
 std::vector< double > loads ;
+std::vector< double > times ;
 std::vector< double > deltas ;
 std::vector< double > displacements ;
 std::vector< double > damages ;
@@ -58,7 +60,7 @@ Vector x ( 0 ) ;
 
 MultiTriangleWriter writer ( "triangles_head", "triangles_layers", nullptr ) ;
 MultiTriangleWriter writerc ( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
-
+double mindelta = .1e-4 ;
 
 
 // Rectangle bcbox ( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) ;
@@ -74,7 +76,7 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
 //     double target =  load->getData() ;            
 //     target -= delta_d*20. ;  
 //     load->setData ( target ) ;
-    for ( size_t v = 0 ; v < nsteps ; v++ )
+    for ( size_t v = 0 ;  ; v++ )
     {
 //         bool go_on = false ;
 //         featureTree->stepToCheckPoint(10, 1e-6) ;
@@ -93,7 +95,7 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
 //             continue ;
 //         }
 
-        bool go_on = featureTree->stepToCheckPoint(40, 1e-8) ;
+        bool go_on = featureTree->stepToCheckPoint(100, mindelta*1e-3) ;
         
         x.resize ( featureTree->getDisplacements ( -1, false ).size() ) ;
         x = featureTree->getDisplacements ( -1, false ) ;
@@ -110,10 +112,10 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
             {
 
                 volume += k->area() ;
-                for ( int p = 0 ; p < npoints ; p++ )
+                for ( int p = npoints/2 ; p < npoints ; p++ )
                 {
 
-                    if ( dist ( Point ( 0, sampleHeight*.5 + plateHeight ), k->getBoundingPoint ( p ) ) < .01 )
+                    if ( squareDist2D ( Point ( 0, sampleHeight*.5 + plateHeight ), k->getBoundingPoint ( p ) ) < .01 )
                     {
                         deltacount++ ;
                         delta += x[k->getBoundingPoint ( p ).getId() * 2+1] ;
@@ -126,7 +128,7 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
 
         delta /= deltacount ;
 
-        Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD, -1, -1 ) ;
+        Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD, -1, 1 ) ;
 
         std::cout << std::endl ;
         std::cout << "average sigma11 : " << stemp[0] << std::endl ;
@@ -138,10 +140,11 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
         
         if ( go_on )
         {
-            displacements.push_back ( 1000.* ( VirtualMachine().eval(load->getDataFunction()/**load->getScale()*/, 0,0,0,featureTree->getInitialTime()) ) );
+            displacements.push_back ( 1000.* ( VirtualMachine().eval(load->getDataFunction()*load->getScale(), 0,0,0,featureTree->getCurrentTime()) ) );
             loads.push_back ( stemp[1]/1000. );
-            deltas.push_back ( delta );
+            deltas.push_back ( delta*1000 );
             damages.push_back ( featureTree->averageDamage );
+            times.push_back(featureTree->getCurrentTime());
 
 //             writerc.reset ( featureTree ) ;
 //             writerc.getField ( TWFT_PRINCIPAL_STRESS ) ;
@@ -154,29 +157,32 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
 //             writerc.writeSvg ( 0. ) ;        
             for ( size_t j = 0 ; j < loads.size() ; j++ )
             {
-                ldfile << displacements[j] << "   " << loads[j] << "   " << damages[j] << "   " << deltas[j] << "\n" ;
+                ldfile << displacements[j] << "   " << loads[j] << "   " << damages[j] << "   " << deltas[j] << "   " << times[j] <<"\n" ;
             }
         }
         else
         {
             for ( size_t j = 0 ; j < loads.size() ; j++ )
             {
-                ldfile << displacements[j] << "   " << loads[j] << "   " << damages[j] << "   " << deltas[j] << "\n" ;
+                ldfile << displacements[j] << "   " << loads[j] << "   " << damages[j] << "   " << deltas[j] << "   " << times[j] << "\n" ;
 
             }
-            ldfile <<  1000.* ( VirtualMachine().eval(load->getDataFunction()/**load->getScale()*/, 0,0,0,featureTree->getInitialTime()) ) << "   " << stemp[1]/1000. << "   " << featureTree->averageDamage << "   " << delta << "\n" ;
+            ldfile <<  (double)(1000.* ( VirtualMachine().eval(load->getDataFunction()*load->getScale(), 0,0,0,featureTree->getCurrentTime()))) << "   " << (double)(stemp[1]/1000.) << "   " << featureTree->averageDamage << "   " << delta*1000 << "   " << featureTree->getCurrentTime() << "\n" ;
         }
         
         ldfile.close();
 
-        writer.reset ( featureTree ) ;
-        writer.getField ( TWFT_PRINCIPAL_STRESS ) ;
-        writer.getField ( TWFT_PRINCIPAL_STRAIN ) ;
-        writer.getField ( TWFT_CRITERION ) ;
-        writer.getField ( TWFT_STIFFNESS_X ) ;
-        writer.getField ( TWFT_STIFFNESS_Y ) ;
-        writer.getField ( TWFT_DAMAGE ) ;
-        writer.append() ;
+        if(v%10 == 0)
+        {
+            writer.reset ( featureTree ) ;
+            writer.getField ( TWFT_PRINCIPAL_STRESS ) ;
+            writer.getField ( TWFT_PRINCIPAL_STRAIN ) ;
+            writer.getField ( TWFT_CRITERION ) ;
+            writer.getField ( TWFT_STIFFNESS_X ) ;
+            writer.getField ( TWFT_STIFFNESS_Y ) ;
+            writer.getField ( TWFT_DAMAGE ) ;
+            writer.append() ;
+        }
     }
 }
 
@@ -211,9 +217,9 @@ int main ( int argc, char *argv[] )
         branches.push_back(std::make_pair(K_i, Am_i)) ;
     }    
     
-    FractureCriterion * mcft = new NonLocalSpaceTimeMCFT(cstress,k_elas, 0.064,UPPER_BOUND,MIRROR_Y) ;
-    FractureCriterion * mazar = new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 0.064, pt ) ;
-    DamageModel * linear = new SpaceTimeIsotropicLinearDamage(0.25,1e-6, 1.0) ;
+    FractureCriterion * mcft = new NonLocalSpaceTimeMCFT(cstress,k_elas, 0.048,UPPER_BOUND,MIRROR_Y) ;
+    FractureCriterion * mazar = new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 0.048, pt ) ;
+    DamageModel * linear = new SpaceTimeIsotropicLinearDamage(0.05,1e-6, 1.0) ;
  
     Matrix m0_steel = Tensor::cauchyGreen ( std::make_pair ( E_steel,nu_steel ), true, SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
 
@@ -234,7 +240,8 @@ int main ( int argc, char *argv[] )
     rightbottomvoid.setBehaviour ( new VoidForm() ) ;
     
     
-    sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mcft->getCopy(), linear->getCopy() )); 
+//     sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mcft->getCopy(), linear->getCopy() )); 
+    sample.setBehaviour (new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mcft->getCopy(), linear->getCopy() )); 
     topsupport.setBehaviour ( new Viscoelasticity ( PURE_ELASTICITY, m0_steel ) ) ;
     baseright.setBehaviour ( new Viscoelasticity ( PURE_ELASTICITY, m0_steel ) ) ;
     
@@ -272,9 +279,9 @@ int main ( int argc, char *argv[] )
     F.addPoint ( new Point ( supportLever, -sampleHeight*.5-plateHeight ) ) ;
     F.addPoint ( new Point ( platewidth, sampleHeight*.5 ) ) ;
     
-    Function loadfunc("t") ;
-    loadfunc *= /*-0.00001 ;*/ -5e5 ;
-    BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition ( SET_STRESS_ETA, TOP_AFTER, -platewidth*2., platewidth*2., -10, 10, loadfunc ) ;
+    Function loadfunc = Function("t");
+    loadfunc *= -0.00008 ; /*-5e5 ;*/
+    BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition ( SET_ALONG_ETA, TOP_AFTER, -platewidth*2., platewidth*2., -10, 10, loadfunc ) ;
     
     F.addBoundaryCondition ( load ) ;
     load->setActive(true);
@@ -282,8 +289,8 @@ int main ( int argc, char *argv[] )
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT_AFTER ) ) ;
     F.addBoundaryCondition ( new BoundingBoxNearestNodeDefinedBoundaryCondition ( FIX_ALONG_ETA, BOTTOM_AFTER, Point ( supportLever, -sampleHeight*.5-plateHeight ) ) ) ;
     F.setOrder ( LINEAR_TIME_LINEAR ) ;
-    F.setDeltaTime(0.125);
-    F.setMinDeltaTime(.000005);
+    F.setDeltaTime(mindelta*1e3);
+    F.setMinDeltaTime(mindelta);
 
     step(&F, supportLever, sampleHeight, load) ;
 

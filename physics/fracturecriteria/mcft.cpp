@@ -92,7 +92,7 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 
     double criterion = 0 ;
     if(maxTension > POINT_TOLERANCE)
-        criterion = std::abs(tstress/(maxTension)) ;
+        criterion = std::abs(tstrain*pseudoYoung/maxTension) ;
 
     return -1.+criterion ;
 
@@ -102,30 +102,44 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 double NonLocalMCFT::getRebarConcreteTensileCriterion(const Amie::ElementState& s, double pseudoYoung, double tstrain, double tstress, double value, double deltaCriterion)
 {
     double maxTension = upVal;
-    double factor = 1 ;
+//     double maxTensionAlt = upVal;
+    
 
+    if(tstrain < 0 || tstress < 0)
+        return -1 ;
 //     std::cout << tstrain << "  "<< tensionCritStrain << "  "<< std::endl ;
 //     exit(0) ;
-    if(tstrain > tensionCritStrain )
+    if(tstrain > tensionCritStrain && tstress < upVal)
     {
         crackInitiated = true ;
+        double factor = 1 ;
+//         double factoralt = 1 ;
 
         double mainCurve = 1./(1.+sqrt(value*(tstrain-deltaCriterion))) ;
+//         double mainCurveStress = 1./(1.+sqrt(value*(tstress/pseudoYoung-deltaCriterion))) ;
 
         if(tstrain < strain_ch*(1./(deltaCriterion/tensionCritStrain)))
+        {
             factor = mainCurve ;
+//             factoralt = mainCurveStress ;
+        }
         else
+        {
             factor = mainCurve*exp(-1.5*(tstrain-strain_ch)/(strain_te-strain_ch)) ;
+//             factoralt = mainCurveStress*exp(-1.5*(tstress/pseudoYoung-strain_ch)/(strain_te-strain_ch)) ;
+        }
         
         maxTension *= factor ;
+//         maxTensionAlt *= factoralt ;
 
     }
     else
-        return -1.+std::abs(tstrain/tensionCritStrain) ;
+        return -1.+std::max(std::abs(tstrain/tensionCritStrain), std::abs(tstress/upVal)) ;
 
     double criterion0 = 0 ;
+    
     if(maxTension > POINT_TOLERANCE)
-        return  std::abs(tstress/maxTension)-1. ;
+        return  std::max(std::abs(tstress/maxTension), std::abs(tstrain*pseudoYoung/maxTension))-1. ;
     else
         return tstress/upVal-1. ;
 
@@ -200,6 +214,7 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 
     if(cstress > 0 || cstrain > 0)
         return -1 ;
+    
     double maxCompression = downVal  ;
 
 
@@ -233,10 +248,10 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
     }
 
 
-    double criterion = std::abs(cstress/downVal) ;
+    double criterion = std::max(std::abs(cstress/downVal), std::abs(cstrain*pseudoYoung/downVal)) ;
 
     if(std::abs(maxCompression) > POINT_TOLERANCE)
-        criterion = std::abs(cstress/maxCompression) ;
+        criterion =  std::max(std::abs(cstress/maxCompression), std::abs(cstrain*pseudoYoung/maxCompression)) ;
 
 
     return -1.+criterion ;
