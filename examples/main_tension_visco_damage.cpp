@@ -106,7 +106,7 @@ void step ( size_t nsteps )
                 ldfile <<  times[j] <<" " << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] << " " << damages[j] <<  "\n" ;
             }
             ldfile.close();
-            if(v > 4000)
+            if(v > 2000)
                     exit(0) ;
         }
 
@@ -155,7 +155,7 @@ int main ( int argc, char *argv[] )
 
     FeatureTree F ( &samplef ) ;
     featureTree = &F ;
-    DamageModel * linear = new SpaceTimeFiberBasedIsotropicLinearDamage(0.01, 1.0);
+    DamageModel * linear = new SpaceTimeIsotropicLinearDamage(0.01, 1.0);
 
      //ELAS+DAMAGE
     //StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas, new NonLocalMCFT(-40e6,40e9,1.), new FiberBasedIsotropicLinearDamage(0.001, 1.));

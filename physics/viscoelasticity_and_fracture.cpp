@@ -561,11 +561,20 @@ void ViscoelasticityAndFracture::setElasticAndViscousStiffnessMatrix()
         break ;
     case GENERALIZED_MAXWELL:
         placeMatrixInBlock( tensors[0], 0,0, elasticParam) ;
+//         for(size_t i = 1 ; i < tensors.size() ; i+=2)
+//         {
+//             placeMatrixInBlock( tensors[i], i/2,i/2, viscousParam) ;
+//             placeMatrixInBlock( -tensors[i], 0,i/2, viscousParam) ;
+//             placeMatrixInBlock( -tensors[i], i/2,0, viscousParam) ;
+//         }
         for(size_t i = 1 ; i < tensors.size() ; i+=2)
         {
-            placeMatrixInBlock( tensors[i], i/2,i/2, viscousParam) ;
-            placeMatrixInBlock( -tensors[i], 0,i/2, viscousParam) ;
-            placeMatrixInBlock( -tensors[i], i/2,0, viscousParam) ;
+            Matrix ri = tensors[i] * (-1) ;
+            addMatrixInBlock( tensors[i], 0,0, elasticParam) ;
+            placeMatrixInBlock( tensors[i], i/2+1,i/2+1, elasticParam) ;
+            placeMatrixInBlock( ri, 0,i/2+1, elasticParam) ;
+            placeMatrixInBlock( ri, i/2+1,0, elasticParam) ;
+            placeMatrixInBlock( tensors[i+1], i/2+1,i/2+1, viscousParam) ;
         }
         break ;
     case GENERALIZED_KELVIN_VOIGT:
@@ -596,7 +605,7 @@ Matrix ViscoelasticityAndFracture::getTensor(const Point & p, IntegrableEntity *
 //     dfunc->apply(elasticParam, p).print();
 //     dfunc->applyViscous(viscousParam, p).print();
 //     std::cout << "......................" << std::endl ;
-    return  dfunc->apply(elasticParam, p)/*+dfunc->applyViscous(viscousParam, p)*/ ;
+    return  dfunc->apply(elasticParam, p)+dfunc->applyViscous(viscousParam, p) ;
 }
 
 Matrix ViscoelasticityAndFracture::getViscousTensor(const Point & p, IntegrableEntity * e, int g) const
