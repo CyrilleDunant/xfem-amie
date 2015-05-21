@@ -341,9 +341,6 @@ target_link_libraries( single_2d_viscoelasticity Amie ${ALL_LINK_FLAGS} )
 add_executable(visu_behavior examples/main_visu_behavior.cpp )
 target_link_libraries(visu_behavior Amie ${ALL_LINK_FLAGS} )
 
-add_executable(visu_3D_behavior examples/main_visu_3D_behavior.cpp )
-target_link_libraries(visu_3D_behavior Amie ${ALL_LINK_FLAGS} )
-
 add_executable(3d_asr  examples/main_3d_asr.cpp  )
 target_link_libraries( 3d_asr Amie  ${ALL_LINK_FLAGS})
 
