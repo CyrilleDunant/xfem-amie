@@ -574,7 +574,7 @@ void ViscoelasticityAndFracture::setElasticAndViscousStiffnessMatrix()
             placeMatrixInBlock( tensors[i], i/2+1,i/2+1, elasticParam) ;
             placeMatrixInBlock( ri, 0,i/2+1, elasticParam) ;
             placeMatrixInBlock( ri, i/2+1,0, elasticParam) ;
-            placeMatrixInBlock( tensors[i+1], i/2+1,i/2+1, viscousParam) ;
+            addMatrixInBlock( tensors[i], i/2+1,i/2+1, viscousParam) ;
         }
         break ;
     case GENERALIZED_KELVIN_VOIGT:

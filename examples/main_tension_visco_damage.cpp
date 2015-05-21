@@ -75,7 +75,7 @@ void step ( size_t nsteps )
     loadfunc *= strain_peak ;
     for ( size_t v = 0 ; v < nsteps ; v++ )
     {
-        bool go_on = featureTree->step() ;
+        bool go_on = featureTree->stepToCheckPoint(20,1e-6) ;
         if(go_on)
             loadr->setData(VirtualMachine().eval(loadfunc, 0,0,0, featureTree->getCurrentTime()));
         
@@ -106,7 +106,8 @@ void step ( size_t nsteps )
                 ldfile <<  times[j] <<" " << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] << " " << damages[j] <<  "\n" ;
             }
             ldfile.close();
-            if(v > 2000)
+	    double time_n = featureTree -> getCurrentTime() ;
+            if(time_n > 94)
                     exit(0) ;
         }
 
@@ -155,7 +156,7 @@ int main ( int argc, char *argv[] )
 
     FeatureTree F ( &samplef ) ;
     featureTree = &F ;
-    DamageModel * linear = new SpaceTimeIsotropicLinearDamage(0.01, 1.0);
+    DamageModel * linear = new SpaceTimeIsotropicLinearDamage(0.1,0.001 ,1.0);
 
      //ELAS+DAMAGE
     //StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas, new NonLocalMCFT(-40e6,40e9,1.), new FiberBasedIsotropicLinearDamage(0.001, 1.));
@@ -175,13 +176,13 @@ int main ( int argc, char *argv[] )
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM_AFTER ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
-    F.setDeltaTime(.0075); 
+    F.setDeltaTime(.2); 
     F.setMinDeltaTime(.02);
 //     F.setOrder(LINEAR_TIME_LINEAR) ;
-    F.setMaxIterationsPerStep ( 5000 );
+
 
     //step ( 240 ) ;
-    step ( 12400 ) ;
+    step (1240000 ) ;
 
 //    F.getAssembly()->print() ;
 

@@ -61,7 +61,7 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
         }
         maxStrain = gamma*std::max(0.0,sqrt ( pow( (0.5*( std::abs(strain[0])  + strain[0] )) ,2.0) + pow((0.5*( std::abs(strain[1])  + strain[1] ) ),2.0) +   pow((0.5*( std::abs(strainzz)  + strainzz ) ),2.0))) ;
         talpha = (posstrain[0]*(0.5*( std::abs(strain[0])  + strain[0] )) + posstrain[1]*(0.5*( std::abs(strain[1])  + strain[1] ))  + posstrain[2]*(0.5*( std::abs(strainzz)  + strainzz ))) / (maxStrain*maxStrain);
-//         talpha = 1.0;
+         talpha = 1.0;
 	calpha = 1.0 - talpha ;
     }
     
