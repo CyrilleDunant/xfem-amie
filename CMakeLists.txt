@@ -74,6 +74,7 @@ physics/fracturecriteria/confinedmohrcoulomb.cpp
 physics/fracturecriteria/confinedmohrcoulombwithstrain.cpp
 physics/fracturecriteria/confinedvonmises.cpp
 physics/fracturecriteria/nonlocalvonmises.cpp 
+physics/fracturecriteria/mazars.cpp 
 physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.cpp 
 physics/fracturecriteria/druckerprager.cpp 
 physics/fracturecriteria/boundedvonmises.cpp 
@@ -123,7 +124,7 @@ physics/stiffness_and_fracture.cpp
 physics/stiffness.cpp 
 #physics/maxwell.cpp 
 #physics/maxwell_and_fracture.cpp 
-#physics/parallel_behaviour.cpp 
+#physics/parallel_behaviour.cpp REVIRON
 #physics/serial_behaviour.cpp 
 physics/orthotropicstiffness.cpp 
 physics/stiffness_and_indexed_fracture.cpp
@@ -151,6 +152,7 @@ physics/materials/paste_behaviour.cpp
 physics/materials/rebar_behaviour.cpp
 physics/materials/steel_behaviour.cpp
 physics/materials/concrete_behaviour.cpp
+physics/materials/concrete_mazars_behaviour.cpp
 physics/materials/c3s_behaviour.cpp
 physics/materials/csh_behaviour.cpp
 physics/materials/ch_behaviour.cpp
@@ -334,6 +336,15 @@ target_link_libraries( visco_CSH_CASH Amie ${ALL_LINK_FLAGS} )
 add_executable(single_2d_inclusion examples/main_single_2d_inclusion.cpp )
 target_link_libraries( single_2d_inclusion Amie ${ALL_LINK_FLAGS} )
 
+add_executable(single_2d_viscoelasticity examples/main_single_2d_viscoelasticity.cpp )
+target_link_libraries( single_2d_viscoelasticity Amie ${ALL_LINK_FLAGS} )
+
+add_executable(visu_behavior examples/main_visu_behavior.cpp )
+target_link_libraries(visu_behavior Amie ${ALL_LINK_FLAGS} )
+
+add_executable(visu_3D_behavior examples/main_visu_3D_behavior.cpp )
+target_link_libraries(visu_3D_behavior Amie ${ALL_LINK_FLAGS} )
+
 add_executable(3d_asr  examples/main_3d_asr.cpp  )
 target_link_libraries( 3d_asr Amie  ${ALL_LINK_FLAGS})
 
@@ -415,8 +426,8 @@ target_link_libraries( irradiation Amie ${ALL_LINK_FLAGS})
 add_executable(asr_visco examples/main_asr_visco.cpp )
 target_link_libraries( asr_visco Amie ${ALL_LINK_FLAGS} )
 
-add_executable(from_mic examples/main_from_mic.cpp )
-target_link_libraries( from_mic Amie ${ALL_LINK_FLAGS} )
+#add_executable(from_mic examples/main_from_mic.cpp )
+#target_link_libraries( from_mic Amie ${ALL_LINK_FLAGS} )
 
 add_executable(tension examples/main_tension.cpp )
 target_link_libraries( tension Amie ${ALL_LINK_FLAGS})
@@ -429,5 +440,8 @@ target_link_libraries( visu Amie ${ALL_LINK_FLAGS})
 
 add_executable( tension_visco examples/main_tension_visco.cpp )
 target_link_libraries( tension_visco Amie ${ALL_LINK_FLAGS})
+
+add_executable( tension_visco_damage examples/main_tension_visco_damage.cpp )
+target_link_libraries( tension_visco_damage Amie ${ALL_LINK_FLAGS})
 
 
