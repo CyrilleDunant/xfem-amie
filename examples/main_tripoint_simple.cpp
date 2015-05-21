@@ -115,10 +115,12 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
                 for ( int p = npoints/2 ; p < npoints ; p++ )
                 {
 
-                    if ( squareDist2D ( Point ( 0, sampleHeight*.5 + plateHeight ), k->getBoundingPoint ( p ) ) < .01 )
+                    if (  k->getBoundingPoint ( p ).getX()  < .01 && std::abs(k->getBoundingPoint ( p ).getY()-sampleHeight*.5 - plateHeight) < 0.01)
                     {
                         deltacount++ ;
-                        delta += x[k->getBoundingPoint ( p ).getId() * 2+1] ;
+                        Vector dummy(2) ;
+                        k->getState().getField(DISPLACEMENT_FIELD, k->getBoundingPoint ( p ), dummy, false); 
+                        delta +=dummy[1] ;
                     }
                 }
 
@@ -135,7 +137,7 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
         std::cout << "average sigma22 : " << stemp[1] << std::endl ;
         std::cout << "average sigma12 : " << stemp[2] << std::endl ;
         std::cout << std::endl ;
-        std::fstream ldfile ( "ldn", std::ios::out )  ;
+        std::fstream ldfile ( "ldnvisco8", std::ios::out )  ;
 
         
         if ( go_on )
@@ -219,7 +221,7 @@ int main ( int argc, char *argv[] )
     
     FractureCriterion * mcft = new NonLocalSpaceTimeMCFT(cstress,k_elas, 0.048,UPPER_BOUND,MIRROR_Y) ;
     FractureCriterion * mazar = new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 0.048, pt ) ;
-    DamageModel * linear = new SpaceTimeIsotropicLinearDamage(0.05,1e-6, 1.0) ;
+    DamageModel * linear = new SpaceTimeIsotropicLinearDamage(0.05, 1.0) ;
  
     Matrix m0_steel = Tensor::cauchyGreen ( std::make_pair ( E_steel,nu_steel ), true, SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
 
@@ -240,8 +242,8 @@ int main ( int argc, char *argv[] )
     rightbottomvoid.setBehaviour ( new VoidForm() ) ;
     
     
-//     sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mcft->getCopy(), linear->getCopy() )); 
-    sample.setBehaviour (new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mcft->getCopy(), linear->getCopy() )); 
+    sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mcft->getCopy(), linear->getCopy() )); 
+//     sample.setBehaviour (new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mcft->getCopy(), linear->getCopy() )); 
     topsupport.setBehaviour ( new Viscoelasticity ( PURE_ELASTICITY, m0_steel ) ) ;
     baseright.setBehaviour ( new Viscoelasticity ( PURE_ELASTICITY, m0_steel ) ) ;
     

@@ -24,7 +24,6 @@ class SpaceTimeIsotropicLinearDamage final: public DamageModel
 {
 protected:
     double fibreFraction ;
-    double timeTolerance ;
     double accelerate = 0. ;
     double dt = 1. ;
 
@@ -33,7 +32,7 @@ public:
      *
      * @param numDof number of degrees of freedom
      */
-    SpaceTimeIsotropicLinearDamage(double f = 0.1, double tol = 0.001, double cutoff = 0.6) ;
+    SpaceTimeIsotropicLinearDamage(double f = 0.1,  double cutoff = 0.6) ;
 
     virtual ~SpaceTimeIsotropicLinearDamage();
 

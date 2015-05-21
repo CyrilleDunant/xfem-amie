@@ -996,7 +996,7 @@ DamageModel * ConfigTreeItem::getDamageModel(bool spaceTime)
     {
         if(spaceTime)
         {
-            ret = new SpaceTimeIsotropicLinearDamage( getData("damage_increment",0.1), getData("time_tolerance",1e-9), getData("maximum_damage",1.) ) ;
+            ret = new SpaceTimeIsotropicLinearDamage( getData("damage_increment",0.1),  getData("maximum_damage",1.) ) ;
         }
         ret = new IsotropicLinearDamage() ;
     }

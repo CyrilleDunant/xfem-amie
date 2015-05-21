@@ -590,8 +590,6 @@ double NonLocalSpaceTimeMCFT::grade(ElementState &s)
         return gradeAfter ;
     if(gradeBefore > 0)
     {
-//         std::cout << gradeBefore << " vs " << gradeAfter << std::endl ;
-//         exit(0) ;
         return .99 ;
     }
 
@@ -599,7 +597,7 @@ double NonLocalSpaceTimeMCFT::grade(ElementState &s)
     double downTime = -1 ;
     double testTime = 0 ;
     
-    while(std::abs(upTime-downTime) > 1e-6)
+    while(std::abs(upTime-downTime) > 1e-7)
     {
         double gradeTest = gradeAtTime(s, testTime) ;
         if(gradeTest < 0)

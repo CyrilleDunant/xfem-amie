@@ -55,7 +55,7 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
         posstrain.push_back( ( std::max(0.0, stress[0]) + std::max(0.0,stress[1]) )*-nu/(E*(1 - dama_predict)) ) ;
         Trtsig = 0.5*( std::abs(stress[0])  + stress[0] ) + 0.5*( std::abs(stress[1])  + stress[1]) ;
         Trcsig =  ( std::min(0.0, stress[0]) + std::min(0.0,stress[1]));
-        if( Trcsig <= -POINT_TOLERANCE &&  std::abs(Trtsig/Trcsig) <= 1e-6)
+        if( Trcsig < -POINT_TOLERANCE &&  std::abs(Trtsig/Trcsig) <= 1e-6)
         {
             gamma =  std::sqrt( std::min(0.0, stress[0])*std::min(0.0, stress[0]) + std::min(0.0,stress[1])*std::min(0.0,stress[1]) ) / (-Trcsig) ;
         }
@@ -65,7 +65,7 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
 	calpha = 1.0 - talpha ;
     }
     
-    else if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL && pt==PLANE_STRAIN)
+    else if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL && pt == PLANE_STRAIN)
     {
         std::cout << "\n" << "MODEL MISSING FOR PLANE STRAIN CONDITIONS" << std::endl;
     }
@@ -129,17 +129,14 @@ double NonLocalSpaceTimeMazars::grade(ElementState &s)
         return gradeAfter ;
     if(gradeBefore > 0)
     {
-//         std::cout << gradeBefore << " vs " << gradeAfter << std::endl ;
-//         exit(0) ;
-//         return .1 ;
-        return .999 ;
+        return .99 ;
     }
 
     double upTime = 1 ;
     double downTime = -1 ;
     double testTime = 0 ;
     
-    while(std::abs(upTime-downTime) > 1e-6)
+    while(std::abs(upTime-downTime) > 1e-7)
     {
         double gradeTest = gradeAtTime(s, testTime) ;
         if(gradeTest < 0)

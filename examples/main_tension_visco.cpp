@@ -167,7 +167,7 @@ int main ( int argc, char *argv[] )
     //ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9, 1.) );
     FractureCriterion * mcft = new NonLocalSpaceTimeMCFT(cstress,k_elas, .038) ;
     FractureCriterion * mazar = new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, .038, pt ) ;
-    DamageModel * linear = new SpaceTimeIsotropicLinearDamage(0.25,1e-6, 1.0) ;
+    DamageModel * linear = new SpaceTimeIsotropicLinearDamage(0.25,1.0) ;
     
     ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mazar->getCopy(), linear->getCopy() ); 
     ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mazar->getCopy(), linear->getCopy()); 

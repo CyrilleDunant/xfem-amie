@@ -15,7 +15,7 @@
 
 namespace Amie {
 
-SpaceTimeIsotropicLinearDamage::SpaceTimeIsotropicLinearDamage(double f, double t, double density)  : fibreFraction(f), timeTolerance(t)
+SpaceTimeIsotropicLinearDamage::SpaceTimeIsotropicLinearDamage(double f, double density)  : fibreFraction(f)
 {
     thresholdDamageDensity = density ;
     getState(true).resize(1, 0.);
@@ -99,7 +99,8 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
     else if(!fractured() && s.getParent()->getBehaviour()->getFractureCriterion()->met())
     {
         dt *= s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-        accelerate+=1 ;
+        accelerate += 1. ;
+        accelerate = std::min(accelerate, 32.) ;
         change = true ;
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
     }
@@ -109,7 +110,7 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
 
 DamageModel * SpaceTimeIsotropicLinearDamage::getCopy() const
 {
-    SpaceTimeIsotropicLinearDamage * dam = new SpaceTimeIsotropicLinearDamage(fibreFraction, timeTolerance, thresholdDamageDensity) ;
+    SpaceTimeIsotropicLinearDamage * dam = new SpaceTimeIsotropicLinearDamage(fibreFraction, thresholdDamageDensity) ;
     return dam ;
 }
 

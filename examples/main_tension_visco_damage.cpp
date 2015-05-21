@@ -99,15 +99,16 @@ void step ( size_t nsteps )
             loadsx.push_back ( stemp[0] );
             times.push_back(featureTree->getCurrentTime());
             damages.push_back(dtemp[0]);   
-            std::fstream ldfile  ;
-            ldfile.open ( "ldnviscodamage", std::ios::out ) ;
-            for ( size_t j = 0 ; j < loads.size() ; j++ )
+            if(v%50 == 0)
             {
-                ldfile <<  times[j] <<" " << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] << " " << damages[j] <<  "\n" ;
+                std::fstream ldfile  ;
+                ldfile.open ( "ldnviscodamage", std::ios::app ) ;
+                ldfile <<  times.back() <<" " << displacements.back() << "   " << loads.back() << "   " <<  displacementsx.back() << "   " << loadsx.back() << " " << damages.back() <<  "\n" ;
+                ldfile.close();
             }
-            ldfile.close();
-	    double time_n = featureTree -> getCurrentTime() ;
-            if(time_n > 94)
+
+            double time_n = featureTree -> getCurrentTime() ;
+            if(time_n > 30)
                     exit(0) ;
         }
 
@@ -156,7 +157,7 @@ int main ( int argc, char *argv[] )
 
     FeatureTree F ( &samplef ) ;
     featureTree = &F ;
-    DamageModel * linear = new SpaceTimeIsotropicLinearDamage(0.1,0.001 ,1.0);
+    DamageModel * linear = new SpaceTimeIsotropicLinearDamage(.25,1.0);
 
      //ELAS+DAMAGE
     //StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas, new NonLocalMCFT(-40e6,40e9,1.), new FiberBasedIsotropicLinearDamage(0.001, 1.));
@@ -177,7 +178,7 @@ int main ( int argc, char *argv[] )
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
     F.setDeltaTime(.2); 
-    F.setMinDeltaTime(.02);
+    F.setMinDeltaTime(1e-4);
 //     F.setOrder(LINEAR_TIME_LINEAR) ;
 
 

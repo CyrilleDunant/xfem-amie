@@ -2280,7 +2280,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case REAL_STRESS_FIELD:
     {
-        exit(0) ;
         Vector strains ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         Vector speeds ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         getField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, p_, strains, true,vm ) ;

@@ -561,12 +561,6 @@ void ViscoelasticityAndFracture::setElasticAndViscousStiffnessMatrix()
         break ;
     case GENERALIZED_MAXWELL:
         placeMatrixInBlock( tensors[0], 0,0, elasticParam) ;
-//         for(size_t i = 1 ; i < tensors.size() ; i+=2)
-//         {
-//             placeMatrixInBlock( tensors[i], i/2,i/2, viscousParam) ;
-//             placeMatrixInBlock( -tensors[i], 0,i/2, viscousParam) ;
-//             placeMatrixInBlock( -tensors[i], i/2,0, viscousParam) ;
-//         }
         for(size_t i = 1 ; i < tensors.size() ; i+=2)
         {
             Matrix ri = tensors[i] * (-1) ;
@@ -601,11 +595,8 @@ void ViscoelasticityAndFracture::setElasticAndViscousStiffnessMatrix()
 
 Matrix ViscoelasticityAndFracture::getTensor(const Point & p, IntegrableEntity * e, int g) const
 {
-//     std::cout << "......................" << std::endl ;
-//     dfunc->apply(elasticParam, p).print();
-//     dfunc->applyViscous(viscousParam, p).print();
-//     std::cout << "......................" << std::endl ;
-    return  dfunc->apply(elasticParam, p)+dfunc->applyViscous(viscousParam, p) ;
+
+    return  dfunc->apply(elasticParam, p) ;
 }
 
 Matrix ViscoelasticityAndFracture::getViscousTensor(const Point & p, IntegrableEntity * e, int g) const
