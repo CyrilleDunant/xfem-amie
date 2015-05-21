@@ -77,10 +77,11 @@ void step ( size_t nsteps )
     {
         bool go_on = featureTree->step() ;
         if(go_on)
-        loadr->setData(VirtualMachine().eval(loadfunc, 0,0,0, featureTree->getCurrentTime()));
+            loadr->setData(VirtualMachine().eval(loadfunc, 0,0,0, featureTree->getCurrentTime()));
+        
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD,-1.,1. ) ;
         Vector etemp = featureTree->getAverageField ( STRAIN_FIELD,-1.,1. ) ;
-	Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD) ;
+        Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD) ;
 
         std::cout << "average sigma11 : " << stemp[0]/1e6 << std::endl ;
         std::cout << "average sigma22 : " << stemp[1]/1e6 << std::endl ;
@@ -96,17 +97,17 @@ void step ( size_t nsteps )
             displacementsx.push_back ( etemp[0] );
             loads.push_back ( stemp[1] );
             loadsx.push_back ( stemp[0] );
-	    times.push_back(featureTree->getCurrentTime());
-	    damages.push_back(dtemp[0]);	    
+            times.push_back(featureTree->getCurrentTime());
+            damages.push_back(dtemp[0]);   
             std::fstream ldfile  ;
-            ldfile.open ( "ldn", std::ios::out ) ;
+            ldfile.open ( "ldnviscodamage", std::ios::out ) ;
             for ( size_t j = 0 ; j < loads.size() ; j++ )
             {
                 ldfile <<  times[j] <<" " << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] << " " << damages[j] <<  "\n" ;
             }
             ldfile.close();
-	    if(times.back() > 95)
-                exit(0) ;
+            if(v > 4000)
+                    exit(0) ;
         }
 
     }
@@ -138,7 +139,7 @@ int main ( int argc, char *argv[] )
 	  5.3973666770458357270061e9, 1.01057690570688572352998e10} ;
 	std::vector<double> tau_chaine_mx_cp = {0.04647627034132179101144053, 0.4553612767686235043851535, 4.242249572847878343173296, 32.07187552289942944803857} ;
 	Matrix K_mx_0 = Tensor::cauchyGreen(K_chaine_mx_cp[0], nu_elas, true,  SPACE_TWO_DIMENSIONAL )  ;
-	for(size_t i = 0 ; i < K_chaine_mx_cp.size() ; i++)
+	for(size_t i = 0 ; i < K_chaine_mx_cp.size()-1 ; i++)
 	{
 		Matrix K_mx_i = Tensor::cauchyGreen(K_chaine_mx_cp[i+1], nu_elas, true,  SPACE_TWO_DIMENSIONAL )  ;
 		Matrix Am_mx_i = Tensor::cauchyGreen( K_chaine_mx_cp[i+1]*tau_chaine_mx_cp[i], nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
@@ -177,7 +178,7 @@ int main ( int argc, char *argv[] )
     F.setDeltaTime(.0075); 
     F.setMinDeltaTime(.02);
 //     F.setOrder(LINEAR_TIME_LINEAR) ;
-    F.setMaxIterationsPerStep ( 50 );
+    F.setMaxIterationsPerStep ( 5000 );
 
     //step ( 240 ) ;
     step ( 12400 ) ;

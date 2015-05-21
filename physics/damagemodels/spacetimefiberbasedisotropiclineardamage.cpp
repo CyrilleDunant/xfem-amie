@@ -40,20 +40,20 @@ Matrix SpaceTimeFiberBasedIsotropicLinearDamage::applyViscous(const Matrix & m, 
     if(fractured())
         return m*0 ;
 
-    if(state.size() == 1)
-    {
-        if(state[0] > 0)
+//     if(state.size() == 1)
+//     {
+//         if(state[0] > 0)
             return m*(1.-VirtualMachine().eval(visc,state[0])) ;
-        return m ;
-    }
+//         return m ;
+//     }
 
-    double i = (p.getT() + 1.) * state.size() *.5 ;
-    if(i >= state.size())
-        i = state.size() - 1 ;
-
-    if(state[i] > 0)
-        return m*(1.-VirtualMachine().eval(visc,state[i])) ;
-    return m ;
+//     double i = (p.getT() + 1.) * state.size() *.5 ;
+//     if(i >= state.size())
+//         i = state.size() - 1 ;
+// 
+//     if(state[i] > 0)
+//         return m*(1.-VirtualMachine().eval(visc,state[i])) ;
+//     return m ;
 
 }
 
@@ -67,14 +67,14 @@ Matrix SpaceTimeFiberBasedIsotropicLinearDamage::apply(const Matrix & m, const P
         return m*0 ;
 
 
-    if(state.size() == 1)
+//     if(state.size() == 1)
         return m*(1.-state[0]) ;
-
+/*
     double i = (p.getT() + 1.) * state.size() / 2 ;
     if(i >= state.size())
         i = state.size() - 1 ;
 
-    return m*(1.-state[i]) ;
+    return m*(1.-state[i]) ;*/
 
 }
 
@@ -102,11 +102,11 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double ma
         else
             fraction = s.getParent()->volume();
 
-        if(state.size() +1 != s.getParent()->timePlanes())
-        {
-            state.resize(s.getParent()->timePlanes()-1) ;
-            s.getParent()->getBehaviour()->setTimeDependent( s.getParent()->timePlanes() > 2) ;
-        }
+//         if(state.size() +1 != s.getParent()->timePlanes())
+//         {
+//             state.resize(s.getParent()->timePlanes()-1) ;
+//             s.getParent()->getBehaviour()->setTimeDependent( s.getParent()->timePlanes() > 2) ;
+//         }
 
     }
 
@@ -162,10 +162,10 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::setLogitViscousDamageLaw(double a
 
 void SpaceTimeFiberBasedIsotropicLinearDamage::postProcess()
 {
-    for(size_t i = 0 ; i < state.size()-1 ; i++)
-    {
-        state[i] = state[i+1] ;
-    }
+//     for(size_t i = 0 ; i < state.size()-1 ; i++)
+//     {
+//         state[i] = state[i+1] ;
+//     }
 //	converged = true ;
 }
 

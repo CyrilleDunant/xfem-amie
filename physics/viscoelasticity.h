@@ -91,9 +91,9 @@ struct Viscoelasticity : public LinearForm
 //	virtual Matrix getConstitutiveStiffnessTensor() ;
 //	virtual Matrix getConstitutiveViscosityTensor() ;
 	
-	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const { return param ; }	
+	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const { return param ; }
 	
-	virtual Matrix getViscousTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const { return eta ; }	
+	virtual Matrix getViscousTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const { return eta ; }
 	
 	virtual Vector getForcesFromAppliedStress( const Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic = false, const Vector & normal = Vector()) ;
 

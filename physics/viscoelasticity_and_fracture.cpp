@@ -5,59 +5,6 @@
 
 using namespace Amie ;
 
-/*void placeMatrixInBlock(const Matrix & m, size_t i, size_t j, Matrix & ret)
-{
-	size_t r = m.numRows() ;
-	size_t c = m.numCols() ;
-	for(size_t k = i*r ; k < (i+1)*r ; k++)
-	{
-		for(size_t l = j*c ; l < (j+1)*c ; l++)
-		{
-			ret[k][l] = m[k-i*r][l-j*c] ;
-		}
-	}
-}
-
-void addMatrixInBlock(const Matrix & m, size_t i, size_t j, Matrix & ret)
-{
-	size_t r = m.numRows() ;
-	size_t c = m.numCols() ;
-	for(size_t k = i*r ; k < (i+1)*r ; k++)
-	{
-		for(size_t l = j*c ; l < (j+1)*c ; l++)
-		{
-			ret[k][l] += m[k-i*r][l-j*c] ;
-		}
-	}
-}
-
-void substractMatrixInBlock(const Matrix & m, size_t i, size_t j, Matrix & ret)
-{
-	size_t r = m.numRows() ;
-	size_t c = m.numCols() ;
-	for(size_t k = i*r ; k < (i+1)*r ; k++)
-	{
-		for(size_t l = j*c ; l < (j+1)*c ; l++)
-		{
-			ret[k][l] -= m[k-i*r][l-j*c] ;
-		}
-	}
-}
-
-void getBlockInMatrix( const Matrix & source, size_t i, size_t j, Matrix & ret)
-{
-	size_t r = ret.numRows() ;
-	size_t c = ret.numCols() ;
-	for(size_t k = i*r ; k < (i+1)*r ; k++)
-	{
-		for(size_t l = j*c ; l < (j+1)*c ; l++)
-		{
-			ret[k-i*r][l-j*c] = source[k][l] ;
-		}
-	}
-}*/
-
-
 ViscoelasticityAndFracture::ViscoelasticityAndFracture(ViscoelasticModel m, const Matrix & rig, FractureCriterion * c, DamageModel * d, int n, double r) : Viscoelasticity(m, rig, n, r), dfunc(d), criterion(c)
 {
     setElasticAndViscousStiffnessMatrix() ;
@@ -645,12 +592,16 @@ void ViscoelasticityAndFracture::setElasticAndViscousStiffnessMatrix()
 
 Matrix ViscoelasticityAndFracture::getTensor(const Point & p, IntegrableEntity * e, int g) const
 {
-    return  dfunc->apply(elasticParam, p)+dfunc->applyViscous(viscousParam, p) ;
+//     std::cout << "......................" << std::endl ;
+//     dfunc->apply(elasticParam, p).print();
+//     dfunc->applyViscous(viscousParam, p).print();
+//     std::cout << "......................" << std::endl ;
+    return  dfunc->apply(elasticParam, p)/*+dfunc->applyViscous(viscousParam, p)*/ ;
 }
 
 Matrix ViscoelasticityAndFracture::getViscousTensor(const Point & p, IntegrableEntity * e, int g) const
 {
-    return dfunc->applyViscous(eta) ;
+    return dfunc->applyViscous(viscousParam, p) ;
 }
 
 void ViscoelasticityAndFracture::setFractureCriterion(FractureCriterion * frac)
