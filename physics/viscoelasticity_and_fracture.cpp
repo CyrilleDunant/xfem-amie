@@ -70,10 +70,17 @@ void ViscoelasticityAndFracture::apply(const Function & p_i, const Function & p_
         {
         case GENERALIZED_KELVIN_VOIGT:
         {
+            std::vector<Matrix>  dtensors ;
+
+            for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+            {
+                dtensors.push_back(dfunc->apply(tensors[0], gp.gaussPoints[g].first));
+            }
+
             // stiffness (0,0)
-            buffer = dfunc->apply(tensors[0]) ;
-            vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-            vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+//             buffer = dfunc->apply(tensors[0], gp.gaussPoints[0].first) ;
+            vm->ieval(GradientDot(p_i) * dtensors * Gradient(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(Gradient(p_i)    * dtensors * GradientDot(p_j, true), gp, Jinv,v, b) ;
             a += b ;
             placeMatrixInBlock( a  , 0,0, ret ) ;
             for(int i = 1 ; i < blocks ; i++)
@@ -94,10 +101,16 @@ void ViscoelasticityAndFracture::apply(const Function & p_i, const Function & p_
             }
             for(int i = 1 ; i < blocks ; i++)
             {
+
+                dtensors.clear() ;
+                for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+                {
+                    dtensors.push_back(dfunc->applyViscous(tensors[i*2-1], gp.gaussPoints[g].first)) ;
+                }
                 //stiffness (diagonal)
-                buffer = dfunc->applyViscous(tensors[i*2-1]) ;
-                vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-                vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+//                 buffer = dfunc->applyViscous(tensors[i*2-1], gp.gaussPoints[0].first) ;
+                vm->ieval(GradientDot(p_i) * dtensors * Gradient(p_j, true),    gp, Jinv,v, a) ;
+                vm->ieval(Gradient(p_i)    * dtensors * GradientDot(p_j, true), gp, Jinv,v, b) ;
                 a += b ;
                 addMatrixInBlock( a , i,i, ret ) ;
             }
@@ -108,16 +121,29 @@ void ViscoelasticityAndFracture::apply(const Function & p_i, const Function & p_
         case GENERALIZED_MAXWELL:
         {
             // stiffness (0,0)
-            buffer = dfunc->apply(tensors[0]) ;
-            vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-            vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+
+
+            std::vector<Matrix>  dtensors ;
+
+            for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+            {
+                dtensors.push_back(dfunc->apply(tensors[0], gp.gaussPoints[g].first));
+            }
+
+            vm->ieval(GradientDot(p_i) * dtensors * Gradient(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(Gradient(p_i)    * dtensors * GradientDot(p_j, true), gp, Jinv,v, b) ;
             a += b ;
             placeMatrixInBlock( a , 0,0, ret ) ;
             for(int i = 1 ; i < blocks ; i++)
             {
-                buffer = dfunc->applyViscous(tensors[2*i-1]) ;
-                vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-                vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+                dtensors.clear();
+                for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+                {
+                    dtensors.push_back(dfunc->applyViscous(tensors[2*i-1], gp.gaussPoints[g].first));
+                }
+//                 buffer = dfunc->applyViscous(tensors[2*i-1], gp.gaussPoints[0].first) ;
+                vm->ieval(GradientDot(p_i) * dtensors * Gradient(p_j, true),    gp, Jinv,v, a) ;
+                vm->ieval(Gradient(p_i)    * dtensors * GradientDot(p_j, true), gp, Jinv,v, b) ;
                 a += b ;
                 placeMatrixInBlock( a , i,i, ret ) ;
                 // first line
@@ -132,9 +158,16 @@ void ViscoelasticityAndFracture::apply(const Function & p_i, const Function & p_
         case BURGER:
         {
             // stiffness Maxwell
-            buffer = dfunc->apply(tensors[0]) ;
-            vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-            vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+            std::vector<Matrix>  dtensors ;
+
+            for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+            {
+                dtensors.push_back(dfunc->apply(tensors[0], gp.gaussPoints[g].first));
+            }
+
+//             buffer = dfunc->apply(tensors[0], gp.gaussPoints[0].first) ;
+            vm->ieval(GradientDot(p_i) * dtensors * Gradient(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(Gradient(p_i)    * dtensors * GradientDot(p_j, true), gp, Jinv,v, b) ;
             a += b ;
             placeMatrixInBlock( a , 0,0, ret ) ;
             placeMatrixInBlock( a , 1,1, ret ) ;
@@ -146,9 +179,16 @@ void ViscoelasticityAndFracture::apply(const Function & p_i, const Function & p_
             placeMatrixInBlock( -a , 0,2, ret ) ;
             placeMatrixInBlock( -a , 2,0, ret ) ;
             // stiffness KV
-            buffer = dfunc->applyViscous(tensors[2]) ;
-            vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-            vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+
+            dtensors.clear() ;
+
+            for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+            {
+                dtensors.push_back(dfunc->applyViscous(tensors[2], gp.gaussPoints[g].first));
+            }
+//             buffer = dfunc->applyViscous(tensors[2], gp.gaussPoints[0].first) ;
+            vm->ieval(GradientDot(p_i) * dtensors * Gradient(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(Gradient(p_i)    * dtensors * GradientDot(p_j, true), gp, Jinv,v, b) ;
             a += b ;
             addMatrixInBlock( a , 2,2, ret ) ;
 
@@ -158,9 +198,16 @@ void ViscoelasticityAndFracture::apply(const Function & p_i, const Function & p_
         case MAXWELL:
         {
             // stiffness
-            buffer = dfunc->apply(tensors[0]) ;
-            vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-            vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+
+            std::vector<Matrix>  dtensors ;
+
+            for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+            {
+                dtensors.push_back(dfunc->apply(tensors[0], gp.gaussPoints[g].first));
+            }
+//             buffer = dfunc->apply(tensors[0], gp.gaussPoints[0].first) ;
+            vm->ieval(GradientDot(p_i) * dtensors * Gradient(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(Gradient(p_i)    * dtensors * GradientDot(p_j, true), gp, Jinv,v, b) ;
             a += b ;
             placeMatrixInBlock( a , 0,0, ret ) ;
             placeMatrixInBlock( a , 1,1, ret ) ;
@@ -172,9 +219,16 @@ void ViscoelasticityAndFracture::apply(const Function & p_i, const Function & p_
         case KELVIN_VOIGT:
         {
             // stiffness
-            buffer = dfunc->apply(tensors[0]) ;
-            vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-            vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+            std::vector<Matrix>  dtensors ;
+
+            for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+            {
+                dtensors.push_back(dfunc->apply(tensors[0], gp.gaussPoints[g].first));
+            }
+
+//             buffer = dfunc->apply(tensors[0], gp.gaussPoints[0].first) ;
+            vm->ieval(GradientDot(p_i) * dtensors * Gradient(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(Gradient(p_i)    * dtensors * GradientDot(p_j, true), gp, Jinv,v, b) ;
             a += b ;
             placeMatrixInBlock( a , 0,0, ret ) ;
             return ;
@@ -182,9 +236,15 @@ void ViscoelasticityAndFracture::apply(const Function & p_i, const Function & p_
 
         case PURE_ELASTICITY:
         {
-            buffer = dfunc->apply(tensors[0]) ;
-            vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-            vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+            std::vector<Matrix>  dtensors ;
+
+            for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+            {
+                dtensors.push_back(dfunc->apply(tensors[0], gp.gaussPoints[g].first));
+            }
+//             buffer = dfunc->apply(tensors[0], gp.gaussPoints[0].first) ;
+            vm->ieval(GradientDot(p_i) * dtensors * Gradient(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(Gradient(p_i)    * dtensors * GradientDot(p_j, true), gp, Jinv,v, b) ;
             a += b ;
             placeMatrixInBlock( a , 0,0, ret ) ;
 
@@ -200,20 +260,34 @@ void ViscoelasticityAndFracture::apply(const Function & p_i, const Function & p_
         {
             for(int i = 0 ; i < blocks ; i++)
             {
+
+                std::vector<Matrix>  dtensors ;
+
+
                 // elasticParam matrix (diagonal)
                 getBlockInMatrix(param, i,i, buffer) ;
-                buffer = dfunc->apply(buffer) ;
-                vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-                vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+
+                for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+                {
+                    dtensors.push_back(dfunc->apply(buffer, gp.gaussPoints[g].first));
+                }
+//                 buffer = dfunc->apply(buffer, gp.gaussPoints[0].first) ;
+                vm->ieval(GradientDot(p_i) * dtensors * Gradient(p_j, true),    gp, Jinv,v, a) ;
+                vm->ieval(Gradient(p_i)    * dtensors * GradientDot(p_j, true), gp, Jinv,v, b) ;
                 a += b ;
                 placeMatrixInBlock( a , i,i, ret ) ;
                 // elasticParam matrix (upper-triangle)
                 for(int j = i+1 ; j < blocks ; j++)
                 {
                     getBlockInMatrix(param, i,j, buffer) ;
-                    buffer = dfunc->apply(buffer) ;
-                    vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-                    vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+                    dtensors.clear();
+                    for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+                    {
+                        dtensors.push_back(dfunc->apply(buffer, gp.gaussPoints[g].first));
+                    }
+//                     buffer = dfunc->apply(buffer, gp.gaussPoints[0].first) ;
+                    vm->ieval(GradientDot(p_i) * dtensors * Gradient(p_j, true),    gp, Jinv,v, a) ;
+                    vm->ieval(Gradient(p_i)    * dtensors * GradientDot(p_j, true), gp, Jinv,v, b) ;
                     a += b ;
                     placeMatrixInBlock( a , i,j, ret ) ;
                     // symmetry
@@ -282,9 +356,15 @@ void ViscoelasticityAndFracture::applyViscous(const Function & p_i, const Functi
             for(int i = 1 ; i < blocks ; i++)
             {
                 // viscosity (diagonal)
-                buffer = dfunc->applyViscous(tensors[2*i]) ;
-                vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
-                vm->ieval(GradientDotDot(p_i)    * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
+                std::vector<Matrix>  dtensors ;
+
+                for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+                {
+                    dtensors.push_back(dfunc->applyViscous(tensors[2*i], gp.gaussPoints[g].first));
+                }
+//                 buffer = dfunc->applyViscous(tensors[2*i]) ;
+                vm->ieval(GradientDot(p_i) * dtensors * GradientDot(p_j, true),    gp, Jinv,v, a) ;
+                vm->ieval(GradientDotDot(p_i)    * dtensors * Gradient(p_j, true), gp, Jinv,v, b) ;
                 a += b ;
                 placeMatrixInBlock( a  , i,i, ret ) ;
             }
@@ -296,10 +376,17 @@ void ViscoelasticityAndFracture::applyViscous(const Function & p_i, const Functi
         {
             for(int i = 1 ; i < blocks ; i++)
             {
+                std::vector<Matrix>  dtensors ;
+
+                for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+                {
+                    dtensors.push_back(dfunc->applyViscous(tensors[2*i], gp.gaussPoints[g].first));
+                }
+
                 // viscosity (diagonal)
-                buffer = dfunc->applyViscous(tensors[2*i]) ;
-                vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
-                vm->ieval(GradientDotDot(p_i)    * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
+//                 buffer = dfunc->applyViscous(tensors[2*i]) ;
+                vm->ieval(GradientDot(p_i) * dtensors * GradientDot(p_j, true),    gp, Jinv,v, a) ;
+                vm->ieval(GradientDotDot(p_i)    * dtensors * Gradient(p_j, true), gp, Jinv,v, b) ;
                 a += b ;
                 placeMatrixInBlock( a  , i,i, ret ) ;
             }
@@ -309,15 +396,29 @@ void ViscoelasticityAndFracture::applyViscous(const Function & p_i, const Functi
         case BURGER:
         {
             // viscosity Maxwell
-            buffer = dfunc->applyViscous(tensors[1]) ;
-            vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-            vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
+            std::vector<Matrix>  dtensors ;
+
+            for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+            {
+                dtensors.push_back(dfunc->applyViscous(tensors[1], gp.gaussPoints[g].first));
+            }
+
+//             buffer = dfunc->applyViscous(tensors[1]) ;
+            vm->ieval(GradientDot(p_i)    * dtensors   * GradientDot(p_j, true), gp, Jinv,v,a);
+            vm->ieval(GradientDotDot(p_i) * dtensors   * Gradient(p_j, true),    gp, Jinv,v,b);
             a += b ;
             placeMatrixInBlock( a  , 1,1, ret ) ;
             // viscosity KV
-            buffer = dfunc->applyViscous(tensors[3]) ;
-            vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-            vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
+//             buffer = dfunc->applyViscous(tensors[3]) ;
+
+            dtensors.clear() ;
+
+            for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+            {
+                dtensors.push_back(dfunc->applyViscous(tensors[3], gp.gaussPoints[g].first));
+            }
+            vm->ieval(GradientDot(p_i)    * dtensors   * GradientDot(p_j, true), gp, Jinv,v,a);
+            vm->ieval(GradientDotDot(p_i) * dtensors   * Gradient(p_j, true),    gp, Jinv,v,b);
             a += b ;
             placeMatrixInBlock( a  , 2,2, ret ) ;
             return ;
@@ -326,9 +427,15 @@ void ViscoelasticityAndFracture::applyViscous(const Function & p_i, const Functi
         case MAXWELL:
         {
             // viscosity
-            buffer = dfunc->applyViscous(tensors[1]) ;
-            vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-            vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
+            std::vector<Matrix>  dtensors ;
+
+            for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+            {
+                dtensors.push_back(dfunc->applyViscous(tensors[1], gp.gaussPoints[g].first));
+            }
+//             buffer = dfunc->applyViscous(tensors[1]) ;
+            vm->ieval(GradientDot(p_i)    * dtensors   * GradientDot(p_j, true), gp, Jinv,v,a);
+            vm->ieval(GradientDotDot(p_i) * dtensors   * Gradient(p_j, true),    gp, Jinv,v,b);
             a += b ;
             placeMatrixInBlock( a  , 1,1, ret ) ;
             return ;
@@ -337,9 +444,15 @@ void ViscoelasticityAndFracture::applyViscous(const Function & p_i, const Functi
         case KELVIN_VOIGT:
         {
             // viscosity
-            buffer = dfunc->applyViscous(tensors[1]) ;
-            vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-            vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
+            std::vector<Matrix>  dtensors ;
+
+            for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+            {
+                dtensors.push_back(dfunc->applyViscous(tensors[1], gp.gaussPoints[g].first));
+            }
+//             buffer = dfunc->applyViscous(tensors[1]) ;
+            vm->ieval(GradientDot(p_i)    * dtensors   * GradientDot(p_j, true), gp, Jinv,v,a);
+            vm->ieval(GradientDotDot(p_i) * dtensors   * Gradient(p_j, true),    gp, Jinv,v,b);
             addMatrixInBlock( a  , 0,0, ret ) ;
             return ;
         }
@@ -351,9 +464,16 @@ void ViscoelasticityAndFracture::applyViscous(const Function & p_i, const Functi
 
         case PURE_VISCOSITY:
         {
-            buffer = dfunc->applyViscous(tensors[1]) ;
-            vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-            vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
+            std::vector<Matrix>  dtensors ;
+
+            for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+            {
+                dtensors.push_back(dfunc->applyViscous(tensors[1], gp.gaussPoints[g].first));
+            }
+
+//             buffer = dfunc->applyViscous(tensors[1]) ;
+            vm->ieval(GradientDot(p_i)    * dtensors   * GradientDot(p_j, true), gp, Jinv,v,a);
+            vm->ieval(GradientDotDot(p_i) * dtensors   * Gradient(p_j, true),    gp, Jinv,v,b);
             a += b ;
             placeMatrixInBlock( a  , 0,0, ret ) ;
 
@@ -366,18 +486,31 @@ void ViscoelasticityAndFracture::applyViscous(const Function & p_i, const Functi
             {
                 // viscousParam matrix (diagonal)
                 getBlockInMatrix(eta, i,i, buffer) ;
-                buffer = dfunc->applyViscous(buffer) ;
-                vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-                vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
+                std::vector<Matrix>  dtensors ;
+
+                for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+                {
+                    dtensors.push_back(dfunc->applyViscous(buffer, gp.gaussPoints[g].first));
+                }
+
+//                 buffer = dfunc->applyViscous(buffer) ;
+                vm->ieval(GradientDot(p_i)    * dtensors   * GradientDot(p_j, true), gp, Jinv,v,a);
+                vm->ieval(GradientDotDot(p_i) * dtensors   * Gradient(p_j, true),    gp, Jinv,v,b);
                 a += b ;
                 placeMatrixInBlock( a  , i,i, ret ) ;
                 // viscousParam matrix (upper-triangle)
                 for(int j = i+1 ; j < blocks ; j++)
                 {
+                    dtensors.clear() ;
+
+                    for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+                    {
+                        dtensors.push_back(dfunc->applyViscous(buffer, gp.gaussPoints[g].first));
+                    }
                     getBlockInMatrix(eta, i,j, buffer) ;
                     buffer = dfunc->applyViscous(buffer) ;
-                    vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-                    vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
+                    vm->ieval(GradientDot(p_i)    * dtensors   * GradientDot(p_j, true), gp, Jinv,v,a);
+                    vm->ieval(GradientDotDot(p_i) * dtensors   * Gradient(p_j, true),    gp, Jinv,v,b);
                     a += b ;
                     addMatrixInBlock( a  , i,j, ret ) ;
                     // symmetry

@@ -40,7 +40,7 @@ Matrix SpaceTimeIsotropicLinearDamage::applyViscous(const Matrix & m, const Poin
         return m*0 ;
     
     double factor = (p.getT()+1.)*.5 ;
-    double d = std::min(state[0]+factor*dt*accelerate*fibreFraction, 1.) ;
+    double d = std::min(state[0]+factor*sqrt(std::max(dt, 1e-4))*accelerate*fibreFraction, 1.) ;
     return m*(1.-d) ;
 
 
@@ -56,7 +56,7 @@ Matrix SpaceTimeIsotropicLinearDamage::apply(const Matrix & m, const Point & p,c
         return m*0 ;
     
     double factor = (p.getT()+1.)*.5 ;
-    double d = std::min(state[0]+factor*dt*accelerate*fibreFraction, 1.) ;
+    double d = std::min(state[0]+factor*std::max(dt, 1e-4)*accelerate*fibreFraction, 1.) ;
     return m*(1.-d) ;
 
 }
@@ -89,7 +89,7 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
 
     change = false ;    
     state[0] = std::min(state[0]+dt*accelerate*fibreFraction, 1.) ;
-    dt = s.getParent()->getBoundingPoint(s.getParent()->getBoundingPoints().size()-1).getT() - s.getParent()->getBoundingPoint(0).getT() ;
+    dt = std::max(s.getParent()->getBoundingPoint(s.getParent()->getBoundingPoints().size()-1).getT() - s.getParent()->getBoundingPoint(0).getT(), 1e-4) ;
     
     if(!s.getParent()->getBehaviour()->getFractureCriterion() || !s.getParent()->getBehaviour()->getFractureCriterion()->met())
     {
@@ -99,8 +99,11 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
     else if(!fractured() && s.getParent()->getBehaviour()->getFractureCriterion()->met())
     {
         dt *= s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-        accelerate += 1. ;
-        accelerate = std::min(accelerate, 32.) ;
+        accelerate += .5 ;
+        double maxAccelerate = 1 ;
+        if(fibreFraction*std::max(dt, 1e-4) > POINT_TOLERANCE)
+            maxAccelerate = (1.-state[0])/(fibreFraction*std::max(dt, 1e-4)) ;
+        accelerate = std::min(accelerate, std::min(maxAccelerate, 32.)) ;
         change = true ;
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
     }

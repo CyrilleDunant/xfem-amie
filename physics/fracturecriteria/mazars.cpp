@@ -32,7 +32,7 @@ NonLocalMazars::~NonLocalMazars()
 
 double NonLocalMazars::gradeAtTime(ElementState &s, double t)
 {
-    std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s,  t) ;
+    std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s,  t) ;
     Vector stress = sstrain.first ;
     Vector strain = sstrain.second ;
     double strainzz =  -nu*(strain[0] + strain[1])/(1. - nu) ;
@@ -134,7 +134,19 @@ double NonLocalSpaceTimeMazars::grade(ElementState &s)
 
     double upTime = 1 ;
     double downTime = -1 ;
-    double testTime = 0 ;
+    
+    if(gradeAtTime(s, -.75) > 0)
+        upTime = -.75 ;
+    else if(gradeAtTime(s, -.5) > 0)
+        upTime = -.5 ;
+    else if(gradeAtTime(s, -.25) > 0)
+        upTime = -.25 ;
+    else if(gradeAtTime(s, 0) > 0)
+        upTime = 0 ;
+    else if(gradeAtTime(s, .5) > 0)
+        upTime = .5  ;
+    
+    double testTime = 0.5*downTime+0.5*upTime ;
     
     while(std::abs(upTime-downTime) > 1e-7)
     {
@@ -146,7 +158,7 @@ double NonLocalSpaceTimeMazars::grade(ElementState &s)
         else
             return testTime ;
         
-        testTime = 0.5*(downTime+upTime) ;
+        testTime = 0.5*downTime+0.5*upTime ;
     }
     return 1.-(testTime*.5+.5) ;
 }
