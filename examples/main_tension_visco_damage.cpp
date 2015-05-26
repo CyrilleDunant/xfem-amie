@@ -10,19 +10,20 @@
 #include "../physics/fracturecriteria/mazars.h"
 #include "../physics/fracturecriteria/nonlocalvonmises.h"
 #include "../physics/stiffness.h"
+#include "../physics/logarithmic_creep_with_external_parameters.h"
 #include "../physics/materials/aggregate_behaviour.cpp"
 #include "../physics/stiffness_and_fracture.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
-#include "../physics/logarithmic_creep_with_external_parameters.h"
 #include "../polynomial/vm_function_extra.h"
 #include "../utilities/itoa.h"
 #include "../utilities/writer/triangle_writer.h"
 #include "../physics/materials/concrete_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/damagemodels/spacetimeisotropiclineardamage.h"
+#include "../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
 
 
 #include <fstream>
@@ -165,7 +166,10 @@ int main ( int argc, char *argv[] )
     ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalSpaceTimeMazars(1.0e-4, k_elas, nu_elas, 75., cstress , cstrain, 1., pt ), linear);
     ViscoelasticityAndFracture * vpasterupt = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMazars(1.0e-4, k_elas, nu_elas, 75.0, cstress , cstrain, 1., pt ), linear);
     ViscoelasticityAndFracture * vmxpasterupt = new ViscoelasticityAndFracture(GENERALIZED_MAXWELL, K_mx_0, branches_mx, new NonLocalSpaceTimeMazars(1.0e-4, k_elas, nu_elas, 75.0, cstress , cstrain, 1., pt ), linear);  
-//     Viscoelasticity * vmxpasterupt = new Viscoelasticity(GENERALIZED_MAXWELL, K_mx_0, branches_mx);  
+    Point t1(0.0001, 1.2e6) ; Point t2(0.0005, 0.) ;
+    std::vector<Point> ptension, pcompression ; ptension.push_back(t1) ; ptension.push_back(t2) ;
+    LogarithmicCreepWithExternalParameters * logcreeprupt = new LogarithmicCreepWithExternalParameters("young_modulus = 12e9, poisson_ratio = 0.2, creep_modulus = 30e9, creep_poisson = 0.2, creep_characteristic_time = 2", new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( ptension, pcompression, 12e9, 1.1), new SpaceTimeIsotropicLinearDamage()) ;
+//     Viscoelasticity * vmxpasterupt = new Viscoelasticity(GENERALIZED_MAXWELL, K_mx_0, branches_mx);  e
     //    Stiffness * paste = new Stiffness(C_kv);
     samplef.setBehaviour ( vmxpasterupt ) ;
 

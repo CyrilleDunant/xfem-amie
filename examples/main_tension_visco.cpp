@@ -9,6 +9,7 @@
 #include "../physics/fracturecriteria/fracturecriterion.h"
 #include "../physics/fracturecriteria/mazars.h"
 #include "../physics/fracturecriteria/nonlocalvonmises.h"
+#include "../physics/logarithmic_creep_with_external_parameters.h"
 #include "../physics/stiffness.h"
 #include "../physics/materials/aggregate_behaviour.cpp"
 #include "../physics/stiffness_and_fracture.h"
@@ -173,6 +174,7 @@ int main ( int argc, char *argv[] )
     ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mazar->getCopy(), linear->getCopy()); 
     ViscoelasticityAndFracture * pasteruptm = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mcft->getCopy(), linear->getCopy() ); 
     ViscoelasticityAndFracture * spasteruptm = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mcft->getCopy(), linear->getCopy()); 
+    LogarithmicCreepWithExternalParameters * logcreep = new LogarithmicCreepWithExternalParameters("young_modulus = 12e9, poisson_ratio = 0.2, creep_modulus = 30e9, creep_poisson = 0.2, creep_characteristic_time = 2") ;
 
     samplef.setBehaviour ( pasteruptm  ) ;
 
