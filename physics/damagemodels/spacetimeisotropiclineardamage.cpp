@@ -38,9 +38,9 @@ Matrix SpaceTimeIsotropicLinearDamage::applyViscous(const Matrix & m, const Poin
         return m ;
     if(fractured())
         return m*0 ;
-    
+
     double factor = (p.getT()+1.)*.5 ;
-    double d = std::min(state[0]+factor*sqrt(std::max(dt, 1e-4))*accelerate*fibreFraction, 1.) ;
+    double d = std::min(state[0]+factor*std::max(dt, 1e-4)*accelerate*fibreFraction, 1.) ;
     return m*(1.-d) ;
 
 
@@ -48,8 +48,6 @@ Matrix SpaceTimeIsotropicLinearDamage::applyViscous(const Matrix & m, const Poin
 
 Matrix SpaceTimeIsotropicLinearDamage::apply(const Matrix & m, const Point & p,const IntegrableEntity * e, int g) const
 {
-// return m;
-
     if(state.max() < POINT_TOLERANCE)
         return m ;
     if(fractured())

@@ -145,6 +145,7 @@ void ViscoelasticityAndFracture::apply(const Function & p_i, const Function & p_
                 vm->ieval(GradientDot(p_i) * dtensors * Gradient(p_j, true),    gp, Jinv,v, a) ;
                 vm->ieval(Gradient(p_i)    * dtensors * GradientDot(p_j, true), gp, Jinv,v, b) ;
                 a += b ;
+                addMatrixInBlock( a , 0,0, ret ) ;
                 placeMatrixInBlock( a , i,i, ret ) ;
                 // first line
                 placeMatrixInBlock( -a , i,0, ret ) ;
@@ -363,8 +364,9 @@ void ViscoelasticityAndFracture::applyViscous(const Function & p_i, const Functi
                     dtensors.push_back(dfunc->applyViscous(tensors[2*i], gp.gaussPoints[g].first));
                 }
 //                 buffer = dfunc->applyViscous(tensors[2*i]) ;
+//                a = 0 ;
                 vm->ieval(GradientDot(p_i) * dtensors * GradientDot(p_j, true),    gp, Jinv,v, a) ;
-                vm->ieval(GradientDotDot(p_i)    * dtensors * Gradient(p_j, true), gp, Jinv,v, b) ;
+                vm->ieval(GradientDotDot(p_i) * dtensors * Gradient(p_j, true), gp, Jinv,v, b) ;
                 a += b ;
                 placeMatrixInBlock( a  , i,i, ret ) ;
             }
@@ -698,10 +700,9 @@ void ViscoelasticityAndFracture::setElasticAndViscousStiffnessMatrix()
         {
             Matrix ri = tensors[i] * (-1) ;
             addMatrixInBlock( tensors[i], 0,0, elasticParam) ;
-            placeMatrixInBlock( tensors[i], i/2+1,i/2+1, elasticParam) ;
             placeMatrixInBlock( ri, 0,i/2+1, elasticParam) ;
             placeMatrixInBlock( ri, i/2+1,0, elasticParam) ;
-            addMatrixInBlock( tensors[i], i/2+1,i/2+1, viscousParam) ;
+            placeMatrixInBlock( tensors[i], i/2+1,i/2+1, viscousParam) ;
         }
         break ;
     case GENERALIZED_KELVIN_VOIGT:
@@ -716,7 +717,7 @@ void ViscoelasticityAndFracture::setElasticAndViscousStiffnessMatrix()
                 placeMatrixInBlock( tensors[0], i/2+1,j, elasticParam) ;
                 placeMatrixInBlock( tensors[0], j,i/2+1, elasticParam) ;
             }
-            addMatrixInBlock( tensors[i], i/2+1,i/2+1, viscousParam) ;
+            placeMatrixInBlock( tensors[i], i/2+1,i/2+1, viscousParam) ;
         }
         break ;
     default:
@@ -728,13 +729,12 @@ void ViscoelasticityAndFracture::setElasticAndViscousStiffnessMatrix()
 
 Matrix ViscoelasticityAndFracture::getTensor(const Point & p, IntegrableEntity * e, int g) const
 {
-
-    return  dfunc->apply(elasticParam, p) ;
+    return  dfunc->apply(elasticParam, p) + dfunc->applyViscous(viscousParam, p) ;
 }
 
 Matrix ViscoelasticityAndFracture::getViscousTensor(const Point & p, IntegrableEntity * e, int g) const
 {
-    return dfunc->applyViscous(viscousParam, p) ;
+    return dfunc->apply( eta, p ) ;
 }
 
 void ViscoelasticityAndFracture::setFractureCriterion(FractureCriterion * frac)

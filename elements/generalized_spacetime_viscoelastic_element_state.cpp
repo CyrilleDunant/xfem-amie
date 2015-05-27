@@ -2305,14 +2305,14 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         Vector speeds ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         getField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, p_, strains, true,vm ) ;
         getField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, p_, speeds, true,vm ) ;
-        ret = ( Vector ) ( visco->getTensor ( p_, parent ) * strains )
-              + ( Vector ) ( visco->getViscousTensor ( p_, parent ) * speeds ) ;
-        Vector stresses = visco->getImposedStress ( p_, parent ) ;
+        ret = ( Vector ) ( parent->getBehaviour()->getTensor ( p_, parent ) * strains )
+              + ( Vector ) ( parent->getBehaviour()->getViscousTensor ( p_, parent ) * speeds ) ;
+        Vector stresses = parent->getBehaviour()->getImposedStress ( p_, parent ) ;
         for ( size_t i = 0 ; i < stresses.size() ; i++ )
         {
             ret[i] -= stresses[i] ;
-            for(int j = 1 ; j < blocks ; j++)
-                ret[i+j*stresses.size()] += stresses[i] ;
+//            for(int j = 1 ; j < blocks ; j++)
+//                ret[i+j*stresses.size()] += stresses[i] ;
         }
         if ( cleanup )
         {
