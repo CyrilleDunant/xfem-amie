@@ -574,7 +574,7 @@ public:
     }
 
     double getDeltaTime () const ;
-    void setDeltaTime ( double d ) ;
+    void setDeltaTime ( double d, bool isreal = true ) ;
     void setMinDeltaTime ( double d );
 
     void moveFirstTimePlanes ( double d, const Mesh<DelaunayTetrahedron, DelaunayTreeItem3D >::iterator & begin,  const Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>::iterator & end ) ;

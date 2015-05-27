@@ -181,6 +181,29 @@ void ThermalExpansionHumidityMaterialLaw::preProcess(GeneralizedSpaceTimeViscoEl
     s.add("thermal_expansion_coefficient", -(h*std::log(h)*(R/m)*(1./(3.*k) - 1./ks)) ) ;
 }
 
+void WaterVapourSaturationPressureMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+{
+    double T = s.get("temperature"+suffix, defaultValues) ;
+
+    s.set("water_vapour_saturation_pressure"+suffix, 133.322*std::exp( 20.386-5132/T) ) ;
+}
+
+void ClausiusClapeyronRelativeHumidityMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+{
+    double R = 8.3144621 ;
+
+    reference->preProcess(s, dt) ;
+    vapour->preProcess(s, dt) ;
+
+    double qst = s.get("isosteric_heat_sorption", defaultValues) ;
+    double T = s.get("temperature", defaultValues) ;
+    double T1 = s.get("temperature_T1", defaultValues) ;
+    double vp = s.get("water_vapour_saturation_pressure", defaultValues) ;
+    double vp1 = s.get("water_vapour_saturation_pressure_T1", defaultValues) ;
+    double h1 = s.get("relative_humidity_T1", defaultValues) ;
+
+    s.set("relative_humidity", h1*(vp1/vp)*exp( (qst/R) * (1/T1-1/T) ) ) ;
+}
 
 void BenboudjemaDryingCreepMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {

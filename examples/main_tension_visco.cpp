@@ -176,7 +176,7 @@ int main ( int argc, char *argv[] )
     ViscoelasticityAndFracture * spasteruptm = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mcft->getCopy(), linear->getCopy()); 
     LogarithmicCreepWithExternalParameters * logcreep = new LogarithmicCreepWithExternalParameters("young_modulus = 12e9, poisson_ratio = 0.2, creep_modulus = 30e9, creep_poisson = 0.2, creep_characteristic_time = 2") ;
 
-    samplef.setBehaviour ( pasteruptm  ) ;
+    samplef.setBehaviour ( logcreep  ) ;
 
     Function loadfunc = Function("t 12 /")         *f_range("t", 0., 3) +
     Function("0.25 t 3 - 48 / -")                 *f_range("t", 3, 6) +

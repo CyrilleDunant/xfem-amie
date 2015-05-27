@@ -44,17 +44,17 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 	prevEta = eta ;
 	prevImposed = imposed ;
 
-	if(values.find("bulk_modulus") != values.end())
-	{
-		double k_inst = values["bulk_modulus"] ;
-		double mu_inst = values["shear_modulus"] ;
-		C = Tensor::cauchyGreen( k_inst, mu_inst, false, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
-	}
-	else
+	if(values.find("young_modulus") != values.end())
 	{
 		double E_inst = values["young_modulus"] ;
 		double nu_inst = values["poisson_ratio"] ;
 		C = Tensor::cauchyGreen( E_inst, nu_inst, true, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+	}
+	else
+	{
+		double k_inst = values["bulk_modulus"] ;
+		double mu_inst = values["shear_modulus"] ;
+		C = Tensor::cauchyGreen( k_inst, mu_inst, false, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
 	}
 	param = 0. ;
 	placeMatrixInBlock( C, 0,0, param) ;
@@ -62,49 +62,52 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 	if(values.find("creep_characteristic_time") != values.end())
 	{
 		isPurelyElastic = false ;
-		if(values.find("creep_bulk") != values.end())
-		{
-			double k_visc = values["creep_bulk"] ;
-			double mu_visc = values["creep_shear"] ;
-			E = Tensor::cauchyGreen( k_visc, mu_visc, false, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
-		}
-		else
+		if(values.find("creep_modulus") != values.end())
 		{
 			double E_visc = values["creep_modulus"] ;
 			double nu_visc = values["creep_poisson"] ;
 			E = Tensor::cauchyGreen( E_visc, nu_visc, true, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
 		}
-		double a = 0. ;
-		if(values.find("recoverable_bulk") != values.end())
-		{
-			double k_rec = values["recoverable_bulk"] ;
-			double mu_rec = values["recoverable_shear"] ;
-			R = Tensor::cauchyGreen( k_rec, mu_rec, false, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
-		}
 		else
 		{
-			if(values.find("recoverable_modulus") != values.end())
+			double k_visc = values["creep_bulk"] ;
+			double mu_visc = values["creep_shear"] ;
+			E = Tensor::cauchyGreen( k_visc, mu_visc, false, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+		}
+		double a = 0. ;
+		if(values.find("recoverable_modulus") != values.end())
+		{
+			double E_rec = values["recoverable_modulus"] ;
+			double nu_rec = 0.2 ;
+			if(values.find("recoverable_poisson") != values.end())
 			{
-				double E_rec = values["recoverable_modulus"] ;
-				double nu_rec = 0.2 ;
-				if(values.find("recoverable_poisson") != values.end())
-				{
-					nu_rec = values["recoverable_poisson"] ;
-				}
-				else if(values.find("creep_poisson") != values.end())
-				{
-					nu_rec = values["creep_poisson"] ;
-				}
-				else
-				{
-					double k_visc = values["creep_bulk"] ;
-					double mu_visc = values["creep_shear"] ;
-					nu_rec = (3.*k_visc-2.*mu_visc)/(2.*(3*k_visc+mu_visc)) ;
-				}
-				R = Tensor::cauchyGreen( E_rec, nu_rec, true, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+				nu_rec = values["recoverable_poisson"] ;
+			}
+			else if(values.find("creep_poisson") != values.end())
+			{
+				nu_rec = values["creep_poisson"] ;
 			}
 			else
 			{
+				nu_rec = values["poisson_ratio"] ;
+//					double k_visc = values["creep_bulk"] ;
+//					double mu_visc = values["creep_shear"] ;
+//					nu_rec = (3.*k_visc-2.*mu_visc)/(2.*(3*k_visc+mu_visc)) ;
+			}
+			R = Tensor::cauchyGreen( E_rec, nu_rec, true, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+		}
+		else
+		{
+			if(values.find("recoverable_bulk") != values.end())
+			{
+				double k_rec = values["recoverable_bulk"] ;
+				double mu_rec = values["recoverable_shear"] ;
+				R = Tensor::cauchyGreen( k_rec, mu_rec, false, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+			}
+			else
+			{
+				values["recoverable_modulus"] = values["creep_modulus"] ;
+				values["recoverable_poisson"] = values["creep_poisson"] ;
 				R = E ;
 			}
 		}

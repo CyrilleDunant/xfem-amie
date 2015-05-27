@@ -556,7 +556,6 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( imposed, shapeFunctions[j], gp, Jinv, v, true, Vector() ) ;
 
-
                 Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
                 if ( visc && visc->model > KELVIN_VOIGT )
                 {
@@ -751,12 +750,10 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
             for ( size_t j = 0 ; j < id.size() ; j++ )
             {
-                std::cout << "idj "<<id[j] << std::endl ;
                 for ( size_t i = (nTimePlanes-1)*e->getBoundingPoints().size()/nTimePlanes ; i < e->getBoundingPoints().size() ; i++ )
                 {
                     if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
-                        std::cout << "bpid "<< nTimePlanes << "  "<< e->getBoundingPoint ( i ).getId() << std::endl ;
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                         if ( !first )
                         {

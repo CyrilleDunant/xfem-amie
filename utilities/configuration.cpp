@@ -536,6 +536,21 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
         return ret ;
     }
 
+    if(type == "CLAUSIUS_CLAPEYRON_RELATIVE_HUMIDITY")
+    {
+        ExternalMaterialLaw * bet = getChild("bet_reference")->getExternalMaterialLaw() ;
+        if(dynamic_cast<BETIsothermMaterialLaw *>(bet))
+            dynamic_cast<BETIsothermMaterialLaw *>(bet)->suffix = "_T1" ;
+        ret = new ClausiusClapeyronRelativeHumidityMaterialLaw(bet) ;
+        return ret ;
+    }
+
+    if(type == "WATER_VAPOUR_SATURATION_PRESSURE")
+    {
+        ret = new WaterVapourSaturationPressureMaterialLaw() ;
+        return ret ;
+    }
+
     if(type == "DRYING_SHRINKAGE")
     {
         std::string input = getStringData("input_parameter", "relative_humidity") ;
@@ -708,6 +723,9 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 
     if(type == "BULK_SHEAR_CONVERSION")
         return new BulkShearConversionExternalMaterialLaw() ;
+
+    if(type == "TENSION_COMPRESSION_CREEP")
+        return new TensionCompressionCreepMaterialLaw() ;
 
     if(type == "THERMAL_EXPANSION_HUMIDITY")
         return new ThermalExpansionHumidityMaterialLaw() ;
@@ -998,7 +1016,8 @@ DamageModel * ConfigTreeItem::getDamageModel(bool spaceTime)
         {
             ret = new SpaceTimeIsotropicLinearDamage( getData("damage_increment",0.1),  getData("maximum_damage",1.) ) ;
         }
-        ret = new IsotropicLinearDamage() ;
+        else
+            ret = new IsotropicLinearDamage() ;
     }
     if(type == "PLASTIC_STRAIN")
     {

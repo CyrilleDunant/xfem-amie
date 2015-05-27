@@ -60,38 +60,30 @@ int main(int argc, char *argv[])
 // 	omp_set_num_threads(1) ;
 
         Sample rect(nullptr, 0.04,0.04,0,0) ;
-	rect.setBehaviour(new Viscoelasticity(MAXWELL, ElasticOnlyPasteBehaviour(10e9).param, ElasticOnlyPasteBehaviour(10e9).param*10 ) ) ;
-//	rect.setBehaviour(new LogarithmicCreepWithExternalParameters("young_modulus = 10e9, poisson_ratio = 0.2, creep_characteristic_time = 5, creep_modulus = 20e9, creep_poisson = 0.2") ) ;
+//	rect.setBehaviour(new Viscoelasticity(MAXWELL, ElasticOnlyPasteBehaviour(10e9).param, ElasticOnlyPasteBehaviour(10e9).param*10 ) ) ;
+	rect.setBehaviour(new LogarithmicCreepWithExternalParameters("young_modulus = 10e9, poisson_ratio = 0.2, creep_characteristic_time = 5, creep_modulus = 20e9, creep_poisson = 0.2, imposed_deformation = 0.1") ) ;
 
 	FeatureTree f(&rect) ;
         f.setOrder( LINEAR_TIME_LINEAR ) ;
-	f.setSamplingNumber(2) ;
+	f.setSamplingNumber(32) ;
         f.setDeltaTime(1) ;
 	
 	f.step() ;
 
-	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, 1e6 ) ) ;
+//	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, 1e6 ) ) ;
 //	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_PROPORTIONAL_DISPLACEMENT_XI_ETA, TOP, -1 ) ) ; // ux = 0.5 u_y
 //        Point n(-0.004,0.008) ;
 //	f.addBoundaryCondition( new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_TANGENT_DISPLACEMENT, dynamic_cast<Polygon*>(&s), n, 0.0001 ) ) ;
 	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT_AFTER) ) ;
 	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER ) ) ;
+	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -1e6 ) ) ;
 
-	for(size_t i = 0 ; i < 20 ; i++)
+	for(size_t i = 0 ; i < 1 ; i++)
 	{
-//                f.setDeltaTime((double) i+1) ;
+                f.setDeltaTime((double) i+2) ;
 		f.step() ;
 		std::cout << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, -1,1 )[1] << "\t" << f.getAverageField( STRAIN_FIELD, -1,1 )[1] << std::endl ;
 	}
-
-
-
-	TriangleWriter trg( "larger", &f, 1.) ;
-	trg.getField( REAL_STRESS_FIELD ) ;
-	trg.write() ;
-
-
-
 
 	return 0 ;
 }

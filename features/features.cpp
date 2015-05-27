@@ -4745,7 +4745,7 @@ bool FeatureTree::stepElements()
 
                 if (foundCheckPoint )
                 {
-                    std::cerr << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
+                    std::cout << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
                     maxScore = -1. ;
                     maxTolerance = 1 ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
@@ -4770,7 +4770,7 @@ bool FeatureTree::stepElements()
                         }
                     }
 
-                    std::cerr << maxScore << "]" << std::flush ;
+                    std::cout << maxScore << "]" << std::flush ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
                         if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE )
@@ -5491,7 +5491,9 @@ bool FeatureTree::step()
 
     if ( stateConverged && state.meshed && solverConverged() && !behaviourChanged() )
     {
+        deltaTime = realDeltaTime ;
         now += deltaTime ;
+        setDeltaTime( deltaTime, true ) ;
         for ( size_t i = 0 ; i < nodes.size() ; i++ )
         {
             nodes[i]->getT() += deltaTime ;
@@ -5539,7 +5541,7 @@ bool FeatureTree::step()
         deltaTime = 0 ;
         if ( solverConverged() )
         {
-            std::cerr << "." << std::flush ;
+            std::cout << "." << std::flush ;
             notConvergedCounts = 0 ;
 
             if(foundCheckPoint && !(enrichmentChange || behaviourChanged()))
@@ -5622,7 +5624,7 @@ bool FeatureTree::step()
     std::cerr << std::endl ;
     if ( ret )
     {
-        setDeltaTime ( realDeltaTime ) ;
+        setDeltaTime ( realDeltaTime, false ) ;
     }
 //     std::cout << totit << std::endl ;
     std::cerr << totit << "/" << maxitPerStep << "." << std::flush ;
@@ -5716,7 +5718,7 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
         }
         scaleBoundaryConditions(bottomscale) ;
         elastic = false ;
-        setDeltaTime ( realDeltaTime ) ;
+//        setDeltaTime ( deltaTime, false ) ;
         state.setStateTo ( XFEM_STEPPED, true ) ;
         if(damageConverged)
             K->setPreviousDisplacements() ;
@@ -6894,11 +6896,12 @@ void FeatureTree::setMaxIterationsPerStep ( size_t its )
         maxitPerStep = its ;
 }
 
-void FeatureTree::setDeltaTime ( double d )
+void FeatureTree::setDeltaTime ( double d, bool isreal )
 {
     previousDeltaTime = deltaTime ;
     deltaTime = d ;
-    realDeltaTime = d ;
+    if(isreal)
+        realDeltaTime = d ;
     if(needMeshing)
         return ;
 
@@ -6924,6 +6927,8 @@ void FeatureTree::setDeltaTime ( double d )
                     if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR)
                     {
                         i->adjustElementaryMatrix ( previousDeltaTime, d ) ;
+
+//                        i->moved = true ;
                     }
                 }
             }
@@ -6975,7 +6980,7 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle,  
 
         if ( std::abs ( d ) > POINT_TOLERANCE )
         {
-            setDeltaTime ( prev - d ) ;
+            setDeltaTime ( prev - d, false ) ;
         }
 
         for(size_t i = 0 ; i < boundaryCondition.size() ; i++)
@@ -7009,7 +7014,7 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTetrahedron
 
         if ( std::abs ( d ) > POINT_TOLERANCE )
         {
-            setDeltaTime ( prev - d ) ;
+            setDeltaTime ( prev - d, false ) ;
         }
 
         for(size_t i = 0 ; i < boundaryCondition.size() ; i++)

@@ -90,6 +90,24 @@ void LoadNonLinearCreepMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticE
     s.multiply("recoverable_modulus", factor) ;
 }
 
+void TensionCompressionCreepMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+{
+    if(!s.has("creep_modulus"))
+        return ;
+
+    Vector stress(2) ;
+    stress=0. ;
+    s.getAverageField(PRINCIPAL_REAL_STRESS_FIELD, stress, nullptr, -1, 1.) ;
+    double tstress =  stress.max() ;
+    double cstress =  stress.min() ;
+    if(tstress > 0 && tstress > std::abs(cstress))
+    {
+        double coef = s.get("tension_compression_creep_coefficient", defaultValues) ;
+        s.multiply("creep_modulus", coef) ;
+        s.multiply("recoverable_modulus", coef) ;
+    }
+}
+
 void StrainRateDependentStrengthMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     if(!s.has("tensile_strength") && !s.has("compressive_strength") )

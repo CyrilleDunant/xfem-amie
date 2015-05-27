@@ -113,6 +113,31 @@ struct SorptionIsothermHysteresisMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 } ;
 
+struct WaterVapourSaturationPressureMaterialLaw : public ExternalMaterialLaw
+{
+    std::string suffix ;
+
+    WaterVapourSaturationPressureMaterialLaw(std::string s = std::string(), std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), suffix(s) { }
+    virtual ~WaterVapourSaturationPressureMaterialLaw() { } ;
+
+    virtual void preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt);
+};
+
+struct ClausiusClapeyronRelativeHumidityMaterialLaw : public ExternalMaterialLaw
+{
+    ExternalMaterialLaw * reference ;
+    ExternalMaterialLaw * vapour ;
+
+    ClausiusClapeyronRelativeHumidityMaterialLaw(ExternalMaterialLaw * bet, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), reference(bet) { 
+        vapour = new WaterVapourSaturationPressureMaterialLaw("_T1") ;
+    }
+    virtual ~ClausiusClapeyronRelativeHumidityMaterialLaw() { } ;
+
+    virtual void preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt);
+};
+
+
+
 struct BenboudjemaDryingCreepMaterialLaw : public ExternalMaterialLaw
 {
     BenboudjemaDryingCreepMaterialLaw(std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep) { }

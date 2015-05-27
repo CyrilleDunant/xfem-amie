@@ -515,7 +515,7 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(E
 
 void AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximumTensileStress(double s, double smax) 
 {
-	if(!tensileStressStrainCurve)
+	if(!tensileStressStrainCurve || (s<0 && smax < 0))
 		return ;
 
 
@@ -529,6 +529,9 @@ void AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximu
 		targetStress = currentStress ;
 	if(smax < 0)
 		targetMaxStress = currentMaxStress ;
+
+        if(targetStress == currentStress && targetMaxStress == currentMaxStress)
+		return ;
 
 	double factor = 0.; 
 	if(std::abs(currentStress-currentMaxStress) > POINT_TOLERANCE)
@@ -546,7 +549,7 @@ void AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximu
 
 void AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximumTensileStrain(double e, double emax) 
 {
-	if(!tensileStressStrainCurve)
+	if(!tensileStressStrainCurve || (e<0 && emax < 0))
 		return ;
 
 	double targetStrain = e ;
@@ -559,6 +562,9 @@ void AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximu
 		targetStrain = currentStrain ;
 	if(emax < 0)
 		targetMaxStrain = currentMaxStrain ;
+
+        if(targetStrain == currentStrain && targetMaxStrain == currentMaxStrain)
+		return ;
 
 	double factor = 0.; 
 	if(std::abs(currentStrain-currentMaxStrain) > POINT_TOLERANCE)
@@ -574,7 +580,7 @@ void AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximu
 
 void AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximumCompressiveStress(double s, double smax) 
 {
-	if(!compressiveStressStrainCurve)
+	if(!compressiveStressStrainCurve || (s>0 && smax > 0))
 		return ;
 
 	double targetStress = s ;
@@ -604,7 +610,7 @@ void AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximu
 
 void AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximumCompressiveStrain(double e, double emax) 
 {
-	if(!compressiveStressStrainCurve)
+	if(!compressiveStressStrainCurve  || (e>0 && emax > 0))
 		return ;
 
 	double targetStrain = e ;

@@ -78,12 +78,18 @@ void step ( size_t nsteps )
     {
         bool go_on = featureTree->stepToCheckPoint(20,1e-6) ;
         if(go_on)
+	{
+//	    std::cout << "GO-ON!" << std::endl ;
+//            featureTree->setDeltaTime(0.2) ;
             loadr->setData(VirtualMachine().eval(loadfunc, 0,0,0, featureTree->getCurrentTime()));
+	}
         
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD,-1.,1. ) ;
         Vector etemp = featureTree->getAverageField ( STRAIN_FIELD,-1.,1. ) ;
         Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD) ;
 
+        std::cout << "current time :" << featureTree->getCurrentTime() << std::endl ;
+        std::cout << "current delta time :" << featureTree->getDeltaTime() << std::endl ;
         std::cout << "average sigma11 : " << stemp[0]/1e6 << std::endl ;
         std::cout << "average sigma22 : " << stemp[1]/1e6 << std::endl ;
         std::cout << "average sigma12 : " << stemp[2]/1e6 << std::endl ;
@@ -100,11 +106,13 @@ void step ( size_t nsteps )
             loadsx.push_back ( stemp[0] );
             times.push_back(featureTree->getCurrentTime());
             damages.push_back(dtemp[0]);   
-            if(v%50 == 0)
+//            if(damages.size() > 2 && damages[ damages.size()-1 ] == damages[ damages.size()-2])
+//		featureTree->setDeltaTime( 0.2 ) ;
+            if(true) //v%50 == 0)
             {
                 std::fstream ldfile  ;
-                ldfile.open ( "ldnviscodamage", std::ios::app ) ;
-                ldfile <<  times.back() <<" " << displacements.back() << "   " << loads.back() << "   " <<  displacementsx.back() << "   " << loadsx.back() << " " << damages.back() <<  "\n" ;
+                ldfile.open ( "ldnviscodamage", std::ios::app | std::ios::out ) ;
+                ldfile <<  times.back() <<" " << displacements.back() << "   " << loads.back() << "   " <<  displacementsx.back() << "   " << loadsx.back() << " " << damages.back() <<  std::endl ;
                 ldfile.close();
             }
 
@@ -168,10 +176,10 @@ int main ( int argc, char *argv[] )
     ViscoelasticityAndFracture * vmxpasterupt = new ViscoelasticityAndFracture(GENERALIZED_MAXWELL, K_mx_0, branches_mx, new NonLocalSpaceTimeMazars(1.0e-4, k_elas, nu_elas, 75.0, cstress , cstrain, 1., pt ), linear);  
     Point t1(0.0001, 1.2e6) ; Point t2(0.0005, 0.) ;
     std::vector<Point> ptension, pcompression ; ptension.push_back(t1) ; ptension.push_back(t2) ;
-    LogarithmicCreepWithExternalParameters * logcreeprupt = new LogarithmicCreepWithExternalParameters("young_modulus = 12e9, poisson_ratio = 0.2, creep_modulus = 30e9, creep_poisson = 0.2, creep_characteristic_time = 2", new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( ptension, pcompression, 12e9, 1.1), new SpaceTimeIsotropicLinearDamage()) ;
+    LogarithmicCreepWithExternalParameters * logcreeprupt = new LogarithmicCreepWithExternalParameters("young_modulus = 12e9, poisson_ratio = 0.2, creep_modulus = 30e9, creep_poisson = 0.2, creep_characteristic_time = 2", new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( ptension, pcompression, 12e9, 1.1), /*new NonLocalSpaceTimeMazars(1.0e-4, k_elas, nu_elas, 75.0, cstress , cstrain, 1., pt ),*/ linear) ;//new SpaceTimeIsotropicLinearDamage()) ;
 //     Viscoelasticity * vmxpasterupt = new Viscoelasticity(GENERALIZED_MAXWELL, K_mx_0, branches_mx);  e
     //    Stiffness * paste = new Stiffness(C_kv);
-    samplef.setBehaviour ( vmxpasterupt ) ;
+    samplef.setBehaviour ( vpasterupt ) ;
 
  
 
