@@ -5639,15 +5639,15 @@ bool FeatureTree::step()
 bool FeatureTree::stepToCheckPoint( int iterations, double precision)
 {
     
-    bool ret = false ;
+    bool ret = false ; 
+    int prevmaxit = maxitPerStep ;  
+    maxitPerStep = 1 ;
     for(int iter = 0 ; iter < iterations && !ret; iter++)
     {
         scaleBoundaryConditions ( 1. );
-        double prevmaxit = maxitPerStep ;  
-        maxitPerStep = 1 ;
-        ret = step() ;
-        maxitPerStep = prevmaxit ;
-     }  
+        ret = step() ;   
+     }   
+     maxitPerStep = prevmaxit ;
     //at this point, we should have found a checkpoint.
     if(!ret)
     {
