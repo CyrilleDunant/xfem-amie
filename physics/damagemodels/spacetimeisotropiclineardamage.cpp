@@ -87,14 +87,14 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
 
     change = false ;    
     state[0] = std::min(state[0]+dt*accelerate*fibreFraction, 1.) ;
-    dt = std::max(s.getParent()->getBoundingPoint(s.getParent()->getBoundingPoints().size()-1).getT() - s.getParent()->getBoundingPoint(0).getT(), 1e-4) ;
+    dt = s.getParent()->getBoundingPoint(s.getParent()->getBoundingPoints().size()-1).getT() - s.getParent()->getBoundingPoint(0).getT() ;
     
-    if(!s.getParent()->getBehaviour()->getFractureCriterion() || !s.getParent()->getBehaviour()->getFractureCriterion()->met())
+    if(!s.getParent()->getBehaviour()->getFractureCriterion() || !s.getParent()->getBehaviour()->getFractureCriterion()->met() || std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() - maxscore) >= 1e-4)
     {
         accelerate = 0 ;
         return ;
     }
-    else if(!fractured() && s.getParent()->getBehaviour()->getFractureCriterion()->met())
+    else if(!fractured() && std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() - maxscore) < 1e-4)
     {
         dt *= s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
         accelerate += .5 ;

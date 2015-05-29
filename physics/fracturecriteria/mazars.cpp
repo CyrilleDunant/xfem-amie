@@ -55,7 +55,7 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
         posstrain.push_back( ( std::max(0.0, stress[0]) + std::max(0.0,stress[1]) )*-nu/(E*(1 - dama_predict)) ) ;
         Trtsig = 0.5*( std::abs(stress[0])  + stress[0] ) + 0.5*( std::abs(stress[1])  + stress[1]) ;
         Trcsig =  ( std::min(0.0, stress[0]) + std::min(0.0,stress[1]));
-        if( Trcsig < -POINT_TOLERANCE &&  std::abs(Trtsig/Trcsig) <= 1e-6)
+        if( Trcsig < -POINT_TOLERANCE &&  std::abs(Trtsig/Trcsig) < 1e-8)
         {
             gamma =  std::sqrt( std::min(0.0, stress[0])*std::min(0.0, stress[0]) + std::min(0.0,stress[1])*std::min(0.0,stress[1]) ) / (-Trcsig) ;
         }
@@ -77,7 +77,7 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
         posstrain.push_back( (0.5*( std::abs(stress[2])  + stress[2] ) - nu*(0.5*( std::abs(stress[0])  + stress[0]) +  0.5*( std::abs(stress[1])  + stress[1])))/(E*(1 - dama_predict))) ;
         Trtsig = 0.5*( std::abs(stress[0])  + stress[0] ) + 0.5*( std::abs(stress[1])  + stress[1]) + 0.5*( std::abs(stress[2])  + stress[2]);
         Trcsig =  ( std::min(0.0, stress[0]) + std::min(0.0,stress[1]) + std::min(0.0,stress[2]));
-        if( Trcsig <= -POINT_TOLERANCE &&  std::abs(Trtsig/Trcsig) <= 1e-4)
+        if( Trcsig < -POINT_TOLERANCE &&  std::abs(Trtsig/Trcsig) < 1e-8)
         {
             gamma =  std::sqrt( std::min(0.0, stress[0])*std::min(0.0, stress[0]) + std::min(0.0,stress[1])*std::min(0.0,stress[1]) + std::min(0.0,stress[2])*std::min(0.0,stress[2])) / (-Trcsig) ;
         }
@@ -91,10 +91,10 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
 
     //Critere seuil sur l'endommagement
     true_threshold = std::max(threshold, maxStrain);
-    pseudo_dama =  std::min(talpha*(1. - (threshold/true_threshold) * (std::exp(- B_t*(true_threshold - threshold)))) + calpha*(1. - (threshold*(1 - A_c)/true_threshold)  -  A_c*(std::exp(- B_c*(true_threshold - threshold)))), 1.0 - POINT_TOLERANCE) ;
-    if(pseudo_dama < 1.0e-6 || std::isnan(pseudo_dama)) {
-        pseudo_dama = -1.0;
-    }
+    pseudo_dama =  std::min(talpha*(1. - (threshold/true_threshold) * (std::exp(- B_t*(true_threshold - threshold)))) + calpha*(1. - (threshold*(1 - A_c)/true_threshold)  -  A_c*(std::exp(- B_c*(true_threshold - threshold)))), 1.0 /*- POINT_TOLERANCE*/) ;
+//     if(pseudo_dama < 1.0e-6 || std::isnan(pseudo_dama)) {
+//         pseudo_dama = -1.0;
+//     }
     if( (maxStrain >= threshold) &&  (pseudo_dama >= dama_predict))
     {
         met = true ;

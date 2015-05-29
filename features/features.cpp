@@ -5424,32 +5424,32 @@ void FeatureTree::checkSpaceTimeConsistency()
         switch(elemOrder)
         {
             case CONSTANT:
-                std::cout << "element type inappropriate for space-time finite element analysis, switching to CONSTANT_TIME_LINEAR element order" << std::endl ;
+                std::cerr << "element type inappropriate for space-time finite element analysis, switching to CONSTANT_TIME_LINEAR element order" << std::endl ;
                 setOrder(CONSTANT_TIME_LINEAR) ;
                 break ;
             case LINEAR:
-                std::cout << "element type inappropriate for space-time finite element analysis, switching to LINEAR_TIME_LINEAR element order" << std::endl ;
+                std::cerr << "element type inappropriate for space-time finite element analysis, switching to LINEAR_TIME_LINEAR element order" << std::endl ;
                 setOrder(LINEAR_TIME_LINEAR) ;
                 break ;
             case QUADRATIC:
-                std::cout << "element type inappropriate for space-time finite element analysis, switching to QUADRATIC_TIME_LINEAR element order" << std::endl ;
+                std::cerr << "element type inappropriate for space-time finite element analysis, switching to QUADRATIC_TIME_LINEAR element order" << std::endl ;
                 setOrder(QUADRATIC_TIME_LINEAR) ;
                 break ;
             case CUBIC:
-                std::cout << "element type inappropriate for space-time finite element analysis, switching to CUBIC_TIME_LINEAR element order" << std::endl ;
+                std::cerr << "element type inappropriate for space-time finite element analysis, switching to CUBIC_TIME_LINEAR element order" << std::endl ;
                 setOrder(CUBIC_TIME_LINEAR) ;
                 break ;
             case QUADRIC:
-                std::cout << "element type inappropriate for space-time finite element analysis, switching to QUADRIC_TIME_LINEAR element order" << std::endl ;
+                std::cerr << "element type inappropriate for space-time finite element analysis, switching to QUADRIC_TIME_LINEAR element order" << std::endl ;
                 setOrder(QUADRIC_TIME_LINEAR) ;
                 break ;
             case QUINTIC:
-                std::cout << "element type inappropriate for space-time finite element analysis, switching to QUINTIC_TIME_LINEAR element order" << std::endl ;
+                std::cerr << "element type inappropriate for space-time finite element analysis, switching to QUINTIC_TIME_LINEAR element order" << std::endl ;
                 setOrder(QUINTIC_TIME_LINEAR) ;
                 break ;
             case QUADTREE_REFINED:
             case REGULAR_GRID:
-                std::cout << "unable to convert " << (elemOrder == QUADTREE_REFINED ? "QUADTREE_REFINED" : "REGULAR_GRID") << " to space-time finite elements" << std::endl ;
+                std::cerr << "unable to convert " << (elemOrder == QUADTREE_REFINED ? "QUADTREE_REFINED" : "REGULAR_GRID") << " to space-time finite elements" << std::endl ;
                 exit(0) ;
                 break ;
             default:
@@ -5462,22 +5462,22 @@ void FeatureTree::checkSpaceTimeConsistency()
     {
         for(size_t i = 0 ; i < tree.size() ; i++)
         {
-            std::cout << "\rchecking space-time finite element behaviour (feature " << i << "/" << tree.size() << ")" << std::flush ;
+            std::cerr << "\rchecking space-time finite element behaviour (feature " << i << "/" << tree.size() << ")" << std::flush ;
             if(! BehaviourConverter::toSpaceTimeBehaviour( tree[i], maxBlocks ) )
             {
-                std::cout << "conversion of behaviour to space-time failed for feature " << i << "/" << tree.size() << std::endl ;
+                std::cerr << "conversion of behaviour to space-time failed for feature " << i << "/" << tree.size() << std::endl ;
                 exit( 0 ) ;
             }
 
             if(tree[i]->isEnrichmentFeature && !dynamic_cast<TimeDependentEnrichmentInclusion*>(tree[i]) )
             {
-                std::cout << "enrichment inconsistent with space-time finite elements for feature " << i << "/" << tree.size() << std::endl ;
+                std::cerr << "enrichment inconsistent with space-time finite elements for feature " << i << "/" << tree.size() << std::endl ;
                 exit( 0 ) ;
             }
 
 
         }
-        std::cout << "\rchecking space-time finite element behaviour (feature " << tree.size() << "/" << tree.size() << ") ...done" << std::endl ;
+        std::cerr << "\rchecking space-time finite element behaviour (feature " << tree.size() << "/" << tree.size() << ") ...done" << std::endl ;
     }
 
 
@@ -5544,7 +5544,7 @@ bool FeatureTree::step()
             std::cout << "." << std::flush ;
             notConvergedCounts = 0 ;
 
-            if(foundCheckPoint && !(enrichmentChange || behaviourChanged()))
+            if(foundCheckPoint)
                 needexit = true ;
         }
         else
@@ -5638,7 +5638,8 @@ bool FeatureTree::step()
 
 bool FeatureTree::stepToCheckPoint( int iterations, double precision)
 {
-     bool ret = false ;
+    
+    bool ret = false ;
     for(int iter = 0 ; iter < iterations && !ret; iter++)
     {
         scaleBoundaryConditions ( 1. );
@@ -5646,8 +5647,7 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
         maxitPerStep = 1 ;
         ret = step() ;
         maxitPerStep = prevmaxit ;
-     }
-        
+     }  
     //at this point, we should have found a checkpoint.
     if(!ret)
     {

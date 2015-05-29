@@ -65,7 +65,7 @@ std::vector< double > times ;
 
 MultiTriangleWriter writer ( "triangles_head", "triangles_layers", nullptr ) ;
 MultiTriangleWriter writerc ( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
-BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP_AFTER, 0.) ;
+
 
 void step ( size_t nsteps, std::string app = std::string() )
 {
@@ -76,18 +76,18 @@ void step ( size_t nsteps, std::string app = std::string() )
     loadfunc *= strain_peak ;
     for ( size_t v = 0 ; v < nsteps ; v++ )
     {
-        bool go_on = featureTree->step() ;//ToCheckPoint(20,1e-6) ;
+        bool go_on = featureTree->stepToCheckPoint(20,1e-6) ;
         double load = 0. ;
-        if(go_on)
-	{
-//	    std::cout << "GO-ON!" << std::endl ;
-//            featureTree->setDeltaTime(0.2) ;
-            load = VirtualMachine().eval(loadfunc, 0,0,0, featureTree->getCurrentTime()) ;
-            loadr->setData(VirtualMachine().eval(loadfunc, 0,0,0, featureTree->getCurrentTime()));
-	}
+//         if(go_on)
+// 	{
+// //	    std::cout << "GO-ON!" << std::endl ;
+// //            featureTree->setDeltaTime(0.2) ;
+//             load = VirtualMachine().eval(loadfunc, 0,0,0, featureTree->getCurrentTime()) ;
+//             loadr->setData(VirtualMachine().eval(loadfunc, 0,0,0, featureTree->getCurrentTime()));
+// 	}
         
         Vector stemp = featureTree->getAverageField ( GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD,-1.,0 ) ;
-        Vector etemp = featureTree->getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD,-1.,1. ) ;
+        Vector etemp = featureTree->getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD,-1.,1. ) ;
         Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD) ;
 
         std::cout << "current time :" << featureTree->getCurrentTime() << std::endl ;
@@ -125,11 +125,11 @@ void step ( size_t nsteps, std::string app = std::string() )
                 ldfile <<  times.back() <<" " << displacements.back() << "   " << loads.back() << "   " <<  displacementsx.back() << "   " << loadsx.back() << " " << damages.back() << " " << load << std::endl ;
                 ldfile.close();
 
-		TriangleWriter trg("triangles", featureTree, 1.) ;
-		trg.getField( SCALAR_DAMAGE_FIELD ) ;
-		trg.getField( GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD ) ;
-		trg.getField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD ) ;
-		trg.write() ;
+//                 TriangleWriter trg("triangles", featureTree, 1.) ;
+//                 trg.getField( SCALAR_DAMAGE_FIELD ) ;
+//                 trg.getField( GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD ) ;
+//                 trg.getField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD ) ;
+//                 trg.write() ;
 
             }
 
@@ -216,15 +216,20 @@ int main ( int argc, char *argv[] )
             samplef.setBehaviour( damage ? logcreeprupt : logcreep ) ;
     }
 
+    Function loadfunc = Function("t 12 /")*f_range("t", 0., 3)+
+                        Function("0.25 t 3 - 48 / -")*f_range("t", 3, 9) +
+                        Function("0.25 1 8 / - t 9 - 48 / +")*f_range("t", 9.0000001, 96) ;
+    loadfunc *= strain_peak ;
  
-
+    BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP_AFTER, loadfunc) ;
     F.addBoundaryCondition ( loadr );
+    loadr->setActive(true);
 
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT_AFTER ) ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM_AFTER ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
-    F.setDeltaTime(0.2); 
+    F.setDeltaTime(0.01); 
     F.setMinDeltaTime(1e-4);
 //     F.setOrder(LINEAR_TIME_LINEAR) ;
 

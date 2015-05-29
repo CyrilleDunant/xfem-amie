@@ -427,7 +427,7 @@ void FractureCriterion::step(ElementState &s)
     {
         scoreAtState = grade(s) ;
     }
-    metAtStep = scoreAtState > scoreTolerance*1e-3 ;
+    metAtStep = scoreAtState > 0 ;
 
 }
 
