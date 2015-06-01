@@ -319,7 +319,7 @@ else()
 	message (STATUS "  Optimised Build")
 endif(DEBUG_BUILD EQUAL 1)
 
-set(ALL_LINK_FLAGS   ${OMP_LINK_FLAGS} m ${BIT32_FLAGS} ${MPI_LINK_FLAGS} ${MPI_LIBRARIES} ${Boost_LINK_FLAGS} ${Boost_LIBRARIES})
+set(ALL_LINK_FLAGS  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS} ${MPI_LINK_FLAGS} ${MPI_LIBRARIES} ${Boost_LINK_FLAGS} ${Boost_LIBRARIES})
 
 add_library (Amie ${ALL_SRC})
 

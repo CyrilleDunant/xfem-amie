@@ -419,6 +419,7 @@ public:
     void forceEnrichmentChange() ;
 
     double residualError ;
+    double maxScore ; 
     double crackedVolume ;
     double damagedVolume ;
     double averageDamage;

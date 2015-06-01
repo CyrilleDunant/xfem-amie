@@ -15,7 +15,7 @@
 
 namespace Amie {
 
-SpaceTimeIsotropicLinearDamage::SpaceTimeIsotropicLinearDamage(double f, double density)  : fibreFraction(f)
+SpaceTimeIsotropicLinearDamage::SpaceTimeIsotropicLinearDamage(double f, double density)  : overdamage(f)
 {
     thresholdDamageDensity = density ;
     getState(true).resize(1, 0.);
@@ -39,8 +39,8 @@ Matrix SpaceTimeIsotropicLinearDamage::applyViscous(const Matrix & m, const Poin
     if(fractured())
         return m*residualStiffnessFraction ;
 
-    double factor = (p.getT()+1.)*.5 ;
-    double d = std::min(state[0]+factor*std::max(dt, 1e-4)*accelerate*fibreFraction, 1.) ;
+    double factor = (p.getT()+1.)*.5*overdamage ;
+    double d = std::min(state[0]+factor*std::max(dt, 1e-4)*accelerate, 1.) ;
     return m*(1.-d) ;
 
 
@@ -53,8 +53,8 @@ Matrix SpaceTimeIsotropicLinearDamage::apply(const Matrix & m, const Point & p,c
     if(fractured())
         return m*residualStiffnessFraction ;
     
-    double factor = (p.getT()+1.)*.5 ;
-    double d = std::min(state[0]+factor*std::max(dt, 1e-4)*accelerate*fibreFraction, 1.) ;
+    double factor = (p.getT()+1.)*.5*overdamage ;
+    double d = std::min(state[0]+factor*std::max(dt, 1e-4)*accelerate, 1.) ;
     return m*(1.-d) ;
 
 }
@@ -86,22 +86,23 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
     }
 
     change = false ;    
-    state[0] = std::min(state[0]+dt*accelerate*fibreFraction, 1.) ;
     dt = s.getParent()->getBoundingPoint(s.getParent()->getBoundingPoints().size()-1).getT() - s.getParent()->getBoundingPoint(0).getT() ;
     
-    if(!s.getParent()->getBehaviour()->getFractureCriterion() || !s.getParent()->getBehaviour()->getFractureCriterion()->met() || std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() - maxscore) >= 1e-2)
+    if(!s.getParent()->getBehaviour()->getFractureCriterion() || 
+        !s.getParent()->getBehaviour()->getFractureCriterion()->met() || 
+        std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() - maxscore) >= 1e-2)
     {
         accelerate = 0 ;
         return ;
     }
     else if(!fractured() && std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() - maxscore) < 1e-2)
     {
-        dt *= s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-        accelerate += 0.5 ;
+        dt *= maxscore ;
+        state[0] = std::min(state[0]+(1.-maxscore)*dt*overdamage*accelerate, 1.) ;
         double maxAccelerate = 1 ;
         if(fibreFraction*std::max(dt, 1e-4) > POINT_TOLERANCE)
             maxAccelerate = (1.-state[0])/(fibreFraction*std::max(dt, 1e-4)) ;
-        accelerate = std::min(accelerate, std::min(maxAccelerate, 10000.)) ;
+        accelerate = std::min(maxAccelerate, 10000.) ;
         change = true ;
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
     }
@@ -111,7 +112,7 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
 
 DamageModel * SpaceTimeIsotropicLinearDamage::getCopy() const
 {
-    SpaceTimeIsotropicLinearDamage * dam = new SpaceTimeIsotropicLinearDamage(fibreFraction, thresholdDamageDensity) ;
+    SpaceTimeIsotropicLinearDamage * dam = new SpaceTimeIsotropicLinearDamage(overdamage, thresholdDamageDensity) ;
     dam->setResidualStiffnessFraction( residualStiffnessFraction ) ;
     return dam ;
 }

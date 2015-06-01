@@ -27,6 +27,7 @@ protected:
     double timeTolerance ;
     double accelerate = 0. ;
     double dt = 1. ;
+    double overdamage = 1.01 ;
 
 public:
     /** \brief Constructor. Set the number of degrees of freedom

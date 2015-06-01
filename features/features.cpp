@@ -89,6 +89,7 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
     dtree3D = nullptr ;
     structuredMesh = false ;
     alternating = false ;
+    maxScore = -1 ;
 
     std::vector<Point> bbox = first->getBoundingBox() ;
     double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;
@@ -201,6 +202,7 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     reuseDisplacements = false ;
     foundCheckPoint = true ;
     averageDamage = 0 ;
+    maxScore = -1 ;
     behaviourSet =true ;
     damageConverged = true ;
     stateConverged = false ;
@@ -4465,7 +4467,7 @@ bool FeatureTree::stepElements()
 { 
     behaviourChange = false ;
     stateConverged = false ;
-    double maxScore = -1 ;
+    maxScore = -1 ;
     double maxTolerance = 1e-6 ;
     foundCheckPoint = true ;
     if ( solverConvergence )
@@ -5127,11 +5129,12 @@ bool FeatureTree::stepElements()
     }
 
     stateConverged = foundCheckPoint && maxScore < maxTolerance ;
+    
     if ( behaviourChange )
     {
         residualError = 1e9 ;
     }
-    return foundCheckPoint && maxScore < maxTolerance;
+    return stateConverged;
 }
 
 
@@ -5566,8 +5569,6 @@ bool FeatureTree::step(bool guided)
             ret = false ;
             needexit = true ;
         }
-
-//        std::cout << nodes[nodes.size()-1]->getT()-nodes[0]->getT() << std::endl ;
     }
     while ( !needexit ) ;
     
@@ -5633,24 +5634,26 @@ bool FeatureTree::step(bool guided)
 
     if(damageConverged)
         K->setPreviousDisplacements() ;
-
-    return solverConverged() && stateConverged && ret ;
+    
+    return solverConverged() && stateConverged && maxScore < 0 ;
 }
 
 bool FeatureTree::stepToCheckPoint( int iterations, double precision)
 {
     setDeltaTime ( realDeltaTime, false ) ;
-    bool ret = false ; 
     int prevmaxit = maxitPerStep ;  
     maxitPerStep = 2 ;
-    for(int iter = 0 ; iter < iterations && !ret; iter++)
+    
+    for(int iter = 0 ; iter < iterations ; iter++)
     {
         scaleBoundaryConditions ( 1. );
-        ret = step(true) ;   
+        step(true) ;   
+        if(maxScore < 0)
+            break ;
      }   
      maxitPerStep = prevmaxit ;
     //at this point, we should have found a checkpoint.
-    if(!damageConverged)
+    if(maxScore > 0)
     {
         for ( size_t k = 0 ; k < boundaryCondition.size() ; k++ )
         {
@@ -5667,7 +5670,6 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
         double highscale = 1. ;
         double bottomscale= 0. ;
         
-
         while(highscale-bottomscale > precision)
         {
             currentScale = (highscale+bottomscale)*.5 ;
@@ -5722,7 +5724,6 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
         elastic = false ;
         
         state.setStateTo ( XFEM_STEPPED, true ) ;
-//         setDeltaTime ( deltaTime, false ) ;
         if(damageConverged)
             K->setPreviousDisplacements() ;
     }
@@ -5731,7 +5732,6 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
         if(damageConverged)
             K->setPreviousDisplacements() ;
     }
-
     return true ;
 }
 
