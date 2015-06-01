@@ -5483,7 +5483,7 @@ void FeatureTree::checkSpaceTimeConsistency()
 
 }
 
-bool FeatureTree::step()
+bool FeatureTree::step(bool guided)
 {
     bool ret = true ;
     size_t totit = 0 ;
@@ -5567,7 +5567,7 @@ bool FeatureTree::step()
             needexit = true ;
         }
 
-//         std::cout << it << std::endl ;
+        std::cout << it << std::endl ;
     }
     while ( !needexit ) ;
     
@@ -5622,7 +5622,8 @@ bool FeatureTree::step()
         ret = false ;
     }
     std::cerr << std::endl ;
-    if ( ret )
+    
+    if ( ret && !guided)
     {
         setDeltaTime ( realDeltaTime, false ) ;
     }
@@ -5638,18 +5639,18 @@ bool FeatureTree::step()
 
 bool FeatureTree::stepToCheckPoint( int iterations, double precision)
 {
-    
+    setDeltaTime ( realDeltaTime, false ) ;
     bool ret = false ; 
     int prevmaxit = maxitPerStep ;  
-    maxitPerStep = 1 ;
+    maxitPerStep = 2 ;
     for(int iter = 0 ; iter < iterations && !ret; iter++)
     {
         scaleBoundaryConditions ( 1. );
-        ret = step() ;   
+        ret = step(true) ;   
      }   
      maxitPerStep = prevmaxit ;
     //at this point, we should have found a checkpoint.
-    if(!ret)
+    if(!damageConverged)
     {
         for ( size_t k = 0 ; k < boundaryCondition.size() ; k++ )
         {
@@ -5716,10 +5717,12 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
             else
                 bottomscale = currentScale ;
         }
+        std::cout << "found scale " << bottomscale << std::endl ;
         scaleBoundaryConditions(bottomscale) ;
         elastic = false ;
-//        setDeltaTime ( deltaTime, false ) ;
+        
         state.setStateTo ( XFEM_STEPPED, true ) ;
+//         setDeltaTime ( deltaTime, false ) ;
         if(damageConverged)
             K->setPreviousDisplacements() ;
     }

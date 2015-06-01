@@ -642,7 +642,7 @@ public:
 
     /** \brief Step in time
     */
-    bool step() ;
+    bool step( bool guided = false) ;
 
     /** \brief Step to next checkpoint.
      * This finds the load such that the sample is at equilibrium after incrementing the damage
