@@ -101,8 +101,9 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
     {
         double maxAccelerate = 1 ;
         if(std::max(dt, 1e-4) > POINT_TOLERANCE)
-            maxAccelerate = (1.-state[0])/(2e-4) ;
-        accelerate = std::min(maxAccelerate, 1e6) ;
+            maxAccelerate = (1.-state[0])/std::max(dt,2e-4) ;
+        accelerate = 0.1/dt ;
+        accelerate = std::min(maxAccelerate, accelerate) ;
         change = true ;
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
     }
