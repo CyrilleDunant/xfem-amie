@@ -5642,7 +5642,7 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
 {
     setDeltaTime ( realDeltaTime, false ) ;
     int prevmaxit = maxitPerStep ;  
-    maxitPerStep = 2 ;
+    maxitPerStep = 1 ;
     
     for(int iter = 0 ; iter < iterations ; iter++)
     {

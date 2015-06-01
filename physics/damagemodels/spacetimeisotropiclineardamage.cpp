@@ -87,22 +87,39 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
 
     change = false ;    
     
-    state[0] = std::min(state[0]+(1.-maxscore)*dt*overdamage*accelerate, 1.) ;
+    //special case when there is a local snap/back instability
+    if(!fractured() && s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() > 1.-damageDensityTolerance)
+    {
+        state[0] = std::max(std::min(state[0]+(1.*(overdamage+std::max(maxscore-1, 0.))-maxscore+damageDensityTolerance)*dt*overdamage*accelerate, 1.), state[0] ) ;
+    }
+    else
+        state[0] = std::max(std::min(state[0]+(1.*overdamage-maxscore)*dt*overdamage*accelerate, 1.), state[0] ) ;
     dt = s.getParent()->getBoundingPoint(s.getParent()->getBoundingPoints().size()-1).getT() - s.getParent()->getBoundingPoint(0).getT() ;
+    
+
     
     if(!s.getParent()->getBehaviour()->getFractureCriterion() || 
         !s.getParent()->getBehaviour()->getFractureCriterion()->met() || 
-        std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() - maxscore) >= 1e-2)
+        std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() - maxscore) >= 1e-4)
     {
         accelerate = 0 ;
-        return ;
     }
-    else if(!fractured() && std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() - maxscore) < 1e-2 && s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtTimeStepEnd() > damageDensityTolerance)
+    else if(!fractured() 
+        && std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() - maxscore) < 1e-4 
+        && s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtTimeStepEnd() > damageDensityTolerance)
     {
         double maxAccelerate = 1 ;
         if(std::max(dt, 1e-4) > POINT_TOLERANCE)
-            maxAccelerate = (1.-state[0])/std::max(dt,2e-4) ;
-        accelerate = 0.1/dt ;
+            maxAccelerate = 1./std::max(dt, 1e-4) ;
+        if(!accelerate)
+        {
+            double denominator = (1.-maxscore) ;
+            if(denominator < POINT_TOLERANCE)
+                denominator = POINT_TOLERANCE ;
+            accelerate = 1./denominator ;
+        }
+        else
+            accelerate *= 2. ;
         accelerate = std::min(maxAccelerate, accelerate) ;
         change = true ;
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
