@@ -23,7 +23,6 @@ namespace Amie {
 class SpaceTimeIsotropicLinearDamage final: public DamageModel
 {
 protected:
-    double fibreFraction ;
     double timeTolerance ;
     double accelerate = 0. ;
     double dt = 1. ;
