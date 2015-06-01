@@ -86,6 +86,8 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
     }
 
     change = false ;    
+    
+    state[0] = std::min(state[0]+(1.-maxscore)*dt*overdamage*accelerate, 1.) ;
     dt = s.getParent()->getBoundingPoint(s.getParent()->getBoundingPoints().size()-1).getT() - s.getParent()->getBoundingPoint(0).getT() ;
     
     if(!s.getParent()->getBehaviour()->getFractureCriterion() || 
@@ -97,8 +99,6 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
     }
     else if(!fractured() && std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() - maxscore) < 1e-2)
     {
-        dt *= maxscore ;
-        state[0] = std::min(state[0]+(1.-maxscore)*dt*overdamage*accelerate, 1.) ;
         double maxAccelerate = 1 ;
         if(std::max(dt, 1e-4) > POINT_TOLERANCE)
             maxAccelerate = (1.-state[0])/(std::max(dt, 1e-4)) ;
