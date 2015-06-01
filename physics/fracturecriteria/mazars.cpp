@@ -124,6 +124,7 @@ double NonLocalSpaceTimeMazars::grade(ElementState &s)
 {
     double gradeBefore = gradeAtTime(s, -1) ;
     double gradeAfter = gradeAtTime(s, 1) ;
+    scoreAtTimeStepEnd = gradeAfter ;
 
     if(gradeAfter < 0)
         return gradeAfter ;

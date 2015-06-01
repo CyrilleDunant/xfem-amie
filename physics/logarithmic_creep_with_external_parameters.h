@@ -57,6 +57,10 @@ public:
 
     virtual void preProcess( double timeStep, ElementState & currentState ) ;
 
+    virtual bool hasInducedForces() const {
+        return !fractured() && (fixCreepVariable || imposed.size()>0)  ;
+    }
+
     void setMaterialParameters( std::map<std::string, double> & e) { external = e ; }
     void addMaterialParameter( std::string name, double defaultValue = 0) { external[name] = defaultValue ; }
 

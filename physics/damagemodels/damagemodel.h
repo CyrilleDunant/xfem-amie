@@ -85,6 +85,7 @@ protected:
     double damageDensityTolerance ;
     double fraction ;
     double trialRatio ;
+    double residualStiffnessFraction = 0 ;
 
     Vector upState ;
     Vector downState ;
@@ -138,6 +139,8 @@ public:
     void setConvergenceType(ConvergenceType ct) {
         ctype = ct ;
     }
+
+    void setResidualStiffnessFraction( double f) { residualStiffnessFraction = f ; }
 
     void setNeedGlobalMaximumScore(bool m) {
         needGlobalMaximumScore = m ;

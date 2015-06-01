@@ -189,7 +189,23 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
                 }
             }
         }
-        std::valarray<Matrix> Jinv ;
+
+    int JinvSize = 3 ;
+    if ( spaceDimensions() == SPACE_THREE_DIMENSIONAL && timePlanes() > 1 )
+	JinvSize = 4 ;
+    if ( spaceDimensions() == SPACE_TWO_DIMENSIONAL && timePlanes() == 1 )
+	JinvSize = 2 ;
+    std::valarray<Matrix> Jinv ( (bool) getState().JinvCache ? (*getState().JinvCache) : Matrix( JinvSize, JinvSize ),  getGaussPoints().gaussPoints.size()) ;
+
+    if( ! getState().JinvCache )
+    {
+        for ( size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++ )
+        {
+            getInverseJacobianMatrix ( getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+        }
+    }
+
+/*        std::valarray<Matrix> Jinv ;
 
         if ( spaceDimensions() == SPACE_THREE_DIMENSIONAL && timePlanes() == 1 )
         {
@@ -208,10 +224,9 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
             Jinv.resize ( getGaussPoints().gaussPoints.size(),  Matrix ( 3,3 ) ) ;
         }
 
-        for ( size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++ )
-        {
-            getInverseJacobianMatrix ( getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-        }
+
+
+*/
 
         size_t start = 0 ;
         if ( timePlanes() > 1 )

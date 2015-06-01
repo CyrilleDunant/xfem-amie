@@ -1811,6 +1811,67 @@ Function::Function(const Function &f) : transforms(nullptr),
 
 }
 
+Function::Function(const Function &f, int copyDerivative) : transforms(nullptr),
+    ptID(f.ptID),
+    dofID(f.dofID),
+    e_diff(f.e_diff && copyDerivative),
+    hasGeoOp(f.hasGeoOp),byteCode(f.byteCode),
+    geo_op((GeometryOperation*)nullptr,HEAP_SIZE*f.hasGeoOp),
+    values(f.values),adress_a(f.adress_a)
+{
+    if(f.derivative && copyDerivative)
+    {
+        derivative = new std::valarray<Function *>((Function *)nullptr,f.derivative->size()) ;
+        for(size_t i = 0 ; i < f.derivative->size() ; i++)
+        {
+            if((*f.derivative)[i])
+                (*derivative)[i] = new Function(*(*f.derivative)[i], copyDerivative-1) ;
+            else
+                (*derivative)[i] = nullptr ;
+        }
+        e_diff = true ;
+    }
+    else
+    {
+        derivative = nullptr ;
+	e_diff = false ;
+    }
+
+    if(f.transforms)
+    {
+        transforms = new std::vector<Function *>() ;
+        for(size_t i = 0 ; i < f.transforms->size() ; i++)
+        {
+            transforms->push_back(new Function(*(*f.transforms)[i]));
+            adress_t.push_back(f.adress_t[i]);
+            transformed.push_back(f.transformed[i]);
+        }
+    }
+
+
+    if(hasGeoOp)
+    {
+        geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
+        for(size_t i = 0 ; i < f.byteCode.size() ; i++)
+        {
+            if(f.geo_op[i])
+                geo_op[i] = f.geo_op[i]->getCopy() ;
+        }
+    }
+
+    for(auto i = f.precalc.begin() ; i != f.precalc.end() ; ++i)
+        precalc[i->first] = new Vector(*i->second) ;
+    for(auto i = f.dprecalc.begin() ; i != f.dprecalc.end() ; ++i)
+    {
+        dprecalc[i->first] =  std::map<Variable, Vector *>() ;
+        for(auto j = i->second.begin() ; j != i->second.end() ; ++j)
+        {
+            dprecalc[i->first][j->first] = new Vector(*j->second) ;
+        }
+    }
+
+}
+
 
 Function::~Function()
 {
@@ -1823,7 +1884,7 @@ Function::~Function()
         }
     }
 
-    if(derivative)
+    if(derivative && !shareDerivatives)
     {
         for(size_t i = 0 ; i < derivative->size() ; i++)
         {

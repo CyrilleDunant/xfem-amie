@@ -5544,7 +5544,7 @@ bool FeatureTree::step(bool guided)
             std::cout << "." << std::flush ;
             notConvergedCounts = 0 ;
 
-            if(foundCheckPoint)
+            if(foundCheckPoint  && !(enrichmentChange || behaviourChanged() ) )
                 needexit = true ;
         }
         else
@@ -5567,7 +5567,7 @@ bool FeatureTree::step(bool guided)
             needexit = true ;
         }
 
-        std::cout << it << std::endl ;
+//        std::cout << nodes[nodes.size()-1]->getT()-nodes[0]->getT() << std::endl ;
     }
     while ( !needexit ) ;
     
@@ -6966,7 +6966,6 @@ void FeatureTree::setDeltaTime ( double d, bool isreal )
 
 void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle,  DelaunayTreeItem >::iterator & begin,  const Mesh<DelaunayTriangle, DelaunayTreeItem >::iterator & end)
 {
-
     Mesh<DelaunayTriangle,  DelaunayTreeItem >::iterator i(begin) ;
     double prev = i->getBoundingPoint ( i->getBoundingPoints().size() -1 ).getT() - i->getBoundingPoint ( 0 ).getT() ;
     size_t ndof = 0 ;

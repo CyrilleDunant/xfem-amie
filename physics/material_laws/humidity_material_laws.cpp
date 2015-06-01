@@ -283,6 +283,17 @@ void HavlasekDryingCreepMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElastic
     s.set("creep_modulus", (eta+etadot*s.getNodalDeltaTime())/(1.+s.getNodalCentralTime()/tau) ) ;
 }
 
+void BazantCreepRelativeHumidityMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+{
+    if(!s.has("creep_characteristic_time"))
+        return ;
+
+    double h = s.get("relative_humidity", defaultValues) ;
+    double hc = s.get("creep_humidity_coefficient", defaultValues) ;
+    double factor =  hc+(1-hc)*h*h ;
+    s.multiply("creep_characteristic_time", factor) ;
+}
+
 
 }
 

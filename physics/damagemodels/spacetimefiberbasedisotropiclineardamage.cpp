@@ -38,7 +38,7 @@ Matrix SpaceTimeFiberBasedIsotropicLinearDamage::applyViscous(const Matrix & m, 
         return m ;
 //     return m;
     if(fractured())
-        return m*0 ;
+        return m*residualStiffnessFraction ;
 
 //     if(state.size() == 1)
 //     {
@@ -64,7 +64,7 @@ Matrix SpaceTimeFiberBasedIsotropicLinearDamage::apply(const Matrix & m, const P
     if(state.max() < POINT_TOLERANCE)
         return m ;
     if(fractured())
-        return m*0 ;
+        return m*residualStiffnessFraction ;
 
 
 //     if(state.size() == 1)
@@ -119,15 +119,18 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double ma
 
     double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 
-    if(!fractured() && score >= 1.-timeTolerance)
-    {
-        if((maxscore - score) < timeTolerance)
-        {
-            state[state.size()-1] += fibreFraction ;
-            change = true ;
-            s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
-        }
-    }
+	if(!fractured() && score >= 1)/* && score == maxScoreInNeighbourhood*/
+	{
+		double maxScoreInNeighbourhood = s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(s) ;
+		if(score == maxScoreInNeighbourhood)
+		{
+			state[state.size()-1] += fibreFraction ;
+			change = true ;
+			converged = true ;
+			s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
+		}
+//		std::cout << " before beginning << " << score ;
+	}
     else if(!fractured() && score > 0 && (maxscore - score) < timeTolerance)
     {
         state[state.size() -1] += fibreFraction ;
@@ -173,6 +176,7 @@ DamageModel * SpaceTimeFiberBasedIsotropicLinearDamage::getCopy() const
 {
     SpaceTimeFiberBasedIsotropicLinearDamage * dam = new SpaceTimeFiberBasedIsotropicLinearDamage(fibreFraction, timeTolerance, thresholdDamageDensity) ;
     dam->visc = visc ;
+    dam->setResidualStiffnessFraction( residualStiffnessFraction ) ;
     return dam ;
 }
 

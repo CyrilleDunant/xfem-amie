@@ -122,6 +122,7 @@ protected:
     bool isTrinaryOperator ( TokenOperationType t ) const ;
     std::map<int, Vector *> precalc ;
     std::map<int, std::map<Variable, Vector *> > dprecalc ;
+    bool shareDerivatives = false ;
 
 public:
     std::vector<Variable> transformed ;
@@ -146,6 +147,8 @@ public:
      * @param  s Function source.
      */
     Function ( const Function & s ) ;
+
+    Function ( const Function & s, int copyDerivative ) ;
 
     /** \brief Create function from RPN expression
      *

@@ -22,7 +22,7 @@ using namespace Amie ;
 
 FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, double delta_y, double delta_z) :
     initialScore(1),
-    physicalCharacteristicRadius(.8),
+    physicalCharacteristicRadius(.008),
     scoreAtState(-1),
     deltaScoreAtState(0),
     criterionDamageDifferential(0),

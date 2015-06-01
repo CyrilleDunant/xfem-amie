@@ -169,5 +169,6 @@ int main(int argc, char *argv[])
     double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
     std::cout << "problem solved in " << delta/1000000 << " seconds" << std::endl ;
 
+
     return 0 ;
 }

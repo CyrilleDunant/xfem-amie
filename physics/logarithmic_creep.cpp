@@ -47,7 +47,6 @@ void LogarithmicCreep::apply(const Function & p_i, const Function & p_j, const G
             vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
             vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
             a += b ;
-
             placeMatrixInBlock( a, 1,1, ret ) ;
 
             a = 0. ;

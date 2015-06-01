@@ -62,11 +62,14 @@ double SpaceTimeNonLocalMaximumStrain::grade(ElementState &s)
 
 	metInCompression = false ;
 	metInTension = false ;
+
 	if(maxStrainAfter > upVal)
 	{
 		metInTension = true ;
+		scoreAtTimeStepEnd = 1.-std::abs(upVal/maxStrainAfter) ;
 		return  std::min(1.,1. - (upVal - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) ;
 	}
+	scoreAtTimeStepEnd = -1.+ std::abs(maxStrainAfter/upVal);
 	return -1.+ maxStrainAfter/upVal;
 	
 	
@@ -102,8 +105,10 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
 	{
 		metInTension = true ;
 
+		scoreAtTimeStepEnd = 1.-std::abs(epsMax/maxStrainAfter) ;
 		return  std::min(1.,1. - (epsMax - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) ;
 	}
+	scoreAtTimeStepEnd = 1.-std::abs(epsMax/maxStrainAfter) ;
 	return -1.+ maxStrainAfter/epsMax;
 
 }
@@ -124,8 +129,10 @@ double SpaceTimeNonLocalMaximumStress::grade(ElementState &s)
 	{
 		metInTension = true ;
  //       std::cout << maxStressBefore << " " << maxStressAfter << std::endl ;
+		scoreAtTimeStepEnd = 1.-std::abs(maxstress/maxStressAfter) ;
 		return std::min(1., 1. - (maxstress - maxStressBefore) / (maxStressAfter - maxStressBefore)) ;
 	}
+	scoreAtTimeStepEnd = -1.+ maxStressAfter/maxstress ;
 	return -1.+ maxStressAfter/maxstress;
 	
 	

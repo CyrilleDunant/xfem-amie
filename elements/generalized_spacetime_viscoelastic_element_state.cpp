@@ -2311,8 +2311,8 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         for ( size_t i = 0 ; i < stresses.size() ; i++ )
         {
             ret[i] -= stresses[i] ;
-//            for(int j = 1 ; j < blocks ; j++)
-//                ret[i+j*stresses.size()] += stresses[i] ;
+            for(int j = 1 ; j < blocks ; j++)
+                ret[i+j*stresses.size()] += stresses[i] ;
         }
         if ( cleanup )
         {

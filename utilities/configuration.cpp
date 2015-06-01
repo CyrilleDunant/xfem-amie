@@ -595,6 +595,12 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
         ret->setDefaultValue("creep_humidity_coefficient", getData("creep_humidity_coefficient", 0.2)) ;
         return ret ;
     }
+    if(type == "CREEP_HUMIDITY_BAZANT")
+    {
+        ret = new BazantCreepRelativeHumidityMaterialLaw() ;
+        ret->setDefaultValue("creep_humidity_coefficient", getData("creep_humidity_coefficient", 0.125)) ;
+        return ret ;
+    }
 
     if(type == "KELVIN_CAPILLARY_PRESSURE")
     {
@@ -1014,7 +1020,7 @@ DamageModel * ConfigTreeItem::getDamageModel(bool spaceTime)
     {
         if(spaceTime)
         {
-            ret = new SpaceTimeIsotropicLinearDamage( getData("damage_increment",0.1),  getData("maximum_damage",1.) ) ;
+            ret = new SpaceTimeIsotropicLinearDamage( 1.,  getData("maximum_damage",1.) ) ;
         }
         else
             ret = new IsotropicLinearDamage() ;
@@ -1030,7 +1036,10 @@ DamageModel * ConfigTreeItem::getDamageModel(bool spaceTime)
     {
         if(hasChild("maximum_damage"))
             ret->setThresholdDamageDensity(getData("maximum_damage",1.)) ;
+        if(hasChild("residual_stiffness_fraction"))
+            ret->setResidualStiffnessFraction(getData("residual_stiffness_fraction",1e-4)) ;
     }
+
 
     return ret ;
 }
@@ -1144,10 +1153,11 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
             if(!hasChild("damage_model"))
             {
                 ConfigTreeItem * dam = new ConfigTreeItem(nullptr, "damage_model") ;
-                new ConfigTreeItem(dam, "type", "ISOTROPIC_LINEAR_DAMAGE") ;
+                new ConfigTreeItem(dam, "type", "ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE") ;
                 new ConfigTreeItem(dam, "damage_increment", getData("parameters.damage_increment", 0.1)) ;
                 new ConfigTreeItem(dam, "maximum_damage", getData("parameters.maximum_damage", 0.99999)) ;
                 new ConfigTreeItem(dam, "time_tolerance", getData("parameters.time_tolerance", 1e-9)) ;
+                new ConfigTreeItem(dam, "residual_stiffness_fraction", getData("parameters.residual_stiffness_fraction", 1e-4)) ;
                 this->addChild(dam) ;
             }
         }

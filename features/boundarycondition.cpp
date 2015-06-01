@@ -525,7 +525,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 {
                     if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
-                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                        shapeFunctions.push_back ( Function(e->getShapeFunction ( i ), 2) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
@@ -592,7 +592,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 {
                     if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
-                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                        shapeFunctions.push_back ( Function(e->getShapeFunction ( i ), 2) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
@@ -1877,7 +1877,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 {
                     if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
-                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                        shapeFunctions.push_back ( Function(e->getShapeFunction ( i ), 2) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
@@ -1952,7 +1952,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 {
                     if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
-                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                        shapeFunctions.push_back ( Function(e->getShapeFunction ( i ), 2) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
@@ -2025,7 +2025,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 {
                     if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
-                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                        shapeFunctions.push_back ( Function(e->getShapeFunction ( i ), 2) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
@@ -3324,7 +3324,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 {
                     if ( id[j].getId() == e->getBoundingPoint ( i ).getId() )
                     {
-                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                        shapeFunctions.push_back ( Function(e->getShapeFunction ( i ), 2) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
@@ -3382,7 +3382,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 {
                     if ( id[j].getId() == e->getBoundingPoint ( i ).getId() )
                     {
-                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                        shapeFunctions.push_back ( Function(e->getShapeFunction ( i ), 2) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
@@ -4435,7 +4435,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 {
                     if ( id[j].getId() == e->getBoundingPoint ( i ).getId() )
                     {
-                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                        shapeFunctions.push_back ( Function(e->getShapeFunction ( i ), 2) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
@@ -4496,7 +4496,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 {
                     if ( id[j].getId() == e->getBoundingPoint ( i ).getId() )
                     {
-                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                        shapeFunctions.push_back ( Function(e->getShapeFunction ( i ), 2) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
@@ -4557,7 +4557,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 {
                     if ( id[j].getId() == e->getBoundingPoint ( i ).getId() )
                     {
-                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                        shapeFunctions.push_back ( Function(e->getShapeFunction ( i ), 2) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )

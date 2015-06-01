@@ -61,6 +61,7 @@ protected:
     double physicalCharacteristicRadius ;
     double scoreAtState ;
     double deltaScoreAtState ;
+    double scoreAtTimeStepEnd = -2 ;
 
     double criterionDamageDifferential ;
     MirrorState mirroring ;
@@ -170,6 +171,8 @@ public:
     } ;
 
     double getScoreAtState() const ;
+
+    double getScoreAtTimeStepEnd() const { return scoreAtTimeStepEnd < -1 ? getScoreAtState() : scoreAtTimeStepEnd ; }
 
     virtual double getTensileLimit(const ElementState & s) const = 0 ;
 };

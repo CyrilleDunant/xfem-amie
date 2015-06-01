@@ -657,6 +657,7 @@ void Assembly::setBoundaryConditions()
 
 void Assembly::checkZeroLines()
 {
+//    return ;
     std::cerr << "removing 0-only lines..." << std::flush ;
     bool zeros = true ;
     for(size_t i = 0 ; i < externalForces.size() ; i++)

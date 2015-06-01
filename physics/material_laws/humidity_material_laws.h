@@ -146,6 +146,14 @@ struct BenboudjemaDryingCreepMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt);
 };
 
+struct BazantCreepRelativeHumidityMaterialLaw : public ExternalMaterialLaw
+{
+    BazantCreepRelativeHumidityMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { } 
+    virtual ~BazantCreepRelativeHumidityMaterialLaw() { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+};
+
 struct HavlasekDryingCreepMaterialLaw : public ExternalMaterialLaw
 {
     HavlasekDryingCreepMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { } 
