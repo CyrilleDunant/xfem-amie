@@ -5640,14 +5640,19 @@ bool FeatureTree::step(bool guided)
 
 bool FeatureTree::stepToCheckPoint( int iterations, double precision)
 {
-    setDeltaTime ( realDeltaTime, false ) ;
-    int prevmaxit = maxitPerStep ;  
-    maxitPerStep = 1 ;
-    
-    for(int iter = 0 ; iter < iterations ; iter++)
+    double initialscale = 1. ;
+    for ( const auto & bc : boundaryCondition)
     {
-        scaleBoundaryConditions ( 1. );
-        step(true) ;   
+        initialscale  =std::min(bc.getScale(), initialscale) ;
+    }
+    
+    int prevmaxit = maxitPerStep ;  
+    maxitPerStep = 2 ;
+    scaleBoundaryConditions ( 1. );
+    setDeltaTime ( realDeltaTime, false ) ;
+    for(int iter = 0 ; iter < iterations ; iter++)
+    { 
+        step(true) ;      
         if(maxScore < 0)
             break ;
      }   
@@ -5670,7 +5675,7 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
         double highscale = 1. ;
         double bottomscale= 0. ;
         
-        while(highscale-bottomscale > precision)
+        while(highscale-bottomscale > precision*initialscale)
         {
             currentScale = (highscale+bottomscale)*.5 ;
             scaleBoundaryConditions(currentScale) ;

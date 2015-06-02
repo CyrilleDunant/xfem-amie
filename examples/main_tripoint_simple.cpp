@@ -95,7 +95,7 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
 //             continue ;
 //         }
 
-        bool go_on = featureTree->stepToCheckPoint(1, 1e-3) ;
+        bool go_on = featureTree->stepToCheckPoint(100, 1e-3) ;
         
         x.resize ( featureTree->getDisplacements ( -1, false ).size() ) ;
         x = featureTree->getDisplacements ( -1, false ) ;
@@ -174,8 +174,8 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
         
         ldfile.close();
 
-        if(v%10 == 0)
-        {
+//         if(v%10 == 0)
+//         {
             writer.reset ( featureTree ) ;
             writer.getField ( TWFT_PRINCIPAL_STRESS ) ;
             writer.getField ( TWFT_PRINCIPAL_STRAIN ) ;
@@ -184,7 +184,7 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
             writer.getField ( TWFT_STIFFNESS_Y ) ;
             writer.getField ( TWFT_DAMAGE ) ;
             writer.append() ;
-        }
+//         }
     }
 }
 

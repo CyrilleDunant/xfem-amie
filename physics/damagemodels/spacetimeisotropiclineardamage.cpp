@@ -76,6 +76,7 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
 {
     elementState = &s ;
     converged = true ;
+    double timetolerance = 1e-3 ;
     if( fraction < 0 )
     {
         if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
@@ -87,31 +88,41 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
 
     change = false ;    
     
-    //special case when there is a local snap/back instability
-    if(!fractured() && s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() > 1.-damageDensityTolerance)
-    {
-        state[0] = std::max(std::min(state[0]+(1.*(overdamage+std::max(maxscore-1, 0.))-maxscore+damageDensityTolerance)*dt*overdamage*accelerate, 1.), state[0] ) ;
-    }
-    else
-        state[0] = std::max(std::min(state[0]+(1.*overdamage-maxscore)*dt*overdamage*accelerate, 1.), state[0] ) ;
-    dt = s.getParent()->getBoundingPoint(s.getParent()->getBoundingPoints().size()-1).getT() - s.getParent()->getBoundingPoint(0).getT() ;
     
-
+    //special case when there is a local snap/back instability
+    if(accelerate)
+    {
+//         std::cout  <<  state[0] << "->" << std::flush ;
+        if(!fractured() && s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() > 1.-timetolerance)
+        {
+            state[0] = std::min(state[0]+timetolerance, 1.) ;
+        }
+        else
+        {
+            double timeDelta = std::max((1.-maxscore)*dt, timetolerance) ;
+            state[0] = std::min(state[0]+timeDelta*overdamage*accelerate, 1.)  ; 
+        }
+        
+//         std::cout  <<  state[0] << std::endl ;
+    }
+    dt = s.getParent()->getBoundingPoint(s.getParent()->getBoundingPoints().size()-1).getT() - s.getParent()->getBoundingPoint(0).getT() ;
     
     if(!s.getParent()->getBehaviour()->getFractureCriterion() || 
         !s.getParent()->getBehaviour()->getFractureCriterion()->met() || 
-        std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() - maxscore) >= 1e-4)
+        std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() - maxscore) >= timetolerance 
+    )
     {
         accelerate = 0 ;
     }
     else if(!fractured() 
-        && std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() - maxscore) < 1e-4 
-        && s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtTimeStepEnd() > damageDensityTolerance)
+            && (std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() - maxscore) <timetolerance 
+                ||  s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() > 1.-timetolerance ))
     {
+//         std::cout << dynamic_cast<DelaunayTriangle *>(s.getParent())->index << std::endl ;
         double maxAccelerate = 1 ;
-        if(std::max(dt, 1e-4) > POINT_TOLERANCE)
-            maxAccelerate = 1./std::max(dt, 1e-4) ;
-        if(!accelerate)
+        if(std::max(dt, timetolerance) > POINT_TOLERANCE)
+            maxAccelerate = 1./std::max(dt, timetolerance) ;
+        if(accelerate < 1)
         {
             double denominator = (1.-maxscore) ;
             if(denominator < POINT_TOLERANCE)
