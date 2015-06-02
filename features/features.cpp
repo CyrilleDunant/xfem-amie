@@ -5643,7 +5643,7 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
     double initialscale = 1. ;
     for ( const auto & bc : boundaryCondition)
     {
-        initialscale  =std::min(bc.getScale(), initialscale) ;
+        initialscale  =std::min(bc->getScale(), initialscale) ;
     }
     
     int prevmaxit = maxitPerStep ;  

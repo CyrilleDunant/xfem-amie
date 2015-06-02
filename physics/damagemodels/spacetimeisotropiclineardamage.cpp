@@ -99,7 +99,9 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
         }
         else
         {
-            double timeDelta = std::max((1.-maxscore)*dt, timetolerance) ;
+            double timeDelta = std::max((1.-maxscore*.5)*dt, timetolerance) ;
+            if(maxscore < 0)
+                timeDelta = std::max(dt, timetolerance) ;
             state[0] = std::min(state[0]+timeDelta*overdamage*accelerate, 1.)  ; 
         }
         
@@ -124,7 +126,7 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
             maxAccelerate = 1./std::max(dt, timetolerance) ;
         if(accelerate < 1)
         {
-            double denominator = (1.-maxscore) ;
+            double denominator = (1.-maxscore*.5) ;
             if(denominator < POINT_TOLERANCE)
                 denominator = POINT_TOLERANCE ;
             accelerate = 1./denominator ;
