@@ -1020,7 +1020,7 @@ DamageModel * ConfigTreeItem::getDamageModel(bool spaceTime)
     {
         if(spaceTime)
         {
-            ret = new SpaceTimeIsotropicLinearDamage(getData("maximum_damage",1.) ) ;
+            ret = new SpaceTimeIsotropicLinearDamage( /*1., getData("time_tolerance",1e-9), getData("damage_increment",0.1),*/ getData("maximum_damage",1.) ) ;
         }
         else
             ret = new IsotropicLinearDamage() ;
@@ -2515,7 +2515,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
             if(isFieldType)
             {
 //				std::cout << fields[i]->getStringData() << std::endl ;
-                Vector f = F->getAverageField( ft, -1, (instant == "AFTER") - (instant == "BEFORE") ) ;
+                Vector f = F->getAverageField( ft, -1, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
                 for(size_t j = 0 ; j < f.size() ; j++)
                 {
                     std::cout << f[j] << "\t" ;
@@ -2540,7 +2540,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
                 FieldType ft = ConfigTreeItem::translateFieldType( ffields[i]->getStringData(), isFieldType ) ;
                 if(isFieldType)
                 {
-                    Vector f = F->get2DMesh()->getField( ft, cacheIndex[index], -1, (instant == "AFTER") - (instant == "BEFORE") ) ;
+                    Vector f = F->get2DMesh()->getField( ft, cacheIndex[index], -1, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
                     for(size_t j = 0 ; j < f.size() ; j++)
                     {
                         std::cout << f[j] << "\t" ;
@@ -2568,7 +2568,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
                 FieldType ft = ConfigTreeItem::translateFieldType( ffields[i]->getStringData(), isFieldType ) ;
                 if(isFieldType)
                 {
-                    Vector f = F->getAverageFieldOnBoundary( pos, ft, -1, (instant == "AFTER") - (instant == "BEFORE") ) ;
+                    Vector f = F->getAverageFieldOnBoundary( pos, ft, -1, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
                     for(size_t j = 0 ; j < f.size() ; j++)
                     {
                         std::cout << f[j] << "\t" ;
@@ -2577,7 +2577,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
                 }
                 else
                 {
-                    double f = F->getAverageFieldOnBoundary( pos, ffields[i]->getStringData(), -1, (instant == "AFTER") - (instant == "BEFORE") ) ;
+                    double f = F->getAverageFieldOnBoundary( pos, ffields[i]->getStringData(), -1, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
                     std::cout << f << "\t" ;
                     out << f << "\t" ;
                 }
@@ -2598,7 +2598,7 @@ void ConfigTreeItem::exportTriangles(FeatureTree * F, int i, int nsteps)
     if(getChild("time_step")->isAtTimeStep(i, nsteps))
     {
         std::string instant = getStringData("instant","NOW") ;
-        TriangleWriter trg(getStringData("file_name","output_").append(itoa(i)), F, (instant == "AFTER") - (instant == "BEFORE") ) ;
+        TriangleWriter trg(getStringData("file_name","output_").append(itoa(i)), F, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
         std::vector<ConfigTreeItem *> fields = getAllChildren("field") ;
         for(size_t i = 0 ; i < fields.size() ; i++)
         {
@@ -2631,7 +2631,7 @@ void ConfigTreeItem::exportSvgTriangles(MultiTriangleWriter * trg, FeatureTree *
     if(getChild("time_step")->isAtTimeStep(i, nsteps))
     {
         std::string instant = getStringData("instant","NOW") ;
-        trg->reset(F, (instant == "AFTER") - (instant == "BEFORE")) ;
+        trg->reset(F, (int) (instant == "AFTER") - (int) (instant == "BEFORE")) ;
         std::vector<ConfigTreeItem *> fields = getAllChildren("field") ;
         for(size_t i = 0 ; i < fields.size() ; i++)
         {

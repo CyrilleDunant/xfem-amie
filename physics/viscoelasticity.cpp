@@ -56,6 +56,82 @@ void Amie::getBlockInMatrix( const Matrix & source, size_t i, size_t j, Matrix &
     }
 }
 
+void Viscoelasticity::makeBlockConnectivity()
+{
+    connectivity.clear() ;
+    connectivityViscous.clear() ;
+
+    switch(model)
+    {
+    case PURE_ELASTICITY:
+        connectivity.push_back( BlockConnectivity(0,0) ) ;
+        break ;
+    case PURE_VISCOSITY:
+        connectivityViscous.push_back( BlockConnectivity(0,0) ) ;
+        break ;
+    case KELVIN_VOIGT:
+        connectivity.push_back( BlockConnectivity(0,0) ) ;
+        connectivityViscous.push_back( BlockConnectivity(0,0) ) ;
+        break ;
+    case MAXWELL:
+   {
+        BlockConnectivity elastic(0,0) ;
+        elastic.add(1,1) ;
+        elastic.substract(0,1) ;
+        elastic.substract(1,0) ;
+        connectivity.push_back( elastic ) ;
+        connectivityViscous.push_back( BlockConnectivity(1,1) ) ;
+        break ;
+    }
+    case BURGER:
+    {
+        BlockConnectivity elastic(0,0) ;
+        elastic.add(1,2) ;
+        elastic.add(2,1) ;
+        elastic.substract(0,1) ;
+        elastic.substract(0,2) ;
+        elastic.substract(1,0) ;
+        elastic.substract(2,0) ;
+        connectivity.push_back( elastic ) ;
+        connectivity.push_back( BlockConnectivity(1,1) ) ;
+        connectivity.push_back( BlockConnectivity(2,2) ) ;
+        connectivityViscous.push_back( BlockConnectivity(1,1) ) ;
+        connectivityViscous.push_back( BlockConnectivity(2,2) ) ;
+        break ;
+    }
+    case GENERALIZED_MAXWELL:
+        connectivity.push_back( BlockConnectivity(0,0 ) ) ;
+        for(int i = 1 ; i < blocks ; i++)
+        {
+            BlockConnectivity branch(i,i) ;
+            branch.substract(0,i) ;
+            branch.substract(i,0) ;
+            connectivity.push_back(branch) ;
+            connectivityViscous.push_back( BlockConnectivity(i,i) ) ;
+        }
+        break ;
+    case GENERALIZED_KELVIN_VOIGT:
+    {
+        BlockConnectivity elastic(0,0) ;
+        for(int i = 1 ; i < blocks ; i++)
+        {
+            elastic.substract(0,i) ;
+            elastic.substract(i,0) ;
+            for(int j = i+1 ; j < blocks ; j++)
+            {
+                elastic.add(i,j) ;
+                elastic.add(j,i) ;
+            }
+            connectivity.push_back( BlockConnectivity(i,i) ) ;
+            connectivityViscous.push_back( BlockConnectivity(i,i) ) ;
+        }
+        connectivity.push_back( elastic) ;
+        break ;
+    }
+    default:
+        break ;
+    }
+} 
 
 Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & rig, int n, double r) : LinearForm(rig, false, false, (1+n)*(rig.numRows()/3+1)), model(m), blocks(1+n), effblocks(1)
 {
@@ -85,6 +161,8 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & rig, int n,
     }
 
     tensors.push_back(rig) ;
+
+    makeBlockConnectivity() ;
 
 }
 
@@ -125,6 +203,7 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & rig, const 
     tensors.push_back(rig) ;
     tensors.push_back(e) ;
 
+    makeBlockConnectivity() ;
 }
 
 Viscoelasticity::Viscoelasticity(const Matrix & rig, const Matrix & e, int b, int n, double r) : LinearForm(rig, false, false, (n+b)*((rig.numRows()/b)/3+1)), model(GENERAL_VISCOELASTICITY), blocks(n+b),effblocks(b)
@@ -155,6 +234,7 @@ Viscoelasticity::Viscoelasticity(const Matrix & rig, const Matrix & e, int b, in
         }
     }
 
+    makeBlockConnectivity() ;
 
 }
 
@@ -204,6 +284,8 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c_kv, const
     tensors.push_back(e_mx) ;
     tensors.push_back(c_kv) ;
     tensors.push_back(e_kv) ;
+
+    makeBlockConnectivity() ;
 
 }
 
@@ -266,6 +348,7 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, std::ve
         tensors.push_back(branches[i].second) ;
     }
 
+    makeBlockConnectivity() ;
 }
 
 Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, const Matrix & c1, const Matrix & e1, int b, int n, double r) : LinearForm(c0, false, false, (2+n+b)*(c0.numRows()/3+1)), model(m), blocks(2+n+b), effblocks(2)
@@ -313,6 +396,7 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, const M
     tensors.push_back(c1) ;
     tensors.push_back(e1) ;
 
+    makeBlockConnectivity() ;
 }
 
 Viscoelasticity::~Viscoelasticity() {}
@@ -324,289 +408,95 @@ ElementState * Viscoelasticity::createElementState( IntegrableEntity * e)
 
 void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
-    Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
-    Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
-
-    Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
-
-    switch(model)
+    Matrix deltaParam = getTensor( Point(0,0,0,-1) ) - getTensor( Point(0,0,0,1) ) ;
+    if( std::abs(deltaParam.array().max()) > POINT_TOLERANCE || std::abs(deltaParam.array().min()) > POINT_TOLERANCE )
     {
-    case GENERALIZED_KELVIN_VOIGT:
-    {
-        // stiffness (0,0)
-        getBlockInMatrix(param, 0,0, buffer) ;
+        Matrix tmpRet(ret.numRows()/blocks, ret.numCols()/blocks) ;
+        std::vector<Matrix> mat(Jinv.size(), Matrix( tensors[0].numCols(), tensors[0].numRows() ) ) ;
+        std::vector<Matrix> dmat(Jinv.size(), Matrix( tensors[0].numCols(), tensors[0].numRows() ) ) ;
+        std::vector<std::pair<Matrix, Matrix> > paramt( Jinv.size(), std::make_pair( param, param*0 ) ) ; 
+        getTensorDotAtGaussPoints( gp, Jinv, paramt, true ) ;
 
-        vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-        vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-        a += b ;
-
-        placeMatrixInBlock( a, 0,0, ret ) ;
-        for(int i = 1 ; i < effblocks ; i++)
+        for(size_t i = 0 ; i < connectivity.size() ; i++)
         {
-            // first line
-            placeMatrixInBlock( -a, i,0, ret ) ;
-            // first column
-            placeMatrixInBlock( -a, 0,i, ret ) ;
-            for(int j = i+1 ; j < effblocks ; j++)
+            tmpRet = 0 ;
+            for(size_t g = 0; g < Jinv.size() ; g++)
             {
-                // upper triangle
-                placeMatrixInBlock( a, i,j, ret ) ;
-                // lower triangle
-                placeMatrixInBlock( a, j,i, ret ) ;
+                getBlockInMatrix( paramt[g].first, connectivity[i].xplus[0], connectivity[i].yplus[0], mat[g] ) ;
+                getBlockInMatrix( paramt[g].second, connectivity[i].xplus[0], connectivity[i].yplus[0], dmat[g] ) ;
             }
+            vm->ieval( Differential(TIME_VARIABLE)[ Gradient(p_i) * mat * Gradient(p_j, true) ], dmat, gp, Jinv,v, tmpRet) ;
+            for(size_t j = 0 ; j < connectivity[i].xplus.size() ; j++)
+                placeMatrixInBlock( tmpRet, connectivity[i].xplus[j], connectivity[i].yplus[j], ret ) ;
+            for(size_t j = 0 ; j < connectivity[i].xminus.size() ; j++)
+                placeMatrixInBlock( -tmpRet , connectivity[i].xminus[j], connectivity[i].yminus[j], ret ) ;
         }
-        for(int i = 1 ; i < blocks ; i++)
+
+    }
+    else
+    {
+        Matrix tmpRet(ret.numRows()/blocks, ret.numCols()/blocks) ;
+        Matrix tmpParam(param.numRows()/blocks, param.numCols()/blocks) ;
+        Matrix realParam = getTensor( Point(0,0,0,1) ) ;
+
+        for(size_t i = 0 ; i < connectivity.size() ; i++)
         {
-            //stiffness (diagonal)
-            getBlockInMatrix(param, i,i, buffer) ;
-            vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-            vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-            a += b ;
-            placeMatrixInBlock( a, i,i, ret ) ;
+            tmpRet = 0 ;
+            getBlockInMatrix(realParam, connectivity[i].xplus[0], connectivity[i].yplus[0], tmpParam) ;
+            vm->ieval( Differential(TIME_VARIABLE)[ Gradient(p_i) * tmpParam * Gradient(p_j, true) ],  gp, Jinv,v, tmpRet) ;
+            for(size_t j = 0 ; j < connectivity[i].xplus.size() ; j++)
+                placeMatrixInBlock( tmpRet, connectivity[i].xplus[j], connectivity[i].yplus[j], ret ) ;
+            for(size_t j = 0 ; j < connectivity[i].xminus.size() ; j++)
+                placeMatrixInBlock( -tmpRet , connectivity[i].xminus[j], connectivity[i].yminus[j], ret ) ;
         }
-//			ret.print() ;
-        return ;
     }
-
-    case GENERALIZED_MAXWELL:
-    {
-        // stiffness (0,0)
-        getBlockInMatrix(param, 0,0, buffer) ;
-        vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-        vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-        a += b ;
-        placeMatrixInBlock( a, 0,0, ret ) ;
-        for(int i = 1 ; i < blocks ; i++)
-        {
-            //stiffness (diagonal)
-            getBlockInMatrix(param, i,i, buffer) ;
-            vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-            vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-            a += b ;
-            placeMatrixInBlock( a, i,i, ret ) ;
-            // first line
-            placeMatrixInBlock( -a, i,0, ret ) ;
-            // first column
-            placeMatrixInBlock( -a, 0,i, ret ) ;
-        }
-        return ;
-    }
-
-    case BURGER:
-    {
-        // stiffness Maxwell
-        getBlockInMatrix(param, 0,0, buffer) ;
-        vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-        vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-        a += b ;
-        placeMatrixInBlock( a, 0,0, ret ) ;
-        placeMatrixInBlock( a, 1,1, ret ) ;
-        placeMatrixInBlock( a, 1,2, ret ) ;
-        placeMatrixInBlock( a, 2,1, ret ) ;
-        placeMatrixInBlock( -a, 0,1, ret ) ;
-        placeMatrixInBlock( -a, 1,0, ret ) ;
-        placeMatrixInBlock( -a, 0,2, ret ) ;
-        placeMatrixInBlock( -a, 2,0, ret ) ;
-        // stiffness KV
-        getBlockInMatrix(param, 2,2, buffer) ;
-        vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-        vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-        a += b ;
-        placeMatrixInBlock( a, 2,2, ret ) ;
-
-        return ;
-    }
-
-    case MAXWELL:
-    {
-        // stiffness
-        getBlockInMatrix(param, 0,0, buffer) ;
-        vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-        vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-        a += b ;
-        placeMatrixInBlock( a, 0,0, ret ) ;
-        placeMatrixInBlock( a, 1,1, ret ) ;
-        placeMatrixInBlock( -a, 0,1, ret ) ;
-        placeMatrixInBlock( -a, 1,0, ret ) ;
-        return ;
-    }
-
-    case KELVIN_VOIGT:
-    {
-        // stiffness
-        getBlockInMatrix(param, 0,0, buffer) ;
-        vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-        vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-        a += b ;
-        placeMatrixInBlock( a, 0,0, ret ) ;
-        return ;
-    }
-
-    case PURE_ELASTICITY:
-    {
-        getBlockInMatrix(param, 0,0, buffer) ;
-        vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-        vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-        a += b ;
-        placeMatrixInBlock( a, 0,0, ret ) ;
-        return ;
-    }
-
-    case PURE_VISCOSITY:
-    {
-        return ;
-    }
-
-    default:
-    {
-        for(int i = 0 ; i < blocks ; i++)
-        {
-            // elastic matrix (diagonal)
-            getBlockInMatrix(param, i,i, buffer) ;
-            vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-            vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-            a += b ;
-            placeMatrixInBlock( a, i,i, ret ) ;
-            // elastic matrix (upper-triangle)
-            for(int j = i+1 ; j < blocks ; j++)
-            {
-                getBlockInMatrix(param, i,j, buffer) ;
-                vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-                vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-                a += b ;
-                placeMatrixInBlock( a, i,j, ret ) ;
-                // symmetry
-                placeMatrixInBlock( a, j,i, ret ) ;
-            }
-
-        }
-        return ;
-    }
-    }
-
 
 }
 
 void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
-    Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
-    Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
-
-    Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
-
-    switch(model)
+    Matrix deltaParam = getViscousTensor( Point(0,0,0,-1) ) - getViscousTensor( Point(0,0,0,1) ) ;
+    if( std::abs(deltaParam.array().max()) > POINT_TOLERANCE || std::abs(deltaParam.array().min()) > POINT_TOLERANCE )
     {
-    case GENERALIZED_KELVIN_VOIGT:
-    {
-        for(int i = 1 ; i < effblocks ; i++)
+        Matrix tmpRet(ret.numRows()/blocks, ret.numCols()/blocks) ;
+        std::vector<Matrix> mat(Jinv.size(), Matrix( tensors[0].numCols(), tensors[0].numRows() ) ) ;
+        std::vector<Matrix> dmat(Jinv.size(), Matrix( tensors[0].numCols(), tensors[0].numRows() ) ) ;
+        std::vector<std::pair<Matrix, Matrix> > paramt( Jinv.size(), std::make_pair( eta, eta*0 ) ) ; 
+        getViscousTensorDotAtGaussPoints( gp, Jinv, paramt, true ) ;
+
+        for(size_t i = 0 ; i < connectivityViscous.size() ; i++)
         {
-            // viscosity (diagonal)
-            getBlockInMatrix(eta, i,i, buffer) ;
-            vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
-            vm->ieval(GradientDotDot(p_i)    * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
-            a += b ;
-            placeMatrixInBlock( a, i,i, ret ) ;
-        }
-
-        return ;
-    }
-
-    case GENERALIZED_MAXWELL:
-    {
-        for(int i = 1 ; i < effblocks ; i++)
-        {
-            // viscosity (diagonal)
-            getBlockInMatrix(eta, i,i, buffer) ;
-            vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
-            vm->ieval(GradientDotDot(p_i)    * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
-            a += b ;
-            placeMatrixInBlock( a, i,i, ret ) ;
-        }
-        return ;
-    }
-
-    case BURGER:
-    {
-        // viscosity Maxwell
-        getBlockInMatrix(eta, 1,1, buffer) ;
-        vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-// 			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
-// 			a += b ;
-        placeMatrixInBlock( a, 1,1, ret ) ;
-        // viscosity KV
-        getBlockInMatrix(eta, 2,2, buffer) ;
-        vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-// 			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
-// 			a += b ;
-        placeMatrixInBlock( a, 2,2, ret ) ;
-
-
-        return ;
-    }
-
-    case MAXWELL:
-    {
-        // viscosity
-        getBlockInMatrix(eta, 1,1, buffer) ;
-        vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-        vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
-        a += b ;
-        placeMatrixInBlock( a, 1,1, ret ) ;
-        return ;
-    }
-
-    case KELVIN_VOIGT:
-    {
-        // viscosity
-        getBlockInMatrix(eta, 0,0, buffer) ;
-        vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-        vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
-        a += b ;
-        placeMatrixInBlock( a, 0,0, ret ) ;
-        return ;
-    }
-
-    case PURE_ELASTICITY:
-    {
-        return ;
-    }
-
-    case PURE_VISCOSITY:
-    {
-        getBlockInMatrix(eta, 0,0, buffer) ;
-        vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-        vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
-        a+= b ;
-        placeMatrixInBlock( a, 0,0, ret ) ;
-        return ;
-    }
-
-    default:
-    {
-        for(int i = 0 ; i < blocks ; i++)
-        {
-            // viscous matrix (diagonal)
-            getBlockInMatrix(eta, i,i, buffer) ;
-            vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-            vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
-            a += b ;
-            placeMatrixInBlock( a, i,i, ret ) ;
-            // viscous matrix (upper-triangle)
-            for(int j = i+1 ; j < blocks ; j++)
+            tmpRet = 0 ;
+            for(size_t g = 0; g < Jinv.size() ; g++)
             {
-                getBlockInMatrix(eta, i,j, buffer) ;
-                vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-                vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
-                a += b ;
-                addMatrixInBlock( a, i,j, ret ) ;
-                // symmetry
-                addMatrixInBlock( a, j,i, ret ) ;
+                getBlockInMatrix( paramt[g].first, connectivityViscous[i].xplus[0], connectivityViscous[i].yplus[0], mat[g] ) ;
+                getBlockInMatrix( paramt[g].second, connectivityViscous[i].xplus[0], connectivityViscous[i].yplus[0], dmat[g] ) ;
             }
+            vm->ieval( Differential(TIME_VARIABLE)[ Gradient(p_i) * mat * GradientDot(p_j, true) ], dmat, gp, Jinv,v, tmpRet) ;
+            for(size_t j = 0 ; j < connectivityViscous[i].xplus.size() ; j++)
+                placeMatrixInBlock( tmpRet, connectivityViscous[i].xplus[j], connectivityViscous[i].yplus[j], ret ) ;
+            for(size_t j = 0 ; j < connectivityViscous[i].xminus.size() ; j++)
+                placeMatrixInBlock( -tmpRet , connectivityViscous[i].xminus[j], connectivityViscous[i].yminus[j], ret ) ;
         }
-        return ;
-    }
-    }
 
+    }
+    else
+    {
+        Matrix tmpRet(ret.numRows()/blocks, ret.numCols()/blocks) ;
+        Matrix tmpEta(eta.numRows()/blocks, eta.numCols()/blocks) ;
+        Matrix realeta = getViscousTensor( Point(0,0,0,1) ) ;
+
+        for(size_t i = 0 ; i < connectivityViscous.size() ; i++)
+        {
+            tmpRet = 0 ;
+            getBlockInMatrix(realeta, connectivityViscous[i].xplus[0], connectivityViscous[i].yplus[0], tmpEta) ;
+            vm->ieval( Differential(TIME_VARIABLE)[ Gradient(p_i) * tmpEta * GradientDot(p_j, true) ],  gp, Jinv,v, tmpRet) ;
+            for(size_t j = 0 ; j < connectivityViscous[i].xplus.size() ; j++)
+                placeMatrixInBlock( tmpRet, connectivityViscous[i].xplus[j], connectivityViscous[i].yplus[j], ret ) ;
+            for(size_t j = 0 ; j < connectivityViscous[i].xminus.size() ; j++)
+                placeMatrixInBlock( -tmpRet , connectivityViscous[i].xminus[j], connectivityViscous[i].yminus[j], ret ) ;
+        }
+    }
 
 }
 

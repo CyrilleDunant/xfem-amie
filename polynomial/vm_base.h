@@ -31,12 +31,18 @@ struct FMtMtFM ;
 struct DtGtMtG ;
 struct DdGtMtG ;
 struct DdGtMtGD ;
+struct DdGtMLtG ;
+struct DdGtMLtGD ;
+struct DdGtMLtG ;
+struct DdGtMLtGD ;
 struct GDtMtGD ;
 struct GDDtMtG ;
+struct GtMtGDD ;
 struct GtMtGD ;
 struct GDtMtG ;
 struct GDtMLtGD ;
 struct GDDtMLtG ;
+struct GtMLtGDD ;
 struct GtMLtGD ;
 struct GDtMLtG ;
 struct GDtV ;
@@ -481,9 +487,13 @@ public:
 
     void ieval(const GDDtMtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
 
+    void ieval(const GtMtGDD &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
+
     void ieval(const GDtMLtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
 
     void ieval(const GDDtMLtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
+
+    void ieval(const GtMLtGDD &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
 
     /** \brief Overloaded function to compute the integral of a GradientDot times a Matrix times a Gradient using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars.
      * GradientDot is the operator \f$ \dot{\nabla}\otimes \f$ operator.
@@ -547,6 +557,14 @@ public:
     void ieval(const DdGtMtG & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const IntegrableEntity * e, const std::vector<Variable> & vars, Matrix & ret) ;
 
     void ieval(const DdGtMtGD & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const IntegrableEntity * e, const std::vector<Variable> & vars, Matrix & ret) ;
+
+    void ieval(const DdGtMtG & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
+
+    void ieval(const DdGtMtGD & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
+
+    void ieval(const DdGtMLtG & d, const std::vector<Matrix> & dmat, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
+
+    void ieval(const DdGtMLtGD & d, const std::vector<Matrix> & dmat, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
 
     /** \brief Overloaded function to compute the integral of a VectorGradient times a Matrix times a VectorGradient over the IntegrableEntity e, with variables defined by vars.
     The function is assumed to be expressed in the local coordinates of e.

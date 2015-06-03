@@ -43,6 +43,7 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 	prevParam = param ;
 	prevEta = eta ;
 	prevImposed = imposed ;
+	bool modelChange = false ;
 
 	if(values.find("young_modulus") != values.end())
 	{
@@ -124,6 +125,7 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 		placeMatrixInBlock( C+R, 2,2, param) ;
 		placeMatrixInBlock( R*tau, 2,2, eta) ;
 
+		modelChange = (model != GENERALIZED_KELVIN_VOIGT) ;
 		model = GENERALIZED_KELVIN_VOIGT ;
 
 //		(param-eta/tau).print() ;
@@ -132,6 +134,7 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 	else
 	{
 		eta = 0. ;
+		modelChange = (model != PURE_ELASTICITY) ;
 		model = PURE_ELASTICITY ;
 		isPurelyElastic = true ;
 	}
@@ -236,6 +239,16 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 			
 		
 	}
+
+	if(prevParam.array().max() < POINT_TOLERANCE)
+	{
+		prevParam = param ;
+		prevEta = eta ;
+		prevImposed = imposed ;
+	}
+
+	if(modelChange)
+		makeBlockConnectivity() ;
 
 }
 

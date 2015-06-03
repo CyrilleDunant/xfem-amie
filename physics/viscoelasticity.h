@@ -34,6 +34,20 @@ void addMatrixInBlock(const Matrix & m, size_t i, size_t j, Matrix & ret) ;
 void substractMatrixInBlock(const Matrix & m, size_t i, size_t j, Matrix & ret) ;
 void getBlockInMatrix( const Matrix & source, size_t i, size_t j, Matrix & ret) ;
 
+struct BlockConnectivity 
+{
+   std::vector<int> xplus ;
+   std::vector<int> yplus ;
+   std::vector<int> xminus ;
+   std::vector<int> yminus ;
+
+   BlockConnectivity(int x = 0, int y = 0) { xplus.push_back( x ) ; yplus.push_back( y ) ;  }
+
+   void add(int x, int y) { xplus.push_back( x ) ; yplus.push_back( y ) ; }
+   void substract(int x, int y) { xminus.push_back( x ) ; yminus.push_back( y ) ; }
+
+} ;
+
 
 struct Viscoelasticity : public LinearForm
 {
@@ -54,7 +68,10 @@ struct Viscoelasticity : public LinearForm
 	int effblocks ;
 	
 	std::vector<Variable> v ;
-	
+
+        std::vector<BlockConnectivity> connectivity ;
+        std::vector<BlockConnectivity> connectivityViscous ;
+
 	// constructor for pure elasticity or pure viscosity
 	Viscoelasticity( ViscoelasticModel model, const Matrix & rig, int additionnalBlocksAfter = 0, double r = 0) ; 
 	// constructor for elementary Kelvin-Voigt or Maxwell
@@ -69,6 +86,8 @@ struct Viscoelasticity : public LinearForm
 	Viscoelasticity( const Matrix & rig, const Matrix & eta, int blocks, int additionnalBlocksAfter = 0, double r = 0) ; 
 
 	virtual ~Viscoelasticity() ;
+
+        virtual void makeBlockConnectivity() ;
 
 	virtual void apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
 	virtual void applyViscous( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const ;

@@ -871,6 +871,8 @@ Function operator()(const Function &f0, const Function &f1) const;*/
     const Vector & getPrecalculatedValue ( const GaussPointArray & gp, Variable v ) const ;
 } ;
 
+struct GradientDot ;
+struct GradientDotDot ;
 struct FtF ;
 struct DtF ;
 struct DDtF ;
@@ -900,12 +902,16 @@ struct GDDtMtG ;
 struct GDDtM ;
 struct GDDtML ;
 struct GtMtGD ;
+struct GtMtGDD ;
 struct GDtMLtGD ;
 struct GDDtMLtG ;
+struct GtMLtGDD ;
 struct GtMLtGD ;
 struct GDtMLtG ;
 struct DdGtMtG ;
 struct DdGtMtGD ;
+struct DdGtMLtG ;
+struct DdGtMLtGD ;
 
 /** \brief Structure used for the lazy computation of the differential of a function
  * This is equivalent to a derivative, but can be used on all functions, even if their
@@ -921,6 +927,8 @@ struct Differential {
      * @param m Variable
      */
     Differential ( const Function &u, const Variable & m ) : f ( u ), v ( m ) { } ;
+
+    Differential (const Variable & m) : f("0"), v(m) { } ;
 
     /** \brief Create a structure for the lazy evaluation of the Differential * Function
      *
@@ -946,6 +954,12 @@ struct Differential {
      * @return DtGtMtG
      */
     DtGtMtG operator * ( const GtMtG & g ) const ;
+
+    DdGtMtG operator [] ( const GtMtG & g ) const ; 
+    DdGtMLtG operator [] ( const GtMLtG & g ) const ; 
+    DdGtMtGD operator [] ( const GtMtGD & g ) const ; 
+    DdGtMLtGD operator [] ( const GtMLtGD & g ) const ; 
+
 } ;
 
 struct DoubleDifferential {
@@ -1000,6 +1014,8 @@ struct Gradient {
      */
     GtVL operator * ( const std::vector<Vector> & f ) const ;
 
+    GradientDot dot() const ;// { return GradientDot(f, transpose) ; }
+
 } ;
 
 /** \brief Create a structure for the lazy evaluation of a GradientDot
@@ -1027,6 +1043,8 @@ struct GradientDot {
     GDtML operator * ( const std::vector<Matrix> & f ) const ;
     GDtV operator * ( const Vector & v ) const ;
     GDtVL operator * ( const std::vector<Vector> & f ) const ;
+
+    GradientDotDot dot() const  ;//{ return GradientDotDot( f, transpose ) ; }
 
 
 } ;
@@ -1124,6 +1142,9 @@ struct GtM {
      * @return GtMtGD
      */
     GtMtGD operator* ( const Amie::GradientDot & f ) const ;
+
+    GtMtGDD operator* ( const Amie::GradientDotDot & f ) const ;
+
 } ;
 
 /** \brief Structure for the lazy evaluation of a Gradient * Matrix at list of Gauss Points structure*/
@@ -1146,6 +1167,8 @@ struct GtML {
     GtMLtG operator* ( const Amie::Gradient & f ) const ;
 
     GtMLtGD operator* ( const Amie::GradientDot & f ) const ;
+
+    GtMLtGDD operator* ( const Amie::GradientDotDot & f ) const ;
 
 } ;
 
@@ -1341,6 +1364,19 @@ struct GtMLtGD {
 
 } ;
 
+struct GtMLtGDD {
+    const Gradient & first ;
+    const std::vector<Matrix> & second ;
+    const GradientDotDot & third ;
+    /** \brief Constructor, initalise the references
+     *
+     * @param g GtM
+     * @param f GradientDot
+     */
+    GtMLtGDD ( const GtML & g, const GradientDotDot & p ) : first ( g.first ), second ( g.second ), third ( p ) { };
+
+} ;
+
 /** \brief Structure for the lazy evaluation of a Differential * Function */
 struct DtF {
     const Differential & d ;
@@ -1506,6 +1542,20 @@ struct DdGtMtGD {
     DdGtMtGD ( Variable v, const GtMtGD & g ) : first ( v ), second ( g ) { } ;
 } ;
 
+struct DdGtMLtG {
+    const Variable first ;
+    const GtMLtG & second ;
+
+    DdGtMLtG ( Variable v, const GtMLtG & g ) : first ( v ), second ( g ) { } ;
+} ;
+
+struct DdGtMLtGD {
+    const Variable first ;
+    const GtMLtGD & second ;
+
+    DdGtMLtGD ( Variable v, const GtMLtGD & g ) : first ( v ), second ( g ) { } ;
+} ;
+
 /** \brief Structure for the lazy evaluation of a Gradient * Matrix * Gradient*/
 struct GtMtG {
     const Gradient & first ;
@@ -1544,6 +1594,18 @@ struct GtMtGD {
 
 } ;
 
+struct GtMtGDD {
+    const Gradient & first ;
+    const Matrix & second ;
+    const GradientDotDot & third ;
+    /** \brief Constructor, initalise the references
+     *
+     * @param g GtM
+     * @param f GradientDot
+     */
+    GtMtGDD ( const GtM & g, const GradientDotDot & p ) : first ( g.first ), second ( g.second ), third ( p ) { };
+
+} ;
 
 /** \brief Structure for the lazy evaluation of a Gradient * Matrix * Gradient at a list of Gauss Points*/
 struct GtMLtG {

@@ -58,17 +58,6 @@ void ViscoelasticityAndImposedDeformation::makeImposedStress()
 
 ViscoelasticityAndImposedDeformation::~ViscoelasticityAndImposedDeformation() {}
 
-void ViscoelasticityAndImposedDeformation::apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
-{
-    Viscoelasticity::apply(p_i, p_j, gp, Jinv, ret, vm) ;
-}
-
-void ViscoelasticityAndImposedDeformation::applyViscous( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const
-{
-    Viscoelasticity::applyViscous(p_i, p_j, gp, Jinv, ret, vm) ;
-}
-
-
 Form * ViscoelasticityAndImposedDeformation::getCopy() const
 {
     Matrix rig = param ;
@@ -209,13 +198,4 @@ Form * ViscoelasticityAndVariableImposedDeformation::getCopy() const
     return new ViscoelasticityAndVariableImposedDeformation( model, rig, f) ;
 }
 
-void ViscoelasticityAndVariableImposedDeformation::apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
-{
-    Viscoelasticity::apply(p_i, p_j, gp, Jinv, ret, vm) ;
-}
-
-void ViscoelasticityAndVariableImposedDeformation::applyViscous( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const
-{
-    Viscoelasticity::applyViscous(p_i, p_j, gp, Jinv, ret, vm) ;
-}
 

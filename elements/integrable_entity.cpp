@@ -163,6 +163,51 @@ std::vector<BoundaryCondition * > Form::getBoundaryConditions ( const ElementSta
 // 		this->getFractureCriterion() = frac ;
 // }
 
+Matrix Form::getTensorDot ( const Point & p, double dt, bool calc ) const 
+{
+    if(!calc)
+        return param * 0 ;
+
+    Point prev(p.getX(), p.getY(), p.getZ(), p.getT()-default_derivation_delta) ;
+    Point next(p.getX(), p.getY(), p.getZ(), p.getT()+default_derivation_delta) ;
+
+    return (getTensor(next)-getTensor(prev))/(dt*2.*default_derivation_delta) ;
+}
+
+void Form::getTensorDotAtGaussPoints( const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<std::pair<Matrix, Matrix> > & ret, bool calc ) const
+{
+    if(ret.size() != gp.gaussPoints.size())
+       ret.resize( gp.gaussPoints.size(), std::make_pair(param, param*0.) ) ;
+
+    for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+    {
+        ret[g].first = getTensor( gp.gaussPoints[g].first ) ;
+        ret[g].second = getTensorDot( gp.gaussPoints[g].second, 1./(2.*Jinv[g][ Jinv[g].numRows()-1 ] [ Jinv[g].numCols()-1 ]), calc ) ;
+    }
+}
+
+Matrix Form::getViscousTensorDot ( const Point & p, double dt, bool calc ) const
+{
+    if(!calc)
+        return param * 0 ;
+
+    Point prev(p.getX(), p.getY(), p.getZ(), p.getT()-default_derivation_delta) ;
+    Point next(p.getX(), p.getY(), p.getZ(), p.getT()+default_derivation_delta) ;
+
+    return (getViscousTensor(next)-getViscousTensor(prev))/(dt*2.*default_derivation_delta) ;
+}
+
+void Form::getViscousTensorDotAtGaussPoints( const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<std::pair<Matrix, Matrix> > & ret, bool calc ) const
+{
+    if(ret.size() != gp.gaussPoints.size())
+       ret.resize( gp.gaussPoints.size(), std::make_pair(param*0, param*0.) ) ;
+
+    for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+    {
+        ret[g].first = getViscousTensor( gp.gaussPoints[g].first ) ;
+        ret[g].second = getViscousTensorDot( gp.gaussPoints[g].second, 1./(2.*Jinv[g][ Jinv[g].numRows()-1 ] [ Jinv[g].numCols()-1 ]), calc ) ;
+    }
+}
 
 void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
 {

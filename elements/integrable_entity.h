@@ -545,6 +545,14 @@ public:
         return param * 0 ;
     }
 
+    virtual Matrix getTensorDot ( const Point & p, double dt, bool cacl = false ) const ; 
+
+    virtual Matrix getViscousTensorDot ( const Point & p, double dt, bool cacl = false ) const ; 
+
+    virtual void getTensorDotAtGaussPoints( const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<std::pair<Matrix, Matrix> > & ret, bool calc = false) const ;
+
+    virtual void getViscousTensorDotAtGaussPoints( const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<std::pair<Matrix, Matrix> > & ret, bool calc = false) const ;
+
     virtual void setTensor ( const Matrix & m ) {
         param = m ;
     }

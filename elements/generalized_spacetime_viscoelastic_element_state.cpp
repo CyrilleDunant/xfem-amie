@@ -258,7 +258,7 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointB
         // build cache if it does not exist
         if(genStrainAtGaussPointBefore.size() == 0)
         {
-            genStrainAtGaussPointBefore.resize( gp.gaussPoints.size() * fieldTypeElementarySize( f, parent->spaceDimensions(), parent->getBehaviour()->getNumberOfDegreesOfFreedom()/parent->spaceDimensions())) ;
+            genStrainAtGaussPointBefore.resize( gp.gaussPoints.size() * fieldTypeElementarySize( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, parent->spaceDimensions(), parent->getBehaviour()->getNumberOfDegreesOfFreedom()/parent->spaceDimensions())) ;
             Vector tmp(genStrainAtGaussPointBefore.size()/gp.gaussPoints.size()) ;
             for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
             {

@@ -521,14 +521,30 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::gradeAt
 			if(inter.getX() > before.getX() && inter.getX() < after.getX())
 			{
 				gtension = std::min(1., (after.getX()-inter.getX())/(after.getX()-before.getX()) ) ;
+				gtensionAfter = 1.-inter.getX()/after.getX() ;
 			}
 			else if(inter.getX() > before.getX() && inter.getX() > after.getX())
 			{
 				gtension = std::min( -POINT_TOLERANCE, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
+				gtensionAfter = -1.+after.getX()/inter.getX() ;
 			}
-			gtensionAfter = 1-after.getX()/inter.getX() ;
+			else if(inter.getX() < before.getX() && before.getY() < inter.getY())
+			{
+				gtension = -1.+before.getY()/inter.getY() ;
+				gtensionAfter = gtension ;
+			}
 		}
+                if(!found && after.getY() > inter.getY())
+                {
+/*	inter.print() ;
+	after.print() ;
+	before.print() ;*/
+			gtension = 1. ;
+			gtensionAfter = 1. ;
+                }
+
 	}
+
 
 	if(compressiveStressStrainCurve)
 	{	

@@ -48,9 +48,6 @@ struct LogarithmicCreep : public Viscoelasticity
         }
     } ;
 
-    virtual void apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
-    virtual void applyViscous( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const ;
-
     virtual Form * getCopy() const ;
 
     virtual void print() const ;
@@ -106,9 +103,6 @@ struct LogarithmicCreepWithImposedDeformationAndFracture : public LogarithmicCre
     virtual ~LogarithmicCreepWithImposedDeformationAndFracture() ; //{ if(dfunc){delete dfunc ;} if(criterion){delete criterion ;} }
 
     virtual Form * getCopy() const ;
-
-    virtual void apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
-    virtual void applyViscous( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const ;
 
     virtual bool changed() const {
         return (noFracture ? false : dfunc->changed()) ;
