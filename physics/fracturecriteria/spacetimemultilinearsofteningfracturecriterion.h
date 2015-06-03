@@ -37,6 +37,7 @@ public:
 	virtual FractureCriterion * getCopy() const ;
 
 	virtual double grade(ElementState &s)  ;
+    virtual double gradeAtTime(ElementState &s, double t)  ;
 
 	void setMaximumStress(double s = -1, double smax = -1) ;
 	void setMaximumStrain(double e = -1, double emax = -1) ;
@@ -64,6 +65,7 @@ public:
 	virtual FractureCriterion * getCopy() const ;
 
 	virtual double grade(ElementState &s)  ;
+    virtual double gradeAtTime(ElementState &s, double t)  ;
 
 	void setMaximumTensileStress(double s = -1, double smax = -1) ;
 	void setMaximumTensileStrain(double e = -1, double emax = -1) ;

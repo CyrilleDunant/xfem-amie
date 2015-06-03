@@ -97,7 +97,7 @@ public:
      * @param s ElementState to consider
     */
     virtual double grade(ElementState &s)  ;
-    double gradeAtTime(ElementState &s, double t) ;
+    virtual double gradeAtTime(ElementState &s, double t) ;
 
     virtual double getTensileLimit(const ElementState & s) const ;
 };

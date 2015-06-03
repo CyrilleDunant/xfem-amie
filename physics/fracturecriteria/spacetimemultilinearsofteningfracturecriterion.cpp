@@ -100,10 +100,44 @@ FractureCriterion * SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::getC
 	return new SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( p, E, renormStrain, renormStress ) ;
 }
 
-double SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(ElementState &s)  
+double SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(ElementState &s)
+{    
+    double gradeBefore = gradeAtTime(s, -1) ;
+    double gradeAfter = gradeAtTime(s, 1) ;
+    scoreAtTimeStepEnd = gradeAfter ;
+
+    if(gradeAfter < 0)
+        return gradeAfter ;
+    if(gradeBefore > 0)
+    {
+        return 1 ;
+    }
+    
+    double upTime = 1 ;
+    double downTime = -1 ;
+    double testTime = 0 ;
+
+    
+    while(std::abs(upTime-downTime) > 1e-6)
+    {
+        double gradeTest = gradeAtTime(s, testTime) ;
+        if(gradeTest < 0)
+            downTime = testTime ;
+        else if(gradeTest > 0)
+            upTime = testTime ;
+        else
+            return testTime ;
+        
+        testTime = 0.5*(downTime+upTime) ;
+    }
+    return 1.-(testTime*.5+.5) ;
+}
+
+
+double SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::gradeAtTime(ElementState &s, double t)  
 {
-	std::pair<Vector, Vector> stateBefore( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, -1) ) ;
-	std::pair<Vector, Vector> stateAfter( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, 1) ) ;
+	std::pair<Vector, Vector> stateBefore( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, t-1e-4) ) ;
+	std::pair<Vector, Vector> stateAfter( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, t+1e-4) ) ;
 
 /*	if(typeid(s) == typeid(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables))
 	{
@@ -119,8 +153,8 @@ double SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(ElementStat
 	bool compressive = stressStrainCurve->getPoint(0).getY() < 0 ;
 	if( compressive )
 	{
-		before.setX( stateBefore.second.min()*renormStrain) ; before.setY(stateBefore.first.min()*renormStress ) ;
-		after.setX( stateAfter.second.min()*renormStrain) ; after.setY( stateAfter.first.min()*renormStress ) ;
+		before.set( stateBefore.second.min()*renormStrain, stateBefore.first.min()*renormStress ) ;
+		after.set( stateAfter.second.min()*renormStrain, stateAfter.first.min()*renormStress ) ;
 	}
 
 	Segment history(before, after) ;
@@ -140,7 +174,7 @@ double SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(ElementStat
 		}
 		else
 		{
-			inter = lintersection[0] ;			
+			inter = lintersection[0] ;
 		}
 	}
 	else
@@ -403,7 +437,40 @@ AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::~AsymmetricSpa
 		delete compressiveAsymptote ; 
 } 
 
-double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(ElementState &s)  
+double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(ElementState &s)
+{    
+    double gradeBefore = gradeAtTime(s, -1) ;
+    double gradeAfter = gradeAtTime(s, 1) ;
+    scoreAtTimeStepEnd = gradeAfter ;
+
+    if(gradeAfter < 0)
+        return gradeAfter ;
+    if(gradeBefore > 0)
+    {
+        return 1 ;
+    }
+    
+    double upTime = 1 ;
+    double downTime = -1 ;
+    double testTime = 0 ;
+
+    
+    while(std::abs(upTime-downTime) > 1e-6)
+    {
+        double gradeTest = gradeAtTime(s, testTime) ;
+        if(gradeTest < 0)
+            downTime = testTime ;
+        else if(gradeTest > 0)
+            upTime = testTime ;
+        else
+            return testTime ;
+        
+        testTime = 0.5*(downTime+upTime) ;
+    }
+    return 1.-(testTime*.5+.5) ;
+}
+
+double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::gradeAtTime(ElementState &s, double t)  
 {
 	if(currentFraction > fmax)
 		return -1 ;
@@ -413,8 +480,8 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(E
         double gtensionAfter = -1. ;
         double gcompressionAfter = -1. ;
 
-	std::pair<Vector, Vector> stateBefore( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, -1) ) ;
-	std::pair<Vector, Vector> stateAfter( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, 1) ) ;
+	std::pair<Vector, Vector> stateBefore( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, t-1e-4) ) ;
+	std::pair<Vector, Vector> stateAfter( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, t+1e-4) ) ;
 
 	if(tensileStressStrainCurve)
 	{	

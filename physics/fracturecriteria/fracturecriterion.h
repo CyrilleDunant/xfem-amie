@@ -155,6 +155,8 @@ public:
      * @return a value between -1 and 1
      */
     virtual double grade(ElementState & s) = 0 ;
+    
+    virtual double gradeAtTime(ElementState &s, double t) { return grade(s) ; }
 
     virtual std::pair<double, double> setChange( Amie::ElementState& s, double thresholdScore )  ;
 

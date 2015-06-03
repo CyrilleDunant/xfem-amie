@@ -115,9 +115,9 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
     }
     else if(!fractured() && score>maxscore-timetol)
     {
-        state[0] =  std::min(state[0]+ 1e-2 * (1.-state[0]),1.) ;
-        dt *= score ;
-        accelerate++ ;
+        state[0] =  std::min(state[0]+ 1e-2 * score *(1.-state[0]),1.) ;   
+        double initialScore = s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime(s, -1) ;
+        accelerate = (s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime(s, dt-1.)- initialScore)/dt;
         change = true ;
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
     }

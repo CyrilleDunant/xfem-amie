@@ -150,57 +150,87 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 
 }
 
-double SpaceTimeNonLocalMohrCoulomb::grade( ElementState &s )
+double SpaceTimeNonLocalMohrCoulomb::grade( ElementState &s)
+{
+    double gradeBefore = gradeAtTime(s, -1) ;
+    double gradeAfter = gradeAtTime(s, 1) ;
+    scoreAtTimeStepEnd = gradeAfter ;
+
+    if(gradeAfter < 0)
+        return gradeAfter ;
+    if(gradeBefore > 0)
+    {
+        return 1 ;
+    }
+    
+    double upTime = 1 ;
+    double downTime = -1 ;
+    double testTime = 0 ;
+
+    
+    while(std::abs(upTime-downTime) > 1e-7)
+    {
+        double gradeTest = gradeAtTime(s, testTime) ;
+        if(gradeTest < 0)
+            downTime = testTime ;
+        else if(gradeTest > 0)
+            upTime = testTime ;
+        else
+            return testTime ;
+        
+        testTime = 0.5*(downTime+upTime) ;
+    }
+    return 1.-(testTime*.5+.5) ;
+}
+
+double SpaceTimeNonLocalMohrCoulomb::gradeAtTime( ElementState &s, double t )
 {
 
-    if( s.getParent()->getBehaviour()->fractured())
+      if( s.getParent()->getBehaviour()->fractured() )
         return -1 ;
 
-    inIteration = true ;
+    std::pair<Vector, Vector> pstressStrain( getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s, t)) ;
+    Vector pstress = pstressStrain.first ;
+    Vector pstrain = pstressStrain.second ;
+    double maxStress = pstress.max() ;
+    double minStress = pstress.min() ;
+//     double maxStrain = pstrain.max() ;
+//     double minStrain = pstrain.min() ;
 
-//     double effectiveStiffness = stiffness ;
-//     if(s.getParent()->getBehaviour()->getDamageModel())
-//         effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
-    double upStress = upVal * stiffness ;
-    double downStress = downVal * stiffness ;
+//  std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
+    metInTension = false ;
+    metInCompression = false ;
+    metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
+    metInTension = std::abs( minStress / downVal ) < std::abs( maxStress / upVal ) ;
 
-    std::pair<Vector, Vector> stateBefore( getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s, -1) ) ;
-    std::pair<Vector, Vector> stateAfter( getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s, 1) ) ;
+//  double effectiveStiffness = stiffness ;
+//  if(s.getParent()->getBehaviour()->getDamageModel())
+//      effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 
-    double minStressBefore = stateBefore.first.min() ;
-    double maxStressBefore = stateBefore.first.max() ;
-
-    double minStressAfter = stateAfter.first.min() ;
-    double maxStressAfter = stateAfter.first.max() ;
-
-    metInCompression = (minStressAfter < 0) && (( minStressAfter / downVal ) > ( maxStressAfter / upVal )) ;
-    metInTension = (maxStressAfter > 0) && (( minStressAfter / downVal ) < ( maxStressAfter / upVal )) ;
-
-
+    double  upStrain = upVal ;///effectiveStiffness ;
+    double  downStrain = downVal ;///effectiveStiffness ;
     std::vector<double> scores ;
-    if(maxStressAfter > upStress)
+    scores.push_back(-1);
+    if( maxStress >= upStrain*stiffness && maxStress > 0 )
     {
-        scores.push_back(std::min(1., 1 - (upStress - maxStressBefore) / (maxStressAfter - maxStressBefore))) ;
+        metInTension = true;
+        scores.push_back(1. - std::abs( upStrain*stiffness / maxStress ));
     }
+    else if(maxStress > 0)
+        scores.push_back(-1. + std::abs( maxStress / (upStrain*stiffness) ));
 
-    if(minStressAfter < downStress)
+    if( minStress <= downStrain*stiffness && minStress < 0 )
     {
-        scores.push_back(std::min(1., 1 - (downStress - minStressBefore) / (minStressAfter - minStressBefore))) ;
+        metInCompression = true ;
+        scores.push_back(1. - std::abs( downStrain*stiffness / minStress )) ;
     }
-
-    if(scores.size() == 1)
-        return scores[0] ;
-
-    if(scores.size() == 2)
-        return std::max(scores[0],scores[1]) ;
-
-    if(minStressAfter < 0 && metInCompression)
+    else if(minStress < 0 )
     {
-        return -1 + std::abs(minStressAfter / downStress) ;
+        scores.push_back(-1. + std::abs( minStress / (downStrain*stiffness) )) ;
     }
-    return -1 + std::abs(maxStressAfter / upStress) ;
+    std::sort(scores.begin(), scores.end()) ;
 
-
+    return scores.back() ;
 
 }
 

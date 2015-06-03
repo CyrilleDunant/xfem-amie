@@ -117,6 +117,7 @@ public:
 	virtual FractureCriterion * getCopy() const { return new SpaceTimeNonLocalMohrCoulomb(*this) ; }
 
 	virtual double grade(ElementState &s)  ;
+    virtual double gradeAtTime(ElementState &s, double t)  ;
 
 };
 
