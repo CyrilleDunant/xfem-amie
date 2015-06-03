@@ -95,7 +95,7 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
 //             continue ;
 //         }
 
-        bool go_on = featureTree->stepToCheckPoint(100, 1e-3) ;
+        bool go_on = featureTree->stepToCheckPoint(100, 1e-4) ;
         
         x.resize ( featureTree->getDisplacements ( -1, false ).size() ) ;
         x = featureTree->getDisplacements ( -1, false ) ;
@@ -174,8 +174,8 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
         
         ldfile.close();
 
-//         if(v%10 == 0)
-//         {
+        if( ( v < 100 && v%10 == 0 ) || v >=100)
+        {
             writer.reset ( featureTree ) ;
             writer.getField ( TWFT_PRINCIPAL_STRESS ) ;
             writer.getField ( TWFT_PRINCIPAL_STRAIN ) ;
@@ -184,7 +184,7 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
             writer.getField ( TWFT_STIFFNESS_Y ) ;
             writer.getField ( TWFT_DAMAGE ) ;
             writer.append() ;
-//         }
+        }
     }
 }
 
@@ -221,7 +221,7 @@ int main ( int argc, char *argv[] )
     
     FractureCriterion * mcft = new NonLocalSpaceTimeMCFT(cstress,k_elas, 0.048,UPPER_BOUND,MIRROR_Y) ;
     FractureCriterion * mazar = new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 0.048, pt ) ;
-    DamageModel * linear = new SpaceTimeIsotropicLinearDamage(0.05, 1.0) ;
+    DamageModel * linear = new SpaceTimeIsotropicLinearDamage(1.0) ;
  
     Matrix m0_steel = Tensor::cauchyGreen ( std::make_pair ( E_steel,nu_steel ), true, SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
 

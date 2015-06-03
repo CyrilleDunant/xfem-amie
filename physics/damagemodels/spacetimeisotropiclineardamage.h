@@ -22,18 +22,18 @@ namespace Amie {
 */
 class SpaceTimeIsotropicLinearDamage final: public DamageModel
 {
-protected:
+public:
     double timeTolerance ;
     double accelerate = 0. ;
     double dt = 1. ;
-    double overdamage = 1.001 ;
+    double overdamage = 1.000 ;
 
 public:
     /** \brief Constructor. Set the number of degrees of freedom
      *
      * @param numDof number of degrees of freedom
      */
-    SpaceTimeIsotropicLinearDamage(double f = 0.1,  double cutoff = 0.6) ;
+    SpaceTimeIsotropicLinearDamage(double cutoff = 0.6) ;
 
     virtual ~SpaceTimeIsotropicLinearDamage();
 
