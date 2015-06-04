@@ -87,7 +87,7 @@ void step ( size_t nsteps, std::string app = std::string() )
 //             loadr->setData(VirtualMachine().eval(loadfunc, 0,0,0, featureTree->getCurrentTime()));
 // 	}
         
-        Vector stemp = featureTree->getAverageField ( GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD,-1.,0 ) ;
+        Vector stemp = featureTree->getAverageField ( GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD,-1.,1. ) ;
         Vector etemp = featureTree->getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD,-1.,1. ) ;
         Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD) ;
 
@@ -197,14 +197,14 @@ int main ( int argc, char *argv[] )
     //ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas,new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-6, 1.));
     ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalSpaceTimeMCFT(cstress,k_elas,1.)/*NonLocalSpaceTimeMazars(1.0e-4, k_elas, nu_elas, 75., cstress , cstrain, 1., pt )*/, linear);
     ViscoelasticityAndFracture * vpasterupt = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMCFT(cstress,k_elas,1.)/*new NonLocalSpaceTimeMazars(1.0e-4, k_elas, nu_elas, 75.0, cstress , cstrain, 1., pt )*/, linear);
-    ViscoelasticityAndFracture * vmxpasterupt = new ViscoelasticityAndFracture(GENERALIZED_MAXWELL, K_mx_0, branches_mx, new NonLocalSpaceTimeMCFT(cstress,k_elas,1.)/*new NonLocalSpaceTimeMazars(1.0e-4, k_elas, nu_elas, 75.0, cstress , cstrain, 1., pt )*/, linear);  
+    ViscoelasticityAndFracture * vmxpasterupt = new ViscoelasticityAndFracture(GENERALIZED_MAXWELL, K_mx_0, branches_mx, /*new NonLocalSpaceTimeMCFT(cstress,k_elas,1.)*/new NonLocalSpaceTimeMazars(1.0e-4, k_elas, nu_elas, 75.0, cstress , cstrain, 1., pt ), linear);  
     Point t1(0.0001, 1.2e6) ; Point t2(0.0005, 0.) ;
     std::vector<Point> ptension, pcompression ; ptension.push_back(t1) ; ptension.push_back(t2) ;
     LogarithmicCreepWithExternalParameters * logcreeprupt = new LogarithmicCreepWithExternalParameters("young_modulus = 12e9, poisson_ratio = 0.2, creep_modulus = 30e9, creep_poisson = 0.2, creep_characteristic_time = 2", new NonLocalSpaceTimeMazars(1.0e-4, k_elas, nu_elas, 75.0, cstress , cstrain, 1., pt ), linear) ;//new SpaceTimeIsotropicLinearDamage()) ;
 //     Viscoelasticity * vmxpasterupt = new Viscoelasticity(GENERALIZED_MAXWELL, K_mx_0, branches_mx);  e
     //    Stiffness * paste = new Stiffness(C_kv);
 
-    samplef.setBehaviour ( vmxpasterupt ) ;
+    samplef.setBehaviour ( vpasterupt ) ;
 
     if(argc > 2)
     {

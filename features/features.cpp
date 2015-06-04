@@ -4609,7 +4609,7 @@ bool FeatureTree::stepElements()
                                             if ( !i->getBehaviour()->fractured() )
                                             {
                                                 #pragma omp atomic update
-                                                adamage += are  * ( dmodel->getState().max() > 0. ) ;
+                                                adamage += are  * dmodel->getState().max() ;
                                             }
                                             else
                                             {

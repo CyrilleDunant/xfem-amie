@@ -37,7 +37,7 @@ Matrix SpaceTimeIsotropicLinearDamage::applyViscous(const Matrix & m, const Poin
     if(state.max() < POINT_TOLERANCE&& accelerate < POINT_TOLERANCE)
         return m ;
     if(fractured())
-        return m*0 ;
+        return m*1e-6 ;
     
     double factor = (p.getT()+1.)*.5 ;
     double d = std::min(state[0]+factor*std::max(dt, 1e-4)*accelerate, 1.) ;
@@ -53,7 +53,7 @@ Matrix SpaceTimeIsotropicLinearDamage::apply(const Matrix & m, const Point & p,c
     if(state.max() < POINT_TOLERANCE && accelerate < POINT_TOLERANCE)
         return m ;
     if(fractured())
-        return m*0 ;
+        return m*1e-6 ;
     
     double factor = (p.getT()+1.)*.5 ;
     double d = std::min(state[0]+factor*std::max(dt, 1e-4)*accelerate, 1.) ;
@@ -89,7 +89,6 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
         dt = s.getParent()->getBoundingPoint(s.getParent()->getBoundingPoints().size()-1).getT() - s.getParent()->getBoundingPoint(0).getT() ;
     }
 
-    double pdt = dt ;
     change = false ;
     if(accelerate > 0)
     {
@@ -115,9 +114,10 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
     }
     else if(!fractured() && score>maxscore-timetol)
     {
-        state[0] =  std::min(state[0]+ 1e-2 * score *(1.-state[0]),1.) ;   
-        double initialScore = s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime(s, -1) ;
-        accelerate = (s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime(s, dt-1.)- initialScore)/dt;
+        double initialScore = s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime(s, score) ;
+        double delta = (s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime(s,score+timetol/dt)- initialScore) ;
+        accelerate = delta/(timetol/dt)* .1;
+        state[0] =  std::min(state[0]+ accelerate * .5 * (1.-state[0]), 1.) ;
         change = true ;
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
     }

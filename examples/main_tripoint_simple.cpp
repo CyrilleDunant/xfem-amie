@@ -95,7 +95,7 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
 //             continue ;
 //         }
 
-        bool go_on = featureTree->stepToCheckPoint(100, 1e-4) ;
+        bool go_on = featureTree->stepToCheckPoint(200, 1e-5) ;
         
         x.resize ( featureTree->getDisplacements ( -1, false ).size() ) ;
         x = featureTree->getDisplacements ( -1, false ) ;
@@ -259,8 +259,8 @@ int main ( int argc, char *argv[] )
     F.addFeature ( &sample, &topsupport);
     F.addFeature ( &topsupport, &toprightvoid);
 
-    Triangle fineZone ( Point ( 0.,sampleHeight*.5 ), Point ( 0.,-sampleHeight*.5 ), Point ( sampleLength*.15, -sampleHeight*.5 ) ) ;
-    Triangle finerZone ( Point ( 0.,sampleHeight*.5 ), Point ( 0.,-sampleHeight*.5 ), Point ( sampleLength*.075, -sampleHeight*.5 ) ) ;
+    Triangle fineZone ( Point ( 0.,sampleHeight*.7 ), Point ( 0.,-sampleHeight*.5 ), Point ( sampleLength*.1, -sampleHeight*.5 ) ) ;
+    Triangle finerZone ( Point ( 0.,sampleHeight*.7 ), Point ( 0.,-sampleHeight*.5 ), Point ( sampleLength*.05, -sampleHeight*.5 ) ) ;
     F.addRefinementZone ( &fineZone );
     F.addRefinementZone ( &finerZone );
 

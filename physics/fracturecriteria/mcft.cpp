@@ -592,11 +592,11 @@ double NonLocalSpaceTimeMCFT::grade(ElementState &s)
         return gradeAfter ;
     if(gradeBefore > 0)
     {
-        std::cout << "---" << std::endl ;
-        for(double t = -1 ; t < 1 ; t += 0.01)
-            std::cout << gradeAtTime(s, t) << std::endl ;
-        std::cout << "---" << std::endl ;
-        exit(0) ;
+//         std::cout << "---" << std::endl ;
+//         for(double t = -1 ; t < 1 ; t += 0.01)
+//             std::cout << gradeAtTime(s, t) << std::endl ;
+//         std::cout << "---" << std::endl ;
+//         exit(0) ;
         return 1 ;
     }
     
