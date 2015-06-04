@@ -31,11 +31,16 @@ class GeneralizedSpaceTimeViscoElasticElementState : public ElementState
     Vector genStrainRateAtGaussPointBefore ;
     Vector genStrainRateAtGaussPointAfter ;
 
+    Vector strainBuffer ;
+    Vector principalBuffer ;
+    Vector generalizedBuffer ;
+    Vector generalizedBufferSecond ;
+
 
 public:
 
     void getEssentialAverageFields(FieldType f, Vector & stress, Vector & strain, Vector & strain_rate, VirtualMachine * vm, double t) ;
-    GeneralizedSpaceTimeViscoElasticElementState(IntegrableEntity * e) ;
+    GeneralizedSpaceTimeViscoElasticElementState(IntegrableEntity * e, int blocks) ;
     GeneralizedSpaceTimeViscoElasticElementState( Amie::GeneralizedSpaceTimeViscoElasticElementState& s ) ;
     GeneralizedSpaceTimeViscoElasticElementState & operator =( GeneralizedSpaceTimeViscoElasticElementState & s) ;
 
@@ -77,7 +82,7 @@ class GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables final: p
     std::map<std::string, double> variables ;
 
 public:
-    GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables(IntegrableEntity * e, std::map<std::string, double> & external) ;
+    GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables(IntegrableEntity * e, std::map<std::string, double> & external, int blocks) ;
     GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables( Amie::GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables& s ) ;
     GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & operator =( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s) ;
 

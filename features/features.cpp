@@ -4795,7 +4795,7 @@ bool FeatureTree::stepElements()
                             }
                         }
 
-                        if ( maxScore > 1.-POINT_TOLERANCE )
+                        if ( maxScore > 1.-POINT_TOLERANCE || maxScore < POINT_TOLERANCE )
                         {
                             moveFirstTimePlanes ( 0., j->second->begin(), j->second->end() ) ;
                         }

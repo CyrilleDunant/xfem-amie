@@ -44,7 +44,7 @@ ViscoelasticityAndFracture::~ViscoelasticityAndFracture()
 
 ElementState * ViscoelasticityAndFracture::createElementState( IntegrableEntity * e)
 {
-    return new GeneralizedSpaceTimeViscoElasticElementState(e) ;
+    return new GeneralizedSpaceTimeViscoElasticElementState(e, blocks) ;
 }
 
 FractureCriterion * ViscoelasticityAndFracture::getFractureCriterion() const

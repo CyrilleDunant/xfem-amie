@@ -136,68 +136,45 @@ double SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(ElementStat
 
 double SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::gradeAtTime(ElementState &s, double t)  
 {
-	std::pair<Vector, Vector> stateBefore( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, t-1e-4) ) ;
-	std::pair<Vector, Vector> stateAfter( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, t+1e-4) ) ;
-
-/*	if(typeid(s) == typeid(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables))
-	{
-		std::map<std::string, double> dummy ;
-		double imposed = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(s).get("imposed_deformation", dummy ) ;
-		stateBefore.second -= imposed ;
-		stateAfter.second -= imposed ;
-	}*/
-
-	Point before( stateBefore.second.max()*renormStrain, stateBefore.first.max()*renormStress ) ;
-	Point after( stateAfter.second.max()*renormStrain, stateAfter.first.max()*renormStress ) ;
-
-	bool compressive = stressStrainCurve->getPoint(0).getY() < 0 ;
-	if( compressive )
-	{
-		before.set( stateBefore.second.min()*renormStrain, stateBefore.first.min()*renormStress ) ;
-		after.set( stateAfter.second.min()*renormStrain, stateAfter.first.min()*renormStress ) ;
-	}
-
-	Segment history(before, after) ;
-
-	std::vector<Point> intersection = history.intersection( stressStrainCurve ) ;
+	std::pair<Vector, Vector> currentState( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, t) ) ;
+	Point current( currentState.second.max()*renormStrain, currentState.first.max()*renormStress ) ;
 	Point inter ;
+	bool found = false ;
 
-	if(!history.intersects(stressStrainCurve))
+	Line direction( Point(0,0), current ) ;
+	if(direction.intersects( stressStrainCurve ) )
 	{
-		Line lhistory( history ) ;	
-		std::vector<Point> lintersection = lhistory.intersection( stressStrainCurve ) ;
-		if(lintersection.size() == 0)
+		std::vector<Point> all = direction.intersection( stressStrainCurve ) ;
+		if(all.size() > 0)
 		{
-			if(!lhistory.intersects( *asymptote ))
-				return -1. ;
-			inter = lhistory.intersection( *asymptote ) ;
+			found = true ;
+			inter = all[0] ;
+			for(size_t i = 1 ; i < all.size() ; i++)
+			{
+				if( dist(all[i], current ) < dist(inter, current) )
+					inter = all[i] ;
+			}
 		}
+	}
+	if(!found && direction.intersects( *asymptote ))
+	{
+		found = true ;
+		inter = direction.intersection( *asymptote ) ;
+	}
+
+	Segment history( Point(0,0), current ) ;
+	if( found )
+	{
+		if( history.on( inter ) )
+			return std::min(1., 1.-inter.getX()/current.getX()) ;
 		else
-		{
-			inter = lintersection[0] ;
-		}
+			return std::max(-1., -1.+current.getX()/inter.getX()) ;
 	}
+	
+	if( current.getY() < stressStrainCurve->getPoint(0).getY() )
+		return std::max( -1., -1.+current.getY()/stressStrainCurve->getPoint(0).getY() ) ;
 	else
-	{
-		inter = intersection[0] ;
-	}
-
-	if(compressive)
-	{
-		if(inter.getX() < before.getX() && inter.getX() > after.getX())
-			return std::min(1., (after.getX()-inter.getX())/(after.getX()-before.getX()) ) ;
-		if(inter.getX() < before.getX() && inter.getX() < after.getX())
-			return std::min( -POINT_TOLERANCE, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
-	}
-	else
-	{
-		if(inter.getX() > before.getX() && inter.getX() < after.getX())
-			return std::min(1., (after.getX()-inter.getX())/(after.getX()-before.getX()) ) ;
-		if(inter.getX() > before.getX() && inter.getX() > after.getX())
-			return std::min( -POINT_TOLERANCE, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
-	}
-
-	return -1. ;
+		return std::min( 1., 1.-stressStrainCurve->getPoint(0).getY()/current.getY() ) ;
 
 }
 
@@ -472,132 +449,95 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(E
 
 double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::gradeAtTime(ElementState &s, double t)  
 {
-	if(currentFraction > fmax)
-		return -1 ;
+	std::pair<Vector, Vector> currentState( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, t) ) ;
+	Point current( currentState.second.max()*renormStrain, currentState.first.max()*renormStress ) ;
+	Point inter ;
+	bool found = false ;
 
-	double gtension = -1. ;
-	double gcompression = -1. ;
-        double gtensionAfter = -1. ;
-        double gcompressionAfter = -1. ;
+	double tension = -1. ;
+	double compression = -1. ;
 
-	std::pair<Vector, Vector> stateBefore( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, t-1e-4) ) ;
-	std::pair<Vector, Vector> stateAfter( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, t+1e-4) ) ;
+	Line direction( Point(0,0), current ) ;
 
 	if(tensileStressStrainCurve)
-	{	
-		bool found = false ;
-		Point before( stateBefore.second.max()*renormStrain, stateBefore.first.max()*renormStress ) ;
-		Point after( stateAfter.second.max()*renormStrain, stateAfter.first.max()*renormStress ) ;
-
-		Segment history(before, after) ;
-
-		std::vector<Point> intersection = history.intersection( tensileStressStrainCurve ) ;
-		Point inter ;
-
-		if(!history.intersects(tensileStressStrainCurve))
+	{
+		if(direction.intersects( tensileStressStrainCurve ) )
 		{
-			Line lhistory( history ) ;	
-			std::vector<Point> lintersection = lhistory.intersection( tensileStressStrainCurve ) ;
-			if(lintersection.size() == 0)
-			{
-				inter = lhistory.intersection( *tensileAsymptote ) ;
-				if(lhistory.intersects( *tensileAsymptote ) && inter.getX() > tensileAsymptote->origin().getX())
-					found = true ;
-			}
-			else
+			std::vector<Point> all = direction.intersection( tensileStressStrainCurve ) ;
+			if(all.size() > 0)
 			{
 				found = true ;
-				inter = lintersection[0] ;			
-			}
-		}
-		else
-		{
-			found = true ;
-			inter = intersection[0] ;
-		}
-
-		if(found)
-		{
-			if(inter.getX() > before.getX() && inter.getX() < after.getX())
-			{
-				gtension = std::min(1., (after.getX()-inter.getX())/(after.getX()-before.getX()) ) ;
-				gtensionAfter = 1.-inter.getX()/after.getX() ;
-			}
-			else if(inter.getX() > before.getX() && inter.getX() > after.getX())
-			{
-				gtension = std::min( -POINT_TOLERANCE, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
-				gtensionAfter = -1.+after.getX()/inter.getX() ;
-			}
-			else if(inter.getX() < before.getX() && before.getY() < inter.getY())
-			{
-				gtension = -1.+before.getY()/inter.getY() ;
-				gtensionAfter = gtension ;
-			}
-		}
-                if(!found && after.getY() > inter.getY())
-                {
-/*	inter.print() ;
-	after.print() ;
-	before.print() ;*/
-			gtension = 1. ;
-			gtensionAfter = 1. ;
-                }
-
-	}
-
-
-	if(compressiveStressStrainCurve)
-	{	
-		bool found = false ;
-		Point before( stateBefore.second.min()*renormStrain, stateBefore.first.min()*renormStress ) ;
-		Point after( stateAfter.second.min()*renormStrain, stateAfter.first.min()*renormStress ) ;
-
-		Segment history(before, after) ;
-
-		std::vector<Point> intersection = history.intersection( compressiveStressStrainCurve ) ;
-		Point inter ;
-
-		if(!history.intersects(compressiveStressStrainCurve))
-		{
-			Line lhistory( history ) ;	
-			std::vector<Point> lintersection = lhistory.intersection( compressiveStressStrainCurve ) ;
-			if(lintersection.size() == 0)
-			{
-				inter = lhistory.intersection( *compressiveAsymptote ) ;
-				if(lhistory.intersects( *compressiveAsymptote ) && inter.getX() < compressiveAsymptote->origin().getX())
+				inter = all[0] ;
+				for(size_t i = 1 ; i < all.size() ; i++)
 				{
-					found = true ;
+					if( dist(all[i], current ) < dist(inter, current) )
+						inter = all[i] ;
 				}
 			}
-			else
-			{
-				found = true ;
-				inter = lintersection[0] ;			
-			}
 		}
-		else
+		if(!found && direction.intersects( *tensileAsymptote ))
 		{
 			found = true ;
-			inter = intersection[0] ;
+			inter = direction.intersection( *tensileAsymptote ) ;
 		}
-
-		if(found)
+	
+		Segment history( Point(0,0), current ) ;
+		if( found )
 		{
-			if(inter.getX() < before.getX() && inter.getX() > after.getX())
-			{
-				gcompression = std::min(1., (after.getX()-inter.getX())/(after.getX()-before.getX()) ) ;				
-			}
-			else if(inter.getX() < before.getX() && inter.getX() < after.getX())
-			{
-				gcompression = std::min( -POINT_TOLERANCE, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
-			}
-			gcompressionAfter = 1-after.getX()/inter.getX() ;
+			if( history.on( inter ) )
+				tension = std::min(1., 1.-inter.getX()/current.getX()) ;
+			else
+				tension = std::max(-1., -1.+current.getX()/inter.getX()) ;
 		}
+		
+		if( current.getY() < tensileStressStrainCurve->getPoint(0).getY() )
+			tension = std::max( -1., -1.+current.getY()/tensileStressStrainCurve->getPoint(0).getY() ) ;
+		else
+			tension = std::min( 1., 1.-tensileStressStrainCurve->getPoint(0).getY()/current.getY() ) ;
+	}
+
+
+	current = Point( currentState.second.min()*renormStrain, currentState.first.min()*renormStress ) ;
+	direction.setVector( current ) ;
+	found = false ;
+	if(compressiveStressStrainCurve)
+	{
+		if(direction.intersects( compressiveStressStrainCurve ) )
+		{
+			std::vector<Point> all = direction.intersection( compressiveStressStrainCurve ) ;
+			if(all.size() > 0)
+			{
+				found = true ;
+				inter = all[0] ;
+				for(size_t i = 1 ; i < all.size() ; i++)
+				{
+					if( dist(all[i], current ) < dist(inter, current) )
+						inter = all[i] ;
+				}
+			}
+		}
+		if(!found && direction.intersects( *compressiveAsymptote ))
+		{
+			found = true ;
+			inter = direction.intersection( *compressiveAsymptote ) ;
+		}
+	
+		Segment history( Point(0,0), current ) ;
+		if( found )
+		{
+			if( history.on( inter ) )
+				compression = std::min(1., 1.-inter.getX()/current.getX()) ;
+			else
+				compression = std::max(-1., -1.+current.getX()/inter.getX()) ;
+		}
+		
+		if( current.getY() > compressiveStressStrainCurve->getPoint(0).getY() )
+			compression = std::max( -1., -1.+current.getY()/compressiveStressStrainCurve->getPoint(0).getY() ) ;
+		else
+			compression = std::min( 1., 1.-compressiveStressStrainCurve->getPoint(0).getY()/current.getY() ) ;
 	}
 	
-	scoreAtTimeStepEnd = std::max( gtensionAfter, gcompressionAfter ) ;
-
-	return std::max(gcompression, gtension) ;
+	return std::max( compression, tension ) ;
 
 }
 

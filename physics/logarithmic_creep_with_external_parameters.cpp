@@ -254,7 +254,7 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 
 ElementState * LogarithmicCreepWithExternalParameters::createElementState( IntegrableEntity * e)
 {
-	return new GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables(e, external) ;
+	return new GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables(e, external, blocks) ;
 }
 
 Form * LogarithmicCreepWithExternalParameters::getCopy() const
