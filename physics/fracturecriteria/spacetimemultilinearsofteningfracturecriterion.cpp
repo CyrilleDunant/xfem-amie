@@ -117,7 +117,6 @@ double SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(ElementStat
     double downTime = -1 ;
     double testTime = 0 ;
 
-    
     while(std::abs(upTime-downTime) > 1e-6)
     {
         double gradeTest = gradeAtTime(s, testTime) ;
@@ -429,20 +428,28 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(E
     
     double upTime = 1 ;
     double downTime = -1 ;
-    double testTime = 0 ;
+    double testTime = 2.*(-gradeBefore)/(gradeAfter-gradeBefore)-1. ;
+    double gradeDown = gradeBefore ;
+    double gradeUp = gradeAfter ;
+    double gradeTest = 0 ;
 
-    
-    while(std::abs(upTime-downTime) > 1e-6)
+    while(std::abs(upTime-downTime) > 1e-6 )
     {
-        double gradeTest = gradeAtTime(s, testTime) ;
+        gradeTest = gradeAtTime(s, testTime) ;
         if(gradeTest < 0)
+        {
             downTime = testTime ;
+            gradeDown = gradeTest ;
+        }
         else if(gradeTest > 0)
+        {
             upTime = testTime ;
+            gradeUp = gradeTest ;
+        }
         else
-            return testTime ;
+            return 1.-(testTime*.5+.5) ;
         
-        testTime = 0.5*(downTime+upTime) ;
+        testTime = downTime + (upTime-downTime)*(-gradeDown)/(gradeUp-gradeDown) ;
     }
     return 1.-(testTime*.5+.5) ;
 }
