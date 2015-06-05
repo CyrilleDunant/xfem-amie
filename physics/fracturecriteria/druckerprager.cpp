@@ -151,6 +151,7 @@ FractureCriterion * DruckerPrager::getCopy() const
 {
 	DruckerPrager * ret = new DruckerPrager(downthreshold, upthreshold, modulus, friction, getMaterialCharacteristicRadius()) ;
 	ret->cap = cap ;
+	ret->copyEssentialParameters( this ) ;
 	return ret  ;
 }
 

@@ -667,4 +667,20 @@ FixedCrack::~FixedCrack()
 {
 }
 
+DamageModel * RotatingCrack::getCopy() const
+{
+    RotatingCrack * ret = new RotatingCrack(E,nu) ;
+    ret->factor = factor ;
+    ret->copyEssentialParameters( this ) ;
+    return ret ;
+}
+
+DamageModel * FixedCrack::getCopy() const
+{
+    FixedCrack * ret = new FixedCrack(E,nu) ;
+    ret->factor = factor ;
+    ret->copyEssentialParameters( this ) ;
+    return ret ;
+}
+
 }

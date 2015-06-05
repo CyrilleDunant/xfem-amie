@@ -53,7 +53,9 @@ double NonLocalVonMises::grade(ElementState &s)
 
 FractureCriterion * NonLocalVonMises::getCopy() const
 {
-    return new NonLocalVonMises(threshold,E,  getMaterialCharacteristicRadius()) ;
+    NonLocalVonMises * ret = new NonLocalVonMises(threshold,E,  getMaterialCharacteristicRadius()) ;
+    ret->copyEssentialParameters( this ) ;
+    return ret ;
 }
 
 }

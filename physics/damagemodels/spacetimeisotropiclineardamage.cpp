@@ -78,7 +78,7 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
 {
     elementState = &s ;
     converged = true ;
-    double timetol = 1e-4 ;
+    double timetol = 1e-2 ;
     s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = false ;
     if( fraction < 0 )
     {
@@ -93,9 +93,9 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
     if(accelerate > 0)
     {
         if(maxscore > 0 && maxscore < 1)
-            state[0] = std::min(state[0]+dt*(1.-maxscore)*accelerate, 1.) ;
+            state[0] = std::min(state[0]+(1.-maxscore)*accelerate, 1.) ;
         else if (maxscore < 0)
-            state[0] = std::min(state[0]+dt*accelerate, 1.) ;
+            state[0] = std::min(state[0]+accelerate, 1.) ;
         change = true ;
     }
     
@@ -131,23 +131,25 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
                 upDamage = state[0] ;
         }
         double maxDamage = (downDamage+upDamage)*.5 ; 
+//	std::cout << originalState << " " << state[0] ;
         
         upDamage = maxDamage ;
         downDamage = originalState ;
-        double damageInitiationTime = -1. + score*2. ;
+        double damageInitiationTime = 1. - score*2. ;
         while(upDamage-downDamage > 1e-6)
         {
             state[0] = (downDamage+upDamage)*.5 ;
-            double scoreAtEnd = s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime( s, damageInitiationTime+timetol*1.0001 ) ;
+            double scoreAtEnd = s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime( s, damageInitiationTime+timetol ) ;
             if(scoreAtEnd > 0)
                 downDamage = state[0] ;
             else
                 upDamage = state[0] ;
         }
         state[0] = upDamage ;
-        
-        accelerate = 1.1*(maxDamage - state[0]) ;
+//	std::cout << " " << state[0] << std::endl ;        
 
+//        accelerate = 1.1*(maxDamage - state[0])/maxscore ;
+	accelerate = (state[0]-originalState)/timetol ;
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
     }
 
@@ -157,6 +159,7 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
 DamageModel * SpaceTimeIsotropicLinearDamage::getCopy() const
 {
     SpaceTimeIsotropicLinearDamage * dam = new SpaceTimeIsotropicLinearDamage(thresholdDamageDensity) ;
+    dam->copyEssentialParameters( this ) ;
     return dam ;
 }
 

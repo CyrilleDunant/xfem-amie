@@ -30,6 +30,7 @@
 #include "../physics/damagemodels/plasticstrain.h"
 #include "../physics/fracturecriteria/maxstrain.h"
 #include "../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
+#include "../physics/fracturecriteria/spacetimeflowrule.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/confinedmohrcoulombwithstrain.h"
 #include "../physics/fracturecriteria/confinedmohrcoulomb.h"
@@ -828,6 +829,26 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
             ret = new SpaceTimeNonLocalEllipsoidalMixedCriterion( getData("limit_tensile_strain",0.001), getData("limit_tensile_stress",1e6), getData("instantaneous_modulus",10e9), getData( "relaxed_modulus",1e9) ) ;
         }
 
+        if(type == "FLOW_RULE")
+        {
+            if(hasChild("function"))
+            {
+                ret = new SpaceTimeNonLocalDamageFlowRule( getChild("function")->getFunction() ) ;
+            }
+            else
+            {
+                if(hasChild("file_name"))
+                    ret = new SpaceTimeNonLocalDamageFlowRule( getStringData("file_name", "file_not_found") ) ;
+                else
+                {
+                    Vector strain = ConfigTreeItem::readLineAsVector( getStringData("strain","0,0.00048,0.0015") ) ;
+                    Vector damage = ConfigTreeItem::readLineAsVector( getStringData("damage","0,0,1") ) ;
+                    ret = new SpaceTimeNonLocalDamageFlowRule( std::make_pair( strain, damage ) ) ;
+                }
+
+            }
+        }
+
         if(type == "MULTI_LINEAR_SOFTENING_TENSILE_STRESS")
         {
             double E = getFather()->getData("parameters.young_modulus",1e9) ;
@@ -997,8 +1018,13 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
             ret = new NonLocalVonMises( getData("limit_tensile_stress",1e6),  getFather()->getData("young_modulus",1e9), getData("material_characteristic_radius",0.001) ) ;
         }
     }
+
     if(ret && hasChild("material_characteristic_radius"))
         ret->setMaterialCharacteristicRadius(getData("material_characteristic_radius",0.001)) ;
+    if(ret && hasChild("score_tolerance"))
+        ret->setScoreTolerance(getData("score_tolerance",0.05)) ;
+    if(ret && hasChild("smoothing_function_type"))
+        ret->setSmoothingFunctionType( ConfigTreeItem::translateSmoothingFunctionType( getStringData("smoothing_function_type","QUARTIC_COMPACT"))) ;
 
     return ret ;
 }
@@ -1020,7 +1046,7 @@ DamageModel * ConfigTreeItem::getDamageModel(bool spaceTime)
     {
         if(spaceTime)
         {
-            ret = new SpaceTimeIsotropicLinearDamage( /*1., getData("time_tolerance",1e-9), getData("damage_increment",0.1),*/ getData("maximum_damage",1.) ) ;
+            ret = new SpaceTimeIsotropicLinearDamage() ;
         }
         else
             ret = new IsotropicLinearDamage() ;
@@ -1119,7 +1145,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
             return nullptr ;
         }
 
-        if(hasChildFromFullLabel("parameters.tensile_strength") || hasChildFromFullLabel("parameters.tensile_strain") || hasChildFromFullLabel("parameters.compressive_strength") || hasChildFromFullLabel("parameters.compressive_strain") || hasChildFromFullLabel("parameters.tension_file_name") || hasChildFromFullLabel("parameters.compression_file_name") || hasChildFromFullLabel("parameters.strain_stress_curve"))
+        if(hasChildFromFullLabel("parameters.tensile_strength") || hasChildFromFullLabel("parameters.tensile_strain") || hasChildFromFullLabel("parameters.compressive_strength") || hasChildFromFullLabel("parameters.compressive_strain") || hasChildFromFullLabel("parameters.tension_file_name") || hasChildFromFullLabel("parameters.compression_file_name") || hasChildFromFullLabel("parameters.strain_stress_curve") || hasChildFromFullLabel("parameters.damage_increment") )
         {
             if(!hasChild("fracture_criterion"))
             {
@@ -1454,6 +1480,15 @@ planeType ConfigTreeItem::translatePlaneType( std::string type )
     if(type == "PLANE_STRESS_FREE_G")
         return PLANE_STRESS_FREE_G ;
     return PLANE_STRESS ;
+}
+
+SmoothingFunctionType ConfigTreeItem::translateSmoothingFunctionType( std::string type )
+{
+    if(type == "QUARTIC_COMPACT")
+        return QUARTIC_COMPACT ;
+    if(type == "GAUSSIAN_NONCOMPACT")
+        return GAUSSIAN_NONCOMPACT ;
+    return QUARTIC_COMPACT ;
 }
 
 PSDSpecificationType ConfigTreeItem::translatePSDSpecificationType( std::string specification )

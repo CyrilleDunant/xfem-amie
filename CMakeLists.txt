@@ -76,6 +76,7 @@ physics/fracturecriteria/confinedvonmises.cpp
 physics/fracturecriteria/nonlocalvonmises.cpp 
 physics/fracturecriteria/mazars.cpp 
 physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.cpp 
+physics/fracturecriteria/spacetimeflowrule.cpp 
 physics/fracturecriteria/druckerprager.cpp 
 physics/fracturecriteria/boundedvonmises.cpp 
 physics/fracturecriteria/creeprupture.cpp 

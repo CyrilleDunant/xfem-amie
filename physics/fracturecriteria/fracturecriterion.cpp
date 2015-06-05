@@ -46,6 +46,13 @@ FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, doub
 {
 }
 
+void FractureCriterion::copyEssentialParameters( const FractureCriterion * frac ) 
+{
+    setScoreTolerance( frac->getScoreTolerance() ) ;
+    setMaterialCharacteristicRadius( frac->getMaterialCharacteristicRadius() ) ;
+    setSmoothingFunctionType( frac->getSmoothingFunctionType() ) ;
+}
+
 Vector FractureCriterion::getSmoothedField(FieldType f0,  ElementState &s ,double t)
 {
     if(!mesh2d && !mesh3d)

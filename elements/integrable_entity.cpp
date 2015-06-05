@@ -165,7 +165,7 @@ std::vector<BoundaryCondition * > Form::getBoundaryConditions ( const ElementSta
 
 Matrix Form::getTensorDot ( const Point & p, double dt, bool calc ) const 
 {
-    if(!calc)
+    if(!calc || dt < POINT_TOLERANCE)
         return param * 0 ;
 
     Point prev(p.getX(), p.getY(), p.getZ(), p.getT()-default_derivation_delta) ;
@@ -182,13 +182,13 @@ void Form::getTensorDotAtGaussPoints( const GaussPointArray & gp, const std::val
     for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
     {
         ret[g].first = getTensor( gp.gaussPoints[g].first ) ;
-        ret[g].second = getTensorDot( gp.gaussPoints[g].second, 1./(2.*Jinv[g][ Jinv[g].numRows()-1 ] [ Jinv[g].numCols()-1 ]), calc ) ;
+        ret[g].second = getTensorDot( gp.gaussPoints[g].second, 1./(Jinv[g][ Jinv[g].numRows()-1 ] [ Jinv[g].numCols()-1 ]), calc ) ;
     }
 }
 
 Matrix Form::getViscousTensorDot ( const Point & p, double dt, bool calc ) const
 {
-    if(!calc)
+    if(!calc || dt < POINT_TOLERANCE)
         return param * 0 ;
 
     Point prev(p.getX(), p.getY(), p.getZ(), p.getT()-default_derivation_delta) ;
@@ -205,7 +205,7 @@ void Form::getViscousTensorDotAtGaussPoints( const GaussPointArray & gp, const s
     for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
     {
         ret[g].first = getViscousTensor( gp.gaussPoints[g].first ) ;
-        ret[g].second = getViscousTensorDot( gp.gaussPoints[g].second, 1./(2.*Jinv[g][ Jinv[g].numRows()-1 ] [ Jinv[g].numCols()-1 ]), calc ) ;
+        ret[g].second = getViscousTensorDot( gp.gaussPoints[g].second, 1./(Jinv[g][ Jinv[g].numRows()-1 ] [ Jinv[g].numCols()-1 ]), calc ) ;
     }
 }
 

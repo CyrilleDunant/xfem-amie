@@ -72,5 +72,13 @@ StrainBrokenIsotropicLinearDamage::~StrainBrokenIsotropicLinearDamage()
 {
 }
 
+DamageModel * StrainBrokenIsotropicLinearDamage::getCopy() const
+{
+    StrainBrokenIsotropicLinearDamage * ret = new StrainBrokenIsotropicLinearDamage(1,limitStrain) ;
+    ret->copyEssentialParameters( this ) ;
+    return ret ;
+}
+
+
 
 }

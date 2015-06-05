@@ -46,7 +46,9 @@ double BoundedVonMises::grade(ElementState &s)
 
 FractureCriterion * BoundedVonMises::getCopy() const
 {
-    return new BoundedVonMises(threshold, damageThreshold) ;
+    BoundedVonMises * ret = new BoundedVonMises(threshold, damageThreshold) ;
+    ret->copyEssentialParameters( this ) ;
+    return ret ;
 }
 
 

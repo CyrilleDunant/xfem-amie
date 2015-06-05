@@ -121,5 +121,12 @@ LinearDamage::~LinearDamage()
 {
 }
 
+DamageModel * LinearDamage::getCopy() const
+{
+    LinearDamage * ret = new LinearDamage() ;
+    ret->copyEssentialParameters( this ) ;
+    return ret ;
+}
+
 
 }

@@ -409,7 +409,7 @@ ElementState * Viscoelasticity::createElementState( IntegrableEntity * e)
 void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
     Matrix deltaParam = getTensor( Point(0,0,0,-1) ) - getTensor( Point(0,0,0,1) ) ;
-    if( false ) //std::abs(deltaParam.array().max()) > POINT_TOLERANCE || std::abs(deltaParam.array().min()) > POINT_TOLERANCE )
+    if( std::abs(deltaParam.array().max()) > POINT_TOLERANCE || std::abs(deltaParam.array().min()) > POINT_TOLERANCE )
     {
         Matrix tmpRet(ret.numRows()/blocks, ret.numCols()/blocks) ;
         std::vector<Matrix> mat(Jinv.size(), Matrix( tensors[0].numCols(), tensors[0].numRows() ) ) ;
@@ -456,7 +456,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
     Matrix deltaParam = getViscousTensor( Point(0,0,0,-1) ) - getViscousTensor( Point(0,0,0,1) ) ;
-    if( false ) //std::abs(deltaParam.array().max()) > POINT_TOLERANCE || std::abs(deltaParam.array().min()) > POINT_TOLERANCE )
+    if( std::abs(deltaParam.array().max()) > POINT_TOLERANCE || std::abs(deltaParam.array().min()) > POINT_TOLERANCE )
     {
         Matrix tmpRet(ret.numRows()/blocks, ret.numCols()/blocks) ;
         std::vector<Matrix> mat(Jinv.size(), Matrix( tensors[0].numCols(), tensors[0].numRows() ) ) ;

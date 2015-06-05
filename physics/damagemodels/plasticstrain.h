@@ -86,12 +86,7 @@ public:
     virtual Vector getImposedStrain(const Point & p) const ;
     virtual int getMode() const ;
 
-    virtual DamageModel * getCopy() const
-    {
-        PlasticStrain * ret = new PlasticStrain() ;
-        ret->factor = factor ;
-        return ret ;
-    }
+    virtual DamageModel * getCopy() const ;
 
     virtual void postProcess() ;
     double getDamage() const ;

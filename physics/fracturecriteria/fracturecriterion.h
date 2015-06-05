@@ -111,6 +111,9 @@ public:
         return criterionDamageDifferential ;
     }
 
+    SmoothingFunctionType getSmoothingFunctionType() const { return smoothingType ; }
+    void setSmoothingFunctionType( SmoothingFunctionType smooth ) { smoothingType = smooth ; }
+
     double getScoreTolerance() const {
         return scoreTolerance ;
     }
@@ -165,6 +168,8 @@ public:
      * @return a new FractureCriterion
      */
     virtual FractureCriterion * getCopy() const = 0;
+
+    virtual void copyEssentialParameters( const FractureCriterion * frac ) ;
 
 
     virtual void setMaterialCharacteristicRadius(double r) ;

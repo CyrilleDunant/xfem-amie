@@ -52,7 +52,7 @@ public:
 		*/
 	virtual bool fractured() const  ;
 	
-	virtual DamageModel * getCopy() const { return new IsotropicLinearDamage() ;}
+	virtual DamageModel * getCopy() const ; 
 };
 
 class IsotropicLinearDamageRate final: public DamageModel
@@ -88,7 +88,7 @@ public:
 		*/
 	virtual bool fractured() const  ;
 	
-	virtual DamageModel * getCopy() const { return new IsotropicLinearDamageRate() ;}
+	virtual DamageModel * getCopy() const ;
 };
 
 }

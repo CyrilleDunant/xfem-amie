@@ -118,5 +118,12 @@ FractionLinearDamage::~FractionLinearDamage()
 {
 }
 
+DamageModel * FractionLinearDamage::getCopy() const
+{
+    FractionLinearDamage * ret = new FractionLinearDamage(remnant, phi) ;
+    ret->copyEssentialParameters( this ) ;
+    return ret ;
+}
+
 
 }

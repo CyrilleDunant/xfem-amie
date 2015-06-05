@@ -59,9 +59,8 @@ public:
     	*/
     virtual bool fractured() const  ;
 
-    virtual DamageModel * getCopy() const {
-        return new FiberBasedIsotropicLinearDamage(fibreFraction) ;
-    }
+    virtual DamageModel * getCopy() const ; 
+
 };
 
 }

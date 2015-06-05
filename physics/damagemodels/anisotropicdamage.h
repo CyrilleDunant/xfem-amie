@@ -55,7 +55,7 @@ public:
 		*/
 	virtual bool fractured() const ;
 	
-	virtual DamageModel * getCopy() const { return new AnisotropicLinearDamage() ;}
+	virtual DamageModel * getCopy() const ; 
 
 };
 

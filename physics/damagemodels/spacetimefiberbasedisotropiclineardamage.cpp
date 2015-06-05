@@ -176,7 +176,7 @@ DamageModel * SpaceTimeFiberBasedIsotropicLinearDamage::getCopy() const
 {
     SpaceTimeFiberBasedIsotropicLinearDamage * dam = new SpaceTimeFiberBasedIsotropicLinearDamage(fibreFraction, timeTolerance, thresholdDamageDensity) ;
     dam->visc = visc ;
-    dam->setResidualStiffnessFraction( residualStiffnessFraction ) ;
+    dam->copyEssentialParameters( this ) ;
     return dam ;
 }
 

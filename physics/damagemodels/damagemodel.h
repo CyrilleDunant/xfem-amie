@@ -124,7 +124,7 @@ public:
 
     double getSecondaryThresholdDamageDensity() const;
 
-    double getDamageDensityTolerance() const ;
+    double getDamageDensityTolerance() const { return damageDensityTolerance ; }
 
     bool getNeedGlobalMaximumScore() const {
         return needGlobalMaximumScore ;
@@ -141,6 +141,7 @@ public:
     }
 
     void setResidualStiffnessFraction( double f) { residualStiffnessFraction = f ; }
+    double getResidualStiffnessFraction() const { return residualStiffnessFraction ; }
 
     void setNeedGlobalMaximumScore(bool m) {
         needGlobalMaximumScore = m ;
@@ -194,15 +195,12 @@ public:
      */
     virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const = 0 ;
     virtual Matrix applyViscous(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const {
-        return m ;
+        return apply( m, p, e, g ) ;
     }
 
     virtual DamageModel * getCopy() const = 0 ;
-    /** \brief Modify the rigidity matrix according to the damage model function (for space-time behaviour)
-     *
-     * @param m Matrix to modify
-     * @return a new FunctionMatrix
-     */
+
+    virtual void copyEssentialParameters( const DamageModel * dam ) ;
 
     virtual bool changed() const ;
 

@@ -112,7 +112,9 @@ double NonLocalMazars::grade( ElementState &s )
 
 FractureCriterion * NonLocalMazars::getCopy() const
 {
-    return new NonLocalMazars(threshold,E, nu , Gf, cstress, cstrain,  getMaterialCharacteristicRadius(), pt) ;
+    NonLocalMazars * ret = new NonLocalMazars(threshold,E, nu , Gf, cstress, cstrain,  getMaterialCharacteristicRadius(), pt) ;
+    ret->copyEssentialParameters( this ) ;
+    return ret ;
 }
 
 
@@ -158,7 +160,9 @@ double NonLocalSpaceTimeMazars::grade(ElementState &s)
 
 FractureCriterion *NonLocalSpaceTimeMazars::getCopy() const
 {
-    return new NonLocalSpaceTimeMazars( threshold,E, nu , Gf, cstress, cstrain,  getMaterialCharacteristicRadius(), pt ) ;
+    NonLocalSpaceTimeMazars * ret = new NonLocalSpaceTimeMazars(threshold,E, nu , Gf, cstress, cstrain,  getMaterialCharacteristicRadius(), pt) ;
+    ret->copyEssentialParameters( this ) ;
+    return ret ;
 }
 
 

@@ -39,7 +39,9 @@ double VonMises::grade(ElementState &s)
 
 FractureCriterion * VonMises::getCopy() const
 {
-	return new VonMises(threshold) ;
+	VonMises * ret = new VonMises(threshold) ;
+	ret->copyEssentialParameters( this ) ;
+	return ret ;
 }
 
 VonMisesStrain::VonMisesStrain(double thresh) : threshold(thresh)
@@ -68,7 +70,9 @@ double VonMisesStrain::grade(ElementState &s)
 
 FractureCriterion * VonMisesStrain::getCopy() const
 {
-	return new VonMisesStrain(threshold) ;
+	VonMisesStrain * ret = new VonMisesStrain(threshold) ;
+	ret->copyEssentialParameters( this ) ;
+	return ret ;
 }
 
 }

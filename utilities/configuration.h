@@ -238,6 +238,8 @@ public:
 
     static planeType translatePlaneType(std::string type) ;
 
+    static SmoothingFunctionType translateSmoothingFunctionType(std::string type) ;
+
     /** Translate a string in a field type*/
     static TWFieldType translateTriangleWriterFieldType(std::string field, bool & ok) ;
 

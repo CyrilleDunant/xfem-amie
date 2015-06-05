@@ -324,5 +324,13 @@ PlasticStrain::~PlasticStrain()
     delete param ;
 }
 
+DamageModel * PlasticStrain::getCopy() const
+{
+    PlasticStrain * ret = new PlasticStrain() ;
+    ret->factor = factor ;
+    ret->copyEssentialParameters( this ) ;
+    return ret ;
+}
+
 
 }

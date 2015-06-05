@@ -92,6 +92,13 @@ void FiberBasedIsotropicLinearDamage::step( ElementState &s , double maxscore)
     return ;
 }
 
+DamageModel * FiberBasedIsotropicLinearDamage::getCopy() const
+{
+    FiberBasedIsotropicLinearDamage * ret = new FiberBasedIsotropicLinearDamage(fibreFraction) ;
+    ret->copyEssentialParameters( this ) ;
+    return ret ;
+}
+
 
 }
 

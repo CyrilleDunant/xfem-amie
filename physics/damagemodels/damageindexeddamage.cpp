@@ -221,4 +221,10 @@ IndexedLinearDamage::~IndexedLinearDamage()
 {
 }
 
+DamageModel * IndexedLinearDamage::getCopy() const
+{
+    IndexedLinearDamage * ret = new IndexedLinearDamage(1,dcost, e) ;
+    ret->copyEssentialParameters( this ) ;
+    return ret ;
+}
 

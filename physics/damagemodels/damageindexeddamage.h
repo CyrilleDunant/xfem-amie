@@ -58,9 +58,8 @@ public:
     	*/
     virtual bool fractured() const  ;
 
-    virtual DamageModel * getCopy() const {
-        return new IndexedLinearDamage(1,dcost, e) ;
-    }
+    virtual DamageModel * getCopy() const ; 
+
 };
 
 }

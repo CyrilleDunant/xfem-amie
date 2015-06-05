@@ -114,5 +114,19 @@ IsotropicLinearDamageRate::~IsotropicLinearDamageRate()
 {
 }
 
+DamageModel * IsotropicLinearDamageRate::getCopy() const
+{
+    IsotropicLinearDamageRate * ret = new IsotropicLinearDamageRate() ;
+    ret->copyEssentialParameters( this ) ;
+    return ret ;
+}
+
+DamageModel * IsotropicLinearDamage::getCopy() const
+{
+    IsotropicLinearDamage * ret = new IsotropicLinearDamage() ;
+    ret->copyEssentialParameters( this ) ;
+    return ret ;
+}
+
 }
 

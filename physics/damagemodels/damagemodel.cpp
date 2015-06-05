@@ -297,6 +297,14 @@ DamageModel::DamageModel(): state(0)
     secondaryThresholdDamageDensity = 1. ;
 } 
 
+void DamageModel::copyEssentialParameters( const DamageModel * dam ) 
+{
+    thresholdDamageDensity = dam->getThresholdDamageDensity() ;
+    secondaryThresholdDamageDensity = dam->getSecondaryThresholdDamageDensity() ;
+    damageDensityTolerance = dam->getDamageDensityTolerance() ;
+    residualStiffnessFraction = dam->getResidualStiffnessFraction() ;
+}
+
 double DamageModel::getThresholdDamageDensity() const
 {
     return thresholdDamageDensity ;

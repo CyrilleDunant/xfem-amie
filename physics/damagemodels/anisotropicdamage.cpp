@@ -185,5 +185,11 @@ AnisotropicLinearDamage::~AnisotropicLinearDamage()
 {
 }
 
+DamageModel * AnisotropicLinearDamage::getCopy() const
+{
+    AnisotropicLinearDamage * ret = new AnisotropicLinearDamage() ;
+    ret->copyEssentialParameters( this ) ;
+    return ret ;
+}
 
 }

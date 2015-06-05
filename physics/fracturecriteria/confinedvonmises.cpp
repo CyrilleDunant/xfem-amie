@@ -67,7 +67,9 @@ double ConfinedVonMises::grade(ElementState &s)
 
 FractureCriterion * ConfinedVonMises::getCopy() const
 {
-	return new ConfinedVonMises(thresholdup, thresholddown) ;
+	ConfinedVonMises * ret = new ConfinedVonMises(thresholdup, thresholddown) ;
+	ret->copyEssentialParameters( this ) ;
+	return ret ;
 }
 
 }

@@ -58,9 +58,7 @@ public:
     	*/
     virtual bool fractured() const ;
 
-    virtual DamageModel * getCopy() const {
-        return new FractionLinearDamage(remnant, phi) ;
-    }
+    virtual DamageModel * getCopy() const ;
 
     virtual void computeDelta(ElementState & s) ;
 

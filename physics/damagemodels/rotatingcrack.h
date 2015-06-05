@@ -89,9 +89,7 @@ public:
 
     virtual void step(ElementState & s, double maxscore)  ;
 
-    virtual DamageModel * getCopy() const {
-        return new RotatingCrack(E, nu) ;
-    }
+    virtual DamageModel * getCopy() const ; 
 
     virtual int getMode() const ;
 
@@ -157,9 +155,7 @@ public:
 
     virtual void postProcess() ;
 
-    virtual DamageModel * getCopy() const {
-        return new FixedCrack(E, nu) ;
-    }
+    virtual DamageModel * getCopy() const ; 
 
     virtual int getMode() const ;
 
