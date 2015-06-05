@@ -5652,6 +5652,7 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
     setDeltaTime ( realDeltaTime, false ) ;
     for(int iter = 0 ; iter < iterations ; iter++)
     { 
+        std::cout <<"["<<iter+1<<"/"<<iterations<<"]" << std::flush ;
         step(true) ;      
         if(maxScore < 0)
             break ;
@@ -5671,13 +5672,13 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
         }
         
         elastic = true ;
-        double currentScale = 0.5 ;
+        double currentScale = 0.8 ;
         double highscale = 1. ;
         double bottomscale= 0. ;
         
         while(highscale-bottomscale > precision*initialscale)
         {
-            currentScale = (highscale+bottomscale)*.5 ;
+            currentScale = highscale*.8+bottomscale*.2 ;
             scaleBoundaryConditions(currentScale) ;
             
             bool met = false ;

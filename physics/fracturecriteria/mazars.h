@@ -21,7 +21,8 @@ namespace Amie {
 	*/
 	class NonLocalMazars : public FractureCriterion
 	{
-		bool met ;
+    protected:
+		bool ismet ;
 		double B_t;
 		double B_c ;
 	public:
@@ -41,9 +42,9 @@ namespace Amie {
 		double cstrain; 
 		double cstress;
 		planeType pt;
-		virtual bool directionInTension(size_t direction) {return met ;}
-		virtual bool directionInCompression(size_t direction) {return met ;}
-		virtual bool directionMet(size_t direction) {return met;}
+		virtual bool directionInTension(size_t direction) {return ismet ;}
+		virtual bool directionInCompression(size_t direction) {return ismet ;}
+		virtual bool directionMet(size_t direction) {return ismet;}
 	public:
 	/** \brief Constructor 
 	 * @param thres Set the maximum equivalent Mazars strain. 

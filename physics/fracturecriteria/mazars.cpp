@@ -19,7 +19,7 @@ NonLocalMazars::NonLocalMazars(double thresh, double E, double nu, double Gf, do
     , threshold(std::abs(thresh)), E(E), Gf(Gf), nu(nu), cstrain(cstrain), cstress(cstress), pt(pt)
 {
     setMaterialCharacteristicRadius(radius);
-    met = false ;
+    ismet = false ;
     B_t = (0.1*E*thresh) / (Gf - E*0.1*thresh*thresh*0.5);
     B_c = -1./(sqrt(2.)*nu*cstrain);
     A_c = -(E*thresh + sqrt(2.)*cstress*nu)/((E*std::exp(B_c*thresh - 1.)/B_c) - E*thresh);
@@ -47,7 +47,7 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
     double gamma = 1.0 ;
     double Trcsig = 0.0;
     double Trtsig = 0.0;
-    met = false ;
+    ismet = false ;
     if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL && pt==PLANE_STRESS)
     {
         posstrain.push_back( (0.5*( std::abs(stress[0])  + stress[0] ) - nu*(0.5*( std::abs(stress[1])  + stress[1]) ))/(E*(1 - dama_predict))) ;
@@ -97,7 +97,7 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
 //     }
     if( (maxStrain >= threshold) &&  (pseudo_dama >= dama_predict))
     {
-        met = true ;
+        ismet = true ;
         double un_dama = pseudo_dama - dama_predict;
         return un_dama ;
     }
@@ -124,35 +124,27 @@ double NonLocalSpaceTimeMazars::grade(ElementState &s)
 {
     double gradeBefore = gradeAtTime(s, -1) ;
     double gradeAfter = gradeAtTime(s, 1) ;
+    if(!ismet)
+        return -1 ;
+
     scoreAtTimeStepEnd = gradeAfter ;
 
     if(gradeAfter < 0)
         return gradeAfter ;
     if(gradeBefore > 0)
     {
-        return .99 ;
+        return 1. ;
     }
 
     double upTime = 1 ;
     double downTime = -1 ;
-    
-    if(gradeAtTime(s, -.75) > 0)
-        upTime = -.75 ;
-    else if(gradeAtTime(s, -.5) > 0)
-        upTime = -.5 ;
-    else if(gradeAtTime(s, -.25) > 0)
-        upTime = -.25 ;
-    else if(gradeAtTime(s, 0) > 0)
-        upTime = 0 ;
-    else if(gradeAtTime(s, .5) > 0)
-        upTime = .5  ;
     
     double testTime = 0.5*downTime+0.5*upTime ;
     
     while(std::abs(upTime-downTime) > 1e-7)
     {
         double gradeTest = gradeAtTime(s, testTime) ;
-        if(gradeTest < 0)
+        if(gradeTest < 0 || !ismet)
             downTime = testTime ;
         else if(gradeTest > 0)
             upTime = testTime ;

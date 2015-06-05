@@ -95,7 +95,7 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
 //             continue ;
 //         }
 
-        bool go_on = featureTree->stepToCheckPoint(200, 1e-5) ;
+        bool go_on = featureTree->stepToCheckPoint(50, 1e-5) ;
         
         x.resize ( featureTree->getDisplacements ( -1, false ).size() ) ;
         x = featureTree->getDisplacements ( -1, false ) ;
@@ -137,7 +137,7 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
         std::cout << "average sigma22 : " << stemp[1] << std::endl ;
         std::cout << "average sigma12 : " << stemp[2] << std::endl ;
         std::cout << std::endl ;
-        std::fstream ldfile ( "ldnvisco8", std::ios::out )  ;
+        std::fstream ldfile ( "ldnvisco8", std::ios::out | std::ios::app)  ;
 
         
         if ( go_on )
@@ -157,19 +157,13 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
 //             writerc.getField ( TWFT_DAMAGE ) ;
 //             writerc.append() ;
 //             writerc.writeSvg ( 0. ) ;        
-            for ( size_t j = 0 ; j < loads.size() ; j++ )
-            {
-                ldfile << displacements[j] << "   " << loads[j] << "   " << damages[j] << "   " << deltas[j] << "   " << times[j] <<"\n" ;
-            }
-        }
-        else
-        {
-            for ( size_t j = 0 ; j < loads.size() ; j++ )
-            {
-                ldfile << displacements[j] << "   " << loads[j] << "   " << damages[j] << "   " << deltas[j] << "   " << times[j] << "\n" ;
 
-            }
-            ldfile <<  (double)(1000.* ( VirtualMachine().eval(load->getDataFunction()*load->getScale(), 0,0,0,featureTree->getCurrentTime()))) << "   " << (double)(stemp[1]/1000.) << "   " << featureTree->averageDamage << "   " << delta*1000 << "   " << featureTree->getCurrentTime() << "\n" ;
+                ldfile << displacements.back() << "   " << loads.back() << "   " << damages.back() << "   " << deltas.back() << "   " << times.back() <<"\n" ;
+                displacements.clear() ;
+                loads.clear() ;
+                damages.clear() ;
+                deltas.clear() ;
+                times.clear() ;
         }
         
         ldfile.close();
@@ -219,8 +213,8 @@ int main ( int argc, char *argv[] )
         branches.push_back(std::make_pair(K_i, Am_i)) ;
     }    
     
-    FractureCriterion * mcft = new NonLocalSpaceTimeMCFT(cstress,k_elas, 0.048,UPPER_BOUND,MIRROR_Y) ;
-    FractureCriterion * mazar = new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 0.048, pt ) ;
+    FractureCriterion * mcft = new NonLocalSpaceTimeMCFT(cstress,k_elas, 0.064,UPPER_BOUND,MIRROR_Y) ;
+    FractureCriterion * mazar = new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 0.064, pt ) ;
     DamageModel * linear = new SpaceTimeIsotropicLinearDamage(1.0) ;
  
     Matrix m0_steel = Tensor::cauchyGreen ( std::make_pair ( E_steel,nu_steel ), true, SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;

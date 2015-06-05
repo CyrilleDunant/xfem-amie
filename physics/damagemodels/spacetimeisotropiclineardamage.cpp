@@ -40,7 +40,7 @@ Matrix SpaceTimeIsotropicLinearDamage::applyViscous(const Matrix & m, const Poin
         return m*1e-6 ;
     
     double factor = (p.getT()+1.)*.5 ;
-    double d = std::min(state[0]+factor*std::max(dt, 1e-4)*accelerate, 1.) ;
+    double d = std::min(state[0]+factor*accelerate, 1.) ;
     return m*(1.-d) ;
 
 
@@ -56,7 +56,7 @@ Matrix SpaceTimeIsotropicLinearDamage::apply(const Matrix & m, const Point & p,c
         return m*1e-6 ;
     
     double factor = (p.getT()+1.)*.5 ;
-    double d = std::min(state[0]+factor*std::max(dt, 1e-4)*accelerate, 1.) ;
+    double d = std::min(state[0]+factor*accelerate, 1.) ;
     return m*(1.-d) ;
 
 }
@@ -78,7 +78,7 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
 {
     elementState = &s ;
     converged = true ;
-    double timetol = 1e-6 ;
+    double timetol = 1e-4 ;
     s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = false ;
     if( fraction < 0 )
     {
@@ -99,6 +99,7 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
         change = true ;
     }
     
+    
     dt = std::max(s.getParent()->getBoundingPoint(s.getParent()->getBoundingPoints().size()-1).getT() - s.getParent()->getBoundingPoint(0).getT(), timetol) ;
     double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
     
@@ -112,13 +113,41 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
         accelerate = 0 ;
         return ;
     }
-    else if(!fractured() && score>maxscore-timetol)
+    else if(!fractured() && score > maxscore-timetol)
     {
-        double initialScore = s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime(s, score) ;
-        double delta = (s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime(s,score+timetol/dt)- initialScore) ;
-        accelerate = delta/(timetol/dt)* .1;
-        state[0] =  std::min(state[0]+ accelerate * .5 * (1.-state[0]), 1.) ;
-        change = true ;
+        
+        double originalState = state[0] ;
+        accelerate = 0 ;
+        double downDamage = originalState ;
+        double upDamage = 1 ;
+
+        while(upDamage-downDamage > 1e-6)
+        {
+            state[0] = (downDamage+upDamage)*.5 ;
+            double scoreAtEnd = s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime( s, 1 ) ;
+            if(scoreAtEnd > 0)
+                downDamage = state[0] ;
+            else
+                upDamage = state[0] ;
+        }
+        double maxDamage = (downDamage+upDamage)*.5 ; 
+        
+        upDamage = maxDamage ;
+        downDamage = originalState ;
+        double damageInitiationTime = -1. + score*2. ;
+        while(upDamage-downDamage > 1e-6)
+        {
+            state[0] = (downDamage+upDamage)*.5 ;
+            double scoreAtEnd = s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime( s, damageInitiationTime+timetol*1.0001 ) ;
+            if(scoreAtEnd > 0)
+                downDamage = state[0] ;
+            else
+                upDamage = state[0] ;
+        }
+        state[0] = upDamage ;
+        
+        accelerate = 1.1*(maxDamage - state[0]) ;
+
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
     }
 

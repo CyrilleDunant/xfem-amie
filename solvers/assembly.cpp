@@ -659,7 +659,40 @@ void Assembly::checkZeroLines()
 {
     return ;
     std::cerr << "removing 0-only lines..." << std::flush ;
-    bool zeros = true ;
+    
+    std::valarray<bool> zeros(true, ndof) ;
+    int blocksize = ndof*(ndof+ndof%2) ;
+    double * array_iterator = &getMatrix().array[0] ;
+    for(size_t j = 0 ; j <  getMatrix().row_size.size() ; j++)
+    {   
+        zeros = true ;
+        array_iterator = &getMatrix().array[blocksize*getMatrix().accumulated_row_size[j]] ;
+        for(size_t i = 0 ; i < getMatrix().row_size[j] ; i++)
+        {
+            for(size_t n = 0 ; n < ndof ; n++)
+            {
+                for(size_t m = 0 ; m < ndof ; m++)
+                {
+                    if(std::abs(*array_iterator) > POINT_TOLERANCE)
+                        zeros[m] = false ; 
+                    array_iterator++ ;
+                }
+                if(ndof%2)
+                    array_iterator++ ;
+            }
+        }
+        
+        for(size_t m = 0 ; m < ndof ; m++)
+        {
+            if(zeros[m])
+            {
+                getMatrix()[j*ndof+m][j*ndof+m] = 1 ;
+                externalForces[j*ndof+m] = 0. ;
+            }
+        }
+    }
+/*    
+    
     for(size_t i = 0 ; i < externalForces.size() ; i++)
     {
         zeros = (getMatrix()[i][i] < POINT_TOLERANCE) ;
@@ -674,7 +707,7 @@ void Assembly::checkZeroLines()
             getMatrix()[i][i] = 1 ;
             externalForces[i] = 0. ;
         }
-    }
+    }*/
     std::cerr << "done. " << std::endl ;
 }
 
