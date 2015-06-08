@@ -48,11 +48,6 @@ double plateHeight = 0.051 ;
 double rebarDiametre = 0.025 ; //sqrt(506e-6);//sqrt( 4.*0.000506/M_PI ) ;
 double rebarEndCover = 0.047 ;
 
-std::vector< double > loads ;
-std::vector< double > times ;
-std::vector< double > deltas ;
-std::vector< double > displacements ;
-std::vector< double > damages ;
 Vector fracCrit ( 0 ) ;
 
 Vector x ( 0 ) ;
@@ -137,35 +132,12 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
         std::cout << "average sigma22 : " << stemp[1] << std::endl ;
         std::cout << "average sigma12 : " << stemp[2] << std::endl ;
         std::cout << std::endl ;
-        std::fstream ldfile ( "ldnvisco8", std::ios::out | std::ios::app)  ;
-
         
+        std::fstream ldfile ( "ldnvisco8", std::ios::out | std::ios::app)  ;
         if ( go_on )
         {
-            displacements.push_back ( 1000.* ( VirtualMachine().eval(load->getDataFunction()*load->getScale(), 0,0,0,featureTree->getCurrentTime()) ) );
-            loads.push_back ( stemp[1]/1000. );
-            deltas.push_back ( delta*1000 );
-            damages.push_back ( featureTree->averageDamage );
-            times.push_back(featureTree->getCurrentTime());
-
-//             writerc.reset ( featureTree ) ;
-//             writerc.getField ( TWFT_PRINCIPAL_STRESS ) ;
-//             writerc.getField ( TWFT_PRINCIPAL_STRAIN ) ;
-//             writerc.getField ( TWFT_CRITERION ) ;
-//             writerc.getField ( TWFT_STIFFNESS_X ) ;
-//             writerc.getField ( TWFT_STIFFNESS_Y ) ;
-//             writerc.getField ( TWFT_DAMAGE ) ;
-//             writerc.append() ;
-//             writerc.writeSvg ( 0. ) ;        
-
-                ldfile << displacements.back() << "   " << loads.back() << "   " << damages.back() << "   " << deltas.back() << "   " << times.back() <<"\n" ;
-                displacements.clear() ;
-                loads.clear() ;
-                damages.clear() ;
-                deltas.clear() ;
-                times.clear() ;
+                ldfile << 1000.* ( VirtualMachine().eval(load->getDataFunction()*load->getScale(), 0,0,0,featureTree->getCurrentTime()) ) << "   " << stemp[1]/1000. << "   " << featureTree->averageDamage << "   " << delta*1000 << "   " << featureTree->getCurrentTime() <<"\n" ;
         }
-        
         ldfile.close();
 
         if( ( v < 100 && v%10 == 0 ) || v >=100)
