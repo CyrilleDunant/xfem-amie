@@ -657,10 +657,10 @@ void Assembly::setBoundaryConditions()
 
 void Assembly::checkZeroLines()
 {
-    return ;
+//    return ;
     std::cerr << "removing 0-only lines..." << std::flush ;
     
-    std::valarray<bool> zeros(true, ndof) ;
+/*    std::valarray<bool> zeros(true, ndof) ;
     int blocksize = ndof*(ndof+ndof%2) ;
     double * array_iterator = &getMatrix().array[0] ;
     for(size_t j = 0 ; j <  getMatrix().row_size.size() ; j++)
@@ -690,24 +690,26 @@ void Assembly::checkZeroLines()
                 externalForces[j*ndof+m] = 0. ;
             }
         }
-    }
-/*    
+    }*/
+    
     
     for(size_t i = 0 ; i < externalForces.size() ; i++)
     {
-        zeros = (getMatrix()[i][i] < POINT_TOLERANCE) ;
-        size_t j = 0 ;
+        if(i%1000 == 0)
+            std::cerr << "\rremoving 0-only lines... " << i << "/" << externalForces.size() << std::flush ;
+        double zeros = (getMatrix()[i][i] < POINT_TOLERANCE) ;
+/*        size_t j = rowstart ;
         while(zeros && (j < externalForces.size() ))
         {
-            zeros = (getMatrix()[i][j] < POINT_TOLERANCE) ;
+            zeros = (std::abs(getMatrix()[i][j]) < POINT_TOLERANCE) ;
             j++ ;
-        }
-        if(zeros && (j==externalForces.size()))
+        }*/
+        if(zeros)// && (j==externalForces.size()))
         {
             getMatrix()[i][i] = 1 ;
             externalForces[i] = 0. ;
         }
-    }*/
+    }
     std::cerr << "done. " << std::endl ;
 }
 
