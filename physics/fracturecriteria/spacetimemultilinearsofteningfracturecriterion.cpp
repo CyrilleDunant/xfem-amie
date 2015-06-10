@@ -500,11 +500,14 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::gradeAt
 			else
 				tension = std::max(-1., -1.+current.getX()/inter.getX()) ;
 		}
+                else
+                {
 		
 		if( current.getY() < tensileStressStrainCurve->getPoint(0).getY() )
 			tension = std::max( -1., -1.+current.getY()/tensileStressStrainCurve->getPoint(0).getY() ) ;
 		else
 			tension = std::min( 1., 1.-tensileStressStrainCurve->getPoint(0).getY()/current.getY() ) ;
+                }
 	}
 
 
@@ -541,13 +544,17 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::gradeAt
 			else
 				compression = std::max(-1., -1.+current.getX()/inter.getX()) ;
 		}
-		
-		if( current.getY() > compressiveStressStrainCurve->getPoint(0).getY() )
-			compression = std::max( -1., -1.+current.getY()/compressiveStressStrainCurve->getPoint(0).getY() ) ;
 		else
-			compression = std::min( 1., 1.-compressiveStressStrainCurve->getPoint(0).getY()/current.getY() ) ;
+		{
+		
+			if( current.getY() > compressiveStressStrainCurve->getPoint(0).getY() )
+				compression = std::max( -1., -1.+current.getY()/compressiveStressStrainCurve->getPoint(0).getY() ) ;
+			else
+				compression = std::min( 1., 1.-compressiveStressStrainCurve->getPoint(0).getY()/current.getY() ) ;
+		}
 	}
 	
+
 	return std::max( compression, tension ) ;
 
 }

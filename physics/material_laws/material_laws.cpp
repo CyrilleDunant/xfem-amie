@@ -195,6 +195,34 @@ LinearInterpolatedExternalMaterialLaw::LinearInterpolatedExternalMaterialLaw(std
 
 }
 
+LinearBiInterpolatedExternalMaterialLaw::LinearBiInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e, std::string out, std::pair<Vector, Vector> v, std::string file, EMLOperation o, std::string args, char sep) : ExternalMaterialLaw(args, sep), input(e), output(out), values(v), op(o)
+{
+    data.resize( values.first.size(), values.second.size() ) ;
+    data = 0. ;
+
+    std::fstream in(file) ;
+    if(!in.is_open())
+    {
+        std::cout << "file " << file << " doesn't exist!" << std::endl ;
+        exit(0) ;
+    }
+
+    double buffer ;
+
+    size_t i = 0 ;
+    size_t j = 0 ;
+    do {
+        in >> buffer ;
+        data[i][j] = buffer ; 
+        j++ ;
+        if(j == data.numCols())
+        {
+            i++ ;
+            j = 0 ;
+        }
+    } while(!in.eof() && i < data.numRows()) ;
+}
+
 
 void LinearInterpolatedExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
@@ -233,6 +261,58 @@ void LinearInterpolatedExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVisc
     }
 }
 
+void LinearBiInterpolatedExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+{
+    double x = 0. ;
+    if(input.first == std::string("x"))
+        x = s.getParent()->getCenter().getX() ;
+    else if(input.first == std::string("y"))
+        x = s.getParent()->getCenter().getY() ;
+    else if(input.first == std::string("z"))
+        x = s.getParent()->getCenter().getZ() ;
+    else if(input.first == std::string("t"))
+        x = s.getNodalCentralTime() ;
+    else
+        x = s.get(input.first, defaultValues) ;
+
+    double y = 0. ;
+    if(input.second == std::string("x"))
+        y = s.getParent()->getCenter().getX() ;
+    else if(input.second == std::string("y"))
+        y = s.getParent()->getCenter().getY() ;
+    else if(input.second == std::string("z"))
+        y = s.getParent()->getCenter().getZ() ;
+    else if(input.second == std::string("t"))
+        y = s.getNodalCentralTime() ;
+    else
+        y = s.get(input.second, defaultValues) ;
+
+    double v = get(x,y) ;
+
+    switch(op)
+    {
+    case SET:
+        s.set(output, v) ;
+        break ;
+    case ADD:
+        s.add(output, v) ;
+        break ;
+    case MULTIPLY:
+        s.multiply(output, v) ;
+        break ;
+    case SUBSTRACT:
+        s.add(output, -1.*v) ;
+        break ;
+    case DIVIDE:
+        s.multiply(output, 1./v) ;
+        break ;
+    default:
+        s.set(output, v) ;
+        break ;
+
+    }
+}
+
 double LinearInterpolatedExternalMaterialLaw::get(double x) const
 {
     if(x < values.first[0]+POINT_TOLERANCE)
@@ -249,6 +329,60 @@ double LinearInterpolatedExternalMaterialLaw::get(double x) const
     }
 
     return values.second[i-1]+(values.second[i]-values.second[i-1])*(x-values.first[i-1])/(values.first[i]-values.first[i-1]) ;
+}
+
+double LinearBiInterpolatedExternalMaterialLaw::get(double x, double y) const
+{
+    Vector current( values.second ) ;
+    int index = -1 ;
+    double coef = 1 ;
+    if(x < values.first[0]+POINT_TOLERANCE)
+        index = 0 ;
+    if(x > values.first[values.first.size()-1]-POINT_TOLERANCE)
+        index = values.first.size()-1 ;
+
+    if(index == -1)
+    {
+        int i = 0 ;
+        bool at = false ;
+        while(values.first[i]<x)
+        {
+            if(std::abs(values.first[i]-x) < POINT_TOLERANCE)
+            {
+                index = i ;
+                at = true ;
+                break ;
+            }
+            i++ ;
+        }
+        index = i ;
+        if(!at)
+            coef = (x-values.first[i-1])/(values.first[i]-values.first[i-1]) ;
+    }
+
+    for(size_t i = 0 ; i < current.size() ; i++)
+    {
+        if(coef == 1)
+            current[i] = data[index][i] ;
+        else
+            current[i] = data[index-1][i] + coef*( data[index][i] - data[index-1][i] ) ;
+    }
+
+    if(y < values.second[0]+POINT_TOLERANCE)
+        return current[0] ;
+    if(y > values.second[current.size()-1]-POINT_TOLERANCE)
+        return current[current.size()-1] ;
+
+    int i = 0 ;
+    while(values.second[i]<y)
+    {
+        if(std::abs(values.second[i]-y) < POINT_TOLERANCE)
+            return current[i] ;
+        i++ ;
+    }
+
+    return current[i-1]+(current[i]-current[i-1])*(y-values.second[i-1])/(values.second[i]-values.second[i-1]) ;
+
 }
 
 CopyFromFeatureTreeExternalMaterialLaw::CopyFromFeatureTreeExternalMaterialLaw(FeatureTree * f, std::string e, std::string args, char s) : ExternalMaterialLaw(args, s), source(f)

@@ -513,6 +513,11 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
         return new RadiationInducedExpansionMaterialLaw() ;
     }
 
+    if(type == "TEMPERATURE_DEPENDENT_RADIATION_INDUCED_VOLUMETRIC_EXPANSION")
+    {
+        return new TemperatureDependentRadiationInducedExpansionMaterialLaw() ;
+    }
+
     if(type == "BET_ISOTHERM")
     {
         ret = new BETIsothermMaterialLaw() ;
@@ -558,6 +563,12 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
         double order = getData("order", 1.) ;
         ret = new DryingShrinkageMaterialLaw(input, order) ;
         ret->setDefaultValue(input+"_reference", getData("reference_"+input, 1.)) ;
+        return ret ;
+    }
+
+    if(type == "EXPONENTIAL_DECREASE")
+    {
+        ret = new ExponentiallyDecreasingMaterialLaw( getStringData("output_parameter", "none"), getStringData("target", "none"), getStringData("coefficient","none")) ;
         return ret ;
     }
 
@@ -749,6 +760,17 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
         }
         else
             ret = new LinearInterpolatedExternalMaterialLaw( std::make_pair(getStringData("input_parameter","t"),getStringData("output_parameter","none")), getStringData("file_name","file_name"), ConfigTreeItem::translateEMLOperation(getStringData("operation","SET"))) ;
+        return ret ;
+    }
+
+    if(type == "LINEAR_BIINTERPOLATED")
+    {
+        Vector xr = ConfigTreeItem::readLineAsVector(getStringData("input_values.rows","0,1")) ;
+        Vector xc = ConfigTreeItem::readLineAsVector(getStringData("input_values.columns","0,1")) ;
+        std::string ir = getStringData("input_parameters.rows","x") ;
+        std::string ic = getStringData("input_parameters.columns","t") ;
+        std::string o = getStringData("output_parameter","none") ;
+        ret = new LinearBiInterpolatedExternalMaterialLaw( std::make_pair( ir, ic ), o, std::make_pair(xr, xc), getStringData("file_name","file_not_found"), ConfigTreeItem::translateEMLOperation(getStringData("operation","SET")) ) ;
         return ret ;
     }
 

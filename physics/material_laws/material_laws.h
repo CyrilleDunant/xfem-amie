@@ -151,6 +151,30 @@ struct LinearInterpolatedExternalMaterialLaw : public ExternalMaterialLaw
 
 };
 
+/* Generic material law to set an external variable as a function of two other variables, using linear interpolations.
+ * "input" contains the pair of input variables
+ * "values" contains the list of values for the two input variables
+ * "output" is the name of the output variable
+ * "data" is the table of output values at each pair of input variable
+ * The interpolation does not extrapolate outside the given bounds: the bounding values are used instead
+ */
+struct LinearBiInterpolatedExternalMaterialLaw : public ExternalMaterialLaw
+{
+    std::pair<std::string, std::string> input ;
+    std::string output ;
+    std::pair<Vector, Vector> values ;
+    Matrix data ;
+    EMLOperation op ;
+
+    LinearBiInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e, std::string out, std::pair<Vector, Vector> v, Matrix & dat, EMLOperation o = SET, std::string args = std::string(), char sep = ',' ) : ExternalMaterialLaw(args, sep), input(e), output(out), values(v), data(dat), op(o) { }
+    LinearBiInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e, std::string out, std::pair<Vector, Vector> v, std::string datafile, EMLOperation o = SET, std::string args = std::string(), char sep = ',' ) ;
+    virtual ~LinearBiInterpolatedExternalMaterialLaw() { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+    double get(double x, double y) const ;
+
+};
+
 struct CopyFromFeatureTreeExternalMaterialLaw : public ExternalMaterialLaw
 {
     FeatureTree  * source ;
