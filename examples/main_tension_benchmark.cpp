@@ -39,6 +39,8 @@ int main(int argc, char *argv[])
 	double yieldstrain = 0.0005 ;
 	double maxstrain = 0.0001 ;
 	double young = 10e9 ;
+	double radius = 0.01 ;
+	int sampling = 32 ;
 
 	if(argc > 1)
 	{
@@ -52,6 +54,16 @@ int main(int argc, char *argv[])
 			}
 			if(std::string(argv[i]) == std::string("--no-openmp"))
 				noOpenMP = true ;
+			if(std::string(argv[i]) == std::string("--sampling"))
+			{
+				i++ ;
+				sampling = atoi(std::string(argv[i])) ;
+			}
+			if(std::string(argv[i]) == std::string("--radius"))
+			{
+				i++ ;
+				radius = atof(std::string(argv[i])) ;
+			}
 			if(std::string(argv[i]) == std::string("--fiber"))
 			{
 				fiber = true ;
@@ -117,7 +129,7 @@ int main(int argc, char *argv[])
 	if(spaceTime)
 	{
 		SpaceTimeNonLocalLinearSofteningMaximumStrain * fracST = new SpaceTimeNonLocalLinearSofteningMaximumStrain( maxstrain, maxtrain*young, yielstrain) ;
-		fracST->setMaterialCharacteristicRadius( check ? 0.1 : 0.02 ) ;
+		fracST->setMaterialCharacteristicRadius( check ? 0.1 : radius ) ;
 		SpaceTimeIsotropicLinearDamage * damST = new SpaceTimeIsotropicLinearDamage( 1. ) ;
 		SpaceTimeFiberBasedIsotropicLinearDamage * damFST = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.2, 0.01, 1. ) ;
 
@@ -131,7 +143,7 @@ int main(int argc, char *argv[])
 	}
 
 	FeatureTree F( &sample ) ;
-	F.setSamplingNumber( check ? 1 : 32) ;
+	F.setSamplingNumber( check ? 1 : sampling) ;
 	F.setMaxIterationsPerStep(2000) ;
 	F.setMinDeltaTime(1e-9) ;
 	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, spaceTime ? LEFT_AFTER : LEFT) ) ;
