@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
 	double maxstrain = 0.0001 ;
 	double young = 10e9 ;
 	double radius = 0.01 ;
+	double deltaDamage = 0.2 ;
 	int sampling = 32 ;
 
 	if(argc > 1)
@@ -57,12 +58,17 @@ int main(int argc, char *argv[])
 			if(std::string(argv[i]) == std::string("--sampling"))
 			{
 				i++ ;
-				sampling = atoi(std::string(argv[i])) ;
+				sampling = atoi((argv[i])) ;
+			}
+			if(std::string(argv[i]) == std::string("--delta-damage"))
+			{
+				i++ ;
+				deltaDamage = atof((argv[i])) ;
 			}
 			if(std::string(argv[i]) == std::string("--radius"))
 			{
 				i++ ;
-				radius = atof(std::string(argv[i])) ;
+				radius = atof((argv[i])) ;
 			}
 			if(std::string(argv[i]) == std::string("--fiber"))
 			{
@@ -84,17 +90,17 @@ int main(int argc, char *argv[])
 			if(std::string(argv[i]) == std::string("--yield-strain"))
 			{
 				i++ ;
-				yieldstrain = atof(std::string(argv[i])) ;
+				yieldstrain = atof((argv[i])) ;
 			}
 			if(std::string(argv[i]) == std::string("--max-strain"))
 			{
 				i++ ;
-				maxstrain = atof(std::string(argv[i])) ;
+				maxstrain = atof((argv[i])) ;
 			}
 			if(std::string(argv[i]) == std::string("--young-modulus"))
 			{
 				i++ ;
-				young = atof(std::string(argv[i])) ;
+				young = atof((argv[i])) ;
 			}
 			i++ ;
 		}
@@ -128,10 +134,10 @@ int main(int argc, char *argv[])
 
 	if(spaceTime)
 	{
-		SpaceTimeNonLocalLinearSofteningMaximumStrain * fracST = new SpaceTimeNonLocalLinearSofteningMaximumStrain( maxstrain, maxtrain*young, yielstrain) ;
+		SpaceTimeNonLocalLinearSofteningMaximumStrain * fracST = new SpaceTimeNonLocalLinearSofteningMaximumStrain( maxstrain, maxstrain*young, yieldstrain) ;
 		fracST->setMaterialCharacteristicRadius( check ? 0.1 : radius ) ;
 		SpaceTimeIsotropicLinearDamage * damST = new SpaceTimeIsotropicLinearDamage( 1. ) ;
-		SpaceTimeFiberBasedIsotropicLinearDamage * damFST = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.2, 0.01, 1. ) ;
+		SpaceTimeFiberBasedIsotropicLinearDamage * damFST = new SpaceTimeFiberBasedIsotropicLinearDamage( deltaDamage, 0.01, 1. ) ;
 
 		ViscoelasticityAndFracture * pasteST = fiber ? new ViscoelasticityAndFracture( PURE_ELASTICITY, stiffness, fracST, damFST ) : new ViscoelasticityAndFracture( PURE_ELASTICITY, stiffness, fracST, damST ) ;
 	
