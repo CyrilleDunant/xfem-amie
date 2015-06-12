@@ -1,8 +1,8 @@
 #include "triangleGlDrawer.h"
 
-void TriangleGLDrawer::computeDisplay( ) const
+void TriangleGLDrawer::computeDisplay( )
 {
-
+    makeCurrent() ;
 	glMatrixMode( GL_MODELVIEW );
 
 	glColor4f( 1, 1, 1, 0.5 ) ;
@@ -138,8 +138,7 @@ void TriangleGLDrawer::setYTranslation( int trans )
 
 void TriangleGLDrawer::paintGL()
 {
-
-	QTime startTime = QTime::currentTime();
+    
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); // Clear Screen And Depth Buffer
 
 	glMatrixMode( GL_MODELVIEW );                           // Select The Modelview Matrix
@@ -149,25 +148,14 @@ void TriangleGLDrawer::paintGL()
 	computeDisplay() ;
 
 	glColor3f( 0., 0., 0. ) ;
-	int elapsedTime = startTime.msecsTo( QTime::currentTime() );
-// 	renderText( 10, 20, QString( "%0 fps" ).arg( 1000.0f / ( float )elapsedTime ) );
-	size_t r, g, b ;
 
-// 	renderText( 10, 40, QString( "%0 []" ).arg( ( float )valUnderCursor) );
+	size_t r, g, b ;
 	
 	
 	if( !limits.empty() )
 	{
 		double rel =  (1.-(valUnderCursor-limits[currentSet].first)/(limits[currentSet].second - limits[currentSet].first)) ;
 		glBegin( GL_QUAD_STRIP ) ;
-
-// 		for(double i = 1. ; i > fracup/10000. ; i -= 0.001)
-// 		{
-// 			HSVtoRGB(&r, &g, &b, 180., 0., 0.1) ;
-// 			glColor4ub(r, g, b, 255) ;
-// 			glVertex2f((.805-0.5) , (i-0.5)*.7 ) ;
-// 			glVertex2f((.835-0.5) , (i-0.5)*.7 ) ;
-// 		}
 		for( double i = ( double )fracup / 10000. ; i > ( double )fracdown / 10000. ; i -= 0.001 )
 		{
 			double where = ( 1. - ( ( double )fracup / 10000. - i ) / ( ( double )fracup / 10000. - ( double )fracdown / 10000. ) ) ;
@@ -183,30 +171,39 @@ void TriangleGLDrawer::paintGL()
 			glVertex2f( ( .805 - 0.5 ) , ( where - 0.5 )*.7 ) ;
 			glVertex2f( ( .835 - 0.5 ) , ( where - 0.5 )*.7 ) ;
 		}
-
-// 		for(double i = fracdown/10000. ; i > 0 ; i -= 0.001)
-// 		{
-// 			HSVtoRGB(&r, &g, &b, 180., 0., 0.9) ;
-// 			glColor4ub(r, g, b, 255) ;
-// 			glVertex2f((.805-0.5) , (i-0.5)*.7 ) ;
-// 			glVertex2f((.835-0.5) , (i-0.5)*.7 ) ;
-// 		}
 		glEnd() ;
-		glColor4ub( 0, 0, 0, 255 ) ;
+        
+        glDisable(GL_DEPTH_TEST) ;
+        glBegin( GL_QUAD_STRIP ) ;
+        qglColor(Qt::white);
+        for( double i = ( double )fracup / 10000. ; i > ( double )fracdown / 10000. ; i -= 0.001 )
+        {
+            double where = ( 1. - ( ( double )fracup / 10000. - i ) / ( ( double )fracup / 10000. - ( double )fracdown / 10000. ) ) ;
+            glVertex2f( ( .835 - 0.5 ) , ( where - 0.5 )*.8 ) ;
+            glVertex2f( ( 1.2 - 0.5 ) , ( where - 0.5 )*.8 ) ;
+        }
+        glEnd() ;
 
-		for( double i = 1. ; i > 0 ; i -= 0.1 )
-		{
-
-			double v = i * ( limits[currentSet].first - ( limits[currentSet].first - limits[currentSet].second ) * ( 1. - fracup / 10000. ) ) + ( 1. - i ) * ( limits[currentSet].second + ( limits[currentSet].first - limits[currentSet].second ) * fracdown / 10000. ) ;
-// 			renderText( ( .805 - 0.5 ) + 0.05,
-// 			            ( i - 0.5 )*.7,
-// 			            0.,
-// 			            QString::number( v, 'f', 2) );
-		}
+        qglColor(Qt::black);
+        
+        for( double i = 1. ; i > 0 ; i -= 0.1 )
+        {
+            double v = i * ( limits[currentSet].first - ( limits[currentSet].first - limits[currentSet].second ) * ( 1. - fracup / 10000. ) ) + ( 1. - i ) * ( limits[currentSet].second + ( limits[currentSet].first - limits[currentSet].second ) * fracdown / 10000. ) ;
+            QString num = QString::number( v, 'f', 2) ;
+            renderText( ( .805 - 0.5 ) + 0.05,
+                        ( i - 0.5 )*.7,
+                        0.,
+                        num ,
+                         QFont("Sans", 8, QFont::Normal, false)
+                      );
+        }
+         glEnable(GL_DEPTH_TEST) ;
+        
 	}
 
 	glFinish();
 	swapBuffers() ;
+    
 }
 
 void TriangleGLDrawer::resizeGL( int w, int h )
@@ -334,7 +331,7 @@ void TriangleGLDrawer::grab()
 
 void TriangleGLDrawer::computeDisplayList()
 {
-
+    makeCurrent() ;
 	if( !minmaxinit )
 	{
 		max_x = ( *valuesAtPoint )[0][0] ;
@@ -660,6 +657,7 @@ void TriangleGLDrawer::HSVtoRGB( size_t *r, size_t *g, size_t *b, float h, float
 
 void TriangleGLDrawer::reset( QString f, const std::vector<std::pair<float, float> > & l )
 {
+    makeCurrent() ;
 	glDeleteLists( displayList, numberOfExtraFields + 2 ) ;
 	limits = l ;
 	valuesAtPoint = nullptr ;
@@ -718,6 +716,7 @@ TriangleGLDrawer::TriangleGLDrawer( QString f, const std::vector<std::pair<float
 
 void TriangleGLDrawer::reset( std::vector<std::valarray<float> > * v, int np, int set, const std::vector<std::pair<float, float> > & l )
 {
+    makeCurrent() ;
 	glDeleteLists( displayList, numberOfExtraFields + 2 ) ;
 	limits = l ;
 	valuesAtPoint = v ;
@@ -788,6 +787,7 @@ TriangleGLDrawer::TriangleGLDrawer( std::vector<std::valarray<float> > * v, int 
 
 void TriangleGLDrawer::reset( TriangleDataReader *f, int set, const std::vector<std::pair<float, float> > & l )
 {
+    makeCurrent() ;
 	glDeleteLists( displayList, numberOfExtraFields + 2 ) ;
 	limits = l ;
 	valuesAtPoint = nullptr ;
@@ -847,6 +847,7 @@ TriangleGLDrawer::TriangleGLDrawer( TriangleDataReader *f, int set, const std::v
 
 void TriangleGLDrawer::reset( QString f, int set, const std::vector<std::pair<float, float> > & l )
 {
+    makeCurrent() ;
 	glDeleteLists( displayList, numberOfExtraFields + 2 ) ;
 	limits = l ;
 	valuesAtPoint = nullptr ;
@@ -905,6 +906,7 @@ TriangleGLDrawer::TriangleGLDrawer( QString f, int set, const std::vector<std::p
 
 void TriangleGLDrawer::reset()
 {
+    makeCurrent() ;
 	glDeleteLists( displayList, numberOfExtraFields + 2 ) ;
 
 	valuesAtPoint = new std::vector< std::valarray<float> >( 0 ) ;
@@ -967,8 +969,8 @@ TriangleGLDrawer::TriangleGLDrawer( QWidget *parent ) : QGLWidget( parent )
 
 TriangleGLDrawer::~TriangleGLDrawer()
 {
+    makeCurrent() ;
 	glDeleteLists( displayList, numberOfExtraFields + 2 ) ;
-	makeCurrent();
 }
 
 

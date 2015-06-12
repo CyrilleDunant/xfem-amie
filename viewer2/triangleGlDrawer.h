@@ -155,7 +155,7 @@ protected:
 	void wheelEvent(QWheelEvent * event ) ;
 	void mouseReleaseEvent(QMouseEvent *event) ; //
 	void keyPressEvent ( QKeyEvent * event ) ; //
-	void computeDisplay( ) const ; //
+	void computeDisplay( ) ; //
 	
 	void HSVtoRGB( size_t *r, size_t *g, size_t *b, float h, float s, float v ) const  ;
 	
