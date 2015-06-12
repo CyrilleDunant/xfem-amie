@@ -24,6 +24,38 @@ using namespace Amie ;
 
 //#define DEBUG 
 
+class CommandLineParser
+{
+protected:
+	std::map< std::string, bool > flags ;
+	std::map< std::string, double > values ;
+
+public:
+	CommandLineParser() { } ;
+
+	void addFlag( std::string f, bool activated ) { flags[f] = activated ; }
+	void addValue( std::string f, double val ) { values[f] = val ; }
+
+	bool getFlag( std::string f )
+	{
+		if( flags.find( f ) == flags.end() )
+			return false ;
+		return flags[f] ;
+	}
+
+	double getValue( std::string f )
+	{
+		if( values.find( f ) == values.end() )
+			return 0. ;
+		return values[f] ;
+	}
+
+	void parseCommandLine( int argc, char *argv[] ) ;
+
+	void printStatus() ;
+
+} ;
+
 class Parser
 {
 protected:

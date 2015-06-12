@@ -547,5 +547,28 @@ ConfigTreeItem * ConfigParser::readFile(std::string f, ConfigTreeItem * def, boo
     return ret ;
 }
 
+void CommandLineParser::parseCommandLine( int argc, char *argv[] )
+{
+	int i = 1 ;
+	while(i < argc)
+	{
+		if( flags.find( std::string( argv[i] ) ) != flags.end() )
+			flags[ std::string( argv[i] ) ] = true ;
+		if( values.find( std::string( argv[i] ) ) != values.end()  )
+		{
+			values[ std::string( argv[i] ) ] = atof(argv[i+1]) ;
+			i++ ;
+		}
+		i++ ;
+	}
+}
 
+void CommandLineParser::printStatus( )
+{
+	for(auto f = flags.begin() ; f != flags.end() ; f++)
+		std::cout << f->first << " = " << (f->second ? "TRUE" : "FALSE") << std::endl ;
+	for(auto f = values.begin() ; f != values.end() ; f++)
+		std::cout << f->first << " = " << f->second << std::endl ;
+
+}
 

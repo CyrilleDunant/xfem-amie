@@ -12,6 +12,7 @@
 #include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include "../physics/fracturecriteria/maxstrain.h"
 #include "../utilities/writer/triangle_writer.h"
+#include "../utilities/parser.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../features/sample.h"
 
@@ -31,79 +32,39 @@ int main(int argc, char *argv[])
 	timeval time0, time1 ;
 	gettimeofday ( &time0, nullptr );
 
-	bool check = false ;
-	bool spaceTime = true ;
-	bool fiber = false ;
-	bool newton = false ;
-	bool noOpenMP = false ;
-	double yieldstrain = 0.0005 ;
-	double maxstrain = 0.0001 ;
-	double young = 10e9 ;
-	double radius = 0.01 ;
-	double deltaDamage = 0.2 ;
-	int sampling = 32 ;
+	CommandLineParser parser ;
+	parser.addFlag("--check", false ) ;
+	parser.addFlag("--space-time", true ) ;
+	parser.addFlag("--fiber", false ) ;
+	parser.addFlag("--newton", false ) ;
+	parser.addFlag("--no-openmp", false ) ;
 
-	if(argc > 1)
+	parser.addValue("--yield-strain", 0.0005 ) ;
+	parser.addValue("--max-strain", 0.0001 ) ;
+	parser.addValue("--young", 10e9 ) ;
+	parser.addValue("--radius", 0.01 ) ;
+	parser.addValue("--delta-damage", 0.2 ) ;
+	parser.addValue("--sampling", 32 ) ;
+
+	parser.parseCommandLine( argc, argv ) ;
+	parser.printStatus() ;
+
+	bool check = parser.getFlag("--check") ;
+	bool spaceTime = parser.getFlag("--space-time") ;
+	bool fiber = parser.getFlag("--fiber") ;
+	bool newton = parser.getFlag("--newton") ;
+	bool noOpenMP = parser.getFlag("--no-openmp") ;
+	double yieldstrain = parser.getValue("--yield-strain") ;
+	double maxstrain = parser.getValue("--max-strain") ;
+	double young = parser.getValue("--young") ;
+	double radius = parser.getValue("--radius") ;
+	double deltaDamage = parser.getValue("--delta-damage") ;
+	int sampling = parser.getValue("--sampling") ;
+
+	if(newton)
 	{
-		int i = 1 ;
-		while(i < argc)
-		{
-			if(std::string(argv[i]) == std::string("--check"))
-			{
-				noOpenMP = true ;
-				check = true ;
-			}
-			if(std::string(argv[i]) == std::string("--no-openmp"))
-				noOpenMP = true ;
-			if(std::string(argv[i]) == std::string("--sampling"))
-			{
-				i++ ;
-				sampling = atoi((argv[i])) ;
-			}
-			if(std::string(argv[i]) == std::string("--delta-damage"))
-			{
-				i++ ;
-				deltaDamage = atof((argv[i])) ;
-			}
-			if(std::string(argv[i]) == std::string("--radius"))
-			{
-				i++ ;
-				radius = atof((argv[i])) ;
-			}
-			if(std::string(argv[i]) == std::string("--fiber"))
-			{
-				fiber = true ;
-				spaceTime = true ;
-				newton = false ;
-			}
-			if(std::string(argv[i]) == std::string("--newton"))
-			{
-				newton = true ;
-				spaceTime = false ;
-				fiber = false ;
-			}
-			if(std::string(argv[i]) == std::string("--space-time"))
-			{
-				spaceTime = true ;
-				newton = false ;
-			}
-			if(std::string(argv[i]) == std::string("--yield-strain"))
-			{
-				i++ ;
-				yieldstrain = atof((argv[i])) ;
-			}
-			if(std::string(argv[i]) == std::string("--max-strain"))
-			{
-				i++ ;
-				maxstrain = atof((argv[i])) ;
-			}
-			if(std::string(argv[i]) == std::string("--young-modulus"))
-			{
-				i++ ;
-				young = atof((argv[i])) ;
-			}
-			i++ ;
-		}
+		spaceTime = false ;
+		fiber = false ;
 	}
 
 	if(noOpenMP)
