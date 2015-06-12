@@ -18,8 +18,10 @@ void RealTimeLogCreepAccumulator::preProcess( double timeStep, ElementState & cu
 {
     LogCreepAccumulator::preProcess(timeStep, currentState) ;
 
-    t = currentState.getNodalCentralTime()+timeStep*0.5 ;
     tau = dynamic_cast<LogarithmicCreep *>(currentState.getParent()->getBehaviour())->tau ;
+    flow += timeStep/tau ;
+
+//    t = currentState.getNodalCentralTime()+timeStep*0.5 ;
 }
 
 double RealTimeLogCreepAccumulator::getKelvinVoigtSpringReduction() const
@@ -30,6 +32,8 @@ double RealTimeLogCreepAccumulator::getKelvinVoigtSpringReduction() const
 
 double RealTimeLogCreepAccumulator::getKelvinVoigtDashpotReduction() const
 {
+    if(flow > POINT_TOLERANCE)
+        return (1.+flow)*(1.-fakeSpring)/(1.+fakeSpring) ;
     return (1.+t/tau)*(1.-fakeSpring)/(1.+fakeSpring) ;
 }
 

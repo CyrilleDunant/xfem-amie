@@ -76,40 +76,76 @@ double SpaceTimeNonLocalMaximumStrain::grade(ElementState &s)
 }
 
 double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
+{    
+    double gradeBefore = gradeAtTime(s, -1) ;
+    double gradeAfter = gradeAtTime(s, 1) ;
+    scoreAtTimeStepEnd = gradeAfter ;
+
+    if(gradeAfter < 0)
+        return gradeAfter ;
+    if(gradeBefore > 0)
+    {
+        return 1 ;
+    }
+    
+    double upTime = 1 ;
+    double downTime = -1 ;
+    double testTime = 2.*(-gradeBefore)/(gradeAfter-gradeBefore)-1. ;
+    double gradeDown = gradeBefore ;
+    double gradeUp = gradeAfter ;
+    double gradeTest = 0 ;
+
+    while(std::abs(upTime-downTime) > 1e-6 )
+    {
+        gradeTest = gradeAtTime(s, testTime) ;
+        if(gradeTest < 0)
+        {
+            downTime = testTime ;
+            gradeDown = gradeTest ;
+        }
+        else if(gradeTest > 0)
+        {
+            upTime = testTime ;
+            gradeUp = gradeTest ;
+        }
+        else
+            return 1.-(testTime*.5+.5) ;
+        
+        testTime = downTime + (upTime-downTime)*(-gradeDown)/(gradeUp-gradeDown) ;
+	if(std::abs(testTime - upTime) < POINT_TOLERANCE && std::abs(gradeTest) < POINT_TOLERANCE) 
+		return 1.-(testTime*.5+.5) ;
+    }
+    return 1.-(testTime*.5+.5) ;
+}
+
+
+
+double SpaceTimeNonLocalLinearSofteningMaximumStrain::gradeAtTime(ElementState &s, double t)
 {
 	if( s.getParent()->getBehaviour()->fractured() )
 		return -1 ;
 
-	std::pair<Vector, Vector> stateBefore( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s, -1) ) ;
-	std::pair<Vector, Vector> stateAfter( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s, 1) ) ;
-
+	std::pair<Vector, Vector> currentState = getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s, t ) ;
 	double Esoft = maxstress / ( yieldstrain - upVal) ;
-	double Einst = stateAfter.first.max() / stateAfter.second.max() ; //maxstress/upVal * (1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+	double Einst = currentState.first.max() / currentState.second.max() ; //maxstress/upVal * (1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+
+	double epsMax = std::max(upVal, yieldstrain*Esoft/(Esoft+Einst) ) ;
+
 // ;
 // 	double Eprev = stateBefore.first.max() / stateBefore.second.max() ;
-	double epsMax = (Esoft / (Esoft+Einst))*yieldstrain ;
 
-	double maxStrainBefore = stateBefore.second.max() ;
-	double maxStrainAfter = stateAfter.second.max() ;
-	double maxStressBefore = stateBefore.first.max() ;
-	double maxStressAfter = stateAfter.first.max() ;
-
-
-		if( false ) //s.getParent()->getBoundingPoint(0).getId() == 9)
-			std::cout << s.getNodalDeltaTime() << "\t" << s.getParent()->getBoundingPoint(0).getId() << "\t" << s.getParent()->getBoundingPoint(1).getId() << "\t" << s.getParent()->getBoundingPoint(2).getId() << "\t" <<  maxStrainBefore << "\t" << maxStrainAfter << "\t" << maxStressBefore << "\t" << maxStressAfter << "\t" << upVal << "\t" << yieldstrain << "\t" << epsMax << "\t" << epsMax*Einst << "\t" << Esoft << "\t" << Einst << "\t" <<  (Esoft / (Esoft+Einst)) << "\t" << std::min(1.,1. - (epsMax - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) <<  std::endl ;
-
+	double currentStrain = currentState.second.max() ;
 
 	metInCompression = false ;
 	metInTension = false ;
-	if(maxStrainAfter > epsMax)
+	if(currentStrain > epsMax)
 	{
 		metInTension = true ;
-
-		scoreAtTimeStepEnd = 1.-std::abs(epsMax/maxStrainAfter) ;
-		return  std::min(1.,1. - (epsMax - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) ;
+		return  std::min(1.,1. - epsMax / currentStrain ) ;
 	}
-	scoreAtTimeStepEnd = 1.-std::abs(epsMax/maxStrainAfter) ;
-	return -1.+ maxStrainAfter/epsMax;
+	else if (currentStrain > 0)
+		return -1.+ currentStrain/epsMax;
+	return -1. ;
 
 }
 

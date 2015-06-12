@@ -1099,6 +1099,22 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
     if(type == std::string("VOID_BEHAVIOUR"))
         return new VoidForm() ;
 
+    if(type == std::string("FROM_PARENT_DISTRIBUTION"))
+    {
+        if(father->getFather() && father->getFather()->hasChild("behaviour"))
+            return father->getFather()->getChild("behaviour")->getBehaviour(dim, spaceTime) ;
+        return new VoidForm() ;
+    }
+
+    if(type == std::string("FROM_FIRST_DISTRIBUTION"))
+    {
+        if(father->getFather() && father->getFather()->hasChild("inclusions") && father->getFather()->getChild("inclusions")->hasChild("behaviour"))
+        {
+            return father->getFather()->getChild("inclusions")->getChild("behaviour")->getBehaviour(dim, spaceTime) ;
+        }
+        return new VoidForm() ;
+    }
+
     planeType pt = PLANE_STRESS ;
     if(hasChild("plane_type"))
         pt = ConfigTreeItem::translatePlaneType( getStringData("plane_type", "PLANE_STRESS") ) ;

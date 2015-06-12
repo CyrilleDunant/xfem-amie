@@ -91,6 +91,7 @@ public:
 	virtual FractureCriterion * getCopy() const { return new SpaceTimeNonLocalLinearSofteningMaximumStrain(*this) ; }
 
 	virtual double grade(ElementState &s)  ;
+        virtual double gradeAtTime(ElementState &s, double t)  ;
 
 };
 

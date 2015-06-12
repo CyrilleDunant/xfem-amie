@@ -429,6 +429,9 @@ target_link_libraries( asr_visco Amie ${ALL_LINK_FLAGS} )
 add_executable(tension examples/main_tension.cpp )
 target_link_libraries( tension Amie ${ALL_LINK_FLAGS})
 
+add_executable(tension_benchmark examples/main_tension_benchmark.cpp )
+target_link_libraries( tension_benchmark Amie ${ALL_LINK_FLAGS})
+
 add_executable( pore_pressure examples/main_crystal_pressure.cpp )
 target_link_libraries( pore_pressure Amie ${ALL_LINK_FLAGS})
 

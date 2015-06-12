@@ -657,7 +657,10 @@ void Assembly::setBoundaryConditions()
 
 void Assembly::checkZeroLines()
 {
-//    return ;
+    if(!removeZeroOnlyLines)
+    {
+        return ;
+    }
     std::cerr << "removing 0-only lines..." << std::flush ;
     
 /*    std::valarray<bool> zeros(true, ndof) ;
