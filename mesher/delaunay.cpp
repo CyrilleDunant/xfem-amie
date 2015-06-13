@@ -2922,7 +2922,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
         else
         {
 
-            if( true )
+            if( false )
             {
                 TriElement father(LINEAR) ;
 

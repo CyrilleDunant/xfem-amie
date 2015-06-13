@@ -199,7 +199,7 @@ Form * PseudoBurgerViscoElasticOnlyPasteBehaviour::getCopy() const
     return new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C0, branches) ;
 }
 
-PseudoBurgerViscoDamagePasteBehaviour::PseudoBurgerViscoDamagePasteBehaviour(double E, double nu, double e1, double t2, double up, double r, SpaceDimensionality dim) : PasteBehaviour(E, nu, up,0.,0., dim), e_1(e1), t_2(t2), freeblocks(0), ctype(STRAIN_CRITERION)
+PseudoBurgerViscoDamagePasteBehaviour::PseudoBurgerViscoDamagePasteBehaviour(double E, double nu, double e1, double t2, double up, double r, SpaceDimensionality dim) : PasteBehaviour(E, nu, up,0.,0., dim), e_1(e1), t_2(t2), freeblocks(0), ctype(STRESS_CRITERION)
 {
     stressFraction = 0.85 ;
     materialRadius = r ;

@@ -3278,9 +3278,9 @@ void FeatureTree::enrich()
     enrichmentChange = false ;
     lastEnrichmentId = getNodes().size() ;
 
-    std::cerr << "\r enriching... feature " << 0 << "/" << this->tree.size() << std::flush ;
+    std::cerr << "\r enriching... feature " << 0 << "/" << tree.size() << std::flush ;
 
-    for ( size_t i = 1 ; i < this->tree.size() ; i++ )
+    for ( size_t i = 1 ; i < tree.size() ; i++ )
     {
         if ( is3D() )
         {
@@ -3302,7 +3302,7 @@ void FeatureTree::enrich()
 
             if ( i % 10 == 0 )
             {
-                std::cerr << "\r enriching... feature " << i + 1 << "/" << this->tree.size() << std::flush ;
+                std::cerr << "\r enriching... feature " << i + 1 << "/" << tree.size() << std::flush ;
             }
         }
         else
@@ -3331,10 +3331,13 @@ void FeatureTree::enrich()
 
             if ( i % 10 == 0 )
             {
-                std::cerr << "\r enriching... feature " << i + 1 << "/" << this->tree.size() << std::flush ;
+                std::cerr << "\r enriching... feature " << i + 1 << "/" << tree.size() << std::flush ;
             }
         }
     }
+    
+    if(enrichmentChange)
+        K->clear();
 
     std::cerr << " ...done" << std::endl ;
 }
@@ -4744,11 +4747,13 @@ bool FeatureTree::stepElements()
                         }
                     }
                 }
+                
+                maxScore = -1. ;
 
                 if (foundCheckPoint )
                 {
-                    std::cout << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
-                    maxScore = -1. ;
+                    std::cerr << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
+                    
                     maxTolerance = 1 ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
@@ -4772,7 +4777,7 @@ bool FeatureTree::stepElements()
                         }
                     }
 
-                    std::cout << maxScore << "]" << std::flush ;
+                    std::cerr << maxScore << "]" << std::flush ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
                         if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE )
@@ -4995,11 +5000,13 @@ bool FeatureTree::stepElements()
                     }
                 }
             }
+            
+            maxScore = -1. ;
 
             if ( !elastic && foundCheckPoint )
             {
                 std::cerr << "[" << averageDamage << " ; " << std::flush ;
-                maxScore = -1. ;
+                
                 maxTolerance = 1 ;
 // 				double maxs = -1 ;
 // 				double maxtol = 1 ;
@@ -5030,7 +5037,7 @@ bool FeatureTree::stepElements()
                     std::cerr << "adjusting time step..." << std::endl ;
                     double begin = dtree3D->begin()->getBoundingPoint ( 0 ).getT() ;
                     double end = dtree3D->begin()->getBoundingPoint ( dtree3D->begin()->getBoundingPoints().size() -1 ).getT() ;
-                    if ( maxScore* ( end-begin ) > minDeltaTime )
+                    if ( maxScore * ( end-begin ) > minDeltaTime )
                     {
                         moveFirstTimePlanes ( ( 1.-maxScore ) * ( end-begin ) , dtree3D->begin(), dtree3D->end() ) ;
                     }
@@ -5640,6 +5647,7 @@ bool FeatureTree::step(bool guided)
 
 bool FeatureTree::stepToCheckPoint( int iterations, double precision)
 {
+//     setDeltaTime ( realDeltaTime, false ) ;
     double initialscale = 1. ;
     for ( const auto & bc : boundaryCondition)
     {
@@ -5649,10 +5657,11 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
     int prevmaxit = maxitPerStep ;  
     maxitPerStep = 2 ;
     scaleBoundaryConditions ( 1. );
-    setDeltaTime ( realDeltaTime, false ) ;
+    
     for(int iter = 0 ; iter < iterations ; iter++)
     { 
-        std::cout <<"["<<iter+1<<"/"<<iterations<<"]" << std::flush ;
+//         setDeltaTime ( realDeltaTime, false ) ;
+        std::cout <<"["<<iter+1<<"/"<<iterations<< " : "<< maxScore << "]" << std::flush ;
         step(true) ;      
         if(maxScore < 0)
             break ;
@@ -5725,7 +5734,7 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
             else
                 bottomscale = currentScale ;
         }
-        std::cout << "found scale " << bottomscale << std::endl ;
+        std::cout << "Scale = " << bottomscale << std::endl ;
         scaleBoundaryConditions(bottomscale) ;
         elastic = false ;
         
@@ -5738,6 +5747,7 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
         if(damageConverged)
             K->setPreviousDisplacements() ;
     }
+   
     return true ;
 }
 

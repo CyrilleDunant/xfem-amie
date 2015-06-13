@@ -48,14 +48,9 @@ double plateHeight = 0.051 ;
 double rebarDiametre = 0.025 ; //sqrt(506e-6);//sqrt( 4.*0.000506/M_PI ) ;
 double rebarEndCover = 0.047 ;
 
-Vector fracCrit ( 0 ) ;
-
-Vector x ( 0 ) ;
-
-
 MultiTriangleWriter writer ( "triangles_head", "triangles_layers", nullptr ) ;
 MultiTriangleWriter writerc ( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
-double mindelta = .1e-4 ;
+double mindelta = 1e-6 ;
 
 
 // Rectangle bcbox ( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) ;
@@ -65,35 +60,12 @@ double mindelta = .1e-4 ;
 
 void step(FeatureTree * featureTree, double supportLever, double sampleHeight, BoundaryCondition * load )
 {
-    size_t nsteps = 600*4 ; //16*10;
-    double delta_d = 0.0175e-3 ;
 
-//     double target =  load->getData() ;            
-//     target -= delta_d*20. ;  
-//     load->setData ( target ) ;
+
     for ( size_t v = 0 ;  ; v++ )
     {
-//         bool go_on = false ;
-//         featureTree->stepToCheckPoint(10, 1e-6) ;
-//         std::cout << load->getScale() << "   "<< featureTree->averageDamage<< std::endl ;
-//         if (load->getScale() > .85 || v%30 == 0)
-//         {
-//             go_on = true ;
-//             if(load->getScale() > .85)
-//             {
-//                 target -= delta_d ;   
-//                 load->setData ( target ) ;
-//             }
-//         }
-//         else
-//         {
-//             continue ;
-//         }
 
-        bool go_on = featureTree->stepToCheckPoint(50, 1e-5) ;
-        
-        x.resize ( featureTree->getDisplacements ( -1, false ).size() ) ;
-        x = featureTree->getDisplacements ( -1, false ) ;
+        featureTree->stepToCheckPoint(5, 1e-4) ;
 
         int npoints = featureTree->get2DMesh()->begin()->getBoundingPoints().size() ;
 
@@ -125,23 +97,22 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
 
         delta /= deltacount ;
 
-        Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD, -1, 1 ) ;
 
-        std::cout << std::endl ;
-        std::cout << "average sigma11 : " << stemp[0] << std::endl ;
-        std::cout << "average sigma22 : " << stemp[1] << std::endl ;
-        std::cout << "average sigma12 : " << stemp[2] << std::endl ;
-        std::cout << std::endl ;
-        
-        std::fstream ldfile ( "ldnvisco8", std::ios::out | std::ios::app)  ;
-        if ( go_on )
-        {
-                ldfile << 1000.* ( VirtualMachine().eval(load->getDataFunction()*load->getScale(), 0,0,0,featureTree->getCurrentTime()) ) << "   " << stemp[1]/1000. << "   " << featureTree->averageDamage << "   " << delta*1000 << "   " << featureTree->getCurrentTime() <<"\n" ;
-        }
-        ldfile.close();
 
-        if( ( v < 100 && v%10 == 0 ) || v >=100)
+        if( v%10 == 0)
         {
+            Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD, -1, 1 ) ;
+
+            std::cout << std::endl ;
+            std::cout << "average sigma11 : " << stemp[0] << std::endl ;
+            std::cout << "average sigma22 : " << stemp[1] << std::endl ;
+            std::cout << "average sigma12 : " << stemp[2] << std::endl ;
+            std::cout << std::endl ;
+            
+            std::fstream ldfile ( "ldn_2", std::ios::out | std::ios::app)  ;
+            ldfile << 1000.* ( VirtualMachine().eval(load->getDataFunction()*load->getScale(), 0,0,0,featureTree->getInitialTime()) ) << "   " << stemp[1]/1000. << "   " << featureTree->averageDamage << "   " << delta*1000. << "   " << featureTree->get2DMesh()->begin()->getBoundingPoint(npoints-1).getT() << "   " << featureTree->get2DMesh()->begin()->getBoundingPoint(0).getT()<<"\n" ;
+            ldfile.close();
+            
             writer.reset ( featureTree ) ;
             writer.getField ( TWFT_PRINCIPAL_STRESS ) ;
             writer.getField ( TWFT_PRINCIPAL_STRAIN ) ;
@@ -166,7 +137,6 @@ int main ( int argc, char *argv[] )
     double supportLever     = sampleLength*.5-.250 ;
     double halfSampleOffset = sampleLength*.25 ;
 
-    double compressionCrit = -34.2e6 ;
     double E_steel = 200e9 ;
     double nu_steel = 0.01 ;
     double cstrain = -2.e-3; 
@@ -208,8 +178,8 @@ int main ( int argc, char *argv[] )
     rightbottomvoid.setBehaviour ( new VoidForm() ) ;
     
     
-    sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mcft->getCopy(), linear->getCopy() )); 
-//     sample.setBehaviour (new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mcft->getCopy(), linear->getCopy() )); 
+//     sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mcft->getCopy(), linear->getCopy() )); 
+    sample.setBehaviour (new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mcft->getCopy(), linear->getCopy() )); 
     topsupport.setBehaviour ( new Viscoelasticity ( PURE_ELASTICITY, m0_steel ) ) ;
     baseright.setBehaviour ( new Viscoelasticity ( PURE_ELASTICITY, m0_steel ) ) ;
     
@@ -248,7 +218,7 @@ int main ( int argc, char *argv[] )
     F.addPoint ( new Point ( platewidth, sampleHeight*.5 ) ) ;
     
     Function loadfunc = Function("t");
-    loadfunc *= -0.00008 ; /*-5e5 ;*/
+    loadfunc *= -0.00016 ; /*-5e5 ;*/
     BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition ( SET_ALONG_ETA, TOP_AFTER, -platewidth*2., platewidth*2., -10, 10, loadfunc ) ;
     
     F.addBoundaryCondition ( load ) ;
@@ -258,7 +228,7 @@ int main ( int argc, char *argv[] )
     F.addBoundaryCondition ( new BoundingBoxNearestNodeDefinedBoundaryCondition ( FIX_ALONG_ETA, BOTTOM_AFTER, Point ( supportLever, -sampleHeight*.5-plateHeight ) ) ) ;
     F.setOrder ( LINEAR_TIME_LINEAR ) ;
     F.setDeltaTime(mindelta*1e3);
-    F.setMinDeltaTime(mindelta);
+    F.setMinDeltaTime(1e-9);
 
     step(&F, supportLever, sampleHeight, load) ;
 
