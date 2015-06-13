@@ -61,7 +61,7 @@ void step()
 {
     int nsteps = 400;
     int nstepstot = 400;
-    featureTree->setMaxIterationsPerStep( 400 ) ;
+    featureTree->setMaxIterationsPerStep( 4000 ) ;
 
     for( int i = 0 ; i < nsteps ; i++ )
     {
@@ -515,7 +515,7 @@ int main( int argc, char *argv[] )
     }
 
     zones = generateExpansiveZonesHomogeneously(nzones, placedinclusions, F , sample) ;
-    F.setSamplingNumber( 92 ) ;
+    F.setSamplingNumber( 80 ) ;
 
     if( restraintDepth > 0 )
     {
