@@ -980,8 +980,6 @@ bool Assembly::make_final()
             
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
-
-                
                 double * array_iterator = getMatrix()[ids[j]].getPointer(ids[j]) ;
                 //data is arranged column-major, with 2-aligned columns
                 
@@ -1603,6 +1601,8 @@ void Assembly::clear()
     nonLinearPartialMatrix = nullptr ;
     delete boundaryMatrix ;
     boundaryMatrix = nullptr ;
+    delete mask ;
+    mask = nullptr ;
 }
 
 void Assembly::clearElements()
