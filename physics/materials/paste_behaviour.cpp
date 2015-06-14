@@ -30,7 +30,7 @@ Form * PasteBehaviour::getCopy() const
     double weib = RandomNumber().weibull(1,5) ;
     double factor = 1. - variability + variability*weib ;
 //	return new Stiffness(param*factor) ;
-    StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalLinearlyDecreasingMohrCoulomb(up*factor,-8000.*up*factor, 3.*factor*up/E, -factor*24000.*up/E,E), new FiberBasedIsotropicLinearDamage(0.05,0.95)) ;
+    StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalLinearlyDecreasingMohrCoulomb(up*factor,-8000.*up*factor, 10.*factor*up/E, -factor*24000.*up/E,E), new FiberBasedIsotropicLinearDamage(0.05,0.95)) ;
     copy->criterion->setMaterialCharacteristicRadius(materialRadius);
     copy->dfunc->setThresholdDamageDensity(.99);
     return copy ;

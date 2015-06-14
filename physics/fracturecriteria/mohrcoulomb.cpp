@@ -116,8 +116,8 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 // 	std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
     metInTension = false ;
     metInCompression = false ;
-    metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
-    metInTension = std::abs( minStress / downVal ) < std::abs( maxStress / upVal ) ;
+    metInCompression = std::abs( minStress / (downVal*stiffness) ) > std::abs( maxStress / (upVal*stiffness) ) ;
+    metInTension = std::abs( minStress / (downVal*stiffness) ) < std::abs( maxStress / (upVal*stiffness) ) ;
 
 // 	double effectiveStiffness = stiffness ;
 // 	if(s.getParent()->getBehaviour()->getDamageModel())
