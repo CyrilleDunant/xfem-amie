@@ -105,48 +105,13 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
     if( s.getParent()->getBehaviour()->fractured() )
         return -1 ;
 
-    std::pair<Vector, Vector> pstressStrain( getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s)) ;
-    Vector pstress = pstressStrain.first ;
-    Vector pstrain = pstressStrain.second ;
-    double maxStress = pstress.max() ;
-    double minStress = pstress.min() ;
-//     double maxStrain = pstrain.max() ;
-//     double minStrain = pstrain.min() ;
-
-// 	std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
-    metInTension = false ;
-    metInCompression = false ;
-    metInCompression = std::abs( minStress / (downVal*stiffness) ) > std::abs( maxStress / (upVal*stiffness) ) ;
-    metInTension = std::abs( minStress / (downVal*stiffness) ) < std::abs( maxStress / (upVal*stiffness) ) ;
-
-// 	double effectiveStiffness = stiffness ;
-// 	if(s.getParent()->getBehaviour()->getDamageModel())
-// 		effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
-
-    double  upStrain = upVal ;///effectiveStiffness ;
-    double  downStrain = downVal ;///effectiveStiffness ;
-    std::vector<double> scores ;
-    scores.push_back(-1);
-    if( maxStress >= upStrain*stiffness && maxStress > 0 )
-    {
-        metInTension = true;
-        scores.push_back(1. - std::abs( upStrain*stiffness / maxStress ));
-    }
-    else if(maxStress > 0)
-        scores.push_back(-1. + std::abs( maxStress / (upStrain*stiffness) ));
-
-    if( minStress <= downStrain*stiffness && minStress < 0 )
-    {
-        metInCompression = true ;
-        scores.push_back(1. - std::abs( downStrain*stiffness / minStress )) ;
-    }
-    else if(minStress < 0 )
-    {
-        scores.push_back(-1. + std::abs( minStress / (downStrain*stiffness) )) ;
-    }
-    std::sort(scores.begin(), scores.end()) ;
-
-    return scores.back() ;
+    double score =  getSmoothedField(PRINCIPAL_REAL_STRESS_FIELD, s).max() / upVal - 1.;
+    if(score > 0)
+        metInTension = true ;
+    else
+        metInTension = false ;
+    
+    return score ;
 
 }
 
