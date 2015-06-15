@@ -1110,7 +1110,22 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
     {
         if(father->getFather() && father->getFather()->hasChild("inclusions") && father->getFather()->getChild("inclusions")->hasChild("behaviour"))
         {
-            return father->getFather()->getChild("inclusions")->getChild("behaviour")->getBehaviour(dim, spaceTime) ;
+            Form * form = father->getFather()->getChild("inclusions")->getChild("behaviour")->getBehaviour( dim, spaceTime ) ;
+            if(father->getFather()->getChild("inclusions")->getStringData("behaviour") == "LOGARITHMIC_CREEP" || father->getFather()->getChild("inclusions")->getStringData("behaviour.type") == "LOGARITHMIC_CREEP")
+            {
+                LogarithmicCreepWithExternalParameters * realForm = dynamic_cast<LogarithmicCreepWithExternalParameters *>(form) ;
+                if(hasChild("parameters"))
+                {
+                    std::vector<ConfigTreeItem *> param = getChild("parameters")->getAllChildren() ;
+                    for(size_t i = 0 ; i < param.size() ; i++)
+                        realForm->addMaterialParameter( param[i]->getLabel(), param[i]->getData() ) ;
+                }
+                std::vector<ConfigTreeItem *> laws = getAllChildren("material_law") ;
+                for(size_t i = 0 ; i < laws.size() ; i++)
+                   realForm->addMaterialLaw( laws[i]->getExternalMaterialLaw() ) ;
+                return realForm ;
+            }
+            return form ;
         }
         return new VoidForm() ;
     }

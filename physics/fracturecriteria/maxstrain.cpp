@@ -83,7 +83,7 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
 
     if(gradeAfter < 0)
         return gradeAfter ;
-    if(gradeBefore > 0)
+    if(gradeBefore > -POINT_TOLERANCE)
     {
         return 1 ;
     }
@@ -111,7 +111,10 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
         else
             return 1.-(testTime*.5+.5) ;
         
-        testTime = downTime + (upTime-downTime)*(-gradeDown)/(gradeUp-gradeDown) ;
+	if(gradeDown > POINT_TOLERANCE)
+	        testTime = downTime + (upTime-downTime)*(-gradeDown)/(gradeUp-gradeDown) ;
+	else
+		testTime = (downTime + upTime)*0.5 ;
 	if(std::abs(testTime - upTime) < POINT_TOLERANCE && std::abs(gradeTest) < POINT_TOLERANCE) 
 		return 1.-(testTime*.5+.5) ;
     }
