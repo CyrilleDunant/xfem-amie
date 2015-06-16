@@ -453,8 +453,12 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(E
         else
             return 1.-(testTime*.5+.5) ;
         
-        testTime = downTime + (upTime-downTime)*(-gradeDown)/(gradeUp-gradeDown) ;
+        if(gradeUp > POINT_TOLERANCE)
+            testTime = downTime + (upTime-downTime)*(-gradeDown)/(gradeUp-gradeDown) ;
+        else
+            testTime = (downTime + upTime)*0.5 ;
     }
+
     return 1.-(testTime*.5+.5) ;
 }
 
@@ -488,25 +492,34 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::gradeAt
 		}
 		if(!found && direction.intersects( *tensileAsymptote ))
 		{
-			found = true ;
 			inter = direction.intersection( *tensileAsymptote ) ;
+			if( inter.getX() > tensileAsymptote->origin().getX() )
+				found = true ;
 		}
 	
 		Segment history( Point(0,0), current ) ;
 		if( found )
 		{
 			if( history.on( inter ) )
+			{
 				tension = std::min(1., 1.-inter.getX()/current.getX()) ;
+			}
 			else
+			{
 				tension = std::max(-1., -1.+current.getX()/inter.getX()) ;
+			}
 		}
                 else
                 {
 		
-		if( current.getY() < tensileStressStrainCurve->getPoint(0).getY() )
-			tension = std::max( -1., -1.+current.getY()/tensileStressStrainCurve->getPoint(0).getY() ) ;
-		else
-			tension = std::min( 1., 1.-tensileStressStrainCurve->getPoint(0).getY()/current.getY() ) ;
+			if( current.getY() < tensileStressStrainCurve->getPoint(0).getY() )
+			{
+				tension = std::max( -1., -1.+current.getY()/tensileStressStrainCurve->getPoint(0).getY() ) ;
+			}
+			else
+			{
+				tension = std::min( 1., 1.-tensileStressStrainCurve->getPoint(0).getY()/current.getY() ) ;
+			}
                 }
 	}
 

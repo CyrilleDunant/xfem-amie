@@ -455,6 +455,8 @@ Vector ConfigTreeItem::getImposedDeformation(SpaceDimensionality dim) const
 Function ConfigTreeItem::getFunction() const
 {
     std::string function = getStringData() ;
+    if(function.length() == 0)
+        function = std::to_string( getData() ) ;
     Function f(function.c_str()) ;
     return f ;
 }
@@ -1114,6 +1116,12 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
             if(father->getFather()->getChild("inclusions")->getStringData("behaviour") == "LOGARITHMIC_CREEP" || father->getFather()->getChild("inclusions")->getStringData("behaviour.type") == "LOGARITHMIC_CREEP")
             {
                 LogarithmicCreepWithExternalParameters * realForm = dynamic_cast<LogarithmicCreepWithExternalParameters *>(form) ;
+                if(hasChild("remove_material_law"))
+                {
+                    std::vector<ConfigTreeItem *> idx = getChild("remove_material_law")->getAllChildren("index") ;
+                    for(size_t i = 0 ; i < idx.size() ; i++)
+                        realForm->removeMaterialLaw( idx[i]->getData() ) ;
+                }
                 if(hasChild("parameters"))
                 {
                     std::vector<ConfigTreeItem *> param = getChild("parameters")->getAllChildren() ;
@@ -1122,7 +1130,11 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
                 }
                 std::vector<ConfigTreeItem *> laws = getAllChildren("material_law") ;
                 for(size_t i = 0 ; i < laws.size() ; i++)
-                   realForm->addMaterialLaw( laws[i]->getExternalMaterialLaw() ) ;
+                {
+                   int index = -1. ;
+                   if( laws[i]->hasChild("index") ) { index = laws[i]->getData("index") ; }
+                   realForm->replaceMaterialLaw( laws[i]->getExternalMaterialLaw(), index ) ;
+                }
                 return realForm ;
             }
             return form ;
@@ -2672,6 +2684,36 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
             }
 
         }
+
+        std::vector<ConfigTreeItem *> nodes = getAllChildren("point") ;
+        for(size_t i = 0 ; i < nodes.size() ; i++)
+        {
+            Point * p = new Point( nodes[i]->getData("x") , nodes[i]->getData("y") , 0 , ((int) (instant == "AFTER") - (int) (instant == "BEFORE")) ) ;
+            std::vector<ConfigTreeItem *> ffields = nodes[i]->getAllChildren("field") ;
+            for(size_t i = 0 ; i < ffields.size() ; i++)
+            {
+                bool isFieldType = true ;
+                FieldType ft = ConfigTreeItem::translateFieldType( ffields[i]->getStringData(), isFieldType ) ;
+                if(isFieldType)
+                {
+                    Vector f = F->getField( ft, p , -1 , false, true) ;
+                    for(size_t j = 0 ; j < f.size() ; j++)
+                    {
+                        std::cout << f[j] << "\t" ;
+                        out << f[j] << "\t" ;
+                    }
+                }
+                else
+                {
+//                    double f = F->getAverageFieldOnBoundary( pos, ffields[i]->getStringData(), -1, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
+//                    std::cout << f << "\t" ;
+//                    out << f << "\t" ;
+                }
+            }
+            delete p ;
+
+        }
+
         std::cout << std::endl ;
         out << std::endl ;
         out.close() ;

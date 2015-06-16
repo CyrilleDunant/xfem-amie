@@ -148,6 +148,9 @@ int main(int argc, char *argv[])
 
 	VirtualMachine vm ;
 	Function test(f_.c_str()) ;
+
+	vm.print(test) ;
+
 	int c = 0 ;
 
 	if(file.size() > 0)

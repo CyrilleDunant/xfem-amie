@@ -3544,6 +3544,89 @@ Vector FeatureTree::getDisplacements ( Point * pt, int g , bool stepTree )
     }
 }
 
+Vector FeatureTree::getField ( FieldType f, Point * pt, int g , bool stepTree , bool localTime)
+{
+    if ( stepTree )
+    {
+        state.setStateTo ( XFEM_STEPPED, false ) ;
+    }
+
+    if ( is2D() )
+    {
+        Vector ret ;
+        std::vector<DelaunayTriangle *> elements = dtree->getConflictingElements ( pt ) ;
+        for ( size_t i = 0 ; i < elements.size() ; i++ )
+        {
+
+            if ( elements[i]->in ( *pt ) )
+            {
+                int b = 1 ;
+                if(dynamic_cast<Viscoelasticity *>(elements[i]->getBehaviour()))
+                    b = dynamic_cast<Viscoelasticity *>(elements[i]->getBehaviour())->blocks ;
+                ret.resize ( fieldTypeElementarySize( f, SPACE_TWO_DIMENSIONAL, b ) , 0. ) ;
+                double prevT = pt->getT() ;
+                if(localTime)
+                {
+                    double t0 = elements[i]->getBoundingPoint(0).getT() ;
+                    double t1 = elements[i]->getBoundingPoint( elements[i]->getBoundingPoints().size() -1 ).getT() ;
+                    
+                    pt->setT( t0 + (t1-t0)*(prevT+1)*0.5 ) ;
+                }
+                elements[i]->getState().getField ( f, *pt, ret, false ) ;
+                pt->setT( prevT ) ;
+                return ret ;
+            }
+        }
+        ret.resize ( fieldTypeElementarySize( f, SPACE_TWO_DIMENSIONAL, 1 ) , 0. ) ;
+        return ret ;
+    }
+    else
+    {
+        Vector ret ;
+        std::vector<DelaunayTetrahedron *> elements = dtree3D->getConflictingElements ( pt ) ;
+        for ( size_t i = 0 ; i < elements.size() ; i++ )
+        {
+            if ( elements[i]->in ( *pt ) )
+            {
+                int b = 1 ;
+                if(dynamic_cast<Viscoelasticity *>(elements[i]->getBehaviour()))
+                    b = dynamic_cast<Viscoelasticity *>(elements[i]->getBehaviour())->blocks ;
+                ret.resize ( fieldTypeElementarySize( f, SPACE_THREE_DIMENSIONAL, b ) , 0. ) ;
+                elements[i]->getState().getField ( f, *pt, ret, false ) ;
+                return ret ;
+            }
+        }
+        ret.resize ( fieldTypeElementarySize( f, SPACE_THREE_DIMENSIONAL, 1 ) , 0. ) ;
+        return ret ;
+    }
+}
+
+double FeatureTree::getField ( std::string f, Point * pt, int g , bool stepTree , bool localTime)
+{
+    if ( stepTree )
+    {
+        state.setStateTo ( XFEM_STEPPED, false ) ;
+    }
+
+    if ( is2D() )
+    {
+        std::vector<DelaunayTriangle *> elements = dtree->getConflictingElements ( pt ) ;
+        for ( size_t i = 0 ; i < elements.size() ; i++ )
+        {
+
+            if ( elements[i]->in ( *pt ) )
+            {
+                std::map<std::string, double > dummy ;
+                if( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables *>( &(elements[i]->getState()) ) )
+                    return dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables *>( &(elements[i]->getState()) )->get( f, dummy ) ;
+                else
+                   return 0. ;
+            }
+        }
+    }
+    return 0. ;
+}
+
 std::pair<Vector , Vector > FeatureTree::getStressAndStrain (bool stepTree )
 {
     if ( stepTree )

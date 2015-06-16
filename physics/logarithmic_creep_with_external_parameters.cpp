@@ -302,6 +302,34 @@ void LogarithmicCreepWithExternalParameters::step(double timestep, ElementState 
     LogarithmicCreepWithImposedDeformationAndFracture::step(timestep, s, maxScore) ;
 }
 
+void LogarithmicCreepWithExternalParameters::replaceMaterialLaw( ExternalMaterialLaw * law, int index ) 
+{
+    if(law == nullptr)
+    {
+       removeMaterialLaw(index) ;
+       return ;
+    }
+    if(index < 0 || index >= (int) relations.size())
+    {
+        addMaterialLaw( law ) ;
+        return ;
+    }
+    relations[index] = law ;
+}
+
+void LogarithmicCreepWithExternalParameters::removeMaterialLaw( int index ) 
+{
+    std::vector<ExternalMaterialLaw *> tmp ;
+    for(size_t j = 0 ; j < relations.size() ; j++)
+    {
+        if((int) j != index)
+            tmp.push_back( relations[j] ) ;
+    }
+    relations.clear() ;
+    relations = tmp ;
+}
+
+
 void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, ElementState & currentState )
 {
 	if( reducedTimeStep > POINT_TOLERANCE)

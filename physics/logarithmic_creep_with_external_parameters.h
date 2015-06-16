@@ -67,6 +67,8 @@ public:
     void addMaterialLaw( ExternalMaterialLaw * law) { if(law){ relations.push_back(law) ; } }
     void addMaterialLaws( std::vector<ExternalMaterialLaw *> laws) { for(size_t i = 0 ; i < laws.size() ; i++) { if(laws[i]) { relations.push_back(laws[i]);} } }
     void addMaterialLaws( ExternalMaterialLaw* laws[], size_t length) { for(size_t i = 0 ; i < length ; i++) { if(laws[i]) { relations.push_back(laws[i]);} } }
+    void replaceMaterialLaw( ExternalMaterialLaw * law, int index) ;
+    void removeMaterialLaw( int index ) ;
 
     virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 

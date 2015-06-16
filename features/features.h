@@ -534,6 +534,9 @@ public:
 
     Vector getDisplacements ( Point * pt,  int g = -1, bool stepTree = false )  ;
 
+    Vector getField ( FieldType f, Point * pt,  int g = -1, bool stepTree = false , bool localTime = false )  ;
+    double getField ( std::string f, Point * pt,  int g = -1, bool stepTree = false , bool localTime = false )  ;
+
     /** \brief  Refine the mesh around the features.
      *
      * Features provide a set of geometries which are targets for successive refinement. Refinement is
