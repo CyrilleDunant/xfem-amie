@@ -34,7 +34,7 @@ FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, doub
     maxModeInNeighbourhood(-1),
     maxScoreInNeighbourhood(0),
     maxAngleShiftInNeighbourhood(0),
-    scoreTolerance(5e-3),
+    scoreTolerance(1e-3),
     checkpoint(true),
     inset(false),
     smoothingType(QUARTIC_COMPACT),

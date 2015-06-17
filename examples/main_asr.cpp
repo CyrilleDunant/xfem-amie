@@ -59,8 +59,8 @@ GelBehaviour * gel = new GelBehaviour() ;
 
 void step()
 {
-    int nsteps = 400;
-    int nstepstot = 400;
+    int nsteps = 100;
+    int nstepstot = 100;
     featureTree->setMaxIterationsPerStep( 4000 ) ;
 
     for( int i = 0 ; i < nsteps ; i++ )
@@ -394,9 +394,17 @@ int main( int argc, char *argv[] )
     std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, nullptr,  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), nullptr, 100000, 0.8, &baseGeometry) ;
     std::vector<Inclusion *> inclusions ;
 
+    std::vector<Feature *> newfeats ;
     for( size_t i = 0; i < feats.size() ; i++ )
-        inclusions.push_back( static_cast<Inclusion *>( feats[i] ) ) ;
-
+    {
+        if(feats[i]->getRadius()*2. > .15e-3)
+        {
+            inclusions.push_back( static_cast<Inclusion *>( feats[i] ) ) ;
+            newfeats.push_back(inclusions.back());
+        }
+        
+    }
+    feats = newfeats ;
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
     int nAgg = 1 ;
     feats = placement( &placeGeometry, feats, &nAgg, 1, 6400 );
@@ -515,7 +523,7 @@ int main( int argc, char *argv[] )
     }
 
     zones = generateExpansiveZonesHomogeneously(nzones, placedinclusions, F , sample) ;
-    F.setSamplingNumber( 80 ) ;
+    F.setSamplingNumber( 72 ) ;
 
     if( restraintDepth > 0 )
     {
