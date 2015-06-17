@@ -125,14 +125,14 @@ std::vector<Inclusion *> PSDGenerator::get2DMortar(double rmax, double width, si
 {
 	if(!type)
 		type = new PSDBolomeD() ;
-	return get2DInclusions(rmax, width*width*0.65, type, PSDEndCriteria(-1, 0.01, n)) ;
+	return get2DInclusions(rmax, width*width*0.65, type, PSDEndCriteria(0.5*0.15e-3, 0.01, n)) ;
 }
 
 std::vector<Inclusion *> PSDGenerator::get2DConcrete(double rmax, double width, size_t n, ParticleSizeDistribution * type, double percent) 
 {
 	if(!type)
 		type = new PSDBolomeA() ;
-	return get2DInclusions(rmax, width*width*percent, type, PSDEndCriteria(-1, 0.01, n)) ;
+	return get2DInclusions(rmax, width*width*percent, type, PSDEndCriteria(0.5*0.15e-3, 0.01, n)) ;
 }
 
 std::vector<Feature *> PSDGenerator::get2DConcrete(FeatureTree * F, Form * behaviour, size_t n, double rmax, double itz, ParticleSizeDistribution * type, InclusionGenerator * geometry, size_t tries,double fraction, Geometry * placement, std::vector<Geometry *> exclusionZones, size_t seed) 

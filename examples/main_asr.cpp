@@ -389,22 +389,15 @@ int main( int argc, char *argv[] )
 
     double itzSize = 0.00002;
 //	int inclusionNumber = 10 ;
-    int inclusionNumber = 8172 ;
+    int inclusionNumber = 3000 ;
 
     std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, nullptr,  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), nullptr, 100000, 0.8, &baseGeometry) ;
     std::vector<Inclusion *> inclusions ;
 
-    std::vector<Feature *> newfeats ;
     for( size_t i = 0; i < feats.size() ; i++ )
     {
-        if(feats[i]->getRadius()*2. > .15e-3)
-        {
-            inclusions.push_back( static_cast<Inclusion *>( feats[i] ) ) ;
-            newfeats.push_back(inclusions.back());
-        }
-        
+        inclusions.push_back( static_cast<Inclusion *>( feats[i] ) ) ;
     }
-    feats = newfeats ;
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
     int nAgg = 1 ;
     feats = placement( &placeGeometry, feats, &nAgg, 1, 6400 );
