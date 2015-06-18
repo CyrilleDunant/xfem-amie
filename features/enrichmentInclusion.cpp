@@ -166,75 +166,52 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
     updated = false ;
     const std::vector<DelaunayTriangle *> & disc  = cache;
 
-    for(size_t i = 0 ; i < disc.size() ; i++)
+    if(disc.size() == 1)
     {
-        HomogeneisedBehaviour * hom = dynamic_cast<HomogeneisedBehaviour *>(disc[i]->getBehaviour());
-        if(hom)
+        for(size_t i = 0 ; i < disc.size() ; i++)
         {
-            if(disc.size() == 1)
+            HomogeneisedBehaviour * hom = dynamic_cast<HomogeneisedBehaviour *>(disc[i]->getBehaviour());
+            if(hom)
             {
-                std::vector<Feature *> brother ;
+                if(disc.size() < 6)
+                {
+                    std::vector<Feature *> brother ;
+                    if(getFather())
+                        brother = getFather()->getChildren() ;
+                    std::vector<Feature *> feat ;
+                    for(size_t j = 0 ; j < brother.size() ; j++)
+                    {
+                        if(disc[i]->in(brother[j]->getCenter()))
+                            feat.push_back(brother[j]) ;
+                    }
+                    hom->updateEquivalentBehaviour(feat, disc[i]) ;
+
+                }
+            
+                
+            }
+            else
+            {
+                std::vector< Feature *> brother ;
                 if(getFather())
                     brother = getFather()->getChildren() ;
-                std::vector<Feature *> feat ;
-                for(size_t j = 0 ; j < brother.size() ; j++)
+                std::vector< Feature *> feat ;
+                for(size_t j= 0 ; j < brother.size() ; j++)
                 {
                     if(disc[i]->in(brother[j]->getCenter()))
                         feat.push_back(brother[j]) ;
                 }
-                hom->updateEquivalentBehaviour(feat, disc[i]) ;
-                double rad = disc[0]->getRadius()*3. ;
-                if(hom->getOriginalBehaviour()->getFractureCriterion())
-                    rad = std::max(hom->getOriginalBehaviour()->getFractureCriterion()->getMaterialCharacteristicRadius()*3., rad) ;
-                Circle circ(rad, disc[i]->getCenter()) ;
-                std::vector<DelaunayTriangle *> neighbourhood = dtree->getConflictingElements(&circ) ;
-                for(size_t j = 0 ; j < neighbourhood.size() ; j++)
-                {
-                    if(!neighbourhood[j]->getBehaviour()->getFractureCriterion() || neighbourhood[j] == disc[i])
-                        continue ;
-// 					double d = (dist(neighbourhood[j]->getCenter(), disc[i]->getCenter())-disc[i]->getRadius())/rad ;
-// 					neighbourhood[j]->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(neighbourhood[j]->getBehaviour()->getFractureCriterion()->getMaterialCharacteristicRadius()*d);
-                    neighbourhood[j]->getBehaviour()->setFractureCriterion(nullptr);
-                    neighbourhood[j]->getBehaviour()->setSource(getPrimitive());
-                }
-                return ;
+                HomogeneisedBehaviour * hom2 = new HomogeneisedBehaviour(feat, disc[i]) ;
+                disc[i]->setBehaviour(dtree,hom2) ;
+                disc[i]->getBehaviour()->setSource(getPrimitive()) ;
+                
             }
-        }
-        else if(disc.size() == 1)
-        {
-//			return ;
-            std::vector< Feature *> brother ;
-            if(getFather())
-                brother = getFather()->getChildren() ;
-            std::vector< Feature *> feat ;
-            for(size_t i = 0 ; i < brother.size() ; i++)
-            {
-                if(disc[0]->in(brother[i]->getCenter()))
-                    feat.push_back(brother[i]) ;
-            }
-            HomogeneisedBehaviour * hom2 = new HomogeneisedBehaviour(feat, disc[0]) ;
-            disc[0]->setBehaviour(dtree,hom2) ;
-            disc[0]->getBehaviour()->setSource(getPrimitive()) ;
-            double rad = disc[0]->getRadius()*3. ;
-            if(hom2->getOriginalBehaviour()->getFractureCriterion())
-                rad = std::max(hom2->getOriginalBehaviour()->getFractureCriterion()->getMaterialCharacteristicRadius()*3., rad) ;
-            Circle circ(rad, disc[0]->getCenter()) ;
-            std::vector<DelaunayTriangle *> neighbourhood = dtree->getConflictingElements(&circ) ;
-            for(size_t j = 0 ; j < neighbourhood.size() ; j++)
-            {
-                if(!neighbourhood[j]->getBehaviour() || !neighbourhood[j]->getBehaviour()->getFractureCriterion() || neighbourhood[j] == disc[0])
-                    continue ;
-// 				double d =(dist(neighbourhood[j]->getCenter(), disc[0]->getCenter())-disc[0]->getRadius())/rad ;
-// 				neighbourhood[j]->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(neighbourhood[j]->getBehaviour()->getFractureCriterion()->getMaterialCharacteristicRadius()*d);
-                neighbourhood[j]->getBehaviour()->setFractureCriterion(nullptr);
-                neighbourhood[j]->getBehaviour()->setSource(getPrimitive());
-            }
-            return ;
-        }
+        } 
+        return ;
     }
-
-
-
+    
+    if(disc.size() < 6)
+        return ;
 
     //then we select those that are cut by the circle
     std::vector<DelaunayTriangle *> ring ;
