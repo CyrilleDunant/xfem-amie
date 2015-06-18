@@ -59,8 +59,8 @@ GelBehaviour * gel = new GelBehaviour() ;
 
 void step()
 {
-    int nsteps = 100;
-    int nstepstot = 100;
+    int nsteps = 800;
+    int nstepstot = 800;
     featureTree->setMaxIterationsPerStep( 4000 ) ;
 
     for( int i = 0 ; i < nsteps ; i++ )

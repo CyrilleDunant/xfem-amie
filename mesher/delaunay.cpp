@@ -2964,7 +2964,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
 
                 delete cachedGps ;
-                *cachedGps = gp_alternative ;
+                cachedGps = new GaussPointArray(gp_alternative) ;
                 cachedGps->getId() = REGULAR_GRID ;
                 return *getCachedGaussPoints() ;
             }
