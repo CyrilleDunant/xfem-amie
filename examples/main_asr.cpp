@@ -441,9 +441,8 @@ int main( int argc, char *argv[] )
         voidright->setBehaviour( new VoidForm() );
         F.addFeature( &sample, voidright );
         F.setSamplingFactor(voidright, .5);
-
-        //width are  6544984695	10226538586	14726215564      done: 11 13 10 20 12
-        //length are 5113269293	26179938780	40906154344      next: 12
+        //width are  1100000000 3340000000  4360000000      done: 11 13 10 20 12
+        //length are 1220000000 2180000000  3400000000      next: 12
 
         Sample *blocktop = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
         if(fact0 > 10)

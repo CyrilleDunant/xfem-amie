@@ -2843,11 +2843,15 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
     {
         return *getCachedGaussPoints() ;
     }
-
-    GaussPointArray gp = getGaussPoints() ;
-    size_t numberOfRefinements = 5 ;
+    if(getEnrichmentFunctions().size() > 0 && getGaussPoints().getId() == REGULAR_GRID)
+        return *getCachedGaussPoints() ;
+       
+    
+    
+    GaussPointArray & gp = getGaussPoints() ;
+    size_t numberOfRefinements = 1 ;
     if(getEnrichmentFunctions().size() > 3)
-        numberOfRefinements = 6 ;
+        numberOfRefinements = 1 ;
     VirtualMachine vm ;
     if(getEnrichmentFunctions().size() > 0)
     {
@@ -2926,7 +2930,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             {
                 TriElement father(LINEAR) ;
 
-                size_t target = 256 ;
+                size_t target = 128 ;
 
                 double npoints = 8 ;
 
