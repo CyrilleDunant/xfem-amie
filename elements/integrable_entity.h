@@ -323,10 +323,21 @@ struct GaussPointArray {
     GaussPointArray ( const std::pair<Point, double> & p ) : gaussPoints ( p, 1 ), id ( -2 ) { } ;
     GaussPointArray ( const GaussPointArray & gp ) : gaussPoints ( gp.gaussPoints ), id ( gp.getId() ) { } ;
     GaussPointArray ( const std::valarray< std::pair<Point, double> > & array, int i ) : gaussPoints ( array ), id ( i ) { } ;
+    GaussPointArray ( const std::vector< std::pair<Point, double> > & array ) : gaussPoints ( array.size() ), id ( -1 ) { std::copy(array.begin(), array.end(), &gaussPoints[0]) ; } ;
     void operator = ( const GaussPointArray & gp ) {
         gaussPoints.resize ( gp.gaussPoints.size() ) ;
         gaussPoints = gp.gaussPoints ;
         id = gp.getId() ;
+    }
+    
+   void operator = ( const std::valarray< std::pair<Point, double> > & gp ) {
+        gaussPoints.resize ( gp.size() ) ;
+        gaussPoints = gp ;
+    }
+    
+    void operator = ( const std::vector< std::pair<Point, double> > & gp ) {
+        gaussPoints.resize ( gp.size() ) ;
+        std::copy(gp.begin(), gp.end(), &gaussPoints[0]) ;
     }
 } ;
 

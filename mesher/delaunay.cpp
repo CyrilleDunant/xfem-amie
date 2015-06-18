@@ -2848,7 +2848,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
        
     
     
-    GaussPointArray & gp = getGaussPoints() ;
+    const GaussPointArray & gp = getGaussPoints() ;
     size_t numberOfRefinements = 1 ;
     if(getEnrichmentFunctions().size() > 3)
         numberOfRefinements = 1 ;
@@ -2962,14 +2962,10 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
                     gp_alternative[i].second *= originalSum/fsum ;
 
-                if( gp.gaussPoints.size() != gp_alternative.size() )
-                {
-                    gp.gaussPoints.resize( gp_alternative.size() ) ;
-                    std::copy( gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0] );
-                }
 
-                gp.getId() = REGULAR_GRID ;
-                setCachedGaussPoints( new GaussPointArray( gp ) ) ;
+                delete cachedGps ;
+                *cachedGps = gp_alternative ;
+                cachedGps->getId() = REGULAR_GRID ;
                 return *getCachedGaussPoints() ;
             }
 
@@ -3091,12 +3087,13 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 delete pointsToCleanup[i] ;
         }
 
-        if(gp.gaussPoints.size() < gp_alternative.size())
-        {
-            gp.gaussPoints.resize(gp_alternative.size()) ;
-            std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
-            gp.getId() = REGULAR_GRID ;
-        }
+
+        if(cachedGps)
+            *cachedGps = gp_alternative ;
+        else
+            cachedGps = new GaussPointArray(gp_alternative) ;
+        cachedGps->getId() = REGULAR_GRID ;      
+        return *getCachedGaussPoints();
 
     }
 
