@@ -135,7 +135,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 // 	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
     double rho = 0 ;
     double beta = 0 ;
-    while((last_rho*last_rho*vsize*vsize > std::max(realeps*realeps*err0, realeps*realeps) && nit < Maxit ) || nit < 16)
+    while((last_rho*last_rho > std::max(realeps*realeps*err0, realeps*realeps) && nit < Maxit ) || nit < 16)
     {
 //             if(nit < 256)
         P->precondition(r, z) ;
