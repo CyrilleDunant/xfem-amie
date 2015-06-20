@@ -436,6 +436,114 @@ public:
 
     std::vector<Vector> intermediateStates ;
 
+    double averageDamageInFeatures(const std::vector<Feature *> & feats)
+    {
+        double area = 0 ;
+        double d = 0 ;
+        if(is2D())
+        {
+            for(auto e = dtree->begin() ; e != dtree->end() ;e++)
+            {
+                bool in = false ;
+                for(const auto & f : feats)
+                {
+                    if(f->in(e->getCenter()))
+                    {
+                        in = true ;
+                        break ; ;
+                    }
+                }
+                
+                if(in)
+                {
+                    double a = e->area() ;
+                    area += a ;
+                    if(e->getBehaviour() && e->getBehaviour()->getDamageModel() )
+                        d += e->getBehaviour()->getDamageModel()->getState().max()*a ;
+                }
+            }
+        }
+        else
+        {
+            for(auto e = dtree3D->begin() ; e != dtree3D->end() ;e++)
+            {
+                bool in = false ;
+                for(const auto & f : feats)
+                {
+                    if(f->in(e->getCenter()))
+                    {
+                        in = true ;
+                        break ; ;
+                    }
+                }
+                
+                if(in)
+                {
+                    double a = e->volume() ;
+                    area += a ;
+                    if(e->getBehaviour() &&  e->getBehaviour()->getDamageModel() )
+                        d += e->getBehaviour()->getDamageModel()->getState().max()*a ;
+                }
+            }
+        }
+        
+        return d/area ;
+    }
+    
+    double averageDamageNotInFeatures(const std::vector<Feature *> & feats)
+    {
+        double area = 0 ;
+        double d = 0 ;
+        if(is2D())
+        {
+            for(auto e = dtree->begin() ; e != dtree->end() ;e++)
+            {
+                bool in = false ;
+                for(const auto & f : feats)
+                {
+                    if(f->in(e->getCenter()))
+                    {
+                        in = true ;
+                        break ; ;
+                    }
+                }
+                
+                if(!in)
+                {
+                    double a = e->area() ;
+                    area += a ;
+                    if(e->getBehaviour() && e->getBehaviour()->getDamageModel() )
+                        d += e->getBehaviour()->getDamageModel()->getState().max()*a ;
+                }
+            }
+        }
+        else
+        {
+            for(auto e = dtree3D->begin() ; e != dtree3D->end() ;e++)
+            {
+                bool in = false ;
+                for(const auto & f : feats)
+                {
+                    if(f->in(e->getCenter()))
+                    {
+                        in = true ;
+                        break ; ;
+                    }
+                }
+                
+                if(!in)
+                {
+                    double a = e->volume() ;
+                    area += a ;
+                    if(e->getBehaviour() &&  e->getBehaviour()->getDamageModel() )
+                        d += e->getBehaviour()->getDamageModel()->getState().max()*a ;
+                }
+            }
+        }
+        
+        return d/area ;
+    }
+    
     double damageAreaInAggregates ( Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator begin, Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator end ) {
         double total = 0 ;
         double dam = 0 ;
