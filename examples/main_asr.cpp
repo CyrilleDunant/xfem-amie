@@ -107,29 +107,6 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
 
         writer.write() ;
 
-        double volume = 0 ;
-        double xavg = 0 ;
-        double yavg = 0 ;
-        for(auto k = featureTree->get2DMesh()->begin() ; k != featureTree->get2DMesh()->end() ; k++)
-        {
-            if(k->getBehaviour()->type != VOID_BEHAVIOUR )
-            {
-
-                if(baseGeometry.in(k->getCenter()))
-                {
-                    double ar = k->area() ;
-                    volume += ar ;
-                    for(int l = 0 ; l < npoints ; l++)
-                    {
-                        xavg += x[k->getBoundingPoint(l).getId()*2]*ar/npoints ;
-                        yavg += x[k->getBoundingPoint(l).getId()*2+1]*ar/npoints ;
-                    }
-                }
-            }
-        }
-
-        xavg /= volume ;
-        yavg /= volume ;
         std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax(REAL_STRESS_FIELD) ;
         std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax(STRAIN_FIELD) ;
         std::pair<Vector, Vector> vmm = featureTree->getFieldMinMax(VON_MISES_REAL_STRESS_FIELD) ;
@@ -139,8 +116,7 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
         std::cout << std::endl ;
         std::cout << "max value :" << x.max() << std::endl ;
         std::cout << "min value :" << x.min() << std::endl ;
-        std::cout << "avg x value :" << xavg << std::endl ;
-        std::cout << "avg y value :" << xavg << std::endl ;
+
 
         std::cout << "max sigma11 :" << stempm.second[0]  << std::endl ;
         std::cout << "min sigma11 :" << stempm.first[0]   << std::endl ;
