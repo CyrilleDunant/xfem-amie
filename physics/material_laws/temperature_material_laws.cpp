@@ -75,9 +75,6 @@ void TemperatureDependentRadiationInducedExpansionMaterialLaw::preProcess(Genera
 
     s.add("imposed_deformation", eps_next) ;
    
-    std::cout << delta_prev << "\t" << kappa_prev << std::endl ;
-
-
     s.set("rive_previous", eps_next) ;
     s.set("neutron_fluence_previous", phi_next) ;
     s.set("temperature_previous", t_next+273) ;

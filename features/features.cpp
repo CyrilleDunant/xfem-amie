@@ -5177,7 +5177,7 @@ bool FeatureTree::stepElements()
                 //simulation.
                 std::cerr << " stepping through elements... " << std::flush ;
 
-                for (auto i = j->second->begin() ; i != j->second->end() ; j++)
+                for (auto i = j->second->begin() ; i != j->second->end() ; i++)
                 {
                     if ( i.getPosition() % 1000 == 0 )
                     {

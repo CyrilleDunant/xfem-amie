@@ -25,7 +25,7 @@
 
 using namespace Amie ;
 
-ConjugateGradient::ConjugateGradient( Assembly* a ) :LinearSolver(a), r(x.size()),z(x.size()),p(x.size()) ,q(x.size()), cleanup(false), P(nullptr), nit(0) { }
+ConjugateGradient::ConjugateGradient( Assembly* a ) :LinearSolver(a), r(x.size()),z(x.size()),p(x.size()) ,q(x.size()), xmin(x.size()), cleanup(false), P(nullptr), nit(0) { }
 
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
@@ -84,6 +84,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
     int vsize = r.size() ;
     double err0 = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
+    xmin = x ;
+    errmin = err0 ;
     r*=-1 ;
 
     if (err0 < realeps)
@@ -120,6 +122,12 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         r[i] *= -1 ;
 
     err0 = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
+    if(err0 < errmin)
+    {
+        errmin = err0 ;
+        xmin = x ;
+    }
+
     if (err0 < realeps)
     {
         if(verbose)
@@ -135,6 +143,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 // 	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
     double rho = 0 ;
     double beta = 0 ;
+    double lastReset = rho ;
+    int resetIncreaseCount = 0 ;
     while((last_rho*last_rho > std::max(realeps*realeps*err0, realeps*realeps) && nit < Maxit ) || nit < 16)
     {
 //             if(nit < 256)
@@ -143,6 +153,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 //                 P0.precondition(r, z) ;
 
         rho = parallel_inner_product_restricted(&r[rowstart], &z[rowstart], vsize-rowstart) ;
+
 
         beta = rho/last_rho ;
 
@@ -167,6 +178,12 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             x[i] += p[i]*alpha ;
         }
 
+        if(sqrt(rho) < errmin)
+        {
+            errmin = sqrt(rho) ;
+            xmin = x ;
+        }
+
         if(nit%256 == 0)
         {
             assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
@@ -176,7 +193,24 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         }
         if( verbose && nit%256 == 0 )
         {
-            std::cerr << sqrt(rho) << std::endl  ;
+            if(rho > lastReset)
+                resetIncreaseCount++ ;
+            else
+                resetIncreaseCount = 0 ;
+
+            lastReset = rho ;
+
+            std::cerr << resetIncreaseCount << "\t" << sqrt(rho) << std::endl  ;
+
+            if(resetIncreaseCount > maxIncreaseReset)
+            {
+                x = (xmin+x)*0.5 ;
+                assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
+                #pragma omp parallel for schedule(static) if (vsize > 10000)
+                for(int i = rowstart ; i < vsize ; i++)
+                    r[i] *= -1 ;
+                resetIncreaseCount = 0 ;
+            }
         }
 
 
@@ -199,9 +233,12 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         if(nit <= Maxit && last_rho*last_rho< std::max(realeps*realeps*err0, realeps*realeps))
             std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
         else
+        {
+            x = xmin ;
             std::cerr << "\n CG " << p.size() << " did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+        }
     }
 
-    return nit <= Maxit && last_rho*last_rho< std::max(realeps*realeps*err0, realeps*realeps);
+    return nit <= Maxit && last_rho*last_rho < std::max(realeps*realeps*err0, realeps*realeps);
 }
 

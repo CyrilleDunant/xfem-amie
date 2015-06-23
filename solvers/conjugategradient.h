@@ -25,6 +25,9 @@ struct ConjugateGradient : public LinearSolver
     Vector z ;
     Vector p ;
     Vector q ;
+    Vector xmin ;
+    double errmin = 1e9 ;
+    int maxIncreaseReset = 2 ;
     bool cleanup ;
     Preconditionner * P ;
     size_t nit ;

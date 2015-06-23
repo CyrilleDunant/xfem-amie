@@ -234,7 +234,7 @@ protected:
     size_t colstart ;
     size_t rowstart ;
     SpaceDimensionality dim ;
-    bool removeZeroOnlyLines ;
+    bool removeZeroOnlyLines = true ;
 
     Vector naturalBoundaryConditionForces ;
     Vector displacements ;
