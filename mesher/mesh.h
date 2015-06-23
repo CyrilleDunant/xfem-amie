@@ -575,8 +575,7 @@ public:
                 if ( locus->in ( element->getCenter() ) ) {
                     caches[position].push_back ( element->index ) ;
                     coefs[position].push_back ( std::vector<double>() ) ;
-                    if(!source)
-                        continue ;
+
                     if(element->getOrder() >= CONSTANT_TIME_LINEAR)
                     {
                         Function x = element->getXTransformAtCentralNodalTime() ;
@@ -588,9 +587,8 @@ public:
                             double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
                             double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
                             double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
-                            double xt = 0. ;//vm.eval ( t, gp.gaussPoints[i].first ) ;
 
-                            coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, xt ) );
+                            coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, 0. ) );
                         }
                     }
                     else
@@ -598,17 +596,14 @@ public:
                         Function x = element->getXTransform() ;
                         Function y = element->getYTransform() ;
                         Function z = element->getZTransform() ;
-                        Function t = element->getTTransform() ;
                         GaussPointArray gp = element->getGaussPoints() ;
-                        if(element->getOrder() >= CONSTANT_TIME_LINEAR)
-                            gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
+
                         for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
                             double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
                             double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
                             double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
-                            double xt = vm.eval ( t, gp.gaussPoints[i].first ) ;
 
-                            coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, xt ) );
+                            coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, 0. ) );
                         }
                     }
                 }
@@ -928,10 +923,10 @@ public:
                 tmpstrain /= sumFactors ;
                 tmpstrainrate /=sumFactors ;
 
-                Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point() ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point() ) ) ;
+                Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point(0,0,0,t) ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point(0,0,0,t) ) ) ;
                 stress.resize ( tsize, 0. ) ;
                 strain.resize ( tsize, 0. ) ;
-                Vector imposed = e->getBehaviour()->getImposedStress( Point() ) ;
+                Vector imposed = e->getBehaviour()->getImposedStress( Point(0,0,0,t) ) ;
                 for ( int i = 0 ; i < tsize ; i++ ) {
                     stress[i] = tmpstress[i]-imposed[i] ;
                     strain[i] = tmpstrain[i] ;
@@ -1102,7 +1097,7 @@ public:
             if ( f0 == REAL_STRESS_FIELD ) {
                 first.resize ( tsize );
                 if ( !spaceTime ) {
-                    first = strain*e->getBehaviour()->getTensor ( e->getCenter() ) ;
+                    first = strain*e->getBehaviour()->getTensor ( Point(0,0,0,t) ) ;
                 } else {
                     first = stress ;
                 }
@@ -1110,7 +1105,7 @@ public:
             if ( f1 == REAL_STRESS_FIELD ) {
                 second.resize ( tsize );
                 if ( !spaceTime ) {
-                    second = strain*e->getBehaviour()->getTensor ( e->getCenter() ) ;
+                    second = strain*e->getBehaviour()->getTensor ( Point(0,0,0,t) ) ;
                 } else {
                     second = stress ;
                 }

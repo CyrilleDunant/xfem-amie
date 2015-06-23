@@ -514,9 +514,7 @@ public:
     virtual const Geometry * getSource() const final {
         return source  ;
     }
-    virtual void setSource ( const Geometry *  src ) final{
-        source = src ;
-    }
+    virtual void setSource ( const Geometry *  src ) final;
 
     virtual bool hasInducedForces() const ;
 

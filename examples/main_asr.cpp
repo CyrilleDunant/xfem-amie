@@ -262,7 +262,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 
         for( size_t j = 0 ; j < zonesToPlace.size() ; j++ )
         {
-            if( squareDist( pos, zonesToPlace[j]->Circle::getCenter() ) < ( radius * radiusFraction + radius * radiusFraction ) * ( radius * radiusFraction + radius * radiusFraction ) )
+            if( squareDist( pos, zonesToPlace[j]->Circle::getCenter() ) < 0.002 )
             {
                 alone = false ;
                 break ;

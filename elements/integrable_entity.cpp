@@ -186,6 +186,15 @@ void Form::getTensorDotAtGaussPoints( const GaussPointArray & gp, const std::val
     }
 }
 
+void Form::setSource ( const Geometry *  src ) 
+{
+    source = src ;
+    if(getFractureCriterion())
+    {
+        getFractureCriterion()->setMaterialCharacteristicRadius(std::min(src->getRadius()*.5, getFractureCriterion()->getMaterialCharacteristicRadius())) ;
+    }
+}
+
 Matrix Form::getViscousTensorDot ( const Point & p, double dt, bool calc ) const
 {
     if(!calc || dt < POINT_TOLERANCE)
