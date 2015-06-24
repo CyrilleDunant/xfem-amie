@@ -90,7 +90,6 @@ void FractureCriterion::initialiseCache( ElementState & s)
         Circle epsilonReduced(physicalCharacteristicRadius*1.1+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         mesh2d = s.getMesh2D() ;
         cachecoreID = mesh2d->generateCache(&epsilonReduced, s.getParent()->getBehaviour()->getSource(), smooth) ;
-        std::cout << s.getParent()->getBehaviour()->getSource() << std::endl ;
         if(s.getParent()->timePlanes() > 1)
             cacheID = cachecoreID ;
         else
