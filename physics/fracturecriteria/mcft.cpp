@@ -375,7 +375,7 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
     if(s.getParent()->getBehaviour()->getDamageModel()->fractured())
         return -1 ;
         
-    std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_MECHANICAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD , s,  t) ;
+    std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD , s,  t) ;
     Vector first = sstrain.second ;
     Vector second = sstrain.first ;
 
