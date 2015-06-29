@@ -262,7 +262,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 
         for( size_t j = 0 ; j < zonesToPlace.size() ; j++ )
         {
-            if( dist( pos, zonesToPlace[j]->Circle::getCenter() ) < 0.003 )
+            if( dist( pos, zonesToPlace[j]->Circle::getCenter() ) < 0.002 )
             {
                 alone = false ;
                 break ;
@@ -502,7 +502,7 @@ int main( int argc, char *argv[] )
     }
 
     zones = generateExpansiveZonesHomogeneously(nzones, placedinclusions, F , sample) ;
-    F.setSamplingNumber( 64 ) ;
+    F.setSamplingNumber( 90 ) ;
 
     if( restraintDepth > 0 )
     {
