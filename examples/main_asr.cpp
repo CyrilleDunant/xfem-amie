@@ -255,8 +255,11 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
     std::vector<ExpansiveZone *> zonesToPlace ;
 
     srand(1);
-    for( int i = 0 ; i < n ; i++ )
+    int tries = 6000 ;
+    int trycount = 0 ;
+    for( int i = 0 ; i < n && trycount < tries*n; i++ )
     {
+        trycount++ ;
         Point pos( ( ( double )rand() / RAND_MAX - .5 ) * ( sample.width() - radius * radiusFraction ), ( ( double )rand() / RAND_MAX - .5 ) * ( sample.height() - radius * radiusFraction ) ) ;
         bool alone  = true ;
 
