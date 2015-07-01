@@ -67,8 +67,9 @@ int main(int argc, char *argv[])
 		fiber = false ;
 	}
 
-	if(noOpenMP)
+	#ifdef HAVE_OMP
 		omp_set_num_threads(1) ;
+	#endif
 
 	std::fstream out ;
 	std::string index = "_" ;

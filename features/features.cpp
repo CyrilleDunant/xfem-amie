@@ -2511,6 +2511,8 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
         return found ;
     }
 
+    if(!tree[root_box]->getBehaviour())
+        return new VoidForm() ;
     if ( !onlyUpdate && tree[root_box]->getLayer() == layer )
     {
         if ( tree[root_box]->getBehaviour ( t->getCenter() )->timeDependent() )
