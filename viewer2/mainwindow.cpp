@@ -220,6 +220,7 @@ void MainWindow::open()
 			connect( zoom, SIGNAL( valueChanged( int ) ), triangledisplay, SLOT( setZoom( int ) ) );
 			connect( triangledisplay, SIGNAL( zoomChanged( int ) ), zoom, SLOT( setValue( int ) ) );
 
+                     
 			connect( alpha, SIGNAL( valueChanged( int ) ), triangledisplay, SLOT( setSet( int ) ) );
 			connect( triangledisplay, SIGNAL( setChanged( int ) ), alpha, SLOT( setValue( int ) ) );
 
@@ -235,7 +236,7 @@ void MainWindow::open()
 			connect( printButton, SIGNAL( released() ), triangledisplay, SLOT( grab() ) );
 
 			alpha->setValue( 0 ) ;
-			alpha->setRange( -1, 1000 );
+			alpha->setRange( 0, 4096 );
 
 			downSlider->setRange( 0, 9999 );
 			downSlider->setValue( 0 ) ;
@@ -304,7 +305,7 @@ void MainWindow::open()
 			connect( printButton, SIGNAL( released() ), triangledisplay, SLOT( grab() ) );
 
 			alpha->setValue( 0 ) ;
-			alpha->setRange( -1, 1000 );
+			alpha->setRange( 0, 4096 );
 
 			downSlider->setRange( 0, 9999 );
 			downSlider->setValue( 0 ) ;
@@ -412,6 +413,7 @@ void MainWindow::open( const QString &fileName )
 
 			connect( printButton, SIGNAL( released() ), triangledisplay, SLOT( grab() ) );
 
+                        alpha->setRange(0, 4096) ;
 			downSlider->setRange( 0, 9999 );
 			downSlider->setValue( 0 ) ;
 
