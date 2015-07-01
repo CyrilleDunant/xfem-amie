@@ -216,6 +216,7 @@ void MainWindow::open()
 			QFileInfo pathInfo( fileName );
 			setWindowTitle( pathInfo.fileName() );
 			triangledisplay->fileName = fileName ;
+                        zoom->setRange( 1, 9600 ) ;
 			connect( zoom, SIGNAL( valueChanged( int ) ), triangledisplay, SLOT( setZoom( int ) ) );
 			connect( triangledisplay, SIGNAL( zoomChanged( int ) ), zoom, SLOT( setValue( int ) ) );
 
@@ -284,6 +285,7 @@ void MainWindow::open()
 		}
 		else if( multi( fileName ) )
 		{
+                        zoom->setRange( 1, 9600 ) ;
 			connect( zoom, SIGNAL( valueChanged( int ) ), triangledisplay, SLOT( setZoom( int ) ) );
 			connect( triangledisplay, SIGNAL( zoomChanged( int ) ), zoom, SLOT( setValue( int ) ) );
 
@@ -392,6 +394,7 @@ void MainWindow::open( const QString &fileName )
 			QFileInfo pathInfo( fileName );
 			setWindowTitle( pathInfo.fileName() );
 			triangledisplay->fileName = fileName ;
+                        zoom->setRange( 1, 9600 ) ;
 			connect( zoom, SIGNAL( valueChanged( int ) ), triangledisplay, SLOT( setZoom( int ) ) );
 			connect( triangledisplay, SIGNAL( zoomChanged( int ) ), zoom, SLOT( setValue( int ) ) );
 
