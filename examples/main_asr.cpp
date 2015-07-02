@@ -302,10 +302,10 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 
     int count = 0 ;
 
-    for( auto i : zonesPerIncs )
+    for( const auto & i : zonesPerIncs )
     {
-        aggregateArea += i->first->area() ;
-        count += i->second ;
+        aggregateArea += i.first->area() ;
+        count += i.second ;
 // 		std::cout << aggregateArea << "  " << count << std::endl ;
     }
 
