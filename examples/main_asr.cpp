@@ -302,7 +302,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 
     int count = 0 ;
 
-    for( auto i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i )
+    for( auto i : zonesPerIncs )
     {
         aggregateArea += i->first->area() ;
         count += i->second ;
@@ -505,7 +505,7 @@ int main( int argc, char *argv[] )
     }
 
     zones = generateExpansiveZonesHomogeneously(nzones, placedinclusions, F , sample) ;
-    F.setSamplingNumber( 64 ) ;
+    F.setSamplingNumber( 72 ) ;
 
     if( restraintDepth > 0 )
     {

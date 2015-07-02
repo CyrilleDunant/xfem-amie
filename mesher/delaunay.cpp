@@ -2931,19 +2931,28 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             {
                 TriElement father(LINEAR) ;
 
-                size_t target = 256 ;
+                size_t target = 512 ;
 
                 double npoints = 8 ;
 
                 while(gp_alternative.size() < target)
                 {
-                    for(double i = 0 ; i <= 1 ; i += 2.*(1.-POINT_TOLERANCE)/(npoints+1))
+                    for(double i = 0 ; i <= 1 ; i += 1./(npoints+1))
                     {
-                        for(double j = 0 ; j <= 1 ; j += 2.*(1.-POINT_TOLERANCE)/(npoints+1))
+                        for(double j = 0 ; j <= 1 ; j += 1./(npoints+1))
                         {
                             Point test = Point(i,j);
+                            Point test0 = Point(i-.5/(npoints+1),j-.5/(npoints+1));
+                            Point test1 = Point(i-.5/(npoints+1),j+.5/(npoints+1));
+                            Point test2 = Point(i+.5/(npoints+1),j-.5/(npoints+1));
+                            Point test3 = Point(i+.5/(npoints+1),j+.5/(npoints+1));
 // 							inLocalCoordinates(test).print();
-                            if( father.in( test ) )
+                            if( father.in( test ) &&
+                                father.in( test0 ) &&
+                                father.in( test1 ) &&
+                                father.in( test2 ) &&
+                                father.in( test3 ) 
+                            )
                             {
                                 gp_alternative.push_back( std::make_pair( test, 1. / 2. ) ) ;
                             }
