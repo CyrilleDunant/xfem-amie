@@ -14,6 +14,7 @@
 #include "delaunay.h"
 #include <limits>
 #include "../features/crack.h"
+#include "../physics/dual_behaviour.h"
 #include "../features/inclusion.h"
 #include "../utilities/random.h"
 
@@ -2853,7 +2854,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
     if(getEnrichmentFunctions().size() > 3)
         numberOfRefinements = 1 ;
     VirtualMachine vm ;
-    if(getEnrichmentFunctions().size() > 0)
+    if(getEnrichmentFunctions().size() > 0 || dynamic_cast<BimaterialInterface *>(getBehaviour()) )
     {
         double originalSum = 0 ;
         for(auto & i : gp.gaussPoints)
@@ -2930,7 +2931,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             {
                 TriElement father(LINEAR) ;
 
-                size_t target = 128 ;
+                size_t target = 256 ;
 
                 double npoints = 8 ;
 

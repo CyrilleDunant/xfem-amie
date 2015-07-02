@@ -166,49 +166,49 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
     updated = false ;
     const std::vector<DelaunayTriangle *> & disc  = cache;
 
-    if(disc.size() == 1)
-    {
-        for(size_t i = 0 ; i < disc.size() ; i++)
-        {
-            HomogeneisedBehaviour * hom = dynamic_cast<HomogeneisedBehaviour *>(disc[i]->getBehaviour());
-            if(hom)
-            {
-                if(disc.size() < 6)
-                {
-                    std::vector<Feature *> brother ;
-                    if(getFather())
-                        brother = getFather()->getChildren() ;
-                    std::vector<Feature *> feat ;
-                    for(size_t j = 0 ; j < brother.size() ; j++)
-                    {
-                        if(disc[i]->in(brother[j]->getCenter()))
-                            feat.push_back(brother[j]) ;
-                    }
-                    hom->updateEquivalentBehaviour(feat, disc[i]) ;
-
-                }
-            
-                
-            }
-            else
-            {
-                std::vector< Feature *> brother ;
-                if(getFather())
-                    brother = getFather()->getChildren() ;
-                std::vector< Feature *> feat ;
-                for(size_t j= 0 ; j < brother.size() ; j++)
-                {
-                    if(disc[i]->in(brother[j]->getCenter()))
-                        feat.push_back(brother[j]) ;
-                }
-                HomogeneisedBehaviour * hom2 = new HomogeneisedBehaviour(feat, disc[i]) ;
-                disc[i]->setBehaviour(dtree,hom2) ;
-                disc[i]->getBehaviour()->setSource(getPrimitive()) ;
-                
-            }
-        } 
-        return ;
-    }
+//     if(disc.size() == 1)
+//     {
+//         for(size_t i = 0 ; i < disc.size() ; i++)
+//         {
+//             HomogeneisedBehaviour * hom = dynamic_cast<HomogeneisedBehaviour *>(disc[i]->getBehaviour());
+//             if(hom)
+//             {
+//                 if(disc.size() < 6)
+//                 {
+//                     std::vector<Feature *> brother ;
+//                     if(getFather())
+//                         brother = getFather()->getChildren() ;
+//                     std::vector<Feature *> feat ;
+//                     for(size_t j = 0 ; j < brother.size() ; j++)
+//                     {
+//                         if(disc[i]->in(brother[j]->getCenter()))
+//                             feat.push_back(brother[j]) ;
+//                     }
+//                     hom->updateEquivalentBehaviour(feat, disc[i]) ;
+// 
+//                 }
+//             
+//                 
+//             }
+//             else
+//             {
+//                 std::vector< Feature *> brother ;
+//                 if(getFather())
+//                     brother = getFather()->getChildren() ;
+//                 std::vector< Feature *> feat ;
+//                 for(size_t j= 0 ; j < brother.size() ; j++)
+//                 {
+//                     if(disc[i]->in(brother[j]->getCenter()))
+//                         feat.push_back(brother[j]) ;
+//                 }
+//                 HomogeneisedBehaviour * hom2 = new HomogeneisedBehaviour(feat, disc[i]) ;
+//                 disc[i]->setBehaviour(dtree,hom2) ;
+//                 disc[i]->getBehaviour()->setSource(getPrimitive()) ;
+//                 
+//             }
+//         } 
+//         return ;
+//     }
     
     if(disc.size() < 6)
         return ;

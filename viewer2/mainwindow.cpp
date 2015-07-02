@@ -122,7 +122,7 @@ void MainWindow::createToolBars()
 	fileToolBar->addWidget( time );
 
 	downSlider = new QSlider( Qt::Horizontal, fileToolBar );
-	downSlider->setRange( 0, 254 );
+	downSlider->setRange( 0, 99 );
 	downSlider->setSingleStep( 5 );
 	downSlider->setPageStep( 10 );
 	downSlider->setTickInterval( 1 );
@@ -134,11 +134,11 @@ void MainWindow::createToolBars()
 	fileToolBar->addWidget( downSlider );
 
 	upSlider = new QSlider( Qt::Horizontal, fileToolBar );
-	upSlider->setRange( 1, 255 );
+	upSlider->setRange( 1, 100 );
 	upSlider->setSingleStep( 1 );
 	upSlider->setPageStep( 10 );
 	upSlider->setTickInterval( 1 );
-	upSlider->setValue( 255 ) ;
+	upSlider->setValue( 100 ) ;
 	upSlider->setTracking( false ) ;
 // 	upSlider->setTickPosition(QSlider::TicksDown);
 	connect( upSlider, SIGNAL( valueChanged( int ) ), voxeldisplay, SLOT( setSegmentUp( int ) ) );
@@ -238,7 +238,7 @@ void MainWindow::open()
 			field->setValue( 1 ) ;
 			field->setRange( 0, 4096 );
 
-			downSlider->setRange( 0, 9999 );
+			downSlider->setRange( 0, 99 );
 			downSlider->setValue( 0 ) ;
 
 // 			field->setValue( 1 ) ;
@@ -247,8 +247,8 @@ void MainWindow::open()
 			layer->setValue( 0 ) ;
 			layer->setRange( -1, 1000 ) ;
 
-			upSlider->setRange( 1, 10000 );
-			upSlider->setValue( 10000 ) ;
+			upSlider->setRange( 1, 100 );
+			upSlider->setValue( 100 ) ;
 			
 			triangledisplay->setZoom( zoomval ) ;
 			triangledisplay->setScale( scale ); 
@@ -307,14 +307,14 @@ void MainWindow::open()
 			field->setValue( 1 ) ;
 			field->setRange( 0, 4096 );
 
-			downSlider->setRange( 0, 9999 );
+			downSlider->setRange( 0, 99 );
 			downSlider->setValue( 0 ) ;
 
 			layer->setValue( 0 ) ;
 			layer->setRange( -1, 1000 ) ;
 
-			upSlider->setRange( 1, 10000 );
-			upSlider->setValue( 10000 ) ;
+			upSlider->setRange( 1, 100 );
+			upSlider->setValue( 100 ) ;
 
 			buffer.clear() ;
 			buffer = Buffer( fileName ) ;
@@ -413,11 +413,11 @@ void MainWindow::open( const QString &fileName )
 			connect( printButton, SIGNAL( released() ), triangledisplay, SLOT( grab() ) );
 
                         
-			downSlider->setRange( 0, 9999 );
+			downSlider->setRange( 0, 99 );
 			downSlider->setValue( 0 ) ;
 
-			upSlider->setRange( 1, 10000 );
-			upSlider->setValue( 10000 ) ;
+			upSlider->setRange( 1, 100 );
+			upSlider->setValue( 100 ) ;
 			
 			triangledisplay->setZoom( zoomval ) ;
 			triangledisplay->setScale( scale ) ;

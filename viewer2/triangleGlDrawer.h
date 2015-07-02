@@ -21,11 +21,6 @@
 
 #include "triangleDataReader.h"
 
-#define i2RGBA( __val_32__ )  (unsigned char) ((size_t)__val_32__  & 0x000000FF ),(unsigned char) (((size_t)__val_32__ & 0x0000FF00)>>8 ),(unsigned char)( ((size_t)__val_32__ & 0x00FF0000)>>16 ), (unsigned char)(((size_t)__val_32__ & 0xFF000000)>>24) 
-
-
-#define RGBA2i( __r__, __g__, __b__ , __a__)  ((size_t)__r__ +  (size_t)((size_t) __g__ << 8)  + (size_t)((size_t) __b__ << 16)  +  (size_t)((size_t) __a__ << 24))
-
 #include "glutils.h"
 
 class TriangleGLDrawer : public QGLWidget

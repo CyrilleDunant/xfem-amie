@@ -58,11 +58,11 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
     //first we get All the triangles affected
     std::vector<DelaunayTriangle *> & disc = EnrichmentInclusion::cache ;//dtree->getConflictingElements(getPrimitive()) ;
 
-    if( disc.size() == 1 )
-    {
-        homogeneized = true ;
-        return ;
-    }
+//     if( disc.size() == 1 )
+//     {
+//         homogeneized = true ;
+//         return ;
+//     }
     homogeneized = false ;
     //then we select those that are cut by the circle
     std::vector<DelaunayTriangle *> ring ;
@@ -129,37 +129,37 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 
     expansive = newExpansive ;
 
-    if( disc.size() == 1 )
-    {
-        std::cout << "SHOULD NEVER HAPPEN" << std::endl ;
-        if( bimateralInterfaced.find( disc[0] ) == bimateralInterfaced.end() )
-        {
-            if( dynamic_cast<HomogeneisedBehaviour *>( disc[0]->getBehaviour() ) )
-            {
-                std::cout << "get original" << std::endl ;
-                BimaterialInterface * bi = new BimaterialInterface( getPrimitive(),
-                        new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
-                        dynamic_cast<HomogeneisedBehaviour *>( disc[0]->getBehaviour() )->original->getCopy()
-                                                                  ) ;
-                delete disc[0]->getBehaviour() ;
-                disc[0]->setBehaviour(dtree, bi) ;
-            }
-            else
-            {
-                BimaterialInterface * bi = new BimaterialInterface( getPrimitive(),
-                        new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
-                        disc[0]->getBehaviour()->getCopy()
-                                                                  ) ;
-                delete disc[0]->getBehaviour() ;
-                disc[0]->setBehaviour(dtree, bi) ;
-            }
-
-            disc[0]->getBehaviour()->transform( disc[0]) ;
-            disc[0]->getBehaviour()->setSource( getPrimitive());
-        }
-
-        newInterface.insert( disc[0] ) ;
-    }
+//     if( disc.size() == 1 )
+//     {
+//         std::cout << "SHOULD NEVER HAPPEN" << std::endl ;
+//         if( bimateralInterfaced.find( disc[0] ) == bimateralInterfaced.end() )
+//         {
+//             if( dynamic_cast<HomogeneisedBehaviour *>( disc[0]->getBehaviour() ) )
+//             {
+//                 std::cout << "get original" << std::endl ;
+//                 BimaterialInterface * bi = new BimaterialInterface( getPrimitive(),
+//                         new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
+//                         dynamic_cast<HomogeneisedBehaviour *>( disc[0]->getBehaviour() )->original->getCopy()
+//                                                                   ) ;
+//                 delete disc[0]->getBehaviour() ;
+//                 disc[0]->setBehaviour(dtree, bi) ;
+//             }
+//             else
+//             {
+//                 BimaterialInterface * bi = new BimaterialInterface( getPrimitive(),
+//                         new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
+//                         disc[0]->getBehaviour()->getCopy()
+//                                                                   ) ;
+//                 delete disc[0]->getBehaviour() ;
+//                 disc[0]->setBehaviour(dtree, bi) ;
+//             }
+// 
+//             disc[0]->getBehaviour()->transform( disc[0]) ;
+//             disc[0]->getBehaviour()->setSource( getPrimitive());
+//         }
+// 
+//         newInterface.insert( disc[0] ) ;
+//     }
 
     bimateralInterfaced = newInterface ;
 }

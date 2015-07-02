@@ -69,15 +69,15 @@ MultiTriangleWriter writerc ( "triangles_converged_head", "triangles_converged_l
 
 void step ( size_t nsteps, std::string app = std::string() )
 {
-    
+
     Function loadfunc = Function("t 12 /")*f_range("t", 0., 3)+
                         Function("0.25 t 3 - 48 / -")*f_range("t", 3, 9) +
                         Function("0.25 1 8 / - t 9 - 48 / +")*f_range("t", 9.0000001, 96) ;
     loadfunc *= strain_peak ;
     for ( size_t v = 0 ; v < nsteps ; v++ )
     {
-        bool go_on = featureTree->stepToCheckPoint(20,1e-6) ;
-        featureTree->setDeltaTime(0.01); 
+        bool go_on = featureTree->stepToCheckPoint(1,1e-4) ;
+        featureTree->setDeltaTime(0.01);
         double load = 0. ;
 //         if(go_on)
 // 	{
@@ -86,7 +86,7 @@ void step ( size_t nsteps, std::string app = std::string() )
 //             load = VirtualMachine().eval(loadfunc, 0,0,0, featureTree->getCurrentTime()) ;
 //             loadr->setData(VirtualMachine().eval(loadfunc, 0,0,0, featureTree->getCurrentTime()));
 // 	}
-        
+
         Vector stemp = featureTree->getAverageField ( GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD,-1.,1. ) ;
         Vector etemp = featureTree->getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD,-1.,1. ) ;
         Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD) ;
@@ -116,7 +116,7 @@ void step ( size_t nsteps, std::string app = std::string() )
             loads.push_back ( stemp[1] );
             loadsx.push_back ( stemp[4] );
             times.push_back(featureTree->getCurrentTime());
-            damages.push_back(dtemp[0]);   
+            damages.push_back(dtemp[0]);
 //            if(damages.size() > 2 && damages[ damages.size()-1 ] == damages[ damages.size()-2])
 //		featureTree->setDeltaTime( 0.2 ) ;
             if(true) //v%50 == 0)
@@ -136,10 +136,10 @@ void step ( size_t nsteps, std::string app = std::string() )
 
             double time_n = featureTree -> getCurrentTime() ;
             if(time_n > 30)
-	    {
-    featureTree->getAssembly()->print() ;
+            {
+                featureTree->getAssembly()->print() ;
 
-                    exit(0) ;
+                exit(0) ;
             }
         }
 
@@ -160,46 +160,50 @@ int main ( int argc, char *argv[] )
     std::vector<std::pair<Matrix, Matrix> > branches ;
     std::vector<std::pair<Matrix, Matrix> > branches_mx ;
     double factor_k = 1.;
-        std::vector<double> K_chaine_cp = {5.4e11/factor_k,  3.9e11/factor_k, 2.02e11/factor_k,5.1e10/factor_k} ;
-	for(size_t i = 0 ; i < K_chaine_cp.size() ; i++)
-	{
-		double tau = 5*std::pow(10., (double) i - 2 );
-		Matrix K_i = Tensor::cauchyGreen(K_chaine_cp[i], nu_elas, true,  SPACE_TWO_DIMENSIONAL )  ;
-		Matrix Am_i = Tensor::cauchyGreen( K_chaine_cp[i]*tau, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
-		branches.push_back(std::make_pair(K_i, Am_i)) ;
-	}
-        std::vector<double> K_chaine_mx_cp = {1.861269605473859118073396e10, 2.8823932807429079935446e9, 3.4017749304038078634156e9,
-	  5.3973666770458357270061e9, 1.01057690570688572352998e10} ;
-	std::vector<double> tau_chaine_mx_cp = {0.04647627034132179101144053, 0.4553612767686235043851535, 4.242249572847878343173296, 32.07187552289942944803857} ;
-	Matrix K_mx_0 = Tensor::cauchyGreen(K_chaine_mx_cp[0], nu_elas, true,  SPACE_TWO_DIMENSIONAL )  ;
-	for(size_t i = 0 ; i < K_chaine_mx_cp.size()-1 ; i++)
-	{
-		Matrix K_mx_i = Tensor::cauchyGreen(K_chaine_mx_cp[i+1], nu_elas, true,  SPACE_TWO_DIMENSIONAL )  ;
-		Matrix Am_mx_i = Tensor::cauchyGreen( K_chaine_mx_cp[i+1]*tau_chaine_mx_cp[i], nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
-		branches_mx.push_back(std::make_pair(K_mx_i, Am_mx_i)) ;
-	}	
+    std::vector<double> K_chaine_cp = {5.4e11/factor_k,  3.9e11/factor_k, 2.02e11/factor_k,5.1e10/factor_k} ;
+    for(size_t i = 0 ; i < K_chaine_cp.size() ; i++)
+    {
+        double tau = 5*std::pow(10., (double) i - 2 );
+        Matrix K_i = Tensor::cauchyGreen(K_chaine_cp[i], nu_elas, true,  SPACE_TWO_DIMENSIONAL )  ;
+        Matrix Am_i = Tensor::cauchyGreen( K_chaine_cp[i]*tau, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
+        branches.push_back(std::make_pair(K_i, Am_i)) ;
+    }
+    std::vector<double> K_chaine_mx_cp = {1.861269605473859118073396e10, 2.8823932807429079935446e9, 3.4017749304038078634156e9,
+                                          5.3973666770458357270061e9, 1.01057690570688572352998e10
+                                         } ;
+    std::vector<double> tau_chaine_mx_cp = {0.04647627034132179101144053, 0.4553612767686235043851535, 4.242249572847878343173296, 32.07187552289942944803857} ;
+    Matrix K_mx_0 = Tensor::cauchyGreen(K_chaine_mx_cp[0], nu_elas, true,  SPACE_TWO_DIMENSIONAL )  ;
+    for(size_t i = 0 ; i < K_chaine_mx_cp.size()-1 ; i++)
+    {
+        Matrix K_mx_i = Tensor::cauchyGreen(K_chaine_mx_cp[i+1], nu_elas, true,  SPACE_TWO_DIMENSIONAL )  ;
+        Matrix Am_mx_i = Tensor::cauchyGreen( K_chaine_mx_cp[i+1]*tau_chaine_mx_cp[i], nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
+        branches_mx.push_back(std::make_pair(K_mx_i, Am_mx_i)) ;
+    }
     Viscoelasticity * paste = new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches) ;
     Viscoelasticity * pastemx = new Viscoelasticity( GENERALIZED_MAXWELL, K_mx_0, branches_mx) ;
-     LogarithmicCreepWithExternalParameters * logcreep = new LogarithmicCreepWithExternalParameters("young_modulus = 12e9, poisson_ratio = 0.2, creep_modulus = 30e9, creep_poisson = 0.2, creep_characteristic_time = 2") ;
-   
-    double cstrain = -2.e-3; 
-    double cstress = -38.0e6; 
+    LogarithmicCreepWithExternalParameters * logcreep = new LogarithmicCreepWithExternalParameters("young_modulus = 12e9, poisson_ratio = 0.2, creep_modulus = 30e9, creep_poisson = 0.2, creep_characteristic_time = 2") ;
+
+    double cstrain = -2.e-3;
+    double cstress = -38.0e6;
     planeType pt = PLANE_STRESS;
-    
+
     Sample samplef(0.3, 0.6,  0.15, 0.3) ;
 
     FeatureTree F ( &samplef ) ;
     featureTree = &F ;
     DamageModel * linear = new SpaceTimeIsotropicLinearDamage(1.0);
 
-     //ELAS+DAMAGE
+    //ELAS+DAMAGE
     //StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas, new NonLocalMCFT(-40e6,40e9,1.), new FiberBasedIsotropicLinearDamage(0.001, 1.));
     //ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas,new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-6, 1.));
     ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalSpaceTimeMCFT(cstress,k_elas,1.)/*NonLocalSpaceTimeMazars(1.0e-4, k_elas, nu_elas, 75., cstress , cstrain, 1., pt )*/, linear);
     ViscoelasticityAndFracture * vpasterupt = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMCFT(cstress,k_elas,1.)/*new NonLocalSpaceTimeMazars(1.0e-4, k_elas, nu_elas, 75.0, cstress , cstrain, 1., pt )*/, linear);
-    ViscoelasticityAndFracture * vmxpasterupt = new ViscoelasticityAndFracture(GENERALIZED_MAXWELL, K_mx_0, branches_mx, /*new NonLocalSpaceTimeMCFT(cstress,k_elas,1.)*/new NonLocalSpaceTimeMazars(1.0e-4, k_elas, nu_elas, 75.0, cstress , cstrain, 1., pt ), linear);  
-    Point t1(0.0001, 1.2e6) ; Point t2(0.0005, 0.) ;
-    std::vector<Point> ptension, pcompression ; ptension.push_back(t1) ; ptension.push_back(t2) ;
+    ViscoelasticityAndFracture * vmxpasterupt = new ViscoelasticityAndFracture(GENERALIZED_MAXWELL, K_mx_0, branches_mx, /*new NonLocalSpaceTimeMCFT(cstress,k_elas,1.)*/new NonLocalSpaceTimeMazars(1.0e-4, k_elas, nu_elas, 75.0, cstress , cstrain, 1., pt ), linear);
+    Point t1(0.0001, 1.2e6) ;
+    Point t2(0.0005, 0.) ;
+    std::vector<Point> ptension, pcompression ;
+    ptension.push_back(t1) ;
+    ptension.push_back(t2) ;
     LogarithmicCreepWithExternalParameters * logcreeprupt = new LogarithmicCreepWithExternalParameters("young_modulus = 12e9, poisson_ratio = 0.2, creep_modulus = 30e9, creep_poisson = 0.2, creep_characteristic_time = 2", new NonLocalSpaceTimeMazars(1.0e-4, k_elas, nu_elas, 75.0, cstress , cstrain, 1., pt ), linear) ;//new SpaceTimeIsotropicLinearDamage()) ;
 //     Viscoelasticity * vmxpasterupt = new Viscoelasticity(GENERALIZED_MAXWELL, K_mx_0, branches_mx);  e
     //    Stiffness * paste = new Stiffness(C_kv);
@@ -221,7 +225,7 @@ int main ( int argc, char *argv[] )
                         Function("0.25 t 3 - 48 / -")*f_range("t", 3, 9) +
                         Function("0.25 1 8 / - t 9 - 48 / +")*f_range("t", 9.0000001, 96) ;
     loadfunc *= strain_peak ;
- 
+
     BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP_AFTER, loadfunc) ;
     F.addBoundaryCondition ( loadr );
     loadr->setActive(true);
@@ -230,8 +234,8 @@ int main ( int argc, char *argv[] )
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM_AFTER ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
-    F.setDeltaTime(0.01); 
-    
+    F.setDeltaTime(0.01);
+
     F.setMinDeltaTime(1e-4);
 //     F.setOrder(LINEAR_TIME_LINEAR) ;
 
@@ -240,11 +244,11 @@ int main ( int argc, char *argv[] )
     step (124000, std::string( argc > 2 ? argv[2] : "") ) ;
 //    step (12, std::string( argc > 2 ? argv[2] : "") ) ;
 
-/*    std::vector<Point *> nodes = F.getNodes() ;
-    for(size_t i = 0 ; i < nodes.size() ; i++)
-	nodes[i]->print() ;*/
+    /*    std::vector<Point *> nodes = F.getNodes() ;
+        for(size_t i = 0 ; i < nodes.size() ; i++)
+    	nodes[i]->print() ;*/
 
 
 
-    return 0 ; 
+    return 0 ;
 }
