@@ -32,7 +32,7 @@ FeatureTree *featureTree ;
 
 double placed_area = 0 ;
 
-double basesize = 0.04 ;
+double basesize = 0.07 ;
 
 Rectangle baseGeometry( basesize, basesize, 0, 0 ) ;
 
@@ -505,7 +505,7 @@ int main( int argc, char *argv[] )
     }
 
     zones = generateExpansiveZonesHomogeneously(nzones, placedinclusions, F , sample) ;
-    F.setSamplingNumber( 90 ) ;
+    F.setSamplingNumber( 64 ) ;
 
     if( restraintDepth > 0 )
     {

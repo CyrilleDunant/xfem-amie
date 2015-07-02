@@ -114,6 +114,7 @@ GaussPointArray  GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaus
 
 double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine * vm, int dummy , double t, std::vector<double> weights )
 {
+//     std::cout << "plouf" << std::endl ;
     #pragma omp critical
     while(true) {
 //         usleep(1) ;
@@ -178,7 +179,11 @@ double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType
         }
 
         if(!cached)
+        {
+//             std::cout << "pliff" << std::endl ;
             getField ( f, p_, tmp, true, vm, dummy ) ;
+            
+        }
 
         ret += tmp * w ;
         total += w ;
