@@ -372,7 +372,7 @@ int main( int argc, char *argv[] )
 
     double itzSize = 0.00002;
 //	int inclusionNumber = 10 ;
-    int inclusionNumber = 1;//3000 ;
+    int inclusionNumber = 3000 ;
 
     std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, nullptr,  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), nullptr, 100000, 0.8, &baseGeometry) ;
     std::vector<Inclusion *> inclusions ;
