@@ -265,7 +265,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 
         for( size_t j = 0 ; j < zonesToPlace.size() ; j++ )
         {
-            if( dist( pos, zonesToPlace[j]->Circle::getCenter() ) < 0.0005 )
+            if( dist( pos, zonesToPlace[j]->Circle::getCenter() ) < 0.0015 )
             {
                 alone = false ;
                 break ;
@@ -372,7 +372,7 @@ int main( int argc, char *argv[] )
 
     double itzSize = 0.00002;
 //	int inclusionNumber = 10 ;
-    int inclusionNumber = 3000 ;
+    int inclusionNumber = 1;//3000 ;
 
     std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, nullptr,  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), nullptr, 100000, 0.8, &baseGeometry) ;
     std::vector<Inclusion *> inclusions ;

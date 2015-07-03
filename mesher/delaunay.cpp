@@ -2931,7 +2931,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             {
                 TriElement father(LINEAR) ;
 
-                size_t target = 512 ;
+                size_t target = 2048 ;
 
                 double npoints = 8 ;
 

@@ -15,7 +15,8 @@ namespace Amie
 {
 struct GelBehaviour : public StiffnessWithImposedDeformation
 {
-    GelBehaviour(double E=22e9, double nu=0.18, double alpha=0.22, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+    //volumic expansion is 22%, so linear is 7%, cube root 2.8
+    GelBehaviour(double E=22e9, double nu=0.18, double alpha=0.028, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 
 } ;
 
@@ -23,7 +24,7 @@ struct ViscoElasticOnlyGelBehaviour : public GelBehaviour
 {
     int freeblocks ;
 
-    ViscoElasticOnlyGelBehaviour(double E=22e9, double nu=0.18, double alpha=0.22, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+    ViscoElasticOnlyGelBehaviour(double E=22e9, double nu=0.18, double alpha=0.028, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 
     Form * getCopy() const ;
 } ;
