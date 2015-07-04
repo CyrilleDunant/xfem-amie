@@ -36,7 +36,9 @@ bool EnrichmentInclusion::enrichmentTarget(DelaunayTriangle * t)
 
 Function EnrichmentInclusion::getBlendingFunction(const std::map<const Point *, int> & dofIds, const DelaunayTriangle * t)
 {
-    //  return Function("1") ;
+    if(t->getOrder() == QUADRATIC)
+        return Function("1") ;
+//      return Function("1") ;
 
     // if(t->getOrder() == QUADRATIC)
     // {
@@ -82,37 +84,37 @@ Function EnrichmentInclusion::getBlendingFunction(const std::map<const Point *, 
     //  }
     //  return f ;
 
-    if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
+    if(dofIds.find(&father.getBoundingPoint(0)) != dofIds.end() && dofIds.find(&father.getBoundingPoint(1)) == dofIds.end() && dofIds.find(&father.getBoundingPoint(2)) == dofIds.end())
     {
         return father.getShapeFunction(0) ;
     }
 
-    if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+    if(dofIds.find(&father.getBoundingPoint(0)) == dofIds.end() && dofIds.find(&father.getBoundingPoint(1)) != dofIds.end() && dofIds.find(&father.getBoundingPoint(2)) == dofIds.end())
     {
         return father.getShapeFunction(1) ;
     }
 
-    if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+    if(dofIds.find(&father.getBoundingPoint(0)) == dofIds.end() && dofIds.find(&father.getBoundingPoint(1)) == dofIds.end() && dofIds.find(&father.getBoundingPoint(2)) != dofIds.end())
     {
         return father.getShapeFunction(2) ;
     }
 
-    if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end())
+    if(dofIds.find(&father.getBoundingPoint(0)) == dofIds.end() && dofIds.find(&father.getBoundingPoint(1)) != dofIds.end() && dofIds.find(&father.getBoundingPoint(2)) != dofIds.end())
     {
         return Function("1")-father.getShapeFunction(0) ;
     }
 
-    if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+    if(dofIds.find(&father.getBoundingPoint(0)) != dofIds.end() && dofIds.find(&father.getBoundingPoint(1)) == dofIds.end() && dofIds.find(&father.getBoundingPoint(2)) != dofIds.end())
     {
         return Function("1")-father.getShapeFunction(1) ;
     }
 
-    if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+    if(dofIds.find(&father.getBoundingPoint(0)) != dofIds.end() && dofIds.find(&father.getBoundingPoint(1)) != dofIds.end() && dofIds.find(&father.getBoundingPoint(2)) == dofIds.end())
     {
         return Function("1")-father.getShapeFunction(2) ;
     }
 
-    return Amie::Function("1") ;
+    return Amie::Function("0") ;
 } 
 
 void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)

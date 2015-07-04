@@ -148,7 +148,7 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
         if( go_on )
         {
             featureTree->forceEnrichmentChange();
-            double delta_r = sqrt( aggregateArea * 0.03 / ( ( double )zones.size() * M_PI ) ) / ( double )nstepstot ;
+            double delta_r = sqrt( aggregateArea * 0.2 / ( ( double )zones.size() * M_PI ) ) / ( double )nstepstot ;
             double reactedArea = 0 ;
 
             Inclusion *current = nullptr ;
@@ -265,7 +265,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 
         for( size_t j = 0 ; j < zonesToPlace.size() ; j++ )
         {
-            if( dist( pos, zonesToPlace[j]->Circle::getCenter() ) < 0.0015 )
+            if( dist( pos, zonesToPlace[j]->Circle::getCenter() ) < 0.0010 )
             {
                 alone = false ;
                 break ;
@@ -505,7 +505,7 @@ int main( int argc, char *argv[] )
     }
 
     zones = generateExpansiveZonesHomogeneously(nzones, placedinclusions, F , sample) ;
-    F.setSamplingNumber( 72 ) ;
+    F.setSamplingNumber( 86 ) ;
 
     if( restraintDepth > 0 )
     {

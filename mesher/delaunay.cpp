@@ -2931,7 +2931,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             {
                 TriElement father(LINEAR) ;
 
-                size_t target = 2048 ;
+                size_t target = 512 ;
 
                 double npoints = 8 ;
 
@@ -2966,11 +2966,11 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
                 }
 
-                double fsum = 0 ;
+//                 double fsum = 0 ;
+//                 for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
+//                     fsum += gp_alternative[i].second ;
                 for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
-                    fsum += gp_alternative[i].second ;
-                for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
-                    gp_alternative[i].second *= originalSum/fsum ;
+                    gp_alternative[i].second = originalSum/gp_alternative.size() ;
 
 
                 delete cachedGps ;

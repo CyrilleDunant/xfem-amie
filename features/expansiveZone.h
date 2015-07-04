@@ -41,7 +41,7 @@ public:
     * @param deformation Vector of the imposed strain
     */
     ExpansiveZone(Feature *father, double radius, double x, double y, const Matrix & cgTensor, Vector deformation) ;
-    ExpansiveZone(Feature *father, double radius, double x, double y, StiffnessWithImposedDeformation * gel) ;
+    ExpansiveZone(Feature *father, double radius, double x, double y, Form * gel) ;
     virtual ~ExpansiveZone() ;
 
     /** \brief enrich elements and change their Behaviour if required*/

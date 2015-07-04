@@ -22,8 +22,12 @@ ExpansiveZone::ExpansiveZone( Feature *father, double radius, double x, double y
     homogeneized = false ;
 }
 
-ExpansiveZone::ExpansiveZone( Feature *father, double radius, double x, double y, StiffnessWithImposedDeformation * gel ) : EnrichmentInclusion( father, radius, x, y ),  imposedDef( gel->imposed ), cgTensor( gel->param )
+ExpansiveZone::ExpansiveZone( Feature *father, double radius, double x, double y, Form * gel ) : EnrichmentInclusion( father, radius, x, y ), imposedDef(0., 3), cgTensor( gel->param )
 {
+    if(dynamic_cast<StiffnessWithImposedDeformation *>(gel))
+    {
+        imposedDef= dynamic_cast<StiffnessWithImposedDeformation *>(gel)->imposed  ;
+    }
     setBehaviour( gel->getCopy() ) ;
     homogeneized = false ;
 }
@@ -55,6 +59,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 {
 // 	this->setBehaviour( new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ) ;
     EnrichmentInclusion::enrich( lastId, dtree) ;
+
     //first we get All the triangles affected
     std::vector<DelaunayTriangle *> & disc = EnrichmentInclusion::cache ;//dtree->getConflictingElements(getPrimitive()) ;
 
@@ -92,13 +97,13 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
             {
                 Matrix p = dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->getOriginalBehaviour()->getTensor(Point(1./3,1./3)) ;
                 bi = new BimaterialInterface( getPrimitive(),
-                                              new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
+                                              getBehaviour()->getCopy(),
                                               dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->getOriginalBehaviour()->getCopy() ) ;
             }
             else
             {
                 bi = new BimaterialInterface( getPrimitive(),
-                                              new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
+                                              getBehaviour()->getCopy(),
                                               ring[i]->getBehaviour()->getCopy() ) ;
             }
 
@@ -118,7 +123,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
     {
         if( expansive.find( inDisc[i] ) == expansive.end() )
         {
-            StiffnessWithImposedDeformation * bi = new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ;
+            Form * bi = getBehaviour()->getCopy() ;
 //			delete inDisc[i]->getBehaviour() ;
             inDisc[i]->setBehaviour(dtree, bi) ;
             inDisc[i]->getBehaviour()->setSource( getPrimitive() );
@@ -167,6 +172,8 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 
 void ExpansiveZone::setExpansion( Vector a )
 {
+    if(!dynamic_cast<StiffnessWithImposedDeformation *>(getBehaviour()))
+        return ;
     imposedDef = a ;
     updated = true ;
 

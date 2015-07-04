@@ -659,6 +659,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     switch ( f )
     {
     case SCALAR_DAMAGE_FIELD:
+    {
         if(parent->getBehaviour()->getDamageModel())
             ret[0] = parent->getBehaviour()->getDamageModel()->getState().max() ;
         else
@@ -670,7 +671,9 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         if(cleanupp)
             delete p_ ;
         return ;
+    }
     case DISPLACEMENT_FIELD:
+    {
         n =  parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
         for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
         {
@@ -695,7 +698,9 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         if(cleanupp)
             delete p_ ;
         return ;
+    }
     case ENRICHED_DISPLACEMENT_FIELD:
+    {
         n =  parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
         for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
         {
@@ -712,7 +717,9 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             delete vm ;
         }
         return ;
+    }
     case MECHANICAL_STRAIN_FIELD:
+    {
         getField( STRAIN_FIELD, *p_, ret, true, vm) ;
         if(parent->getBehaviour() && parent->getBehaviour()->hasInducedForces())
             ret -= parent->getBehaviour()->getImposedStrain(*p_) ;
@@ -723,7 +730,9 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         if(cleanupp)
             delete p_ ;
         return ;
+    }
     case STRAIN_FIELD:
+    {
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
             double x_xi = 0;
@@ -858,6 +867,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         if(cleanupp)
             delete p_ ;
         return ;
+    }
     case PRINCIPAL_STRAIN_FIELD:
     {
         Vector strains ( 0.,parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ? 6 : 3 ) ;
@@ -887,6 +897,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         return ;
     }
     case NON_ENRICHED_STRAIN_FIELD:
+    {
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
         {
             double x_xi = 0;
@@ -990,6 +1001,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         if(cleanupp)
             delete p_ ;
         return ;
+    }
     case VON_MISES_STRAIN_FIELD:
     {
         Vector eps ( 0., ( size_t ) parent->spaceDimensions() ) ;
@@ -1011,7 +1023,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         return ;
     }
     case REAL_STRESS_FIELD:
-
+    {
         getField ( STRAIN_FIELD, *p_, ret, true, vm ) ;
         if ( parent->getBehaviour()->getTensor ( *p_, parent ).numCols() != ret.size() )
         {
@@ -1032,6 +1044,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         if(cleanupp)
             delete p_ ;
         return ;
+    }
     case PRINCIPAL_REAL_STRESS_FIELD:
     {
         Vector stress ( 0.,3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
@@ -1046,6 +1059,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         return ;
     }
     case NON_ENRICHED_REAL_STRESS_FIELD:
+    {
         getField ( NON_ENRICHED_STRAIN_FIELD, *p_, ret, true,vm ) ;
         if ( parent->getBehaviour()->getTensor ( *p_, parent ).numCols() != ret.size() )
         {
@@ -1066,7 +1080,9 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         if(cleanupp)
             delete p_ ;
         return ;
+    }
     case VON_MISES_REAL_STRESS_FIELD:
+    {
         if ( parent->getOrder() == LINEAR )
         {
             if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
@@ -1157,7 +1173,9 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             }
         }
         return ;
+    }
     case EFFECTIVE_STRESS_FIELD:
+    {
         getField ( STRAIN_FIELD, *p_, ret, true,vm, 0 ) ;
         ret = ( Vector ) ( parent->getBehaviour()->param * ret ) - getParent()->getBehaviour()->getImposedStrain ( *p_, parent ) *parent->getBehaviour()->param ;
         if ( cleanup )
@@ -1167,6 +1185,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         if(cleanupp)
             delete p_ ;
         return ;
+    }
     case PRINCIPAL_EFFECTIVE_STRESS_FIELD:
     {
         Vector stress ( 0.,3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
@@ -1181,6 +1200,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         return ;
     }
     case NON_ENRICHED_EFFECTIVE_STRESS_FIELD:
+    {
         getField ( NON_ENRICHED_STRAIN_FIELD, *p_, ret, true,vm ) ;
         ret = ( Vector ) ( parent->getBehaviour()->param * ret ) - getParent()->getBehaviour()->getImposedStrain ( *p_, parent ) *parent->getBehaviour()->param ;
         if ( cleanup )
@@ -1190,7 +1210,9 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         if(cleanupp)
             delete p_ ;
         return ;
+    }
     case VON_MISES_EFFECTIVE_STRESS_FIELD:
+    {
         if ( parent->getOrder() == LINEAR )
         {
             if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
@@ -1293,6 +1315,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         if(cleanupp)
             delete p_ ;
         return ;
+    }
     case PRINCIPAL_STRESS_ANGLE_FIELD:
     {
         Vector strains ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
@@ -1361,6 +1384,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         return ;
     }
     case GRADIENT_FIELD:
+    {
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 )
         {
             double x_xi = 0;
@@ -1442,7 +1466,9 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         if(cleanupp)
             delete p_ ;
         return ;
+    }
     case FLUX_FIELD:
+    {
         getField ( GRADIENT_FIELD, *p_, ret, true, vm ) ;
         ret = ( Vector ) ( parent->getBehaviour()->getTensor ( *p_, parent ) * ret ) ;
         if ( cleanup )
@@ -1452,6 +1478,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         if(cleanupp)
             delete p_ ;        
         return ;
+    }
     default:
         std::cerr << "field type not supported" << std::endl ;
         exit(0) ;

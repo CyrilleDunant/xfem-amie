@@ -92,19 +92,19 @@ int main(int argc, char *argv[])
     samplers.setBehaviour(new ElasticOnlyPasteBehaviour()) ;
     Vector a(0.,6) ;// a[0] = 1 ; a[1] = 1 ; a[2] = 1 ;
 // 	ExpansiveZone3D inc(&samplers,100, 200, 200, 200, m1*4, a) ;
-//     Inclusion inc( 0.008, 0, 0) ;
-    std::valarray<Point *> pts(5) ;
+    ExpansiveZone inc(&samplers, 50, 0, 0,new ElasticOnlyAggregateBehaviour()) ;
+//     std::valarray<Point *> pts(5) ;
     
-    pts[0] = new Point(-80, 50) ; 
-    pts[1] = new Point(0.00, 20) ; 
-    pts[2] = new Point(80, 80) ;
-    pts[3] = new Point(50, -80) ; 
-    pts[4] = new Point(-80, -80) ;
-    PolygonalSample inc(&samplers, pts) ;
+//     pts[0] = new Point(-80, 50) ; 
+//     pts[1] = new Point(0.00, 20) ; 
+//     pts[2] = new Point(80, 80) ;
+//     pts[3] = new Point(50, -80) ; 
+//     pts[4] = new Point(-80, -80) ;
+//     PolygonalSample inc(&samplers, pts) ;
     
 // 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1*4.,a)) ;
 // 	inc.setBehaviour(new Stiffness(m1*4)) ;
-    inc.setBehaviour(new ElasticOnlyAggregateBehaviour()) ;
+    
 
 
     F.addFeature(&samplers, &inc) ;
@@ -265,7 +265,7 @@ int main(int argc, char *argv[])
 
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-    F.setOrder(QUADRATIC) ;
+    F.setOrder(LINEAR) ;
 //     F.setPartition(64);
 
     step() ;
