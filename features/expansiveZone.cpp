@@ -63,11 +63,11 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
     //first we get All the triangles affected
     std::vector<DelaunayTriangle *> & disc = EnrichmentInclusion::cache ;//dtree->getConflictingElements(getPrimitive()) ;
 
-//     if( disc.size() == 1 )
-//     {
-//         homogeneized = true ;
-//         return ;
-//     }
+    if( disc.size() == 1 )
+    {
+        homogeneized = true ;
+        return ;
+    }
     homogeneized = false ;
     //then we select those that are cut by the circle
     std::vector<DelaunayTriangle *> ring ;
