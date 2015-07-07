@@ -34,7 +34,7 @@ FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, doub
     maxModeInNeighbourhood(-1),
     maxScoreInNeighbourhood(0),
     maxAngleShiftInNeighbourhood(0),
-    scoreTolerance(1e-3),
+    scoreTolerance(1e-4),
     checkpoint(true),
     inset(false),
     smoothingType(QUARTIC_COMPACT),
@@ -59,8 +59,8 @@ Vector FractureCriterion::getSmoothedField(FieldType f0,  ElementState &s ,doubl
         initialiseCache(s) ;
 
     if(mesh2d)
-        return mesh2d->getSmoothedField(f0, cachecoreID, s.getParent(), -1., t) ;
-    return mesh3d->getSmoothedField(f0, cachecoreID, s.getParent(), -1., t) ;
+        return mesh2d->getSmoothedField(f0, cachecoreID, s.getParent(), -1., t, restriction) ;
+    return mesh3d->getSmoothedField(f0, cachecoreID, s.getParent(), -1., t, restriction) ;
 
 }
 
@@ -70,9 +70,36 @@ std::pair<Vector, Vector> FractureCriterion::getSmoothedFields( FieldType f0, Fi
         initialiseCache(s) ;
 
     if(mesh2d)
-        return mesh2d->getSmoothedFields(f0, f1, cachecoreID, s.getParent(), -1., t) ;
-    return mesh3d->getSmoothedFields(f0, f1, cachecoreID, s.getParent(), -1., t) ;
+        return mesh2d->getSmoothedFields(f0, f1, cachecoreID, s.getParent(), -1., t, restriction) ;
+    return mesh3d->getSmoothedFields(f0, f1, cachecoreID, s.getParent(), -1., t, restriction) ;
 
+}
+
+void FractureCriterion::setRestriction(const Geometry * g,ElementState &s)
+{
+    restriction.clear();
+    if(!g)
+        return ;
+    Function xtransform = s.getParent()->getXTransform() ;
+    Function ytransform = s.getParent()->getYTransform() ;
+    Function ztransform = Function("0") ;
+    Function ttransform = Function("0") ;
+    if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+        ztransform = s.getParent()->getZTransform() ;
+    if(s.getParent()->timePlanes() > 1)
+        ttransform = s.getParent()->getTTransform() ;
+    else
+        ttransform = Function("0") ;
+    
+    VirtualMachine vm ;
+    
+    for(size_t i= 0 ; i < s.getParent()->getGaussPoints().gaussPoints.size() ; i++)
+    {
+        Point p = s.getParent()->getGaussPoints().gaussPoints[i].first ;
+        Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ytransform,  p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ztransform,  p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ttransform, p.getX(),p.getY(),p.getZ(),p.getT())) ;
+
+        restriction.push_back(g->in(test));
+    }
 }
 
 void FractureCriterion::initialiseCache( ElementState & s)

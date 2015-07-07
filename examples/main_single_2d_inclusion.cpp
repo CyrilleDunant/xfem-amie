@@ -47,6 +47,19 @@ void step()
                 dynamic_cast<ExpansiveZone *>(pockets[j])->setRadius(pockets[j]->getRadius()+0.000001) ;
         }
        featureTree->printReport();
+       
+       for(double x = -100 ;  x <= 100 ; x += .25)
+       {
+           for(double y = -100 ;  y <= 100 ; y += .25)
+                std::cout << featureTree->get2DMesh()->getField(STRAIN_FIELD, Point(x,y))[0] << "  "<< std::flush ;
+           std::cout << std::endl ;
+       }
+       for(double x = -100 ;  x <= 100 ; x += .25)
+       {
+           for(double y = -100 ;  y <= 100 ; y += .25)
+                std::cout << featureTree->get2DMesh()->getField(REAL_STRESS_FIELD, Point(x,y))[0] << "  "<< std::flush ;
+           std::cout << std::endl ;
+       }
         writerc.reset( featureTree ) ;
         writerc.getField( REAL_STRESS_FIELD ) ;
         writerc.getField( STRAIN_FIELD ) ;
@@ -87,12 +100,11 @@ int main(int argc, char *argv[])
     FeatureTree F(&samplers) ;
     featureTree = &F ;
     int setup = -1 ; //atoi(argv[2]) ;
-    int load = 1 ; //atoi(argv[3]) ;
+    int load = -1 ; //atoi(argv[3]) ;
 
     samplers.setBehaviour(new ElasticOnlyPasteBehaviour()) ;
-    Vector a(0.,6) ;// a[0] = 1 ; a[1] = 1 ; a[2] = 1 ;
-// 	ExpansiveZone3D inc(&samplers,100, 200, 200, 200, m1*4, a) ;
-    ExpansiveZone inc(&samplers, 50, 0, 0,new ElasticOnlyAggregateBehaviour()) ;
+    ExpansiveZone inc(&samplers, 15, -50, 0,new ElasticOnlyAggregateBehaviour()) ;
+    Inclusion inc0(&samplers, 15, 50, 0) ; inc0.setBehaviour(new ElasticOnlyAggregateBehaviour());
 //     std::valarray<Point *> pts(5) ;
     
 //     pts[0] = new Point(-80, 50) ; 
@@ -108,7 +120,7 @@ int main(int argc, char *argv[])
 
 
     F.addFeature(&samplers, &inc) ;
-// 	F.addFeature(&samplers, inc0) ;
+	F.addFeature(&samplers, &inc0) ;
     F.setSamplingNumber(atof(argv[1])) ;
     
     std::vector<Geometry *> inclusion ;
@@ -222,9 +234,9 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_FRONT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_FRONT)) ;
 
-    if(load == 1)
+    if(load == -1)
     {
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -5e6)) ;
+//         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -5e6)) ;
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -5e6)) ;
     }
     if(load == 2)

@@ -10,6 +10,7 @@
 //
 //
 
+#include "vm_function_extra.h"
 #include "vm_function_base.h"
 #include "vm_token.h"
 
@@ -99,7 +100,7 @@ Function f_negativity(const Function &f, bool differentiate)
     return ret ;
 }
 
-Function f_range(const Function &f, double min, double max, bool differentiate = false)
+Function f_range(const Function &f, double min, double max, bool differentiate)
 {
     return f_positivity(f-min, differentiate)*f_negativity(f-max, differentiate) ;
 }

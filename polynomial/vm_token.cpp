@@ -596,4 +596,46 @@ int ProjectionBinaryOperation::adressOffset() const
 }
 
 
+HatEnrichment::HatEnrichment(const Geometry * g , const Point & p, const Segment & s) :g(g), p(p), s(s) {}
+
+void HatEnrichment::eval(double * a, double * b, double * c) const
+{
+    Point position ( *a, *b ) ;
+    Line l(p, position-p) ;
+    Triangle t (p, s.first(), s.second()) ;
+    
+    Point interseg = l.intersection(s) ;
+    std::vector<Point> intersgeo = l.intersection(g) ;
+    for(size_t i = 0 ;  i < intersgeo.size() ; i++)
+    {
+        if(t.in(intersgeo[i]))
+        {
+            if(g->in(s.midPoint()) && g->in(position))
+            {
+                double distTot = dist(interseg, intersgeo[i]) ;
+                double distPos = dist(position, interseg) ;
+                *c = distPos/distTot ;
+                return ;
+            }
+            else
+            {
+                double distTot = dist(p, intersgeo[i]) ;
+                double distPos = dist(position, p) ;
+                *c = distPos/distTot ;
+                return ;
+            }
+        }
+    }
+}
+
+GeometryOperation * HatEnrichment::getCopy() const 
+{
+    return new HatEnrichment(g, p, s) ;
+}
+
+int HatEnrichment::adressOffset() const 
+{ 
+    return -2 ;
+}
+
 

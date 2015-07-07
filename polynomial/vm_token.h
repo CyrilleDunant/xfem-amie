@@ -37,7 +37,7 @@ typedef double (*binaryFunctionPointer)(const double, double) ;
 typedef double (*trinaryFunctionPointer)(const double, double, double) ;
 
 // typedef std::vector<double> Memory ;
-const size_t HEAP_SIZE = 8192 ;
+const size_t HEAP_SIZE = 32768 ;
 
 /** \brief Memory structure for the VirtualMachine. It provides a stack and a heap.
 */
@@ -438,6 +438,21 @@ public:
 	virtual int adressOffset() const;
 } ;
 
+
+class HatEnrichment : public GeometryOperation
+{
+    const Geometry * g ;
+    Point  p ;
+    Segment s ;
+public:
+    HatEnrichment(const Geometry * g , const Point & p, const Segment & s) ;
+    
+    virtual void eval(double * a, double * b, double * c) const;
+    
+    virtual GeometryOperation * getCopy() const ;
+    
+    virtual int adressOffset() const;
+} ;
 
 }
 

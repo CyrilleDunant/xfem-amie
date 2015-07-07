@@ -56,6 +56,7 @@ protected:
 
     std::vector<unsigned int> damagingSet ;
     std::vector<unsigned int> proximitySet ;
+    std::vector<bool> restriction ;
 
     double initialScore ;
     double physicalCharacteristicRadius ;
@@ -101,6 +102,8 @@ public:
 
     std::pair<Vector, Vector> getSmoothedFields(FieldType f0, FieldType f1,  ElementState &s ,double t = 0) ;
     Vector getSmoothedField( FieldType f0,ElementState &s , double t = 0) ;
+    
+    void setRestriction(const Geometry * g,ElementState &s) ;
 
 public:
 

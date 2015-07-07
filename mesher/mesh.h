@@ -756,6 +756,15 @@ public:
         }
         return ret/w ;
     }
+    
+    virtual Vector getField ( FieldType f, const Point & p, int dummy = 0, double t = 0 ) 
+    {
+        ETYPE * e = getUniqueConflictingElement(&p) ;
+        Vector ret(3) ;
+        if(e->state)
+            e->getState().getField(f, p, ret, false) ;
+        return ret ;
+    }
 
     virtual Vector getField( FieldType f, Segment * source, int cacheID = -1, int dummy = 0, double t = 0) {
         int realCacheID = cacheID ;
@@ -879,12 +888,14 @@ public:
         return ret/w ;
     }
 
-    virtual Vector getSmoothedField (  FieldType f0, int cacheID, IntegrableEntity * e,int dummy = 0, double t = 0 ) {
+    virtual Vector getSmoothedField (  FieldType f0, int cacheID, IntegrableEntity * e,int dummy = 0, double t = 0, const std::vector<bool> & restrict = std::vector<bool>()) {
         int tsize = 3 ;
         int psize = 2 ;
-        if (spaceDimensions == SPACE_THREE_DIMENSIONAL ) {
+
+        if ( spaceDimensions == SPACE_THREE_DIMENSIONAL ) {
             tsize = 6 ;
             psize = 3 ;
+
         }
         Vector first ;
         Vector strain ;
@@ -907,10 +918,7 @@ public:
                         strain.resize ( buffer.size(), 0. );
                     }
                     strain += buffer*v ;
-//                     std::cout <<v << "  "<< buffer[0] << "  " << strain[0] << std::endl ;
-//                     std::cout <<v << "  "<< buffer.size() << "  " << strain.size() << std::endl ;
-//                     if(isnan(strain[0]))
-//                         exit(0) ;
+
                     sumFactors += v ;
                 }
                 strain /= sumFactors ;
@@ -940,17 +948,28 @@ public:
                 }
                 tmpstrain /= sumFactors ;
                 tmpstrainrate /=sumFactors ;
-
-                Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point(0,0,0,t) ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point(0,0,0,t) ) ) ;
-                stress.resize ( tsize, 0. ) ;
+                
+                double sum = 0 ; 
                 strain.resize ( tsize, 0. ) ;
-                Vector imposed = e->getBehaviour()->getImposedStress( Point(0,0,0,t) ) ;
                 for ( int i = 0 ; i < tsize ; i++ ) {
-                    stress[i] = tmpstress[i]-imposed[i] ;
-                    strain[i] = tmpstrain[i] ;
+                        strain[i] = tmpstrain[i] ;
+                    }
+                for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                {
+                    Point p(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                    if(!restrict.empty())
+                        if(restrict[j])
+                            continue ;
+                    Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( p ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( p ) ) ;
+                    stress.resize ( tsize, 0. ) ;
+                   
+                    Vector imposed = e->getBehaviour()->getImposedStress( p ) ;
+                    for ( int i = 0 ; i < tsize ; i++ ) {
+                        stress[i] += (tmpstress[i]-imposed[i])*e->getGaussPoints().gaussPoints[j].second ;
+                    }
+                    sum += e->getGaussPoints().gaussPoints[j].second ;
                 }
-                if( e->getBehaviour()->hasInducedForces() )
-                    stress -= e->getBehaviour()->getImposedStress(Point(0,0,0,t)) ;
+                stress /= sum ;
             }
 //            std::cout << "here" << strain.size() << std::endl ;
 
@@ -959,9 +978,21 @@ public:
                 first = toPrincipal ( strain, DOUBLE_OFF_DIAGONAL_VALUES ) ;
             }
             if ( f0 == REAL_STRESS_FIELD ) {
-                first.resize ( tsize );
+                first.resize ( tsize, 0. );
                 if ( !spaceTime ) {
-                    first = strain*e->getBehaviour()->getTensor ( e->getCenter() ) ;
+                    double sum = 0 ; 
+
+                    for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                    {
+                        if(!restrict.empty())
+                            if(restrict[j])
+                                continue ;
+                        Point p(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                        first += (strain*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
+                        sum += e->getGaussPoints().gaussPoints[j].second ;
+                    }
+                    first /= sum ;
+                    
                 } else {
                     first = stress ;
                 }
@@ -983,9 +1014,21 @@ public:
                 }
             }
             if ( f0 == PRINCIPAL_REAL_STRESS_FIELD ) {
-                first.resize ( psize );
+                first.resize ( psize, 0. );
+                stress.resize(tsize, 0.);
                 if ( !spaceTime ) {
-                    first = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) , SINGLE_OFF_DIAGONAL_VALUES) ;
+                    double sum = 0 ; 
+                    for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                    {
+                        if(!restrict.empty())
+                            if(restrict[j])
+                                continue ;
+                        Point p(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                        stress += (strain*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
+                        sum += e->getGaussPoints().gaussPoints[j].second ;
+                    }
+                    stress /= sum ;
+                    first = toPrincipal( stress , SINGLE_OFF_DIAGONAL_VALUES) ;
                 } else {
                     first = toPrincipal( stress , SINGLE_OFF_DIAGONAL_VALUES) ;
                 }
@@ -1010,7 +1053,7 @@ public:
         return first ;
     }
 
-    virtual std::pair<Vector, Vector> getSmoothedFields ( FieldType f0, FieldType f1, int cacheID, IntegrableEntity * e ,int dummy = 0, double t = 0 ) {
+    virtual std::pair<Vector, Vector> getSmoothedFields ( FieldType f0, FieldType f1, int cacheID, IntegrableEntity * e ,int dummy = 0, double t = 0, const std::vector<bool> & restrict = std::vector<bool>()  ) {
         Vector first ;
         Vector second ;
         Vector strain ;
@@ -1018,9 +1061,15 @@ public:
         Vector buffer ;
         int tsize = 3 ;
         int psize = 2 ;
+        double coord0 = 1./3. ;
+        double coord1 = 1./3. ;
+        double coord2 = 0 ;
         if ( spaceDimensions == SPACE_THREE_DIMENSIONAL ) {
             tsize = 6 ;
             psize = 3 ;
+            coord0 = .25 ;
+            coord1 = .25 ;
+            coord2 = .25 ;
         }
         bool spaceTime = e->getOrder() >= CONSTANT_TIME_LINEAR ;
         VirtualMachine vm ;
@@ -1081,15 +1130,27 @@ public:
                 tmpstrain /= sumFactors ;
                 tmpstrainrate /=sumFactors ;
 
-                Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point(0,0,0,t) ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point(0,0,0,t) ) ) ;
-                stress.resize ( tsize, 0. ) ;
+                double sum = 0 ; 
                 strain.resize ( tsize, 0. ) ;
                 for ( int i = 0 ; i < tsize ; i++ ) {
-                    stress[i] = tmpstress[i] ;
-                    strain[i] = tmpstrain[i] ;
+                        strain[i] = tmpstrain[i] ;
+                    }
+                for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                {
+                    if(!restrict.empty())
+                        if(restrict[j])
+                            continue ;
+                    Point p(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                    Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( p ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( p ) ) ;
+                    stress.resize ( tsize, 0. ) ;
+                   
+                    Vector imposed = e->getBehaviour()->getImposedStress( p ) ;
+                    for ( int i = 0 ; i < tsize ; i++ ) {
+                        stress[i] += (tmpstress[i]-imposed[i])*e->getGaussPoints().gaussPoints[j].second ;
+                    }
+                    sum += e->getGaussPoints().gaussPoints[j].second ;
                 }
-                if( e->getBehaviour()->hasInducedForces() )
-                    stress -= e->getBehaviour()->getImposedStress(Point(0,0,0,t)) ;
+                stress /= sum ;
             }
 
             if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
@@ -1103,19 +1164,26 @@ public:
             if ( f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) {
                 first.resize ( psize );
                 if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
-                    strain -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
+                    strain -= e->getBehaviour()->getImposedStrain(Point(coord0,coord1,coord2,t)) ;
                 first = toPrincipal( strain, DOUBLE_OFF_DIAGONAL_VALUES ) ;
             }
             if ( f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) {
                 second.resize ( psize );
                 if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
-                    strain -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
+                    strain -= e->getBehaviour()->getImposedStrain(Point(coord0,coord1,coord2,t)) ;
                 second = toPrincipal ( strain , DOUBLE_OFF_DIAGONAL_VALUES ) ;
             }
             if ( f0 == REAL_STRESS_FIELD ) {
-                first.resize ( tsize );
+                first.resize ( tsize, 0. );
                 if ( !spaceTime ) {
-                    first = strain*e->getBehaviour()->getTensor ( Point(0,0,0,t) ) ;
+                    double sum = 0 ; 
+                    for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                    {
+                        Point p(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                        first += (strain*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
+                        sum += e->getGaussPoints().gaussPoints[j].second ;
+                    }
+                    first /= sum ;
                 } else {
                     first = stress ;
                 }
@@ -1123,7 +1191,17 @@ public:
             if ( f1 == REAL_STRESS_FIELD ) {
                 second.resize ( tsize );
                 if ( !spaceTime ) {
-                    second = strain*e->getBehaviour()->getTensor ( Point(0,0,0,t) ) ;
+                    double sum = 0 ; 
+                    for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                    {
+                        if(!restrict.empty())
+                            if(restrict[j])
+                                continue ;
+                        Point p(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                        second += (strain*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
+                        sum += e->getGaussPoints().gaussPoints[j].second ;
+                    }
+                    second /= sum ;
                 } else {
                     second = stress ;
                 }
@@ -1162,16 +1240,40 @@ public:
             }
             if ( f0 == PRINCIPAL_REAL_STRESS_FIELD ) {
                 first.resize ( psize );
+                stress.resize ( tsize, 0. );
                 if ( !spaceTime ) {
-                    first = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) , SINGLE_OFF_DIAGONAL_VALUES  ) ;
+                    double sum = 0 ; 
+                    for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                    {
+                        if(!restrict.empty())
+                            if(restrict[j])
+                                continue ;
+                        Point p(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                        stress += (strain*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
+                        sum += e->getGaussPoints().gaussPoints[j].second ;
+                    }
+                    stress /= sum ;
+                    first = toPrincipal ( stress , SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 } else {
                     first = toPrincipal ( stress , SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 }
             }
             if ( f1 == PRINCIPAL_REAL_STRESS_FIELD ) {
                 second.resize ( psize );
+                stress.resize ( tsize, 0. );
                 if ( !spaceTime ) {
-                    second = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ), SINGLE_OFF_DIAGONAL_VALUES  ) ;
+                    double sum = 0 ; 
+                    for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                    {
+                        if(!restrict.empty())
+                            if(restrict[j])
+                                continue ;
+                        Point p(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                        stress += (strain*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
+                        sum += e->getGaussPoints().gaussPoints[j].second ;
+                    }
+                    stress /= sum ;
+                    second = toPrincipal (  stress, SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 } else {
                     second = toPrincipal ( stress, SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 }
@@ -1189,14 +1291,14 @@ public:
                 first.resize( tsize ) ;
                 first = strain ;
                 if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
-                    first -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
+                    first -= e->getBehaviour()->getImposedStrain(Point(coord0,coord1,coord2,t)) ;
             }
 
             if ( f1 == MECHANICAL_STRAIN_FIELD ) {
                 second.resize( tsize ) ;
                 second = strain ;
                 if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
-                    second -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
+                    second -= e->getBehaviour()->getImposedStrain(Point(coord0,coord1,coord2,t)) ;
             }
 
         } else {

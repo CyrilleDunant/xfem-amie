@@ -240,6 +240,8 @@ public:
      * @param s ElementarySurface defining the transform
      */
     Function ( const Geometry * g, const ElementarySurface * s ) ;
+    
+    Function(const Geometry *g, const Point &p, const Segment &s,  ElementarySurface * surf);
 
 public:
 
@@ -501,7 +503,7 @@ public:
     * @param f Function
     * @return a new Function
     */
-    friend Function operator- ( double a, Amie::Function f ) {
+    friend Function operator- ( double a, const Amie::Function & f ) {
         Amie::Function ret ( f ) ;
         ret.values.clear();
         ret.values.push_back ( a ) ;

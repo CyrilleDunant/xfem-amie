@@ -30,6 +30,7 @@ protected:
     bool updated ;
     std::vector<DelaunayTriangle *> cache ;
     std::map<Mesh<DelaunayTriangle, DelaunayTreeItem> *,std::set<size_t> > freeIds ;
+    Function functionTozero(const DelaunayTriangle * t) ;
     Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const DelaunayTriangle * t) ;
 public:
 

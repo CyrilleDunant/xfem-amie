@@ -1715,6 +1715,26 @@ Function::Function(double a,const Point & p,   ElementarySurface * s): derivativ
     geo_op[byteCode.size()-1] = new AngleBinaryOperation(a,p) ;
 }
 
+Function::Function(const Geometry *g, const Point & p, const Segment & s,  ElementarySurface * surf): derivative(nullptr),
+    transforms(nullptr),ptID (nullptr),dofID(-1),
+    e_diff(false),
+    hasGeoOp(true),geo_op((GeometryOperation *)nullptr,HEAP_SIZE)
+{
+    Function x = surf->getXTransform() ;
+    Function y = surf->getYTransform() ;
+    concatenateFunctions(x, y, *this);
+    byteCode.push_back(TOKEN_OPERATION_GEO_OPERATION);
+    adress_a.push_back(0);
+    adress_a.push_back(0);
+    adress_a.push_back(0);
+    adress_a.push_back(0);
+    adress_a[(byteCode.size()-1)*4+2] = 8 ;
+    adress_a[(byteCode.size()-1)*4+1] = 9 ;
+    adress_a[(byteCode.size()-1)*4] = 8 ;
+
+    geo_op[byteCode.size()-1] = new HatEnrichment(g, p, s) ;
+}
+
 Function::Function( const Geometry * geo, const ElementarySurface * s) : derivative(nullptr),transforms(nullptr),ptID (nullptr),dofID(-1),
 
     e_diff(false),

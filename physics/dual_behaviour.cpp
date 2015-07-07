@@ -232,6 +232,7 @@ Form * BimaterialInterface::getCopy() const
 
 std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
+   
     std::vector<BoundaryCondition * > ret ;
 
     if(Jinv.size() == 0)
