@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
     if(load == -1)
     {
 //         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -5e6)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -5e6)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, -5e-6)) ;
     }
     if(load == 2)
     {

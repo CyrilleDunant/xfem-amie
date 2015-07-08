@@ -610,22 +610,25 @@ void HatEnrichment::eval(double * a, double * b, double * c) const
     {
         if(t.in(intersgeo[i]))
         {
-            if(g->in(s.midPoint()) && g->in(position))
+            if(g->in(p) && g->in(position))
             {
-                double distTot = dist(interseg, intersgeo[i]) ;
-                double distPos = dist(position, interseg) ;
-                *c = distPos/distTot ;
-                return ;
-            }
-            else
-            {
-                double distTot = dist(p, intersgeo[i]) ;
+                double distTot = std::max(dist(p, intersgeo[i]), 1e-8) ;
                 double distPos = dist(position, p) ;
                 *c = distPos/distTot ;
                 return ;
             }
+            else
+            {                
+                double distTot = std::max(dist(interseg, intersgeo[i]), 1e-8) ;
+                double distPos = dist(position, interseg) ;
+                *c = distPos/distTot ;
+                return ;
+
+            }
         }
     }
+    
+    *c = 0 ;
 }
 
 GeometryOperation * HatEnrichment::getCopy() const 

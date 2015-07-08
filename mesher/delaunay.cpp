@@ -2760,7 +2760,7 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
     to_add.push_back(new Point(0,1)) ;
     to_add.push_back(new Point(0,0)) ;
     to_add.push_back(new Point(1,0)) ;
-    return to_add ;
+//     return to_add ;
     Triangle tf ;
 
 // 	std::vector<std::vector<Segment> > segments ;
@@ -2850,11 +2850,11 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
     
     
     const GaussPointArray & gp = getGaussPoints() ;
-    size_t numberOfRefinements = 1 ;
+    size_t numberOfRefinements = 4 ;
     if(getEnrichmentFunctions().size() > 3)
         numberOfRefinements = 1 ;
     VirtualMachine vm ;
-    if(getEnrichmentFunctions().size() > 0 || dynamic_cast<BimaterialInterface *>(getBehaviour()) )
+    if(getEnrichmentFunctions().size() > 0)
     {
         double originalSum = 0 ;
         for(auto & i : gp.gaussPoints)
@@ -2927,11 +2927,11 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
         else
         {
 
-            if( true )
+            if( false )
             {
                 TriElement father(LINEAR) ;
 
-                size_t target = 1024 ;
+                size_t target = 8000 ;
 
                 while(gp_alternative.size() < target)
                 {
