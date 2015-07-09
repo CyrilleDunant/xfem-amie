@@ -1133,6 +1133,7 @@ public:
 
                 double sum = 0 ; 
                 strain.resize ( tsize, 0. ) ;
+                stress.resize ( tsize, 0. ) ;
                 for ( int i = 0 ; i < tsize ; i++ ) {
                         strain[i] = tmpstrain[i] ;
                     }
@@ -1143,7 +1144,7 @@ public:
                             continue ;
                     Point p(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
                     Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( p ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( p ) ) ;
-                    stress.resize ( tsize, 0. ) ;
+//
                    
                     Vector imposed = e->getBehaviour()->getImposedStress( p ) ;
                     for ( int i = 0 ; i < tsize ; i++ ) {

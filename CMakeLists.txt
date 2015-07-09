@@ -424,6 +424,9 @@ target_link_libraries( irradiation Amie ${ALL_LINK_FLAGS})
 add_executable(asr_visco examples/main_asr_visco.cpp )
 target_link_libraries( asr_visco Amie ${ALL_LINK_FLAGS} )
 
+add_executable(check_test examples/main_check_test.cpp )
+target_link_libraries( check_test Amie ${ALL_LINK_FLAGS} )
+
 #add_executable(from_mic examples/main_from_mic.cpp )
 #target_link_libraries( from_mic Amie ${ALL_LINK_FLAGS} )
 
@@ -445,4 +448,12 @@ target_link_libraries( tension_visco Amie ${ALL_LINK_FLAGS})
 add_executable( tension_visco_damage examples/main_tension_visco_damage.cpp )
 target_link_libraries( tension_visco_damage Amie ${ALL_LINK_FLAGS})
 
+add_executable( test_logcreep examples/test/main_test_logcreep.cpp )
+target_link_libraries( test_logcreep Amie ${ALL_LINK_FLAGS})
+
+add_executable( test_viscodamage_multilinearsoftening examples/test/main_test_viscodamage_multilinearsoftening.cpp )
+target_link_libraries( test_viscodamage_multilinearsoftening Amie ${ALL_LINK_FLAGS})
+
+add_executable( test_viscoelasticity_kv examples/test/main_test_viscoelasticity_kv.cpp )
+target_link_libraries( test_viscoelasticity_kv Amie ${ALL_LINK_FLAGS})
 
