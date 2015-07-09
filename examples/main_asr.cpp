@@ -61,6 +61,7 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
 {
     int nsteps = 800;
     int nstepstot = 800;
+    int intermediateCount=0 ;
     featureTree->setMaxIterationsPerStep( 4000 ) ;
 
     std::vector<Feature *> inclusionsAndBlocks =inclusions ;
@@ -88,7 +89,10 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
         std::string filename( "triangles" ) ;
 
         if( !go_on )
+        {
             filename = std::string( "intermediate-triangles" ) ;
+            intermediateCount++ ;
+        }
 
         if( !featureTree->solverConverged() )
             filename = std::string( "failed-triangles" ) ;
@@ -145,8 +149,9 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
         std::cout << std::endl ;
 
 
-        if( go_on )
+        if( go_on || intermediateCount > 1)
         {
+            intermediateCount = 0 ;
             featureTree->forceEnrichmentChange();
             double delta_r = sqrt( aggregateArea * 0.2 / ( ( double )zones.size() * M_PI ) ) / ( double )nstepstot ;
             double reactedArea = 0 ;
@@ -505,7 +510,7 @@ int main( int argc, char *argv[] )
     }
 
     zones = generateExpansiveZonesHomogeneously(nzones, placedinclusions, F , sample) ;
-    F.setSamplingNumber( 64 ) ;
+    F.setSamplingNumber( 72 ) ;
 
     if( restraintDepth > 0 )
     {

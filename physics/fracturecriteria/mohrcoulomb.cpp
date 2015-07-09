@@ -105,7 +105,10 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
     if( s.getParent()->getBehaviour()->fractured() )
         return -1 ;
 
-    double score =  getSmoothedField(PRINCIPAL_REAL_STRESS_FIELD, s).max() / upVal - 1.;
+    Vector stress =  getSmoothedField(PRINCIPAL_REAL_STRESS_FIELD, s) ;
+    double score = stress.max() / upVal - 1.;
+    if(std::abs(stress.max()) < std::abs(stress.min()))
+        score = std::abs(stress.min() / downVal) - 1.; ;
     if(score > 0)
         metInTension = true ;
     else
