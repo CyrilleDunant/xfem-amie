@@ -510,6 +510,11 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
         return ret ;
     }
 
+    if(type == "INCREMENTAL_THERMAL_EXPANSION")
+    {
+        return new IncrementalThermalExpansionMaterialLaw() ;
+    }
+
     if(type == "RADIATION_INDUCED_VOLUMETRIC_EXPANSION")
     {
         return new RadiationInducedExpansionMaterialLaw() ;
@@ -568,6 +573,13 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
         return ret ;
     }
 
+    if(type == "ADJUST_STRESS_STRAIN_CURVE")
+    {
+        std::string input = getStringData("input_parameter", "tensile_strength") ;
+        ret = new AdjustStrainStressCurveExternalMaterialLaw(input) ;
+        return ret ;
+    }
+
     if(type == "EXPONENTIAL_DECREASE")
     {
         ret = new ExponentiallyDecreasingMaterialLaw( getStringData("output_parameter", "none"), getStringData("target", "none"), getStringData("coefficient","none")) ;
@@ -577,6 +589,17 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
     if(type == "LOAD_NONLINEAR_CREEP")
     {
         ret = new LoadNonLinearCreepMaterialLaw() ;
+        return ret ;
+    }
+
+    if(type == "STORE_PREVIOUS_VALUE")
+    {
+        std::vector<std::string> input ;
+        std::vector<ConfigTreeItem *> cfg = getAllChildren("input_parameter") ;
+        for(size_t i = 0 ; i < cfg.size() ; i++)
+            input.push_back(cfg[i]->getStringData()) ;
+        std::string append = getStringData("append","_previous") ;
+        ret = new StorePreviousValueMaterialLaw( input, append ) ;
         return ret ;
     }
 
@@ -791,14 +814,26 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
     if(type == "MINIMUM" || type == "MAXIMUM")
     {
         std::vector<ConfigTreeItem *> all = getAllChildren("input_parameter") ;
-        std::vector<std::string> coord ;
-        for(size_t i = 0 ; i < all.size() ; i++)
-            coord.push_back( all[i]->getStringData() ) ;
-        EMLOperation add = ConfigTreeItem::translateEMLOperation(getStringData("operation","SET")) ;
-        if(type == "MINIMUM")
-            ret = new MinimumMaterialLaw(  getStringData("output_parameter","none"), coord, add ) ;
+        if(all.size() == 1)
+        {
+            std::string in = all[0]->getStringData() ;
+            double start = getData("initial_value", 0.) ;
+            if(type == "MAXIMUM" )
+                ret = new MaximumHistoryMaterialLaw( in, start ) ;
+            else
+                ret = new MinimumHistoryMaterialLaw( in, start ) ;
+        }
         else
-            ret = new MaximumMaterialLaw(  getStringData("output_parameter","none"), coord, add ) ;
+        {
+            std::vector<std::string> coord ;
+            for(size_t i = 0 ; i < all.size() ; i++)
+               coord.push_back( all[i]->getStringData() ) ;
+            EMLOperation add = ConfigTreeItem::translateEMLOperation(getStringData("operation","SET")) ;
+            if(type == "MINIMUM")
+                ret = new MinimumMaterialLaw(  getStringData("output_parameter","none"), coord, add ) ;
+            else
+                ret = new MaximumMaterialLaw(  getStringData("output_parameter","none"), coord, add ) ;
+        }
     }
 
     if(type == "GET_FIELD")
@@ -2624,7 +2659,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
             }
             else
             {
-                double f = F->get2DMesh()->getField( fields[i]->getStringData(), 0) ;
+                double f = F->get2DMesh()->getField( fields[i]->getStringData(), 0, fields[i]->getStringData("correction_factor", "correction_factor") ) ;
                 std::cout << f << "\t" ;
                 out << f << "\t" ;
             }
@@ -2649,7 +2684,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
                 }
                 else
                 {
-                    double f = F->get2DMesh()->getField( ffields[i]->getStringData(), cacheIndex[index]) ;
+                    double f = F->get2DMesh()->getField( ffields[i]->getStringData(), cacheIndex[index], ffields[i]->getStringData("correction_factor", "correction_factor") ) ;
                     std::cout << f << "\t" ;
                     out << f << "\t" ;
                 }
@@ -2712,6 +2747,43 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
             }
             delete p ;
 
+        }
+
+        nodes.clear() ;
+        nodes = getAllChildren("point_list") ;
+        for(size_t i = 0 ; i < nodes.size() ; i++)
+        {
+            Vector x = ConfigTreeItem::readLineAsVector( nodes[i]->getStringData("x") ) ;
+            Vector y = ConfigTreeItem::readLineAsVector( nodes[i]->getStringData("y") ) ;
+            for(size_t xi = 0 ; xi < x.size() ; xi++)
+            {
+                for(size_t yi = 0 ; yi < y.size() ; yi++)
+                {
+                    Point * p = new Point( x[xi] , y[yi] , 0 , ((int) (instant == "AFTER") - (int) (instant == "BEFORE")) ) ;
+                    std::vector<ConfigTreeItem *> ffields = nodes[i]->getAllChildren("field") ;
+                    for(size_t i = 0 ; i < ffields.size() ; i++)
+                    {
+                        bool isFieldType = true ;
+                        FieldType ft = ConfigTreeItem::translateFieldType( ffields[i]->getStringData(), isFieldType ) ;
+                        if(isFieldType)
+                        {
+                            Vector f = F->getField( ft, p , -1 , false, true) ;
+                            for(size_t j = 0 ; j < f.size() ; j++)
+                            {
+                                std::cout << f[j] << "\t" ;
+                                out << f[j] << "\t" ;
+                            }
+                        }
+                        else
+                        {
+//                    double f = F->getAverageFieldOnBoundary( pos, ffields[i]->getStringData(), -1, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
+//                    std::cout << f << "\t" ;
+//                    out << f << "\t" ;
+                        }
+                    }
+                    delete p ;
+                }
+            }
         }
 
         std::cout << std::endl ;

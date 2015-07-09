@@ -5916,13 +5916,13 @@ Vector FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, FieldT
                pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
                break ;
             case BOTTOM:
-               pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
+               pos = new Segment( tree[0]->getBoundingBox()[2], tree[0]->getBoundingBox()[3] ) ;
                break ;
             case LEFT:
-               pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
+               pos = new Segment( tree[0]->getBoundingBox()[3], tree[0]->getBoundingBox()[0] ) ;
                break ;
             case RIGHT:
-               pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
+               pos = new Segment( tree[0]->getBoundingBox()[1], tree[0]->getBoundingBox()[2] ) ;
                break ;
             default:
                std::cout << "cannot calculate field on selected boundary" << std::endl ;
@@ -5961,13 +5961,13 @@ double FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, std::s
                pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
                break ;
             case BOTTOM:
-               pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
+               pos = new Segment( tree[0]->getBoundingBox()[2], tree[0]->getBoundingBox()[3] ) ;
                break ;
             case LEFT:
-               pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
+               pos = new Segment( tree[0]->getBoundingBox()[3], tree[0]->getBoundingBox()[0] ) ;
                break ;
             case RIGHT:
-               pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
+               pos = new Segment( tree[0]->getBoundingBox()[1], tree[0]->getBoundingBox()[2] ) ;
                break ;
             default:
                std::cout << "cannot calculate field on selected boundary" << std::endl ;

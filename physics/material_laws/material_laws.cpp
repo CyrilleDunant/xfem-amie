@@ -52,7 +52,7 @@ void ConstantExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticEl
 void SpaceTimeDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )
 {
     Point p = s.getParent()->getCenter() ;
-    p.setT( s.getNodalCentralTime() ) ;
+    p.setT( s.getNodalCentralTime()+dt*0.5 ) ;
     switch(op)
     {
     case SET:
@@ -107,6 +107,15 @@ void AssignExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElem
     s.set(target, s.get(input, defaultValues)) ;
 }
 
+void StorePreviousValueMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+{
+    for(size_t i = 0 ; i < external.size() ; i++)
+    {
+        std::string target = external[i]+append ;
+        s.set(target, s.get(external[i], defaultValues)) ;
+    }
+}
+
 
 void VariableDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )
 {
@@ -114,7 +123,7 @@ void VariableDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVisco
     if(useSpaceTimeCoordinates)
     {
         p = s.getParent()->getCenter() ;
-        p.setT( s.getNodalCentralTime() ) ;
+        p.setT( s.getNodalCentralTime()+dt*0.5 ) ;
     }
     if( has('x')) {
         p.setX( s.get(coordinates['x'], defaultValues)) ;
@@ -234,7 +243,7 @@ void LinearInterpolatedExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVisc
     else if(external.first == std::string("z"))
         v = get(s.getParent()->getCenter().getZ()) ;
     else if(external.first == std::string("t"))
-        v = get(s.getNodalCentralTime()) ;
+        v = get(s.getNodalCentralTime()+dt*0.5) ;
     else
         v = get(s.get(external.first, defaultValues)) ;
     switch(op)
@@ -271,7 +280,7 @@ void LinearBiInterpolatedExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVi
     else if(input.first == std::string("z"))
         x = s.getParent()->getCenter().getZ() ;
     else if(input.first == std::string("t"))
-        x = s.getNodalCentralTime() ;
+        x = s.getNodalCentralTime()+dt*0.5 ;
     else
         x = s.get(input.first, defaultValues) ;
 
@@ -283,7 +292,7 @@ void LinearBiInterpolatedExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVi
     else if(input.second == std::string("z"))
         y = s.getParent()->getCenter().getZ() ;
     else if(input.second == std::string("t"))
-        y = s.getNodalCentralTime() ;
+        y = s.getNodalCentralTime()+dt*0.5 ;
     else
         y = s.get(input.second, defaultValues) ;
 
@@ -467,6 +476,25 @@ void MaximumMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStat
     }
 }
 
+void MaximumHistoryMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+{
+    double v = s.get( external, defaultValues ) ;
+    if(!s.has( max ))
+        s.set( max, start ) ;
+    double vmax = s.get( max, defaultValues ) ;
+    if(v > vmax)
+        s.set( max, v ) ;
+}
+
+void MinimumHistoryMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+{
+    double v = s.get( external, defaultValues ) ;
+    if(!s.has( max ))
+        s.set( max, start ) ;
+    double vmax = s.get( max, defaultValues ) ;
+    if(v < vmax)
+        s.set( max, v ) ;
+}
 
 void MinimumMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {

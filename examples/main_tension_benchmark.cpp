@@ -112,10 +112,10 @@ int main(int argc, char *argv[])
 
 	FeatureTree F( &sample ) ;
 	F.setSamplingNumber( check ? 1 : sampling) ;
-	F.setMaxIterationsPerStep(2000) ;
+	F.setMaxIterationsPerStep(20000) ;
 	F.setMinDeltaTime(1e-9) ;
 	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, spaceTime ? LEFT_AFTER : LEFT) ) ;
-	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, spaceTime ? BOTTOM_LEFT_AFTER : BOTTOM_LEFT ) ) ;
+	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, spaceTime ? BOTTOM_AFTER : BOTTOM ) ) ;
 
 	if(!check)
 	{
@@ -132,12 +132,13 @@ int main(int argc, char *argv[])
 	BoundingBoxDefinedBoundaryCondition * disp = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_XI, spaceTime ? RIGHT_AFTER : RIGHT, 0. ) ;
 	F.addBoundaryCondition( disp ) ;
 
-	for(size_t i = 0 ; i < 100 ; i++)
+	for(size_t i = 0 ; i < 1000 ; i++)
 	{
-		disp->setData( i*(check ? 0.0000005 : 0.000001) ) ;
+		disp->setData( i*(check ? 0.00000005 : 0.0000001) ) ;
 		F.step() ;
 		std::cout << F.getCurrentTime() << "\t" << F.getAverageField( STRAIN_FIELD, -1,1 )[0] << "\t" << F.getAverageField( REAL_STRESS_FIELD, -1,1 )[0] << "\t" << F.getAverageField( SCALAR_DAMAGE_FIELD, -1,1 )[0] << std::endl ;
 		out << F.getCurrentTime() << "\t" << F.getAverageField( STRAIN_FIELD, -1,1 )[0] << "\t" << F.getAverageField( REAL_STRESS_FIELD, -1,1 )[0] << "\t" << F.getAverageField( SCALAR_DAMAGE_FIELD, -1,1 )[0] << std::endl ;
+
 
 		std::string trgf = "trg"+index+"_"+itoa(i) ;
 
@@ -147,6 +148,11 @@ int main(int argc, char *argv[])
 		trg.getField( SCALAR_DAMAGE_FIELD ) ;
 		trg.getField( TWFT_STIFFNESS ) ;
 		trg.write() ;
+
+		if( i > 1 && F.getAverageField( REAL_STRESS_FIELD, -1,1 )[0] < 100)
+			break ;
+
+
 	}
 
 	gettimeofday ( &time1, nullptr );

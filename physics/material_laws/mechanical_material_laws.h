@@ -25,6 +25,16 @@ struct BulkShearConversionExternalMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 } ;
 
+struct AdjustStrainStressCurveExternalMaterialLaw : public ExternalMaterialLaw
+{
+    std::string base ;
+
+    AdjustStrainStressCurveExternalMaterialLaw( std::string b, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), base(b) { } 
+    virtual ~AdjustStrainStressCurveExternalMaterialLaw() { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+} ;
+
 struct LoadNonLinearCreepMaterialLaw : public ExternalMaterialLaw
 {
     LoadNonLinearCreepMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { } 

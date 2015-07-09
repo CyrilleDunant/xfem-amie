@@ -12,6 +12,20 @@ void ThermalExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticEle
     s.add("imposed_deformation", alpha*(T-T0)) ;
 }
 
+void IncrementalThermalExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+{
+    if(!s.has("thermal_deformation"))
+        s.set("thermal_deformation", 0.) ;
+
+    double T = s.get("temperature", defaultValues) ;
+    if(!s.has("temperature_previous"))
+        s.set("temperature_previous", T) ;
+    double T0 = s.get("temperature_previous", defaultValues) ;
+    double alpha = s.get("thermal_expansion_coefficient", defaultValues) ;
+    s.add("thermal_deformation", alpha*(T-T0)) ;
+    s.add("imposed_deformation", s.get("thermal_deformation", defaultValues) ) ;
+}
+
 void RadiationInducedExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     double kappa = s.get("radiation_expansion_delay",defaultValues) ;
@@ -25,14 +39,8 @@ void TemperatureDependentRadiationInducedExpansionMaterialLaw::preProcess(Genera
 {
     if(!s.has("rive_previous"))
         s.set("rive_previous", 0.) ;
-    if(!s.has("temperature_previous"))
-        s.set("temperature_previous", s.get("temperature", defaultValues)) ;
     if(s.has("neutron_flux") && !s.has("neutron_fluence"))
         s.set("neutron_fluence", 0.) ;
-    if(!s.has("neutron_fluence_previous"))
-    {
-        s.set("neutron_fluence_previous", s.get("neutron_fluence", defaultValues)) ;
-    }
 
     double eps_max = s.get("maximum_radiation_expansion",defaultValues) ;
     double eps_prev = s.get("rive_previous", defaultValues) ;
@@ -48,8 +56,10 @@ void TemperatureDependentRadiationInducedExpansionMaterialLaw::preProcess(Genera
     double bl = s.get("latency_fluence_correction", defaultValues) ;
     double alpha = s.get("rive_integration_coefficient",defaultValues) ;
 
-    double t_prev = s.get("temperature_previous", defaultValues)-273 ;
     double t_next = s.get("temperature", defaultValues)-273 ;
+    if(!s.has("temperature_previous"))
+        s.set("temperature_previous", t_next+273) ;
+    double t_prev = s.get("temperature_previous", defaultValues)-273 ;
     double phi_prev = s.get("neutron_fluence_previous", defaultValues) ;
     double phi_next = phi_prev ;
     if(s.has("neutron_flux"))
@@ -74,10 +84,7 @@ void TemperatureDependentRadiationInducedExpansionMaterialLaw::preProcess(Genera
     double eps_next = std::min( eps_max, eps_prev + ( ( alpha*delta_eps_prev + (1.-alpha)*delta_eps_next ) * (phi_next - phi_prev) ) ) ;
 
     s.add("imposed_deformation", eps_next) ;
-   
     s.set("rive_previous", eps_next) ;
-    s.set("neutron_fluence_previous", phi_next) ;
-    s.set("temperature_previous", t_next+273) ;
 }
 
 ArrheniusMaterialLaw::ArrheniusMaterialLaw(std::string a, std::string args, char sep) : ExternalMaterialLaw(args, sep), affected(a)

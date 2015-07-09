@@ -222,6 +222,45 @@ struct MinimumMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 } ;
 
+struct MaximumHistoryMaterialLaw : public ExternalMaterialLaw
+{
+    std::string external ;
+    std::string max ;
+    double start ;
+    
+    MaximumHistoryMaterialLaw( std::string in, double s = 0., std::string append = std::string("_maximum"), std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), external(in), max(in+append), start(s) { } ;
+
+    virtual ~MaximumHistoryMaterialLaw() { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+} ;
+
+struct StorePreviousValueMaterialLaw : public ExternalMaterialLaw
+{
+    std::vector<std::string>  external ;
+    std::string append ;
+    
+    StorePreviousValueMaterialLaw( std::vector<std::string> ext, std::string app = std::string("_previous"), std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), external(ext), append(app) { } ;
+
+    virtual ~StorePreviousValueMaterialLaw() { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+} ;
+
+
+struct MinimumHistoryMaterialLaw : public ExternalMaterialLaw
+{
+    std::string external ;
+    std::string max ;
+    double start ;
+    
+    MinimumHistoryMaterialLaw( std::string in, double s = 0., std::string append = std::string("_maximum"), std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), external(in), max(in+append), start(s) { } ;
+
+    virtual ~MinimumHistoryMaterialLaw() { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+} ;
+
 struct MaximumMaterialLaw : public ExternalMaterialLaw
 {
     std::string external ;

@@ -714,20 +714,21 @@ public:
         allElementsCacheID = -1 ;
     }
 
-    virtual double getField ( std::string f, int cacheID ) {
+    virtual double getField ( std::string f, int cacheID, std::string correction = std::string("correction_factor") ) {
         double ret = 0. ;
         unsigned int realID = cacheID ;
         if(cacheID == -1)
             realID = allElementsCacheID ;
         double w = 0. ;
         std::map<std::string, double> dummy ;
+        dummy[correction] = 1 ;
         bool is2d = (static_cast<ETYPE *> ( getInTree ( caches[realID][0] ) )->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ;
         for ( size_t i = 0 ; i < caches[realID].size() ; i++ ) {
             if( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(&static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState()))
             {
                 if(dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(&static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState())->has(f))
                 {
-                    double a = ((is2d) ? static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->area() : static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->volume()) ;
+                    double a = ((is2d) ? static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->area() : static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->volume())*dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & >(static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState()).get(correction, dummy) ;
                     ret += dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & >(static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState()).get(f, dummy)*a ;
                     w += a ;
                 }
@@ -1240,8 +1241,8 @@ public:
             }
             if ( f0 == PRINCIPAL_REAL_STRESS_FIELD ) {
                 first.resize ( psize );
-                stress.resize ( tsize, 0. );
                 if ( !spaceTime ) {
+                    stress.resize ( tsize, 0. );
                     double sum = 0 ; 
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
@@ -1260,8 +1261,8 @@ public:
             }
             if ( f1 == PRINCIPAL_REAL_STRESS_FIELD ) {
                 second.resize ( psize );
-                stress.resize ( tsize, 0. );
                 if ( !spaceTime ) {
+                    stress.resize ( tsize, 0. );
                     double sum = 0 ; 
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
