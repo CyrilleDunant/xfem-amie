@@ -641,4 +641,60 @@ int HatEnrichment::adressOffset() const
     return -2 ;
 }
 
+HatEnrichment3D::HatEnrichment3D(const Geometry * g , const Point & p, const TriPoint & s) :g(g), p(p), s(s) {}
+
+void HatEnrichment3D::eval(double * a, double * b, double * c) const
+{
+    std::cout << *a << "  " << *b << "  " << *c << std::endl ;
+    Point position ( *a, *b, *c ) ;
+    Line l(p, p-position) ;
+    Tetrahedron t (p, s.first(), s.second(), s.third()) ;
+    
+    std::vector<Point> interseg = l.intersection(s) ;
+    if(interseg.empty())
+    {
+       s.first().print();
+       s.second().print();
+       s.third().print();
+       p.print();
+//        position.print();
+       *c = 0 ;
+       return ;
+    }
+    std::vector<Point> intersgeo = l.intersection(g) ;
+    for(size_t i = 0 ;  i < intersgeo.size() ; i++)
+    {
+        if(t.in(intersgeo[i]))
+        {
+            if(g->in(p) && g->in(position))
+            {
+                double distTot = std::max(dist(p, intersgeo[i]), 1e-8) ;
+                double distPos = dist(position, p) ;
+                *c = distPos/distTot ;
+                return ;
+            }
+            else
+            {                
+                double distTot = std::max(dist(interseg.front(), intersgeo[i]), 1e-8) ;
+                double distPos = dist(position, interseg.front()) ;
+                *c = distPos/distTot ;
+                return ;
+
+            }
+        }
+    }
+    
+    *c = 0 ;
+}
+
+GeometryOperation * HatEnrichment3D::getCopy() const 
+{
+    return new HatEnrichment3D(g, p, s) ;
+}
+
+int HatEnrichment3D::adressOffset() const 
+{ 
+    return -2 ;
+}
+
 

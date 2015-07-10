@@ -3351,20 +3351,20 @@ Point Line::intersection(const Segment &s) const
 
 bool Line::intersects(const TriPoint &g) const
 {
-    if(isCoplanar(g.point[1],g.point[0], g.point[2],&p))
+    if(isCoplanar(&g.point[1],&g.point[0], &g.point[2],&p))
         return true ;
 
     Matrix mat(3,3) ;
 
     mat[0][0] = v.getX();
-    mat[0][1] = g.point[1]->getX()-g.point[0]->getX();
-    mat[0][2] = g.point[2]->getX()-g.point[0]->getX();
+    mat[0][1] = g.point[1].getX()-g.point[0].getX();
+    mat[0][2] = g.point[2].getX()-g.point[0].getX();
     mat[1][0] = v.getY();
-    mat[1][1] = g.point[1]->getY()-g.point[0]->getY();
-    mat[1][2] = g.point[2]->getY()-g.point[0]->getY();
+    mat[1][1] = g.point[1].getY()-g.point[0].getY();
+    mat[1][2] = g.point[2].getY()-g.point[0].getY();
     mat[2][0] = v.getZ();
-    mat[2][1] = g.point[1]->getZ()-g.point[0]->getZ();
-    mat[2][2] = g.point[2]->getZ()-g.point[0]->getZ();
+    mat[2][1] = g.point[1].getZ()-g.point[0].getZ();
+    mat[2][2] = g.point[2].getZ()-g.point[0].getZ();
     return abs(det(mat)) > POINT_TOLERANCE ;
 
 
@@ -3372,24 +3372,69 @@ bool Line::intersects(const TriPoint &g) const
 
 std::vector<Point> Line::intersection(const TriPoint &s) const
 {
-    Point v = *s.point[2]-*s.point[0] ;
-    double a = -(s.normal*(p-*s.point[0])) ;
-    double b = v*s.normal ;
-
-    if(b < POINT_TOLERANCE)
+    Point u = s.point[1]-s.point[0] ;
+    Point vec = s.point[2]-s.point[0] ;
+    Point w0 = p-s.point[0] ;
+    double a = s.normal*w0 ;
+    double b = s.normal*v ;
+    
+    if(std::abs(b) < POINT_TOLERANCE)
     {
         if(abs(a) > POINT_TOLERANCE)
             return std::vector<Point>(0) ;
-
-        Triangle t(*s.point[0], *s.point[1], *s.point[2]) ;
-        return this->intersection(&t) ;
+        
+        Triangle t(s.point[0], s.point[1], s.point[2]) ;
+        return intersection(&t) ;
     }
-
+    
     double r = a/b ;
-
+    
+    if(r < 0)
+        r = -r ;
+    
+    Point inter = p + r*v ;
+    double uu, uv, vv, wu, wv, D;
+    uu = u*u;
+    uv = u*vec;
+    vv = vec*vec;
+    Point w = inter -s.point[0];
+    wu = w*u;
+    wv = w*vec;
+    D = uv * uv - uu * vv;
+    double ss, t ;
+    ss = (uv * wv - vv * wu) / D;
+    if (ss < 0.0 || ss > 1.0)
+         return std::vector<Point>(0) ;
+    t = (uv * wu - uu * wv) / D;
+    if (t < 0.0 || (ss + t) > 1.0)
+         return std::vector<Point>(0) ;
     std::vector<Point> ret ;
-    ret.push_back( p+v*r) ;
+    ret.push_back(inter);
     return ret ;
+    
+//     Point vec = s.point[2]-s.point[0] ;
+//     double a = -(s.normal*(p-s.point[0])) ;
+//     double b = vec*s.normal ;
+
+//     if(b < POINT_TOLERANCE)
+//     {
+//         if(abs(a) > POINT_TOLERANCE)
+//             return std::vector<Point>(0) ;
+// 
+//         Triangle t(s.point[0], s.point[1], s.point[2]) ;
+//         return intersection(&t) ;
+//     }
+// 
+//     double r = a/b ;
+// 
+//     std::vector<Point> ret ;
+//     Point p0 = p + v*r ;
+//     Point p1 = p - v*r ;
+//     if(s.in(p0))
+//         ret.push_back( p0) ;
+//     if(s.in(p1))
+//         ret.push_back( p1) ;
+//     return ret ;
 }
 
 bool Line::intersects(const Geometry *g) const
@@ -4065,11 +4110,11 @@ bool Segment::intersects(const Geometry *g) const
 bool Segment::intersects(const TriPoint *g) const
 {
 
-    Point v(*g->point[1] - *g->point[0]) ;
-    Point u(*g->point[2] - *g->point[0]) ;
+    Point v(g->point[1] - g->point[0]) ;
+    Point u(g->point[2] - g->point[0]) ;
 
     Point dir = first() - second();
-    Point w0 = second() - *g->point[0];
+    Point w0 = second() - g->point[0];
     Point n = u ^ v ;
     double a = -(n*w0) ;
     double b = n*dir;
@@ -4086,7 +4131,7 @@ bool Segment::intersects(const TriPoint *g) const
         return false ;
 
     Point intersect(second()+dir*r) ;
-    Point w(intersect-*g->point[0]) ;
+    Point w(intersect-g->point[0]) ;
 
     double uv = u*v;
     double wu = u*w;
@@ -4792,9 +4837,9 @@ Point Segment::intersection(const Line & l) const
 
 TriPoint::TriPoint(const Point * p0, const Point * p1, const Point * p2) : point(3)
 {
-    point[0] = p0 ;
-    point[1] = p1 ;
-    point[2] = p2 ;
+    point[0] = *p0 ;
+    point[1] = *p1 ;
+    point[2] = *p2 ;
     normal = (*p0-*p1)^(*p2-*p1) ;
     center = (*p0+*p1+*p2)/3. ;
     double n =  normal.norm() ;
@@ -4803,9 +4848,22 @@ TriPoint::TriPoint(const Point * p0, const Point * p1, const Point * p2) : point
 
 }
 
+TriPoint::TriPoint(const Point & p0, const Point & p1, const Point & p2) : point(3)
+{
+    point[0] = p0 ;
+    point[1] = p1 ;
+    point[2] = p2 ;
+    normal = (p0-p1)^(p2-p1) ;
+    center = (p0+p1+p2)/3. ;
+    double n =  normal.norm() ;
+    if(n > POINT_TOLERANCE)
+        normal /= n ;
+
+}
+
 double TriPoint::area() const
 {
-    return .5* ((*point[0]-*point[1])^(*point[2]-*point[1])).norm() ;
+    return .5* ((point[0]-point[1])^(point[2]-point[1])).norm() ;
 }
 
 Vector TriPoint::normalv() const
@@ -4833,16 +4891,16 @@ Vector TriPoint::normalv(const Point & p) const
 
 Point TriPoint::projection(const Point & p) const
 {
-    Plane plane(*point[0], normal) ;
+    Plane plane(point[0], normal) ;
 
     Point planProj = plane.projection(p) ;
 
     if(in(planProj))
         return planProj ;
 
-    Segment s0(*point[0], *point[1]) ;
-    Segment s1(*point[0], *point[2]) ;
-    Segment s2(*point[1], *point[2]) ;
+    Segment s0(point[0], point[1]) ;
+    Segment s1(point[0], point[2]) ;
+    Segment s2(point[1], point[2]) ;
 
     Point sproj0 = s0.project(planProj) ;
     double d0 = squareDist3D(p, sproj0) ;
@@ -4862,13 +4920,13 @@ Point TriPoint::projection(const Point & p) const
 
 bool TriPoint::in(const Point & p) const
 {
-    Point u = *point[1]-*point[0] ;
-    Point v = *point[2]-*point[0] ;
+    Point u = point[1]-point[0] ;
+    Point v = point[2]-point[0] ;
 
     double uu = u*u ;
     double uv = u*v ;
     double vv = v*v ;
-    Point w = p - *point[0] ;
+    Point w = p - point[0] ;
     double wu = w*u ;
     double wv = w*v ;
     double d = uv*uv-uu*vv ;
@@ -4880,7 +4938,7 @@ bool TriPoint::in(const Point & p) const
 
     double t = (uv * wu - uu * wv) / d;
 
-    if (t < 0. || (q + t) > 1.)
+    if (t < -POINT_TOLERANCE || (q + t) > 1.+POINT_TOLERANCE)
         return false;
 
     return true;
@@ -4889,15 +4947,15 @@ bool TriPoint::in(const Point & p) const
 std::valarray<std::pair<Point, double> > TriPoint::getGaussPoints(bool timeDependent) const
 {
     std::valarray< std::pair<Point, double> > gp(4+4*timeDependent) ;
-    Point origin(*point[1]) ;
-    Point y(*point[0]) ;
-    Point x(*point[2]) ;
+    Point origin(point[1]) ;
+    Point y(point[0]) ;
+    Point x(point[2]) ;
     y -= origin ;
     x -= origin ;
     Point a = origin + x*0.2 + y*0.2 ;
     Point b = origin + x*0.6 + y*0.2 ;
     Point c = origin + x*0.2 + y*0.6 ;
-    Point d = (*point[0]+*point[1]+*point[2])/3.0 ;
+    Point d = (point[0]+point[1]+point[2])/3.0 ;
 //	double n = norm() ;
 
     double ar = area()*2. ;
@@ -4929,11 +4987,11 @@ std::valarray<std::pair<Point, double> > TriPoint::getGaussPoints(bool timeDepen
 bool Segment::intersects(const TriPoint &g) const
 {
 
-    Point v(*g.point[1]-*g.point[0]) ;
-    Point u(*g.point[2]-*g.point[0]) ;
+    Point v(g.point[1]-g.point[0]) ;
+    Point u(g.point[2]-g.point[0]) ;
 
     Point dir = first() - second();
-    Point w0 = second() - *g.point[0];
+    Point w0 = second() - g.point[0];
     double a = -((u ^ v)*w0) ;
     double b = (u ^ v)*dir;
     if (std::abs(b) < POINT_TOLERANCE*POINT_TOLERANCE)
@@ -4950,7 +5008,7 @@ bool Segment::intersects(const TriPoint &g) const
         return false ;
 
     Point intersect(second()+dir*r) ;
-    Point w(intersect-*g.point[0]) ;
+    Point w(intersect-g.point[0]) ;
 
     double uv = u*v;
     double wu = u*w;
@@ -5007,33 +5065,33 @@ Point Segment::intersection(const Segment &l) const
 std::vector<Point> Segment::intersection(const TriPoint &g) const
 {
     std::vector<Point> ret ;
-    if(isCoplanar(f, *g.point[0],*g.point[1],*g.point[2]))
+    if(isCoplanar(f, g.point[0],g.point[1],g.point[2]))
         if( g.in(f))
         {
             ret.push_back(f) ;
         }
 
-    if(isCoplanar(s, *g.point[0],*g.point[1],*g.point[2]))
+    if(isCoplanar(s, g.point[0],g.point[1],g.point[2]))
         if( g.in(s))
         {
             ret.push_back(s) ;
         }
 
     Vector vec(3) ;
-    vec[0] = f.getX() - g.point[0]->getX() ;
-    vec[1] = f.getY() - g.point[0]->getY() ;
-    vec[2] = f.getZ() - g.point[0]->getZ() ;
+    vec[0] = f.getX() - g.point[0].getX() ;
+    vec[1] = f.getY() - g.point[0].getY() ;
+    vec[2] = f.getZ() - g.point[0].getZ() ;
 
     Matrix mat(3,3) ;
     mat[0][0] = f.getX()-s.getX();
-    mat[0][1] = g.point[1]->getX()-g.point[0]->getX();
-    mat[0][2] = g.point[2]->getX()-g.point[0]->getX();
+    mat[0][1] = g.point[1].getX()-g.point[0].getX();
+    mat[0][2] = g.point[2].getX()-g.point[0].getX();
     mat[1][0] = f.getY()-s.getY();
-    mat[1][1] = g.point[1]->getY()-g.point[0]->getY();
-    mat[1][2] = g.point[2]->getY()-g.point[0]->getY();
+    mat[1][1] = g.point[1].getY()-g.point[0].getY();
+    mat[1][2] = g.point[2].getY()-g.point[0].getY();
     mat[2][0] = f.getZ()-s.getZ();
-    mat[2][1] = g.point[1]->getZ()-g.point[0]->getZ();
-    mat[2][2] = g.point[2]->getZ()-g.point[0]->getZ();
+    mat[2][1] = g.point[1].getZ()-g.point[0].getZ();
+    mat[2][2] = g.point[2].getZ()-g.point[0].getZ();
     Vector tuv = inverse3x3Matrix(mat)*vec ;
     ret.push_back(f+ (s-f)*tuv[0]) ;
     return ret ;

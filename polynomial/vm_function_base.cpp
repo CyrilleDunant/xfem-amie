@@ -118,170 +118,171 @@ void concatenateFunctions(const Function & src0, const Function & src1, Function
 
 void concatenateFunctions(const Function & src0_, const Function & src1_, const Function & src2_, Function & dst)
 {
+    Function tmpdst = dst;
     Function src0(src0_) ;
     Function src1(src1_) ;
     Function src2(src2_) ;
-    dst.adress_a = src0.adress_a ;
-    dst.byteCode = src0.byteCode ;
-    dst.hasGeoOp = src0.hasGeoOp || src1.hasGeoOp || src2.hasGeoOp  || dst.hasGeoOp;
-    if(dst.hasGeoOp )
-        dst.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
+    tmpdst.adress_a = src0.adress_a ;
+    tmpdst.byteCode = src0.byteCode ;
+    tmpdst.hasGeoOp = src0.hasGeoOp || src1.hasGeoOp || src2.hasGeoOp  || dst.hasGeoOp;
+    if(tmpdst.hasGeoOp )
+        tmpdst.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 
     for(size_t i = 0 ; i < src0.values.size() ; i++)
-        dst.values.push_back(src0.values[i]) ;
+        tmpdst.values.push_back(src0.values[i]) ;
     for(size_t i = 0 ; i < src1.values.size() ; i++)
-        dst.values.push_back( src1.values[i]) ;
+        tmpdst.values.push_back( src1.values[i]) ;
     for(size_t i = 0 ; i < src2.values.size() ; i++)
-        dst.values.push_back( src2.values[i]) ;
+        tmpdst.values.push_back( src2.values[i]) ;
 
     if(src0.hasGeoOp)
         for(size_t i = 0 ; i < src0.byteCode.size() ; i++)
         {
             if(src0.geo_op[i])
-                dst.geo_op[i] = src0.geo_op[i]->getCopy() ;
+                tmpdst.geo_op[i] = src0.geo_op[i]->getCopy() ;
         }
 
-    dst.adress_t.resize( src0.adress_t.size() + src1.adress_t.size() + src2.adress_t.size(), 0) ;
-    for(size_t i = 0 ; i < dst.adress_t.size() ; i++)
-        dst.adress_t[i] = HEAP_VARIABLE_TRANSFORM_OFFSET + i ;
+    tmpdst.adress_t.resize( src0.adress_t.size() + src1.adress_t.size() + src2.adress_t.size(), 0) ;
+    for(size_t i = 0 ; i < tmpdst.adress_t.size() ; i++)
+        tmpdst.adress_t[i] = HEAP_VARIABLE_TRANSFORM_OFFSET + i ;
 
     for(size_t i = 0 ; i < src0.adress_t.size() ; i++)
     {
         Function f = src0.transform(i) ;
-        dst.setVariableTransform( src0.transformed[0], f, false);
+        tmpdst.setVariableTransform( src0.transformed[0], f, false);
     }
 
     for(size_t i = 0 ; i < src1.adress_t.size() ; i++)
     {
         Function f = src1.transform(i) ;
-        dst.setVariableTransform( src1.transformed[i], f , false);
+        tmpdst.setVariableTransform( src1.transformed[i], f , false);
     }
 
     for(size_t i = 0 ; i < src2.adress_t.size() ; i++)
     {
         Function f = src2.transform(i) ;
-        dst.setVariableTransform( src2.transformed[i], f , false);
+        tmpdst.setVariableTransform( src2.transformed[i], f , false);
     }
 
     for(size_t i = 0 ; i < src1.byteCode.size() ; i++)
     {
-        dst.byteCode.push_back(src1.byteCode[i]) ;
-        dst.adress_a.push_back(0);
-        dst.adress_a.push_back(0);
-        dst.adress_a.push_back(0);
-        dst.adress_a.push_back(0);
+        tmpdst.byteCode.push_back(src1.byteCode[i]) ;
+        tmpdst.adress_a.push_back(0);
+        tmpdst.adress_a.push_back(0);
+        tmpdst.adress_a.push_back(0);
+        tmpdst.adress_a.push_back(0);
 
         if(src1.hasGeoOp)
             if(src1.geo_op[i])
-                dst.geo_op[i+src0.byteCode.size()] = src1.geo_op[i]->getCopy() ;
+                tmpdst.geo_op[i+src0.byteCode.size()] = src1.geo_op[i]->getCopy() ;
 
         if(src1.adress_a[i*4] >= HEAP_SIZE-src1.values.size())
         {
-            dst.adress_a[(i+src0.byteCode.size())*4] = src1.adress_a[i*4]-src0.values.size() ;
+            tmpdst.adress_a[(i+src0.byteCode.size())*4] = src1.adress_a[i*4]-src0.values.size() ;
         }
 
         if(src1.adress_a[i*4+1] >= HEAP_SIZE-src1.values.size())
         {
-            dst.adress_a[(i+src0.byteCode.size())*4+1] = src1.adress_a[i*4+1]-src0.values.size() ;
+            tmpdst.adress_a[(i+src0.byteCode.size())*4+1] = src1.adress_a[i*4+1]-src0.values.size() ;
         }
 
         if(src1.adress_a[i*4+2] >= HEAP_SIZE-src1.values.size())
         {
-            dst.adress_a[(i+src0.byteCode.size())*4+2] = src1.adress_a[i*4+2]-src0.values.size() ;
+            tmpdst.adress_a[(i+src0.byteCode.size())*4+2] = src1.adress_a[i*4+2]-src0.values.size() ;
         }
 
         if(src1.adress_a[i*4] >= 8 && src1.adress_a[i*4] < HEAP_SIZE-src1.values.size())
-            dst.adress_a[(i+src0.byteCode.size())*4] = src1.adress_a[i*4]+1 ;
+            tmpdst.adress_a[(i+src0.byteCode.size())*4] = src1.adress_a[i*4]+1 ;
 
         if(src1.adress_a[i*4+1] >= 8 && src1.adress_a[i*4+1] < HEAP_SIZE-src1.values.size())
-            dst.adress_a[(i+src0.byteCode.size())*4+1] = src1.adress_a[i*4+1]+1 ;
+            tmpdst.adress_a[(i+src0.byteCode.size())*4+1] = src1.adress_a[i*4+1]+1 ;
 
         if(src1.adress_a[i*4+2] >= 8 && src1.adress_a[i*4+2] < HEAP_SIZE-src1.values.size())
-            dst.adress_a[(i+src0.byteCode.size())*4+2] = src1.adress_a[i*4+2]+1 ;
+            tmpdst.adress_a[(i+src0.byteCode.size())*4+2] = src1.adress_a[i*4+2]+1 ;
 
         if(src1.adress_a[i*4] >= HEAP_VARIABLE_TRANSFORM_OFFSET && src1.adress_a[i*4] < HEAP_SIZE - src1.values.size()-1)
         {
-            dst.adress_a[ (i+src0.byteCode.size())*4 ] = src1.adress_a[i*4]+src0.adress_t.size() ;
+            tmpdst.adress_a[ (i+src0.byteCode.size())*4 ] = src1.adress_a[i*4]+src0.adress_t.size() ;
         }
         if(src1.adress_a[i*4+1] >= HEAP_VARIABLE_TRANSFORM_OFFSET && src1.adress_a[i*4+1] < HEAP_SIZE - src1.values.size()-1)
         {
-            dst.adress_a[ (i+src0.byteCode.size())*4+1 ] = src1.adress_a[i*4+1]+src0.adress_t.size() ;
+            tmpdst.adress_a[ (i+src0.byteCode.size())*4+1 ] = src1.adress_a[i*4+1]+src0.adress_t.size() ;
         }
         if(src1.adress_a[i*4+2] >= HEAP_VARIABLE_TRANSFORM_OFFSET && src1.adress_a[i*4+2] < HEAP_SIZE - src1.values.size()-1)
         {
-            dst.adress_a[ (i+src0.byteCode.size())*4+2 ] = src1.adress_a[i*4+2]+src0.adress_t.size() ;
+            tmpdst.adress_a[ (i+src0.byteCode.size())*4+2 ] = src1.adress_a[i*4+2]+src0.adress_t.size() ;
         }
 
         if(src1.adress_a[i*4] < 8 )
-            dst.adress_a[(i+src0.byteCode.size())*4] = src1.adress_a[i*4] ;
+            tmpdst.adress_a[(i+src0.byteCode.size())*4] = src1.adress_a[i*4] ;
 
         if(src1.adress_a[i*4+1] < 8 )
-            dst.adress_a[(i+src0.byteCode.size())*4+1] = src1.adress_a[i*4+1] ;
+            tmpdst.adress_a[(i+src0.byteCode.size())*4+1] = src1.adress_a[i*4+1] ;
 
         if(src1.adress_a[i*4+2] < 8 )
-            dst.adress_a[(i+src0.byteCode.size())*4+2] = src1.adress_a[i*4+2] ;
+            tmpdst.adress_a[(i+src0.byteCode.size())*4+2] = src1.adress_a[i*4+2] ;
     }
 
     for(size_t i = 0 ; i < src2.byteCode.size() ; i++)
     {
-        dst.byteCode.push_back(src2.byteCode[i]) ;
-        dst.adress_a.push_back(0);
-        dst.adress_a.push_back(0);
-        dst.adress_a.push_back(0);
-        dst.adress_a.push_back(0);
+        tmpdst.byteCode.push_back(src2.byteCode[i]) ;
+        tmpdst.adress_a.push_back(0);
+        tmpdst.adress_a.push_back(0);
+        tmpdst.adress_a.push_back(0);
+        tmpdst.adress_a.push_back(0);
 
         if(src2.hasGeoOp)
             if(src2.geo_op[i])
-                dst.geo_op[i+src0.byteCode.size()+src1.byteCode.size()] = src2.geo_op[i]->getCopy() ;
+                tmpdst.geo_op[i+src0.byteCode.size()+src1.byteCode.size()] = src2.geo_op[i]->getCopy() ;
 
         if(src2.adress_a[i*4] >= HEAP_SIZE-src2.values.size())
         {
-            dst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4] = src2.adress_a[i*4]-src0.values.size()-src1.values.size() ;
+            tmpdst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4] = src2.adress_a[i*4]-src0.values.size()-src1.values.size() ;
         }
 
         if(src2.adress_a[i*4+1] >= HEAP_SIZE-src2.values.size())
         {
-            dst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4+1] = src2.adress_a[i*4+1]-src0.values.size()-src1.values.size() ;
+            tmpdst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4+1] = src2.adress_a[i*4+1]-src0.values.size()-src1.values.size() ;
         }
 
         if(src2.adress_a[i*4+2] >= HEAP_SIZE-src2.values.size())
         {
-            dst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4+2] = src2.adress_a[i*4+2]-src0.values.size()-src1.values.size() ;
+            tmpdst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4+2] = src2.adress_a[i*4+2]-src0.values.size()-src1.values.size() ;
         }
 
         if(src2.adress_a[i*4] >= 8 && src2.adress_a[i*4] < HEAP_SIZE-src2.values.size())
-            dst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4] = src2.adress_a[i*4]+2 ;
+            tmpdst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4] = src2.adress_a[i*4]+2 ;
 
         if(src2.adress_a[i*4+1] >= 8 && src2.adress_a[i*4+1] < HEAP_SIZE-src2.values.size())
-            dst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4+1] = src2.adress_a[i*4+1]+2 ;
+            tmpdst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4+1] = src2.adress_a[i*4+1]+2 ;
 
         if(src2.adress_a[i*4+2] >= 8 && src2.adress_a[i*4+2] < HEAP_SIZE-src2.values.size())
-            dst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4+2] = src2.adress_a[i*4+2]+2 ;
+            tmpdst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4+2] = src2.adress_a[i*4+2]+2 ;
 
         if(src2.adress_a[i*4] >= HEAP_VARIABLE_TRANSFORM_OFFSET && src2.adress_a[i*4] < HEAP_SIZE - src2.values.size()-1)
         {
-            dst.adress_a[ (i+src0.byteCode.size()+src1.byteCode.size())*4 ] = src2.adress_a[i*4]+src0.adress_t.size()+src1.adress_t.size() ;
+            tmpdst.adress_a[ (i+src0.byteCode.size()+src1.byteCode.size())*4 ] = src2.adress_a[i*4]+src0.adress_t.size()+src1.adress_t.size() ;
         }
         if(src2.adress_a[i*4+1] >= HEAP_VARIABLE_TRANSFORM_OFFSET && src2.adress_a[i*4+1] < HEAP_SIZE - src2.values.size()-1)
         {
-            dst.adress_a[ (i+src0.byteCode.size()+src1.byteCode.size())*4+1 ] = src2.adress_a[i*4+1]+src0.adress_t.size()+src1.adress_t.size() ;
+            tmpdst.adress_a[ (i+src0.byteCode.size()+src1.byteCode.size())*4+1 ] = src2.adress_a[i*4+1]+src0.adress_t.size()+src1.adress_t.size() ;
         }
         if(src2.adress_a[i*4+2] >= HEAP_VARIABLE_TRANSFORM_OFFSET && src2.adress_a[i*4+2] < HEAP_SIZE - src2.values.size()-1)
         {
-            dst.adress_a[ (i+src0.byteCode.size()+src1.byteCode.size())*4+2 ] = src1.adress_a[i*4+2]+src0.adress_t.size()+src1.adress_t.size() ;
+            tmpdst.adress_a[ (i+src0.byteCode.size()+src1.byteCode.size())*4+2 ] = src1.adress_a[i*4+2]+src0.adress_t.size()+src1.adress_t.size() ;
         }
 
         if(src2.adress_a[i*4] < 8 )
-            dst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4] = src2.adress_a[i*4] ;
+            tmpdst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4] = src2.adress_a[i*4] ;
 
         if(src2.adress_a[i*4+1] < 8 )
-            dst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4+1] = src2.adress_a[i*4+1] ;
+            tmpdst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4+1] = src2.adress_a[i*4+1] ;
 
         if(src2.adress_a[i*4+2] < 8 )
-            dst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4+2] = src2.adress_a[i*4+2] ;
+            tmpdst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4+2] = src2.adress_a[i*4+2] ;
     }
 
-
+    dst = tmpdst ;
 }
 
 
@@ -428,12 +429,12 @@ GtMLtGDD GtML::operator*(const GradientDotDot & f) const
     return GtMLtGDD(*this, f) ;
 }
 
-GradientDot Gradient::dot() const 
+GradientDot Gradient::dot() const
 {
     return GradientDot( f, transpose ) ;
 }
 
-GradientDotDot GradientDot::dot() const 
+GradientDotDot GradientDot::dot() const
 {
     return GradientDotDot( f, transpose ) ;
 }
@@ -1735,6 +1736,27 @@ Function::Function(const Geometry *g, const Point & p, const Segment & s,  Eleme
     geo_op[byteCode.size()-1] = new HatEnrichment(g, p, s) ;
 }
 
+Function::Function(const Geometry *g, const Point &p, const TriPoint &s,  ElementaryVolume * vol): derivative(nullptr),
+    transforms(nullptr),ptID (nullptr),dofID(-1),
+    e_diff(false),
+    hasGeoOp(true),geo_op((GeometryOperation *)nullptr,HEAP_SIZE)
+{
+    Function x = vol->getXTransform() ;
+    Function y = vol->getYTransform() ;
+    Function z = vol->getZTransform() ;
+    concatenateFunctions(x, y, z, *this);
+    byteCode.push_back(TOKEN_OPERATION_GEO_OPERATION);
+    adress_a.push_back(0);
+    adress_a.push_back(0);
+    adress_a.push_back(0);
+    adress_a.push_back(0);
+    adress_a[(byteCode.size()-1)*4+2] = 10 ;
+    adress_a[(byteCode.size()-1)*4+1] = 9 ;
+    adress_a[(byteCode.size()-1)*4] = 8 ;
+
+    geo_op[byteCode.size()-1] = new HatEnrichment3D(g, p, s) ;
+}
+
 Function::Function( const Geometry * geo, const ElementarySurface * s) : derivative(nullptr),transforms(nullptr),ptID (nullptr),dofID(-1),
 
     e_diff(false),
@@ -1894,7 +1916,7 @@ Function::Function(const Function &f, int copyDerivative) : transforms(nullptr),
     else
     {
         derivative = nullptr ;
-	e_diff = false ;
+        e_diff = false ;
     }
 
     if(f.transforms)

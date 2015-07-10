@@ -13,7 +13,7 @@
 namespace Amie
 {
 
-VirtualMachine::VirtualMachine() { } 
+VirtualMachine::VirtualMachine() { }
 
 
 double VirtualMachine::eval(const Function &f, const double x, const double y, const double z, const double t, const double u, const double v, const double w)
@@ -107,7 +107,7 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
                 f.byteCode[i] == TOKEN_OPERATION_W
           )
         {
-            REG_C=REG_A ;
+            REG_C = REG_A ;
             continue ;
         }
 
@@ -115,84 +115,86 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
         {
         case TOKEN_OPERATION_GEO_OPERATION:
         {
+            for (size_t j = 0 ; j < 8 ; j++)
+                std::cout << stack.memory.heap[f.adress_a[i*4+j]] << std::endl ;
             f.geo_op[i]->eval(&REG_A, &REG_B, &REG_C) ;
-	    break ;
+            break ;
         }
         case TOKEN_OPERATION_COS:
         {
             REG_C = cos(REG_A) ;
-	    break ;
+            break ;
         }
         case TOKEN_OPERATION_ABS:
         {
             REG_C = std::abs(REG_A) ;
-	    break ;
+            break ;
         }
         case TOKEN_OPERATION_TAN:
         {
             REG_C = tan(REG_A) ;
-	    break ;
+            break ;
         }
         case TOKEN_OPERATION_SIN:
         {
             REG_C = sin(REG_A) ;
-	    break ;
+            break ;
         }
         case TOKEN_OPERATION_EXP:
         {
             REG_C = exp(REG_A) ;
-	    break ;
+            break ;
         }
         case TOKEN_OPERATION_SIGN:
         {
             REG_C = sign(REG_A) ;
-	    break ;
+            break ;
         }
         case TOKEN_OPERATION_POSITIVITY:
         {
             double s0 = sign(REG_A) ;
             s0 >= 0 ? REG_C = 1 : REG_C = 0 ;
-	    break ;
+            break ;
         }
         case TOKEN_OPERATION_NEGATIVITY:
         {
             double s0 = sign(REG_A) ;
             s0 <= 0 ? REG_C = 1 : REG_C = 0 ;
-	    break ;
+            break ;
         }
         case TOKEN_OPERATION_LOG:
         {
             REG_C = log(REG_A) ;
-	    break ;
+            break ;
         }
         case TOKEN_OPERATION_COSH:
         {
             REG_C = cosh(REG_A) ;
-	    break ;
+            break ;
         }
         case TOKEN_OPERATION_SINH:
         {
             REG_C = sinh(REG_A) ;
-	    break ;
+            break ;
         }
         case TOKEN_OPERATION_TANH:
         {
             REG_C = tanh(REG_A) ;
-	    break ;
+            break ;
         }
         case TOKEN_OPERATION_SQRT:
         {
             REG_C = sqrt(REG_A) ;
-	    break ;
+            break ;
         }
         case TOKEN_OPERATION_ATAN2:
         {
             REG_C = atan2(REG_B, REG_A) ;
-	    break ;
+            break ;
         }
         default:
         {
-	    break ;
+            break ;
         }
         }
 
@@ -3323,68 +3325,75 @@ Matrix VirtualMachine::ieval(const DtGtMtG & d, const GaussPointArray &gp_, cons
 
 void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret)
 {
-   if(d.first == TIME_VARIABLE)
-   {
-       Matrix a(ret.numRows(), ret.numCols()) ; a = 0 ;
-       ieval( d.second.first.dot() * d.second.second * d.second.third, gp_, Jinv, vars, a) ;
-       ret += a ; a = 0 ;
-       ieval( d.second.first * d.second.second * d.second.third.dot() , gp_, Jinv, vars, a) ;
-       ret += a ;
-   }
-   else
-       ieval( d, gp_, Jinv, nullptr, vars, ret) ;
+    if(d.first == TIME_VARIABLE)
+    {
+        Matrix a(ret.numRows(), ret.numCols()) ;
+        a = 0 ;
+        ieval( d.second.first.dot() * d.second.second * d.second.third, gp_, Jinv, vars, a) ;
+        ret += a ;
+        a = 0 ;
+        ieval( d.second.first * d.second.second * d.second.third.dot() , gp_, Jinv, vars, a) ;
+        ret += a ;
+    }
+    else
+        ieval( d, gp_, Jinv, nullptr, vars, ret) ;
 }
 
 void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret)
 {
-   if(d.first == TIME_VARIABLE)
-   {
-       Matrix a(ret.numRows(), ret.numCols()) ;
-       ieval( d.second.first.dot() * d.second.second * d.second.third, gp_, Jinv, vars, a) ;
-       ret += a ; a = 0 ;
-       ieval( d.second.first * d.second.second * d.second.third.dot() , gp_, Jinv, vars, a) ;
-       ret += a ;
-   }
-   else
-       ieval( d, gp_, Jinv, nullptr, vars, ret) ;
+    if(d.first == TIME_VARIABLE)
+    {
+        Matrix a(ret.numRows(), ret.numCols()) ;
+        ieval( d.second.first.dot() * d.second.second * d.second.third, gp_, Jinv, vars, a) ;
+        ret += a ;
+        a = 0 ;
+        ieval( d.second.first * d.second.second * d.second.third.dot() , gp_, Jinv, vars, a) ;
+        ret += a ;
+    }
+    else
+        ieval( d, gp_, Jinv, nullptr, vars, ret) ;
 }
 
 void VirtualMachine::ieval(const DdGtMLtG & d, const std::vector<Matrix> & dmat, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret)
 {
-   if(d.first == TIME_VARIABLE)
-   {
-       Matrix a(ret.numRows(), ret.numCols()) ;
-       ieval( d.second.first.dot() * d.second.second * d.second.third, gp_, Jinv, vars, a) ;
-       ret += a ; a = 0 ;
-       ieval( d.second.first * d.second.second * d.second.third.dot() , gp_, Jinv, vars, a) ;
-       ret += a ; a = 0 ;
-       ieval( d.second.first * dmat * d.second.third , gp_, Jinv, vars, a) ;
-       ret += a ;   
-   }
-   else
-   {
-       std::cout << "operator not implemented" << std::endl ;
-       exit(0) ;
-   }
+    if(d.first == TIME_VARIABLE)
+    {
+        Matrix a(ret.numRows(), ret.numCols()) ;
+        ieval( d.second.first.dot() * d.second.second * d.second.third, gp_, Jinv, vars, a) ;
+        ret += a ;
+        a = 0 ;
+        ieval( d.second.first * d.second.second * d.second.third.dot() , gp_, Jinv, vars, a) ;
+        ret += a ;
+        a = 0 ;
+        ieval( d.second.first * dmat * d.second.third , gp_, Jinv, vars, a) ;
+        ret += a ;
+    }
+    else
+    {
+        std::cout << "operator not implemented" << std::endl ;
+        exit(0) ;
+    }
 }
 
 void VirtualMachine::ieval(const DdGtMLtGD & d, const std::vector<Matrix> & dmat, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret)
 {
-   if(d.first == TIME_VARIABLE)
-   {
-       Matrix a(ret.numRows(), ret.numCols()) ;
-       ieval( d.second.first.dot() * d.second.second * d.second.third, gp_, Jinv, vars, a) ;
-       ret += a ; a = 0 ;
-       ieval( d.second.first * d.second.second * d.second.third.dot() , gp_, Jinv, vars, a) ;
-       ret += a ; a = 0 ;
-       ieval( d.second.first * dmat * d.second.third , gp_, Jinv, vars, a) ;
-       ret += a ;   
-   }
-   else
-   {
-       std::cout << "operator not implemented" << std::endl ;
-       exit(0) ;
-   }
+    if(d.first == TIME_VARIABLE)
+    {
+        Matrix a(ret.numRows(), ret.numCols()) ;
+        ieval( d.second.first.dot() * d.second.second * d.second.third, gp_, Jinv, vars, a) ;
+        ret += a ;
+        a = 0 ;
+        ieval( d.second.first * d.second.second * d.second.third.dot() , gp_, Jinv, vars, a) ;
+        ret += a ;
+        a = 0 ;
+        ieval( d.second.first * dmat * d.second.third , gp_, Jinv, vars, a) ;
+        ret += a ;
+    }
+    else
+    {
+        std::cout << "operator not implemented" << std::endl ;
+        exit(0) ;
+    }
 }
 
 void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const IntegrableEntity * e, const std::vector<Variable> & vars, Matrix & ret)
@@ -4512,4 +4521,4 @@ double VirtualMachine::ieval(const DtD & d, IntegrableEntity *e, const std::vect
     return ret ;
 
 }
-} 
+}

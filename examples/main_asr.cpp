@@ -93,6 +93,14 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
             filename = std::string( "intermediate-triangles" ) ;
             intermediateCount++ ;
         }
+        else
+            intermediateCount = 0 ;
+        
+        if( intermediateCount > 2)
+        {
+            intermediateCount = 0 ;
+            go_on = true ;
+        }
 
         if( !featureTree->solverConverged() )
             filename = std::string( "failed-triangles" ) ;
@@ -149,9 +157,8 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
         std::cout << std::endl ;
 
 
-        if( go_on || intermediateCount > 1)
+        if( go_on )
         {
-            intermediateCount = 0 ;
             featureTree->forceEnrichmentChange();
             double delta_r = sqrt( aggregateArea * 0.2 / ( ( double )zones.size() * M_PI ) ) / ( double )nstepstot ;
             double reactedArea = 0 ;

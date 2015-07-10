@@ -700,11 +700,13 @@ struct TriPoint
     Point normal ;
     Point center ;
 
-    std::valarray<Point const *> point ;
+    std::valarray<Point> point ;
     std::vector<TriPoint *> neighbour ;
 
     /** \brief constructor from three points */
     TriPoint(const Point * p0, const Point * p1, const Point * p2) ;
+    TriPoint(const Point & p0, const Point & p1, const Point & p2) ;
+    TriPoint(const TriPoint & t) : normal(t.normal), center(t.center), point(t.point), neighbour(t.neighbour) {} 
 
     /** \brief return area of the triangle*/
     double area() const;
@@ -715,16 +717,16 @@ struct TriPoint
 
     const Point & getCenter() const {
         return center ;
-    } ;
+    } 
     const Point & first() const {
-        return *point[0] ;
-    } ;
+        return point[0] ;
+    } 
     const Point & second() const {
-        return *point[1] ;
-    } ;
+        return point[1] ;
+    } 
     const Point & third() const {
-        return *point[2] ;
-    } ;
+        return point[2] ;
+    } 
 
     /** \brief return true is the argument is in*/
     bool in(const Point & p) const ;

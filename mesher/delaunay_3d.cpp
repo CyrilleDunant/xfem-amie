@@ -3290,83 +3290,30 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
         {
             TetrahedralElement father(LINEAR) ;
 
-            size_t target = 1024*4 ;
-
-            double npoints = 8 ;
+            size_t target = 128 ;
 
             while(gp_alternative.size() < target)
             {
-                for(double i = 0 ; i <= 1 ; i += 2.*(1.-POINT_TOLERANCE)/(npoints+1))
+
+                Point test = Point((double)rand()/RAND_MAX,(double)rand()/RAND_MAX,(double)rand()/RAND_MAX);
+
+                if( father.in( test ) )
                 {
-                    for(double j = 0 ; j <= 1 ; j += 2.*(1.-POINT_TOLERANCE)/(npoints+1))
-                    {
-                        for(double k = 0 ; k <= 1 ; k += 2.*(1.-POINT_TOLERANCE)/(npoints+1))
-                        {
-                            Point test = Point(i,j,k);
-// 							inLocalCoordinates(test).print();
-                            if( father.in( test ) )
-                            {
-                                gp_alternative.push_back( std::make_pair( test, 1. / 6. ) ) ;
-                            }
-                        }
-                    }
-                }
-                if(gp_alternative.size() < target)
-                {
-                    npoints += 4 ;
-// 					std::cout << gp_alternative.size() << std::endl ;
-                    gp_alternative.clear();
+                    gp_alternative.push_back( std::make_pair( test, 1. / 2. ) ) ;
                 }
 
             }
 
-// 			while( gp_alternative.size() < npoints )
-// 			{
-// 				double x = ( double )rand() / ( double )RAND_MAX ;
-// 				double y = ( double )rand() / ( double )RAND_MAX ;
-// 				double z = ( double )rand() / ( double )RAND_MAX ;
-//
-// 				if( father.in( Point( x, y, z ) ) )
-// 					gp_alternative.push_back( std::make_pair( Point( x, y, z ), 1. ) ) ;
-// 			}
-
-// 			double gbase = 0 ;
-// 			double genriched= 0 ;
-// 			for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
-// 			{
-//
-// 				double base = 0. ;
-// 				for(size_t l = 0 ; l < getShapeFunctions().size() ; l++)
-// 					base += vm.eval( getShapeFunction(l), gp_alternative[i].first) ;
-//
-// 				double enriched = base ;
-// 				for(size_t l = 0 ; l < getEnrichmentFunctions().size() ; l++)
-// 					enriched += vm.eval( getEnrichmentFunction(l), gp_alternative[i].first) ;
-//
-// 				gbase += base ;
-// 				genriched += enriched ;
-// 			}
-
-// 			for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
-// 			{
-// 				double j = jacobianAtPoint( gp_alternative[i].first ) ;
-// 				gp_alternative[i].second *= j ;
-// 				gp_alternative[i].second *= originalSum/(fsum*gp_alternative.size()) ;
-// // 				gp_alternative[i].second *= gbase/genriched ;
-// 			}
+//                 double fsum = 0 ;
+//                 for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
+//                     fsum += gp_alternative[i].second ;
             for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
-                fsum += gp_alternative[i].second ;
-            for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
-                gp_alternative[i].second *= originalSum/fsum ;
+                gp_alternative[i].second = originalSum/gp_alternative.size() ;
 
-            if( gp.gaussPoints.size() != gp_alternative.size() )
-            {
-                gp.gaussPoints.resize( gp_alternative.size() ) ;
-                std::copy( gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0] );
-            }
 
-            gp.getId() = REGULAR_GRID ;
-            setCachedGaussPoints( new GaussPointArray( gp ) ) ;
+            delete cachedGps ;
+            cachedGps = new GaussPointArray(gp_alternative) ;
+            cachedGps->getId() = REGULAR_GRID ;
             return *getCachedGaussPoints() ;
         }
 

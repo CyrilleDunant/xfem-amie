@@ -3587,8 +3587,8 @@ std::vector<size_t> ElementarySurface::clearEnrichment(const Geometry * g)
 
 ElementaryVolume::ElementaryVolume(bool f )
 {
-    this->behaviour = nullptr ;
-    this->nonlinbehaviour = nullptr ;
+    behaviour = nullptr ;
+    nonlinbehaviour = nullptr ;
     enrichmentUpdated = true ;
     behaviourUpdated = true ;
 }
@@ -4477,7 +4477,6 @@ double xTransform(const Point & p, const std::valarray<Amie::Point*> & points, c
 Function YTransform(const std::valarray<Amie::Point*> & points, const std::valarray<Function > & basis)
 {
     Function ret("0") ;
-    Function zero("0") ;
 
 // 	ret.setNumberOfDerivatives(4);
 // 	ret.setDerivative(XI, zero);
@@ -4510,7 +4509,6 @@ double yTransform(const Point & p, const std::valarray<Amie::Point*> & points, c
 Function ZTransform(const std::valarray<Amie::Point*> & points, const std::valarray<Function > & basis)
 {
     Function ret("0") ;
-    Function zero("0") ;
 // 	ret.setNumberOfDerivatives(4);
 // 	ret.setDerivative(XI, zero);
 // 	ret.setDerivative(ETA, zero);

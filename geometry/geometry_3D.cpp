@@ -1668,9 +1668,9 @@ TriangulatedSurface::TriangulatedSurface(const Point * p0, const Point * p1, con
 TriangulatedSurface::TriangulatedSurface()
 {
     mesh.push_back(TriPoint(new Point(0,0,1), new Point(1,0,0), new Point(0,0,0))) ;
-    boundary.push_back(mesh[0].point[0]) ;
-    boundary.push_back(mesh[0].point[1]) ;
-    boundary.push_back(mesh[0].point[2]) ;
+    boundary.push_back(&mesh[0].point[0]) ;
+    boundary.push_back(&mesh[0].point[1]) ;
+    boundary.push_back(&mesh[0].point[2]) ;
     center = Point(1./3., 0, 1./3.) ;
 }
 
