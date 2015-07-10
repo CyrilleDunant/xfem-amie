@@ -645,7 +645,7 @@ HatEnrichment3D::HatEnrichment3D(const Geometry * g , const Point & p, const Tri
 
 void HatEnrichment3D::eval(double * a, double * b, double * c) const
 {
-    std::cout << *a << "  " << *b << "  " << *c << std::endl ;
+//     std::cout << *a << "  " << *b << "  " << *c << std::endl ;
     Point position ( *a, *b, *c ) ;
     Line l(p, p-position) ;
     Tetrahedron t (p, s.first(), s.second(), s.third()) ;
@@ -653,12 +653,12 @@ void HatEnrichment3D::eval(double * a, double * b, double * c) const
     std::vector<Point> interseg = l.intersection(s) ;
     if(interseg.empty())
     {
-       s.first().print();
-       s.second().print();
-       s.third().print();
-       p.print();
+//        s.first().print();
+//        s.second().print();
+//        s.third().print();
+//        p.print();
 //        position.print();
-       *c = 0 ;
+       *a = 0 ;
        return ;
     }
     std::vector<Point> intersgeo = l.intersection(g) ;
@@ -666,25 +666,24 @@ void HatEnrichment3D::eval(double * a, double * b, double * c) const
     {
         if(t.in(intersgeo[i]))
         {
-            if(g->in(p) && g->in(position))
+            if(g->in(p) == g->in(position))
             {
                 double distTot = std::max(dist(p, intersgeo[i]), 1e-8) ;
                 double distPos = dist(position, p) ;
-                *c = distPos/distTot ;
+                *a = distPos/distTot ;
                 return ;
             }
             else
             {                
                 double distTot = std::max(dist(interseg.front(), intersgeo[i]), 1e-8) ;
                 double distPos = dist(position, interseg.front()) ;
-                *c = distPos/distTot ;
+                *a = distPos/distTot ;
                 return ;
-
             }
         }
     }
     
-    *c = 0 ;
+    *a = 0 ;
 }
 
 GeometryOperation * HatEnrichment3D::getCopy() const 
@@ -694,7 +693,7 @@ GeometryOperation * HatEnrichment3D::getCopy() const
 
 int HatEnrichment3D::adressOffset() const 
 { 
-    return -2 ;
+    return 0 ;
 }
 
 

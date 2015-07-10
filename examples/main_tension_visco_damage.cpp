@@ -147,9 +147,6 @@ void step ( size_t nsteps, std::string app = std::string() )
 
 }
 
-
-
-
 int main ( int argc, char *argv[] )
 {
 //    omp_set_num_threads(1) ;

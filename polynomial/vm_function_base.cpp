@@ -118,18 +118,17 @@ void concatenateFunctions(const Function & src0, const Function & src1, Function
 
 void concatenateFunctions(const Function & src0_, const Function & src1_, const Function & src2_, Function & dst)
 {
-    Function tmpdst = dst;
+    Function tmpdst ;
     Function src0(src0_) ;
     Function src1(src1_) ;
     Function src2(src2_) ;
     tmpdst.adress_a = src0.adress_a ;
     tmpdst.byteCode = src0.byteCode ;
+    tmpdst.values = src0.values ;
     tmpdst.hasGeoOp = src0.hasGeoOp || src1.hasGeoOp || src2.hasGeoOp  || dst.hasGeoOp;
     if(tmpdst.hasGeoOp )
         tmpdst.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 
-    for(size_t i = 0 ; i < src0.values.size() ; i++)
-        tmpdst.values.push_back(src0.values[i]) ;
     for(size_t i = 0 ; i < src1.values.size() ; i++)
         tmpdst.values.push_back( src1.values[i]) ;
     for(size_t i = 0 ; i < src2.values.size() ; i++)
@@ -1112,6 +1111,13 @@ void Function::initialiseAdresses(size_t offset)
                 adress_a[4*counter+1] = da-2 ;
                 adress_a[4*counter++] = da-1 ;
                 da -= 2 ;
+            }
+            if(offset == -3)
+            {
+                adress_a[4*counter+2] = da-4 ;
+                adress_a[4*counter+1] = da-3 ;
+                adress_a[4*counter++] = da-1 ;
+                da -= 3 ;
             }
             if(offset == 0)
             {

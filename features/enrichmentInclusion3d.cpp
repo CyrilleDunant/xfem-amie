@@ -298,11 +298,11 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 
     //then we iterate on every element
 
-    std::cout <<"\n  -> "<< std::flush ;
+    std::cerr <<"\n  -> "<< std::flush ;
 
     for(size_t i = 0 ; i < ring.size() ; i++)
     {
-        std::cout <<"\r  -> "<< i+1<< "/" << ring.size() << std::flush ;
+        std::cerr <<"\r  -> "<< i+1<< "/" << ring.size() << std::flush ;
         std::vector<Point> tetSphereIntersectionPoints = getPrimitive()->intersection(ring[i]->getPrimitive()) ;
 
         std::vector<Point> hint ;
@@ -406,43 +406,41 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
              std::cout << "oops ?" << std::endl ;
              hat = Function("1") ;
          }
-        
-		hat.setNumberOfDerivatives(0);
-//         ring[i]->print() ;
-		for(double j = 0 ; j < 1 ; j += .01)
-		{
-			for(double k = 0 ; k < 1 ; k += .01)
-			{
-                if(j+k < 1)
-                    std::cout << vm.eval(hat, j, k, 0.)<< "  " << std::flush ;
-                else
-                     std::cout << 0<< "  " << std::flush ;
-			}
-			std::cout << std::endl ;
-		}
-		for(double j = 0 ; j < 1 ; j += .01)
-        {
-            for(double k = 0 ; k < 1 ; k += .01)
-            {
-                if(j+k < 1)
-                    std::cout << vm.eval(hat, j, 0., k)<< "  " << std::flush ;
-                else
-                     std::cout << 0<< "  " << std::flush ;
-            }
-            std::cout << std::endl ;
-        }
-        for(double j = 0 ; j < 1 ; j += .01)
-        {
-            for(double k = 0 ; k < 1 ; k += .01)
-            {
-                if(j+k < 1)
-                    std::cout << vm.eval(hat, 0., j, k)<< "  " << std::flush ;
-                else
-                     std::cout << 0<< "  " << std::flush ;
-            }
-            std::cout << std::endl ;
-        }
-		exit(0) ;
+
+// 		for(double j = 0 ; j < 1 ; j += .01)
+// 		{
+// 			for(double k = 0 ; k < 1 ; k += .01)
+// 			{
+//                 if(j+k +.1< 1)
+//                     std::cout << vm.eval(hat, j, k, .1)<< "  " << std::flush ;
+//                 else
+//                      std::cout << 0<< "  " << std::flush ;
+// 			}
+// 			std::cout << std::endl ;
+// 		}
+// 		for(double j = 0 ; j < 1 ; j += .01)
+//         {
+//             for(double k = 0 ; k < 1 ; k += .01)
+//             {
+//                 if(j+k+.1 < 1)
+//                     std::cout << vm.eval(hat, j, 0.1, k)<< "  " << std::flush ;
+//                 else
+//                      std::cout << 0<< "  " << std::flush ;
+//             }
+//             std::cout << std::endl ;
+//         }
+//         for(double j = 0 ; j < 1 ; j += .01)
+//         {
+//             for(double k = 0 ; k < 1 ; k += .01)
+//             {
+//                 if(j+k +.1< 1)
+//                     std::cout << vm.eval(hat, 0.1, j, k)<< "  " << std::flush ;
+//                 else
+//                      std::cout << 0<< "  " << std::flush ;
+//             }
+//             std::cout << std::endl ;
+//         }
+// 		exit(0) ;
         for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
         {
             std::pair<DelaunayTetrahedron *, Point *> that(ring[i], &ring[i]->getBoundingPoint(j) ) ;

@@ -115,9 +115,11 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
         {
         case TOKEN_OPERATION_GEO_OPERATION:
         {
-            for (size_t j = 0 ; j < 8 ; j++)
-                std::cout << stack.memory.heap[f.adress_a[i*4+j]] << std::endl ;
+//             std::cerr <<"--"<< std::endl ;
+//             std::cerr << REG_A << "  " << REG_B << "  " << REG_C << std::endl ;
             f.geo_op[i]->eval(&REG_A, &REG_B, &REG_C) ;
+//             std::cerr << REG_A << "  " << REG_B << "  " << REG_C << "  " << f.adress_a[i*4+2] << std::endl ;
+//              std::cerr <<"--"<< std::endl ;
             break ;
         }
         case TOKEN_OPERATION_COS:

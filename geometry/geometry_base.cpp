@@ -3374,8 +3374,8 @@ std::vector<Point> Line::intersection(const TriPoint &s) const
 {
     Point u = s.point[1]-s.point[0] ;
     Point vec = s.point[2]-s.point[0] ;
-    Point w0 = p-s.point[0] ;
-    double a = s.normal*w0 ;
+    Point wp = p-s.point[0] ;
+    double a = s.normal*wp ;
     double b = s.normal*v ;
     
     if(std::abs(b) < POINT_TOLERANCE)
@@ -3389,34 +3389,51 @@ std::vector<Point> Line::intersection(const TriPoint &s) const
     
     double r = a/b ;
     
-    if(r < 0)
-        r = -r ;
-    
-    Point inter = p + r*v ;
-    double uu, uv, vv, wu, wv, D;
+    std::vector<Point> ret ;
+    Point inter0 = p + r*v ;
+    Point inter1 = p - r*v ;
+    double uu, uv, vv, wu0, wv0, wu1, wv1, D;
     uu = u*u;
     uv = u*vec;
     vv = vec*vec;
-    Point w = inter -s.point[0];
-    wu = w*u;
-    wv = w*vec;
+    Point w0 = inter0 -s.point[0];
+    wu0 = w0*u;
+    wv0 = w0*vec;
+    
+    Point w1 = inter1 -s.point[0];
+    wu1 = w1*u;
+    wv1 = w1*vec;
+    
     D = uv * uv - uu * vv;
-    double ss, t ;
-    ss = (uv * wv - vv * wu) / D;
-    if (ss < 0.0 || ss > 1.0)
-         return std::vector<Point>(0) ;
-    t = (uv * wu - uu * wv) / D;
-    if (t < 0.0 || (ss + t) > 1.0)
-         return std::vector<Point>(0) ;
-    std::vector<Point> ret ;
-    ret.push_back(inter);
+    double ss0, ss1, t0, t1 ;
+    ss0 = (uv * wv0 - vv * wu0) / D;
+    bool in0 = true ;
+    if (ss0 < 0.0 || ss0 > 1.0)
+         in0 = false ;
+    t0 = (uv * wu0 - uu * wv0) / D;
+    if (t0 < 0.0 || (ss0 + t0) > 1.0)
+         in0 = false ;
+    
+    ss1 = (uv * wv1 - vv * wu1) / D;
+    bool in1 = true ;
+    if (ss1 < -POINT_TOLERANCE  || ss1 > 1.0-POINT_TOLERANCE)
+         in1 = false ;
+    t1 = (uv * wu1 - uu * wv1) / D;
+    if (t1 < -POINT_TOLERANCE || (ss1 + t1) > 1.0-POINT_TOLERANCE)
+         in1 = false ;
+    
+    if(in0)
+        ret.push_back(inter0);
+    if(in1)
+        ret.push_back(inter1);
+    
     return ret ;
     
 //     Point vec = s.point[2]-s.point[0] ;
 //     double a = -(s.normal*(p-s.point[0])) ;
 //     double b = vec*s.normal ;
-
-//     if(b < POINT_TOLERANCE)
+// 
+//     if(std::abs(b) < POINT_TOLERANCE)
 //     {
 //         if(abs(a) > POINT_TOLERANCE)
 //             return std::vector<Point>(0) ;
