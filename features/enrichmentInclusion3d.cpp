@@ -298,68 +298,14 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 
     //then we iterate on every element
 
-    std::cerr <<"\n  -> "<< std::flush ;
-
     for(size_t i = 0 ; i < ring.size() ; i++)
     {
-        std::cerr <<"\r  -> "<< i+1<< "/" << ring.size() << std::flush ;
         std::vector<Point> tetSphereIntersectionPoints = getPrimitive()->intersection(ring[i]->getPrimitive()) ;
 
         std::vector<Point> hint ;
-// 		if there are no intersection points we need not do anything
-
-//         for(size_t j = 0 ; j < tetSphereIntersectionPoints.size() ; j++)
-//         {
-//             Point localintersect = ring[i]->inLocalCoordinates(tetSphereIntersectionPoints[j]) ;
-//             bool add = true ;
-//             for(size_t k = 0 ; k < father.getBoundingPoints().size() ; k++)
-//             {
-//                 if(squareDist3D(father.getBoundingPoint(k), localintersect) < .0001 || !ring[i]->in(tetSphereIntersectionPoints[j]))
-//                 {
-//                     add = false ;
-//                     break ;
-//                 }
-//             }
-// 
-//             for(size_t k = 0 ; k < hint.size() ; k++)
-//             {
-//                 if(squareDist3D(hint[k], localintersect) < .0001)
-//                 {
-//                     add = false ;
-//                     break ;
-//                 }
-//             }
-// 
-//             if(add)
-//             {
-//                 hint.push_back(localintersect) ;
-//             }
-//         }
-
-// 		if(ring[i]->getOrder() == QUADRATIC)
-// 		{
-// 			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(1))) ;
-// 			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(3))) ;
-// 			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(5))) ;
-// 			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(7))) ;
-// 			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(8))) ;
-// 			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(9))) ;
-// 		}
 
 
-        //this function returns the distance to the centre
-// 		Function position(getCenter(),ring[i]) ;
-        Function dx = ring[i]->getXTransform()-getCenter().getX() ;
-        dx *= dx ;
-        Function dy = ring[i]->getYTransform()-getCenter().getY() ;
-        dy *= dy ;
-        Function dz = ring[i]->getZTransform()-getCenter().getZ() ;
-        dz *= dz ;
-        Function position = f_sqrt(dx + dy + dz) ;
-        Function hat("0") ;
-        hat += getRadius() ;
-        hat -= f_abs(position-getRadius());
-        
+        Function hat ;
         bool in0 = in(ring[i]->getBoundingPoint(0)) ;
         bool in1 = in(ring[i]->getBoundingPoint(1)) ;
         bool in2 = in(ring[i]->getBoundingPoint(2)) ; 
@@ -407,48 +353,25 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
              hat = Function("1") ;
          }
 
-// 		for(double j = 0 ; j < 1 ; j += .01)
-// 		{
-// 			for(double k = 0 ; k < 1 ; k += .01)
-// 			{
-//                 if(j+k +.1< 1)
-//                     std::cout << vm.eval(hat, j, k, .1)<< "  " << std::flush ;
-//                 else
-//                      std::cout << 0<< "  " << std::flush ;
-// 			}
-// 			std::cout << std::endl ;
-// 		}
-// 		for(double j = 0 ; j < 1 ; j += .01)
-//         {
-//             for(double k = 0 ; k < 1 ; k += .01)
-//             {
-//                 if(j+k+.1 < 1)
-//                     std::cout << vm.eval(hat, j, 0.1, k)<< "  " << std::flush ;
-//                 else
-//                      std::cout << 0<< "  " << std::flush ;
-//             }
-//             std::cout << std::endl ;
-//         }
-//         for(double j = 0 ; j < 1 ; j += .01)
-//         {
-//             for(double k = 0 ; k < 1 ; k += .01)
-//             {
-//                 if(j+k +.1< 1)
-//                     std::cout << vm.eval(hat, 0.1, j, k)<< "  " << std::flush ;
-//                 else
-//                      std::cout << 0<< "  " << std::flush ;
-//             }
-//             std::cout << std::endl ;
-//         }
-// 		exit(0) ;
         for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
         {
             std::pair<DelaunayTetrahedron *, Point *> that(ring[i], &ring[i]->getBoundingPoint(j) ) ;
             if(enriched.find(that) == enriched.end())
             {
                 enriched.insert(that) ;
-//                 Point p = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)) ;
-                Function f =  ring[i]->getShapeFunction(j)*hat  ;
+                Function f =  father.getShapeFunction(j)*hat  ;
+
+//                 for(double l = 0 ; l < 1 ; l += .01)
+//                 {
+//                     for(double k = 0 ; k < 1 ; k += .01)
+//                     {
+//                             if(l+k +.1< 1)
+//                                 std::cout << vm.eval(f, l, k, .1)<< "  " << std::flush ;
+//                             else
+//                                 std::cout << 0<< "  " << std::flush ;
+//                     }
+//                     std::cout << std::endl ;
+//                 }
 
                 f.setIntegrationHint(hint) ;
                 f.setPoint(&ring[i]->getBoundingPoint(j)) ;
@@ -456,78 +379,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
                 ring[i]->setEnrichment( f, getPrimitive()) ;
             }
         }
-//         hint.clear();
-//         hint.push_back(Point(.25, .25, .25));
-//         for(size_t j = 0 ; j < 0*ring[i]->neighbourhood.size() ; j++)
-//         {
-//             DelaunayTetrahedron * t = ring[i]->getNeighbourhood(j) ;
-//             if(std::binary_search(ring.begin(), ring.end(), t))
-//                 continue ;
-// 
-//             Function blend = getBlendingFunction(dofId, t) ;
-// 
-//             if(!t->enrichmentUpdated)
-//                 t->clearEnrichment( getPrimitive()) ;
-// 
-//             t->enrichmentUpdated = true ;
-//             bool hinted = false ;
-//             Function dx = t->getXTransform()-getCenter().getX() ;
-//             dx *= dx ;
-//             Function dy = t->getYTransform()-getCenter().getY() ;
-//             dy *= dy ;
-//             Function dz = t->getZTransform()-getCenter().getZ() ;
-//             dz *= dz ;
-//             Function position = f_sqrt(dx + dy + dz) ;
-//             Function hat("0") ;
-//             hat += getRadius() ;
-//             hat -= f_abs(position-getRadius());
-// // 			hat.setNumberOfDerivatives(0);
-//             for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)
-//             {
-//                 std::pair<DelaunayTetrahedron *, Point *> that(t, &t->getBoundingPoint(k) ) ;
-// 
-//                 if( enriched.find(that) == enriched.end())
-//                 {
-//                     if(dofId.find(&t->getBoundingPoint(k)) != dofId.end() )
-//                     {
-//                         enriched.insert(that) ;
-//                         Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-//                         Function f = t->getShapeFunction(k)*(hat - vm.eval(hat, p.getX(), p.getY(), p.getZ()))*blend ;
-//                         if(!hinted)
-//                         {
-//                             f.setIntegrationHint(hint) ;
-//                             hinted = true ;
-//                         }
-//                         f.setPoint(&t->getBoundingPoint(k)) ;
-//                         f.setDofID(dofId[&t->getBoundingPoint(k)]) ;
-// 
-//                         t->setEnrichment(f, getPrimitive()) ;
-//                     }
-//                     else
-//                     {
-//                         enriched.insert(that) ;
-//                         Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-//                         Function f = t->getShapeFunction(k)*(hat - vm.eval(hat, p.getX(), p.getY(), p.getZ()))*blend ;
-// 
-//                         if(!hinted)
-//                         {
-//                             f.setIntegrationHint(hint) ;
-//                             hinted = true ;
-//                         }
-//                         f.setPoint(&t->getBoundingPoint(k)) ;
-//                         if(extradofs.find(&t->getBoundingPoint(k)) == extradofs.end())
-//                             extradofs[&t->getBoundingPoint(k)] = lastId++ ;
-// 
-//                         f.setDofID(extradofs[&t->getBoundingPoint(k)]) ;
-//                         t->setEnrichment(f, getPrimitive()) ;
-//                     }
-//                     t->addBlendingFunction(1.-blend);
-// 
-//                 }
-//             }
-//         }
-//     
-//         
+//         exit(0) ;
     }
 
 }

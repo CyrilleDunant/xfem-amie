@@ -3286,11 +3286,11 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
         for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
             originalSum+=gp.gaussPoints[i].second ;
 
-        if( true )
+        if( false )
         {
             TetrahedralElement father(LINEAR) ;
 
-            size_t target = 128 ;
+            size_t target = 1024 ;
 
             while(gp_alternative.size() < target)
             {

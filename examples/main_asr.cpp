@@ -96,7 +96,7 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
         else
             intermediateCount = 0 ;
         
-        if( intermediateCount > 2)
+        if( intermediateCount > 4)
         {
             intermediateCount = 0 ;
             go_on = true ;
@@ -277,7 +277,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 
         for( size_t j = 0 ; j < zonesToPlace.size() ; j++ )
         {
-            if( dist( pos, zonesToPlace[j]->Circle::getCenter() ) < 0.0012 )
+            if( dist( pos, zonesToPlace[j]->Circle::getCenter() ) < 0.0015 )
             {
                 alone = false ;
                 break ;
@@ -298,7 +298,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 
         for( size_t j = 0 ; j < incs.size() ; j++ )
         {
-            if( dist( zonesToPlace[i]->getCenter(), incs[j]->getCenter() ) < incs[j]->getRadius() - 0.00005 /*&& incs[j]->getRadius() <= 0.008 && incs[j]->getRadius() > 0.004*/ && baseGeometry.in( zonesToPlace[i]->getCenter() ) )
+            if( dist( zonesToPlace[i]->getCenter(), incs[j]->getCenter() ) < incs[j]->getRadius() - 0.0002 /*&& incs[j]->getRadius() <= 0.008 && incs[j]->getRadius() > 0.004*/ && baseGeometry.in( zonesToPlace[i]->getCenter() ) )
             {
                 zonesPerIncs[incs[j]]++ ; ;
                 F.addFeature( incs[j], zonesToPlace[i] ) ;
@@ -517,7 +517,7 @@ int main( int argc, char *argv[] )
     }
 
     zones = generateExpansiveZonesHomogeneously(nzones, placedinclusions, F , sample) ;
-    F.setSamplingNumber( 72 ) ;
+    F.setSamplingNumber( 64 ) ;
 
     if( restraintDepth > 0 )
     {

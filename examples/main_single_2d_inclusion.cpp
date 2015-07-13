@@ -48,16 +48,23 @@ void step()
         }
        featureTree->printReport();
        
+       Vector tmp(3) ;
        for(double x = -100 ;  x <= 100 ; x += .25)
        {
            for(double y = -100 ;  y <= 100 ; y += .25)
-                std::cout << featureTree->get2DMesh()->getField(STRAIN_FIELD, Point(x,y))[0] << "  "<< std::flush ;
+           {
+               featureTree->get2DMesh()->getField(STRAIN_FIELD, Point(x,y),tmp) ;
+                std::cout << tmp[0] << "  "<< std::flush ;
+           }
            std::cout << std::endl ;
        }
        for(double x = -100 ;  x <= 100 ; x += .25)
        {
            for(double y = -100 ;  y <= 100 ; y += .25)
-                std::cout << featureTree->get2DMesh()->getField(REAL_STRESS_FIELD, Point(x,y))[0] << "  "<< std::flush ;
+           {
+               featureTree->get2DMesh()->getField(REAL_STRESS_FIELD, Point(x,y),tmp) ;
+                std::cout << tmp[0] << "  "<< std::flush ;
+           }
            std::cout << std::endl ;
        }
         writerc.reset( featureTree ) ;

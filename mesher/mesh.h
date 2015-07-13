@@ -758,12 +758,13 @@ public:
         return ret/w ;
     }
     
-    virtual Vector getField ( FieldType f, const Point & p, int dummy = 0, double t = 0 ) 
+    virtual Vector getField ( FieldType f, const Point & p, Vector & ret, int dummy = 0, double t = 0 ) 
     {
         ETYPE * e = getUniqueConflictingElement(&p) ;
-        Vector ret(3) ;
-        if(e->state)
+        if(e && e->state)
             e->getState().getField(f, p, ret, false) ;
+        else
+            ret = 0 ;
         return ret ;
     }
 
