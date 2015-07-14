@@ -7292,6 +7292,18 @@ void FeatureTree::generateElements()
                     potentialChildren = descendants ;
                 }
 
+                for ( size_t k  =  0 ; k <  potentialFeatures.size() ; k++ )
+                {
+                    if ( i && tree[i] != potentialFeatures[k] 
+                            && !potentialFeatures[k]->isVirtualFeature
+                            && potentialFeatures[k]->onBoundary ( tree[i]->getBoundingPoint ( j ), POINT_TOLERANCE )
+                            && potentialFeatures[k]->getBoundingPoints().size() )
+                    {
+                        isIn = true ;
+                        break ;
+                    }
+                }
+
                 for ( size_t k  =  0 ; k <  potentialChildren.size() ; k++ )
                 {
                     if ( ( !potentialChildren[k]->isVirtualFeature
@@ -7312,7 +7324,7 @@ void FeatureTree::generateElements()
                     }
                 }
 
-                if( i && ! tree[i]->inMask( tree[i]->getBoundingPoint ( j ), pointDensity*0.33 ) )
+                if( i && ((!tree[i]->inMask( tree[i]->getBoundingPoint ( j ), pointDensity*0.1 )) || tree[i]->onMaskBoundary( tree[i]->getBoundingPoint ( j ), pointDensity*0.1 )))
                 {
                     isIn = true ;
                 }
@@ -7442,8 +7454,8 @@ void FeatureTree::generateElements()
                     if (
                         (
                             !potentialChildren[k]->isVirtualFeature
-                            && potentialChildren[k]->inBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.33 )
-                            && potentialChildren[k]->inMask ( tree[i]->getInPoint ( j ), pointDensity*0.33 )
+                            && potentialChildren[k]->inBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.5 )
+                            && potentialChildren[k]->inMask ( tree[i]->getInPoint ( j ), pointDensity*0.1 )
                         )
                         ||
                         (
@@ -7470,7 +7482,7 @@ void FeatureTree::generateElements()
                     isIn = true ;
                 }
 
-                if( i && ! tree[i]->inMask( tree[i]->getInPoint ( j ) ) )
+                if( i && ( (!tree[i]->inMask( tree[i]->getInPoint ( j ) ))  || tree[i]->onMaskBoundary( tree[i]->getInPoint ( j ), pointDensity*0.5 )))
                 {
                     isIn = true ;
                 }
@@ -7530,6 +7542,7 @@ void FeatureTree::generateElements()
 
     if ( computeIntersections )
     {
+        std::set< std::pair<const Feature*, const Feature*> > done ;
         for ( size_t i = 1 ;  i < tree.size() ; i++ )
         {
             if ( !tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature && tree[i]->getFather() != nullptr )
@@ -7560,8 +7573,32 @@ void FeatureTree::generateElements()
                             && tree[i] != coOccuringFeatures[j]
                             && tree[i]->intersects ( coOccuringFeatures[j] ) )
                     {
+                        std::pair<const Feature*, const Feature*> testa = std::make_pair( tree[i], coOccuringFeatures[j] ) ;
+                        std::pair<const Feature*, const Feature*> testb = std::make_pair( coOccuringFeatures[j], tree[i] ) ;
+                        if(done.find( testa ) != done.end() || done.find( testb ) != done.end() )
+                        {
+                            continue ;
+                        }
+                        done.insert(testa) ;
+                        done.insert(testb) ;
+
                         std::vector<Point> inter = tree[i]->intersection ( coOccuringFeatures[j] ) ;
 
+                        int base = inter.size() ; 
+                        for(int k = 0 ; k < base-1 ; k++)
+                        {
+//                            inter[k].print() ;
+                            if(dist(inter[k], inter[k+1]) > pointDensity*1.5)
+                            {
+                                double division = (double) (1 + (int) (dist(inter[k], inter[k+1])/pointDensity)) ;
+                                for(int l = 0 ; l < division ; l++)
+                                {
+                                    inter.push_back( inter[k] + (inter[k+1]-inter[k])*(1.+l)/division ) ;
+                                }
+                            }
+                        }
+                        if(inter.size() < 3)
+                            continue ;
                         for ( size_t k = 0 ;  k < inter.size() ; k++ )
                         {
 
@@ -7569,7 +7606,7 @@ void FeatureTree::generateElements()
 
                             for ( size_t l = 0 ; l < descendants.size() ; l++ )
                             {
-                                if ( !descendants[l]->isVirtualFeature && descendants[l]->inBoundary ( inter[k], pointDensity*0.33 ) )
+                                if ( !descendants[l]->isVirtualFeature && descendants[l]->inBoundary ( inter[k], pointDensity*0.33 ) && !descendants[l]->isMaskedBy( tree[i] ))
                                 {
                                     indescendants = true ;
                                     break ;
@@ -7579,7 +7616,7 @@ void FeatureTree::generateElements()
 //
                             if ( !indescendants )
                             {
-                                if ( inRoot ( inter[k] ) )
+                                if ( inRoot ( inter[k] ) && tree[i]->inMask( inter[k], pointDensity*0.1 ) && (!tree[i]->onMaskBoundary( inter[k], pointDensity*0.33) || tree[i]->isMaskedBy( coOccuringFeatures[j])) )
                                 {
                                     Point *p = new Point ( inter[k] ) ;
                                     additionalPoints.push_back ( p ) ;
@@ -7600,13 +7637,30 @@ void FeatureTree::generateElements()
 
         for ( auto & feature : tree )
         {
+            if(feature == tree[0])
+		continue ;
+
             if ( !feature->isEnrichmentFeature && feature->getBoundingPoints().size() && !feature->isVirtualFeature && tree[0]->intersects ( feature ) && feature->getFather() != nullptr )
             {
                 std::vector<Point> inter = tree[0]->intersection ( feature ) ;
+                if(inter.size() == 0)
+                    inter = feature->intersection( tree[0] ) ;
                 std::vector<Feature *> descendants = feature->getDescendants() ;
                 std::vector<Feature *> fatherdescendants = tree[0]->getDescendants() ;
 
-                for ( size_t k = 0 ;  k < inter.size() ; k++ )
+                size_t base = inter.size() ; 
+                for(size_t k = 0 ; base > 0 && k < base-1 ; k++)
+                {
+                    if(dist(inter[k], inter[k+1]) > pointDensity*0.75)
+                    {
+                        double division = (double) (1 + (int) (dist(inter[k], inter[k+1])/pointDensity)) ;
+                        for(int l = 0 ; l < division ; l++)
+                            inter.push_back( inter[k] + (inter[k+1]-inter[k])*(1.+l)/division ) ;
+                    }
+                }
+                size_t start = ( base == inter.size() ? 0 : base ) ;
+
+                for ( size_t k = start ;  k < inter.size() ; k++ )
                 {
 
 

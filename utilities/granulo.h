@@ -131,6 +131,15 @@ public:
 	 */
 	static std::vector<Inclusion3D *> get3DInclusions(double rmax, double area, ParticleSizeDistribution * type, PSDEndCriteria crit) ;
 		
+
+        static std::vector<PolygonalSample *> get2DVoronoiPolygons(Rectangle * box, size_t n, double minDist) ;
+
+        static std::vector<PolygonalSample *> get2DVoronoiPolygons(FeatureTree * F, std::map<Form *, double> & behaviour, size_t n, double minDist, bool copy = false) ;
+
+        static std::vector<PolygonalSample *> get2DVoronoiPolygons(Feature * feat, std::map<Form *, double> & behaviour, size_t n, double minDist, bool copy = false) ;
+
+        static std::vector<PolygonalSample *> get2DVoronoiPolygons(FeatureTree * F, std::map<Form *, double> & behaviour, std::vector<Feature *> feats, size_t n, double minDist, bool copy = false) ;
+
 	/**
 	 * \brief Creates PSD for mortar square samples
 	 * @param width width of the sample

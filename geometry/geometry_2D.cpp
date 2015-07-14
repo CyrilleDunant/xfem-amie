@@ -997,6 +997,22 @@ Rectangle::Rectangle(double x, double y, double originX, double originY) : Conve
     boundingPoints[3] = new Point(bottomLeft) ;
 }
 
+Rectangle::Rectangle(std::vector<Point> box) : ConvexGeometry(4)
+{
+    gType = RECTANGLE ;
+    topLeft = Point(box[0]) ;
+    topRight = Point(box[1]) ;
+    bottomRight = Point(box[2]) ;
+    bottomLeft = Point(box[3]) ;
+    boundingPoints[0] = new Point(topLeft) ;
+    boundingPoints[1] = new Point(topRight) ;
+    boundingPoints[2] = new Point(bottomRight) ;
+    boundingPoints[3] = new Point(bottomLeft) ;
+    center = (box[0]+box[1]+box[2]+box[3])*0.25 ;
+    size_x = std::abs(box[1].getX()-box[0].getX()) ;
+    size_y = std::abs(box[2].getY()-box[1].getY()) ;
+}
+
 Rectangle::Rectangle(double x, double y, const Point &center) :  ConvexGeometry(4), size_y(y), size_x(x)
 {
     gType = RECTANGLE ;
@@ -1054,13 +1070,13 @@ double  Rectangle::getRadius() const
 
 bool Rectangle::in(const Point & p) const
 {
-    if(p.getX() < getCenter().getX() - 0.5*width())
+    if(p.getX() < getCenter().getX() - 0.5*width()-POINT_TOLERANCE)
         return false ;
-    if(p.getX()  > getCenter().getX() + 0.5*width())
+    if(p.getX()  > getCenter().getX() + 0.5*width()+POINT_TOLERANCE)
         return false ;
-    if(p.getY() > getCenter().getY() + 0.5*height())
+    if(p.getY() > getCenter().getY() + 0.5*height()+POINT_TOLERANCE)
         return false ;
-    if(p.getY()  < getCenter().getY() - 0.5*height())
+    if(p.getY()  < getCenter().getY() - 0.5*height()-POINT_TOLERANCE)
         return false ;
 
     return true ;
@@ -1373,7 +1389,8 @@ std::vector<Point> Circle::getSamplingBoundingPointsOnArc(size_t num_points, con
     project(&fin) ;
     fin -= getCenter() ;
     double angle = (init.angle() -fin.angle())/num_points ;
-
+    if(init.angle() < -M_PI*0.5 && fin.angle() > M_PI*0.5)
+        angle = (init.angle()+M_PI*2. -fin.angle())/num_points ;
 
     for (double i = 0 ; i< num_points ; i++)
     {
@@ -2323,12 +2340,17 @@ std::vector<Point> Polygon::getSamplingBoundingPoints(size_t num_points) const
     {
         int inext = (i+1)%originalPoints.size() ;
         double fraction = dist(originalPoints[i], originalPoints[inext])/perimeter ;
-        int numPointsOnSegment = std::max(round(fraction*num_points)+1, 2.) ;
+        int numPointsOnSegment = std::max(round(fraction*(num_points))+1, 2.) ;
 
-        ret.push_back(originalPoints[i]);
+/*        if( numPointsOnSegment == 2 && dist(originalPoints[i], originalPoints[inext]) > perimeter*0.25/(num_points) )
+            numPointsOnSegment++ ;*/
+
+        if(numPointsOnSegment > 2 || dist(originalPoints[i], originalPoints[inext]) > perimeter/num_points)
+            ret.push_back(originalPoints[i]);        
         for(int j = 1 ; j < numPointsOnSegment-1 ; j++)
         {
-            ret.push_back(originalPoints[i]*(double)j/(numPointsOnSegment-1) + originalPoints[inext]*(1.-(double)j/(numPointsOnSegment-1)) );
+            double f = ((double)j/(numPointsOnSegment-1)) ;
+            ret.push_back(originalPoints[i]*(1.-f) + (originalPoints[inext]*f) );
         }
     }
     return ret ;
@@ -2348,10 +2370,25 @@ double Polygon::getPerimeter() const
 std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta ) 
 {
     // first, get tentative segments inside p
-    std::valarray<Point> vertex = p.getOriginalPoints() ;
+    std::valarray<Point> realvertex = p.getOriginalPoints() ;
+    std::vector<Point> vertex ;
+    for(size_t i = 0 ; i < realvertex.size() ; i++)
+    {
+       size_t i_next = (i+1)%realvertex.size() ;
+       size_t i_prev = (i==0 ? realvertex.size()-1 : i-1) ;
+       if(dist( realvertex[i], realvertex[i_next]) > delta*0.5 && dist( realvertex[i], realvertex[i_prev]) > delta*0.5)
+           vertex.push_back(realvertex[i]) ;
+       else if(dist(realvertex[i], realvertex[i_next]) < delta*0.5 && dist( realvertex[i], realvertex[i_prev]) > delta*0.5 )
+	{
+           vertex.push_back( (realvertex[i]+realvertex[i_next])*0.5 ) ;
+	}
+    }
+//    std::cout << vertex.size() << "/" << realvertex.size() << " original vertex kept"  << std::endl ;
+
     std::vector<Segment> segments ;
     for(size_t i = 0 ; i < vertex.size() ; i++)
     {
+
        size_t i_next = (i+1)%vertex.size() ;
        size_t i_next_next = (i+2)%vertex.size() ;
        size_t i_prev = (i==0 ? vertex.size()-1 : i-1) ;
@@ -2363,10 +2400,10 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
        if(n.norm() < POINT_TOLERANCE)
            continue ; // original edge is too small
        n *= 0.75*delta/n.norm() ;       
-       if(!p.in(edge.midPoint() + n*0.01))
+       if(!p.in(edge.midPoint() + n*0.5))
        {
           n *= -1 ;
-          if(!p.in(edge.midPoint() + n*0.01))
+          if(!p.in(edge.midPoint() + n*0.5))
              continue ; // original polygon is too thin
        }
        Line tentative( edge.midPoint()+n, vertex[i_next]-vertex[i] ) ;
@@ -2375,10 +2412,10 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
        if(n.norm() < POINT_TOLERANCE)
            continue ; // original edge is too small
        n *= 0.75*delta/n.norm() ;       
-       if(!p.in(edge_prev.midPoint() + n*0.01))
+       if(!p.in(edge_prev.midPoint() + n*0.5))
        {
           n *= -1 ;
-          if(!p.in(edge_prev.midPoint() + n*0.01))
+          if(!p.in(edge_prev.midPoint() + n*0.5))
              continue ; // original polygon is too thin
        }
        Line tentative_prev( edge_prev.midPoint()+n, vertex[i]-vertex[i_prev] ) ;
@@ -2387,10 +2424,10 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
        if(n.norm() < POINT_TOLERANCE)
            continue ; // original edge is too small
        n *= 0.75*delta/n.norm() ;       
-       if(!p.in(edge_next.midPoint() + n*0.01))
+       if(!p.in(edge_next.midPoint() + n*0.5))
        {
           n *= -1 ;
-          if(!p.in(edge_next.midPoint() + n*0.01))
+          if(!p.in(edge_next.midPoint() + n*0.5))
              continue ; // original polygon is too thin
        }
        Line tentative_next( edge_next.midPoint()+n, vertex[i_next_next]-vertex[i_next] ) ;
@@ -2406,7 +2443,23 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
        Point first = tentative.intersection( tentative_prev ) ;
        Point second = tentative.intersection( tentative_next ) ;
        if(!p.in( first ) || !p.in( second) )
-           continue ; // vertexes of next tentative edge are outside the original polygon
+       {
+           if(p.in(first))
+           {
+               Segment s(first, second) ;
+               Point test = s.intersection(&p)[0]-first ;
+               second = first + test*(test.norm()-delta)/test.norm() ;
+           }
+           else if(p.in(second))
+           {
+               Segment s(first, second) ;
+               Point test = s.intersection(&p)[0]-second ;
+               first = second + test*(test.norm()-delta)/test.norm() ;
+           }
+       }
+
+       if(!p.in( first ) || !p.in( second) )
+           continue ;
 
        segments.push_back( Segment( first, second ) ) ;
     }
@@ -2481,8 +2534,7 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
         Point c = nodes[i].first ;
         for(size_t j = 0 ; j < nodes_close.size() ; j++)
             c += nodes[ nodes_close[j] ].first ;
-        c /= 1+nodes_close.size() ;
-
+        c /= 1+nodes_close.size() ; 
         nodes[i].first = c ;
         for(size_t j = 0 ; j < nodes_close.size() ; j++)
         {
@@ -2653,7 +2705,7 @@ void Polygon::sampleSurface(size_t num_points)
     for(size_t i = 0 ; i < inPoints.size() ; i++)
         delete inPoints[i] ;
 
-    num_points *=2 ;
+    num_points *= 3 ;
     sampleBoundingSurface(num_points);
 
     std::vector<Polygon> clusters ;
@@ -2670,16 +2722,16 @@ void Polygon::sampleSurface(size_t num_points)
         for(size_t i = 0 ; i < clusters.size() ; i++)
         {
             std::vector<Polygon> inscribed = getInscribedPolygons( clusters[i], delta ) ;
-            if( inscribed.size() == 0 && clusters[i].getOriginalPoints().size() > 2)
-                newPoints.push_back( clusters[i].getCenter() ) ;
+//            if( inscribed.size() == 0 && clusters[i].getOriginalPoints().size() > 2)
+  //              newPoints.push_back( clusters[i].getCenter() ) ;
             for(size_t j = 0 ; j < inscribed.size() ; j++)
             {
                 std::valarray<Point> pts = inscribed[j].getOriginalPoints() ;
                 for(size_t k = 0 ; k < pts.size() ; k++)
                 {
                     bool alone = true ;
-                    for(size_t l = 0 ; alone && l < nextPoints.size() ; l++)
-                       alone = dist( pts[k], nextPoints[l] ) > POINT_TOLERANCE ;
+                    for(size_t l = 0 ; alone && l < newPoints.size() ; l++)
+                       alone &= dist( pts[k], newPoints[l] ) > delta*0.5 ;
                     if(alone)
                        nextPoints.push_back( pts[k] ) ;
                     
@@ -2687,10 +2739,17 @@ void Polygon::sampleSurface(size_t num_points)
                         break ; // polygon is a line, do not repeat mesh points
 
                     size_t k_next = (k+1)%pts.size() ;
-                    int numPointsOnSegment = round(dist(pts[k], pts[k_next])*num_points/perimeter) ;
+                    int numPointsOnSegment = ceil(dist(pts[k], pts[k_next])/delta) ;
 
                     for(int n = 0 ; n < numPointsOnSegment-1 ; n++)
-                        newPoints.push_back(pts[k]*(double)n/(numPointsOnSegment-1) + pts[k_next]*(1.-(double)n/(numPointsOnSegment-1)) );
+                    {
+                       alone = true ;
+                       Point tentative = pts[k]*(double)n/(numPointsOnSegment-1) + pts[k_next]*(1.-(double)n/(numPointsOnSegment-1)) ;
+                       for(size_t l = 0 ; alone && l < newPoints.size() ; l++)
+                           alone &= dist( tentative, newPoints[l] ) > delta*0.5 ;
+                       if(alone)
+                           newPoints.push_back(tentative);
+                    }
                 }
                 nextCluster.push_back( inscribed[j] ) ;
             }

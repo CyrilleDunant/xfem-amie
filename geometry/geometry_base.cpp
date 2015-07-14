@@ -1479,6 +1479,15 @@ bool Geometry::intersects(const Geometry *g) const
                 segs.push_back(Segment(g->getBoundingPoint(i), g->getBoundingPoint(i+1))) ;
             }
         }
+        if(g->getGeometryType() == POLYGON)
+        {
+            std::valarray<Point> original = dynamic_cast<const Polygon *>(g)->getOriginalPoints() ;
+            for(size_t i = 0 ; i < original.size()-1 ; i++)
+            {
+                segs.push_back(Segment(original[i], original[i+1])) ;
+            }
+            segs.push_back(Segment(original[original.size()-1], original[0])) ;
+        }
 
         bool intersects = false ;
         for(size_t i = 0 ; i < segs.size() ; i++)
@@ -1819,6 +1828,32 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
     std::vector<Point> ret ;
     switch(getGeometryType())
     {
+    case POLYGON:
+    {
+        std::valarray<Point> original = dynamic_cast<const Polygon *>(this)->getOriginalPoints() ;
+        int inext = 0 ;
+        for(size_t i = 0 ; i < original.size() ; i++)
+        {
+            inext = (i+1)%original.size() ;
+            Segment s(original[i], original[inext]) ;
+            if(s.intersects(g))
+            {
+                std::vector<Point> inter = s.intersection(g) ;
+                for(size_t j = 0 ; j < inter.size() ; j++)
+                {
+                    bool alone = true ;
+                    for(size_t k = 0 ; alone && k < ret.size() ; k++)
+                    {
+                        if(dist(ret[k],inter[j]) < POINT_TOLERANCE)
+                            alone = false ;
+                    }
+                    if(alone)
+                        ret.push_back(inter[j]) ;
+                }
+            }
+        }
+        return ret ;
+    }
     case TRIANGLE :
     {
         Segment s0(getBoundingPoint(0),
@@ -1851,6 +1886,58 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
             intersection.insert(intersection.end(), it.begin(), it.end()) ;
             it = s3.intersection(g) ;
             intersection.insert(intersection.end(), it.begin(), it.end()) ;
+
+            bool haveDuplicates = true ;
+            while(haveDuplicates)
+            {
+                haveDuplicates = false ;
+                for(size_t i  = 0 ; i < intersection.size() ; i++)
+                {
+                    for(size_t j  = i+1 ; j < intersection.size() ; j++)
+                    {
+                        if(squareDist3D(intersection[i], intersection[j])< 128*POINT_TOLERANCE*POINT_TOLERANCE)
+                        {
+                            haveDuplicates = true ;
+                            intersection.erase(intersection.begin()+j) ;
+                            break ;
+                        }
+                    }
+			if(intersection.size() > 1)
+				ret.push_back(intersection[intersection.size()-1]) ;
+
+                    if(haveDuplicates)
+                        break ;
+                }
+            }
+            return intersection ;
+        }
+
+        if(g->getGeometryType() == POLYGON)
+        {
+            std::vector<Point> intersection = s0.intersection(g) ;
+            if(s0.intersects(g) && s1.intersects(g) && g->in(box[1]))
+                intersection.push_back(box[1]) ;
+            std::vector<Point> it = s1.intersection(g) ;
+            intersection.insert(intersection.end(), it.begin(), it.end()) ;
+            if(s1.intersects(g) && s2.intersects(g) && g->in(box[2]))
+                intersection.push_back(box[2]) ;
+            it = s2.intersection(g) ;
+            intersection.insert(intersection.end(), it.begin(), it.end()) ;
+            if(s2.intersects(g) && s3.intersects(g) && g->in(box[3]))
+                intersection.push_back(box[3]) ;
+            if(s3.intersects(g) && s0.intersects(g) && g->in(box[0]))
+                intersection.push_back(box[0]) ;
+            it = s3.intersection(g) ;
+            intersection.insert(intersection.end(), it.begin(), it.end()) ;
+
+            if(intersection.size() > 0)
+            {
+                for(size_t i = 0 ; i < box.size() ; i++)
+                {
+                   if( g->in(box[i]) )
+                       intersection.push_back(box[i]) ;
+                }
+            }
 
             bool haveDuplicates = true ;
             while(haveDuplicates)
@@ -2147,9 +2234,41 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
             segs.push_back(Segment(g->getBoundingPoint(g->getBoundingPoints().size()/3), g->getBoundingPoint(2*g->getBoundingPoints().size()/3))) ;
             segs.push_back(Segment(g->getBoundingPoint(0), g->getBoundingPoint(2*g->getBoundingPoints().size()/3))) ;
         }
-        if(g->getGeometryType() == RECTANGLE)
+        if(g->getGeometryType() == RECTANGLE || g->getGeometryType() == POLYGON)
         {
-            return g->intersection(this) ;
+            std::vector<Point> inter = g->intersection(this) ;
+            if(inter.size() < 2 || getBoundingPoints().size() < 2)
+                return inter ;
+            for(size_t i = 0 ; i < inter.size()-1 ; i++)
+            {
+                double num = getBoundingPoints().size() ;
+                Point start = inter[i]-getCenter() ;
+                Point end = inter[i+1]-getCenter() ;
+                double alpha = (end.angle()-start.angle()) ;
+                if(end.angle() > M_PI*0.5 && start.angle() < -M_PI*0.5)
+                   alpha -= M_PI ;
+                if(end.angle() < -M_PI*0.5 && start.angle() > M_PI*0.5)
+                   alpha += M_PI ;
+                num *= std::abs(alpha)/(2.*M_PI) ;
+                std::vector<Point> it = dynamic_cast<const Circle *>(this)->getSamplingBoundingPointsOnArc( round(num), inter[i], inter[i+1] ) ;
+                if(it.size() < 2)
+                    return inter ;
+                if( g->in(it[it.size()/2]) )
+                {
+                    ret.insert(ret.end(), it.begin(), it.end()) ;
+                    if(i == inter.size()-2)
+                       ret.push_back(inter[i+1]) ;
+                }
+                else
+                {
+                    it.clear() ;
+                    it = dynamic_cast<const Circle *>(this)->getSamplingBoundingPointsOnArc( round(num), inter[i+1], inter[i] ) ;
+                    ret.insert(ret.end(), it.begin(), it.end()) ;
+                    if(i == inter.size()-2)
+                       ret.push_back(inter[i]) ;
+                }
+            }
+            return ret ;
         }
         if(g->getGeometryType() == SEGMENTED_LINE)
         {
@@ -4429,12 +4548,22 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
         {
             Segment test(corners[i], corners[i+1]) ;
             if(test.intersects(*this))
-                ret.push_back(test.intersection(*this)) ;
+            {
+		if(dist( this->midPoint(), test.intersection(*this) ) > POINT_TOLERANCE)
+                    ret.push_back(test.intersection(*this)) ;
+                else
+                    ret.push_back(test.first()) ;
+            }
 	   
         }
-            Segment test(corners[corners.size()-1], corners[0]) ;
-            if(test.intersects(*this))
+        Segment test(corners[corners.size()-1], corners[0]) ;
+        if(test.intersects(*this))
+        {
+            if(dist( this->midPoint(), test.intersection(*this) ) > POINT_TOLERANCE)
                 ret.push_back(test.intersection(*this)) ;
+            else
+                ret.push_back(test.first()) ;
+        }
         return ret ;
     }
     case SEGMENTED_LINE:

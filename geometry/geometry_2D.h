@@ -120,6 +120,8 @@ public:
     /** \brief constructor, build Rectangle from side length and center*/
     Rectangle(double x, double y, const Point &center) ;
 
+    Rectangle(std::vector<Point> box) ;
+
     /** \brief Default constructor. build rectangle from (-1,-1) to (1,1)*/
     Rectangle() ;
 

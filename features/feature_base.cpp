@@ -128,6 +128,20 @@ bool Feature::inMask(const Point &p, double d) const
     return isin ;
 }
 
+bool Feature::onMaskBoundary(const Point &p, double d) const
+{
+    if(mask.size() == 0)
+       return false ;
+
+    for(size_t i = 0 ; i < mask.size() ; i++)
+    {
+        if(mask[i]->onBoundary( p, d ))
+            return true ;
+    }
+
+    return false ;
+}
+
 bool Feature::inBoundary(const Point &p, double d) const
 {
     if(p == getCenter())

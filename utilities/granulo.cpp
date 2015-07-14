@@ -78,6 +78,10 @@ std::vector<Inclusion *> PSDGenerator::get2DInclusions(double rmax, double mass,
 // 		std::cout << radii.size() << " particles generated, covering a surface of " << mass-remainingMass << std::endl ;
 // 	}
 	std::vector<Inclusion *> incs ;
+	if(radii.size() == 0)
+	{
+		return incs ;
+	}
 	for(size_t i = 0 ; i < radii.size()-1 ; i++)
 	{
 		incs.push_back(new Inclusion(radii[i],0.,0.)) ;
@@ -247,6 +251,225 @@ std::vector<Feature *> PSDGenerator::get2DMaskedInclusions(FeatureTree * F, Form
                 }
 	}
 	return feats ;
+}
+
+std::vector<PolygonalSample *> PSDGenerator::get2DVoronoiPolygons(Rectangle * box, size_t n, double minDist) 
+{
+	std::vector<Inclusion *> incs = PSDGenerator::get2DInclusions( minDist*0.5, sqrt(box->area()), new ConstantSizeDistribution(), PSDEndCriteria( minDist*0.25, 0.01, n) ) ;
+	std::vector<Feature *> feats ;
+	for(size_t i = 0 ; i < incs.size() ; i++)
+		feats.push_back(incs[i]) ;
+	std::vector<Feature *> placed = placement2D(box, feats, 0,0, 10000*n ) ;
+	std::vector<PolygonalSample *> poly ;
+	if(placed.size() < 2)
+		return poly ;
+
+	Mesh<DelaunayTriangle, DelaunayTreeItem> * test = new DelaunayTree ( &box->getBoundingPoint(0), &box->getBoundingPoint(1), &box->getBoundingPoint(2) ) ;
+	test->insert( &box->getBoundingPoint(3) ) ;
+	double divx = box->width()/sqrt(n) ;
+	Point c = box->getCenter() ;
+	for(double x = c.getX()-box->width() ; x < c.getX()+box->width()-divx/2 ; x += divx )
+	{
+		test->insert( new Point( c.getX()-box->width()+x, c.getY()-box->height() ) ) ;
+		test->insert( new Point( c.getX()-box->width()+x, c.getY()+box->height() ) ) ;
+	}
+	double divy = box->height()/sqrt(n) ;
+	for(double y = c.getY()-box->height() ; y < c.getY()+box->height()-divy/2 ; y += divy )
+	{
+		test->insert( new Point( c.getX()-box->width(), c.getY()-box->height()+y ) ) ;
+		test->insert( new Point( c.getX()+box->width(), c.getY()-box->height()+y ) ) ;
+	}
+	std::vector<Point *> nodes ;
+	for(size_t i = 0 ; i < placed.size() ; i++)
+	{
+		nodes.push_back( new Point(placed[i]->getCenter()) ) ;
+		test->insert( nodes[i] ) ;
+	}
+
+	std::vector<DelaunayTriangle *> connectivity = test->getConflictingElements( box ) ;
+
+	for(size_t i = 0 ; i < nodes.size() ; i++)
+	{
+		std::vector< std::pair<Point, std::pair< Point,  Point> > > next ;
+		for(size_t j = 0 ; j < connectivity.size() ; j++)
+		{
+			int vertex = -1 ;
+			for(size_t k = 0 ; k < connectivity[j]->getBoundingPoints().size() ; k++)
+			{
+				if( dist(connectivity[j]->getBoundingPoint(k), *(nodes[i])) < POINT_TOLERANCE )
+					vertex = k ;
+			}
+			if(vertex > -1)
+			{
+				Point a ;
+				Point b ;
+				for(size_t k = 0 ; k < connectivity[j]->getBoundingPoints().size() ; k++)
+				{
+					if( k != (size_t) vertex )
+					{
+						if(a.getId() == -1)
+							a = (connectivity[j]->getBoundingPoint(k)-*(nodes[i]))*0.5 ;
+						else
+							b = (connectivity[j]->getBoundingPoint(k)-*(nodes[i]))*0.5 ;
+					}
+				}
+				Point a1(a.getY(), -a.getX()) ; 
+				Point b1(b.getY(), -b.getX()) ;
+				Line la( *(nodes[i])+a, a1) ;
+				Line lb( *(nodes[i])+b, b1) ;
+				Point inter = la.intersection(lb) ;
+				next.push_back( std::make_pair( inter, std::make_pair( a, b ) ) ) ;
+			}
+		}
+		if(next.size() < 4)
+			continue ;
+		std::vector<size_t> vertex ;
+		std::valarray<bool> done(next.size()) ;
+		done = false ;
+		size_t start = 0 ;
+		while(vertex.size() < next.size())
+		{
+			bool found = false ;
+			if(vertex.size() == 0)
+			{	
+				vertex.push_back( start ) ;
+				done[start] = true ;
+				found = true ;
+			}
+			for(size_t j = 0 ; j < next.size() ; j++)
+			{
+				if(done[j])
+					continue ;
+				if(dist( next[j].second.first, next[ vertex[vertex.size()-1] ].second.first ) < POINT_TOLERANCE || 
+					dist( next[j].second.first, next[ vertex[vertex.size()-1] ].second.second ) < POINT_TOLERANCE ||
+					dist( next[j].second.second, next[ vertex[vertex.size()-1] ].second.first ) < POINT_TOLERANCE ||
+					dist( next[j].second.second, next[ vertex[vertex.size()-1] ].second.second ) < POINT_TOLERANCE)
+				{
+					vertex.push_back(j) ;
+					found = true ;
+					done[j] = true ;
+				}
+			}
+			if(!found)
+			{
+				vertex.clear() ;
+				done = false ;
+				start++ ;
+			}
+			if(start == next.size())
+				break ;
+		}
+		bool open = true ;
+		for(size_t j = 0 ; j < next.size() ; j++)
+		{
+			if(j == vertex.size()-1 || j == vertex.size()-2)
+				continue ;
+			if(dist( next[j].second.first, next[ vertex[vertex.size()-1] ].second.first ) < POINT_TOLERANCE || 
+				dist( next[j].second.first, next[ vertex[vertex.size()-1] ].second.second ) < POINT_TOLERANCE ||
+				dist( next[j].second.second, next[ vertex[vertex.size()-1] ].second.first ) < POINT_TOLERANCE ||
+				dist( next[j].second.second, next[ vertex[vertex.size()-1] ].second.second ) < POINT_TOLERANCE)
+			{
+				open=false ;
+			}
+		}
+		if(open)
+		{
+			continue ;
+		}
+		std::valarray<Point *> corners(vertex.size()) ;
+		for(size_t j = 0 ; j < vertex.size() ; j++)
+		{
+			corners[j] = new Point( next[vertex[j]].first ) ;
+		}
+		std::vector<Segment> edges ;
+		for(size_t j = 0 ; j < vertex.size() ; j++)
+		{
+			Segment s( next[vertex[j]].first, next[vertex[(j+1)%vertex.size()]].first ) ;
+			edges.push_back( s ) ;
+		}
+
+		poly.push_back( new PolygonalSample( nullptr, corners) ) ;
+	}
+	delete test ;
+	return poly ;
+}
+
+std::vector<PolygonalSample *> PSDGenerator::get2DVoronoiPolygons(FeatureTree * F, std::map<Form *, double> & behaviour, size_t n, double minDist, bool copy) 
+{
+	Sample * sample = dynamic_cast<Sample *>(F->getFeature(0)) ;
+	Rectangle * placement = new Rectangle( sample->width()+2.*minDist, sample->height()+2.*minDist, sample->getCenter().getX(), sample->getCenter().getY() ) ;
+	std::vector<PolygonalSample *> poly = PSDGenerator::get2DVoronoiPolygons( placement, n, minDist) ;
+	for(size_t i = 0 ; i < poly.size() ; i++)
+	{
+		double f = RandomNumber().uniform(0.,1.) ;
+		for(auto b : behaviour)
+		{
+			if(b.second > f)
+			{
+				poly[i]->setBehaviour(copy ? b.first->getCopy() : b.first) ;
+				break ;
+			}
+		}
+		F->addFeature(sample, poly[i]) ;
+	}
+	return poly ;
+}
+
+std::vector<PolygonalSample *> PSDGenerator::get2DVoronoiPolygons(Feature * feat, std::map<Form *, double> & behaviour, size_t n, double minDist, bool copy) 
+{
+	std::vector<Point> box = feat->getBoundingBox() ;
+	Rectangle * placement = new Rectangle( box ) ;
+	Rectangle * realbox = new Rectangle( placement->width()+minDist*2., placement->height()+minDist*2., placement->getCenter().getX(), placement->getCenter().getY() ) ;
+	std::vector<PolygonalSample *> poly = PSDGenerator::get2DVoronoiPolygons( realbox, n, minDist) ;
+	std::vector<PolygonalSample *> ret ;
+	for(size_t i = 0 ; i < poly.size() ; i++)
+	{
+		if( feat->in(poly[i]->getCenter()) || feat->intersects( dynamic_cast<Polygon *>(poly[i]) ))
+		{
+			double f = RandomNumber().uniform(0.,1.) ;
+			for(auto b : behaviour)
+			{
+				if(b.second > f)
+				{
+					poly[i]->setBehaviour(copy ? b.first->getCopy() : b.first) ;
+					break ;
+				}
+			}
+			poly[i]->addToMask( feat ) ;
+			ret.push_back(poly[i]) ;
+		}
+	}
+	return ret ;
+}
+
+std::vector<PolygonalSample *> PSDGenerator::get2DVoronoiPolygons(FeatureTree * F, std::map<Form *, double> & behaviour, std::vector<Feature *> feats,  size_t n, double minDist, bool copy) 
+{
+	std::vector<PolygonalSample *> ret ;
+	for(size_t i = 0 ; i < feats.size() ; i++)
+	{
+		double f = RandomNumber().uniform(0.,1.) ;
+		for(auto b : behaviour)
+		{
+			if(b.second > f)
+			{
+				feats[i]->setBehaviour(copy ? b.first->getCopy() : b.first) ;
+				break ;
+			}
+		}
+
+		double num = ((double) n)*feats[i]->area()/F->getFeature(0)->area() ;
+		if(num > 2)
+		{
+			std::vector<PolygonalSample *> poly = PSDGenerator::get2DVoronoiPolygons( feats[i], behaviour, num, minDist, copy) ;
+			for(size_t j = 0 ; j < poly.size() ; j++)
+			{
+				F->addFeature(feats[i], poly[j]) ;
+				ret.push_back(poly[j]) ;
+			}
+		}
+	}
+
+	return ret ;
 }
 
 

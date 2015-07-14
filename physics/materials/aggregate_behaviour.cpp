@@ -49,6 +49,7 @@ Form * AggregateBehaviour::getCopy() const
 
 ElasticOnlyAggregateBehaviour::ElasticOnlyAggregateBehaviour(double E, double nu, SpaceDimensionality dim) : AggregateBehaviour(E,nu,0.,0.,0.,dim)
 {
+//	variability = 0.5 ;
 }
 
 Form * ElasticOnlyAggregateBehaviour::getCopy() const 

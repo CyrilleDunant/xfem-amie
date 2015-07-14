@@ -95,8 +95,9 @@ public:
         void setMask(std::vector<Feature *> & m) ;
 
         virtual bool inMask(const Point &p, double d = 0.) const ;
+        virtual bool onMaskBoundary(const Point &p, double d = 0.) const ;
         virtual void makeMaskBoundary() ;
-        bool isMaskedBy( Feature * f) const { return std::find(mask.begin(), mask.end(), f) != mask.end() ; }
+        bool isMaskedBy( const Feature * f) const { return std::find(mask.begin(), mask.end(), f) != mask.end() ; }
 
 	virtual bool inBoundary(const Point &p, double d) const ;
 	virtual bool onBoundary(const Point &p, double d) const ;

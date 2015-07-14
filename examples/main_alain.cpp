@@ -5,20 +5,43 @@
 //
 
 #include "main.h"
+#include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
-#include "../physics/viscoelasticity.h"
-#include "../physics/viscoelasticity_and_fracture.h"
-#include "../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
-#include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
-#include "../physics/materials/paste_behaviour.h"
+#include "../physics/physics_base.h"
+#include "../physics/stiffness.h"
+#include "../physics/dual_behaviour.h"
+#include "../physics/logarithmic_creep.h"
+#include "../physics/logarithmic_creep_with_external_parameters.h"
+//#include "../physics/generalized_spacetime_viscoelasticity.h"
+#include "../physics/fracturecriteria/mohrcoulomb.h"
+#include "../physics/fracturecriteria/ruptureenergy.h"
+#include "../physics/weibull_distributed_stiffness.h"
+#include "../features/pore.h"
 #include "../utilities/writer/triangle_writer.h"
-#include "../utilities/parser.h"
+#include "../physics/materials/gel_behaviour.h"
+#include "../physics/material_laws/material_laws.h"
+#include "../physics/material_laws/temperature_material_laws.h"
+#include "../physics/orthotropicstiffness.h"
+#include "../physics/materials/paste_behaviour.h"
+#include "../physics/materials/aggregate_behaviour.h"
 #include "../features/sample.h"
+#include "../features/sample3d.h"
+#include "../features/inclusion.h"
+#include "../features/expansiveZone.h"
+#include "../features/crack.h"
+#include "../features/features.h"
+#include "../features/enrichmentInclusion.h"
+#include "../mesher/delaunay_3d.h"
+#include "../solvers/assembly.h"
+#include "../utilities/granulo.h"
+#include "../utilities/placement.h"
+#include "../utilities/itoa.h"
+#include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
+#include "../physics/fracturecriteria/maxstrain.h"
 
 #include <fstream>
 #include <omp.h>
 #include <cmath>
-#include <dirent.h>
 #include <typeinfo>
 #include <limits>
 #include <sys/time.h>
@@ -27,101 +50,46 @@
 
 using namespace Amie ;
 
-int getDelta( std::string base, std::string current, double tol )
-{
-	std::fstream bstream ;
-	bstream.open( base.c_str(), std::ios::in ) ;
-	if(!bstream.good())
-	{
-		std::cout << "!!! file not found: " << base << std::endl ;
-		return 1 ;
-	}
-	std::fstream cstream ;
-	cstream.open( current.c_str(), std::ios::in ) ;
-	if(!cstream.good())
-	{
-		std::cout << "!!! file not found: " << current << std::endl ;
-		return 1 ;
-	}
-	double bvalue = 0 ;
-	double cvalue = 0 ;
-	int delta = 0 ;
-	while(!bstream.eof())
-	{
-		bstream >> bvalue ;
-		if(!cstream.eof())
-		{
-			cstream >> cvalue ;
-			if(bvalue > POINT_TOLERANCE)
-			{
-				if(std::abs(1.-cvalue/bvalue) > tol)
-					delta++ ;
-			}
-			else if(std::abs(cvalue-bvalue) > tol)
-				delta++ ;
-		}
-		else
-		{
-			delta++ ;
-		}
-	}
-	while(!cstream.eof())
-	{
-		cstream >> cvalue ;
-		delta++ ;
-	}
-	bstream.close() ;
-	cstream.close() ;
-	return delta ;
-}
-
 int main(int argc, char *argv[])
 {
-	CommandLineParser parser ;
-	parser.addValue("--tolerance", 0.01 ) ;
-	double tol = std::abs(parser.getValue("--tolerance")) ;
+	Sample box(nullptr, 0.04,0.04,0.,0.) ;
+	FeatureTree F(&box) ;
+	box.setBehaviour( new ElasticOnlyPasteBehaviour( 10e9 ) ) ;
 
-	std::string path("../examples/test/") ;
-	std::vector<std::string> exec ;
-	DIR * dp ;
-	struct dirent *dirp ;
-	if((dp = opendir(path.c_str())) == NULL)
-		std::cout << "test directory not found!" << std::endl ;
+	std::map<Form *, double> behaviour ;
+	behaviour[ new ElasticOnlyAggregateBehaviour( 45e9 ) ] = 0.1 ;
+	behaviour[ new ElasticOnlyAggregateBehaviour( 50e9 ) ] = 0.25 ;
+	behaviour[ new ElasticOnlyAggregateBehaviour( 55e9 ) ] = 0.35 ;
+	behaviour[ new ElasticOnlyAggregateBehaviour( 70e9 ) ] = 0.45 ;
+	behaviour[ new ElasticOnlyAggregateBehaviour( 75e9 ) ] = 0.6 ;
+	behaviour[ new ElasticOnlyAggregateBehaviour( 80e9 ) ] = 0.7 ;
+	behaviour[ new ElasticOnlyAggregateBehaviour( 90e9 ) ] = 0.75 ;
+	behaviour[ new ElasticOnlyAggregateBehaviour( 95e9 ) ] = 0.95 ;
+	behaviour[ new ElasticOnlyAggregateBehaviour( 100e9 ) ] = 1. ;
 
-	while((dirp = readdir(dp)) != NULL)
+	std::vector<Feature *> incs = PSDGenerator::get2DConcrete( &F, new ElasticOnlyAggregateBehaviour(), 500 ) ;
+	std::vector<PolygonalSample *> poly = PSDGenerator::get2DVoronoiPolygons(&F, behaviour, incs, 200, 0.00002, true ) ;
+/*	Inclusion * inc = new Inclusion( 0.01,0,0) ;
+	inc->setBehaviour( new ElasticOnlyAggregateBehaviour( 42e9 ) ) ;
+	F.addFeature(&box, inc) ;
+	for(size_t i = 0 ; i < poly.size() ; i++)
 	{
-		std::string test = dirp->d_name ;
-		if(test.find(".cpp") == test.size()-4 )
+		if(inc->in(poly[i]->getCenter()) || inc->intersects(dynamic_cast<Polygon *>(poly[i])))
 		{
-			test.erase(test.begin(), test.begin()+5) ;
-			test.erase(test.end()-4, test.end()) ;
-			exec.push_back(test) ;
+			ElasticOnlyAggregateBehaviour toto( 10e9*(i+4) ) ;
+			poly[i]->setBehaviour( new  ElasticOnlyAggregateBehaviour(10e9*(i*4+4)) ) ;
+			F.addFeature(inc, poly[i]) ;
+			poly[i]->addToMask( inc ) ;
 		}
-	}
+	}*/
 
-	std::cout << "cleaning existing results..." << std::endl ;
-	std::system("rm ../examples/test/*_current") ;
 
-	for(size_t i = 0 ; i < exec.size() ; i++)
-	{
-		timeval time0, time1 ;
-		gettimeofday ( &time0, nullptr );
-		std::cout << "--------------" << std::endl ;
-		std::cout << "starting test " << exec[i] << std::endl ;
-		std::string command = "./" + exec[i]+" 1>"+exec[i]+".out 2>"+exec[i]+".err" ;
-		std::system(command.c_str()) ;
-		gettimeofday ( &time1, nullptr );
-		double dt = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
-		std::cout << "run time: " << dt/1000000 << " seconds" << std::endl ;
+	F.setSamplingNumber(256) ;
+	F.step() ;
 
-		int delta = getDelta( "../examples/test/"+exec[i]+"_base", "../examples/test/"+exec[i]+"_current", tol) ;
-		if(delta == 0)
-			std::cout << "SUCCESS" << std::endl ;
-		else
-			std::cout << "FAIL: " << delta << " error(s) found" << std::endl ;
-		
-		
-	}
+        TriangleWriter writer("tata", &F, 1.) ;
+	writer.getField(TWFT_STIFFNESS) ;
+	writer.write() ;
 
 	return 0 ;
 }
