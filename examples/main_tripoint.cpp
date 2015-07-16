@@ -496,7 +496,7 @@ int main ( int argc, char *argv[] )
     F.setSamplingFactor ( &rebar3, 4 ) ;
     F.setSamplingNumber ( samplingNumber ) ;
 
-    F.setSamplingRestriction ( SAMPLE_NO_RESTRICTION );
+    F.setSamplingRestriction ( 0 );
 
 
 // 	F.addPoint( new Point( supportLever+platewidth*.02, -sampleHeight*.5 ) ) ;

@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     F.setSamplingNumber(366) ;
     F.setOrder(LINEAR_TIME_LINEAR) ;
 //    F.setMinDeltaTime(1e-9) /*Gere l'endommagement'*/;
-    F.setSamplingRestriction( SAMPLE_RESTRICT_4 ) ;
+    F.setSamplingRestriction( 4 ) ;
         vec_E_inclusions.push_back ((14.0)*1.e9) ;
         F.setDeltaTime(time_step) ;
 //    std::vector<Point> p ;

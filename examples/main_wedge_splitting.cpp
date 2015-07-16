@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 //	F.setSamplingFactor(&notch, 10.) ;
 	F.addFeature(&box, &left) ;
 	F.addFeature(&box, &right) ;
-	F.setSamplingRestriction( SAMPLE_RESTRICT_4 ) ;
+	F.setSamplingRestriction( 4 ) ;
 
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, -1e-5, 1e-5, -1e-5, nnotch+1e-5,0, 0 )) ;
  //	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, -1e-5, 1e-5, -1e-5, nnotch+1e-5, 0, 2 )) ;

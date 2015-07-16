@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
     FeatureTree F(&box) ;
     F.setSamplingNumber(sampling) ;
     F.setOrder(LINEAR_TIME_LINEAR) ;
-    F.setSamplingRestriction(SAMPLE_RESTRICT_4);
+    F.setSamplingRestriction(4);
     double time_step = 0.5 ;
     F.setMaxIterationsPerStep(100) ;
     F.setDeltaTime(time_step) ;

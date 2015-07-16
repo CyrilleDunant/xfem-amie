@@ -1539,7 +1539,8 @@ bool Geometry::intersects(const Geometry *g) const
     }
     case ELLIPSE:
     {
-        if(g->getRadius() < this->getRadius())
+
+        if(g->getRadius() < this->getRadius() /*&& g->getGeometryType() != POLYGON*/)
         {
             return g->intersects(this) ;
         }
@@ -1558,17 +1559,15 @@ bool Geometry::intersects(const Geometry *g) const
                 return false ;
 	    }
 
-	if(dist(g->getCenter(), getCenter()) < dynamic_cast<const Ellipse *>(this)->getMinorRadius() || dist(g->getCenter(), getCenter()) < dynamic_cast<const Ellipse *>(g)->getMinorRadius())
-	{
-		return true ;
-	}
+            if(dist(g->getCenter(), getCenter()) < dynamic_cast<const Ellipse *>(this)->getMinorRadius() || dist(g->getCenter(), getCenter()) < dynamic_cast<const Ellipse *>(g)->getMinorRadius())
+                return true ;
 
-	Point gcenter(g->getCenter().getX(), g->getCenter().getY()) ;
-	Point thiscenter(getCenter().getX(), getCenter().getY()) ;
-	Point ga(dynamic_cast<const Ellipse *>(g)->getMajorAxis().getX(), dynamic_cast<const Ellipse *>(g)->getMajorAxis().getY()) ;
-	Point gb(dynamic_cast<const Ellipse *>(g)->getMinorAxis().getX(), dynamic_cast<const Ellipse *>(g)->getMinorAxis().getY()) ;
-	Point thisa(dynamic_cast<const Ellipse *>(this)->getMajorAxis().getX(), dynamic_cast<const Ellipse *>(this)->getMajorAxis().getY()) ;
-	Point thisb(dynamic_cast<const Ellipse *>(this)->getMinorAxis().getX(), dynamic_cast<const Ellipse *>(this)->getMinorAxis().getY()) ;
+            Point gcenter(g->getCenter().getX(), g->getCenter().getY()) ;
+            Point thiscenter(getCenter().getX(), getCenter().getY()) ;
+            Point ga(dynamic_cast<const Ellipse *>(g)->getMajorAxis().getX(), dynamic_cast<const Ellipse *>(g)->getMajorAxis().getY()) ;
+            Point gb(dynamic_cast<const Ellipse *>(g)->getMinorAxis().getX(), dynamic_cast<const Ellipse *>(g)->getMinorAxis().getY()) ;
+            Point thisa(dynamic_cast<const Ellipse *>(this)->getMajorAxis().getX(), dynamic_cast<const Ellipse *>(this)->getMajorAxis().getY()) ;
+            Point thisb(dynamic_cast<const Ellipse *>(this)->getMinorAxis().getX(), dynamic_cast<const Ellipse *>(this)->getMinorAxis().getY()) ;
 
             Ellipse gcopy(gcenter, ga, gb) ;
             gcopy.sampleBoundingSurface(64) ;
@@ -1629,6 +1628,15 @@ bool Geometry::intersects(const Geometry *g) const
             for(size_t i = 0 ; i < g->getBoundingPoints().size()-1 ; i++)
             {
                 segs.push_back(Segment(g->getBoundingPoint(i), g->getBoundingPoint(i+1))) ;
+            }
+            isInSegments = true ;
+        }
+        if(g->getGeometryType() == POLYGON)
+        {
+            std::valarray<Point> vertex = dynamic_cast<const Polygon*>(g)->getOriginalPoints() ;
+            for(size_t i = 0 ; i < vertex.size() ; i++)
+            {
+                segs.push_back(Segment(vertex[i], vertex[(i+1)%vertex.size()])) ;
             }
             isInSegments = true ;
         }
@@ -1877,7 +1885,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
         Segment s1(box[1], box[2]) ;
         Segment s2(box[2], box[3]) ;
         Segment s3(box[3], box[0]) ;
-        if(g->getGeometryType() == RECTANGLE)
+        if(true)//g->getGeometryType() == RECTANGLE)
         {
             std::vector<Point> intersection = s0.intersection(g) ;
             std::vector<Point> it = s1.intersection(g) ;
@@ -2237,18 +2245,18 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
         if(g->getGeometryType() == RECTANGLE || g->getGeometryType() == POLYGON)
         {
             std::vector<Point> inter = g->intersection(this) ;
-            if(inter.size() < 2 || getBoundingPoints().size() < 2)
+//            if(inter.size() < 2 || getBoundingPoints().size() < 2)
                 return inter ;
-            for(size_t i = 0 ; i < inter.size()-1 ; i++)
+/*            for(size_t i = 0 ; i < inter.size()-1 ; i++)
             {
                 double num = getBoundingPoints().size() ;
                 Point start = inter[i]-getCenter() ;
                 Point end = inter[i+1]-getCenter() ;
-                double alpha = (end.angle()-start.angle()) ;
-                if(end.angle() > M_PI*0.5 && start.angle() < -M_PI*0.5)
-                   alpha -= M_PI ;
-                if(end.angle() < -M_PI*0.5 && start.angle() > M_PI*0.5)
-                   alpha += M_PI ;
+                double a = start.angle() ;
+                double b = end.angle() ;
+                if(b > a)
+                    b -= M_PI*2. ;
+                double alpha = a-b ;
                 num *= std::abs(alpha)/(2.*M_PI) ;
                 std::vector<Point> it = dynamic_cast<const Circle *>(this)->getSamplingBoundingPointsOnArc( round(num), inter[i], inter[i+1] ) ;
                 if(it.size() < 2)
@@ -2262,13 +2270,28 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
                 else
                 {
                     it.clear() ;
-                    it = dynamic_cast<const Circle *>(this)->getSamplingBoundingPointsOnArc( round(num), inter[i+1], inter[i] ) ;
-                    ret.insert(ret.end(), it.begin(), it.end()) ;
-                    if(i == inter.size()-2)
-                       ret.push_back(inter[i]) ;
+                    it = dynamic_cast<const Circle *>(this)->getSamplingBoundingPointsOnArc( getBoundingPoints().size()-round(num), inter[i], inter[i+1], true ) ;
+                    if( g->in(it[it.size()/2]) )
+                    {
+			std::cout << "REVERSE" << std::endl ;
+                        ret.insert(ret.end(), it.begin(), it.end()) ;
+                        if(i == inter.size()-2)
+                           ret.push_back(inter[i+1]) ;
+                     }
+                     else
+                     {
+			std::cout << "WRONG REVERSE" << std::endl ;
+                        it.clear() ;
+                        it = dynamic_cast<const Circle *>(this)->getSamplingBoundingPointsOnArc( getBoundingPoints().size()-round(num), inter[i+1], inter[i], true ) ;
+                        if( !g->in(it[it.size()/2]) )
+				std::cout << "WRONG REVERSE (LINE 2)" << std::endl ;
+                        ret.insert(ret.end(), it.begin(), it.end()) ;
+                        if(i == inter.size()-2)
+                           ret.push_back(inter[i]) ;
+                     }
                 }
             }
-            return ret ;
+            return ret ;*/
         }
         if(g->getGeometryType() == SEGMENTED_LINE)
         {
@@ -2340,6 +2363,15 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
             for(size_t i = 0 ; i < g->getBoundingPoints().size()-1 ; i++)
             {
                 segs.push_back(Segment(g->getBoundingPoint(i), g->getBoundingPoint(i+1))) ;
+            }
+            isInSegments = true ;
+        }
+        if(g->getGeometryType() == POLYGON)
+        {
+            std::valarray<Point> vertex = dynamic_cast<const Polygon *>(g)->getOriginalPoints() ;
+            for(size_t i = 0 ; i < vertex.size() ; i++)
+            {
+                segs.push_back(Segment(vertex[i], vertex[(i+1)%vertex.size()])) ;
             }
             isInSegments = true ;
         }
@@ -4051,15 +4083,15 @@ bool Segment::intersects(const Geometry *g) const
     }
     case ELLIPSE:
     {
-	Point pfirst = dynamic_cast<const Ellipse *>(g)->toLocalCoordinates(f) ;
+/*	Point pfirst = dynamic_cast<const Ellipse *>(g)->toLocalCoordinates(f) ;
 	Point psecond = dynamic_cast<const Ellipse *>(g)->toLocalCoordinates(s) ;
 	Segment inLocalCoordinates(pfirst, psecond) ;
 	Circle c(0.,0.,1.) ;
-	return inLocalCoordinates.intersects(&c) ;
+	return inLocalCoordinates.intersects(&c) ;*/
 
         Ellipse ell(g->getCenter(), dynamic_cast<const Ellipse *>(g)->getMajorAxis(), dynamic_cast<const Ellipse *>(g)->getMinorAxis()) ;
 
-//			ell.sampleBoundingSurface(128) ;
+			ell.sampleBoundingSurface(128) ;
 
         for(size_t i = 0 ; i < ell.getBoundingPoints().size()-1 ; i++)
         {

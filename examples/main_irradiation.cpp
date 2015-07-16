@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
     FeatureTree F(&box) ;
     F.setSamplingNumber(32) ; // calculation with 96
-    F.setSamplingRestriction(SAMPLE_RESTRICT_4);
+    F.setSamplingRestriction(4);
     F.setOrder(LINEAR_TIME_LINEAR) ;
     double time_step = 0.1 ;
     F.setDeltaTime(time_step) ;

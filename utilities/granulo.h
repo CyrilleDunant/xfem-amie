@@ -134,11 +134,11 @@ public:
 
         static std::vector<PolygonalSample *> get2DVoronoiPolygons(Rectangle * box, size_t n, double minDist) ;
 
-        static std::vector<PolygonalSample *> get2DVoronoiPolygons(FeatureTree * F, std::map<Form *, double> & behaviour, size_t n, double minDist, bool copy = false) ;
+        static std::vector<PolygonalSample *> get2DVoronoiPolygons(FeatureTree * F, std::map<Form *, double> & behaviour, size_t n, double minDist, size_t nmax = 16, bool copy = false) ;
 
-        static std::vector<PolygonalSample *> get2DVoronoiPolygons(Feature * feat, std::map<Form *, double> & behaviour, size_t n, double minDist, bool copy = false) ;
+        static std::vector<PolygonalSample *> get2DVoronoiPolygons(Feature * feat, std::map<Form *, double> & behaviour, size_t n, double minDist, size_t nmax = 16, bool copy = false) ;
 
-        static std::vector<PolygonalSample *> get2DVoronoiPolygons(FeatureTree * F, std::map<Form *, double> & behaviour, std::vector<Feature *> feats, size_t n, double minDist, bool copy = false) ;
+        static std::vector<PolygonalSample *> get2DVoronoiPolygons(FeatureTree * F, std::map<Form *, double> & behaviour, std::vector<Feature *> feats, size_t n, double minDist, size_t nmax = 16, bool copy = false, bool resetInclusionBehaviour = false) ;
 
 	/**
 	 * \brief Creates PSD for mortar square samples

@@ -249,9 +249,6 @@ public:
     /** Translate a string in a geometry type*/
     static GeometryType translateGeometryType(std::string type) ;
 
-    /** Translate a string in a sampling restriction type*/
-    static SamplingRestrictionType translateSamplingRestrictionType(std::string restriction) ;
-
     /** Translate a string in a Lagrange multiplier type*/
     static LagrangeMultiplierType translateLagrangeMultiplierType(std::string type) ;
 

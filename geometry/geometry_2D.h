@@ -295,7 +295,7 @@ public:
     virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
 
     /** \brief return set of points sampling the bounding surface, given two angles (in radians)*/
-    virtual std::vector<Point> getSamplingBoundingPointsOnArc(size_t num_points, const Point & start, const Point & finish) const final;
+    virtual std::vector<Point> getSamplingBoundingPointsOnArc(size_t num_points, const Point & start, const Point & finish, bool reverse = false) const final;
 
     /** \brief Sample the disc.
      *

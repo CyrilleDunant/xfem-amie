@@ -127,7 +127,7 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
         }
     }
 
-    samplingRestriction = SAMPLE_NO_RESTRICTION ;
+    samplingRestriction = 0 ;
 
     if ( first )
     {
@@ -214,7 +214,7 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
         dtree3D = new MicDerivedMesh(voxelSource, behaviourMap,times) ;
     structuredMesh = true ;
 
-    samplingRestriction = SAMPLE_NO_RESTRICTION ;
+    samplingRestriction = 0 ;
 
     father3D = nullptr;
     father2D = nullptr ;
@@ -1719,11 +1719,14 @@ void FeatureTree::sample()
             for ( size_t i  = 1 ; i < tree.size() ; i++ )
             {
                 double shape_factor = ( sqrt ( tree[0]->area() ) / ( 2.*M_PI * tree[0]->getRadius() ) ) / ( sqrt ( tree[i]->area() ) / ( 2.*M_PI * tree[i]->getRadius() ) );
+                if(tree[i]->getGeometryType() == POLYGON)
+                    shape_factor = 1. ;
 
                 if ( !tree[i]->isVirtualFeature )
                 {
                     tree[i]->isUpdated = false ;
                 }
+
 
                 if ( shape_factor < POINT_TOLERANCE )
                 {
@@ -1757,39 +1760,16 @@ void FeatureTree::sample()
                     }
                 }
 
-                if ( samplingRestriction == SAMPLE_RESTRICT_8 )
+                if( npoints >= samplingRestriction && !tree[i]->isVirtualFeature)
                 {
-                    if ( npoints >= 8 && !tree[i]->isVirtualFeature /*&& npoints < correctionfactor*samplingNumber */ )
-                    {
-                        count++ ;
-                        tree[i]->sample ( npoints ) ;
-                    }
-                }
-                else if ( samplingRestriction == SAMPLE_RESTRICT_4 )
-                {
-                    if ( npoints >= 4 && !tree[i]->isVirtualFeature /*&& npoints < correctionfactor*samplingNumber */ )
-                    {
-                        count++ ;
-                        tree[i]->sample ( npoints ) ;
-                    }
-                }
-                else if ( samplingRestriction == SAMPLE_RESTRICT_16 )
-                {
-                    if ( npoints >= 16 && !tree[i]->isVirtualFeature /*&& npoints < correctionfactor*samplingNumber */ )
-                    {
-                        count++ ;
-                        tree[i]->sample ( npoints ) ;
-                    }
-                }
-                else
-                {
-                    if ( !tree[i]->isVirtualFeature )
-                    {
-                        count++ ;
-                        tree[i]->sample ( npoints ) ;
-                    }
+                    count++ ;
+                    tree[i]->sample ( npoints ) ;
                 }
 
+                if ( !tree[i]->isVirtualFeature )
+                {
+                    tree[i]->isUpdated = false ;
+                }
             }
 
             std::cerr << count << " particles meshed" << std::endl ;
@@ -1817,38 +1797,13 @@ void FeatureTree::sample()
                     npoints = ( size_t ) round ( samplingFactors[tree[i]]*npoints ) ;
                 }
 
-                if ( samplingRestriction == SAMPLE_RESTRICT_8 )
+                if( npoints >= samplingRestriction && !tree[i]->isVirtualFeature)
                 {
-                    if ( npoints >= 8 && !tree[i]->isVirtualFeature /*&& npoints < correctionfactor*samplingNumber */ )
-                    {
-                        count++ ;
-                        tree[i]->sample ( npoints ) ;
-                    }
+                    count++ ;
+                    tree[i]->sample ( npoints ) ;
                 }
-                else if ( samplingRestriction == SAMPLE_RESTRICT_4 )
-                {
-                    if ( npoints >= 4 && !tree[i]->isVirtualFeature /*&& npoints < correctionfactor*samplingNumber */ )
-                    {
-                        count++ ;
-                        tree[i]->sample ( npoints ) ;
-                    }
-                }
-                else if ( samplingRestriction == SAMPLE_RESTRICT_16 )
-                {
-                    if ( npoints >= 16 && !tree[i]->isVirtualFeature /*&& npoints < correctionfactor*samplingNumber */ )
-                    {
-                        count++ ;
-                        tree[i]->sample ( npoints ) ;
-                    }
-                }
-                else
-                {
-                    if ( !tree[i]->isVirtualFeature )
-                    {
-                        count++ ;
-                        tree[i]->sample ( npoints ) ;
-                    }
-                }
+
+
                 if ( !tree[i]->isVirtualFeature )
                 {
                     tree[i]->isUpdated = false ;
@@ -1904,7 +1859,7 @@ void FeatureTree::sample()
                     {
                         npoints = ( size_t ) round ( samplingFactors[tree[i]]*npoints ) ;
                     }
-                    if ( npoints >= 8 && !tree[i]->isVirtualFeature && npoints < samplingNumber )
+                    if ( npoints >= samplingRestriction && !tree[i]->isVirtualFeature && npoints < samplingNumber )
                     {
                         tree[i]->sample ( npoints ) ;
                     }
@@ -1942,7 +1897,7 @@ void FeatureTree::sample()
                     {
                         npoints = ( size_t ) round ( samplingFactors[tree[i]]*npoints ) ;
                     }
-                    if ( npoints > 4 && !tree[i]->isVirtualFeature )
+                    if ( npoints >= samplingRestriction && !tree[i]->isVirtualFeature )
                     {
                         tree[i]->sample ( npoints ) ;
                     }
@@ -2393,7 +2348,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
         for ( size_t i = 0 ; i < targetstmp.size() ; i++ )
         {
             const Feature * tmp = dynamic_cast<const Feature *> ( targetstmp[i] ) ;
-            if ( tmp->getLayer() == layer && ( tmp->getBoundingPoints().size() || tmp->isVirtualFeature || samplingRestriction == SAMPLE_NO_RESTRICTION ) )
+            if ( tmp->getLayer() == layer && ( tmp->getBoundingPoints().size() || tmp->isVirtualFeature || samplingRestriction == 0 ) )
             {
                 targets.push_back ( const_cast<Feature *> ( tmp ) ) ;
             }
@@ -2403,7 +2358,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
     {
         for ( size_t i = 0 ; i < tree.size() ; i++ )
         {
-            if ( tree[i]->getLayer() == layer && ( tree[i]->getBoundingPoints().size() || tree[i]->isVirtualFeature || samplingRestriction == SAMPLE_NO_RESTRICTION ) )
+            if ( tree[i]->getLayer() == layer && ( tree[i]->getBoundingPoints().size() || tree[i]->isVirtualFeature || samplingRestriction == 0 ) )
             {
                 targets.push_back ( tree[i] ) ;
             }
@@ -3935,14 +3890,14 @@ void FeatureTree::setDiscretizationParameters ( ConfigTreeItem * config, ConfigT
         def = new ConfigTreeItem() ;
         def->addChild ( new ConfigTreeItem ( def, "sampling_number", 4 ) ) ;
         def->addChild ( new ConfigTreeItem ( def, "order", "LINEAR" ) ) ;
-        def->addChild ( new ConfigTreeItem ( def, "sampling_restriction", "SAMPLE_NO_RESTRICTION" ) ) ;
+        def->addChild ( new ConfigTreeItem ( def, "sampling_restriction", 0 ) ) ;
     }
     double sampling = config->getData ( "sampling_number", def->getData ( "sampling_number" ) ) ;
     std::string order = config->getStringData ( "order", def->getStringData ( "order" ) ) ;
-    std::string restriction = config->getStringData ( "sampling_restriction", def->getStringData ( "sampling_restriction" ) ) ;
+    int restriction = config->getData ( "sampling_restriction", def->getData ( "sampling_restriction" ) ) ;
     setSamplingNumber ( sampling ) ;
     setOrder ( ConfigTreeItem::translateOrder ( order ) ) ;
-    setSamplingRestriction ( ConfigTreeItem::translateSamplingRestrictionType ( restriction ) ) ;
+    setSamplingRestriction ( restriction ) ;
 
     std::vector<ConfigTreeItem *> zones = config->getAllChildren ( "refinement_zone" ) ;
     for ( size_t i = 0 ; i < zones.size() ; i++ )
@@ -7307,7 +7262,7 @@ void FeatureTree::generateElements()
                 for ( size_t k  =  0 ; k <  potentialChildren.size() ; k++ )
                 {
                     if ( ( !potentialChildren[k]->isVirtualFeature
-                            && potentialChildren[k]->inBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*0.33 ) )
+                            && (potentialChildren[k]->inBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*(i == 0 ? 0.1 : 0.33) )) )
                             || ( potentialChildren[k]->isVirtualFeature
                                  && tree[i]->isVirtualFeature
                                  && ( dynamic_cast<VirtualFeature *> ( potentialChildren[k] )->getSource()
@@ -7566,6 +7521,18 @@ void FeatureTree::generateElements()
                     coOccuringFeatures.push_back ( dynamic_cast<const Feature *> ( coOccuringFeaturestmp[k] ) ) ;
                 }
 
+/*                if(tree[i]->getGeometryType() == ELLIPSE)
+		{
+			for(size_t j = 0 ; j < coOccuringFeatures.size() ; j++ )
+			{
+				if(coOccuringFeatures[j]->getGeometryType() != ELLIPSE)
+				{
+					std::cout << i << " " << j << " " << std::string( tree[i]->intersects(coOccuringFeatures[j]) ? "yes" : "no" ) << " " << tree[i]->intersection(coOccuringFeatures[j]).size() << std::endl ;
+				}
+			}
+		}*/
+
+
                 for ( size_t j  = 0 ; j < coOccuringFeatures.size() ; j++ )
                 {
                     if ( !coOccuringFeatures[j]->isEnrichmentFeature
@@ -7585,20 +7552,22 @@ void FeatureTree::generateElements()
                         std::vector<Point> inter = tree[i]->intersection ( coOccuringFeatures[j] ) ;
 
                         int base = inter.size() ; 
-                        for(int k = 0 ; k < base-1 ; k++)
+                        for( size_t k = 0 ; k < tree[i]->getBoundingPoints().size() ; k++)
                         {
-//                            inter[k].print() ;
-                            if(dist(inter[k], inter[k+1]) > pointDensity*1.5)
+                            if( coOccuringFeatures[j]->inBoundary(tree[i]->getBoundingPoint(k), pointDensity*0.1) && coOccuringFeatures[j]->inMask(tree[i]->getBoundingPoint(k), pointDensity*0.1))
                             {
-                                double division = (double) (1 + (int) (dist(inter[k], inter[k+1])/pointDensity)) ;
-                                for(int l = 0 ; l < division ; l++)
-                                {
-                                    inter.push_back( inter[k] + (inter[k+1]-inter[k])*(1.+l)/division ) ;
-                                }
+                                bool alone = true ;
+                                for(int l = 0 ; alone && l < base ; l++)
+                                    alone = ( dist( inter[l], tree[i]->getBoundingPoint(k) ) > pointDensity*0.33 ) ;
+                                if(alone)
+                                    inter.push_back( tree[i]->getBoundingPoint(k) ) ;
                             }
                         }
+//			std::cout << i << " NOPE " << tree[i]->getGeometryType()  << " "<< coOccuringFeatures[j]->getGeometryType() << " " << inter.size() << " " << tree[i]->getBoundingPoints().size() << std::endl ;
                         if(inter.size() < 3)
+			{
                             continue ;
+			}
                         for ( size_t k = 0 ;  k < inter.size() ; k++ )
                         {
 
@@ -7649,13 +7618,15 @@ void FeatureTree::generateElements()
                 std::vector<Feature *> fatherdescendants = tree[0]->getDescendants() ;
 
                 size_t base = inter.size() ; 
-                for(size_t k = 0 ; base > 0 && k < base-1 ; k++)
+                for( size_t k = 0 ; k < tree[0]->getBoundingPoints().size() ; k++)
                 {
-                    if(dist(inter[k], inter[k+1]) > pointDensity*0.75)
+                    if( feature->inBoundary(tree[0]->getBoundingPoint(k), pointDensity*0.1) && feature->inMask(tree[0]->getBoundingPoint(k), pointDensity*0.1))
                     {
-                        double division = (double) (1 + (int) (dist(inter[k], inter[k+1])/pointDensity)) ;
-                        for(int l = 0 ; l < division ; l++)
-                            inter.push_back( inter[k] + (inter[k+1]-inter[k])*(1.+l)/division ) ;
+                        bool alone = true ;
+                        for(size_t l = 0 ; alone && l < base ; l++)
+                            alone = ( dist( inter[l], tree[0]->getBoundingPoint(k) ) > pointDensity*0.33 ) ;
+                        if(alone)
+                            inter.push_back( tree[0]->getBoundingPoint(k) ) ;
                     }
                 }
                 size_t start = ( base == inter.size() ? 0 : base ) ;

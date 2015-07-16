@@ -1377,7 +1377,7 @@ std::vector<Point> Circle::getSamplingBoundingPoints(size_t num_points) const
     return ret ;
 }
 
-std::vector<Point> Circle::getSamplingBoundingPointsOnArc(size_t num_points, const Point & start, const Point & finish) const
+std::vector<Point> Circle::getSamplingBoundingPointsOnArc(size_t num_points, const Point & start, const Point & finish, bool reverse) const
 {
     std::vector<Point> ret ;
     if(num_points == 0)
@@ -1388,9 +1388,15 @@ std::vector<Point> Circle::getSamplingBoundingPointsOnArc(size_t num_points, con
     Point fin(finish) ;
     project(&fin) ;
     fin -= getCenter() ;
-    double angle = (init.angle() -fin.angle())/num_points ;
-    if(init.angle() < -M_PI*0.5 && fin.angle() > M_PI*0.5)
-        angle = (init.angle()+M_PI*2. -fin.angle())/num_points ;
+    double a = init.angle() ;
+    double b = fin.angle() ;
+    if(b > a)
+    {
+        a += 2.*M_PI ;
+    }
+    double angle = (a-b)/num_points ;
+    if(reverse)
+        angle = (2.*M_PI-(a-b))/num_points ;
 
     for (double i = 0 ; i< num_points ; i++)
     {
@@ -2400,10 +2406,10 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
        if(n.norm() < POINT_TOLERANCE)
            continue ; // original edge is too small
        n *= 0.75*delta/n.norm() ;       
-       if(!p.in(edge.midPoint() + n*0.5))
+       if(!p.in(edge.midPoint() + n*0.15))
        {
           n *= -1 ;
-          if(!p.in(edge.midPoint() + n*0.5))
+          if(!p.in(edge.midPoint() + n*0.15))
              continue ; // original polygon is too thin
        }
        Line tentative( edge.midPoint()+n, vertex[i_next]-vertex[i] ) ;
@@ -2412,10 +2418,10 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
        if(n.norm() < POINT_TOLERANCE)
            continue ; // original edge is too small
        n *= 0.75*delta/n.norm() ;       
-       if(!p.in(edge_prev.midPoint() + n*0.5))
+       if(!p.in(edge_prev.midPoint() + n*0.15))
        {
           n *= -1 ;
-          if(!p.in(edge_prev.midPoint() + n*0.5))
+          if(!p.in(edge_prev.midPoint() + n*0.15))
              continue ; // original polygon is too thin
        }
        Line tentative_prev( edge_prev.midPoint()+n, vertex[i]-vertex[i_prev] ) ;
@@ -2424,10 +2430,10 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
        if(n.norm() < POINT_TOLERANCE)
            continue ; // original edge is too small
        n *= 0.75*delta/n.norm() ;       
-       if(!p.in(edge_next.midPoint() + n*0.5))
+       if(!p.in(edge_next.midPoint() + n*0.15))
        {
           n *= -1 ;
-          if(!p.in(edge_next.midPoint() + n*0.5))
+          if(!p.in(edge_next.midPoint() + n*0.15))
              continue ; // original polygon is too thin
        }
        Line tentative_next( edge_next.midPoint()+n, vertex[i_next_next]-vertex[i_next] ) ;
@@ -2464,6 +2470,31 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
        segments.push_back( Segment( first, second ) ) ;
     }
 //    std::cout << "first-segments: " << segments.size() << std::endl ;
+
+    if(segments.size() < 3 && vertex.size() > 2)
+    {
+        Point c = vertex[0] ;
+        for(size_t i = 1 ; i < vertex.size() ; i++)
+            c += vertex[i] ;
+        c /= vertex.size() ;
+
+       std::valarray<Point> nextvertex(vertex.size()) ;
+       bool valid = true ;
+       for(size_t i = 0 ; i < nextvertex.size() ; i++)
+       {
+           Point r = vertex[i]-c ;
+           if(r.norm() > delta)
+               nextvertex[i] = c + r*(r.norm()-delta)/r.norm() ;
+           else
+               valid = false ;
+       }
+       std::vector<Polygon> poly ;
+       if(valid)
+           poly.push_back( Polygon(nextvertex) ) ;
+       return poly ;
+
+    }
+
 
     // second, create list of connectivity
     std::vector<std::pair< Point, std::vector<int> > > nodes ;
@@ -2581,6 +2612,7 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
         }
         done[i] = true ;
     }
+//    std::cout << "fourth-segments: " << segments.size() << std::endl ;
 
     // fifth, remove points too close to other edge 
     for(size_t i = 0 ; i < segments.size() ; i++)
@@ -2634,6 +2666,7 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
             }
         }
     }
+//    std::cout << "fifth-segments: " << segments.size() << std::endl ;
 
     // last: reconstruct ordered polygons
     done.resize(segments.size()) ;
@@ -2685,9 +2718,9 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
 
         if(pts.size() > 2)
         {
-            std::valarray<Point> nextPoly( pts.size() -1 ) ;
-//            std::cout << "sixth-polygon: " << pts.size() << std::endl ;
-            for(size_t k = 0 ; k < pts.size()-1 ; k++)
+            std::valarray<Point> nextPoly( pts.size() - (int) close ) ;
+//            std::cout << "sixth-polygon: " << pts.size()-(int) close << std::endl ;
+            for(size_t k = 0 ; k < pts.size()-(int) close ; k++)
                 nextPoly[k] = pts[k] ;
             nextPolygons.push_back( Polygon(nextPoly) ) ;
         }
@@ -2705,8 +2738,13 @@ void Polygon::sampleSurface(size_t num_points)
     for(size_t i = 0 ; i < inPoints.size() ; i++)
         delete inPoints[i] ;
 
-    num_points *= 3 ;
-    sampleBoundingSurface(num_points);
+//    num_points *= 2 ;
+//    double real_num = num_points*2. ;//std::sqrt((getRadius()*2.*M_PI/getPerimeter())) ; //*M_PI*(getRadius())/std::sqrt(area()) ;
+    size_t factor = 1 ;
+    if( getPerimeter()/(originalPoints.size()*std::sqrt(area())) > 1.5 )
+        factor = 2 ; 
+    sampleBoundingSurface( num_points*3*factor );
+//    std::cout << num_points << " " << (size_t) real_num << " " << originalPoints.size() << " " << getBoundingPoints().size() << std::endl ;
 
     std::vector<Polygon> clusters ;
     clusters.push_back( Polygon(originalPoints) ) ;

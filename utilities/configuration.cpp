@@ -1530,17 +1530,6 @@ Order ConfigTreeItem::translateOrder(std::string order)
     return LINEAR ;
 }
 
-SamplingRestrictionType ConfigTreeItem::translateSamplingRestrictionType( std::string restriction )
-{
-    if(restriction == "SAMPLE_RESTRICT_4")
-        return SAMPLE_RESTRICT_4 ;
-    if(restriction == "SAMPLE_RESTRICT_8")
-        return SAMPLE_RESTRICT_8 ;
-    if(restriction == "SAMPLE_RESTRICT_16")
-        return SAMPLE_RESTRICT_16 ;
-    return SAMPLE_NO_RESTRICTION ;
-}
-
 ViscoelasticFiniteDifferenceIntegration ConfigTreeItem::translateViscoelasticFiniteDifferenceIntegration( std::string op )
 {
     if(op == "FORWARD_EULER")

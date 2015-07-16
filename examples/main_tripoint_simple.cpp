@@ -209,7 +209,7 @@ int main ( int argc, char *argv[] )
 
     F.setSamplingNumber ( samplingNumber ) ;
 
-    F.setSamplingRestriction ( SAMPLE_NO_RESTRICTION );
+    F.setSamplingRestriction ( 0 );
 
     F.setMaxIterationsPerStep ( 1600 );
 

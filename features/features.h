@@ -33,12 +33,12 @@
 namespace Amie
 {
 
-typedef enum {
+/*typedef enum {
     SAMPLE_RESTRICT_4,
     SAMPLE_RESTRICT_8,
     SAMPLE_RESTRICT_16,
     SAMPLE_NO_RESTRICTION
-} SamplingRestrictionType ;
+} SamplingRestrictionType ;*/
 
 class ConfigTreeItem ;
 class EnrichmentManager ;
@@ -114,7 +114,7 @@ protected:
 
     std::set<long unsigned int> changedDofs ;
     std::vector<Vector> reportValues ; 
-    SamplingRestrictionType samplingRestriction ;
+    size_t samplingRestriction ;
 
     std::vector<std::vector<double>> cachedVolumes ;
     std::vector<Point *> extraPoints ;
@@ -385,7 +385,7 @@ public:
         return layer2d.size() ;
     }
 
-    void setSamplingRestriction ( SamplingRestrictionType sr ) {
+    void setSamplingRestriction ( size_t sr ) {
         samplingRestriction = sr ;
     }
 
