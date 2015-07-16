@@ -89,8 +89,14 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 
     for( size_t i = 0 ; i < ring.size() ; i++ )
     {
-        if( bimateralInterfaced.find( ring[i] ) == bimateralInterfaced.end() )
+        if(ring[i]->getBehaviour()->getFractureCriterion())
         {
+                ring[i]->getSubTriangulatedGaussPoints() ;
+                ring[i]->getBehaviour()->getFractureCriterion()->setRestriction(getPrimitive(),ring[i]->getState()) ;
+        }
+        if( bimateralInterfaced.find( ring[i] ) == bimateralInterfaced.end() )
+        {            
+
             BimaterialInterface *bi = nullptr ;
 
             if( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() ) )
@@ -108,18 +114,12 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
             }
 
             const Geometry * src =  ring[i]->getBehaviour()->getSource() ;
-//			delete ring[i]->getBehaviour() ;
             ring[i]->setBehaviour( dtree, bi ) ;
-            if(ring[i]->getBehaviour()->getFractureCriterion())
-                ring[i]->getBehaviour()->getFractureCriterion()->setRestriction(getPrimitive(),ring[i]->getState()) ;
+
             bi->transform( ring[i]) ;
             bi->setSource( src );
         }
-        else
-        {
-           if(ring[i]->getBehaviour()->getFractureCriterion())
-                ring[i]->getBehaviour()->getFractureCriterion()->setRestriction(getPrimitive(),ring[i]->getState()) ;  
-        }
+
 
         newInterface.insert( ring[i] ) ;
     }

@@ -122,10 +122,10 @@ void MainWindow::createToolBars()
 	fileToolBar->addWidget( time );
 
 	downSlider = new QSlider( Qt::Horizontal, fileToolBar );
-	downSlider->setRange( 0, 99 );
-	downSlider->setSingleStep( 5 );
-	downSlider->setPageStep( 10 );
-	downSlider->setTickInterval( 1 );
+	downSlider->setRange( 0, 999 );
+	downSlider->setSingleStep( 50 );
+	downSlider->setPageStep( 100 );
+	downSlider->setTickInterval( 10 );
 	downSlider->setValue( 0 ) ;
 	downSlider->setTracking( false ) ;
 // 	downSlider->setTickPosition(QSlider::TicksDown);
@@ -134,11 +134,11 @@ void MainWindow::createToolBars()
 	fileToolBar->addWidget( downSlider );
 
 	upSlider = new QSlider( Qt::Horizontal, fileToolBar );
-	upSlider->setRange( 1, 100 );
+	upSlider->setRange( 1, 1000 );
 	upSlider->setSingleStep( 1 );
-	upSlider->setPageStep( 10 );
+	upSlider->setPageStep( 100 );
 	upSlider->setTickInterval( 1 );
-	upSlider->setValue( 100 ) ;
+	upSlider->setValue( 1000 ) ;
 	upSlider->setTracking( false ) ;
 // 	upSlider->setTickPosition(QSlider::TicksDown);
 	connect( upSlider, SIGNAL( valueChanged( int ) ), voxeldisplay, SLOT( setSegmentUp( int ) ) );
@@ -244,7 +244,7 @@ void MainWindow::open()
 			field->setValue( 1 ) ;
 			field->setRange( 0, 4096 );
 
-			downSlider->setRange( 0, 99 );
+			downSlider->setRange( 0, 999 );
 			downSlider->setValue( 0 ) ;
 
 // 			field->setValue( 1 ) ;
@@ -253,8 +253,8 @@ void MainWindow::open()
 			layer->setValue( 0 ) ;
 			layer->setRange( -1, 1000 ) ;
 
-			upSlider->setRange( 1, 100 );
-			upSlider->setValue( 100 ) ;
+			upSlider->setRange( 1, 1000 );
+			upSlider->setValue( 1000 ) ;
 			
 			triangledisplay->setZoom( zoomval ) ;
 			triangledisplay->setScale( scale ); 
@@ -315,14 +315,14 @@ void MainWindow::open()
 			field->setValue( 1 ) ;
 			field->setRange( 0, 4096 );
 
-			downSlider->setRange( 0, 99 );
+			downSlider->setRange( 0, 999 );
 			downSlider->setValue( 0 ) ;
 
 			layer->setValue( 0 ) ;
 			layer->setRange( -1, 1000 ) ;
 
-			upSlider->setRange( 1, 100 );
-			upSlider->setValue( 100 ) ;
+			upSlider->setRange( 1, 1000 );
+			upSlider->setValue( 1000 ) ;
 
 			buffer.clear() ;
 			buffer = Buffer( fileName ) ;
@@ -424,11 +424,11 @@ void MainWindow::open( const QString &fileName )
 
 
                         
-			downSlider->setRange( 0, 99 );
+			downSlider->setRange( 0, 999 );
 			downSlider->setValue( 0 ) ;
 
-			upSlider->setRange( 1, 100 );
-			upSlider->setValue( 100 ) ;
+			upSlider->setRange( 1, 1000 );
+			upSlider->setValue( 1000 ) ;
 			
 			triangledisplay->setZoom( zoomval ) ;
 			triangledisplay->setScale( scale ) ;

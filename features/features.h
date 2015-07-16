@@ -436,8 +436,7 @@ public:
 
     std::vector<Vector> intermediateStates ;
 
-    double averageDamageInFeatures(const std::vector<Feature *> & feats)
-    {
+    double averageDamageInFeatures(const std::vector<Feature *> & feats) {
         double area = 0 ;
         double d = 0 ;
         if(is2D())
@@ -490,8 +489,7 @@ public:
         return d/area ;
     }
     
-    double averageDamageNotInFeatures(const std::vector<Feature *> & feats)
-    {
+    double averageDamageNotInFeatures(const std::vector<Feature *> & feats) {
         double area = 0 ;
         double d = 0 ;
         if(is2D())
@@ -544,6 +542,110 @@ public:
         return d/area ;
     }
     
+    void averageFieldInFeatures(FieldType field, const std::vector<Feature *> & feats, Vector & ret) {
+        double area = 0 ;
+        ret = 0 ;
+        Vector buffer(ret) ;
+        if(is2D())
+        {
+            for(auto e = dtree->begin() ; e != dtree->end() ;e++)
+            {
+                bool in = false ;
+                for(const auto & f : feats)
+                {
+                    if(f->in(e->getCenter()))
+                    {
+                        in = true ;
+                        break ; ;
+                    }
+                }
+                
+                if(in)
+                {
+                    double a = e->area() ;
+                    area += e->getState().getAverageField(field, buffer) ;
+                    ret += buffer*a ;
+                }
+            }
+        }
+        else
+        {
+            for(auto e = dtree3D->begin() ; e != dtree3D->end() ;e++)
+            {
+                bool in = false ;
+                for(const auto & f : feats)
+                {
+                    if(f->in(e->getCenter()))
+                    {
+                        in = true ;
+                        break ; ;
+                    }
+                }
+                
+                if(in)
+                {
+                    double a = e->area() ;
+                    area += e->getState().getAverageField(field, buffer) ;
+                    ret += buffer*a ;
+                }
+            }
+        }
+        
+        ret /= area ;
+    }
+    
+    void averageFieldNotInFeatures(FieldType field, const std::vector<Feature *> & feats, Vector & ret) {
+        double area = 0 ;
+        ret = 0 ;
+        Vector buffer(ret) ;
+        if(is2D())
+        {
+            for(auto e = dtree->begin() ; e != dtree->end() ;e++)
+            {
+                bool in = false ;
+                for(const auto & f : feats)
+                {
+                    if(f->in(e->getCenter()))
+                    {
+                        in = true ;
+                        break ; ;
+                    }
+                }
+                
+                if(!in)
+                {
+                    double a = e->area() ;
+                    area += e->getState().getAverageField(field, buffer) ;
+                    ret += buffer*a ;
+                }
+            }
+        }
+        else
+        {
+            for(auto e = dtree3D->begin() ; e != dtree3D->end() ;e++)
+            {
+                bool in = false ;
+                for(const auto & f : feats)
+                {
+                    if(f->in(e->getCenter()))
+                    {
+                        in = true ;
+                        break ; ;
+                    }
+                }
+                
+                if(!in)
+                {
+                    double a = e->area() ;
+                    area += e->getState().getAverageField(field, buffer) ;
+                    ret += buffer*a ;
+                }
+            }
+        }
+        
+        ret /= area ;
+    }
+     
     double damageAreaInAggregates ( Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator begin, Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator end ) {
         double total = 0 ;
         double dam = 0 ;

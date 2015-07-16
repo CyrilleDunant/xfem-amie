@@ -193,7 +193,10 @@ void ElementarySurface::step(double dt, const Vector * displacements)
 {
     getState().step(dt, displacements) ;
     if(getBehaviour())
+    {
         getBehaviour()->updateElementState(dt, getState()) ;
+    }
+
 }
 
 
@@ -209,7 +212,9 @@ void ElementaryVolume::step(double dt, const Vector *displacements)
 {
     getState().step(dt, displacements) ;
     if(getBehaviour())
+    {
         getBehaviour()->updateElementState(dt, getState()) ;
+    }
 }
 
 

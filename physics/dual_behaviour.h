@@ -82,12 +82,6 @@ public:
 
     virtual void applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
 
-    /** \brief Check for fracture state
-     *
-     * @return true if the element is fractured
-     */
-    virtual bool fractured() const ;
-
     /** \brief get a copy of the behaviour
      * This will create a new Bimateral behaviour, with a copy of both the members.
      * @return pointer to the copy. Caller is responsible fior cleaning memory
@@ -117,7 +111,9 @@ public:
         return inBehaviour->isViscous() || outBehaviour->isViscous() ;
     }
 
-
+    virtual bool changed() const ;
+    
+    virtual bool fractured() const ;
 
     /** \brief Return the vector of induced forces if any of the behaviours induces internal forces. Return an empty vecor otherwise
     *

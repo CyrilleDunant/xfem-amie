@@ -218,16 +218,21 @@ void BimaterialInterface::applyViscous(const Function & p_i, const Function & p_
 
 }
 
-bool BimaterialInterface::fractured() const
-{
-    return inBehaviour->fractured() && outBehaviour->fractured();
-}
-
 Form * BimaterialInterface::getCopy() const
 {
     BimaterialInterface * copy = new BimaterialInterface(*this) ;
 
     return copy ;
+}
+
+bool BimaterialInterface::changed() const
+{
+    return getDamageModel()->changed() ;
+}
+
+bool BimaterialInterface::fractured() const
+{
+    return getDamageModel()->fractured() ;
 }
 
 std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
@@ -308,70 +313,44 @@ void BimaterialInterface::step(double timestep, ElementState & currentState, dou
 
 DamageModel * BimaterialInterface::getDamageModel() const
 {
-    return nullptr ;
-    double max = -2 ;
-    int ret = 0 ;
 
-    double outScore = 0. ;
-    DamageModel * inCriterion = inBehaviour->getDamageModel() ;
-    DamageModel * outCriterion = outBehaviour->getDamageModel() ;
-    if(inCriterion)
-    {
-        max = inCriterion->getState().max() ;
-        ret = 1 ;
-    }
-
-    if(outCriterion)
-    {
-        outScore = outCriterion->getState().max() ;
-        if(outScore > max || inCriterion == nullptr)
-            ret = 2 ;
-    }
-
-    switch(ret)
-    {
-    case 0:
+    DamageModel * inDamage = inBehaviour->getDamageModel() ;
+    DamageModel * outDamage = outBehaviour->getDamageModel() ;
+    if(inDamage && ! outDamage)
+        return inDamage ;
+    
+    if(outDamage && !inDamage)
+        return outDamage ;
+    
+    if(!inDamage && !outDamage)
         return nullptr ;
-    case 1:
-        return inCriterion ;
-    case 2:
-        return outCriterion ;
-    }
-    return nullptr ;
+    
+    if(inBehaviour->getFractureCriterion()->getScoreAtState() > outBehaviour->getFractureCriterion()->getScoreAtState()) 
+        return inDamage ;
+        
+    return outDamage ;
+  
 }
 
 FractureCriterion * BimaterialInterface::getFractureCriterion() const
 {
-    return nullptr ;
-    double max = -2 ;
-    int ret = 0 ;
 
-    double outScore = 0. ;
     FractureCriterion * inCriterion = inBehaviour->getFractureCriterion() ;
     FractureCriterion * outCriterion = outBehaviour->getFractureCriterion() ;
-    if(inCriterion)
-    {
-        max = inCriterion->getScoreAtState() ;
-        ret = 1 ;
-    }
-
-    if(outCriterion)
-    {
-        outScore = outCriterion->getScoreAtState() ;
-        if(outScore > max || inCriterion == nullptr)
-            ret = 2 ;
-    }
-
-    switch(ret)
-    {
-    case 0:
-        return nullptr ;
-    case 1:
+    if(inCriterion && ! outCriterion)
         return inCriterion ;
-    case 2:
+    
+    if(outCriterion && !inCriterion)
         return outCriterion ;
-    }
-    return nullptr ;
+    
+    if(!inCriterion && !outCriterion)
+        return nullptr ;
+    
+    if(inCriterion->getScoreAtState() > outCriterion->getScoreAtState()) 
+        return inCriterion ;
+        
+    return outCriterion ;
+   
 }
 
 

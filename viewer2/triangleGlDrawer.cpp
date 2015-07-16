@@ -31,8 +31,8 @@ void TriangleGLDrawer::mouseReleaseEvent( QMouseEvent *event )
 // 		double prop = (((float)QColor(color).lightness()-15.56339)*1.065)/255. ;
 // 		valUnderCursor = prop * ( limits[currentSet].first - ( limits[currentSet].first - limits[currentSet].second ) * ( 1. - fracup / 10000. ) ) + ( 1. - prop ) * ( limits[currentSet].second + ( limits[currentSet].first - limits[currentSet].second ) * fracdown / 10000. ) ;
 		
-		double downcut =  ( limits[currentSet].first - limits[currentSet].second ) * ( fracdown / 10000. ) ;
-		double upcut =  ( limits[currentSet].second - limits[currentSet].first ) * ( fracup / 10000.-1. ) ;
+		double downcut =  ( limits[currentSet].first - limits[currentSet].second ) * ( fracdown / 1000. ) ;
+		double upcut =  ( limits[currentSet].second - limits[currentSet].first ) * ( fracup / 1000.-1. ) ;
 		valUnderCursor = 1.049*limits[currentSet].first + downcut + (float)QColor(color).lightness()/255.*( limits[currentSet].second- limits[currentSet].first ) - ((float)QColor(color).lightness()/255.)*0.049 - downcut;
 		mousePosOnLeftClick = QPoint( 0, 0 ) ;
 	}
@@ -156,9 +156,9 @@ void TriangleGLDrawer::paintGL()
 	{
 		double rel =  (1.-(valUnderCursor-limits[currentSet].first)/(limits[currentSet].second - limits[currentSet].first)) ;
 		glBegin( GL_QUAD_STRIP ) ;
-		for( double i = ( double )fracup / 10000. ; i > ( double )fracdown / 10000. ; i -= 0.001 )
+		for( double i = ( double )fracup / 1000. ; i > ( double )fracdown / 1000. ; i -= 0.001 )
 		{
-			double where = ( 1. - ( ( double )fracup / 10000. - i ) / ( ( double )fracup / 10000. - ( double )fracdown / 10000. ) ) ;
+			double where = ( 1. - ( ( double )fracup / 1000. - i ) / ( ( double )fracup / 1000. - ( double )fracdown / 1000. ) ) ;
 			HSVtoRGB( &r, &g, &b, 180., 0., ( 1. - where ) ) ;
 			if(std::abs(rel-where) < .5e-2 )
 			{
@@ -176,9 +176,9 @@ void TriangleGLDrawer::paintGL()
         glDisable(GL_DEPTH_TEST) ;
         glBegin( GL_QUAD_STRIP ) ;
         qglColor(Qt::white);
-        for( double i = ( double )fracup / 10000. ; i > ( double )fracdown / 10000. ; i -= 0.001 )
+        for( double i = ( double )fracup / 1000. ; i > ( double )fracdown / 1000. ; i -= 0.001 )
         {
-            double where = ( 1. - ( ( double )fracup / 10000. - i ) / ( ( double )fracup / 10000. - ( double )fracdown / 10000. ) ) ;
+            double where = ( 1. - ( ( double )fracup / 1000. - i ) / ( ( double )fracup / 1000. - ( double )fracdown / 1000. ) ) ;
             glVertex2f( ( .835 - 0.5 ) , ( where - 0.5 )*.8 ) ;
             glVertex2f( ( 1.2 - 0.5 ) , ( where - 0.5 )*.8 ) ;
         }
@@ -188,7 +188,7 @@ void TriangleGLDrawer::paintGL()
         
         for( double i = 1. ; i > 0 ; i -= 0.1 )
         {
-            double v = i * ( limits[currentSet].first - ( limits[currentSet].first - limits[currentSet].second ) * ( 1. - fracup / 10000. ) ) + ( 1. - i ) * ( limits[currentSet].second + ( limits[currentSet].first - limits[currentSet].second ) * fracdown / 10000. ) ;
+            double v = i * ( limits[currentSet].first - ( limits[currentSet].first - limits[currentSet].second ) * ( 1. - fracup / 1000. ) ) + ( 1. - i ) * ( limits[currentSet].second + ( limits[currentSet].first - limits[currentSet].second ) * fracdown / 1000. ) ;
             QString num = QString::number( v, 'f', 2) ;
             renderText( ( .805 - 0.5 ) + 0.05,
                         ( i - 0.5 )*.7,
@@ -285,11 +285,10 @@ void TriangleGLDrawer::openFile( TriangleDataReader *f )
 void TriangleGLDrawer::initializeGL()
 {
 
-
 	displayList = glGenLists( numberOfExtraFields+1 ) ;
 	currentDisplayList = currentSet + 1 ;
 	glViewport( 0, 0, 600, 600 ) ;
-//	glEnable( GL_BLEND );
+	glEnable( GL_ALPHA );
 	glShadeModel( GL_SMOOTH ); // Enables Smooth Shading
 	glEnable( GL_LINE_SMOOTH ) ;
 	glEnable( GL_POLYGON_SMOOTH );
@@ -297,10 +296,10 @@ void TriangleGLDrawer::initializeGL()
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST ) ;
 
 // 	glPointSize(std::max(0.4*(float)width()/(float)columns, 1.));
-	glClearColor( 1.0f, 1.0f, 1.0f, 0.0f );                                 // Black Background
+	glClearColor( 1.0f, 1.0f, 1.0f, 1.0f );                                 // Black Background
 	glClearDepth( 1.0f );                                                   // Depth Buffer Setup
 	glDisable( GL_DEPTH_TEST );
-//	glBlendFunc( GL_SRC_ALPHA, GL_ONE );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE );
 
 	computeDisplayList() ;
 }
@@ -381,6 +380,9 @@ void TriangleGLDrawer::computeDisplayList()
 
 			}
 		}
+		std::sort(vals.begin(), vals.end()) ;
+        max_val = vals[vals.size()*.99] ;
+        min_val = vals[vals.size()*.01] ;
 
 		if( limits.size() <= N )
 		{
@@ -434,17 +436,19 @@ void TriangleGLDrawer::computeDisplayList()
 	
 				for( size_t j = 0 ; j < numberOfPointsPerTriangle ; j++ )
 				{
-					float v = ( ( *valuesAtPoint )[( 2 + N ) * numberOfPointsPerTriangle + j][i] - min_val ) / ( max_val - min_val );
-					if( std::abs(min_val) > 1e-4  &&  abs(max_val / min_val - 1) < 1e-6)
+                    float v = 0 ;
+                    if(std::abs( max_val - min_val ) > 1e-6)
+					    v = ( ( *valuesAtPoint )[( 2 + N ) * numberOfPointsPerTriangle + j][i] - min_val ) / ( max_val - min_val );
+					if( std::abs(min_val) > 1e-4  &&  abs(max_val / min_val - 1.) < 1e-6)
 						v = 0.5 ;
 				
-					if( v < ( double )fracdown / 10000. )
+					if( v < ( double )fracdown / 1000. )
 						v = 0 ;
-					else if( v > ( double )fracup / 10000. )
+					else if( v > ( double )fracup / 1000. )
 						v = 1 ;
 					else
-						v = ( v - ( double )fracdown / 10000. ) / ( ( ( double )fracup - ( double )fracdown ) / 10000. ) ;
-
+						v = ( v - ( double )fracdown / 1000. ) / ( ( ( double )fracup - ( double )fracdown ) / 1000. ) ;
+                    
 					HSVtoRGB( &r, &g, &b, 180., 0., 1.-v ) ;
 					glColor4ub( std::min(r,(size_t)240), std::min(g,(size_t)240), std::min(b,(size_t)240), 255 ) ;
 
@@ -605,8 +609,8 @@ void TriangleGLDrawer::setSegmentUp( int v )
 	if( v < fracdown )
 		v = fracdown + 1 ;
 
-	if( v > 10000 )
-		v = 10000 ;
+	if( v > 1000 )
+		v = 1000 ;
 
 	if( fracup != v )
 	{
@@ -696,7 +700,7 @@ void TriangleGLDrawer::reset( QString f, const std::vector<std::pair<float, floa
 	currentSet = 0 ;
 
 	openFile( f ) ;
-	fracup = 10000;
+	fracup = 1000;
 	fracdown = 0;
 
 	scale = 1 ;
@@ -723,7 +727,7 @@ TriangleGLDrawer::TriangleGLDrawer( QString f, const std::vector<std::pair<float
 	currentSet = 0 ;
 
 	openFile( f ) ;
-	fracup = 10000;
+	fracup = 1000;
 	fracdown = 0;
 
 	scale = 1 ;
@@ -755,7 +759,7 @@ void TriangleGLDrawer::reset( std::vector<std::valarray<float> > * v, int np, in
 	currentSet = set ;
 
 //	openFile(f) ;
-	fracup = 10000;
+	fracup = 1000;
 	fracdown = 0;
 
 // 	scale = 1 ;
@@ -789,7 +793,7 @@ TriangleGLDrawer::TriangleGLDrawer( std::vector<std::valarray<float> > * v, int 
 	currentSet = set ;
 
 //	openFile(f) ;
-	fracup = 10000;
+	fracup = 1000;
 	fracdown = 0;
 
 	scale = 1 ;
@@ -802,7 +806,6 @@ TriangleGLDrawer::TriangleGLDrawer( std::vector<std::valarray<float> > * v, int 
 	numberOfExtraTimePlanes = 0 ;
 	currentTimePlane = 0 ;
 }
-
 
 void TriangleGLDrawer::reset( TriangleDataReader *f, int set, const std::vector<std::pair<float, float> > & l )
 {
@@ -827,7 +830,7 @@ void TriangleGLDrawer::reset( TriangleDataReader *f, int set, const std::vector<
 	currentDisplayList = set + 1 ;
 
 	openFile( f ) ;
-	fracup = 10000;
+	fracup = 1000;
 	fracdown = 0;
 
 // 	scale = 1 ;
@@ -855,14 +858,13 @@ TriangleGLDrawer::TriangleGLDrawer( TriangleDataReader *f, int set, const std::v
 	currentDisplayList = set + 1 ;
 
 	openFile( f ) ;
-	fracup = 10000;
+	fracup = 1000;
 	fracdown = 0;
 
 	scale = 1 ;
 
 	minmaxinit = false ;
 }
-
 
 void TriangleGLDrawer::reset( QString f, int set, const std::vector<std::pair<float, float> > & l )
 {
@@ -886,7 +888,7 @@ void TriangleGLDrawer::reset( QString f, int set, const std::vector<std::pair<fl
 	currentSet = set ;
 
 	openFile( f ) ;
-	fracup = 10000;
+	fracup = 1000;
 	fracdown = 0;
 
 // 	scale = 1 ;
@@ -914,7 +916,7 @@ TriangleGLDrawer::TriangleGLDrawer( QString f, int set, const std::vector<std::p
 	currentSet = set ;
 
 	openFile( f ) ;
-	fracup = 10000;
+	fracup = 1000;
 	fracdown = 0;
 
 	scale = 1 ;
@@ -948,7 +950,7 @@ void TriangleGLDrawer::reset()
 	zpos = 1.5 ;
 	currentSet = 0 ;
 
-	fracup = 10000;
+	fracup = 1000;
 	fracdown = 0;
 
 // 	scale = 1 ;
@@ -980,7 +982,7 @@ TriangleGLDrawer::TriangleGLDrawer( QWidget *parent ) : QGLWidget( parent )
 	zpos = 1.5 ;
 	currentSet = 0 ;
 
-	fracup = 10000;
+	fracup = 1000;
 	fracdown = 0;
 
 	scale = 1 ;

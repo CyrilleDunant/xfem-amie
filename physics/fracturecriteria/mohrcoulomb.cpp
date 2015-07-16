@@ -32,8 +32,8 @@ MohrCoulomb::~MohrCoulomb()
 double MohrCoulomb::grade( ElementState &s )
 {
 
-    if( s.getParent()->getBehaviour()->fractured() )
-        return 0 ;
+    if( s.getParent()->getBehaviour()->getDamageModel()->fractured() )
+        return -1 ;
 
     Vector pstress(0., s.getParent()->spaceDimensions()) ;
     s.getField( PRINCIPAL_REAL_STRESS_FIELD, s.getParent()->getCenter(), pstress, false) ;
@@ -53,7 +53,7 @@ double MohrCoulomb::grade( ElementState &s )
 
         if( minStress <= downVal )
             metInCompression = true ;
-
+        
         return 1. - std::abs( upVal / maxStress ) ;
     }
 
@@ -73,6 +73,8 @@ double MohrCoulomb::grade( ElementState &s )
 
     if( maxStress < 0 )
     {
+       
+            
         return s1 ;
     }
 
@@ -106,15 +108,23 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
         return -1 ;
 
     Vector stress =  getSmoothedField(PRINCIPAL_REAL_STRESS_FIELD, s) ;
-    double score = stress.max() / upVal - 1.;
-    if(std::abs(stress.max()) < std::abs(stress.min()))
-        score = std::abs(stress.min() / downVal) - 1.; ;
-    if(score > 0)
-        metInTension = true ;
-    else
-        metInTension = false ;
-    
-    return score ;
+    double maxStress = stress.max() ;
+    double minStress = stress.min() ;
+
+//  std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
+    metInTension = false ;
+    metInCompression = false ;
+    metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
+    metInTension = !metInCompression ;
+
+    if( metInTension )
+    {   
+        return std::abs( maxStress/upVal )-1. ;
+    }
+
+    metInCompression = true ;
+    return std::abs( minStress/downVal )-1. ;
+
 
 }
 

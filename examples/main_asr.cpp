@@ -44,6 +44,7 @@ std::vector<std::pair<double, double> > expansion_stress_yy ;
 std::vector<std::pair<double, double> > apparent_extension ;
 std::vector<double> cracked_volume ;
 std::vector<double> damaged_volume ;
+std::vector<Vector> asrStress ;
 
 
 double nu = 0.3 ;
@@ -76,8 +77,10 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
         {
             cracked_volume.push_back( featureTree->averageDamageInFeatures(inclusions) ) ;
             damaged_volume.push_back( featureTree->averageDamageNotInFeatures(inclusionsAndBlocks) ) ;
+            Vector buffer(3) ;
+            featureTree->averageFieldInFeatures(REAL_STRESS_FIELD, blocks, buffer) ;
+            asrStress.push_back(buffer) ;
         }
-
 
         Vector x = featureTree->getDisplacements() ;
 
@@ -226,6 +229,8 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
                   << "   dy "  << "\t"
                   << "cracks"  << "\t"
                   << "damage"  << "\t"
+                  << "asr Stress x"  << "\t"
+                  << "asr Stress y"  << "\t"
                   << std::endl ;
         for( size_t i = 0 ; i < expansion_reaction.size() ; i++ )
             std::cout << expansion_reaction[i].first << "\t"
@@ -238,6 +243,8 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
                       << apparent_extension[i].second  << "\t"
                       << cracked_volume[i]  << "\t"
                       << damaged_volume[i]  << "\t"
+                      << asrStress[i][0]  << "   "
+                      << asrStress[i][1]  << "   "
                       << std::endl ;
 
     }
@@ -253,6 +260,8 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
                   << apparent_extension[i].second  << "   "
                   << cracked_volume[i]  << "   "
                   << damaged_volume[i]  << "   "
+                  << asrStress[i][0]  << "   "
+                  << asrStress[i][1]  << "   "
                   << std::endl ;
 }
 
@@ -335,8 +344,7 @@ int main( int argc, char *argv[] )
     double fact0 = atof(argv[4]) ;
 
     double restraintDepth = 0.01 ;
-    if(fact0 < 10 && fact < 10)
-        restraintDepth = 0 ;
+    
     Sample sample( nullptr, basesize + restraintDepth, basesize + restraintDepth, 0, 0 ) ;
 
     Matrix m0_agg( 3, 3 ) ;
@@ -384,7 +392,7 @@ int main( int argc, char *argv[] )
 
     double itzSize = 0.00002;
 //	int inclusionNumber = 10 ;
-    int inclusionNumber = 3000 ;
+    int inclusionNumber = 1 ;3000 ;
 
     std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, nullptr,  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), nullptr, 100000, 0.8, &baseGeometry) ;
     std::vector<Inclusion *> inclusions ;
@@ -441,7 +449,10 @@ int main( int argc, char *argv[] )
             blocks.push_back(blocktop);
         }
         else
-            blocktop->setBehaviour(new VoidForm()) ;
+        {
+            blocktop->setBehaviour(new OrthotropicStiffness(10*1e-4, fact0, 10*1e-4*10/(10+10),  0.1, 0.) ) ;
+            blocks.push_back(blocktop);
+        }
 
         F.addFeature( nullptr, blocktop );
         F.setSamplingFactor(blocktop, 0.5);
@@ -453,7 +464,10 @@ int main( int argc, char *argv[] )
             blocks.push_back(blockbottom);
         }
         else
-            blockbottom->setBehaviour(new VoidForm()) ;
+        {
+            blockbottom->setBehaviour(new OrthotropicStiffness(10*1e-4, 10, 10*1e-4*10/(10+10),  0.1, 0.) ) ;
+            blocks.push_back(blockbottom);
+        }
 
         F.addFeature( nullptr, blockbottom );
         F.setSamplingFactor(blockbottom, 0.5);
@@ -465,17 +479,23 @@ int main( int argc, char *argv[] )
             blocks.push_back(blockleft);
         }
         else
-            blockleft->setBehaviour(new VoidForm()) ;
+        {
+            blockleft->setBehaviour(new OrthotropicStiffness(10, 10*1e-4, 10*1e-4*10/(10+10),  0.1, 0.) ) ;
+            blocks.push_back(blockleft);
+        }
 
         F.addFeature( nullptr, blockleft );
         F.setSamplingFactor(blockleft, 0.5);
 
         Sample *blockright = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().getY() ) ;
         if(fact > 10)
+        {
             blockright->setBehaviour(new OrthotropicStiffness(fact, fact*1e-4, fact*1e-4*fact/(fact+fact),  0.1, 0.) ) ;
+            blocks.push_back(blockright);
+        }
         else
         {
-            blockright->setBehaviour(new VoidForm()) ;
+            blockright->setBehaviour(new OrthotropicStiffness(10, 10*1e-4, 10*1e-4*10/(10+10),  0.1, 0.)) ;
             blocks.push_back(blockright);
         }
         F.addFeature( nullptr, blockright );
@@ -517,7 +537,7 @@ int main( int argc, char *argv[] )
     }
 
     zones = generateExpansiveZonesHomogeneously(nzones, placedinclusions, F , sample) ;
-    F.setSamplingNumber( 64 ) ;
+    F.setSamplingNumber( 92 ) ;
 
     if( restraintDepth > 0 )
     {

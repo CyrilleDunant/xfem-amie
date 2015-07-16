@@ -4592,14 +4592,14 @@ bool FeatureTree::stepElements()
                 double maxScoreInit = -1;
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                 {
-                    #pragma omp parallel
-                    {
-                        #pragma omp single
-                        {
+//                     #pragma omp parallel
+//                     {
+//                         #pragma omp single
+//                         {
                             for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                             {
-                                #pragma omp task firstprivate(i)
-                                {
+//                                 #pragma omp task firstprivate(i)
+//                                 {
 //                                if ( i.getPosition() % 200 == 0 )
                                     //                              {
                                     std::cerr << "\r checking for fractures (1)... " << i.getPosition() << "/" << i.size() << std::flush ;
@@ -4607,16 +4607,16 @@ bool FeatureTree::stepElements()
                                     if ( i->getBehaviour()->getFractureCriterion() )
                                     {
                                         i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
-                                        #pragma omp flush(maxScoreInit)
+//                                         #pragma omp flush(maxScoreInit)
                                         double tmpmax = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit ) ;
-                                        #pragma omp atomic write
+//                                         #pragma omp atomic write
                                         maxScoreInit = tmpmax ;
                                     }
-                                }
+//                                 }
                             }
                             std::cerr << ". Maxscore = " << maxScoreInit <<" ...done. " << std::endl ;
-                        }
-                    }
+//                         }
+//                     }
                 }
 
 

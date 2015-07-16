@@ -57,6 +57,7 @@ protected:
     std::vector<unsigned int> damagingSet ;
     std::vector<unsigned int> proximitySet ;
     std::vector<bool> restriction ;
+    const Geometry * restrictionSource ;
 
     double initialScore ;
     double physicalCharacteristicRadius ;
@@ -104,6 +105,7 @@ public:
     Vector getSmoothedField( FieldType f0,ElementState &s , double t = 0) ;
     
     void setRestriction(const Geometry * g,ElementState &s) ;
+    void updateRestriction(ElementState &s) ;
 
 public:
 
@@ -123,15 +125,16 @@ public:
     double getMinDeltaInNeighbourhood() const {
         return minDeltaInNeighbourhood ;
     }
-    double getMaxScoreInNeighbourhood( Amie::ElementState& s ) ;
+    double getMaxScoreInNeighbourhood( ElementState& s ) ;
 
     FractureCriterion(MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
 
 
-    virtual void initialiseCache( Amie::ElementState& s ) ;
+    virtual void initialiseCache( ElementState& s ) ;
+    virtual void updateCache( ElementState & s);
     virtual ~FractureCriterion();
 
-    void step(Amie::ElementState& s) ;
+    void step(ElementState& s) ;
     
     bool isAtCheckpoint() const {
         return checkpoint ;
@@ -185,6 +188,8 @@ public:
     double getScoreAtTimeStepEnd() const { return scoreAtTimeStepEnd < -1 ? getScoreAtState() : scoreAtTimeStepEnd ; }
 
     virtual double getTensileLimit(const ElementState & s) const = 0 ;
+    
+    const std::vector<bool> & getRestriction() const {return restriction ;} ;
 };
 
 } 

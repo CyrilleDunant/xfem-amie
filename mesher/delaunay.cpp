@@ -2844,10 +2844,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
     {
         return *getCachedGaussPoints() ;
     }
-    if(getEnrichmentFunctions().size() > 0 && getGaussPoints().getId() == REGULAR_GRID)
-        return *getCachedGaussPoints() ;
-       
-    
     
     const GaussPointArray & gp = getGaussPoints() ;
     size_t numberOfRefinements = 4 ;

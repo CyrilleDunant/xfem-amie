@@ -21,6 +21,7 @@
 using namespace Amie ;
 
 FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, double delta_y, double delta_z) :
+    restrictionSource(nullptr),
     initialScore(1),
     physicalCharacteristicRadius(.008),
     scoreAtState(-1),
@@ -34,7 +35,7 @@ FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, doub
     maxModeInNeighbourhood(-1),
     maxScoreInNeighbourhood(0),
     maxAngleShiftInNeighbourhood(0),
-    scoreTolerance(1e-4),
+    scoreTolerance(1e-5),
     checkpoint(true),
     inset(false),
     smoothingType(QUARTIC_COMPACT),
@@ -75,9 +76,64 @@ std::pair<Vector, Vector> FractureCriterion::getSmoothedFields( FieldType f0, Fi
 
 }
 
+void FractureCriterion::updateRestriction(ElementState &s)
+{
+    if(!restrictionSource)
+        return ;
+    
+    if(mesh2d)
+    {
+        mesh2d->deleteCache(cachecoreID);
+        mesh2d->deleteCache(cacheID);
+    }
+    if(mesh3d)
+    {
+        mesh3d->deleteCache(cachecoreID);
+        mesh3d->deleteCache(cacheID);
+    }
+    updateCache(s) ;
+    
+    Function xtransform = s.getParent()->getXTransform() ;
+    Function ytransform = s.getParent()->getYTransform() ;
+    Function ztransform = Function("0") ;
+    Function ttransform = Function("0") ;
+    if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+        ztransform = s.getParent()->getZTransform() ;
+    if(s.getParent()->timePlanes() > 1)
+        ttransform = s.getParent()->getTTransform() ;
+    else
+        ttransform = Function("0") ;
+    
+    VirtualMachine vm ;
+    restriction.clear();
+    
+    for(size_t i= 0 ; i < s.getParent()->getGaussPoints().gaussPoints.size() ; i++)
+    {
+        Point p = s.getParent()->getGaussPoints().gaussPoints[i].first ;
+        Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()), 
+                           vm.eval(ytransform,  p.getX(), p.getY(), p.getZ(), p.getT()), 
+                           vm.eval(ztransform,  p.getX(), p.getY(), p.getZ(), p.getT()), 
+                           vm.eval(ttransform, p.getX(),p.getY(),p.getZ(),p.getT())) ;
+
+        restriction.push_back(restrictionSource->in(test));
+    }
+}
+
 void FractureCriterion::setRestriction(const Geometry * g,ElementState &s)
 {
+    restrictionSource = g ;
     restriction.clear();
+    if(mesh2d)
+    {
+        mesh2d->deleteCache(cachecoreID);
+        mesh2d->deleteCache(cacheID);
+    }
+    if(mesh3d)
+    {
+        mesh3d->deleteCache(cachecoreID);
+        mesh3d->deleteCache(cacheID);
+    }
+    
     if(!g)
         return ;
     Function xtransform = s.getParent()->getXTransform() ;
@@ -96,10 +152,14 @@ void FractureCriterion::setRestriction(const Geometry * g,ElementState &s)
     for(size_t i= 0 ; i < s.getParent()->getGaussPoints().gaussPoints.size() ; i++)
     {
         Point p = s.getParent()->getGaussPoints().gaussPoints[i].first ;
-        Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ytransform,  p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ztransform,  p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ttransform, p.getX(),p.getY(),p.getZ(),p.getT())) ;
+        Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()), 
+                           vm.eval(ytransform, p.getX(), p.getY(), p.getZ(), p.getT()), 
+                           vm.eval(ztransform, p.getX(), p.getY(), p.getZ(), p.getT()), 
+                           vm.eval(ttransform, p.getX(), p.getY(), p.getZ(), p.getT())) ;
 
         restriction.push_back(g->in(test));
     }
+    initialiseCache(s) ;
 }
 
 void FractureCriterion::initialiseCache( ElementState & s)
@@ -143,6 +203,38 @@ void FractureCriterion::initialiseCache( ElementState & s)
 
     }
 }
+void FractureCriterion::updateCache( ElementState & s)
+{
+    if(s.getMesh2D())
+    {
+        Function x = Function("x")-s.getParent()->getCenter().getX() ;
+        Function y = Function("y")-s.getParent()->getCenter().getY() ;
+        Function rr = x*x+y*y ;
+        Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
+        Function smooth =  (smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+
+        mesh2d = s.getMesh2D() ;
+        mesh2d->updateCache(cachecoreID, smooth) ;
+        if(s.getParent()->timePlanes() <= 1)
+            mesh2d->updateCache(cacheID) ;
+    }
+    if(s.getMesh3D())
+    {
+        Function x = Function("x")-s.getParent()->getCenter().getX() ;
+        Function y = Function("y")-s.getParent()->getCenter().getY() ;
+        Function z = Function("z")-s.getParent()->getCenter().getZ() ;
+        Function rr = x*x+y*y+z*z ;
+        Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
+        Function smooth =  (smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+
+        mesh3d = s.getMesh3D() ;
+        mesh3d->updateCache(cachecoreID, smooth) ;
+        if(s.getParent()->timePlanes() > 1)
+            mesh3d->updateCache(cacheID) ;
+
+    }
+}
+
 
 double FractureCriterion::getMaxScoreInNeighbourhood(ElementState & s)
 {
@@ -450,6 +542,12 @@ void FractureCriterion::step(ElementState &s)
 
     if(!mesh2d && !mesh3d )
         initialiseCache(s) ;
+    
+    if(mesh2d)
+        dynamic_cast<DelaunayTriangle *>(s.getParent())->getSubTriangulatedGaussPoints() ;
+    if(mesh3d)
+        dynamic_cast<DelaunayTetrahedron *>(s.getParent())->getSubTriangulatedGaussPoints() ;
+    updateRestriction(s) ;
 
     if(s.getParent()->getBehaviour()->fractured())
     {
