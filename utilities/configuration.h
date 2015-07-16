@@ -184,10 +184,10 @@ public:
     Function getFunction() const ;
 
     /** Translates the current item in a 2D sample*/
-    Sample * getSample() ;
+    Sample * getSample( std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>() ) ;
 
     /** Translates the current item in a mechanical behaviour*/
-    Form * getBehaviour(SpaceDimensionality dim, bool spaceTime = false) ;
+    Form * getBehaviour(SpaceDimensionality dim, bool spaceTime = false, std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>() ) ;
 
     /** Translates the current item in a fracture criterion*/
     FractureCriterion * getFractureCriterion(bool spaceTime = false) ;
@@ -208,7 +208,7 @@ public:
     ExternalMaterialLaw * getExternalMaterialLaw() const ;
 
     /** Translates the current item in a vector of inclusions, and places them into a FeatureTree object*/
-    std::vector<std::vector<Feature *> > getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers ) ;
+    std::vector<std::vector<Feature *> > getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers, std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>()  ) ;
 
     /** Translates the current item in a boundary condition*/
     BoundaryCondition * getBoundaryCondition(FeatureTree * f) const ;

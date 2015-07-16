@@ -57,7 +57,20 @@ int main(int argc, char *argv[])
 
     omp_set_num_threads(1) ;
 #endif
-    FeatureTree F(problem->getChild("sample")->getSample()) ;
+
+    std::vector<ExternalMaterialLaw *> common ;
+    if(problem->hasChild("common_fields"))
+    {
+        std::vector<ConfigTreeItem *> mat = problem->getChild("common_fields")->getAllChildren("material_law") ;
+        for(size_t i = 0 ; i < mat.size() ; i++)
+        {
+            ExternalMaterialLaw * law = mat[i]->getExternalMaterialLaw() ;
+            if(law != nullptr)
+               common.push_back(law) ;
+        }
+    }
+
+    FeatureTree F(problem->getChild("sample")->getSample( common )) ;
     if(problem->hasChildFromFullLabel("sample.sampling_number"))
         F.setSamplingFactor( F.getFeature(0), problem->getData("sample.sampling_number", 1.) ) ;
     F.setDiscretizationParameters(problem->getChild("discretization")) ;
@@ -70,7 +83,7 @@ int main(int argc, char *argv[])
         std::vector<ConfigTreeItem *> newInclusions = problem->getAllChildren("inclusions") ;
         for(size_t i = 0 ; i < newInclusions.size() ; i++)
         {
-            std::vector<std::vector<Feature *> > tmp = newInclusions[i]->getInclusions( &F, dummy, inclusions ) ;
+            std::vector<std::vector<Feature *> > tmp = newInclusions[i]->getInclusions( &F, dummy, inclusions, common ) ;
             for(size_t j = 0 ; j < tmp[0].size() ; j++)
                 inclusions.push_back( dynamic_cast<Geometry *>(tmp[0][j]) ) ;
             for(size_t j = 0 ; j < tmp.size() ; j++)

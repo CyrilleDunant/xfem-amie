@@ -412,7 +412,7 @@ std::string ConfigTreeItem::getStringData(std::string path, std::string defaultV
     return defaultValue ;
 }
 
-Sample * ConfigTreeItem::getSample()
+Sample * ConfigTreeItem::getSample(std::vector<ExternalMaterialLaw *> common)
 {
     bool spaceTime = (ConfigTreeItem::translateOrder(getRoot()->getStringData("discretization.order","LINEAR")) >= CONSTANT_TIME_LINEAR) ;
     double sampleWidth = getData("width",1) ;
@@ -422,7 +422,7 @@ Sample * ConfigTreeItem::getSample()
     Sample * ret = new Sample(nullptr, sampleWidth, sampleHeight, sampleCenterX, sampleCenterY) ;
     if(hasChild("behaviour"))
     {
-        ret->setBehaviour( getChild("behaviour")->getBehaviour( SPACE_TWO_DIMENSIONAL, spaceTime ) ) ;
+        ret->setBehaviour( getChild("behaviour")->getBehaviour( SPACE_TWO_DIMENSIONAL, spaceTime, common ) ) ;
     }
 
     return ret ;
@@ -1129,7 +1129,7 @@ DamageModel * ConfigTreeItem::getDamageModel(bool spaceTime)
     return ret ;
 }
 
-Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
+Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime, std::vector<ExternalMaterialLaw *> common)
 {
     std::string type = (str.length() > 0 ? str : getStringData("type","VOID_BEHAVIOUR")) ;
 
@@ -1139,7 +1139,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
     if(type == std::string("FROM_PARENT_DISTRIBUTION"))
     {
         if(father->getFather() && father->getFather()->hasChild("behaviour"))
-            return father->getFather()->getChild("behaviour")->getBehaviour(dim, spaceTime) ;
+            return father->getFather()->getChild("behaviour")->getBehaviour(dim, spaceTime, common) ;
         return new VoidForm() ;
     }
 
@@ -1147,7 +1147,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
     {
         if(father->getFather() && father->getFather()->hasChild("inclusions") && father->getFather()->getChild("inclusions")->hasChild("behaviour"))
         {
-            Form * form = father->getFather()->getChild("inclusions")->getChild("behaviour")->getBehaviour( dim, spaceTime ) ;
+            Form * form = father->getFather()->getChild("inclusions")->getChild("behaviour")->getBehaviour( dim, spaceTime, common ) ;
             if(father->getFather()->getChild("inclusions")->getStringData("behaviour") == "LOGARITHMIC_CREEP" || father->getFather()->getChild("inclusions")->getStringData("behaviour.type") == "LOGARITHMIC_CREEP")
             {
                 LogarithmicCreepWithExternalParameters * realForm = dynamic_cast<LogarithmicCreepWithExternalParameters *>(form) ;
@@ -1307,6 +1307,9 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
 //			std::cout << parameters[i]->getLabel() << "\t" << parameters[i]->getData() << std::endl ;
             log->addMaterialParameter( parameters[i]->getLabel(), parameters[i]->getData() ) ;
         }
+
+        for(size_t i = 0 ; i < common.size() ; i++)
+            log->addMaterialLaw( common[i] ) ;
 
         std::vector<ConfigTreeItem *> laws = getAllChildren("material_law") ;
         for(size_t i = 0 ; i < laws.size() ; i++)
@@ -1758,7 +1761,7 @@ InclusionGenerator * ConfigTreeItem::getInclusionGenerator() const
 }
 
 
-std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers)
+std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers, std::vector<ExternalMaterialLaw *> common)
 {
     std::vector<Feature *> ret ;
     std::vector<std::vector<Feature *> > out ;
@@ -1769,9 +1772,31 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
 
     Form * behaviour = nullptr ;
     if(hasChild("behaviour"))
-        behaviour = getChild("behaviour")->getBehaviour( F->is2D() ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL , F->getOrder() >= CONSTANT_TIME_LINEAR ) ;
+        behaviour = getChild("behaviour")->getBehaviour( F->is2D() ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL , F->getOrder() >= CONSTANT_TIME_LINEAR, common ) ;
 
-    if(type == "FROM_INCLUSION_FILE")
+
+    if(type == "VORONOI")
+    {
+        size_t seeds = psdConfig->getData("grains", 100) ;
+        double minDist = psdConfig->getData("distance", 0.001) ;
+        double border = std::max(psdConfig->getData("border_width", 0.001), 0.) ;
+        size_t max = psdConfig->getData("maximum_edges", 16) ;
+        bool copy = (psdConfig->getStringData("copy_grain_behaviour", "TRUE") == std::string("TRUE")) ;
+        bool reset = (psdConfig->getStringData("reset_parent_behaviour", "FALSE") == std::string("TRUE")) ;
+        std::vector< std::pair< Form *, double > > behaviour ;
+        std::vector<ConfigTreeItem *> b = getAllChildren( "behaviour" ) ;
+        for(size_t i = 0 ; i < b.size() ; i++)
+        {
+            Form * test = b[i]->getBehaviour( F->is2D() ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL , F->getOrder() >= CONSTANT_TIME_LINEAR, common ) ;
+            if(test)
+                behaviour.push_back( std::make_pair( test, b[i]->getData("fraction", ((double) i+1)/b.size() ) ) ) ;
+        }
+        if(base.size() == 0)
+            out = PSDGenerator::get2DVoronoiPolygons( F, behaviour, seeds,  minDist, border, max, copy ) ;
+        else
+            out = PSDGenerator::get2DVoronoiPolygons( F, behaviour, base, seeds,  minDist, border, max, copy, reset ) ;   
+    }
+    else if(type == "FROM_INCLUSION_FILE")
     {
         std::vector<std::string> columns ;
         std::vector<ConfigTreeItem *> tree = psdConfig->getAllChildren("column") ;
@@ -1987,6 +2012,11 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
     {
         for(size_t i = 0 ; i < ret.size() ; i++)
             F->setSamplingFactor( ret[i], getData("sampling_factor",1.) ) ;
+        for(size_t i = 0 ; i < out.size() ; i++)
+        {
+            for(size_t j = 0 ; j < out[i].size() ; j++)
+                F->setSamplingFactor( out[i][j], getData("sampling_factor",1.) ) ;
+        }
     }
 
     if(hasChild("intersection_sampling_factor"))
@@ -1998,20 +2028,41 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
         }
     }
 
-    out.push_back(ret) ;
+    if(out.size() == 0)
+        out.push_back(ret) ;
 
     if(hasChild("inclusions"))
     {
-        std::vector<Feature *> newbase = ret ;
-        std::vector<Geometry *> newbrothers ;
-        std::vector<ConfigTreeItem *> newInclusions = getAllChildren("inclusions") ;
-        for(size_t i = 0 ; i < newInclusions.size() ; i++)
+        if(type != "VORONOI")
         {
-            std::vector<std::vector<Feature *> > tmp = newInclusions[i]->getInclusions( F, newbase, newbrothers ) ;
-            for(size_t j = 0 ; j < tmp[0].size() ; j++)
-                newbrothers.push_back( dynamic_cast<Geometry *>(tmp[0][j]) ) ;
-            for(size_t j = 0 ; j < tmp.size() ; j++)
-                out.push_back(tmp[j]) ;
+            std::vector<Feature *> newbase = ret ;
+            std::vector<Geometry *> newbrothers ;
+            std::vector<ConfigTreeItem *> newInclusions = getAllChildren("inclusions") ;
+            for(size_t i = 0 ; i < newInclusions.size() ; i++)
+            {
+                std::vector<std::vector<Feature *> > tmp = newInclusions[i]->getInclusions( F, newbase, newbrothers ) ;
+                for(size_t j = 0 ; j < tmp[0].size() ; j++)
+                    newbrothers.push_back( dynamic_cast<Geometry *>(tmp[0][j]) ) ;
+                for(size_t j = 0 ; j < tmp.size() ; j++)
+                    out.push_back(tmp[j]) ;
+            }
+        }
+        else
+        {
+            std::vector<ConfigTreeItem *> newInclusions = getAllChildren("inclusions") ;
+            std::vector<std::vector<Geometry *> > newbrothers( out.size() ) ;
+            for(size_t i = 0 ; i < newInclusions.size() ; i++)
+            {
+                size_t index = newInclusions[i]->getData("index", 0) ;
+                if(index >= out.size())
+                   continue ;
+                std::vector<Feature *> newbase = out[index] ;
+                std::vector<std::vector<Feature *> > tmp = newInclusions[i]->getInclusions( F, newbase, newbrothers[index] ) ;
+                for(size_t j = 0 ; j < tmp[0].size() ; j++)
+                    newbrothers[index].push_back( dynamic_cast<Geometry *>(tmp[0][j]) ) ;
+                for(size_t j = 0 ; j < tmp.size() ; j++)
+                    out.push_back(tmp[j]) ;
+            }
         }
     }
 

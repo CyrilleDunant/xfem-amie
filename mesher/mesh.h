@@ -534,6 +534,7 @@ public:
                 }
             }
         }
+        std::cerr << "\rgenerating cache for feature " << source.size() << "/" << source.size() << " ... done" << std::endl ;
 
         return position ;
 
@@ -768,6 +769,8 @@ public:
         unsigned int realID = cacheID ;
         if(cacheID == -1)
             realID = allElementsCacheID ;
+        if( caches[realID].size() == 0)
+            return 0. ;
         double w = 0. ;
         std::map<std::string, double> dummy ;
         dummy[correction] = 1 ;
@@ -796,6 +799,8 @@ public:
             blocks = static_cast<ETYPE *>(getInTree ( caches[cacheID][i] ))->getBehaviour()->getNumberOfDegreesOfFreedom() / spaceDimensions ;
         }
         Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
+        if( caches[cacheID].size() == 0)
+            return ret ;
         Vector buffer ( ret ) ;
         double w = 0 ;
         for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {

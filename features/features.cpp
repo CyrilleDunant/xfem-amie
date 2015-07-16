@@ -7262,7 +7262,8 @@ void FeatureTree::generateElements()
                 for ( size_t k  =  0 ; k <  potentialChildren.size() ; k++ )
                 {
                     if ( ( !potentialChildren[k]->isVirtualFeature
-                            && (potentialChildren[k]->inBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*(i == 0 ? 0.1 : 0.33) )) )
+                            && (potentialChildren[k]->inBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*(i == 0 ? 0.1 : 0.33) ))
+                            && potentialChildren[k]->inMask( tree[i]->getBoundingPoint ( j ), pointDensity*(i == 0 ? 0.1 : 0.33)) )
                             || ( potentialChildren[k]->isVirtualFeature
                                  && tree[i]->isVirtualFeature
                                  && ( dynamic_cast<VirtualFeature *> ( potentialChildren[k] )->getSource()
@@ -7629,9 +7630,9 @@ void FeatureTree::generateElements()
                             inter.push_back( tree[0]->getBoundingPoint(k) ) ;
                     }
                 }
-                size_t start = ( base == inter.size() ? 0 : base ) ;
+//                size_t start = ( base == inter.size() ? 0 : base ) ;
 
-                for ( size_t k = start ;  k < inter.size() ; k++ )
+                for ( size_t k = 0 ;  k < inter.size() ; k++ )
                 {
 
 
@@ -7640,7 +7641,7 @@ void FeatureTree::generateElements()
 
                     for ( size_t l = 0 ; l < descendants.size() ; l++ )
                     {
-                        if ( descendants[l]->inBoundary ( inter[k], pointDensity*0.33 ) )
+                        if ( descendants[l]->inBoundary ( inter[k], pointDensity*0.33 ) && descendants[l]->inMask ( inter[k], pointDensity*0.33 ) )
                         {
                             indescendants = true ;
                             break ;
@@ -7651,7 +7652,7 @@ void FeatureTree::generateElements()
                     {
                         if ( fatherdescendants[l] != feature && !fatherdescendants[l]->isVirtualFeature && fatherdescendants[l]->getBoundingPoints().size() && fatherdescendants[l]->inBoundary ( inter[k], pointDensity*0.33 ) && !feature->onBoundary ( inter[k], pointDensity*0.33 ) )
                         {
-                            indescendants = true ;
+//                            indescendants = true ;
                             break ;
                         }
                     }
@@ -7729,7 +7730,7 @@ void FeatureTree::generateElements()
 
 
                         // no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
-                        if ( ( feature->onBoundary ( inter[k], pointDensity*0.33 ) ) || ( !indescendants && squareDist3D ( proj, inter[k] ) < POINT_TOLERANCE * POINT_TOLERANCE && inRoot ( inter[k] ) && ( ( onEdge && tooClose == 3 ) || onVertex ) ) )
+                        if ( ( feature->inBoundary ( inter[k], pointDensity*0.33 ) && feature->inMask ( inter[k], pointDensity*0.1 ) ) || ( !indescendants && squareDist3D ( proj, inter[k] ) < POINT_TOLERANCE * POINT_TOLERANCE && inRoot ( inter[k] ) && ( ( onEdge && tooClose == 3 ) || onVertex ) ) )
                         {
                             Point *p = new Point ( inter[k] ) ;
                             additionalPoints.push_back ( p ) ;

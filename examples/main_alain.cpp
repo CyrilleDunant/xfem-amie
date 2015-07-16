@@ -56,19 +56,18 @@ int main(int argc, char *argv[])
 	FeatureTree F(&box) ;
 	box.setBehaviour( new ElasticOnlyPasteBehaviour( 10e9 ) ) ;
 
-	std::map<Form *, double> behaviour ;
-	behaviour[ new ElasticOnlyAggregateBehaviour( 45e9 ) ] = 0.1 ;
-	behaviour[ new ElasticOnlyAggregateBehaviour( 50e9 ) ] = 0.25 ;
-	behaviour[ new ElasticOnlyAggregateBehaviour( 55e9 ) ] = 0.35 ;
-	behaviour[ new ElasticOnlyAggregateBehaviour( 70e9 ) ] = 0.45 ;
-	behaviour[ new ElasticOnlyAggregateBehaviour( 75e9 ) ] = 0.6 ;
-	behaviour[ new ElasticOnlyAggregateBehaviour( 80e9 ) ] = 0.7 ;
-	behaviour[ new ElasticOnlyAggregateBehaviour( 90e9 ) ] = 0.75 ;
-	behaviour[ new ElasticOnlyAggregateBehaviour( 95e9 ) ] = 0.95 ;
-	behaviour[ new ElasticOnlyAggregateBehaviour( 100e9 ) ] = 1. ;
+	std::vector<std::pair<Form *, double> > behaviour ;
+	behaviour.push_back(std::make_pair( new ElasticOnlyAggregateBehaviour( 45e9 ), 0.1 ) ) ;
+	behaviour.push_back(std::make_pair( new ElasticOnlyAggregateBehaviour( 55e9 ), 0.3 ) ) ;
+	behaviour.push_back(std::make_pair( new ElasticOnlyAggregateBehaviour( 65e9 ), 0.5 ) ) ;
+	behaviour.push_back(std::make_pair( new ElasticOnlyAggregateBehaviour( 75e9 ), 0.7 ) ) ;
+	behaviour.push_back(std::make_pair( new ElasticOnlyAggregateBehaviour( 85e9 ), 0.9 ) ) ;
+	behaviour.push_back(std::make_pair( new ElasticOnlyAggregateBehaviour( 95e9 ), 1. ) ) ;
 
-	std::vector<Feature *> incs = PSDGenerator::get2DConcrete( &F, new ElasticOnlyAggregateBehaviour(15e9), 20,0.008, 0, nullptr, new EllipsoidalInclusionGenerator( 0.7 ), 100000, 0.8, new Rectangle( 0.045,0.045,0,0) ) ;
-//	std::vector<PolygonalSample *> poly = PSDGenerator::get2DVoronoiPolygons(&F, behaviour, incs, 200,  0.0002, 16, false, true ) ;
+	std::vector<Feature *> incs = PSDGenerator::get2DConcrete( &F, new ElasticOnlyAggregateBehaviour(15e9), 20,0.008, 0, nullptr, nullptr/*new EllipsoidalInclusionGenerator( 0.7 )*/, 100000, 0.8, new Rectangle( 0.045,0.045,0,0) ) ;
+	std::vector<std::vector<Feature *> > poly = PSDGenerator::get2DVoronoiPolygons(&F, behaviour, incs, 200,  0.001, 0.001, 16, false, true ) ;
+	for(size_t i = 0 ; i < poly.size() ; i++)
+		std::cout << poly[i].size() << std::endl ;
 /*	Inclusion * inc = new Inclusion( 0.01,0,0) ;
 	inc->setBehaviour( new ElasticOnlyAggregateBehaviour( 42e9 ) ) ;
 	F.addFeature(&box, inc) ;
@@ -84,7 +83,7 @@ int main(int argc, char *argv[])
 	}*/
 
 
-	F.setSamplingNumber(128) ;
+	F.setSamplingNumber(190) ;
 	F.step() ;
 
         TriangleWriter writer("tata", &F, 1.) ;

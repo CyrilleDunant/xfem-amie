@@ -229,6 +229,7 @@ std::vector<Feature *> PSDGenerator::get2DMaskedInclusions(FeatureTree * F, Form
 
 	std::vector<Inclusion *> inc = get2DConcrete(rmax, ar, n, type,fraction) ;
 	std::vector<Feature *> feats = converter->convert( inc ) ;
+	std::vector<Feature *> ret ;
 	inc.clear() ;
 
 	srand(seed) ;
@@ -243,16 +244,17 @@ std::vector<Feature *> PSDGenerator::get2DMaskedInclusions(FeatureTree * F, Form
 			feats[i]->setBehaviour(behaviour) ;
 		for(size_t j = 0 ; j < base.size() ; j++)
 		{
-			if(base[j]->intersects(feats[i]))
+			if(base[j]->intersects(feats[i]) || base[j]->in( feats[i]->getCenter() ) )
 				potentials.push_back( base[j] ) ;
 		}
                 if(potentials.size() > 0)
                 {
                     F->addFeature( potentials[0], feats[i] ) ;
                     feats[i]->setMask( potentials ) ;
+		    ret.push_back( feats[i] ) ;
                 }
 	}
-	return feats ;
+	return ret ;
 }
 
 std::vector<PolygonalSample *> PSDGenerator::get2DVoronoiPolygons(Rectangle * box, size_t n, double minDist) 
@@ -272,14 +274,14 @@ std::vector<PolygonalSample *> PSDGenerator::get2DVoronoiPolygons(Rectangle * bo
 	Point c = box->getCenter() ;
 	for(double x = c.getX()-box->width()*0.5+divx ; x < c.getX()+box->width()*0.5-divx/2 ; x += divx )
 	{
-		test->insert( new Point( c.getX()-box->width()*0.5+x, c.getY()-box->height()*0.5 ) ) ;
-		test->insert( new Point( c.getX()-box->width()*0.5+x, c.getY()+box->height()*0.5 ) ) ;
+		test->insert( new Point( x, c.getY()-box->height()*0.5 ) ) ;
+		test->insert( new Point( x, c.getY()+box->height()*0.5 ) ) ;
 	}
 	double divy = box->height()/sqrt(n) ;
 	for(double y = c.getY()-box->height()*0.5+divx ; y < c.getY()+box->height()*0.5-divy/2 ; y += divy )
 	{
-		test->insert( new Point( c.getX()-box->width()*0.5, c.getY()-box->height()*0.5+y ) ) ;
-		test->insert( new Point( c.getX()+box->width()*0.5, c.getY()-box->height()*0.5+y ) ) ;
+		test->insert( new Point( c.getX()-box->width()*0.5, y ) ) ;
+		test->insert( new Point( c.getX()+box->width()*0.5, y ) ) ;
 	}
 	std::vector<Point *> nodes ;
 	for(size_t i = 0 ; i < placed.size() ; i++)
@@ -289,6 +291,7 @@ std::vector<PolygonalSample *> PSDGenerator::get2DVoronoiPolygons(Rectangle * bo
 	}
 
 	std::vector<DelaunayTriangle *> connectivity = test->getConflictingElements( box ) ;
+	std::cout << connectivity.size() << " elements in voronoi sub-mesh" << std::endl ;
 
 	for(size_t i = 0 ; i < nodes.size() ; i++)
 	{
@@ -396,86 +399,95 @@ std::vector<PolygonalSample *> PSDGenerator::get2DVoronoiPolygons(Rectangle * bo
 	return poly ;
 }
 
-std::vector<PolygonalSample *> PSDGenerator::get2DVoronoiPolygons(FeatureTree * F, std::map<Form *, double> & behaviour, size_t n, double minDist, size_t nmax, bool copy) 
+std::vector<std::vector<Feature *> > PSDGenerator::get2DVoronoiPolygons(FeatureTree * F, std::vector<std::pair<Form *, double> > & behaviour, size_t n, double minDist, double border, size_t nmax, bool copy) 
 {
 	Sample * sample = dynamic_cast<Sample *>(F->getFeature(0)) ;
-	Rectangle * placement = new Rectangle( sample->width()+2.*minDist, sample->height()+2.*minDist, sample->getCenter().getX(), sample->getCenter().getY() ) ;
+	Rectangle * placement = new Rectangle( sample->width()+minDist*2.+border*2., sample->height()+minDist*2.+border*2., sample->getCenter().getX(), sample->getCenter().getY() ) ;
 	std::vector<PolygonalSample *> poly = PSDGenerator::get2DVoronoiPolygons( placement, n, minDist) ;
-	std::vector<PolygonalSample *> ret ;
+	std::vector<std::vector<Feature *> > ret( std::max(1, (int) behaviour.size()) ) ;
+
 	for(size_t i = 0 ; i < poly.size() ; i++)
 	{
 		if(poly[i]->getOriginalPoints().size() > nmax)
 			continue ;
 		double f = RandomNumber().uniform(0.,1.) ;
-		for(auto b : behaviour)
+		size_t k = 0 ;
+		for(size_t j = 0 ; j < behaviour.size() ; j++)
 		{
-			if(b.second > f)
+			if(behaviour[j].second > f)
 			{
-				poly[i]->setBehaviour(copy ? b.first->getCopy() : b.first) ;
+				poly[i]->setBehaviour(copy ? behaviour[j].first->getCopy() : behaviour[j].first) ;
+				k = j ;
 				break ;
 			}
 		}
 		F->addFeature(sample, poly[i]) ;
-		ret.push_back(poly[i]) ;
+		ret[k].push_back(poly[i]) ;
 	}
 	return ret ;
 }
 
-std::vector<PolygonalSample *> PSDGenerator::get2DVoronoiPolygons(Feature * feat, std::map<Form *, double> & behaviour, size_t n, double minDist, size_t nmax, bool copy) 
+std::vector<std::vector<Feature *> > PSDGenerator::get2DVoronoiPolygons(Feature * feat, std::vector<std::pair<Form *, double> > & behaviour, size_t n, double minDist, double border, size_t nmax, bool copy) 
 {
 	std::vector<Point> box = feat->getBoundingBox() ;
 	Rectangle * placement = new Rectangle( box ) ;
-	Rectangle * realbox = new Rectangle( placement->width()+minDist*2., placement->height()+minDist*2., placement->getCenter().getX(), placement->getCenter().getY() ) ;
+	Rectangle * realbox = new Rectangle( placement->width()+minDist*2.+border*2., placement->height()+minDist*2.+border*2., placement->getCenter().getX(), placement->getCenter().getY() ) ;
 	std::vector<PolygonalSample *> poly = PSDGenerator::get2DVoronoiPolygons( realbox, n, minDist) ;
-	std::vector<PolygonalSample *> ret ;
+	std::vector<std::vector<Feature *> > ret( std::max(1, (int) behaviour.size()) ) ;
 	for(size_t i = 0 ; i < poly.size() ; i++)
 	{
 		if( poly[i]->getOriginalPoints().size() < nmax+1 && (feat->in(poly[i]->getCenter()) || feat->intersects( dynamic_cast<Polygon *>(poly[i]) ) ))
 		{
 			double f = RandomNumber().uniform(0.,1.) ;
-			for(auto b : behaviour)
+			size_t k = 0 ;
+			for(size_t j = 0 ; j < behaviour.size() ; j++)
 			{
-				if(b.second > f)
+				if(behaviour[j].second > f)
 				{
-					poly[i]->setBehaviour(copy ? b.first->getCopy() : b.first) ;
-					if(!copy)
-						b.first->getCopy() ;
+					poly[i]->setBehaviour(copy ? behaviour[j].first->getCopy() : behaviour[j].first) ;
+					k = j ;
 					break ;
 				}
 			}
 			poly[i]->addToMask( feat ) ;
-			ret.push_back(poly[i]) ;
+			ret[k].push_back(poly[i]) ;
 		}
 	}
 	return ret ;
 }
 
-std::vector<PolygonalSample *> PSDGenerator::get2DVoronoiPolygons(FeatureTree * F, std::map<Form *, double> & behaviour, std::vector<Feature *> feats,  size_t n, double minDist, size_t nmax, bool copy, bool reset) 
+std::vector<std::vector<Feature *> > PSDGenerator::get2DVoronoiPolygons(FeatureTree * F, std::vector<std::pair<Form *, double> > & behaviour, std::vector<Feature *> feats,  size_t n, double minDist, double border, size_t nmax, bool copy, bool reset) 
 {
-	std::vector<PolygonalSample *> ret ;
+	std::vector<std::vector<Feature *> > ret( std::max(1, (int) behaviour.size()) ) ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
 		if(reset)
 		{
 			double f = RandomNumber().uniform(0.,1.) ;
-			for(auto b : behaviour)
+//			size_t k = 0 ;
+			for(size_t j = 0 ; j < behaviour.size() ; j++)
 			{
-				if(b.second > f)
+				if(behaviour[j].second > f)
 				{
-					feats[i]->setBehaviour(copy ? b.first->getCopy() : b.first) ;
+					feats[i]->setBehaviour(copy ? behaviour[j].first->getCopy() : behaviour[j].first) ;
+//					k = j ;
 					break ;
 				}
 			}
+//			ret[k].push_back( feats[i] ) ;
 		}
 
 		double num = ((double) n)*feats[i]->area()/F->getFeature(0)->area() ;
-		if(num > 2)
+		if(num > 1)
 		{
-			std::vector<PolygonalSample *> poly = PSDGenerator::get2DVoronoiPolygons( feats[i], behaviour, num, minDist, nmax, copy) ;
+			std::vector<std::vector<Feature *> > poly = PSDGenerator::get2DVoronoiPolygons( feats[i], behaviour, std::max(3., num), minDist, border, nmax, copy) ;
 			for(size_t j = 0 ; j < poly.size() ; j++)
 			{
-				F->addFeature(feats[i], poly[j]) ;
-				ret.push_back(poly[j]) ;
+				for(size_t k = 0 ; k < poly[j].size() ; k++)
+				{
+					F->addFeature(feats[i], poly[j][k]) ;
+					ret[j].push_back(poly[j][k]) ;
+				}
 			}
 		}
 	}
