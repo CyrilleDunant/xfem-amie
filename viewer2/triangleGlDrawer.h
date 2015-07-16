@@ -36,6 +36,7 @@ public slots:
 	void openFile(TriangleDataReader * f)  ; //
 	void setSet(int set)  ; //
 	void grab() ;
+	void setMeshDisplay(int state) ;
 	
 signals:
 	void xTranslationChanged(int)  ; //
@@ -57,6 +58,7 @@ protected:
 	
 	bool moving ;
 	bool leftDown ;
+	bool meshOnly = false ;
 		
 	float zpos ;
 	int zoom ;

@@ -12,6 +12,7 @@
 #include <QFileDialog>
 #include <QToolBar>
 #include <QSpinBox>
+#include <QCheckBox>
 #include <string>
 
 #include "voxelGlDrawer.h"
@@ -48,6 +49,8 @@ private:
 	QSlider * time ;
 	QSlider * downSlider ;
 	QSlider * upSlider ;
+
+	QCheckBox * meshDisplay ;
 
 	QStatusBar *statusbar ;
 	QToolButton * printButton ;

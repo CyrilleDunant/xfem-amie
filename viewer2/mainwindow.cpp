@@ -145,6 +145,10 @@ void MainWindow::createToolBars()
 	connect( voxeldisplay, SIGNAL( segmentUpChanged( int ) ), upSlider, SLOT( setValue( int ) ) );
 	fileToolBar->addWidget( upSlider );
 
+	meshDisplay = new QCheckBox( "Mesh" ) ;
+	fileToolBar->addWidget( meshDisplay );
+//	connect( meshDisplay, SIGNAL( stateChanged( int ) ), triangleDisplay, SLOT( setMeshDisplay( int ) ) ) ;
+
 
 // 	fileToolBar->addAction(exitAct);
 }
@@ -235,6 +239,8 @@ void MainWindow::open()
 
 			connect( printButton, SIGNAL( released() ), triangledisplay, SLOT( grab() ) );
 
+			connect( meshDisplay, SIGNAL( stateChanged( int ) ), triangledisplay, SLOT( setMeshDisplay( int ) ) ) ;
+
 			field->setValue( 1 ) ;
 			field->setRange( 0, 4096 );
 
@@ -303,6 +309,8 @@ void MainWindow::open()
 			connect( triangledisplay, SIGNAL( segmentUpChanged( int ) ), upSlider, SLOT( setValue( int ) ) );
 
 			connect( printButton, SIGNAL( released() ), triangledisplay, SLOT( grab() ) );
+
+			connect( meshDisplay, SIGNAL( stateChanged( int ) ), triangledisplay, SLOT( setMeshDisplay( int ) ) ) ;
 
 			field->setValue( 1 ) ;
 			field->setRange( 0, 4096 );
@@ -411,6 +419,9 @@ void MainWindow::open( const QString &fileName )
 			connect( triangledisplay, SIGNAL( segmentUpChanged( int ) ), upSlider, SLOT( setValue( int ) ) );
 
 			connect( printButton, SIGNAL( released() ), triangledisplay, SLOT( grab() ) );
+
+			connect( meshDisplay, SIGNAL( stateChanged( int ) ), triangledisplay, SLOT( setMeshDisplay( int ) ) ) ;
+
 
                         
 			downSlider->setRange( 0, 99 );
@@ -578,6 +589,9 @@ void MainWindow::disconnect( TriangleGLDrawer *display )
 	QObject::disconnect( display, SIGNAL( segmentUpChanged( int ) ), upSlider, SLOT( setValue( int ) ) );
 
 	QObject::disconnect( printButton, SIGNAL( released() ), display, SLOT( grab() ) );
+
+	QObject::disconnect( meshDisplay, SIGNAL( stateChanged( int ) ), display, SLOT( setMeshDisplay( int ) ) ) ;
+
 
 }
 
