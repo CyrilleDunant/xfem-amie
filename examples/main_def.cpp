@@ -103,8 +103,7 @@ int main(int argc, char *argv[])
         inclusions.push_back(static_cast<Inclusion *>(feats[i])) ;
 
 
-    int nAgg = 0 ;
-    feats=placement(sample.getPrimitive(), feats, &nAgg, 0, 6400);
+    feats=placement2D(sample.getPrimitive(), feats, 0.000001, 0, 6400);
     double volume = 0 ;
     for(size_t i = 0 ; i < feats.size() ; i++)
         volume += feats[i]->area() ;

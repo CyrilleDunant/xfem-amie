@@ -403,8 +403,7 @@ int main( int argc, char *argv[] )
     }
     
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
-    int nAgg = 1 ;
-    feats = placement( &placeGeometry, feats, &nAgg, 1, 6400 );
+    feats = placement2D( &placeGeometry, feats, itzSize, 1, 6400 );
     double volume = 0 ;
 
     for( size_t i = 0 ; i < feats.size() ; i++ )

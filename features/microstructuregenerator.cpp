@@ -31,9 +31,8 @@ namespace Amie
 		for(size_t i = 0; i < inclusions.size() ; i++)
 			feats.push_back(inclusions[i]) ;
 
-		int nAgg = 1 ;
-		feats = placement(sample, feats, &nAgg, 6400, false);
-		
+		feats = placement2D(sample, feats, itzSize, 0, 6400);
+
 		double volume = 0 ;
 		for(size_t i = 0 ; i < feats.size() ; i++)
 		{
@@ -75,8 +74,7 @@ namespace Amie
 		for(size_t i = 0; i < inclusions.size() ; i++)
 			feats.push_back(inclusions[i]) ;
 
-		int nAgg = 1 ;
-		feats = placement(sample, feats, &nAgg, 6400, false);
+		feats = placement2D(sample, feats, itzSize, 0, 6400);
 		
 		double volume = 0 ;
 		for(size_t i = 0 ; i < feats.size() ; i++)
@@ -120,9 +118,7 @@ namespace Amie
 		for(size_t i = 0; i < inclusions.size() ; i++)
 			feats.push_back(inclusions[i]) ;
 
-		int nAgg = 1 ;
-		
-		feats = placement(sample, feats, &nAgg, 6400, false);
+		feats = placement2D(sample, feats, itzSize, 0, 6400);
 		
 		double volume = 0 ;
 		for(size_t i = 0 ; i < feats.size() ; i++)

@@ -508,9 +508,8 @@ std::vector<Inclusion *> PSDGenerator::get2DMortar(FeatureTree * F, Form * behav
 		feats.push_back(inc[i]) ;
 	}
 	inc.clear() ;
-	int nAgg = 1 ;
 	srand(seed) ;
-	feats = placement( dynamic_cast<Rectangle *>(box), feats, &nAgg, 0, tries ) ;
+	feats = placement2D( dynamic_cast<Rectangle *>(box), feats, 0.00001, 0, tries ) ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
 		inc.push_back(dynamic_cast<Inclusion *>(feats[i])) ;

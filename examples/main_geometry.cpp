@@ -77,8 +77,7 @@ int main(int argc, char *argv[])
   std::vector<Feature *> feats ;
   for(size_t i = 0 ; i < incs.size() ; i++)
     feats.push_back(incs[i]) ;
-  int n = 0 ;
-  feats = placement(box.getPrimitive(), feats, &n) ;
+  feats = placement3D(box.getPrimitive(), feats, 0.) ;
   incs.clear() ;
 	
 	
