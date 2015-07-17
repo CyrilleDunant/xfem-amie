@@ -1731,30 +1731,31 @@ InclusionGenerator * ConfigTreeItem::getInclusionGenerator() const
         int side = getData("side", 5) ;
         double orientation = getData("orientation", 0.) ;
         double orientation_var = getData("orientation_variability", M_PI) ;
+        bool force = getStringData("force_orientation","FALSE") == "TRUE" ;
         int side_var = getData("side_variability", 0) ;
         std::string method = getStringData("method", "REGULAR") ;
         if(method == "REGULAR")
-            return new PolygonalInclusionGenerator( side, orientation, orientation_var, side_var, rotation ) ;
+            return new PolygonalInclusionGenerator( side, orientation, orientation_var, side_var, rotation, force ) ;
         if(method == "GRAVEL")
         {
             double param_p = getData("parameter_p", 1.5 ) ;
             double param_m = getData("parameter_m", 0.2 ) ;
             int degree = getData("degree", 2) ;
-            return new GravelPolygonalInclusionGenerator( param_p, param_m, degree, side, orientation, orientation_var, side_var, rotation ) ;
+            return new GravelPolygonalInclusionGenerator( param_p, param_m, degree, side, orientation, orientation_var, side_var, rotation, force ) ;
         }
         if(method == "CRUSHED")
         {
             double shape = getData("shape_factor", 0.75 ) ;
-            return new CrushedPolygonalInclusionGenerator( shape, side, orientation, orientation_var, side_var, rotation ) ;
+            return new CrushedPolygonalInclusionGenerator( shape, side, orientation, orientation_var, side_var, rotation, force ) ;
         }
         if(method == "CRUSHED_SUBTENDED")
         {
             double shape = getData("shape_factor", 0.75 ) ;
             double delta = getData("parameter_delta", 0.15 ) ;
-            return new CrushedSubtendedPolygonalInclusionGenerator( shape, delta, orientation, orientation_var, side_var, rotation ) ;
+            return new CrushedSubtendedPolygonalInclusionGenerator( shape, delta, orientation, orientation_var, side_var, rotation, force ) ;
         }
 
-        return new PolygonalInclusionGenerator( side, orientation, orientation_var, side_var, rotation ) ;
+        return new PolygonalInclusionGenerator( side, orientation, orientation_var, side_var, rotation, force ) ;
     }
 
     return new InclusionGenerator( rotation ) ;

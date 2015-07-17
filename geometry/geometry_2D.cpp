@@ -2806,6 +2806,117 @@ void Polygon::sampleSurface(size_t num_points)
         inPoints[i] = new Point(newPoints[i]) ;
 }
 
+Point Polygon::getOrientation() const
+{
+    Polygon convex = getConvexPolygon() ;
+    std::valarray<Point> pts = convex.getOriginalPoints() ;
+
+    size_t k = 0 ;
+    double minwidth = 0. ;
+
+    for(size_t i = 0 ; i < pts.size() ; i++)
+    {
+       size_t inext = (i+1)%pts.size() ;
+       Line edge( pts[i], pts[inext]-pts[i] ) ;
+       double minx = 0 ;
+       double maxx = 0 ;
+       double miny = 0 ;
+       double maxy = 0 ;
+       for(size_t j = 0 ; j < pts.size() ; j++)
+       {
+           Point p = edge.projection( pts[j] ) ;
+           double x = dist( p, pts[i] ) ;
+           double y = dist( p, pts[j] ) ;
+           if(x < minx)
+               minx = x ;
+           if(x > maxx)
+               maxx = x ;
+           if(y < miny)
+               miny = y ;
+           if(y > maxy)
+               maxy = y ;
+       }
+//       double height = maxx-minx ;
+       double width = maxy-miny ;
+       if( k == 0 && i == 0 )
+           minwidth = width ;
+       else
+       {
+           if(width < minwidth)
+           {
+               k = i ;
+               minwidth = width ;
+           }
+       }
+
+    }
+    
+    Point dir = pts[(k+1)%pts.size()] - pts[k] ;
+    if(dir.norm() < POINT_TOLERANCE)
+       dir.setX(1) ;
+    else
+       dir /= dir.norm() ;
+
+    return dir ;
+}
+
+double Polygon::getAspectRatio() const
+{
+    Point dir = getOrientation() ;
+    Line axis(getCenter(), dir) ;
+    Point norm( dir.getY(), -dir.getX() ) ;
+    double minx = 0 ;
+    double maxx = 0 ;
+    double miny = 0 ;
+    double maxy = 0 ;
+    for(size_t i = 0 ; i < originalPoints.size() ; i++)
+    {
+        Point p = axis.projection( originalPoints[i] ) ;
+        double x = (p-getCenter())*dir ;
+        double y = (p-originalPoints[i])*norm ;
+        if(i == 0)
+        {
+            minx = x ;
+            maxx = x ;
+            miny = y ;
+            maxy = y ;
+        }
+        else
+        {
+           if(x < minx)
+               minx = x ;
+           if(x > maxx)
+               maxx = x ;
+           if(y < miny)
+               miny = y ;
+           if(y > maxy)
+               maxy = y ;
+        }
+    }
+    return (maxy-miny)/(maxx-minx) ;
+}
+
+Polygon Polygon::getConvexPolygon() const
+{
+    std::vector<Point> pts ;
+    for(size_t i = 0 ; i < originalPoints.size() ; i++)
+    {
+        size_t inext = (i+1)%originalPoints.size() ;
+        size_t iprev = ( i == 0 ? originalPoints.size()-1 : i-1 ) ;
+        Segment s( originalPoints[iprev], originalPoints[inext] ) ;
+        Point test = originalPoints[i]-s.midPoint() ;
+        if(test.norm() > POINT_TOLERANCE)
+           test *= 1e-4 ;
+        test = originalPoints[i]-test ;
+        if(in(test))
+           pts.push_back( originalPoints[i] ) ;
+    }
+    std::valarray<Point> next(pts.size()) ;
+    for(size_t i = 0 ; i < pts.size() ; i++)
+       next[i] = pts[i] ;
+    return Polygon(next) ;
+}
+
 
 bool Polygon::in(const Point & v) const
 {

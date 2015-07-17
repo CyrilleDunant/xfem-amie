@@ -336,7 +336,7 @@ Feature * RectangularInclusionGenerator::convert(Inclusion * inc) const
 PolygonalSample * PolygonalInclusionGenerator::generatePolygon(double radius) const
 {
 	RandomNumber rng ;
-	size_t npoints = std::max(3, vertex + (int) rng.uniform( -vertexVariability, vertexVariability )) ;
+	size_t npoints = std::max(3., vertex + round(rng.uniform( -vertexVariability, vertexVariability ))) ;
 	double phase = orientation + rng.uniform( -orientationVariability, orientationVariability ) ;
 	std::valarray< Point *> points ; points.resize( npoints) ;
 	for(size_t i = 0 ; i < npoints ; i++)
@@ -355,6 +355,13 @@ Feature * PolygonalInclusionGenerator::convert( Inclusion * inc) const
 	double target = inc->area() ;
 	double r = ret->getRadius() * sqrt( target / area ) ;
 	transform( dynamic_cast<Polygon *>(ret), SCALE, Point( r/ret->getRadius(), r/ret->getRadius()) ) ;
+	if(forceOrientation)
+	{
+		Point p = ret->getOrientation() ;
+		double phase = p.angle() - orientation+RandomNumber().uniform( -orientationVariability, orientationVariability )  ;
+		if(std::abs(phase) > POINT_TOLERANCE)
+			transform(  dynamic_cast<Polygon *>(ret), ROTATE, Point( 0,0, phase ) ) ;
+	}
 	ret->setCenter(inc->getCenter()) ;
 	ret->setBehaviour( inc->getBehaviour() ) ;
 	ret->setFather( inc->getFather() ) ;
@@ -364,7 +371,7 @@ Feature * PolygonalInclusionGenerator::convert( Inclusion * inc) const
 PolygonalSample * GravelPolygonalInclusionGenerator::generatePolygon(double radius) const
 {
 	RandomNumber rng ;
-	size_t npoints = std::max(3, vertex + (int) rng.uniform( -vertexVariability, vertexVariability )) ;
+	size_t npoints = std::max(3., vertex + round(rng.uniform( -vertexVariability, vertexVariability ))) ;
 	double phase = orientation + rng.uniform( -orientationVariability, orientationVariability ) ;
 	std::valarray< Point *> points ; points.resize( npoints) ;
 	Vector A ; A.resize(m) ; A = 0. ;
@@ -389,7 +396,7 @@ PolygonalSample * GravelPolygonalInclusionGenerator::generatePolygon(double radi
 PolygonalSample * CrushedPolygonalInclusionGenerator::generatePolygon(double radius) const
 {
 	RandomNumber rng ;
-	size_t npoints = std::max(3, vertex + (int) rng.uniform( -vertexVariability, vertexVariability )) ;
+	size_t npoints = std::max(3., vertex + round(rng.uniform( -vertexVariability, vertexVariability ))) ;
 	double phase = orientation + rng.uniform( -orientationVariability, orientationVariability ) ;
 	std::valarray< Point *> points ;points.resize( npoints) ;
 	std::vector<double> theta ;
@@ -409,7 +416,7 @@ PolygonalSample * CrushedPolygonalInclusionGenerator::generatePolygon(double rad
 PolygonalSample * CrushedSubtendedPolygonalInclusionGenerator::generatePolygon(double radius) const
 {
 	RandomNumber rng ;
-	size_t npoints = std::max(3, vertex + (int) rng.uniform( -vertexVariability, vertexVariability )) ;
+	size_t npoints = std::max(3., vertex + round(rng.uniform( -vertexVariability, vertexVariability ))) ;
 	double phase = orientation + rng.uniform( -orientationVariability, orientationVariability ) ;
 	std::valarray< Point *> points ;points.resize( npoints) ;
 	std::vector<double> phi ;

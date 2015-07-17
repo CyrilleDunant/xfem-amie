@@ -52,43 +52,17 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
-	Sample box(nullptr, 0.04,0.04,0.,0.) ;
-	FeatureTree F(&box) ;
-	box.setBehaviour( new ElasticOnlyPasteBehaviour( 10e9 ) ) ;
+	std::valarray<Point> pts(5) ;
+	pts[0] = Point(0,0) ;
+	pts[1] = Point(1,0) ;
+	pts[2] = Point(2,1) ;
+	pts[3] = Point(1,2) ;
+	pts[4] = Point(0,1) ;
 
-	std::vector<std::pair<Form *, double> > behaviour ;
-	behaviour.push_back(std::make_pair( new ElasticOnlyAggregateBehaviour( 45e9 ), 0.1 ) ) ;
-	behaviour.push_back(std::make_pair( new ElasticOnlyAggregateBehaviour( 55e9 ), 0.3 ) ) ;
-	behaviour.push_back(std::make_pair( new ElasticOnlyAggregateBehaviour( 65e9 ), 0.5 ) ) ;
-	behaviour.push_back(std::make_pair( new ElasticOnlyAggregateBehaviour( 75e9 ), 0.7 ) ) ;
-	behaviour.push_back(std::make_pair( new ElasticOnlyAggregateBehaviour( 85e9 ), 0.9 ) ) ;
-	behaviour.push_back(std::make_pair( new ElasticOnlyAggregateBehaviour( 95e9 ), 1. ) ) ;
-
-	std::vector<Feature *> incs = PSDGenerator::get2DConcrete( &F, new ElasticOnlyAggregateBehaviour(15e9), 20,0.008, 0, nullptr, nullptr/*new EllipsoidalInclusionGenerator( 0.7 )*/, 100000, 0.8, new Rectangle( 0.045,0.045,0,0) ) ;
-	std::vector<std::vector<Feature *> > poly = PSDGenerator::get2DVoronoiPolygons(&F, behaviour, incs, 200,  0.001, 0.001, 16, false, true ) ;
-	for(size_t i = 0 ; i < poly.size() ; i++)
-		std::cout << poly[i].size() << std::endl ;
-/*	Inclusion * inc = new Inclusion( 0.01,0,0) ;
-	inc->setBehaviour( new ElasticOnlyAggregateBehaviour( 42e9 ) ) ;
-	F.addFeature(&box, inc) ;
-	for(size_t i = 0 ; i < poly.size() ; i++)
-	{
-		if(inc->in(poly[i]->getCenter()) || inc->intersects(dynamic_cast<Polygon *>(poly[i])))
-		{
-			ElasticOnlyAggregateBehaviour toto( 10e9*(i+4) ) ;
-			poly[i]->setBehaviour( new  ElasticOnlyAggregateBehaviour(10e9*(i*4+4)) ) ;
-			F.addFeature(inc, poly[i]) ;
-			poly[i]->addToMask( inc ) ;
-		}
-	}*/
+	Polygon poly(pts) ;
+        std::cout << poly.getAspectRatio() << std::endl ;
 
 
-	F.setSamplingNumber(190) ;
-	F.step() ;
-
-        TriangleWriter writer("tata", &F, 1.) ;
-	writer.getField(TWFT_STIFFNESS) ;
-	writer.write() ;
 
 	return 0 ;
 }

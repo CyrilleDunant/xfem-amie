@@ -684,6 +684,7 @@ void transform(Geometry * g, GeometricTransformationType transformation, const P
         break ;
     case ROTATE:
     {
+
         if(g->getGeometryType() == CIRCLE)
         {
             return ;
@@ -706,8 +707,17 @@ void transform(Geometry * g, GeometricTransformationType transformation, const P
         for(size_t i = 0 ; i < g->getBoundingPoints().size() ; i++)
             g->getBoundingPoint(i) *= rotation ;
 
+        if(g->getGeometryType() == POLYGON)
+        {
+            std::valarray<Point> pts = dynamic_cast<Polygon *>(g)->getOriginalPoints() ;
+            for(size_t i = 0 ; i < pts.size() ; i++)
+               pts[i] *= rotation ;
+            dynamic_cast<Polygon *>(g)->setOriginalPoints(pts, true) ;
+        }
+
         c *= -1 ;
         transform(g, TRANSLATE, c);
+
 
         if(g->getGeometryType() == ELLIPSE)
         {

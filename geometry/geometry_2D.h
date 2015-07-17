@@ -508,6 +508,12 @@ public:
     
     virtual double getPerimeter() const ;
 
+    virtual Point getOrientation() const ;
+
+    virtual double getAspectRatio() const ;
+
+    virtual Polygon getConvexPolygon() const ;
+
     virtual SpaceDimensionality spaceDimensions() const ;
 
     virtual std::vector<Point> getBoundingBox() const ;

@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
         omp_set_num_threads(threads) ;
     }
 
-    omp_set_num_threads(1) ;
+//    omp_set_num_threads(1) ;
 #endif
 
     std::vector<ExternalMaterialLaw *> common ;
