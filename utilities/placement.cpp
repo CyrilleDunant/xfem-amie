@@ -40,6 +40,37 @@ bool isInside( Feature * feat, const std::vector<Geometry *> & base)
     return false ;
 }
 
+void projectOnEdge( Feature * feat, const std::vector<Geometry *> & base, bool vertex)
+{
+    for(size_t j = 0 ; j < base.size() ; j++)
+    {
+        if(feat->intersects(base[j]) || base[j]->in( feat->getCenter()) )
+        {
+            Point p = feat->getCenter() ;
+            if(vertex && base[j]->getGeometryType() == POLYGON)
+            {
+                std::valarray<Point> pts = dynamic_cast<Polygon *>(base[j])->getOriginalPoints() ;
+                size_t k = 0 ;
+                double d = dist(p, pts[0] ) ;
+                for(size_t i = 1 ; i < pts.size() ; i++)
+                {
+                    if( dist(p, pts[i]) < d)
+                    {
+                        d = dist( p, pts[i] ) ;
+                        k = i ;
+                    }
+                }
+                p = pts[k] ;
+            }
+            else
+                base[j]->project(&p) ;
+
+            feat->setCenter(p) ;
+            return ;
+        }
+    }
+}
+
 void transform2D( Feature * inc, RandomDistribution & xDistribution, RandomDistribution & yDistribution, RandomDistribution & rDistribution)
 {
     Point c( xDistribution.draw(), yDistribution.draw() ) ;
@@ -313,5 +344,82 @@ std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::v
     return ret ;
 }
 
+std::vector<Feature *> Amie::placement2DOnEdge(const Geometry* box, std::vector<Geometry *> base, std::vector<Feature *> inclusions, bool vertex, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones)
+{
+    std::vector<Feature *> ret ;
+    int tries = 0 ;
+
+    std::vector<Point> boundingBox = box->getBoundingBox() ;
+    UniformDistribution xDistribution( boundingBox[0].getX(), boundingBox[2].getX() ) ;
+    UniformDistribution yDistribution( boundingBox[0].getY(), boundingBox[2].getY() ) ;
+    UniformDistribution rDistribution( -orientation, orientation ) ;
+    Grid grid(boundingBox[2].getX()-boundingBox[0].getX(), boundingBox[0].getY()-boundingBox[2].getY(), 10, box->getCenter()) ;
+
+    for(int i = 0 ; i < placedAggregates ; i++)
+    {
+        ret.push_back(inclusions[i]);
+        grid.add(inclusions[i]) ;
+    }
+
+
+    for(int i = placedAggregates ; i < (int)inclusions.size() && tries < triesMax ; i++)
+    {
+        tries++ ;
+
+        double scale = 1. ;
+        if(minDist > POINT_TOLERANCE)
+        {
+            scale = (inclusions[i]->getRadius()+minDist)/inclusions[i]->getRadius() ;
+            Point s( scale, scale ) ;
+            transform(inclusions[i], SCALE, s) ;
+        }
+
+        transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);
+        projectOnEdge( inclusions[i], base, vertex) ;
+        std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
+        while((!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3]))) && tries < triesMax)
+        {
+            tries++ ;
+            transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);
+            projectOnEdge( inclusions[i], base, vertex) ;
+            bbox = inclusions[i]->getBoundingBox() ;
+        }
+
+        while(!grid.add(inclusions[i]) && tries < triesMax)
+        {
+            tries++ ;
+
+            transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);
+            projectOnEdge( inclusions[i], base, vertex) ;
+            std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
+            while((!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3]))) && tries < triesMax)
+            {
+                tries++ ;
+                transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);
+                projectOnEdge( inclusions[i], base, vertex) ;
+                bbox = inclusions[i]->getBoundingBox() ;
+            }
+
+        }
+
+        if(tries < triesMax)
+        {
+            if(i%100 == 0)
+                std::cout << "\rplaced " << i << " particles (tries " << tries << "/" << triesMax << ")" << std::flush ;
+            if(scale > 1.)
+            {
+                Point s(1./scale, 1./scale) ;
+                transform(inclusions[i], SCALE , s) ;
+            }
+            ret.push_back(inclusions[i]);
+        }
+
+
+    }
+
+    std::cout << "\n" << ret.size() << " inclusions placed after " << tries << " tries" << std::endl ;
+
+    return ret ;
+}
 
 

@@ -1990,6 +1990,7 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
         double spacing = getData("placement.spacing",1e-5) ;
         int seed = getData("placement.seed", 1) ;
         bool mask = getStringData("placement.mask", "TRUE") == "TRUE" ;
+        std::string position = getStringData("placement.position", "FREE") ;
         if(hasChildFromFullLabel("placement.box"))
         {
             placement = getChildFromFullLabel("placement.box")->getSample() ;
@@ -1998,14 +1999,19 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
         {
             ret = PSDGenerator::get2DConcrete( F, behaviour, n, rmax, spacing, psd, generator, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
         }
-        else if(mask)
+        else if(position == "ON_EDGE" || position == "ON_VERTEX")
         {
-            ret = PSDGenerator::get2DMaskedInclusions( F, behaviour, base, n, rmax, spacing, psd, generator, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
+            ret = PSDGenerator::get2DInclusionsOnEdge( F, behaviour, base, mask, position == "ON_VERTEX", n, rmax, spacing, psd, generator, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
         }
         else
         {
-            ret = PSDGenerator::get2DEmbeddedInclusions( F, behaviour, base, n, rmax, spacing, psd, generator, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
+            if(mask)
+                ret = PSDGenerator::get2DMaskedInclusions( F, behaviour, base, n, rmax, spacing, psd, generator, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
+            else
+                ret = PSDGenerator::get2DEmbeddedInclusions( F, behaviour, base, n, rmax, spacing, psd, generator, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
         }
+
+	
     }
 
     if(hasChild("sampling_factor"))

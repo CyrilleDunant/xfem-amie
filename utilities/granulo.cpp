@@ -175,6 +175,65 @@ std::vector<Feature *> PSDGenerator::get2DConcrete(FeatureTree * F, Form * behav
 	return real ;
 }
 
+std::vector<Feature *> PSDGenerator::get2DInclusionsOnEdge(FeatureTree * F, Form * behaviour, std::vector<Feature *> base, bool checkMask, bool vertex, size_t n, double rmax, double itz, ParticleSizeDistribution * type, InclusionGenerator * geometry, size_t tries,double fraction, Geometry * placement, std::vector<Geometry *> exclusionZones, size_t seed) 
+{
+	InclusionGenerator * converter = (geometry ? geometry : new InclusionGenerator()  ) ;
+
+	if(!type)
+		type = new PSDBolomeA() ;
+	Feature * box = F->getFeature(0) ;
+	double ar = sqrt(box->area()) ;
+	if(placement != nullptr)
+		ar = sqrt(placement->area()) ;
+
+	std::vector<Inclusion *> inc = get2DConcrete(rmax, ar, n, type,fraction) ;
+	std::vector<Feature *> feats = converter->convert( inc ) ;
+	std::vector<Feature *> ret ;
+	inc.clear() ;
+
+	srand(seed) ;
+	std::vector<Geometry *> geom ;
+	for(size_t i = 0 ; i < base.size() ; i++)
+		geom.push_back( dynamic_cast<Geometry *>(base[i])) ;
+	if(placement)
+		feats = placement2DOnEdge( placement, geom, feats, vertex, itz, 0, tries, converter->authorizeRotationsDuringPlacement, exclusionZones ) ;
+	else
+		feats = placement2DOnEdge( dynamic_cast<Rectangle *>(box), geom, feats, vertex, itz, 0, tries, converter->authorizeRotationsDuringPlacement, exclusionZones ) ;
+	double area = 0 ;
+	for(size_t i = 0 ; i < feats.size() ; i++)
+	{
+                bool inMask = true ;
+                if(checkMask)
+                {
+			for(size_t j = 0 ; j < base.size() ; j++)
+			{
+				if( base[j]->in( feats[i]->getCenter() ) || base[j]->intersects( feats[i] ) )
+				{
+					inMask = base[j]->inMask( feats[i]->getCenter() ) ;
+					break ;
+				}
+			}
+                }
+
+		if(inMask)
+		{
+			area += feats[i]->area() ;
+			if(behaviour)
+				feats[i]->setBehaviour(behaviour) ;
+			for(size_t j = 0 ; j < base.size() ; j++)
+			{
+				if(base[j]->in(feats[i]->getCenter()))
+				{
+					F->addFeature(base[j], feats[i]) ;
+					ret.push_back( feats[i] ) ;
+					break ;
+				}
+			}
+		}
+	}
+	return ret ;
+}
+
 std::vector<Feature *> PSDGenerator::get2DEmbeddedInclusions(FeatureTree * F, Form * behaviour, std::vector<Feature *> base, size_t n, double rmax, double itz, ParticleSizeDistribution * type, InclusionGenerator * geometry, size_t tries,double fraction, Geometry * placement, std::vector<Geometry *> exclusionZones, size_t seed) 
 {
 	InclusionGenerator * converter = (geometry ? geometry : new InclusionGenerator()  ) ;
