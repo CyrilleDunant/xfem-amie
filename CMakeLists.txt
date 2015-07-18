@@ -29,6 +29,7 @@ features/feature_base.cpp
 features/crack.cpp 
 features/crackinitiation.cpp 
 features/enrichmentmanagers/crackmanager.cpp 
+features/enrichmentmanagers/gelmanager.cpp 
 features/enrichmentbehaviour.cpp 
 features/enrichmentInclusion3d.cpp 
 features/enrichmentInclusion.cpp 

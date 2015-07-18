@@ -227,12 +227,16 @@ Form * BimaterialInterface::getCopy() const
 
 bool BimaterialInterface::changed() const
 {
-    return getDamageModel()->changed() ;
+    if(getDamageModel())
+        return getDamageModel()->changed() ;
+    return false ;
 }
 
 bool BimaterialInterface::fractured() const
 {
-    return getDamageModel()->fractured() ;
+    if(getDamageModel())
+        return getDamageModel()->fractured() ;
+    return false ;
 }
 
 std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
@@ -313,7 +317,6 @@ void BimaterialInterface::step(double timestep, ElementState & currentState, dou
 
 DamageModel * BimaterialInterface::getDamageModel() const
 {
-
     DamageModel * inDamage = inBehaviour->getDamageModel() ;
     DamageModel * outDamage = outBehaviour->getDamageModel() ;
     if(inDamage && ! outDamage)
@@ -334,7 +337,6 @@ DamageModel * BimaterialInterface::getDamageModel() const
 
 FractureCriterion * BimaterialInterface::getFractureCriterion() const
 {
-
     FractureCriterion * inCriterion = inBehaviour->getFractureCriterion() ;
     FractureCriterion * outCriterion = outBehaviour->getFractureCriterion() ;
     if(inCriterion && ! outCriterion)

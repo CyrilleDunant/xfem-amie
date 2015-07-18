@@ -17,6 +17,7 @@ namespace Amie
     protected:
         std::vector<std::pair<std::pair<Point *, double>, std::pair<Point *, double>>> movingTips ;
         std::vector<std::pair<Point *, BranchedCrack *>> movingSet ;
+        std::vector<BranchedCrack *> featureSet ;
         std::vector<double> startAngles ;
         std::vector<Point> centers ;
         double criticalEnergy;
@@ -32,7 +33,7 @@ namespace Amie
         double downExtension ;
         int iteration ;
     public:
-            CrackManager(BranchedCrack * first, double criticalEnergy = 1e6, double minCRadius = 1e-2, double maxExpansion = 1e-2) ;
+            CrackManager(FeatureTree * ft, Feature * father, BranchedCrack * first, double criticalEnergy = 1e6, double minCRadius = 1e-2, double maxExpansion = 1e-2) ;
               
             virtual bool step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) ;
             virtual bool step(double dt, Vector * v, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) ;

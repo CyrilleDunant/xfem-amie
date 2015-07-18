@@ -1,6 +1,7 @@
 #include "crackmanager.h"
     
-using namespace Amie ;
+namespace Amie 
+{
 
         double criticalEnergy;
         double maxExpansion ;
@@ -14,7 +15,10 @@ using namespace Amie ;
         double upExtension ;
         double downExtension ;
 
-CrackManager::CrackManager(BranchedCrack * first, double criticalEnergy, double minCRadius, double maxExpansion) : EnrichmentManager(first), criticalEnergy(criticalEnergy), maxExpansion(maxExpansion), minCRadius(1e-3), findRadius(false), findExtension(false), iteration(0) {} 
+CrackManager::CrackManager(FeatureTree * ft, Feature * father, BranchedCrack * first, double criticalEnergy, double minCRadius, double maxExpansion) : criticalEnergy(criticalEnergy), maxExpansion(maxExpansion), minCRadius(1e-3), findRadius(false), findExtension(false), iteration(0) 
+{
+    ft->addFeature(father, first);
+} 
     
 bool CrackManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
 { 
@@ -224,3 +228,4 @@ bool CrackManager::step(double dt, Vector * v, Mesh<DelaunayTetrahedron, Delauna
 }
 
 bool CrackManager::converged() { return stable ; } 
+}

@@ -18,7 +18,7 @@ struct GelBehaviour : public StiffnessWithImposedDeformation
     //volumic expansion is 22%, so linear is 7%,            cube root 0.028
     // variation in density 2.06 to 2.22 of amorphous silica suggests 0.025257
     // bulteel suggests 0.5 expansion,                             so 0.0367
-    GelBehaviour(double E=22e9, double nu=0.18, double alpha=0.22, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+    GelBehaviour(double E=22e9, double nu=0.18, double alpha=0.025, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 
 } ;
 

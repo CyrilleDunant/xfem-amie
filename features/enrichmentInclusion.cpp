@@ -140,6 +140,18 @@ Function EnrichmentInclusion::getBlendingFunction(const std::map<const Point *, 
 
 void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
+    if(cache.empty()) // assume that this is the first step
+    {
+        DelaunayTriangle * tri = dtree->getUniqueConflictingElement(&getCenter()) ;
+        if(getRadius() < tri->getRadius())
+        {
+            std::map<double, Point> pd;
+            pd[dist(*tri->first, getCenter())] = *tri->first ;
+            pd[dist(*tri->second, getCenter())] = *tri->second ;
+            pd[dist(*tri->third, getCenter())] = *tri->third ;
+            getCenter().set(pd.begin()->second) ;
+        }
+    }
     freeIds[dtree].clear();
     for(size_t i = 0 ; i < cache.size() ; i++)
     {
@@ -189,7 +201,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
     updated = false ;
     std::vector<DelaunayTriangle *> & disc  = cache;
 
-    if(disc.size() < 6)
+    if(disc.size() < 3)
     {
         DelaunayTriangle * toHomogenise = disc[0];
         for(size_t i = 0 ; i < disc.size() ; i++)
@@ -246,7 +258,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
         return ;
     }
     
-    if(disc.size() < 6)
+    if(disc.size() < 3)
         return ;
 
     //then we select those that are cut by the circle

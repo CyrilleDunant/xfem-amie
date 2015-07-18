@@ -74,6 +74,8 @@ std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles ( const Featur
     }
 }
 
+bool FeatureTree::getStateConvergence() const { return stateConverged ;}
+
 FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gridsize ) :  state ( this ), nodes ( 0 ), grid ( nullptr ),grid3d ( nullptr )
 {
     initialValue = 0 ;
@@ -474,23 +476,9 @@ void FeatureTree::addFeature ( Feature *father, Feature *f, int layer, double fr
 
 }
 
-void FeatureTree::addFeature ( Feature * const father, EnrichmentManager * fm, int layer, double fraction)
+void FeatureTree::addManager ( EnrichmentManager * fm)
 {
     enrichmentManagers.push_back(fm);
-    std::vector<EnrichmentFeature *> ff = fm->getFeatures() ;
-    for(auto & f : ff)
-    {
-        f->setLayer ( layer ) ;
-        f->setFraction ( fraction ) ;
-        scalingFactors[layer] = fraction ;
-
-        f->setFather ( father ) ;
-
-        if ( father != nullptr )
-        {
-            father->addChild ( f ) ;
-        }
-    }
 }
 
 FeatureTree::~FeatureTree()

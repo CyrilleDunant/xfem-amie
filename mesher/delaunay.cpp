@@ -2846,9 +2846,9 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
     }
     
     const GaussPointArray & gp = getGaussPoints() ;
-    size_t numberOfRefinements = 4 ;
-    if(getEnrichmentFunctions().size() > 3)
-        numberOfRefinements = 1 ;
+    size_t numberOfRefinements = 1 ;
+    if(getEnrichmentFunctions().size() > getBoundingPoints().size())
+        numberOfRefinements = 4 ;
     VirtualMachine vm ;
     if(getEnrichmentFunctions().size() > 0)
     {

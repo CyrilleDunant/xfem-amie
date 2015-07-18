@@ -10,6 +10,7 @@
 #include "../physics/orthotropicstiffness.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
+#include "../features/enrichmentmanagers/gelmanager.h"
 #include "../features/expansiveZone.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
@@ -36,7 +37,7 @@ double basesize = 0.07 ;
 
 Rectangle baseGeometry( basesize, basesize, 0, 0 ) ;
 
-std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
+std::vector<std::pair<ExpansiveZone *, Feature *> > zones ;
 
 std::vector<std::pair<double, double> > expansion_reaction ;
 std::vector<std::pair<double, double> > expansion_stress_xx ;
@@ -56,6 +57,7 @@ int totit = 1 ;
 double aggregateArea = 0;
 
 GelBehaviour * gel = new GelBehaviour() ;
+GelManager * gelManager ;
 
 
 void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
@@ -73,24 +75,7 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
         std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
         bool go_on = featureTree->step() ;
 
-        if( featureTree->solverConverged() )
-        {
-            cracked_volume.push_back( featureTree->averageDamageInFeatures(inclusions) ) ;
-            damaged_volume.push_back( featureTree->averageDamageNotInFeatures(inclusionsAndBlocks) ) ;
-            Vector buffer(3) ;
-            featureTree->averageFieldInFeatures(REAL_STRESS_FIELD, blocks, buffer) ;
-            asrStress.push_back(buffer) ;
-        }
-
-        Vector x = featureTree->getDisplacements() ;
-
-        std::cout << "unknowns :" << x.size() << std::endl ;
-
-
-        int npoints = featureTree->get2DMesh()->begin()->getBoundingPoints().size() ;
-
         std::string filename( "triangles" ) ;
-
         if( !go_on )
         {
             filename = std::string( "intermediate-triangles" ) ;
@@ -98,7 +83,7 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
         }
         else
             intermediateCount = 0 ;
-        
+
         if( intermediateCount > 4)
         {
             intermediateCount = 0 ;
@@ -112,227 +97,38 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
         std::cout << filename << std::endl ;
 
         TriangleWriter writer(filename.c_str(), featureTree) ;
-// 		writer.reset( featureTree ) ;
-// 		writer.getField(TWFT_STRAIN_AND_STRESS ) ;
         writer.getField(TWFT_PRINCIPAL_STRESS ) ;
         writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
-        writer.getField( TWFT_VON_MISES ) ;
         writer.getField( TWFT_STIFFNESS ) ;
         writer.getField( TWFT_DAMAGE ) ;
 
         writer.write() ;
 
-        std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax(REAL_STRESS_FIELD) ;
-        std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax(STRAIN_FIELD) ;
-        std::pair<Vector, Vector> vmm = featureTree->getFieldMinMax(VON_MISES_REAL_STRESS_FIELD) ;
-        Vector stemp = featureTree->getAverageField(REAL_STRESS_FIELD) ;
-        Vector etemp = featureTree->getAverageField(STRAIN_FIELD) ;
-
-        std::cout << std::endl ;
-        std::cout << "max value :" << x.max() << std::endl ;
-        std::cout << "min value :" << x.min() << std::endl ;
-
-
-        std::cout << "max sigma11 :" << stempm.second[0]  << std::endl ;
-        std::cout << "min sigma11 :" << stempm.first[0]   << std::endl ;
-        std::cout << "max sigma12 :" << stempm.second[2]  << std::endl ;
-        std::cout << "min sigma12 :" << stempm.first[2]   << std::endl ;
-        std::cout << "max sigma22 :" << stempm.second[1]  << std::endl ;
-        std::cout << "min sigma22 :" << stempm.first[1]   << std::endl ;
-
-        std::cout << "max epsilon11 :" << etempm.second[0] << std::endl ;
-        std::cout << "min epsilon11 :" << etempm.first[0]  << std::endl ;
-        std::cout << "max epsilon12 :" << etempm.second[2] << std::endl ;
-        std::cout << "min epsilon12 :" << etempm.first[2]  << std::endl ;
-        std::cout << "max epsilon22 :" << etempm.second[1] << std::endl ;
-        std::cout << "min epsilon22 :" << etempm.first[1]  << std::endl ;
-
-        std::cout << "max von Mises :" << vmm.second[0] << std::endl ;
-        std::cout << "min von Mises :" << vmm.first[0] << std::endl ;
-
-        std::cout << "average sigma11 : " << stemp[0] << std::endl ;
-        std::cout << "average sigma22 : " << stemp[1] << std::endl ;
-        std::cout << "average sigma12 : " << stemp[2] << std::endl ;
-        std::cout << "average epsilon11 : " << etemp[0] << std::endl ;
-        std::cout << "average epsilon22 : " << etemp[1] << std::endl ;
-        std::cout << "average epsilon12 : " << etemp[2] << std::endl ;
-
-        std::cout << std::endl ;
-
-
         if( go_on )
         {
-            featureTree->forceEnrichmentChange();
-            double delta_r = sqrt( aggregateArea * 0.2 / ( ( double )zones.size() * M_PI ) ) / ( double )nstepstot ;
-            double reactedArea = 0 ;
-
-            Inclusion *current = nullptr ;
-
-            if( !zones.empty() )
-                current = zones[0].second ;
-
-            double current_area = 0 ;
-            int current_number = 0 ;
-            int stopped_reaction = 0 ;
-
-            for( size_t z = 0 ; z < zones.size() ; z++ )
-            {
-                zones[z].first->setRadius( zones[z].first->getRadius() + delta_r ) ;
-
-                if( zones[z].second == current )
-                {
-                    current_area += zones[z].first->area() ;
-                    current_number++ ;
-                }
-                else
-                {
-                    if( current_area / zones[z - 1].second->area() > 0.03 )
-                    {
-                        stopped_reaction++ ;
-
-                        for( int m = 0 ; m < current_number ; m++ )
-                        {
-                            reactedArea -= zones[z - 1 - m].first->area() ;
-                            zones[z - 1 - m].first->setRadius( zones[z].first->getRadius() - delta_r ) ;
-                            reactedArea += zones[z - 1 - m].first->area() ;
-                        }
-                    }
-
-                    current_area = zones[z].first->area() ;
-                    current_number = 1 ;
-                    current = zones[z].second ;
-                }
-
-                reactedArea += zones[z].first->area() ;
-            }
-
-            std::cout << "reacted Area : " << reactedArea << ", reaction stopped in " << stopped_reaction << " aggs." << std::endl ;
-
-
+            std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax(REAL_STRESS_FIELD) ;
+            std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax(STRAIN_FIELD) ;
+            Vector stemp = featureTree->getAverageField(REAL_STRESS_FIELD) ;
+            Vector etemp = featureTree->getAverageField(STRAIN_FIELD) ;
             std::vector<double> macro_strain = featureTree->getMedianMacroscopicStrain(&baseGeometry) ;
-            if( go_on )
-            {
-                expansion_reaction.push_back( std::make_pair( reactedArea / placed_area, macro_strain[0]) ) ;
-                expansion_stress_xx.push_back( std::make_pair( etemp[0], stemp[0] ) ) ;
-                expansion_stress_yy.push_back( std::make_pair( etemp[1], stemp[1] ) ) ;
-                apparent_extension.push_back( std::make_pair(macro_strain[0], macro_strain[1]) ) ;
-            }
-
+            expansion_reaction.push_back( std::make_pair( gelManager->getReactedFraction(), macro_strain[0]) ) ;
+            expansion_stress_xx.push_back( std::make_pair( etemp[0], stemp[0] ) ) ;
+            expansion_stress_yy.push_back( std::make_pair( etemp[1], stemp[1] ) ) ;
+            apparent_extension.push_back( std::make_pair(macro_strain[0], macro_strain[1]) ) ;
+            cracked_volume.push_back( featureTree->averageDamageInFeatures(inclusions) ) ;
+            damaged_volume.push_back( featureTree->averageDamageNotInFeatures(inclusionsAndBlocks) ) ;
+            Vector buffer(3) ;
+            featureTree->averageFieldInFeatures(REAL_STRESS_FIELD, blocks, buffer) ;
+            asrStress.push_back(buffer) ;
         }
-        std::cout << "reaction" << "   "
-// 			          << expansion_reaction[i].second << "   "
-                  << "eps xx" << "\t"
-                  << "eps yy" << "\t"
-                  << "sig xx" << "\t"
-                  << "sig yy" << "\t"
-                  << "   dx "  << "\t"
-                  << "   dy "  << "\t"
-                  << "cracks"  << "\t"
-                  << "damage"  << "\t"
-                  << "asr Stress x"  << "\t"
-                  << "asr Stress y"  << "\t"
-                  << std::endl ;
+
+        std::cout << "reaction" << "   "<< "eps xx" << "\t" << "eps yy" << "\t" << "sig xx" << "\t"<< "sig yy" << "\t" << "   dx "  << "\t"<< "   dy "  << "\t"
+                  << "cracks"  << "\t"<< "damage"  << "\t"<< "asr Stress x"  << "\t"<< "asr Stress y" << std::endl ;
         for( size_t i = 0 ; i < expansion_reaction.size() ; i++ )
-            std::cout << expansion_reaction[i].first << "\t"
-// 			          << expansion_reaction[i].second << "\t"
-                      << expansion_stress_xx[i].first << "\t"
-                      << expansion_stress_yy[i].first << "\t"
-                      << expansion_stress_xx[i].second << "\t"
-                      << expansion_stress_yy[i].second << "\t"
-                      << apparent_extension[i].first  << "\t"
-                      << apparent_extension[i].second  << "\t"
-                      << cracked_volume[i]  << "\t"
-                      << damaged_volume[i]  << "\t"
-                      << asrStress[i][0]  << "   "
-                      << asrStress[i][1]  << "   "
-                      << std::endl ;
+            std::cout << expansion_reaction[i].first << "\t"<< expansion_stress_xx[i].first << "\t"<< expansion_stress_yy[i].first << "\t"<< expansion_stress_xx[i].second << "\t"<< expansion_stress_yy[i].second << "\t"<< apparent_extension[i].first  << "\t"<< apparent_extension[i].second  << "\t"
+                      << cracked_volume[i]  << "\t"<< damaged_volume[i]  << "\t" << asrStress[i][0]  << "   "<< asrStress[i][1] << std::endl ;
 
     }
-
-    for( size_t i = 0 ; i < expansion_reaction.size() ; i++ )
-        std::cout << expansion_reaction[i].first << "   "
-                  << expansion_reaction[i].second << "   "
-                  << expansion_stress_xx[i].first << "   "
-                  << expansion_stress_xx[i].second << "   "
-                  << expansion_stress_yy[i].first << "   "
-                  << expansion_stress_yy[i].second << "   "
-                  << apparent_extension[i].first  << "   "
-                  << apparent_extension[i].second  << "   "
-                  << cracked_volume[i]  << "   "
-                  << damaged_volume[i]  << "   "
-                  << asrStress[i][0]  << "   "
-                  << asrStress[i][1]  << "   "
-                  << std::endl ;
-}
-
-std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomogeneously( int n, std::vector<Inclusion * > & incs , FeatureTree &F, const Rectangle & sample )
-{ 
-    double radius = 0.000001 ;
-    double radiusFraction = 500 ;
-   
-    std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
-    aggregateArea = 0 ;
-
-    std::vector<ExpansiveZone *> zonesToPlace ;
-
-    srand(1);
-    int tries = 6000 ;
-    int trycount = 0 ;
-    for( int i = 0 ; i < n && trycount < tries*n; i++ )
-    {
-        trycount++ ;
-        Point pos( ( ( double )rand() / RAND_MAX - .5 ) * ( sample.width() - radius * radiusFraction ), ( ( double )rand() / RAND_MAX - .5 ) * ( sample.height() - radius * radiusFraction ) ) ;
-        bool alone  = true ;
-
-        for( size_t j = 0 ; j < zonesToPlace.size() ; j++ )
-        {
-            if( dist( pos, zonesToPlace[j]->Circle::getCenter() ) < 0.0015 )
-            {
-                alone = false ;
-                break ;
-            }
-        }
-
-        if( alone )
-            zonesToPlace.push_back( new ExpansiveZone( nullptr, radius/15., pos.getX(), pos.getY(), gel ) ) ;
-        else
-            i-- ;
-    }
-
-    std::map<Inclusion *, int> zonesPerIncs ;
-
-    for( size_t i = 0 ; i < zonesToPlace.size() ; i++ )
-    {
-        bool placed = false ;
-
-        for( size_t j = 0 ; j < incs.size() ; j++ )
-        {
-            if( dist( zonesToPlace[i]->getCenter(), incs[j]->getCenter() ) < incs[j]->getRadius() - 0.0002 /*&& incs[j]->getRadius() <= 0.008 && incs[j]->getRadius() > 0.004*/ && baseGeometry.in( zonesToPlace[i]->getCenter() ) )
-            {
-                zonesPerIncs[incs[j]]++ ; ;
-                F.addFeature( incs[j], zonesToPlace[i] ) ;
-                ret.push_back( std::make_pair( zonesToPlace[i], incs[j] ) ) ;
-                placed = true ;
-                break ;
-            }
-        }
-
-        if( !placed )
-            delete zonesToPlace[i] ;
-    }
-
-    int count = 0 ;
-
-    for( const auto & i : zonesPerIncs )
-    {
-        aggregateArea += i.first->area() ;
-        count += i.second ;
-// 		std::cout << aggregateArea << "  " << count << std::endl ;
-    }
-
-    std::cout << "initial Reacted Area = " << M_PI *radius *radius *ret.size() << " in " << ret.size() << " zones" << std::endl ;
-    std::cout << "Reactive aggregate Area = " << aggregateArea << std::endl ;
-    return ret ;
 }
 
 int main( int argc, char *argv[] )
@@ -344,66 +140,22 @@ int main( int argc, char *argv[] )
     double fact0 = atof(argv[4]) ;
 
     double restraintDepth = 0.01 ;
-    
+
     Sample sample( nullptr, basesize + restraintDepth, basesize + restraintDepth, 0, 0 ) ;
-
-    Matrix m0_agg( 3, 3 ) ;
-    m0_agg[0][0] = E_agg / ( 1 - nu * nu ) ;
-    m0_agg[0][1] = E_agg / ( 1 - nu * nu ) * nu ;
-    m0_agg[0][2] = 0 ;
-    m0_agg[1][0] = E_agg / ( 1 - nu * nu ) * nu ;
-    m0_agg[1][1] = E_agg / ( 1 - nu * nu ) ;
-    m0_agg[1][2] = 0 ;
-    m0_agg[2][0] = 0 ;
-    m0_agg[2][1] = 0 ;
-    m0_agg[2][2] = E_agg / ( 1 - nu * nu ) * ( 1. - nu ) / 2. ;
-
-    Matrix m0_paste( 3, 3 ) ;
-    m0_paste[0][0] = E_paste / ( 1 - nu * nu ) ;
-    m0_paste[0][1] = E_paste / ( 1 - nu * nu ) * nu ;
-    m0_paste[0][2] = 0 ;
-    m0_paste[1][0] = E_paste / ( 1 - nu * nu ) * nu ;
-    m0_paste[1][1] = E_paste / ( 1 - nu * nu ) ;
-    m0_paste[1][2] = 0 ;
-    m0_paste[2][0] = 0 ;
-    m0_paste[2][1] = 0 ;
-    m0_paste[2][2] = E_paste / ( 1 - nu * nu ) * ( 1. - nu ) / 2. ;
-
-    Matrix m0_support( 3, 3 ) ;
-    m0_support[0][0] = 1. / ( 1 - 0.2 * 0.2 ) ;
-    m0_support[0][1] = 1. / ( 1 - 0.2 * 0.2 ) * 0.2 ;
-    m0_support[0][2] = 0 ;
-    m0_support[1][0] = 1. / ( 1 - 0.2 * 0.2 ) * 0.2 ;
-    m0_support[1][1] = 1. / ( 1 - 0.2 * 0.2 ) ;
-    m0_support[1][2] = 0 ;
-    m0_support[2][0] = 0 ;
-    m0_support[2][1] = 0 ;
-    m0_support[2][2] = 1. / ( 1 - 0.2 * 0.2 ) * ( 1. - 0.2 ) / 2. ;
-
-// 	Sample reinforcement0(nullptr, 8,.15,0,.5) ;
-// 	reinforcement0.setBehaviour(new Stiffness(m0*5)) ;
-//
-// 	Sample reinforcement1(nullptr, 8,.15,0,-.5) ;
-// 	reinforcement1.setBehaviour(new Stiffness(m0*5)) ;
 
     FeatureTree F( &sample ) ;
     featureTree = &F ;
 
-
     double itzSize = 0.00002;
-//	int inclusionNumber = 10 ;
-    int inclusionNumber = 1 ;3000 ;
+    int inclusionNumber = 1 ;
+    3000 ;
 
-    std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, nullptr,  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), nullptr, 100000, 0.8, &baseGeometry) ;
-    std::vector<Inclusion *> inclusions ;
-
-    for( size_t i = 0; i < feats.size() ; i++ )
-    {
-        inclusions.push_back( static_cast<Inclusion *>( feats[i] ) ) ;
-    }
-    
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
-    feats = placement2D( &placeGeometry, feats, itzSize, 1, 6400 );
+
+    std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, new AggregateBehaviour(),  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), nullptr, 100000, 0.8, &placeGeometry) ;
+
+    int nAgg = 1 ;
+
     double volume = 0 ;
 
     for( size_t i = 0 ; i < feats.size() ; i++ )
@@ -416,149 +168,123 @@ int main( int argc, char *argv[] )
     sample.setBehaviour( new PasteBehaviour()) ;
 
     std::vector<Feature *> blocks ;
-    if( restraintDepth > 0 )
+
+    Sample *voidtop = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().getX() - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + 0.0025 ) ;
+    voidtop->isVirtualFeature = true ;
+    voidtop->setBehaviour( new VoidForm() );
+    F.addFeature( &sample, voidtop );
+    F.setSamplingFactor(voidtop, .5);
+
+    Sample *voidbottom = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().getX() - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - 0.0025 ) ;
+    voidbottom->isVirtualFeature = true ;
+    voidbottom->setBehaviour( new VoidForm() );
+    F.addFeature( &sample, voidbottom );
+    F.setSamplingFactor(voidbottom, .5);
+
+    Sample *voidleft = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + 0.0025 ) ;
+    voidleft->isVirtualFeature = true ;
+    voidleft->setBehaviour( new VoidForm() );
+    F.addFeature( &sample, voidleft );
+    F.setSamplingFactor(voidleft, .5);
+
+    Sample *voidright = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - 0.0025 ) ;
+    voidright->isVirtualFeature = true ;
+    voidright->setBehaviour( new VoidForm() );
+    F.addFeature( &sample, voidright );
+    F.setSamplingFactor(voidright, .5);
+
+    //width are  1100000000 3340000000  4360000000      done: 11 13 10 20 12
+    //length are 1220000000 2180000000  3400000000      next: 12
+
+    Sample *blocktop = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
+    if(fact0 > 10)
     {
-        Sample *voidtop = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().getX() - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + 0.0025 ) ;
-        voidtop->isVirtualFeature = true ;
-        voidtop->setBehaviour( new VoidForm() );
-        F.addFeature( &sample, voidtop );
-        F.setSamplingFactor(voidtop, .5);
-        Sample *voidbottom = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().getX() - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - 0.0025 ) ;
-        voidbottom->isVirtualFeature = true ;
-        voidbottom->setBehaviour( new VoidForm() );
-        F.addFeature( &sample, voidbottom );
-        F.setSamplingFactor(voidbottom, .5);
-        Sample *voidleft = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + 0.0025 ) ;
-        voidleft->isVirtualFeature = true ;
-        voidleft->setBehaviour( new VoidForm() );
-        F.addFeature( &sample, voidleft );
-        F.setSamplingFactor(voidleft, .5);
-        Sample *voidright = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - 0.0025 ) ;
-        voidright->isVirtualFeature = true ;
-        voidright->setBehaviour( new VoidForm() );
-        F.addFeature( &sample, voidright );
-        F.setSamplingFactor(voidright, .5);
-        //width are  1100000000 3340000000  4360000000      done: 11 13 10 20 12
-        //length are 1220000000 2180000000  3400000000      next: 12
-
-        Sample *blocktop = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
-        if(fact0 > 10)
-        {
-            blocktop->setBehaviour(new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  0.1, 0.) ) ;
-            blocks.push_back(blocktop);
-        }
-        else
-        {
-            blocktop->setBehaviour(new OrthotropicStiffness(10*1e-4, fact0, 10*1e-4*10/(10+10),  0.1, 0.) ) ;
-            blocks.push_back(blocktop);
-        }
-
-        F.addFeature( nullptr, blocktop );
-        F.setSamplingFactor(blocktop, 0.5);
-
-        Sample *blockbottom = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
-        if(fact0 > 10)
-        {
-            blockbottom->setBehaviour(new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  0.1, 0.) ) ;
-            blocks.push_back(blockbottom);
-        }
-        else
-        {
-            blockbottom->setBehaviour(new OrthotropicStiffness(10*1e-4, 10, 10*1e-4*10/(10+10),  0.1, 0.) ) ;
-            blocks.push_back(blockbottom);
-        }
-
-        F.addFeature( nullptr, blockbottom );
-        F.setSamplingFactor(blockbottom, 0.5);
-
-        Sample *blockleft = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().getX() - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().getY() ) ;
-        if(fact > 10)
-        {
-            blockleft->setBehaviour(new OrthotropicStiffness(fact, fact*1e-4, fact*1e-4*fact/(fact+fact),  0.1, 0.) ) ;
-            blocks.push_back(blockleft);
-        }
-        else
-        {
-            blockleft->setBehaviour(new OrthotropicStiffness(10, 10*1e-4, 10*1e-4*10/(10+10),  0.1, 0.) ) ;
-            blocks.push_back(blockleft);
-        }
-
-        F.addFeature( nullptr, blockleft );
-        F.setSamplingFactor(blockleft, 0.5);
-
-        Sample *blockright = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().getY() ) ;
-        if(fact > 10)
-        {
-            blockright->setBehaviour(new OrthotropicStiffness(fact, fact*1e-4, fact*1e-4*fact/(fact+fact),  0.1, 0.) ) ;
-            blocks.push_back(blockright);
-        }
-        else
-        {
-            blockright->setBehaviour(new OrthotropicStiffness(10, 10*1e-4, 10*1e-4*10/(10+10),  0.1, 0.)) ;
-            blocks.push_back(blockright);
-        }
-        F.addFeature( nullptr, blockright );
-        F.setSamplingFactor(blockright, 0.5);
-    }
-
-    std::vector<Inclusion *> placedinclusions ;
-
-    for( size_t i = 0 ; i < feats.size() ; i++ )
-    {
-        Point a( inclusions[i]->getCenter() + Point( 0, inclusions[i]->getRadius() ) ) ;
-        Point b( inclusions[i]->getCenter() + Point( 0, -inclusions[i]->getRadius() ) ) ;
-        Point c( inclusions[i]->getCenter() + Point( inclusions[i]->getRadius(), 0 ) ) ;
-        Point d( inclusions[i]->getCenter() + Point( -inclusions[i]->getRadius(), 0 ) ) ;
-
-        if( !( !baseGeometry.in( a ) && !baseGeometry.in( b ) && !baseGeometry.in( c ) && !baseGeometry.in( d ) ) )
-        {
-            inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
-            AggregateBehaviour *stiff = new AggregateBehaviour() ;
-// 			StiffnessWithImposedDeformation * stiff = new StiffnessWithImposedDeformation(m0_agg, setExpansion) ;
-// 			Stiffness * stiff = new Stiffness(m0_agg) ;
-            // 		stiff->variability = .5 ;
-            inclusions[i]->setBehaviour( stiff ) ;
-            F.addFeature( &sample, inclusions[i] ) ;
-            F.setSamplingFactor(inclusions[i], 4.);
-            placed_area += inclusions[i]->area() ;
-            placedinclusions.push_back( inclusions[i] );
-        }
-    }
-
-    inclusions.erase( inclusions.begin() + feats.size(), inclusions.end() ) ;
-    std::cout << ", filling = " << placed_area / baseGeometry.area() * 100. << "%" << std::endl ;
-
-    if( !inclusions.empty() )
-    {
-        std::cout << "largest inclusion with r = " << ( *inclusions.begin() )->getRadius() << std::endl ;
-        std::cout << "smallest inclusion with r = " << ( *inclusions.rbegin() )->getRadius() << std::endl ;
-        std::cout << "placed area = " <<  placed_area << std::endl ;
-    }
-
-    zones = generateExpansiveZonesHomogeneously(nzones, placedinclusions, F , sample) ;
-    F.setSamplingNumber( 92 ) ;
-
-    if( restraintDepth > 0 )
-    {
-// 		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_XI, new Rectangle(0.035+restraintDepth*.5, basesize+restraintDepth*1.1, -(0.035+restraintDepth*.5)*.5, 0))) ;
-// 		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_ETA, new Rectangle(basesize+restraintDepth*1.1,0.035+restraintDepth*.5, 0,-(0.035+restraintDepth*.5)*.5))) ;
-        F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , LEFT ) ) ;
-        F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , RIGHT ) ) ;
-        F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , BOTTOM ) ) ;
-        F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , TOP ) ) ;
+        blocktop->setBehaviour(new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  0.1, 0.) ) ;
+        blocks.push_back(blocktop);
     }
     else
     {
-// 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -15e6)) ;
-        F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , BOTTOM_LEFT ) ) ;
-        F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , BOTTOM ) ) ;
+        blocktop->setBehaviour(new OrthotropicStiffness(10.*1e-4, fact0, 10.*1e-4*10./(10.+10.),  0.1, 0.) ) ;
+        blocks.push_back(blocktop);
     }
+
+    F.addFeature( &sample, blocktop );
+    F.setSamplingFactor(blocktop, 0.5);
+
+    Sample *blockbottom = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
+    if(fact0 > 10)
+    {
+        blockbottom->setBehaviour(new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  0.1, 0.) ) ;
+        blocks.push_back(blockbottom);
+    }
+    else
+    {
+        blockbottom->setBehaviour(new OrthotropicStiffness(10.*1e-4, 10., 10*1e-4*10./(10.+10.),  0.1, 0.) ) ;
+        blocks.push_back(blockbottom);
+    }
+
+    F.addFeature( &sample, blockbottom );
+    F.setSamplingFactor(blockbottom, 0.5);
+
+    Sample *blockleft = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().getX() - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().getY() ) ;
+    if(fact > 10)
+    {
+        blockleft->setBehaviour(new OrthotropicStiffness(fact, fact*1e-4, fact*1e-4*fact/(fact+fact),  0.1, 0.) ) ;
+        blocks.push_back(blockleft);
+    }
+    else
+    {
+        blockleft->setBehaviour(new OrthotropicStiffness(10., 10.*1e-4, 10*1e-4*10./(10.+10.),  0.1, 0.) ) ;
+        blocks.push_back(blockleft);
+    }
+
+    F.addFeature( &sample, blockleft );
+    F.setSamplingFactor(blockleft, 0.5);
+
+    Sample *blockright = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().getY() ) ;
+    if(fact > 10)
+    {
+        blockright->setBehaviour(new OrthotropicStiffness(fact, fact*1e-4, fact*1e-4*fact/(fact+fact),  0.1, 0.) ) ;
+        blocks.push_back(blockright);
+    }
+    else
+    {
+        blockright->setBehaviour(new OrthotropicStiffness(10., 10.*1e-4, 10.*1e-4*10./(10.+10.),  0.1, 0.)) ;
+        blocks.push_back(blockright);
+    }
+    F.addFeature( &sample, blockright );
+    F.setSamplingFactor(blockright, 0.5);
+
+
+
+    for( size_t i = 0 ; i < feats.size() ; i++ )
+    {
+        F.setSamplingFactor(feats[i], 4.);
+        placed_area += feats[i]->area() ;
+    }
+
+    std::cout << ", filling = " << placed_area / baseGeometry.area() * 100. << "%" << std::endl ;
+
+    if( !feats.empty() )
+    {
+        std::cout << "largest inclusion with r = " << ( *feats.begin() )->getRadius() << std::endl ;
+        std::cout << "smallest inclusion with r = " << ( *feats.rbegin() )->getRadius() << std::endl ;
+        std::cout << "placed area = " <<  placed_area << std::endl ;
+    }
+
+    gelManager = new GelManager(&F, nzones/baseGeometry.area(), feats) ;
+    F.addManager(gelManager) ;
+    F.setSamplingNumber( 92 ) ;
+
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , LEFT ) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , RIGHT ) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , BOTTOM ) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , TOP ) ) ;
+
     F.setSamplingFactor(&sample, 2.);
     F.setOrder( LINEAR ) ;
-//
+
     step( feats, blocks) ;
-
-
 
     return 0 ;
 }

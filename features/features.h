@@ -415,6 +415,8 @@ public:
     * This typically occurs when a crack grows
     */
     bool enrichmentChanged() const ;
+    
+    bool getStateConvergence() const ;
 
     void forceEnrichmentChange() ;
 
@@ -545,6 +547,7 @@ public:
     void averageFieldInFeatures(FieldType field, const std::vector<Feature *> & feats, Vector & ret) {
         double area = 0 ;
         ret = 0 ;
+//         ret.resize(fieldTypeElementarySize ( f, dtree?SPACE_TWO_DIMENSIONAL:SPACE_THREE_DIMENSIONAL), 0.) ;
         Vector buffer(ret) ;
         if(is2D())
         {
@@ -707,7 +710,7 @@ public:
      * @param t daughter feature.
      */
     void addFeature ( Feature * const father, Feature * const f, int layer = -1, double fraction = 1 ) ;
-    void addFeature ( Feature * const father, EnrichmentManager * fm, int layer = -1, double fraction = 1 ) ;
+    void addManager ( EnrichmentManager * fm) ;
 
     void removeFeature ( Feature * f ) ;
 
@@ -914,51 +917,15 @@ public:
 class EnrichmentManager
 {
 protected :
-    std::vector<EnrichmentFeature *> featureSet ;
     bool stable ;
 public:
-    EnrichmentManager(EnrichmentFeature * first) : stable(true) {featureSet.push_back(first);} ;
-    void addFeature(EnrichmentFeature * f) {featureSet.push_back(f);};
-    void removeFeature(EnrichmentFeature * f) 
-    {
-        for(auto fs = featureSet.begin() ; fs != featureSet.end() ; fs++)
-        {
-            if(*fs == f)
-            {
-                featureSet.erase(fs) ;
-                return ;
-            }
-        }
-    };
+    EnrichmentManager() : stable(true) {} ;
     
         /** \brief update enrichment geometry*/
-    virtual bool step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
-    { 
-        bool moved = false ;
-        for(auto i : featureSet)
-        {
-            i->step(dt, v, dtree) ;
-            moved = moved || i->moved() ;
-        }
-        return moved ;
-        
-    };
+    virtual bool step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) = 0 ;
 
         /** \brief update enrichment geometry*/
-    virtual bool step(double dt, Vector * v, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) 
-    { 
-        
-        bool moved = false ;
-        for(auto i : featureSet)
-        {
-            i->step(dt, v, dtree) ;
-            moved = moved || i->moved() ;
-        }
-        return moved ;
-    };
-        
-    virtual std::vector<EnrichmentFeature *> & getFeatures() { return featureSet ;}
-    virtual const std::vector<EnrichmentFeature *> & getFeatures() const { return featureSet ;}
+    virtual bool step(double dt, Vector * v, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) = 0 ;
     
     bool converged() { return stable ; } ;
 } ;
