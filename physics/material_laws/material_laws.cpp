@@ -107,6 +107,34 @@ void AssignExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElem
     s.set(target, s.get(input, defaultValues)) ;
 }
 
+void GetParticleOrientationMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+{
+    if(s.has(variable))
+        return ;
+
+    const Geometry * source = s.getParent()->getBehaviour()->getSource() ;
+    if(!source)
+    {
+        s.set( variable, 0) ;
+        return ;
+    }
+    switch(source->getGeometryType())
+    {
+    case ELLIPSE:
+        s.set( variable, dynamic_cast<const Ellipse *>(source)->getMajorAxis().angle() ) ;
+        break ;
+    case POLYGON:
+        s.set( variable, dynamic_cast<const Polygon *>(source)->getOrientation().angle() ) ;
+        break ;
+    default:
+        s.set( variable, 0) ;
+        break ;
+    }
+    if(orthogonal)
+        s.add(variable, M_PI) ;
+
+}
+
 void StorePreviousValueMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
     for(size_t i = 0 ; i < external.size() ; i++)

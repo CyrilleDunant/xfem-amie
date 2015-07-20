@@ -235,6 +235,18 @@ struct MaximumHistoryMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 } ;
 
+struct GetParticleOrientationMaterialLaw : public ExternalMaterialLaw
+{
+    std::string variable ;
+    bool orthogonal ;
+
+    GetParticleOrientationMaterialLaw( std::string var = std::string("angle"), bool ortho = false, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), variable(var), orthogonal(ortho) { } ;
+
+    virtual ~GetParticleOrientationMaterialLaw() { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+} ;
+
 struct StorePreviousValueMaterialLaw : public ExternalMaterialLaw
 {
     std::vector<std::string>  external ;

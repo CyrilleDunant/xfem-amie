@@ -315,6 +315,26 @@ Matrix Tensor::cauchyGreen(double p1, double p2, bool hooke, SpaceDimensionality
 	return Matrix(0,0) ;
 }
 
+Matrix Tensor::orthothropicCauchyGreen(double E_1, double E_2, double G,  double nu, double angle, planeType pt) 
+{
+	Matrix cg = Tensor::orthothropicCauchyGreen(E_1, E_2, G, nu, pt ) ;
+	Matrix transform(3,3) ;
+	Matrix transformt(3,3) ;
+        double c = cos(angle) ;
+        double s = sin(angle) ;
+        transform[0][0] =  c*c ;
+        transform[0][1] = s*s ;
+        transform[0][2] =  2.*s*c ;
+        transform[1][0] =  s*s ;
+        transform[1][1] = c*c ;
+        transform[1][2] = -2.*s*c ;
+        transform[2][0] = -s*c ;
+        transform[2][1] = s*c ;
+        transform[2][2] =     c*c - s*s ;
+        transformt = transform.transpose() ;
+	return (transform*cg)*transformt ;
+}
+
 Matrix Tensor::orthothropicCauchyGreen(double E_1, double E_2, double G,  double nu, planeType pt) 
 {
 
@@ -415,6 +435,23 @@ Matrix Tensor::orthothropicCauchyGreen(double E_1, double E_2, double E_3, doubl
 	cg[5][5] = G_3*0.5 ;
 	
 	return cg ;
+}
+
+Vector Tensor::rotate2ndOrderTensor2D( Vector & tensor, double angle ) 
+{
+	double c = cos ( angle ) ;
+	double s = sin ( angle ) ;
+	Matrix nrot ( 3,3 ) ;
+	nrot[0][0] = c*c ;
+	nrot[0][1] = s*s ;
+	nrot[0][2] = -2.*s*c ;
+	nrot[1][0] = s*s ;
+	nrot[1][1] = c*c ;
+	nrot[1][2] = 2.*s*c ;
+	nrot[2][0] = s*c ;
+	nrot[2][1] = -s*c ;
+	nrot[2][2] = c*c-s*s ;
+	return nrot*tensor ;
 }
 
 

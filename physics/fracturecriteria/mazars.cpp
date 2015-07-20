@@ -30,6 +30,19 @@ NonLocalMazars::~NonLocalMazars()
 {
 }
 
+void NonLocalMazars::resetParameters( double thresh, double E_, double nu_, double Gf_, double cstress_, double cstrain_ )
+{
+    threshold = std::abs( thresh ) ;
+    E = E_ ;
+    nu = nu_ ;
+    Gf = Gf_ ;
+    cstress = cstress_ ;
+    cstrain = cstrain_ ;
+    B_t = (0.1*E*thresh) / (Gf - E*0.1*thresh*thresh*0.5);
+    B_c = -1./(sqrt(2.)*nu*cstrain);
+    A_c = -(E*thresh + sqrt(2.)*cstress*nu)/((E*std::exp(B_c*thresh - 1.)/B_c) - E*thresh);
+}
+
 double NonLocalMazars::gradeAtTime(ElementState &s, double t)
 {
     std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s,  t) ;

@@ -1,6 +1,7 @@
 #include "logarithmic_creep_with_external_parameters.h"
 #include "../elements/generalized_spacetime_viscoelastic_element_state.h"
 #include "fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
+#include "fracturecriteria/mazars.h"
 
 using namespace Amie ;
 
@@ -49,7 +50,10 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 	{
 		double E_inst = values["young_modulus"] ;
 		double nu_inst = values["poisson_ratio"] ;
-		C = Tensor::cauchyGreen( E_inst, nu_inst, true, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+                if(values.find("angle") != values.end() && values.find("young_modulus_anisotropy_coefficient") != values.end())
+			C = Tensor::orthothropicCauchyGreen( E_inst, E_inst*values["young_modulus_anisotropy_coefficient"], E_inst, nu_inst, values["angle"], plane) ;
+		else
+			C = Tensor::cauchyGreen( E_inst, nu_inst, true, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
 	}
 	else
 	{
@@ -143,7 +147,14 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 		imposed.resize(C.numCols()) ;
 		double a = values["imposed_deformation"] ;
 		for(size_t i = 0 ; i < 2+(imposed.size()==6) ; i++)
-		    imposed[i] = a ;
+			imposed[i] = a ;
+		if(values.find("imposed_deformation_xx") != values.end())
+			imposed[0] += values["imposed_deformation_xx"] ;
+		if(values.find("imposed_deformation_yy") != values.end())
+			imposed[1] += values["imposed_deformation_yy"] ;
+		if(values.find("imposed_deformation_zz") != values.end())
+			imposed[2] += values["imposed_deformation_zz"] ;
+
 //		if(std::abs(a) < POINT_TOLERANCE)
 //		    imposed.resize(0) ;
 
@@ -160,6 +171,7 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 	if(!noFracture)
 	{
 		AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion* crit = dynamic_cast< AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion* >(criterion) ;
+		NonLocalSpaceTimeMazars* mazar = dynamic_cast< NonLocalSpaceTimeMazars* > (criterion) ;
 		if(crit)
 		{
 			double tensileStrength = -1 ;
@@ -235,6 +247,20 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 			crit->setMaximumTensileStrain( tensileStrain, tensileUltimateStrain ) ;
 			crit->setMaximumCompressiveStress( compressiveStrength, compressiveUltimateStrength ) ;
 			crit->setMaximumCompressiveStrain( compressiveStrain, compressiveUltimateStrain ) ;
+		}
+		else if(mazar)
+		{
+			double thr = mazar->threshold ;
+			double E = values["young_modulus"] ;
+			double nu = values["poisson_ratio"] ;
+			if(values.find("tensile_strain") == values.end())
+				thr = values["tensile_stress"]/E ;
+			else
+				thr = values["tensile_strain"] ;
+			double Gf = values["fracture_energy"] ;
+			double cstress = values["compressive_stress"] ;
+			double cstrain = values["compressive_strain"] ;
+			mazar->resetParameters( thr, E, nu, Gf, cstress, cstrain ) ;
 		}
 			
 		

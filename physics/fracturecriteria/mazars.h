@@ -50,7 +50,7 @@ namespace Amie {
 	 * @param thres Set the maximum equivalent Mazars strain. 
 	 */
 		NonLocalMazars(double thres, double E, double nu, double Gf, double cstress, double cstrain, double radius, planeType pt, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
-	
+
 		virtual ~NonLocalMazars();
 
 	/** \brief Return a copy of this criterion
@@ -66,6 +66,10 @@ namespace Amie {
 		double gradeAtTime(ElementState &s, double t) ;
 		
 		virtual double getTensileLimit(const ElementState & s) const {return threshold ;};
+
+		virtual void resetParameters( double thr, double E, double nu, double Gd, double cstress, double cstrain) ;
+	
+
 	};
 	
 

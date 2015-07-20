@@ -30,6 +30,14 @@ struct ThermalExpansionMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
+struct AnisotropicThermalExpansionMaterialLaw : public ThermalExpansionMaterialLaw
+{
+    AnisotropicThermalExpansionMaterialLaw(std::string args, char sep = ',') : ThermalExpansionMaterialLaw(args, sep) { }
+    virtual ~AnisotropicThermalExpansionMaterialLaw() { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+};
+
 struct IncrementalThermalExpansionMaterialLaw : public ExternalMaterialLaw
 {
     IncrementalThermalExpansionMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
@@ -38,6 +46,13 @@ struct IncrementalThermalExpansionMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
+struct AnisotropicIncrementalThermalExpansionMaterialLaw : public ExternalMaterialLaw
+{
+    AnisotropicIncrementalThermalExpansionMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
+    virtual ~AnisotropicIncrementalThermalExpansionMaterialLaw() { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+};
 
 struct RadiationInducedExpansionMaterialLaw : public ExternalMaterialLaw
 {

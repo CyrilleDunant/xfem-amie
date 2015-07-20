@@ -12,6 +12,36 @@ void ThermalExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticEle
     s.add("imposed_deformation", alpha*(T-T0)) ;
 }
 
+void AnisotropicThermalExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+{
+    double T = s.get("temperature", defaultValues) ;
+    double T0 = defaultValues["temperature"] ;
+    if(!s.has("thermal_expansion_coefficient_xx"))
+    {
+        if(s.has("thermal_expansion_coefficient_11") && s.has("angle"))
+        {
+            Vector alpha(3) ;
+            alpha[0] = s.get("thermal_expansion_coefficient_11", defaultValues) ;
+            alpha[1] = s.get("thermal_expansion_coefficient_22", defaultValues) ;
+            alpha = Tensor::rotate2ndOrderTensor2D( alpha, s.get("angle", defaultValues) ) ;
+            alpha *= (T-T0) ;
+            s.add("imposed_deformation_xx", alpha[0]*(T-T0)) ;
+            s.add("imposed_deformation_yy", alpha[1]*(T-T0)) ;
+            return ;
+        }
+        else
+        {
+            double alpha = s.get("thermal_expansion_coefficient", defaultValues) ;
+            s.add("imposed_deformation", alpha*(T-T0)) ;
+            return ;
+        }
+    }
+    double alpha_xx = s.get("thermal_expansion_coefficient_xx", defaultValues) ;
+    s.add("imposed_deformation_xx", alpha_xx*(T-T0)) ;
+    double alpha_yy = s.get("thermal_expansion_coefficient_yy", defaultValues) ;
+    s.add("imposed_deformation_yy", alpha_yy*(T-T0)) ;
+}
+
 void IncrementalThermalExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     if(!s.has("thermal_deformation"))
@@ -24,6 +54,50 @@ void IncrementalThermalExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeVisc
     double alpha = s.get("thermal_expansion_coefficient", defaultValues) ;
     s.add("thermal_deformation", alpha*(T-T0)) ;
     s.add("imposed_deformation", s.get("thermal_deformation", defaultValues) ) ;
+}
+
+void AnisotropicIncrementalThermalExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+{
+    if(!s.has("thermal_deformation_xx"))
+    {
+        s.set("thermal_deformation_xx", 0.) ;
+        s.set("thermal_deformation_yy", 0.) ;
+    }
+
+    double T = s.get("temperature", defaultValues) ;
+    if(!s.has("temperature_previous"))
+        s.set("temperature_previous", T) ;
+    double T0 = s.get("temperature_previous", defaultValues) ;
+
+    if(!s.has("thermal_expansion_coefficient_xx"))
+    {
+        if(s.has("thermal_expansion_coefficient_11") && s.has("angle"))
+        {
+            Vector alpha(3) ;
+            alpha[0] = s.get("thermal_expansion_coefficient_11", defaultValues) ;
+            alpha[1] = s.get("thermal_expansion_coefficient_22", defaultValues) ;
+            alpha = Tensor::rotate2ndOrderTensor2D( alpha, s.get("angle", defaultValues) ) ;
+            alpha *= (T-T0) ;
+            s.add("thermal_deformation_xx", alpha[0]*(T-T0)) ;
+            s.add("thermal_deformation_yy", alpha[1]*(T-T0)) ;
+        }
+        else
+        {
+            double alpha = s.get("thermal_expansion_coefficient", defaultValues) ;
+            s.add("thermal_deformation_xx", alpha*(T-T0)) ;
+            s.add("thermal_deformation_yy", alpha*(T-T0)) ;
+        }
+    }
+    else
+    {
+        double alpha_xx = s.get("thermal_expansion_coefficient_xx", defaultValues) ;
+        s.add("thermal_deformation_xx", alpha_xx*(T-T0)) ;
+        double alpha_yy = s.get("thermal_expansion_coefficient_yy", defaultValues) ;
+        s.add("thermal_deformation_yy", alpha_yy*(T-T0)) ;
+    }
+
+    s.add("imposed_deformation_xx", s.get("thermal_deformation_xx", defaultValues) ) ;
+    s.add("imposed_deformation_yy", s.get("thermal_deformation_yy", defaultValues) ) ;
 }
 
 void RadiationInducedExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)

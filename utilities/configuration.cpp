@@ -510,9 +510,21 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
         return ret ;
     }
 
+    if(type == "ANISOTROPIC_THERMAL_EXPANSION")
+    {
+        ret = new AnisotropicThermalExpansionMaterialLaw("temperature = 293") ;
+        ret->setDefaultValue("temperature", getData("reference_temperature", 293)) ;
+        return ret ;
+    }
+
     if(type == "INCREMENTAL_THERMAL_EXPANSION")
     {
         return new IncrementalThermalExpansionMaterialLaw() ;
+    }
+
+    if(type == "ANISOTROPIC_INCREMENTAL_THERMAL_EXPANSION")
+    {
+        return new AnisotropicIncrementalThermalExpansionMaterialLaw() ;
     }
 
     if(type == "RADIATION_INDUCED_VOLUMETRIC_EXPANSION")
@@ -528,6 +540,14 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
     if(type == "BET_ISOTHERM")
     {
         ret = new BETIsothermMaterialLaw() ;
+        return ret ;
+    }
+
+    if(type == "GET_PARTICLE_ORIENTATION")
+    {
+        std::string variable = getStringData("output_parameter","angle") ;
+        bool ortho = getStringData("orthogonal", "FALSE") == "TRUE";
+        ret = new GetParticleOrientationMaterialLaw(variable, ortho) ;
         return ret ;
     }
 
@@ -859,7 +879,10 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
     {
         if(type == "MAZARS")
         {
-            ret = new NonLocalSpaceTimeMazars( getData("strain_threshold",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("compressive_strength", -1e6), getData("compressive_strain", -0.001),  getData("material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
+            if(father->getStringData() == "LOGARITHMIC_CREEP" || father->getStringData("type") == "LOGARITHMIC_CREEP")
+                ret = new NonLocalSpaceTimeMazars( father->getData("parameters.tensile_strain",0.001), father->getData("parameters.young_modulus", 1e9), father->getData("parameters.poisson_ratio", 0.2), father->getData("parameters.fracture_energy", 1), father->getData("parameters.compressive_strength", -1e6), father->getData("parameters.compressive_strain", -0.001),  father->getData("parameters.material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( father->getStringData("parameters.plane_type", "PLANE_STRESS") ) ) ;
+            else
+                ret = new NonLocalSpaceTimeMazars( getData("tensile_strain",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("compressive_strength", -1e6), getData("compressive_strain", -0.001),  getData("material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
         }
         if(type == "MCFT")
         {
@@ -1032,7 +1055,7 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
     {
         if(type == "MAZARS")
         {
-            ret = new NonLocalMazars( getData("strain_threshold",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("compressive_strength", -1e6), getData("compressive_strain", -0.001),  getData("material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
+            ret = new NonLocalMazars( getData("tensile_strain",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("compressive_strength", -1e6), getData("compressive_strain", -0.001),  getData("material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
         }
         if(type == "LIMIT_STRAIN")
         {
