@@ -871,6 +871,17 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
     return ret ;
 }
 
+LogCreepAccumulator * ConfigTreeItem::getLogCreepAccumulator()
+{
+    std::string type = (str.length() > 0 ? str : getStringData("type","REAL_TIME_ACCUMULATOR")) ;
+    if(type == "REAL_TIME_ACCUMULATOR")
+        return new RealTimeLogCreepAccumulator() ;
+    if(type == "TIME_UNDER_LOAD_ACCUMULATOR")
+        return new TimeUnderLoadLogCreepAccumulator() ;
+
+    return new RealTimeLogCreepAccumulator() ;
+}
+
 FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
 {
     FractureCriterion * ret = nullptr ;
@@ -1311,16 +1322,21 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime, std
             }
         }
 
+        LogCreepAccumulator * acc ;
+	if(hasChild("accumulator"))
+            acc = getChild("accumulator")->getLogCreepAccumulator() ;
+        else
+            acc = new RealTimeLogCreepAccumulator() ;
         if(hasChild("fracture_criterion") && hasChild("damage_model"))
         {
             FractureCriterion * frac = getChild("fracture_criterion")->getFractureCriterion(true) ;
             DamageModel * dam = getChild("damage_model")->getDamageModel(true) ;
             if(frac && dam)
-                log = new LogarithmicCreepWithExternalParameters(std::string(), frac, dam) ;
+                log = new LogarithmicCreepWithExternalParameters(std::string(), frac, dam, acc) ;
         }
 
         if(!log)
-            log = new LogarithmicCreepWithExternalParameters(std::string()) ;
+            log = new LogarithmicCreepWithExternalParameters(std::string(), acc) ;
 
         log->plane = pt ;
 
@@ -1805,6 +1821,7 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
         double minDist = psdConfig->getData("distance", 0.001) ;
         double border = std::max(psdConfig->getData("border_width", 0.001), 0.) ;
         size_t max = psdConfig->getData("maximum_edges", 16) ;
+        double interlayer = psdConfig->getData("interface_width", 0) ;
         bool copy = (psdConfig->getStringData("copy_grain_behaviour", "TRUE") == std::string("TRUE")) ;
         bool reset = (psdConfig->getStringData("reset_parent_behaviour", "FALSE") == std::string("TRUE")) ;
         std::vector< std::pair< Form *, double > > behaviour ;
@@ -1816,9 +1833,9 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
                 behaviour.push_back( std::make_pair( test, b[i]->getData("fraction", ((double) i+1)/b.size() ) ) ) ;
         }
         if(base.size() == 0)
-            out = PSDGenerator::get2DVoronoiPolygons( F, behaviour, seeds,  minDist, border, max, copy ) ;
+            out = PSDGenerator::get2DVoronoiPolygons( F, behaviour, seeds,  minDist, border, max, copy, interlayer ) ;
         else
-            out = PSDGenerator::get2DVoronoiPolygons( F, behaviour, base, seeds,  minDist, border, max, copy, reset ) ;   
+            out = PSDGenerator::get2DVoronoiPolygons( F, behaviour, base, seeds,  minDist, border, max, copy, reset, interlayer ) ;   
     }
     else if(type == "FROM_INCLUSION_FILE")
     {

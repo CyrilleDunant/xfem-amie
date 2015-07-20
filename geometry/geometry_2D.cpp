@@ -2373,10 +2373,10 @@ double Polygon::getPerimeter() const
     return perimeter ;
 }
 
-std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta ) 
+std::vector<Polygon> Polygon::getInscribedPolygons( double delta ) const
 {
     // first, get tentative segments inside p
-    std::valarray<Point> realvertex = p.getOriginalPoints() ;
+    std::valarray<Point> realvertex = getOriginalPoints() ;
     std::vector<Point> vertex ;
     for(size_t i = 0 ; i < realvertex.size() ; i++)
     {
@@ -2406,10 +2406,10 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
        if(n.norm() < POINT_TOLERANCE)
            continue ; // original edge is too small
        n *= 0.75*delta/n.norm() ;       
-       if(!p.in(edge.midPoint() + n*0.15))
+       if(!in(edge.midPoint() + n*0.15))
        {
           n *= -1 ;
-          if(!p.in(edge.midPoint() + n*0.15))
+          if(!in(edge.midPoint() + n*0.15))
              continue ; // original polygon is too thin
        }
        Line tentative( edge.midPoint()+n, vertex[i_next]-vertex[i] ) ;
@@ -2418,10 +2418,10 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
        if(n.norm() < POINT_TOLERANCE)
            continue ; // original edge is too small
        n *= 0.75*delta/n.norm() ;       
-       if(!p.in(edge_prev.midPoint() + n*0.15))
+       if(!in(edge_prev.midPoint() + n*0.15))
        {
           n *= -1 ;
-          if(!p.in(edge_prev.midPoint() + n*0.15))
+          if(!in(edge_prev.midPoint() + n*0.15))
              continue ; // original polygon is too thin
        }
        Line tentative_prev( edge_prev.midPoint()+n, vertex[i]-vertex[i_prev] ) ;
@@ -2430,10 +2430,10 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
        if(n.norm() < POINT_TOLERANCE)
            continue ; // original edge is too small
        n *= 0.75*delta/n.norm() ;       
-       if(!p.in(edge_next.midPoint() + n*0.15))
+       if(!in(edge_next.midPoint() + n*0.15))
        {
           n *= -1 ;
-          if(!p.in(edge_next.midPoint() + n*0.15))
+          if(!in(edge_next.midPoint() + n*0.15))
              continue ; // original polygon is too thin
        }
        Line tentative_next( edge_next.midPoint()+n, vertex[i_next_next]-vertex[i_next] ) ;
@@ -2448,23 +2448,23 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
 
        Point first = tentative.intersection( tentative_prev ) ;
        Point second = tentative.intersection( tentative_next ) ;
-       if(!p.in( first ) || !p.in( second) )
+       if(!in( first ) || !in( second) )
        {
-           if(p.in(first))
+           if(in(first))
            {
                Segment s(first, second) ;
-               Point test = s.intersection(&p)[0]-first ;
+               Point test = s.intersection(this)[0]-first ;
                second = first + test*(test.norm()-delta)/test.norm() ;
            }
-           else if(p.in(second))
+           else if(in(second))
            {
                Segment s(first, second) ;
-               Point test = s.intersection(&p)[0]-second ;
+               Point test = s.intersection(this)[0]-second ;
                first = second + test*(test.norm()-delta)/test.norm() ;
            }
        }
 
-       if(!p.in( first ) || !p.in( second) )
+       if(!in( first ) || !in( second) )
            continue ;
 
        segments.push_back( Segment( first, second ) ) ;
@@ -2759,7 +2759,7 @@ void Polygon::sampleSurface(size_t num_points)
         std::vector<Point> nextPoints ;
         for(size_t i = 0 ; i < clusters.size() ; i++)
         {
-            std::vector<Polygon> inscribed = getInscribedPolygons( clusters[i], delta ) ;
+            std::vector<Polygon> inscribed = clusters[i].getInscribedPolygons( delta ) ;
 //            if( inscribed.size() == 0 && clusters[i].getOriginalPoints().size() > 2)
   //              newPoints.push_back( clusters[i].getCenter() ) ;
             for(size_t j = 0 ; j < inscribed.size() ; j++)

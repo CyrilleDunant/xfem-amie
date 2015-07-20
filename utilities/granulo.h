@@ -132,13 +132,13 @@ public:
 	static std::vector<Inclusion3D *> get3DInclusions(double rmax, double area, ParticleSizeDistribution * type, PSDEndCriteria crit) ;
 		
 
-        static std::vector<PolygonalSample *> get2DVoronoiPolygons(Rectangle * box, size_t n, double minDist) ;
+        static std::vector<PolygonalSample *> get2DVoronoiPolygons(Rectangle * box, size_t n, double minDist, double delta = 0) ;
 
-        static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(FeatureTree * F, std::vector<std::pair<Form *, double> > & behaviour, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false) ;
+        static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(FeatureTree * F, std::vector<std::pair<Form *, double> > & behaviour, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false, double delta = 0) ;
 
-        static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(Feature * feat, std::vector<std::pair<Form *, double> > & behaviour, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false) ;
+        static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(Feature * feat, std::vector<std::pair<Form *, double> > & behaviour, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false, double delta = 0) ;
 
-        static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(FeatureTree * F, std::vector<std::pair<Form *, double> > & behaviour, std::vector<Feature *> feats, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false, bool resetInclusionBehaviour = false) ;
+        static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(FeatureTree * F, std::vector<std::pair<Form *, double> > & behaviour, std::vector<Feature *> feats, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false, bool resetInclusionBehaviour = false, double delta = 0) ;
 
 	/**
 	 * \brief Creates PSD for mortar square samples

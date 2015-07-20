@@ -519,6 +519,8 @@ public:
     virtual std::vector<Point> getBoundingBox() const ;
     
     virtual void setCenter(const Point & newCenter) ;
+
+    std::vector<Polygon> getInscribedPolygons( double delta ) const ;
 } ;
 
 

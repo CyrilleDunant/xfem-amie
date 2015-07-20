@@ -15,6 +15,7 @@
 #include "../elements/integrable_entity.h"
 #include "../solvers/assembly.h"
 #include "../physics/material_laws/material_laws.h"
+#include "../physics/material_laws/logcreep_accumulator.h"
 #include "../physics/damagemodels/damagemodel.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
 #include "../physics/finite_difference_viscoelasticity.h"
@@ -194,6 +195,9 @@ public:
 
     /** Translates the current item in a damage model*/
     DamageModel * getDamageModel(bool spaceTime = false) ;
+
+    /** Translates the current item in a logarithmic creep accumulator*/
+    LogCreepAccumulator * getLogCreepAccumulator() ;
 
     /** Translates the current item in a Cauchy-Green stiffness matrix*/
     Matrix getStiffnessMatrix(SpaceDimensionality dim, planeType pt = PLANE_STRESS) const ;
