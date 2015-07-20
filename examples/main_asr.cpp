@@ -265,7 +265,7 @@ int main( int argc, char *argv[] )
 
     gelManager = new GelManager(&F, nzones/baseGeometry.area(), feats) ;
     F.addManager(gelManager) ;
-    F.setSamplingNumber( 92 ) ;
+    F.setSamplingNumber( 128 ) ;
 
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , LEFT ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , RIGHT ) ) ;

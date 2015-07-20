@@ -42,6 +42,7 @@ FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, doub
     cachedInfluenceRatio(1),
     cacheID(-1),
     cachecoreID(-1),
+    needRestrictionUpdate(false),
     inIteration(false),
     mesh2d(nullptr), mesh3d(nullptr)
 {
@@ -78,19 +79,10 @@ std::pair<Vector, Vector> FractureCriterion::getSmoothedFields( FieldType f0, Fi
 
 void FractureCriterion::updateRestriction(ElementState &s)
 {
-    if(!restrictionSource)
+    if(!restrictionSource || !needRestrictionUpdate)
         return ;
     
-    if(mesh2d)
-    {
-        mesh2d->deleteCache(cachecoreID);
-        mesh2d->deleteCache(cacheID);
-    }
-    if(mesh3d)
-    {
-        mesh3d->deleteCache(cachecoreID);
-        mesh3d->deleteCache(cacheID);
-    }
+    needRestrictionUpdate = false ;
     updateCache(s) ;
     
     Function xtransform = s.getParent()->getXTransform() ;
@@ -117,49 +109,14 @@ void FractureCriterion::updateRestriction(ElementState &s)
 
         restriction.push_back(restrictionSource->in(test));
     }
+// }
 }
 
 void FractureCriterion::setRestriction(const Geometry * g,ElementState &s)
 {
     restrictionSource = g ;
     restriction.clear();
-    if(mesh2d)
-    {
-        mesh2d->deleteCache(cachecoreID);
-        mesh2d->deleteCache(cacheID);
-    }
-    if(mesh3d)
-    {
-        mesh3d->deleteCache(cachecoreID);
-        mesh3d->deleteCache(cacheID);
-    }
-    
-    if(!g)
-        return ;
-    Function xtransform = s.getParent()->getXTransform() ;
-    Function ytransform = s.getParent()->getYTransform() ;
-    Function ztransform = Function("0") ;
-    Function ttransform = Function("0") ;
-    if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
-        ztransform = s.getParent()->getZTransform() ;
-    if(s.getParent()->timePlanes() > 1)
-        ttransform = s.getParent()->getTTransform() ;
-    else
-        ttransform = Function("0") ;
-    
-    VirtualMachine vm ;
-    
-    for(size_t i= 0 ; i < s.getParent()->getGaussPoints().gaussPoints.size() ; i++)
-    {
-        Point p = s.getParent()->getGaussPoints().gaussPoints[i].first ;
-        Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()), 
-                           vm.eval(ytransform, p.getX(), p.getY(), p.getZ(), p.getT()), 
-                           vm.eval(ztransform, p.getX(), p.getY(), p.getZ(), p.getT()), 
-                           vm.eval(ttransform, p.getX(), p.getY(), p.getZ(), p.getT())) ;
-
-        restriction.push_back(g->in(test));
-    }
-    initialiseCache(s) ;
+    needRestrictionUpdate = true ;
 }
 
 void FractureCriterion::initialiseCache( ElementState & s)
@@ -205,6 +162,8 @@ void FractureCriterion::initialiseCache( ElementState & s)
 }
 void FractureCriterion::updateCache( ElementState & s)
 {
+// #pragma omp critical
+// {
     if(s.getMesh2D())
     {
         Function x = Function("x")-s.getParent()->getCenter().getX() ;
@@ -233,6 +192,7 @@ void FractureCriterion::updateCache( ElementState & s)
             mesh3d->updateCache(cacheID) ;
 
     }
+// }
 }
 
 

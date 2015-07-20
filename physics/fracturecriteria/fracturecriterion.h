@@ -87,7 +87,8 @@ protected:
     double cachedInfluenceRatio ;
     int cacheID ;
     int cachecoreID ;
-
+    bool needRestrictionUpdate ;
+    
 public:
     bool inIteration ;
 

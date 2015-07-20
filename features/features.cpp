@@ -4580,31 +4580,29 @@ bool FeatureTree::stepElements()
                 double maxScoreInit = -1;
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                 {
-//                     #pragma omp parallel
-//                     {
-//                         #pragma omp single
-//                         {
+                    #pragma omp parallel
+                    {
+                        #pragma omp single
+                        {
                             for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                             {
-//                                 #pragma omp task firstprivate(i)
-//                                 {
-//                                if ( i.getPosition() % 200 == 0 )
-                                    //                              {
-                                    std::cerr << "\r checking for fractures (1)... " << i.getPosition() << "/" << i.size() << std::flush ;
-                                    //                            }
+                                #pragma omp task firstprivate(i)
+                                {
+                                    if ( i.getPosition() % 200 == 0 )
+                                        std::cerr << "\r checking for fractures (1)... " << i.getPosition() << "/" << i.size() << std::flush ;
                                     if ( i->getBehaviour()->getFractureCriterion() )
                                     {
                                         i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
-//                                         #pragma omp flush(maxScoreInit)
+                                        #pragma omp flush(maxScoreInit)
                                         double tmpmax = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit ) ;
-//                                         #pragma omp atomic write
+                                        #pragma omp atomic write
                                         maxScoreInit = tmpmax ;
                                     }
-//                                 }
+                                }
                             }
                             std::cerr << ". Maxscore = " << maxScoreInit <<" ...done. " << std::endl ;
-//                         }
-//                     }
+                        }
+                    }
                 }
 
 
@@ -5521,8 +5519,10 @@ void FeatureTree::checkSpaceTimeConsistency()
 
 }
 
-bool FeatureTree::step(bool guided)
+bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
 {
+    StateType lastStep = XFEM_STEPPED ;
+
     bool ret = true ;
     size_t totit = 0 ;
     int notConvergedCounts = 0 ;
@@ -5574,7 +5574,7 @@ bool FeatureTree::step(bool guided)
                 }
             }
         }
-        state.setStateTo ( XFEM_STEPPED, true ) ;
+        state.setStateTo ( lastStep, true ) ;
         ++it ;
         deltaTime = 0 ;
         if ( solverConverged() )
@@ -5671,6 +5671,12 @@ bool FeatureTree::step(bool guided)
         K->setPreviousDisplacements() ;
     
     return solverConverged() && stateConverged && maxScore < 0 ;
+
+}
+
+bool FeatureTree::step(bool guided)
+{
+    return stepInternal(guided, true) ;
 }
 
 bool FeatureTree::stepToCheckPoint( int iterations, double precision)

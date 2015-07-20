@@ -231,6 +231,7 @@ protected:
     void updateElementBehaviours() ;
     void solve() ;
     bool stepElements() ;
+    bool stepInternal(bool guided, bool xfemIteration) ;
     void stepXfem() ;
 
     /** \brief  Generate the triangulation.
