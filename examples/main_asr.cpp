@@ -147,8 +147,7 @@ int main( int argc, char *argv[] )
     featureTree = &F ;
 
     double itzSize = 0.00002;
-    int inclusionNumber = 1 ;
-    3000 ;
+    int inclusionNumber = 3000 ;
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
 
@@ -173,25 +172,21 @@ int main( int argc, char *argv[] )
     voidtop->isVirtualFeature = true ;
     voidtop->setBehaviour( new VoidForm() );
     F.addFeature( &sample, voidtop );
-    F.setSamplingFactor(voidtop, .5);
 
     Sample *voidbottom = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().getX() - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - 0.0025 ) ;
     voidbottom->isVirtualFeature = true ;
     voidbottom->setBehaviour( new VoidForm() );
     F.addFeature( &sample, voidbottom );
-    F.setSamplingFactor(voidbottom, .5);
 
     Sample *voidleft = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + 0.0025 ) ;
     voidleft->isVirtualFeature = true ;
     voidleft->setBehaviour( new VoidForm() );
     F.addFeature( &sample, voidleft );
-    F.setSamplingFactor(voidleft, .5);
 
     Sample *voidright = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - 0.0025 ) ;
     voidright->isVirtualFeature = true ;
     voidright->setBehaviour( new VoidForm() );
     F.addFeature( &sample, voidright );
-    F.setSamplingFactor(voidright, .5);
 
     //width are  1100000000 3340000000  4360000000      done: 11 13 10 20 12
     //length are 1220000000 2180000000  3400000000      next: 12
@@ -209,7 +204,6 @@ int main( int argc, char *argv[] )
     }
 
     F.addFeature( &sample, blocktop );
-    F.setSamplingFactor(blocktop, 0.5);
 
     Sample *blockbottom = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
     if(fact0 > 10)
@@ -224,7 +218,6 @@ int main( int argc, char *argv[] )
     }
 
     F.addFeature( &sample, blockbottom );
-    F.setSamplingFactor(blockbottom, 0.5);
 
     Sample *blockleft = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().getX() - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().getY() ) ;
     if(fact > 10)
@@ -239,7 +232,6 @@ int main( int argc, char *argv[] )
     }
 
     F.addFeature( &sample, blockleft );
-    F.setSamplingFactor(blockleft, 0.5);
 
     Sample *blockright = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().getY() ) ;
     if(fact > 10)
@@ -253,7 +245,6 @@ int main( int argc, char *argv[] )
         blocks.push_back(blockright);
     }
     F.addFeature( &sample, blockright );
-    F.setSamplingFactor(blockright, 0.5);
 
 
 
