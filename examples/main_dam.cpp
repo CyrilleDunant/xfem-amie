@@ -40,10 +40,10 @@ void step(FeatureTree * featureTree, LoftedPolygonalSample3D * dam)
 
         if(i == 0)
         {
-            VoxelWriter vw("stress_full", 200) ;
+            VoxelWriter vw("stress_full", 50) ;
             vw.getField(featureTree, VWFT_PRINCIPAL_STRESS) ;
             vw.write();
-            VoxelWriter vw1("stiffness", 200) ;
+            VoxelWriter vw1("stiffness", 50) ;
             vw1.getField(featureTree, VWFT_STIFFNESS) ;
             vw1.write();
             waterload->setData(Function("9810 x 41 + *")*f_positivity(Function("x 41 +")));
@@ -57,7 +57,7 @@ void step(FeatureTree * featureTree, LoftedPolygonalSample3D * dam)
         }
         if(i == 2)
         {
-            VoxelWriter vw("stress_intermediate", 200) ;
+            VoxelWriter vw("stress_intermediate", 50) ;
             vw.getField(featureTree, VWFT_PRINCIPAL_STRESS) ;
             vw.write();
             waterload->setData(Function("9810 x 63 + *")*f_positivity(Function("x 63 +")));
