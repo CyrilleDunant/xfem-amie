@@ -27,9 +27,8 @@ using namespace Amie ;
 
 GeometryAndFaceDefinedSurfaceBoundaryCondition * waterload ;
 
-void step(FeatureTree * featureTree, LoftedPolygonalSample3D * dam)
+void step(FeatureTree * featureTree)
 {
-    Sample3D samplers(nullptr, 249.99,249.99,249.99,0,0,0) ;
     int nsteps = 5;// number of steps between two clicks on the opengl thing
     featureTree->setMaxIterationsPerStep(50) ;
     Point crest(-74,0,20) ;
@@ -37,6 +36,32 @@ void step(FeatureTree * featureTree, LoftedPolygonalSample3D * dam)
     for(int i = 0 ; i < nsteps ; i++)
     {
         featureTree->step() ;
+        Vector tmp(6) ;
+        double size = 350 ;
+        for(double x = -size*.5 ;  x <= size*.5 ; x += 1)
+        {
+            for(double y = -size*.5 ;  y <= size*.5 ; y += 1)
+            {
+                featureTree->get3DMesh()->getField(STRAIN_FIELD, Point(0,y,x),tmp) ;
+                    std::cout <<  tmp[0]<< "  "<< std::flush ;
+            }
+            std::cout << std::endl ;
+        }
+        for(double x = -size*.5 ;  x <= size*.5 ; x += 1)
+        {
+            for(double y = -size*.5 ;  y <= size*.5 ; y += 1)
+            {
+                featureTree->get3DMesh()->getField(REAL_STRESS_FIELD, Point(0,y,x),tmp) ;
+                    std::cout << tmp[0]<< "  "<< std::flush ;
+            }
+            std::cout << std::endl ;
+        }
+        
+        
+            VoxelWriter vw1("stiffness", 50) ;
+            vw1.getField(featureTree, VWFT_STIFFNESS) ;
+            vw1.write();
+            exit(0) ;
 
         if(i == 0)
         {
@@ -87,7 +112,7 @@ int main(int argc, char *argv[])
     
     double nu = 0.2 ;
     double E = 20 ;
-    Sample3D samplers(nullptr, 200,200,200,90,90,90) ;
+    Sample3D samplers(nullptr, 350,350,350,0,0,0) ;
 
     FeatureTree F(&samplers) ;
 
@@ -123,75 +148,71 @@ int main(int argc, char *argv[])
     samplers.setBehaviour(new VoidForm()) ;
 
     std::valarray<Point *> damProfile(22) ;
-    damProfile[0] = new Point(28, 148, 0) ;
-    damProfile[1] = new Point(36, 148, 0) ;
-    damProfile[2] = new Point(34, 134, 0) ;
-    damProfile[3] = new Point(32, 114, 0) ;
-    damProfile[4] = new Point(32, 91, 0) ;
-    damProfile[5] = new Point(34, 75, 0) ;
-    damProfile[6] = new Point(37, 61, 0) ;
-    damProfile[7] = new Point(41, 44, 0) ;
-    damProfile[8] = new Point(50, 27, 0) ;
-    damProfile[9] = new Point(53, 27, 0) ;
-    damProfile[10] = new Point(53, 23, 0) ;
-    damProfile[11] = new Point(55, 18, 0) ;
-    damProfile[12] = new Point(61, 18, 0) ;
-    damProfile[13] = new Point(60, 9, 0) ;
-    damProfile[14] = new Point(13, 0, 0) ;
-    damProfile[15] = new Point(7, 13, 0) ;
-    damProfile[16] = new Point(10, 13, 0) ;
-    damProfile[17] = new Point(5, 37, 0) ;
-    damProfile[18] = new Point(5, 60, 0) ;
-    damProfile[19] = new Point(7, 76, 0) ;
-    damProfile[20] = new Point(11, 96, 0) ;
-    damProfile[21] = new Point(23, 134, 0) ;
+    damProfile[0] =  new Point(-148,  28,  0) ;
+    damProfile[1] =  new Point(-148,  36,  0) ;
+    damProfile[2] =  new Point(-134,  34,  0) ;
+    damProfile[3] =  new Point(-114,  32,  0) ;
+    damProfile[4] =  new Point(- 91,  32,  0) ;
+    damProfile[5] =  new Point(- 75,  34,  0) ;
+    damProfile[6] =  new Point(- 61,  37,  0) ;
+    damProfile[7] =  new Point(- 44,  41,  0) ;
+    damProfile[8] =  new Point(- 27,  50,  0) ;
+    damProfile[9] =  new Point(- 27,  53,  0) ;
+    damProfile[10] = new Point(- 23,  53,  0) ;
+    damProfile[11] = new Point(- 18,  55,  0) ;
+    damProfile[12] = new Point(- 18,  61,  0) ;
+    damProfile[13] = new Point(-  9,  60,  0) ;
+    damProfile[14] = new Point(-  0,  13,  0) ;
+    damProfile[15] = new Point(- 13,  7,   0) ;
+    damProfile[16] = new Point(- 13,  10,  0) ;
+    damProfile[17] = new Point(- 37,  5,   0) ;
+    damProfile[18] = new Point(- 60,  5,   0) ;
+    damProfile[19] = new Point(- 76,  7,   0) ;
+    damProfile[20] = new Point(- 96,  11,  0) ;
+    damProfile[21] = new Point(-134,  23,  0) ;
     
     std::vector<Point> damArch ;
     for(double i = -1. ; i <= 1. ; i+=0.05)
     {
-        damArch.push_back(Point(76,i*100.,  20.*(1.-i*i) ));
+        damArch.push_back(Point(i*100.,  20.*(1.-i*i),76 ));
     }
     
     std::valarray<Point *> groundProfile(4) ;  
-    groundProfile[0] = new Point(-12, 37, 0) ;
-    groundProfile[1] = new Point(71, 37, 0) ;
-    groundProfile[2] = new Point(71, -20, 0) ;
-    groundProfile[3] = new Point(-12, -20, 0) ;
-    
-    std::vector<Point> groundArch ;
-    groundArch.push_back(Point(9,0,  0 ));
-    groundArch.push_back(Point(9,100.,  0 ));
-    
+    groundProfile[0] = new Point( -37,-22 ) ;
+    groundProfile[1] = new Point( -37, 81 ) ;
+    groundProfile[2] = new Point( 20 , 81 ) ;
+    groundProfile[3] = new Point( 20 ,-22 ) ;
     
     std::valarray<Point *> galleryProfile0(5) ;
-    galleryProfile0[0] = new Point(-1., -1., 0) ;
-    galleryProfile0[1] = new Point(1., -1., 0) ;
-    galleryProfile0[2] = new Point(2, 0, 0) ;
-    galleryProfile0[3] = new Point(1., 1., 0) ;
-    galleryProfile0[4] = new Point(-1., 1., 0) ;
+    galleryProfile0[0] = new Point(-1., -1.) ;
+    galleryProfile0[1] = new Point(1., -1.) ;
+    galleryProfile0[2] = new Point(2, 0) ;
+    galleryProfile0[3] = new Point(1., 1.) ;
+    galleryProfile0[4] = new Point(-1., 1.) ;
     
     std::valarray<Point *> galleryProfile1(5) ;
-    galleryProfile1[0] = new Point(-1., -1., 0) ;
-    galleryProfile1[1] = new Point(1., -1., 0) ;
-    galleryProfile1[2] = new Point(2, 0, 0) ;
-    galleryProfile1[3] = new Point(1., 1., 0) ;
-    galleryProfile1[4] = new Point(-1., 1., 0) ;
+    galleryProfile1[0] = new Point(-1., -1.) ;
+    galleryProfile1[1] = new Point(1., -1.) ;
+    galleryProfile1[2] = new Point(2, 0) ;
+    galleryProfile1[3] = new Point(1., 1.) ;
+    galleryProfile1[4] = new Point(-1., 1.) ;
     
     std::vector<Point> galleryArch0 ;
     for(double i = -.9 ; i <= .9 ; i+=0.05)
     {
-        galleryArch0.push_back(Point(-50,i*100.,  20.*(1.-i*i) ));
+        galleryArch0.push_back(Point(i*100.,  20.*(1.-i*i),-50 ));
     }
 
     std::vector<Point> galleryArch1 ;
     for(double i = -.9 ; i <= .9 ; i+=0.05)
     {
-        galleryArch1.push_back(Point(0,i*100.,  20.*(1.-i*i) ));
+        galleryArch1.push_back(Point(i*100.,  20.*(1.-i*i) ,0));
     }
     
     
-    LoftedPolygonalSample3D ground(&samplers, damProfile,damArch) ;
-    LoftedPolygonalSample3D dam(&ground, groundProfile,groundArch) ;
+    PolygonalSample3D ground(&samplers,groundProfile ,Point(250, 0,0), Point(-125, 0, -140)) ;
+    PolygonalSample3D dam(&samplers,damProfile ,Point(200, 0,0), Point(-100, 0, -74)) ;
+//     LoftedPolygonalSample3D dam(&ground, damProfile,damArch) ;
     
     dam.setBehaviour(/*new Viscoelasticity( PURE_ELASTICITY, m1)*/new Stiffness(m1)) ;
     ground.setBehaviour(/*new Viscoelasticity( PURE_ELASTICITY, m1)*/new Stiffness(m1*.4)) ;
@@ -204,6 +225,7 @@ int main(int argc, char *argv[])
     
     F.addFeature(&samplers, &ground) ;
     F.addFeature(&ground, &dam) ;
+    F.setSamplingFactor(&ground, 1.5);
     F.setDeltaTime(1.);
 //     F.addFeature(&dam, &gallery0) ;
 //     F.addFeature(&dam, &gallery1) ;
@@ -212,20 +234,20 @@ int main(int argc, char *argv[])
 
     //fixed at the bottom
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, RIGHT)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, TOP)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, LEFT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, BOTTOM)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, FRONT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, BACK)) ;
 
     //water load
-    waterload = new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_NORMAL_STRESS, dam.getPrimitive(), Point(0,0,1) , Function("9810 x 30 +  *")*f_positivity(Function("x 30 +")) ) ;
+    waterload = new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_NORMAL_STRESS, dam.getPrimitive(), Point(0,0,1) , Function("9810 z 30 +  *")*f_positivity(Function("z 30 +")) ) ;
     F.addBoundaryCondition(waterload) ;
-    waterload->setData(Function("9810 x 74 + *")*f_positivity(Function("x 74 +")));
+    waterload->setData(Function("9810 z 74 + *")*f_positivity(Function("z 74 +")));
     
     //selfweight
-    F.addBoundaryCondition(new GlobalBoundaryCondition( SET_VOLUMIC_STRESS_XI, 23544 ) );
+    F.addBoundaryCondition(new GlobalBoundaryCondition( SET_VOLUMIC_STRESS_ZETA, 23544 ) );
     
-    step(&F, &dam) ;
+    step(&F) ;
 
     return 0 ;
 }

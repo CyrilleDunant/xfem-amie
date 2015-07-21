@@ -1706,7 +1706,7 @@ std::vector<Point> TriangulatedSurface::getBoundingBox() const {
 
 void PolygonPrism::computeCenter()
 {
-    center = base.getCenter()+axis*.5 + origin ;
+    center = axis*.5 + origin ;
 }
 void LoftedPolygonPrism::computeCenter()
 {
@@ -1760,6 +1760,9 @@ PolygonPrism::PolygonPrism(const std::valarray<Point *> & points, const Point & 
         rotx_[2][2] = cost ;
 
         rotationMatrix = inverse3x3Matrix(rotx*roty*rotx_)  ;
+//         std::swap(rotationMatrix[2][0],rotationMatrix[0][0]) ;
+//         std::swap(rotationMatrix[2][1],rotationMatrix[0][1]) ;
+//         std::swap(rotationMatrix[2][2],rotationMatrix[0][2]) ;
     }
     else
     {
@@ -1796,12 +1799,18 @@ PolygonPrism::PolygonPrism(const std::valarray<Point *> & points, const Point & 
         rotx_[2][2] = cost ;
         
         rotationMatrix = inverse3x3Matrix(rotx*roty*rotx_)  ;
+//         std::swap(rotationMatrix[2][0],rotationMatrix[0][0]) ;
+//         std::swap(rotationMatrix[2][1],rotationMatrix[0][1]) ;
+//         std::swap(rotationMatrix[2][2],rotationMatrix[0][2]) ;
     }
-
 }
 
-LoftedPolygonPrism::LoftedPolygonPrism(const std::valarray< Point* >& points, const std::vector< Point >& interpolationPoints) :  NonConvexGeometry(0),base(points),interpolationPoints(interpolationPoints)
+LoftedPolygonPrism::LoftedPolygonPrism(const std::valarray< Point* >& points, const std::vector< Point >& ip) :  NonConvexGeometry(0),base(points),interpolationPoints(ip)
 {
+    for(size_t i = 0 ; i < interpolationPoints.size() ; i++)
+    {
+        std::swap(interpolationPoints[i].getZ(),interpolationPoints[i].getY()) ;
+    }
     vstart = 2.*interpolationPoints[0] - interpolationPoints[1] ;
     vend = 2.*interpolationPoints[interpolationPoints.size()-1]-interpolationPoints[interpolationPoints.size()-2] ;
 
@@ -2067,7 +2076,12 @@ Matrix LoftedPolygonPrism::rotateToVector(const Point & vector) const
     }
     
     Matrix ret = -(rotx*roty*rotx_) ;
-    
+//     std::swap(ret[2][0],ret[1][0]) ;
+//     std::swap(ret[2][1],ret[1][1]) ;
+//     std::swap(ret[2][2],ret[1][2]) ;
+//     std::swap(ret[0][0],ret[1][0]) ;
+//     std::swap(ret[0][1],ret[1][1]) ;
+//     std::swap(ret[0][2],ret[1][2]) ;
     return ret   ;
 
 }
@@ -2121,8 +2135,16 @@ Matrix LoftedPolygonPrism::rotateFromVector(const Point & vector) const
         rotx_[1][1] = cost ;
         rotx_[2][2] = 1 ;
     }
-
-    return -inverse3x3Matrix(rotx*roty*rotx_) ;
+    
+    Matrix ret = -inverse3x3Matrix(rotx*roty*rotx_) ;
+//     std::swap(ret[2][0],ret[1][0]) ;
+//     std::swap(ret[2][1],ret[1][1]) ;
+//     std::swap(ret[2][2],ret[1][2]) ;
+//     std::swap(ret[0][0],ret[1][0]) ;
+//     std::swap(ret[0][1],ret[1][1]) ;
+//     std::swap(ret[0][2],ret[1][2]) ;
+    
+    return ret ;
 }
 
 PolygonPrism::~PolygonPrism() { }

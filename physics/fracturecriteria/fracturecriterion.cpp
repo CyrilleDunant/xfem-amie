@@ -129,7 +129,7 @@ void FractureCriterion::initialiseCache( ElementState & s)
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
         Function smooth =  (smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 
-        double overlap = (smoothingType == QUARTIC_COMPACT)?6.:8. ;
+        double overlap = (smoothingType == QUARTIC_COMPACT)?8.:10. ;
         Circle epsilonAll( std::max(physicalCharacteristicRadius*1.1, s.getParent()->getRadius()*3. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         Circle epsilonReduced(physicalCharacteristicRadius*1.1+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         mesh2d = s.getMesh2D() ;
@@ -148,7 +148,7 @@ void FractureCriterion::initialiseCache( ElementState & s)
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
         Function smooth =  (smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 
-        double overlap = (smoothingType == QUARTIC_COMPACT)?6.:8. ;
+        double overlap = (smoothingType == QUARTIC_COMPACT)?8.:10. ;
         Sphere epsilonAll( std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*2. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         Sphere epsilonReduced(physicalCharacteristicRadius*1.1+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         mesh3d = s.getMesh3D() ;
