@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
     
     double nu = 0.2 ;
     double E = 20 ;
-    Sample3D samplers(nullptr, 250,250,250,0,0,0) ;
+    Sample3D samplers(nullptr, 200,200,200,90,90,90) ;
 
     FeatureTree F(&samplers) ;
 
@@ -122,17 +122,46 @@ int main(int argc, char *argv[])
     
     samplers.setBehaviour(new VoidForm()) ;
 
-    std::valarray<Point *> damProfile(4) ;
-    damProfile[0] = new Point(0, 8, 0) ;
-    damProfile[1] = new Point(150, 8, 0) ;
-    damProfile[2] = new Point(150, -8, 0) ;
-    damProfile[3] = new Point(0, -17, 0) ;
+    std::valarray<Point *> damProfile(22) ;
+    damProfile[0] = new Point(28, 148, 0) ;
+    damProfile[1] = new Point(36, 148, 0) ;
+    damProfile[2] = new Point(34, 134, 0) ;
+    damProfile[3] = new Point(32, 114, 0) ;
+    damProfile[4] = new Point(32, 91, 0) ;
+    damProfile[5] = new Point(34, 75, 0) ;
+    damProfile[6] = new Point(37, 61, 0) ;
+    damProfile[7] = new Point(41, 44, 0) ;
+    damProfile[8] = new Point(50, 27, 0) ;
+    damProfile[9] = new Point(53, 27, 0) ;
+    damProfile[10] = new Point(53, 23, 0) ;
+    damProfile[11] = new Point(55, 18, 0) ;
+    damProfile[12] = new Point(61, 18, 0) ;
+    damProfile[13] = new Point(60, 9, 0) ;
+    damProfile[14] = new Point(13, 0, 0) ;
+    damProfile[15] = new Point(7, 13, 0) ;
+    damProfile[16] = new Point(10, 13, 0) ;
+    damProfile[17] = new Point(5, 37, 0) ;
+    damProfile[18] = new Point(5, 60, 0) ;
+    damProfile[19] = new Point(7, 76, 0) ;
+    damProfile[20] = new Point(11, 96, 0) ;
+    damProfile[21] = new Point(23, 134, 0) ;
     
     std::vector<Point> damArch ;
     for(double i = -1. ; i <= 1. ; i+=0.05)
     {
-        damArch.push_back(Point(0,i*100.,  20.*(1.-i*i) ));
+        damArch.push_back(Point(76,i*100.,  20.*(1.-i*i) ));
     }
+    
+    std::valarray<Point *> groundProfile(4) ;  
+    groundProfile[0] = new Point(-12, 37, 0) ;
+    groundProfile[1] = new Point(71, 37, 0) ;
+    groundProfile[2] = new Point(71, -20, 0) ;
+    groundProfile[3] = new Point(-12, -20, 0) ;
+    
+    std::vector<Point> groundArch ;
+    groundArch.push_back(Point(9,0,  0 ));
+    groundArch.push_back(Point(9,100.,  0 ));
+    
     
     std::valarray<Point *> galleryProfile0(5) ;
     galleryProfile0[0] = new Point(-1., -1., 0) ;
@@ -160,9 +189,12 @@ int main(int argc, char *argv[])
         galleryArch1.push_back(Point(0,i*100.,  20.*(1.-i*i) ));
     }
     
-    LoftedPolygonalSample3D dam(&samplers, damProfile,damArch) ;
+    
+    LoftedPolygonalSample3D ground(&samplers, damProfile,damArch) ;
+    LoftedPolygonalSample3D dam(&ground, groundProfile,groundArch) ;
     
     dam.setBehaviour(/*new Viscoelasticity( PURE_ELASTICITY, m1)*/new Stiffness(m1)) ;
+    ground.setBehaviour(/*new Viscoelasticity( PURE_ELASTICITY, m1)*/new Stiffness(m1*.4)) ;
     
     LoftedPolygonalSample3D gallery0(&dam, galleryProfile0, galleryArch0) ;
     gallery0.setBehaviour(new VoidForm()) ;
@@ -170,20 +202,20 @@ int main(int argc, char *argv[])
     LoftedPolygonalSample3D gallery1(&dam, galleryProfile1, galleryArch1) ;
     gallery1.setBehaviour(new VoidForm()) ;
     
-    F.addFeature(&samplers, &dam) ;
+    F.addFeature(&samplers, &ground) ;
+    F.addFeature(&ground, &dam) ;
     F.setDeltaTime(1.);
-    F.addFeature(&dam, &gallery0) ;
-    F.addFeature(&dam, &gallery1) ;
+//     F.addFeature(&dam, &gallery0) ;
+//     F.addFeature(&dam, &gallery1) ;
     F.setSamplingNumber(atof(argv[1])) ;
     F.setPartition(1);
 
     //fixed at the bottom
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, RIGHT)) ;
-
-    //fixed by the mountain
-    std::pair<Point, Point> normals = dam.getEndNormals() ;
-    F.addBoundaryCondition(new GeometryAndFaceDefinedSurfaceBoundaryCondition(FIX_ALONG_ALL, dam.getPrimitive(), normals.first)) ;
-    F.addBoundaryCondition(new GeometryAndFaceDefinedSurfaceBoundaryCondition(FIX_ALONG_ALL, dam.getPrimitive(), normals.second)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, TOP)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, BOTTOM)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, FRONT)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, BACK)) ;
 
     //water load
     waterload = new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_NORMAL_STRESS, dam.getPrimitive(), Point(0,0,1) , Function("9810 x 30 +  *")*f_positivity(Function("x 30 +")) ) ;

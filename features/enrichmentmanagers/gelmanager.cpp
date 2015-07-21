@@ -4,15 +4,10 @@
 namespace Amie
 {
 
-GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vector<Feature *> & aggregates, double dr, double initialRadius) :deltaRadius(dr), reactedArea(0),aggregateArea(0), ftree(ftree)
+GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vector<Feature *> & aggregates,double reactiveFraction, double dr, double initialRadius) :deltaRadius(dr), reactedArea(0),aggregateArea(0), reactiveFraction(reactiveFraction), ftree(ftree)
 {
     if(aggregates.empty())
         return ;
-
-    int tries = 6000 ;
-    double radiusFraction = 500 ;
-
-
     double xmin = aggregates[0]->getCenter().getX()-aggregates[0]->getRadius() ;
     double xmax = aggregates[0]->getCenter().getX()+aggregates[0]->getRadius() ;
     double ymin = aggregates[0]->getCenter().getY()-aggregates[0]->getRadius() ;
@@ -20,29 +15,34 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
 
     for(auto agg : aggregates)
     {
+        aggregateArea += agg->area() ; 
         xmin = std::min(xmin, agg->getCenter().getX()-agg->getRadius()) ;
         xmax = std::max(xmax, agg->getCenter().getX()+agg->getRadius()) ;
         ymin = std::min(ymin, agg->getCenter().getY()-agg->getRadius()) ;
         ymax = std::max(ymax, agg->getCenter().getY()+agg->getRadius()) ;
     }
-
+    int tries = 6000 ;
     double area = (xmax-xmin)*(ymax-ymin) ;
     Rectangle baseGeometry(xmax-xmin, ymax-ymin, 0.5*(xmax+xmin), 0.5*(ymax+ymin)) ;
     int nzones = round(area*zonedensity) ;
 
+    if(deltaRadius < 0)
+    {
+        deltaRadius = (sqrt((aggregateArea*reactiveFraction)/(nzones*M_PI))-initialRadius)/800. ;
+    }
     std::vector<ExpansiveZone *> zonesToPlace ;
 
     int trycount = 0 ;
     for( int i = 0 ; i < nzones && trycount < tries*nzones; i++ )
     {
         trycount++ ;
-        Point pos( ( ( double )rand() / RAND_MAX - .5 ) * ( (xmax-xmin) - initialRadius * radiusFraction ), ( ( double )rand() / RAND_MAX - .5 ) * ( (ymax-ymin) - initialRadius * radiusFraction ) ) ;
+        Point pos( ( ( double )rand() / RAND_MAX - .5 ) * ( xmax-xmin), ( ( double )rand() / RAND_MAX - .5 ) * ( ymax-ymin) ) ;
         pos += baseGeometry.getCenter() ;
         bool alone  = true ;
 
         for( size_t j = 0 ; j < zonesToPlace.size() ; j++ )
         {
-            if( dist( pos, zonesToPlace[j]->Circle::getCenter() ) < 0.0015 )
+            if( dist( pos, zonesToPlace[j]->Circle::getCenter() ) < deltaRadius*800. )
             {
                 alone = false ;
                 break ;
@@ -50,7 +50,7 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
         }
 
         if( alone )
-            zonesToPlace.push_back( new ExpansiveZone( nullptr, initialRadius/15., pos.getX(), pos.getY(), new GelBehaviour() ) ) ;
+            zonesToPlace.push_back( new ExpansiveZone( nullptr, initialRadius, pos.getX(), pos.getY(), new GelBehaviour() ) ) ;
         else
             i-- ;
     }
@@ -63,7 +63,7 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
 
         for( size_t j = 0 ; j < aggregates.size() ; j++ )
         {
-            if( dist( zonesToPlace[i]->getCenter(), aggregates[j]->getCenter() ) < aggregates[j]->getRadius() - 0.0002 /*&& incs[j]->getRadius() <= 0.008 && incs[j]->getRadius() > 0.004*/ && baseGeometry.in( zonesToPlace[i]->getCenter() ) )
+            if( dist( zonesToPlace[i]->getCenter(), aggregates[j]->getCenter() ) < aggregates[j]->getRadius() - deltaRadius*800. && baseGeometry.in( zonesToPlace[i]->getCenter() ) )
             {
                 zonesPerIncs[aggregates[j]]++ ; ;
                 ftree->addFeature( aggregates[j], zonesToPlace[i] ) ;
@@ -80,14 +80,13 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
 
     int count = 0 ;
 
+    aggregateArea = 0 ;
     for( const auto & i : zonesPerIncs )
     {
         aggregateArea += i.first->area() ;
         count += i.second ;
 //      std::cout << aggregateArea << "  " << count << std::endl ;
     }
-    if(deltaRadius < 0)
-        deltaRadius = sqrt( aggregateArea * 0.2 / ( ( double )zones.size() * M_PI ) ) / 800. ;
 }
 
 double GelManager::getReactedFraction() const
