@@ -2923,11 +2923,13 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
         else
         {
 
-            if( false )
+            if( true )
             {
+                if(getCachedGaussPoints()->getId() == REGULAR_GRID)
+                    return *getCachedGaussPoints() ;
                 TriElement father(LINEAR) ;
 
-                size_t target = 8000 ;
+                size_t target = 1024 ;
 
                 while(gp_alternative.size() < target)
                 {

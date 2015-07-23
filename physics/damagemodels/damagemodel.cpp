@@ -205,7 +205,6 @@ void DamageModel::step( ElementState &s , double maxscore)
 
         getState( true ) = downState + ( upState - downState ) *trialRatio ;
 
-
         if( states.size() > maxit-1 && (deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot))
         {
 

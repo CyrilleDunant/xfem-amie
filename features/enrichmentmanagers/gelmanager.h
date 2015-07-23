@@ -22,7 +22,7 @@ namespace Amie
         double reactiveFraction ;
         FeatureTree * ftree ;
     public:
-            GelManager(FeatureTree * ftree, double zonedensity, const std::vector<Feature *> & aggregates,double reactiveFraction = 0.1, double deltaRadius = -1, double initalRadius = 0.0000025) ;
+            GelManager(FeatureTree * ftree, double zonedensity, const std::vector<Feature *> & aggregates,double reactiveFraction = 0.1, double deltaRadius = -1, double initalRadius = 0.000000001) ;
               
             virtual bool step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) ;
             virtual bool step(double dt, Vector * v, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) ;
