@@ -891,9 +891,19 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
         if(type == "MAZARS")
         {
             if(father->getStringData() == "LOGARITHMIC_CREEP" || father->getStringData("type") == "LOGARITHMIC_CREEP")
-                ret = new NonLocalSpaceTimeMazars( father->getData("parameters.tensile_strain",0.001), father->getData("parameters.young_modulus", 1e9), father->getData("parameters.poisson_ratio", 0.2), father->getData("parameters.fracture_energy", 1), father->getData("parameters.compressive_strength", -1e6), father->getData("parameters.compressive_strain", -0.001),  father->getData("parameters.material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( father->getStringData("parameters.plane_type", "PLANE_STRESS") ) ) ;
+            {
+                if(father->hasChildFromFullLabel("parameters.compressive_strength") || father->hasChildFromFullLabel("parameters.compressive_strain"))
+                    ret = new NonLocalSpaceTimeMazars( father->getData("parameters.tensile_strain",0.001), father->getData("parameters.young_modulus", 1e9), father->getData("parameters.poisson_ratio", 0.2), father->getData("parameters.fracture_energy", 1), father->getData("parameters.compressive_strength", -1e6), father->getData("parameters.compressive_strain", -0.001),  father->getData("parameters.material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( father->getStringData("parameters.plane_type", "PLANE_STRESS") ) ) ;
+                else
+                    ret = new NonLocalSpaceTimeMazars( father->getData("parameters.tensile_strain",0.001), father->getData("parameters.young_modulus", 1e9), father->getData("parameters.poisson_ratio", 0.2), father->getData("parameters.fracture_energy", 1), father->getData("parameters.material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( father->getStringData("parameters.plane_type", "PLANE_STRESS") ) ) ;
+            }
             else
-                ret = new NonLocalSpaceTimeMazars( getData("tensile_strain",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("compressive_strength", -1e6), getData("compressive_strain", -0.001),  getData("material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
+            {
+                if(hasChild("compressive_stress") || hasChild("compressive_strain"))
+                    ret = new NonLocalSpaceTimeMazars( getData("tensile_strain",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("compressive_strength", -1e6), getData("compressive_strain", -0.001),  getData("material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
+                else
+                    ret = new NonLocalSpaceTimeMazars( getData("tensile_strain",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
+            }
         }
         if(type == "MCFT")
         {
@@ -1782,6 +1792,13 @@ InclusionGenerator * ConfigTreeItem::getInclusionGenerator() const
             int degree = getData("degree", 2) ;
             return new GravelPolygonalInclusionGenerator( param_p, param_m, degree, side, orientation, orientation_var, side_var, rotation, force ) ;
         }
+        if(method == "VORONOI")
+        {
+            double box = getData("box_width", 0.1 ) ;
+            int grains = getData("grains", 100 ) ;
+            double minDist = getData("distance", 0.001) ;
+            return new VoronoiPolygonalInclusionGenerator( box, grains, minDist, orientation, orientation_var, rotation, force ) ;
+        }
         if(method == "CRUSHED")
         {
             double shape = getData("shape_factor", 0.75 ) ;
@@ -1798,6 +1815,19 @@ InclusionGenerator * ConfigTreeItem::getInclusionGenerator() const
     }
 
     return new InclusionGenerator( rotation ) ;
+}
+
+VoronoiGrain ConfigTreeItem::getVoronoiGrain(SpaceDimensionality dim, bool spaceTime, std::vector<ExternalMaterialLaw *> common)
+{
+    Form * b = new VoidForm() ;
+    if(hasChild("behaviour"))
+        b = getChild("behaviour")->getBehaviour( dim, spaceTime, common ) ;
+    double r = getData("radius", 0.001) ;
+    double f = getData("fraction", 0.1) ;
+    double c = getData("correction_factor", 1.) ;
+
+    return VoronoiGrain( b, r, f, c) ;
+
 }
 
 
@@ -1817,25 +1847,27 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
 
     if(type == "VORONOI")
     {
-        size_t seeds = psdConfig->getData("grains", 100) ;
-        double minDist = psdConfig->getData("distance", 0.001) ;
+        size_t seeds = psdConfig->getData("maximum_grain_number", 0) ;
+        double minDist = getData("minimum_grain_distance", -1) ;
         double border = std::max(psdConfig->getData("border_width", 0.001), 0.) ;
         size_t max = psdConfig->getData("maximum_edges", 16) ;
         double interlayer = psdConfig->getData("interface_width", 0) ;
         bool copy = (psdConfig->getStringData("copy_grain_behaviour", "TRUE") == std::string("TRUE")) ;
-        bool reset = (psdConfig->getStringData("reset_parent_behaviour", "FALSE") == std::string("TRUE")) ;
-        std::vector< std::pair< Form *, double > > behaviour ;
-        std::vector<ConfigTreeItem *> b = getAllChildren( "behaviour" ) ;
-        for(size_t i = 0 ; i < b.size() ; i++)
+        std::vector< VoronoiGrain > grains ;
+        std::vector<ConfigTreeItem *> g = getAllChildren( "grain" ) ;
+        for(size_t i = 0 ; i < g.size() ; i++)
         {
-            Form * test = b[i]->getBehaviour( F->is2D() ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL , F->getOrder() >= CONSTANT_TIME_LINEAR, common ) ;
-            if(test)
-                behaviour.push_back( std::make_pair( test, b[i]->getData("fraction", ((double) i+1)/b.size() ) ) ) ;
+            grains.push_back( g[i]->getVoronoiGrain( F->is2D() ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL , F->getOrder() >= CONSTANT_TIME_LINEAR, common ) ) ;
+//            std::cout << grains[i].fraction << "\t" << grains[i].radius << std::endl ;
         }
+
+        if(minDist < 0)
+            minDist = grains[grains.size()-1].radius ;
+
         if(base.size() == 0)
-            out = PSDGenerator::get2DVoronoiPolygons( F, behaviour, seeds,  minDist, border, max, copy, interlayer ) ;
+            out = PSDGenerator::get2DVoronoiPolygons( F, grains, seeds, minDist, border, max, copy, interlayer ) ;
         else
-            out = PSDGenerator::get2DVoronoiPolygons( F, behaviour, base, seeds,  minDist, border, max, copy, reset, interlayer ) ;   
+            out = PSDGenerator::get2DVoronoiPolygons( F, grains, base, seeds, minDist, border, max, copy, interlayer ) ;   
     }
     else if(type == "FROM_INCLUSION_FILE")
     {

@@ -258,9 +258,14 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 			else
 				thr = values["tensile_strain"] ;
 			double Gf = values["fracture_energy"] ;
-			double cstress = values["compressive_stress"] ;
-			double cstrain = values["compressive_strain"] ;
-			mazar->resetParameters( thr, E, nu, Gf, cstress, cstrain ) ;
+			if(values.find("compressive_stress") != values.end() || values.find("compressive_strain") != values.end())
+			{
+				double cstress = values["compressive_stress"] ;
+				double cstrain = values["compressive_strain"] ;
+				mazar->resetParameters( thr, E, nu, Gf, cstress, cstrain ) ;
+			}
+			else
+				mazar->resetParameters( thr, E, nu, Gf ) ;
 		}
 			
 		

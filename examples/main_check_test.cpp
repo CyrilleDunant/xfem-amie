@@ -77,9 +77,13 @@ int getDelta( std::string base, std::string current, double tol )
 
 int main(int argc, char *argv[])
 {
-	CommandLineParser parser ;
-	parser.addValue("--tolerance", 0.01 ) ;
+	CommandLineParser parser("Run all tests found in AMIE test base") ;
+	parser.addFlag("--zero", false, "set tolerance to 0") ;
+	parser.addValue("--tolerance", 0.01, "set tolerance for evaluation of test success" ) ;
+	parser.parseCommandLine(argc, argv) ;
 	double tol = std::abs(parser.getValue("--tolerance")) ;
+	if(parser.getFlag("--zero"))
+		tol = 0 ; 
 
 	std::string path("../examples/test/") ;
 	std::vector<std::string> exec ;

@@ -23,6 +23,7 @@ namespace Amie {
 	{
     protected:
 		bool ismet ;
+		bool tensionOnly ;
 		double B_t;
 		double B_c ;
 	public:
@@ -51,6 +52,8 @@ namespace Amie {
 	 */
 		NonLocalMazars(double thres, double E, double nu, double Gf, double cstress, double cstrain, double radius, planeType pt, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
 
+		NonLocalMazars(double thres, double E, double nu, double Gf, double radius, planeType pt, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+
 		virtual ~NonLocalMazars();
 
 	/** \brief Return a copy of this criterion
@@ -67,7 +70,9 @@ namespace Amie {
 		
 		virtual double getTensileLimit(const ElementState & s) const {return threshold ;};
 
-		virtual void resetParameters( double thr, double E, double nu, double Gd, double cstress, double cstrain) ;
+		virtual void resetParameters( double thr, double E, double nu, double Gf, double cstress, double cstrain) ;
+
+		virtual void resetParameters( double thr, double E, double nu, double Gf) ;
 	
 
 	};
@@ -77,6 +82,7 @@ class NonLocalSpaceTimeMazars : public NonLocalMazars
 {
 public:
 	NonLocalSpaceTimeMazars(double thres, double E, double nu, double Gf, double cstress, double cstrain, double radius, planeType pt,  MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+	NonLocalSpaceTimeMazars(double thres, double E, double nu, double Gf, double radius, planeType pt,  MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
 	virtual ~NonLocalSpaceTimeMazars();
 	virtual double grade(ElementState &s)  ;
 	virtual FractureCriterion * getCopy() const;

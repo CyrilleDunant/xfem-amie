@@ -23,8 +23,19 @@ NonLocalMazars::NonLocalMazars(double thresh, double E, double nu, double Gf, do
     B_t = (0.1*E*thresh) / (Gf - E*0.1*thresh*thresh*0.5);
     B_c = -1./(sqrt(2.)*nu*cstrain);
     A_c = -(E*thresh + sqrt(2.)*cstress*nu)/((E*std::exp(B_c*thresh - 1.)/B_c) - E*thresh);
+    tensionOnly = false ;
 }
 
+NonLocalMazars::NonLocalMazars(double thresh, double E, double nu, double Gf, double radius, planeType pt, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
+    , threshold(std::abs(thresh)), E(E), Gf(Gf), nu(nu), cstrain(-1), cstress(-1), pt(pt)
+{
+    setMaterialCharacteristicRadius(radius);
+    ismet = false ;
+    B_t = (0.1*E*thresh) / (Gf - E*0.1*thresh*thresh*0.5);
+    B_c = -1./(sqrt(2.)*nu*cstrain);
+    A_c = -(E*thresh + sqrt(2.)*cstress*nu)/((E*std::exp(B_c*thresh - 1.)/B_c) - E*thresh);
+    tensionOnly = true ;
+}
 
 NonLocalMazars::~NonLocalMazars()
 {
@@ -41,6 +52,21 @@ void NonLocalMazars::resetParameters( double thresh, double E_, double nu_, doub
     B_t = (0.1*E*thresh) / (Gf - E*0.1*thresh*thresh*0.5);
     B_c = -1./(sqrt(2.)*nu*cstrain);
     A_c = -(E*thresh + sqrt(2.)*cstress*nu)/((E*std::exp(B_c*thresh - 1.)/B_c) - E*thresh);
+    tensionOnly = false ;
+}
+
+void NonLocalMazars::resetParameters( double thresh, double E_, double nu_, double Gf_)
+{
+    threshold = std::abs( thresh ) ;
+    E = E_ ;
+    nu = nu_ ;
+    Gf = Gf_ ;
+    cstress = -1 ;
+    cstrain = -1 ;
+    B_t = (0.1*E*thresh) / (Gf - E*0.1*thresh*thresh*0.5);
+    B_c = -1./(sqrt(2.)*nu*cstrain);
+    A_c = -(E*thresh + sqrt(2.)*cstress*nu)/((E*std::exp(B_c*thresh - 1.)/B_c) - E*thresh);
+    tensionOnly = true ;
 }
 
 double NonLocalMazars::gradeAtTime(ElementState &s, double t)
@@ -74,8 +100,8 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
         }
         maxStrain = gamma*std::max(0.0,sqrt ( pow( (0.5*( std::abs(strain[0])  + strain[0] )) ,2.0) + pow((0.5*( std::abs(strain[1])  + strain[1] ) ),2.0) +   pow((0.5*( std::abs(strainzz)  + strainzz ) ),2.0))) ;
         talpha = (posstrain[0]*(0.5*( std::abs(strain[0])  + strain[0] )) + posstrain[1]*(0.5*( std::abs(strain[1])  + strain[1] ))  + posstrain[2]*(0.5*( std::abs(strainzz)  + strainzz ))) / (maxStrain*maxStrain);
-         talpha = 1.0;
-	calpha = 1.0 - talpha ;
+         tensionOnly = true ;
+//	calpha = 1.0 - talpha ;
     }
     
     else if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL && pt == PLANE_STRAIN)
@@ -99,8 +125,13 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
         if(talpha < 1.0e-3) {
             talpha= 0.;
         }
-        calpha = 1.0 - talpha ;
+//        calpha = 1.0 - talpha ;
     }
+
+    if(tensionOnly)
+         talpha = 1.0;
+
+    calpha = 1.0 - talpha ;
 
     //Critere seuil sur l'endommagement
     true_threshold = std::max(threshold, maxStrain);
@@ -132,6 +163,8 @@ FractureCriterion * NonLocalMazars::getCopy() const
 
 
 NonLocalSpaceTimeMazars::NonLocalSpaceTimeMazars(double thresh, double E, double nu, double Gf, double cstress, double cstrain, double radius, planeType pt, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : NonLocalMazars(thresh,  E,  nu,  Gf,  cstress,  cstrain,   radius, pt,  mirroring,  delta_x,  delta_y,  delta_z) { }
+
+NonLocalSpaceTimeMazars::NonLocalSpaceTimeMazars(double thresh, double E, double nu, double Gf, double radius, planeType pt, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : NonLocalMazars(thresh,  E,  nu,  Gf,   radius, pt,  mirroring,  delta_x,  delta_y,  delta_z) { }
 
 NonLocalSpaceTimeMazars::~NonLocalSpaceTimeMazars() { }
 

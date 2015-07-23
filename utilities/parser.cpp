@@ -547,20 +547,62 @@ ConfigTreeItem * ConfigParser::readFile(std::string f, ConfigTreeItem * def, boo
     return ret ;
 }
 
-void CommandLineParser::parseCommandLine( int argc, char *argv[] )
+CommandLineParser::CommandLineParser(std::string d, bool c) : description(d), commandLineConfiguration(c)
 {
-	int i = 1 ;
-	while(i < argc)
+    addFlag("--help", false, "print help") ;
+    addFlag("--version", false, "print current AMIE revision") ;
+}
+
+ConfigTreeItem * CommandLineParser::parseCommandLine( int argc, char *argv[] )
+{
+	command = std::string(argv[0]) ;
+
+	ConfigTreeItem * define = nullptr ;
+	size_t i = 1 ;
+	while(i < (size_t) argc)
 	{
-		if( flags.find( std::string( argv[i] ) ) != flags.end() )
-			flags[ std::string( argv[i] ) ] = true ;
-		if( values.find( std::string( argv[i] ) ) != values.end()  )
+		std::string test = std::string(argv[i]) ;
+		if(i-1 < arguments.size() && test[0] != '-')
 		{
-			values[ std::string( argv[i] ) ] = atof(argv[i+1]) ;
+			arguments[i-1].str = test ;
+			arguments[i-1].val = atof(test.c_str()) ;
+		}
+		else if( flags.find( test ) != flags.end() )
+			flags[ test ] = true ;
+		else if( values.find( test ) != values.end()  )
+		{
+			values[ test ] = atof(argv[i+1]) ;
+			i++ ;
+		}
+		else if( strings.find( test ) != strings.end()  )
+		{
+			strings[ test ] = std::string(argv[i+1]) ;
+			i++ ;
+		}
+		else if(commandLineConfiguration && test[0] == '@')
+		{
+			if(!define)
+				define = new ConfigTreeItem(nullptr, "define") ;
+			std::string testval = std::string(argv[i+1]) ;
+			bool isDouble = (testval.find_first_not_of("0123456789.e-") == std::string::npos ) ;
+			if(isDouble)
+				new ConfigTreeItem( define, test, atof(testval.c_str()) ) ;
+			else
+				new ConfigTreeItem( define, test, testval ) ;
 			i++ ;
 		}
 		i++ ;
 	}
+
+	if( getFlag("--version") )
+		printVersion() ;
+	if( getFlag("--help") )
+		printHelp() ;
+
+	if(getFlag("--help") || getFlag("--version"))
+		exit(0) ;
+
+	return define ;
 }
 
 void CommandLineParser::printStatus( )
@@ -572,3 +614,121 @@ void CommandLineParser::printStatus( )
 
 }
 
+void printFormatedHelp( std::string arg, size_t max, std::string help, std::string lead)
+{
+	std::cout << arg ;
+	for(size_t i = 0 ; i < max-arg.length() ; i++)
+		std::cout << " " ;
+	std::cout << lead << help << std::endl ;
+}
+
+void CommandLineParser::printHelp( )
+{
+	std::cout << std::endl ;
+
+	if(description.length() > 0)
+	{
+		std::cout << description << std::endl ;
+		std::cout << std::endl ;
+	}
+
+	std::cout << "USAGE" << std::endl ;
+	std::cout << command << "  " ;
+	for(size_t i = 0 ; i < arguments.size() ; i++)
+		std::cout << arguments[i].name << "  " ;
+	if(commandLineConfiguration)
+		std::cout << "[@argument (value) ...]  " ;
+	std::cout << "[options...]" << std::endl ;
+
+	std::cout << std::endl ;
+	if(arguments.size() > 0)
+		std::cout << "ARGUMENTS" << std::endl ;
+
+	size_t m = 0 ;
+	for(size_t i = 0 ; i < arguments.size() ; i++)
+		m = std::max(m, arguments[i].name.length() ) ;
+
+	for(size_t i = 0 ; i < arguments.size() ; i++)
+		printFormatedHelp( arguments[i].name, m, arguments[i].help, "  " ) ;
+	if(arguments.size() > 0)
+		std::cout << std::endl ;
+
+	std::cout << "OPTIONS" << std::endl ;
+
+	m = 0 ;
+	for(auto h = help.begin() ; h != help.end() ; h++)
+		m = std::max(m, h->first.length() ) ;
+
+	for(auto h = help.begin() ; h != help.end() ; h++)
+	{
+		std::string lead = "  " ;
+		if(values.find(h->first) != values.end())
+			lead = "  (numeral) " ;
+		if(strings.find(h->first) != strings.end())
+			lead = "  (string) " ;
+		printFormatedHelp( h->first, m, h->second, lead ) ;
+	}
+
+	std::cout << std::endl ;
+}
+
+void CommandLineParser::printVersion( )
+{
+	std::cout << "current AMIE version: svn " << std::flush ;
+	std::system("svnversion ..") ;
+}
+
+bool CommandLineParser::getFlag( std::string f )
+{
+	if( flags.find( f ) == flags.end() )
+		return false ;
+	return flags[f] ;
+}
+
+double CommandLineParser::getValue( std::string f )
+{
+	if( values.find( f ) == values.end() )
+		return 0. ;
+	return values[f] ;
+}
+
+std::string CommandLineParser::getString( std::string f )
+{
+	if( strings.find( f ) == strings.end() )
+		return std::string() ;
+	return strings[f] ;
+}
+
+std::string CommandLineParser::getStringArgument( size_t i )
+{
+	if(i < arguments.size())
+		return std::string() ;
+	return arguments[i].str ;
+}
+
+std::string CommandLineParser::getStringArgument( std::string arg )
+{
+	for(size_t i = 0 ; i < arguments.size() ; i++)
+	{
+		if(arguments[i].name == arg)
+			return arguments[i].str ;
+	}
+	return std::string() ;
+}
+
+double CommandLineParser::getNumeralArgument( size_t i )
+{
+	if(i < arguments.size())
+		return 0. ;
+	return arguments[i].val ;
+}
+
+double CommandLineParser::getNumeralArgument( std::string arg )
+{
+	for(size_t i = 0 ; i < arguments.size() ; i++)
+	{
+		if(arguments[i].name == arg)
+			return arguments[i].val ;
+	}
+	return 0. ;
+}

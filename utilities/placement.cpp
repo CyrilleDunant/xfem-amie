@@ -18,7 +18,7 @@ bool intersections( Feature * feat, const std::vector<Geometry *> & exclusionZon
 {
     for(size_t i = 0 ; i < exclusionZones.size() ; i++)
     {
-        if(feat->intersects(exclusionZones[i]))
+        if(feat->intersects(exclusionZones[i]) || exclusionZones[i]->in(feat->getCenter()))
             return true ;
     }
     return false ;

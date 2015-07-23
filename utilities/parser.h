@@ -24,35 +24,52 @@ using namespace Amie ;
 
 //#define DEBUG 
 
+struct CommandLineArgument
+{
+	std::string name ;
+	std::string help ;
+	std::string str ;
+	double val ;
+
+	CommandLineArgument(std::string n, std::string h = std::string(), std::string defstr = std::string(), double v = 0.) : name(n), help(h), str(defstr), val(v) { } ;
+} ;
+
 class CommandLineParser
 {
 protected:
 	std::map< std::string, bool > flags ;
 	std::map< std::string, double > values ;
+	std::map< std::string, std::string > strings ;
+	std::map< std::string, std::string> help ;
+	std::vector< CommandLineArgument > arguments ;
+	std::string command ;
+	std::string description ;
+	bool commandLineConfiguration ;
 
 public:
-	CommandLineParser() { } ;
+	CommandLineParser(std::string d = std::string(), bool c = false) ;
 
-	void addFlag( std::string f, bool activated ) { flags[f] = activated ; }
-	void addValue( std::string f, double val ) { values[f] = val ; }
+	void addFlag( std::string f, bool activated, std::string h = std::string() ) { flags[f] = activated ; help[f] = h ; }
+	void addValue( std::string f, double val, std::string h = std::string() ) { values[f] = val ; help[f] = h ; }
+	void addString( std::string f, std::string str, std::string h = std::string() ) { strings[f] = str ; help[f] = h ; }
+	void addArgument( std::string f, std::string defstr, std::string h = std::string()) { arguments.push_back( CommandLineArgument(f, h, defstr, 0. ) ) ; }
+	void addArgument( std::string f, double v, std::string h = std::string()) { arguments.push_back( CommandLineArgument(f, h, std::string(), v ) ) ; }
 
-	bool getFlag( std::string f )
-	{
-		if( flags.find( f ) == flags.end() )
-			return false ;
-		return flags[f] ;
-	}
+	bool getFlag( std::string f ) ;
+	double getValue( std::string f ) ;
+	std::string getString( std::string f ) ;
+	std::string getStringArgument( std::string arg ) ;
+	std::string getStringArgument( size_t i ) ;
+	double getNumeralArgument( std::string arg ) ;
+	double getNumeralArgument( size_t i ) ;
 
-	double getValue( std::string f )
-	{
-		if( values.find( f ) == values.end() )
-			return 0. ;
-		return values[f] ;
-	}
-
-	void parseCommandLine( int argc, char *argv[] ) ;
+	ConfigTreeItem * parseCommandLine( int argc, char *argv[] ) ;
 
 	void printStatus() ;
+
+	void printHelp() ;
+
+	void printVersion() ;
 
 } ;
 

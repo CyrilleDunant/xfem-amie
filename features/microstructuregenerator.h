@@ -134,6 +134,15 @@ struct PolygonalInclusionGenerator : public InclusionGenerator
     virtual Feature * convert(Inclusion * inc ) const ;
 } ;
 
+struct VoronoiPolygonalInclusionGenerator : public PolygonalInclusionGenerator
+{
+    std::vector<PolygonalSample *> source ;
+
+    VoronoiPolygonalInclusionGenerator( double box, size_t seed, double minDist, double o = 0., double ov = M_PI, double rot = 0., bool force = false) ;
+
+    virtual PolygonalSample * generatePolygon(double radius) const;
+} ; 
+
 // see Beddow and Meloy 1980, cited by Wang et al 1999
 struct GravelPolygonalInclusionGenerator : public PolygonalInclusionGenerator
 {

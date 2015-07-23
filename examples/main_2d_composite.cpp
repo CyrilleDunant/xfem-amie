@@ -25,27 +25,12 @@ int main(int argc, char *argv[])
     timeval time0, time1 ;
     gettimeofday ( &time0, nullptr );
 
-    std::string file = "../examples/data/composite/test_2d_composite.ini" ;
-    if(argc > 1)
-        file = std::string(argv[1]) ;
-
-    ConfigTreeItem * define = nullptr ;
-    for(int i = 2 ; i < argc ; i+=2)
-    {
-        std::string test = std::string(argv[i]) ;
-        if(test[0] == '@')
-        {
-            if(!define)
-                define = new ConfigTreeItem(nullptr, "define") ;
-            std::string testval = std::string(argv[i+1]) ;
-            bool isDouble = (testval.find_first_not_of("0123456789.e-") == std::string::npos ) ;
-            if(isDouble)
-                new ConfigTreeItem( define, test, atof(testval.c_str()) ) ;
-            else
-                new ConfigTreeItem( define, test, testval ) ;
-        }
-    }
-
+    CommandLineParser parser("Run a 2D AMIE simulation using the configuration parameters found in a *.ini file", true) ;
+    parser.addFlag( "--print-microstructure", false , "print only the mesh and values of mechanical properties") ;
+    parser.addArgument( "file_name", "../examples/data/composite/test_2d_composite.ini", "relative path to *.ini file to run") ;
+    ConfigTreeItem * define = parser.parseCommandLine( argc, argv ) ;
+    bool printMicrostructureOnly = parser.getFlag("--print-microstructure") ;
+    std::string file = parser.getStringArgument(0) ;
     ConfigTreeItem * problem = ConfigParser::readFile(file, define) ;
 
 #ifdef HAVE_OMP
@@ -100,6 +85,15 @@ int main(int argc, char *argv[])
     }
 
     F.step() ;
+
+    if(printMicrostructureOnly)
+    {
+        TriangleWriter trg(problem->getStringData("export.file_name","2d_composite_microstructure"), &F, 1 ) ;
+        trg.getField( TWFT_STIFFNESS ) ;
+        trg.write() ;
+        exit(0) ;
+    }
+
     std::vector<unsigned int> cacheIndex ;
     std::vector<unsigned int> aggCacheIndex ;
     std::cout << "generating cache for inclusion family 0/" << allFeatures.size() ;

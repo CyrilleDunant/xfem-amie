@@ -205,6 +205,8 @@ public:
     /** Translates the current item in a vector of imposed strain*/
     Vector getImposedDeformation(SpaceDimensionality dim) const ;
 
+    VoronoiGrain getVoronoiGrain(SpaceDimensionality dim, bool spaceTime = false, std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>() ) ;
+
     /** Translates the current item in a particle size distribution*/
     ParticleSizeDistribution * getParticleSizeDistribution() const ;
 

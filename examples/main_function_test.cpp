@@ -5,153 +5,63 @@
 //
 
 #include "../polynomial/vm_function_base.h"
+#include "../utilities/parser.h"
 
 #include <fstream>
 #include <cmath>
 
 using namespace Amie ;
 
+std::vector<double> range2Vector(std::string range) 
+{
+	std::string begin = range.substr(1, range.find_first_of(":")-1) ;
+	std::string mid = range.substr(range.find_first_of(":")+1, range.find_last_of(":")-range.find_first_of(":")-1 ) ;
+	std::string end = range.substr(range.find_last_of(":")+1, range.length()-range.find_last_of(":")-2 ) ;
+
+	double start = atof(begin.c_str()) ;
+	double step = std::abs(atof(mid.c_str())) ;
+	double finish = atof(end.c_str()) ;
+
+	if(step == 0)
+		step = 1 ;
+
+	std::vector<double> v ;
+	v.push_back(std::min(start, finish)) ;
+	for(double d = std::min(start, finish)+step ; d <= std::max(start, finish) ; d += step)
+		v.push_back(d) ;
+
+	return v ;
+}
+
 int main(int argc, char *argv[])
 {
-	if(argc < 3)
-	{
-		std::cout << "AMIE function tester" << std::endl ;
-		std::cout << "usage:    ./function_test \"function\" --range x=[min:increment:max] y=[min:increment:max] z=[min:increment:max] t=[min:increment:max] --output filename" << std::endl ;
-		std::cout << "x,y,z,t coordinates can be omitted (default value = 0)" << std::endl ;
-		std::cout << "output can be omitted (results will be printed in the console)" << std::endl ;
-		return 0 ;
-	}
-
-
-	std::string f_ = std::string(argv[1]) ;
-	std::vector<double> x_ ;
-	std::vector<double> y_ ;
-	std::vector<double> z_ ;
-	std::vector<double> t_ ;
-	std::string file ;
-	bool function = true ;
-	bool range = false ;
-	bool output = false ;
-
-	int counter = 1e6 ;
-
-	for(int i = 2 ; i < argc ; i++)
-	{
-		if(function)
-		{
-			if(std::string(argv[i]) != std::string("--range"))
-			{
-				f_.append(" ") ;
-				f_.append(std::string(argv[i])) ;
-				std::cout << f_ << std::endl ;
-			}
-			else
-			{
-				function = false ;
-				range = true ;
-			}
-		}
-		else if(range) 
-		{
-			if(std::string(argv[i]) != std::string("--output"))
-			{
-				std::string token = std::string(argv[i]) ;
-				char coord = token[0] ;
-				bool exponent = (token.find("10^") == 2) ;
-				double first = 0. ;
-				double last = 0. ;
-				double incr = 0. ;
-				int left = token.find('[') ;
-				int firstcolon = token.find(':') ;
-				int secondcolon = token.find(':', firstcolon+1) ;
-				int right = token.find(']') ;
-				first = atof( token.substr(left+1, firstcolon-left ).c_str() ) ;
-				incr = atof( token.substr(firstcolon+1, secondcolon-firstcolon ).c_str() ) ;
-				last = atof( token.substr(secondcolon+1, right-secondcolon ).c_str() ) ;
-				if(first > last)
-				{
-					double tmp = last ;
-					last = first ;
-					first = tmp ;
-				} 
-				if(incr < 0)
-					incr = -incr ;
-			
-				if(!exponent)
-				{
-					if(coord == 'x')
-					{
-						for(double a = first ; a <= last ; a+= incr)
-							x_.push_back(a) ;
-					}
-					if(coord == 'y')
-					{
-						for(double a = first ; a <= last ; a+= incr)
-							y_.push_back(a) ;
-					}
-					if(coord == 'z')
-					{
-						for(double a = first ; a <= last ; a+= incr)
-							z_.push_back(a) ;
-					}
-					if(coord == 't')
-					{
-						for(double a = first ; a <= last ; a+= incr)
-							t_.push_back(a) ;
-					}
-				}
-				else
-				{
-					if(coord == 'x')
-					{
-						for(double a = first ; a <= last ; a+= incr)
-							x_.push_back(std::pow(10.,a)) ;
-					}
-					if(coord == 'y')
-					{
-						for(double a = first ; a <= last ; a+= incr)
-							y_.push_back(std::pow(10.,a)) ;
-					}
-					if(coord == 'z')
-					{
-						for(double a = first ; a <= last ; a+= incr)
-							z_.push_back(std::pow(10.,a)) ;
-					}
-					if(coord == 't')
-					{
-						for(double a = first ; a <= last ; a+= incr)
-							t_.push_back(std::pow(10.,a)) ;
-					}
-				}
-			}
-			else
-			{
-				range = false ;
-				output = true ;
-			}
-		}
-		else if(output)
-		{
-			file = std::string(argv[i]) ;
-		}
-
-	}
-
-	if(x_.size() == 0)
-		x_.push_back(0.);
-	if(y_.size() == 0)
-		y_.push_back(0.);
-	if(z_.size() == 0)
-		z_.push_back(0.);
-	if(t_.size() == 0)
-		t_.push_back(0.);
+	CommandLineParser parser("Evaluate the value of an AMIE function at different coordinates") ;
+	parser.addArgument("\"function\"", "x", "AMIE function written in RPN ( mandatory)") ;
+	parser.addString("--range-x", "[0:0:0]", "range of the x coordinates formatted as [start:step:end]") ;
+	parser.addString("--range-y", "[0:0:0]", "range of the y coordinates formatted as [start:step:end]") ;
+	parser.addString("--range-z", "[0:0:0]", "range of the z coordinates formatted as [start:step:end]") ;
+	parser.addString("--range-t", "[0:0:0]", "range of the t coordinates formatted as [start:step:end]") ;
+	parser.addString("--output", "", "writes output in specified file instead of console") ;
+	parser.addValue("--print-limit", 1e6, "maximum number of values printed (default 1e6)") ;
+	parser.addFlag("--print-vm", false, "print instructions of the AMIE virtual machine") ;
+	
+	parser.parseCommandLine(argc, argv) ;
+	std::vector<double> x_ = range2Vector( parser.getString("--range-x") ) ;
+	std::vector<double> y_ = range2Vector( parser.getString("--range-y") ) ;
+	std::vector<double> z_ = range2Vector( parser.getString("--range-z") ) ;
+	std::vector<double> t_ = range2Vector( parser.getString("--range-t") ) ;
+	std::string f_ = parser.getStringArgument("\"function\"") ;
+	std::string file = parser.getString("--output") ;
+	size_t counter = parser.getValue("--print-limit") ;
+	bool instruction = parser.getFlag("--print-vm") ;
 
 	VirtualMachine vm ;
 	Function test(f_.c_str()) ;
 
-	vm.print(test) ;
+	if(instruction)
+		vm.print(test) ;
 
-	int c = 0 ;
+	size_t c = 0 ;
 
 	if(file.size() > 0)
 	{

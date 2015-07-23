@@ -103,6 +103,17 @@ struct PSDEndCriteria
 
 class ParticleSizeDistribution ;
 
+struct VoronoiGrain
+{
+    Form * behaviour ;
+    double radius ;
+    double fraction ;
+    double correctionFactor ;
+
+    VoronoiGrain(Form * b, double r, double f, double c = 1.) : behaviour(b), radius(r), fraction(f), correctionFactor(c) { } ;
+
+} ;
+
 /**
  * \brief Basic class for generation of particle size distribution
  */
@@ -131,14 +142,13 @@ public:
 	 */
 	static std::vector<Inclusion3D *> get3DInclusions(double rmax, double area, ParticleSizeDistribution * type, PSDEndCriteria crit) ;
 		
+        static std::vector<std::vector<PolygonalSample *> > get2DVoronoiPolygons(Rectangle * box, std::vector<VoronoiGrain> & grains, size_t n, double minDist, double delta = 0) ;
 
-        static std::vector<PolygonalSample *> get2DVoronoiPolygons(Rectangle * box, size_t n, double minDist, double delta = 0) ;
+        static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(FeatureTree * F, std::vector<VoronoiGrain> & grains, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false, double delta = 0) ;
 
-        static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(FeatureTree * F, std::vector<std::pair<Form *, double> > & behaviour, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false, double delta = 0) ;
+        static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(Feature * feat, std::vector<VoronoiGrain> & grains, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false, double delta = 0) ;
 
-        static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(Feature * feat, std::vector<std::pair<Form *, double> > & behaviour, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false, double delta = 0) ;
-
-        static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(FeatureTree * F, std::vector<std::pair<Form *, double> > & behaviour, std::vector<Feature *> feats, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false, bool resetInclusionBehaviour = false, double delta = 0) ;
+        static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(FeatureTree * F, std::vector<VoronoiGrain> & grains, std::vector<Feature *> feats, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false, double delta = 0) ;
 
 	/**
 	 * \brief Creates PSD for mortar square samples

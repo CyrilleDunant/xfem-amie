@@ -368,6 +368,32 @@ Feature * PolygonalInclusionGenerator::convert( Inclusion * inc) const
 	return ret ;
 }
 
+VoronoiPolygonalInclusionGenerator::VoronoiPolygonalInclusionGenerator( double box, size_t seed, double minDist, double o, double ov, double rot, bool force) : PolygonalInclusionGenerator(5, o, ov, 0, rot, force)
+{
+	Rectangle rect( box, box, 0,0 ) ;
+	std::vector<VoronoiGrain> morphology ;
+	morphology.push_back( VoronoiGrain( nullptr, minDist, 1., 1.) ) ;
+	source = PSDGenerator::get2DVoronoiPolygons(&rect, morphology, seed, minDist)[0] ;
+	if(source.size() == 0)
+	{
+		std::cout << "no polygons available after Voronoi tesselation, exiting now" << std::endl ;
+		exit(0) ;
+	}
+}
+
+PolygonalSample * VoronoiPolygonalInclusionGenerator::generatePolygon(double radius) const
+{
+	RandomNumber rng ;
+	size_t i = round(rng.uniform( source.size() )) ;
+	std::valarray<Point> opts = source[i]->getOriginalPoints() ;
+	std::valarray<Point *> pts( opts.size() ) ;
+	for(size_t j = 0 ; j < opts.size() ; j++)
+		pts[j] = new Point( opts[j] ) ;
+	PolygonalSample * ret = new PolygonalSample( nullptr, pts ) ;
+	ret->setCenter( Point(0,0) ) ;
+	return ret ;
+}
+
 PolygonalSample * GravelPolygonalInclusionGenerator::generatePolygon(double radius) const
 {
 	RandomNumber rng ;
