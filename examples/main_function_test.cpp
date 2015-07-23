@@ -35,8 +35,8 @@ std::vector<double> range2Vector(std::string range)
 
 int main(int argc, char *argv[])
 {
-	CommandLineParser parser("Evaluate the value of an AMIE function at different coordinates") ;
-	parser.addArgument("\"function\"", "x", "AMIE function written in RPN ( mandatory)") ;
+	CommandLineParser parser("Evaluate the value of an AMIE function at different coordinates and print the result in the console") ;
+	parser.addArgument("\"function\"", "x", "AMIE function written in RPN (quotes are mandatory)") ;
 	parser.addString("--range-x", "[0:0:0]", "range of the x coordinates formatted as [start:step:end]") ;
 	parser.addString("--range-y", "[0:0:0]", "range of the y coordinates formatted as [start:step:end]") ;
 	parser.addString("--range-z", "[0:0:0]", "range of the z coordinates formatted as [start:step:end]") ;
