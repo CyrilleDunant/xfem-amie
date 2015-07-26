@@ -283,14 +283,14 @@ public:
 	 * 
 	 * @param father sets the father.
 	 */
-	EnrichmentFeature(Feature *father) : Feature(father) { this->isEnrichmentFeature = true ;}
+	EnrichmentFeature(Feature *father) : Feature(father) { isEnrichmentFeature = true ;}
 	
 	/** \brief Feature constructor.
 	 * 
 	 * @param father sets the father.
 	 * @param b      sets the boundary.
 	 */
-	EnrichmentFeature(Feature *father, Geometry * b) : Feature(father, b) { this->isEnrichmentFeature = true ;}
+	EnrichmentFeature(Feature *father, Geometry * b) : Feature(father, b) { isEnrichmentFeature = true ;}
 	
 	virtual ~EnrichmentFeature() { };
 	

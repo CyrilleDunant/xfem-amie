@@ -530,7 +530,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( (int)(int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -597,7 +597,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( (int)(int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -5761,34 +5761,13 @@ void DofDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, D
     {
         std::vector<size_t> id_ ;
         id_.push_back ( id );
-        if(gp->gaussPoints.size() != surface->getGaussPoints().gaussPoints.size())
-        {
-            delete gp ;
-            delete Jinv ;
-            gp  = new GaussPointArray(dynamic_cast<DelaunayTriangle *>(surface)->getSubTriangulatedGaussPoints())  ;
 
-            Matrix J ;
-            surface->getInverseJacobianMatrix(Point( 1./3.,1./3.) , J) ;
-            Jinv = new std::valarray<Matrix>(gp->gaussPoints.size()) ;
-            *Jinv = J ;
-        }
         apply2DBC ( surface,*gp, *Jinv, id_, condition, data*getScale(), a, axis ) ;
     }
     else
     {
         std::vector<Point> id_ ;
-        if(gp->gaussPoints.size() != surface->getGaussPoints().gaussPoints.size())
-        {
-            delete gp ;
-            delete Jinv ;
-            gp  = new GaussPointArray(dynamic_cast<DelaunayTriangle *>(surface)->getSubTriangulatedGaussPoints())  ;
 
-            Matrix J ;
-            surface->getInverseJacobianMatrix(Point( 1./3.,1./3.) , J) ;
-            Jinv = new std::valarray<Matrix>(gp->gaussPoints.size()) ;
-            *Jinv = J ;
-        }
-        
         for ( size_t i = 0 ; i < surface->getBoundingPoints().size() ; i++ )
         {
             if ( surface->getBoundingPoint ( i ).getId() == (int)id )
@@ -5812,17 +5791,7 @@ void DofDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron
     {
         std::vector<size_t> id_ ;
         id_.push_back ( id );
-        if(gp->gaussPoints.size() != volume->getGaussPoints().gaussPoints.size())
-        {
-            delete gp ;
-            delete Jinv ;
-            gp  = new GaussPointArray(dynamic_cast<DelaunayTetrahedron *>(volume)->getSubTriangulatedGaussPoints())  ;
 
-            Matrix J ;
-            volume->getInverseJacobianMatrix(Point( .25, .25, .25) , J) ;
-            Jinv = new std::valarray<Matrix>(gp->gaussPoints.size()) ;
-            *Jinv = J ;
-        }
                 
         apply3DBC ( volume,*gp,*Jinv,  id_, condition, data*getScale(),  a , axis ) ;
     }
@@ -5830,17 +5799,6 @@ void DofDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron
     {
         std::vector<Point> id_ ;
 
-        if(gp->gaussPoints.size() != volume->getGaussPoints().gaussPoints.size())
-        {
-            delete gp ;
-            delete Jinv ;
-            gp  = new GaussPointArray(dynamic_cast<DelaunayTetrahedron *>(volume)->getSubTriangulatedGaussPoints())  ;
-
-            Matrix J ;
-            volume->getInverseJacobianMatrix(Point( .25, .25, .25) , J) ;
-            Jinv = new std::valarray<Matrix>(gp->gaussPoints.size()) ;
-            *Jinv = J ;
-        }
         for ( size_t i = 0 ; i < volume->getBoundingPoints().size() ; i++ )
         {
             if ( volume->getBoundingPoint ( i ).getId() == (int)id )

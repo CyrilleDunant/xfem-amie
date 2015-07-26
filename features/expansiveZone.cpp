@@ -19,6 +19,7 @@ using namespace Amie ;
 ExpansiveZone::ExpansiveZone( Feature *father, double radius, double x, double y, const Matrix &tensor, Vector def ) : EnrichmentInclusion( father, radius, x, y ),  imposedDef( def ), cgTensor( tensor )
 {
     setBehaviour( new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ) ;
+    isVirtualFeature = true ;
     homogeneized = false ;
 }
 
@@ -29,6 +30,7 @@ ExpansiveZone::ExpansiveZone( Feature *father, double radius, double x, double y
         imposedDef= dynamic_cast<StiffnessWithImposedDeformation *>(gel)->imposed  ;
     }
     setBehaviour( gel->getCopy() ) ;
+    isVirtualFeature = true ;
     homogeneized = false ;
 }
 
@@ -75,11 +77,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 
     for( size_t i = 0 ; i < disc.size() ; i++ )
     {
-        Segment s0( *disc[i]->first, *disc[i]->second ) ;
-        Segment s1( *disc[i]->second, *disc[i]->third ) ;
-        Segment s2( *disc[i]->third, *disc[i]->first ) ;
-
-        if( !( s0.intersection( getPrimitive() ).empty() && s1.intersection( getPrimitive() ).empty() && s2.intersection( getPrimitive() ).empty() ) && disc[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+        if( enrichmentTarget(disc[i]) )
             ring.push_back( disc[i] ) ;
         else if( in( disc[i]->getCenter() ) )
             inDisc.push_back( disc[i] ) ;
@@ -102,13 +100,13 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
             if( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() ) )
             {
                 Matrix p = dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->getOriginalBehaviour()->getTensor(Point(1./3,1./3)) ;
-                bi = new BimaterialInterface( getPrimitive(),
+                bi = new BimaterialInterface( EnrichmentInclusion::getPrimitive(),
                                               getBehaviour()->getCopy(),
                                               dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->getOriginalBehaviour()->getCopy() ) ;
             }
             else
             {
-                bi = new BimaterialInterface( getPrimitive(),
+                bi = new BimaterialInterface( EnrichmentInclusion::getPrimitive(),
                                               getBehaviour()->getCopy(),
                                               ring[i]->getBehaviour()->getCopy() ) ;
             }

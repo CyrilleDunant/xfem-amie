@@ -282,7 +282,7 @@ GaussPointArray gaussPointSet(Order order, const TriElement * t)
 // 			fin[0] = std::pair<Point, double>(Point(0.2, 0.2), 0.260416666666667) ;
 // 			fin[1] = std::pair<Point, double>(Point(0.6, 0.2), 0.260416666666667) ;
 // 			fin[2] = std::pair<Point, double>(Point(0.2, 0.6), 0.260416666666667) ;
-// 			fin[3] = std::pair<Point, double>(Point(1./3., 1./3.), -0.28125) ;
+// 			fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333), -0.28125) ;
 // 			break ;
 
         ordre = 1 ;
@@ -298,7 +298,7 @@ GaussPointArray gaussPointSet(Order order, const TriElement * t)
         fin[0] = std::pair<Point, double>(Point(0.2, 0.2), 0.260416666666667) ;
         fin[1] = std::pair<Point, double>(Point(0.6, 0.2), 0.260416666666667) ;
         fin[2] = std::pair<Point, double>(Point(0.2, 0.6), 0.260416666666667) ;
-        fin[3] = std::pair<Point, double>(Point(1./3., 1./3.), -0.28125) ;
+        fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333), -0.28125) ;
         break ;
     }
     case QUADTREE_REFINED:
@@ -307,9 +307,9 @@ GaussPointArray gaussPointSet(Order order, const TriElement * t)
         ordre = 4 ;
         fin.resize(ordre);
         fin[0] = std::pair<Point, double>(Point(1./6., 1./6.), 0.125) ;
-        fin[1] = std::pair<Point, double>(Point(1./6., 2./3.), 0.125) ;
-        fin[2] = std::pair<Point, double>(Point(2./3., 1./6.), 0.125) ;
-        fin[3] = std::pair<Point, double>(Point(1./3., 1./3.), 0.125) ;
+        fin[1] = std::pair<Point, double>(Point(1./6., 0.66666666666666), 0.125) ;
+        fin[2] = std::pair<Point, double>(Point(0.66666666666666, 1./6.), 0.125) ;
+        fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333), 0.125) ;
         break ;
     }
     case CUBIC:
@@ -329,7 +329,7 @@ GaussPointArray gaussPointSet(Order order, const TriElement * t)
 // 			fin[0] = std::pair<Point, double>(Point(0.2, 0.2), 0.260416666666667) ;
 // 			fin[1] = std::pair<Point, double>(Point(0.6, 0.2), 0.260416666666667) ;
 // 			fin[2] = std::pair<Point, double>(Point(0.2, 0.6), 0.260416666666667) ;
-// 			fin[3] = std::pair<Point, double>(Point(1./3., 1./3.), -0.28125) ;
+// 			fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333), -0.28125) ;
 // 			break ;
     }
     case QUADRIC:
@@ -398,13 +398,13 @@ GaussPointArray gaussPointSet(Order order, const TriElement * t)
         fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.), 1.0) ;
         /*			ordre = 5 ;
         			fin.resize(ordre);
-        			double a = 1./3.*sqrt(5.-2*sqrt(10./7.)) ;
-        			double b = 1./3.*sqrt(5.+2*sqrt(10./7.)) ;
-        			fin[0] = std::pair<Point, double>(Point(1./3., 1./3.,0,-a), (322.+13.*sqrt(70.))/1800.) ;
-        			fin[1] = std::pair<Point, double>(Point(1./3., 1./3.,0,-b), (322.-13.*sqrt(70.))/1800.) ;
-        			fin[2] = std::pair<Point, double>(Point(1./3., 1./3.,0,0), 128./450.) ;
-        			fin[3] = std::pair<Point, double>(Point(1./3., 1./3.,0,b), (322.-13.*sqrt(70.))/1800.) ;
-        			fin[4] = std::pair<Point, double>(Point(1./3., 1./3.,0,a), (322.+13.*sqrt(70.))/1800.) ;*/
+        			double a = 0.33333333333333*sqrt(5.-2*sqrt(10./7.)) ;
+        			double b = 0.33333333333333*sqrt(5.+2*sqrt(10./7.)) ;
+        			fin[0] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,-a), (322.+13.*sqrt(70.))/1800.) ;
+        			fin[1] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,-b), (322.-13.*sqrt(70.))/1800.) ;
+        			fin[2] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,0), 128./450.) ;
+        			fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,b), (322.-13.*sqrt(70.))/1800.) ;
+        			fin[4] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,a), (322.+13.*sqrt(70.))/1800.) ;*/
 
         break ;
     }
@@ -426,13 +426,13 @@ GaussPointArray gaussPointSet(Order order, const TriElement * t)
 
         ordre = 5 ;
         fin.resize(ordre);
-        double a = 1./3.*sqrt(5.-2*sqrt(10./7.)) ;
-        double b = 1./3.*sqrt(5.+2*sqrt(10./7.)) ;
-        fin[0] = std::pair<Point, double>(Point(1./3., 1./3.,0,-a), (322.+13.*sqrt(70.))/1800.) ;
-        fin[1] = std::pair<Point, double>(Point(1./3., 1./3.,0,-b), (322.-13.*sqrt(70.))/1800.) ;
-        fin[2] = std::pair<Point, double>(Point(1./3., 1./3.,0,0), 128./450.) ;
-        fin[3] = std::pair<Point, double>(Point(1./3., 1./3.,0,b), (322.-13.*sqrt(70.))/1800.) ;
-        fin[4] = std::pair<Point, double>(Point(1./3., 1./3.,0,a), (322.+13.*sqrt(70.))/1800.) ;
+        double a = 0.33333333333333*sqrt(5.-2*sqrt(10./7.)) ;
+        double b = 0.33333333333333*sqrt(5.+2*sqrt(10./7.)) ;
+        fin[0] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,-a), (322.+13.*sqrt(70.))/1800.) ;
+        fin[1] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,-b), (322.-13.*sqrt(70.))/1800.) ;
+        fin[2] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,0), 128./450.) ;
+        fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,b), (322.-13.*sqrt(70.))/1800.) ;
+        fin[4] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,a), (322.+13.*sqrt(70.))/1800.) ;
 
         break ;
     }
@@ -443,11 +443,11 @@ GaussPointArray gaussPointSet(Order order, const TriElement * t)
         fin[0] = std::pair<Point, double>(Point(0.2, 0.2,0,-0.577350269189626), 0.260416666666667) ;
         fin[1] = std::pair<Point, double>(Point(0.6, 0.2,0,-0.577350269189626), 0.260416666666667) ;
         fin[2] = std::pair<Point, double>(Point(0.2, 0.6,0,-0.577350269189626), 0.260416666666667) ;
-        fin[3] = std::pair<Point, double>(Point(1./3., 1./3.,0,-0.577350269189626), -0.28125) ;
+        fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,-0.577350269189626), -0.28125) ;
         fin[4] = std::pair<Point, double>(Point(0.2, 0.2,0,0.577350269189626), 0.260416666666667) ;
         fin[5] = std::pair<Point, double>(Point(0.6, 0.2,0,0.577350269189626), 0.260416666666667) ;
         fin[6] = std::pair<Point, double>(Point(0.2, 0.6,0,0.577350269189626), 0.260416666666667) ;
-        fin[7] = std::pair<Point, double>(Point(1./3., 1./3.,0,0.577350269189626), -0.28125) ;
+        fin[7] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,0.577350269189626), -0.28125) ;
         break ;
     }
     case QUADRATIC_TIME_QUADRATIC:
@@ -491,7 +491,7 @@ GaussPointArray gaussPointSet(Order order, const TriElement * t)
         fin[0] = std::pair<Point, double>(Point(0.2, 0.2), 0.260416666666667*2) ;
         fin[1] = std::pair<Point, double>(Point(0.6, 0.2), 0.260416666666667*2) ;
         fin[2] = std::pair<Point, double>(Point(0.2, 0.6), 0.260416666666667*2) ;
-        fin[3] = std::pair<Point, double>(Point(1./3., 1./3.), -0.28125*2) ;
+        fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333), -0.28125*2) ;
         break ;
     }
     case CUBIC_TIME_QUADRATIC:
@@ -501,11 +501,11 @@ GaussPointArray gaussPointSet(Order order, const TriElement * t)
         fin[0] = std::pair<Point, double>(Point(0.2, 0.2,0,-0.577350269189626), 0.260416666666667) ;
         fin[1] = std::pair<Point, double>(Point(0.6, 0.2,0,-0.577350269189626), 0.260416666666667) ;
         fin[2] = std::pair<Point, double>(Point(0.2, 0.6,0,-0.577350269189626), 0.260416666666667) ;
-        fin[3] = std::pair<Point, double>(Point(1./3., 1./3.,0,-0.577350269189626), -0.28125) ;
+        fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,-0.577350269189626), -0.28125) ;
         fin[4] = std::pair<Point, double>(Point(0.2, 0.2,0,0.577350269189626), 0.260416666666667) ;
         fin[5] = std::pair<Point, double>(Point(0.6, 0.2,0,0.577350269189626), 0.260416666666667) ;
         fin[6] = std::pair<Point, double>(Point(0.2, 0.6,0,0.577350269189626), 0.260416666666667) ;
-        fin[7] = std::pair<Point, double>(Point(1./3., 1./3.,0,0.577350269189626), -0.28125) ;
+        fin[7] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,0.577350269189626), -0.28125) ;
         break ;
     }
     case QUADRIC_TIME_LINEAR:
@@ -720,7 +720,7 @@ const GaussPointArray & TriElement::genGaussPoints()
 // 			fin[0] = std::pair<Point, double>(Point(0.2, 0.2), 0.260416666666667) ;
 // 			fin[1] = std::pair<Point, double>(Point(0.6, 0.2), 0.260416666666667) ;
 // 			fin[2] = std::pair<Point, double>(Point(0.2, 0.6), 0.260416666666667) ;
-// 			fin[3] = std::pair<Point, double>(Point(1./3., 1./3.), -0.28125) ;
+// 			fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333), -0.28125) ;
 // 			break ;
 
         ordre = 1 ;
@@ -736,7 +736,7 @@ const GaussPointArray & TriElement::genGaussPoints()
         fin[0] = std::pair<Point, double>(Point(0.2, 0.2), 0.260416666666667) ;
         fin[1] = std::pair<Point, double>(Point(0.6, 0.2), 0.260416666666667) ;
         fin[2] = std::pair<Point, double>(Point(0.2, 0.6), 0.260416666666667) ;
-        fin[3] = std::pair<Point, double>(Point(1./3., 1./3.), -0.28125) ;
+        fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333), -0.28125) ;
         break ;
     }
     case QUADTREE_REFINED:
@@ -745,9 +745,9 @@ const GaussPointArray & TriElement::genGaussPoints()
         ordre = 4 ;
         fin.resize(ordre);
         fin[0] = std::pair<Point, double>(Point(1./6., 1./6.), 0.125) ;
-        fin[1] = std::pair<Point, double>(Point(1./6., 2./3.), 0.125) ;
-        fin[2] = std::pair<Point, double>(Point(2./3., 1./6.), 0.125) ;
-        fin[3] = std::pair<Point, double>(Point(1./3., 1./3.), 0.125) ;
+        fin[1] = std::pair<Point, double>(Point(1./6., 0.66666666666666), 0.125) ;
+        fin[2] = std::pair<Point, double>(Point(0.66666666666666, 1./6.), 0.125) ;
+        fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333), 0.125) ;
         break ;
     }
     case CUBIC:
@@ -767,7 +767,7 @@ const GaussPointArray & TriElement::genGaussPoints()
 // 			fin[0] = std::pair<Point, double>(Point(0.2, 0.2), 0.260416666666667) ;
 // 			fin[1] = std::pair<Point, double>(Point(0.6, 0.2), 0.260416666666667) ;
 // 			fin[2] = std::pair<Point, double>(Point(0.2, 0.6), 0.260416666666667) ;
-// 			fin[3] = std::pair<Point, double>(Point(1./3., 1./3.), -0.28125) ;
+// 			fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333), -0.28125) ;
 // 			break ;
     }
     case QUADRIC:
@@ -836,15 +836,15 @@ const GaussPointArray & TriElement::genGaussPoints()
         fin[0] = std::pair<Point, double>(Point(0.2, 0.2,0,-std::sqrt(0.6)), 0.260416666666667*10/18) ;
         fin[1] = std::pair<Point, double>(Point(0.6, 0.2,0,-std::sqrt(0.6)), 0.260416666666667*10/18) ;
         fin[2] = std::pair<Point, double>(Point(0.2, 0.6,0,-std::sqrt(0.6)), 0.260416666666667*10/18) ;
-        fin[3] = std::pair<Point, double>(Point(1./3., 1./3.,-std::sqrt(0.6)), -0.28125*10/18) ;
+        fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,-std::sqrt(0.6)), -0.28125*10/18) ;
         fin[4] = std::pair<Point, double>(Point(0.2, 0.2,0,0.), 0.260416666666667*16/18) ;
         fin[5] = std::pair<Point, double>(Point(0.6, 0.2,0,0.), 0.260416666666667*16/18) ;
         fin[6] = std::pair<Point, double>(Point(0.2, 0.6,0,0.), 0.260416666666667*16/18) ;
-        fin[7] = std::pair<Point, double>(Point(1./3., 1./3.,0,0.), -0.28125*16/18) ;
+        fin[7] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,0.), -0.28125*16/18) ;
         fin[8] = std::pair<Point, double>(Point(0.2, 0.2,0,std::sqrt(0.6)), 0.260416666666667*10/18) ;
         fin[9] = std::pair<Point, double>(Point(0.6, 0.2,0,std::sqrt(0.6)), 0.260416666666667*10/18) ;
         fin[10] = std::pair<Point, double>(Point(0.2, 0.6,0,std::sqrt(0.6)), 0.260416666666667*10/18) ;
-        fin[11] = std::pair<Point, double>(Point(1./3., 1./3.,0,std::sqrt(0.6)), -0.28125*10/18) ;
+        fin[11] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,std::sqrt(0.6)), -0.28125*10/18) ;
         break ;
     }
     case QUADRATIC_TIME_QUADRATIC:
@@ -854,15 +854,15 @@ const GaussPointArray & TriElement::genGaussPoints()
         fin[0] = std::pair<Point, double>(Point(0.2, 0.2,0,-std::sqrt(0.6)), 0.260416666666667*10/18) ;
         fin[1] = std::pair<Point, double>(Point(0.6, 0.2,0,-std::sqrt(0.6)), 0.260416666666667*10/18) ;
         fin[2] = std::pair<Point, double>(Point(0.2, 0.6,0,-std::sqrt(0.6)), 0.260416666666667*10/18) ;
-        fin[3] = std::pair<Point, double>(Point(1./3., 1./3.,-std::sqrt(0.6)), -0.28125*10/18) ;
+        fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,-std::sqrt(0.6)), -0.28125*10/18) ;
         fin[4] = std::pair<Point, double>(Point(0.2, 0.2,0,0.), 0.260416666666667*16/18) ;
         fin[5] = std::pair<Point, double>(Point(0.6, 0.2,0,0.), 0.260416666666667*16/18) ;
         fin[6] = std::pair<Point, double>(Point(0.2, 0.6,0,0.), 0.260416666666667*16/18) ;
-        fin[7] = std::pair<Point, double>(Point(1./3., 1./3.,0,0.), -0.28125*16/18) ;
+        fin[7] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,0.), -0.28125*16/18) ;
         fin[8] = std::pair<Point, double>(Point(0.2, 0.2,0,std::sqrt(0.6)), 0.260416666666667*10/18) ;
         fin[9] = std::pair<Point, double>(Point(0.6, 0.2,0,std::sqrt(0.6)), 0.260416666666667*10/18) ;
         fin[10] = std::pair<Point, double>(Point(0.2, 0.6,0,std::sqrt(0.6)), 0.260416666666667*10/18) ;
-        fin[11] = std::pair<Point, double>(Point(1./3., 1./3.,0,std::sqrt(0.6)), -0.28125*10/18) ;
+        fin[11] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,std::sqrt(0.6)), -0.28125*10/18) ;
         break ;
 
 
@@ -891,7 +891,7 @@ const GaussPointArray & TriElement::genGaussPoints()
         fin[0] = std::pair<Point, double>(Point(0.2, 0.2), 0.260416666666667*2) ;
         fin[1] = std::pair<Point, double>(Point(0.6, 0.2), 0.260416666666667*2) ;
         fin[2] = std::pair<Point, double>(Point(0.2, 0.6), 0.260416666666667*2) ;
-        fin[3] = std::pair<Point, double>(Point(1./3., 1./3.), -0.28125*2) ;
+        fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333), -0.28125*2) ;
         break ;
     }
     case CUBIC_TIME_QUADRATIC:
@@ -901,11 +901,11 @@ const GaussPointArray & TriElement::genGaussPoints()
         fin[0] = std::pair<Point, double>(Point(0.2, 0.2,0,-0.577350269189626), 0.260416666666667) ;
         fin[1] = std::pair<Point, double>(Point(0.6, 0.2,0,-0.577350269189626), 0.260416666666667) ;
         fin[2] = std::pair<Point, double>(Point(0.2, 0.6,0,-0.577350269189626), 0.260416666666667) ;
-        fin[3] = std::pair<Point, double>(Point(1./3., 1./3.,0,-0.577350269189626), -0.28125) ;
+        fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,-0.577350269189626), -0.28125) ;
         fin[4] = std::pair<Point, double>(Point(0.2, 0.2,0,0.577350269189626), 0.260416666666667) ;
         fin[5] = std::pair<Point, double>(Point(0.6, 0.2,0,0.577350269189626), 0.260416666666667) ;
         fin[6] = std::pair<Point, double>(Point(0.2, 0.6,0,0.577350269189626), 0.260416666666667) ;
-        fin[7] = std::pair<Point, double>(Point(1./3., 1./3.,0,0.577350269189626), -0.28125) ;
+        fin[7] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333,0,0.577350269189626), -0.28125) ;
         break ;
     }
     case QUADRIC_TIME_LINEAR:
@@ -975,7 +975,7 @@ const GaussPointArray & TriElement::genGaussPoints()
         break;
     }
     default:
-        std::cout << "order naot handled" << std::endl ;
+        std::cout << "order not handled" << std::endl ;
         exit(0) ;
     }
 
@@ -1114,6 +1114,23 @@ TriElement::TriElement(Order order_ ): moved(false)
         (*shapefunc)[5].setDerivative( ETA, d) ;
         d = Function("4 y *") ;
         (*shapefunc)[5].setDerivative( XI, d) ;
+
+        break ;
+    }
+    case CUBIC :
+    {
+        shapefunc = new std::valarray<Function>(Function(),9) ;
+        Function x("x") ;
+        Function y("y") ;
+        (*shapefunc)[4] = (1.-x-y)*x*(0.66666666666666-x-y)          *13.5 ; //0
+        (*shapefunc)[8] = y*x*(x-0.66666666666666)                    *-13.5 ; //1
+        (*shapefunc)[3] = (1.-x-y)*(0.33333333333333-x-y)*(0.66666666666666-x-y)*4.5  ;// 2
+        (*shapefunc)[5] = (1.-x-y)*x*(x-0.33333333333333)             *13.5 ;// 3
+        (*shapefunc)[7] = y*x*(x-0.33333333333333)                    *13.5 ; //4 
+        (*shapefunc)[1] = (1.-x-y)*y*(y-0.33333333333333)             *13.5 ; //5
+        (*shapefunc)[2] = (1.-x-y)*y*(0.66666666666666-x-y)          *13.5 ; //6
+        (*shapefunc)[6] = x*(x-0.33333333333333)*(x-0.66666666666666)            *4.5  ;// 7
+        (*shapefunc)[0] = y*(y-0.33333333333333)*(y-0.66666666666666)            *4.5  ; //8
 
         break ;
     }
@@ -2383,6 +2400,8 @@ Point TriElement::inLocalCoordinates(const Point &p) const
 
     if(order == QUADRATIC || order == QUADRATIC_TIME_LINEAR || order == QUADRATIC_TIME_QUADRATIC)
         factor = 2 ;
+    if(order == CUBIC )
+        factor = 3 ;
 
     Matrix S(3,3) ;
     S[0][0] = getBoundingPoint(0).getX() ;
@@ -5318,7 +5337,7 @@ std::vector<int> validNeighbours(int i, int j, int k, int length)
 
 void computeNeighbourhoodForStructuredHexahedralMesh(std::vector<Amie::HexahedralElement *> & vec)
 {
-    int length = (int)round(std::pow(vec.size(), 1./3.)) ;
+    int length = (int)round(std::pow(vec.size(), 0.33333333333333)) ;
 
 
     for(int i = 0 ; i < length ; i++)
@@ -5341,7 +5360,7 @@ void computeNeighbourhoodForStructuredHexahedralMesh(std::vector<Amie::Hexahedra
 
 void burn(std::vector<Amie::HexahedralElement *> & vec)
 {
-    int length = (int)round(std::pow(vec.size(), 1./3.)) ;
+    int length = (int)round(std::pow(vec.size(), 0.33333333333333)) ;
 
 
     std::vector<Amie::HexahedralElement *> to_check ;

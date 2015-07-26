@@ -1839,7 +1839,9 @@ Function::Function(const std::vector<Segment> s , ElementarySurface * u, Positio
     initialiseAdresses();
 }
 
-Function::Function(const Function &f) : transforms(nullptr),
+Function::Function(const Function &f) : 
+    iPoint(f.iPoint),
+    transforms(nullptr),
     ptID(f.ptID),
     dofID(f.dofID),
     e_diff(f.e_diff),

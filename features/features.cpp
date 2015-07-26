@@ -7252,7 +7252,6 @@ void FeatureTree::generateElements()
                         break ;
                     }
                 }
-
                 for ( size_t k  =  0 ; k <  potentialChildren.size() ; k++ )
                 {
                     if ( ( !potentialChildren[k]->isVirtualFeature

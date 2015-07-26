@@ -46,7 +46,7 @@ void step()
             for(size_t j = 0 ; j < pockets.size() ; j++)
                 dynamic_cast<ExpansiveZone *>(pockets[j])->setRadius(pockets[j]->getRadius()+0.000001) ;
         }
-       featureTree->printReport();
+//        featureTree->printReport();
        
        Vector tmp(3) ;
        for(double x = -100 ;  x <= 100 ; x += .25)
@@ -63,6 +63,16 @@ void step()
            for(double y = -100 ;  y <= 100 ; y += .25)
            {
                featureTree->get2DMesh()->getField(REAL_STRESS_FIELD, Point(x,y),tmp) ;
+                std::cout << tmp[0] << "  "<< std::flush ;
+           }
+           std::cout << std::endl ;
+       }
+       tmp.resize(2) ;
+       for(double x = -100 ;  x <= 100 ; x += .25)
+       {
+           for(double y = -100 ;  y <= 100 ; y += .25)
+           {
+               featureTree->get2DMesh()->getField(DISPLACEMENT_FIELD, Point(x,y),tmp) ;
                 std::cout << tmp[0] << "  "<< std::flush ;
            }
            std::cout << std::endl ;
@@ -110,8 +120,8 @@ int main(int argc, char *argv[])
     int load = -1 ; //atoi(argv[3]) ;
 
     samplers.setBehaviour(new ElasticOnlyPasteBehaviour()) ;
-    ExpansiveZone inc(&samplers, 15, -50, 0,new ElasticOnlyAggregateBehaviour()) ;
-    Inclusion inc0(&samplers, 15, 50, 0) ; inc0.setBehaviour(new ElasticOnlyAggregateBehaviour());
+    ExpansiveZone inc(&samplers, 15, -50, 0,new GelBehaviour()) ;
+    Inclusion inc0(&samplers, 15, 50, 0) ; inc0.setBehaviour(new GelBehaviour());
 //     std::valarray<Point *> pts(5) ;
     
 //     pts[0] = new Point(-80, 50) ; 
@@ -244,7 +254,7 @@ int main(int argc, char *argv[])
     if(load == -1)
     {
 //         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -5e6)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, -5e-6)) ;
+//         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, -5e-6)) ;
     }
     if(load == 2)
     {
@@ -284,6 +294,8 @@ int main(int argc, char *argv[])
 
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
     F.setOrder(LINEAR) ;
 //     F.setPartition(64);
 

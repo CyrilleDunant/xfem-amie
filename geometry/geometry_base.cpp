@@ -3727,14 +3727,14 @@ std::vector<Point> Line::intersection(const Geometry * g) const
                    -g->getRadius()*g->getRadius() ;
         double delta = b*b - 4.*a*c ;
 
-        if (delta > 0)
+        if (delta > POINT_TOLERANCE)
         {
             std::vector<Point> ret ;
             ret.push_back(p+v*((-b + sqrt(delta))/(2.*a))) ;
             ret.push_back(p+v*((-b - sqrt(delta))/(2.*a))) ;
             return ret ;
         }
-        else if (delta == 0)
+        else if (delta > 0)
         {
 
             std::vector<Point> ret ;

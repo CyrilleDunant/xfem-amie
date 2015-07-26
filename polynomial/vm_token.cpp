@@ -601,32 +601,60 @@ HatEnrichment::HatEnrichment(const Geometry * g , const Point & p, const Segment
 void HatEnrichment::eval(double * a, double * b, double * c) const
 {
     Point position ( *a, *b ) ;
-    Line l(p, position-p) ;
-    Triangle t (p, s.first(), s.second()) ;
-    
-    Point interseg = l.intersection(s) ;
-    std::vector<Point> intersgeo = l.intersection(g) ;
-    for(size_t i = 0 ;  i < intersgeo.size() ; i++)
+    if(squareDist2D(p, position) < 1e-8)
     {
-        if(t.in(intersgeo[i]))
-        {
-            if(g->in(p) && g->in(position))
-            {
-                double distTot = std::max(dist(p, intersgeo[i]), 1e-8) ;
-                double distPos = dist(position, p) ;
-                *c = distPos/distTot ;
-                return ;
-            }
-            else
-            {                
-                double distTot = std::max(dist(interseg, intersgeo[i]), 1e-8) ;
-                double distPos = dist(position, interseg) ;
-                *c = distPos/distTot ;
-                return ;
-
-            }
-        }
+       *c = 0 ;
+       return ;
     }
+    if(s.on(position))
+    {
+       *c = 0 ;
+       return ;
+    }
+    Line l(p, position-p) ;
+
+    Point interseg = l.intersection(s) ;
+    
+    std::vector<Point> intersgeo = l.intersection(g) ;
+    if(intersgeo.empty())
+    {
+        *c = 0 ;
+        return ;
+    }
+    
+    Point pmin = intersgeo[0] ;
+    if(intersgeo.size() == 2 && squareDist2D(p, intersgeo[1]) < squareDist2D(p, intersgeo[0]))
+        pmin = intersgeo[1] ;
+
+    if(g->in(p) == g->in(position))
+    {
+        double distTot = squareDist2D(p, pmin);
+        if(distTot < 1e-4)
+        {
+            *c = 1. ;
+            return ;
+        }
+        double distPos = squareDist2D(position, p) ;
+        *c = sqrt(distPos/distTot) ;
+        *c = std::min(*c, 1.) ;
+        
+        return ;
+    }
+    else
+    {                
+        double distTot = squareDist2D(interseg, pmin);
+        if(distTot < 1e-4)
+        {
+            *c = 1. ;
+            return ;
+        }
+        double distPos = squareDist2D(position, interseg) ;
+        *c = sqrt(distPos/distTot) ;
+        *c = std::min(*c, 1.) ;
+        return ;
+
+    }
+
     
     *c = 0 ;
 }
@@ -640,6 +668,85 @@ int HatEnrichment::adressOffset() const
 { 
     return -2 ;
 }
+
+
+    HatEnrichmentDerivative::HatEnrichmentDerivative(const Geometry * g , const Point & p, const Segment & s, Variable v): g(g), p(p), s(s), v(v) { }
+    
+    void HatEnrichmentDerivative::eval(double * a, double * b, double * c) const
+    {
+        std::cout << "to imp-lement: hat derivative" << std::endl ;
+        exit(0) ;
+        
+        Point position ( *a, *b ) ;
+        if(squareDist2D(p, position) < 1e-8)
+        {
+        *c = 0 ;
+        return ;
+        }
+        if(s.on(position))
+        {
+        *c = 0 ;
+        return ;
+        }
+        Line l(p, position-p) ;
+
+        Point interseg = l.intersection(s) ;
+        
+        std::vector<Point> intersgeo = l.intersection(g) ;
+        if(intersgeo.empty())
+        {
+            *c = 0 ;
+            return ;
+        }
+        
+        Point pmin = intersgeo[0] ;
+        if(intersgeo.size() == 2 && squareDist2D(p, intersgeo[1]) < squareDist2D(p, intersgeo[0]))
+            pmin = intersgeo[1] ;
+
+        if(g->in(p) == g->in(position))
+        {
+            double distTot = squareDist2D(p, pmin);
+            if(distTot < 1e-4)
+            {
+                *c = 1. ;
+                return ;
+            }
+            double distPos = squareDist2D(position, p) ;
+            *c = sqrt(distPos/distTot) ;
+            *c = std::min(*c, 1.) ;
+            
+            return ;
+        }
+        else
+        {                
+            double distTot = squareDist2D(interseg, pmin);
+            if(distTot < 1e-4)
+            {
+                *c = 1. ;
+                return ;
+            }
+            double distPos = squareDist2D(position, interseg) ;
+            *c = sqrt(distPos/distTot) ;
+            *c = std::min(*c, 1.) ;
+            return ;
+
+        }
+
+        
+        *c = 0 ;
+    }
+    
+    GeometryOperation * HatEnrichmentDerivative::getCopy() const 
+    {
+        return new HatEnrichmentDerivative(g, p, s, v) ;
+    }
+    
+    int HatEnrichmentDerivative::adressOffset() const
+    {
+        return -2 ;
+    }
+
+
 
 HatEnrichment3D::HatEnrichment3D(const Geometry * g , const Point & p, const TriPoint & s) :g(g), p(p), s(s) {}
 

@@ -2760,78 +2760,12 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
     to_add.push_back(new Point(0,1)) ;
     to_add.push_back(new Point(0,0)) ;
     to_add.push_back(new Point(1,0)) ;
-//     return to_add ;
-    Triangle tf ;
-
-// 	std::vector<std::vector<Segment> > segments ;
-//
-// 	for(int i = 0 ; i <  (int)getEnrichmentFunctions().size() ; i++)
-// 	{
-// 		std::vector<Segment> temp ;
-// 		for(int j = 0 ; j < (int)getEnrichmentFunction(i).getIntegrationHint().size()-1 ; j++)
-// 		{
-// 			temp.push_back(Segment(getEnrichmentFunction(i).getIntegrationHint(j), getEnrichmentFunction(i).getIntegrationHint(j+1))) ;
-// 		}
-//
-// 		segments.push_back(temp) ;
-// 	}
-// 	for(size_t i = 0 ; i < segments.size() ; i++) // per shape function
-// 	{
-// 		for(size_t j = i+1 ; j < segments.size() ; j++) // per other shape function
-// 		{
-// 			for(size_t k = 0 ; k < segments[i].size() ; k++) //per segment in first SF
-// 			{
-// 				for(size_t l = 0 ; l < segments[j].size() ; l++) //per segment in second SF
-// 				{
-// 					if(segments[i][k].intersects(segments[j][l]))
-// 					{
-// 						bool go = true ;
-// 						Point test = segments[i][k].intersection(segments[j][l]) ;
-// 						for(int k = 0 ; k < to_add.size()  ; k++ )
-// 						{
-// 							if(squareDist2D(&test, to_add[k])
-// 							   < POINT_TOLERANCE)
-// 							{
-// 								go = false ;
-// 								break ;
-// 							}
-// 						}
-// 						if(go)
-// 						{
-// 							to_add.push_back(new Point(test)) ;
-// 							if(to_add.back()->getX()< 0)
-// 								to_add.back()->getX() = 0 ;
-// 							if(to_add.back()->getY() < 0)
-// 								to_add.back()->getY() = 0 ;
-// 						}
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
 
     for(size_t i = 0 ; i <  getEnrichmentFunctions().size() ; i++)
     {
-
         for(size_t j = 0 ; j < getEnrichmentFunction(i).getIntegrationHint().size() ; j++)
         {
-            bool go = true ;
-            for(size_t k = 0 ; k < to_add.size()  ; k++ )
-            {
-                Point pr = *to_add[k] ;
-                tf.project(&pr) ;
-                if(dist(getEnrichmentFunction(i).getIntegrationHint(j), *to_add[k])
-                        < 0.001 || (dist(*to_add[k], pr) < 0.001 && dist(*to_add[k], pr) > 2.*POINT_TOLERANCE))
-                {
-                    go = false ;
-                    break ;
-                }
-            }
-
-            if(go)
-            {
-                to_add.push_back(new Point(getEnrichmentFunction(i).getIntegrationHint(j).getX(), getEnrichmentFunction(i).getIntegrationHint(j).getY())) ;
-            }
+            to_add.push_back(new Point(getEnrichmentFunction(i).getIntegrationHint(j))) ;
         }
     }
 
@@ -2846,7 +2780,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
     }
     
     const GaussPointArray & gp = getGaussPoints() ;
-    size_t numberOfRefinements = 1 ;
+    size_t numberOfRefinements = 0 ;
     if(getEnrichmentFunctions().size() > getBoundingPoints().size())
         numberOfRefinements = 4 ;
     VirtualMachine vm ;
@@ -2923,13 +2857,13 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
         else
         {
 
-            if( true )
+            if( false )
             {
                 if(getCachedGaussPoints()->getId() == REGULAR_GRID)
                     return *getCachedGaussPoints() ;
                 TriElement father(LINEAR) ;
 
-                size_t target = 1024 ;
+                size_t target = 512 ;
 
                 while(gp_alternative.size() < target)
                 {
@@ -2947,7 +2881,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 //                 for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
 //                     fsum += gp_alternative[i].second ;
                 for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
-                    gp_alternative[i].second = originalSum/gp_alternative.size() ;
+                    gp_alternative[i].second = 2.*area()/gp_alternative.size() ;
 
 
                 delete cachedGps ;
@@ -2966,84 +2900,31 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             Function ytrans = getYTransform() ;
 
             DelaunayTree * dt = new DelaunayTree(to_add[0], to_add[1], to_add[2]) ;
-            TriElement f(LINEAR) ;
+            TriElement f(CUBIC) ;
             if(to_add.size() > 4)
                 std::random_shuffle(to_add.begin()+3, to_add.end()) ;
 
+//             for(size_t i = 0 ; i < to_add.size() ; i++)
+//                 to_add[i]->print() ;
+//             exit(0) ;
             for(size_t i = 3 ; i < to_add.size() ; i++)
             {
-                if(f.in(*to_add[i]))
-                {
-                    dt->insert(to_add[i]) ;
-                }
+                dt->insert(to_add[i]) ;
             }
 
-            tri = dt->getTriangles(false) ;
 
-            for(size_t i = 0 ; i < numberOfRefinements ; i++)
-            {
-                std::vector<DelaunayTriangle *> newTris ;
-
-                for(size_t j = 0 ; j < tri.size() ; j++)
-                {
-                    std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > q =
-                        quad(tri[j]) ;
-                    newTris.insert(newTris.end(),q.first.begin(), q.first.end()) ;
-                    for(size_t l = 0 ; l < enrichmentSource.size() ; l++)
-                    {
-                        Point p0 ( vm.eval(xtrans,*tri[j]->first),  vm.eval(ytrans,*tri[j]->first) );
-                        Point p1 ( vm.eval(xtrans,*tri[j]->second), vm.eval(ytrans,*tri[j]->second));
-                        Point p2 ( vm.eval(xtrans,*tri[j]->third),  vm.eval(ytrans,*tri[j]->third) );
-                        enrichmentSource[l]->project(&p0) ;
-                        p0 = inLocalCoordinates(p0) ;
-                        enrichmentSource[l]->project(&p1) ;
-                        p1 = inLocalCoordinates(p1) ;
-                        enrichmentSource[l]->project(&p2) ;
-                        p2 = inLocalCoordinates(p2) ;
-
-                        Point q0 ( vm.eval(xtrans,*q.second[0]), vm.eval(ytrans,*q.second[0]) );
-                        Point q1 ( vm.eval(xtrans,*q.second[1]), vm.eval(ytrans,*q.second[1]));
-                        Point q2 ( vm.eval(xtrans,*q.second[2]), vm.eval(ytrans,*q.second[2]) );
-                        enrichmentSource[l]->project(&q0) ;
-                        q0 = inLocalCoordinates(q0) ;
-                        enrichmentSource[l]->project(&q1) ;
-                        q1 = inLocalCoordinates(q1) ;
-                        enrichmentSource[l]->project(&q2) ;
-                        q2 = inLocalCoordinates(q2) ;
-
-                        if(squareDist2D(p0, *tri[j]->first) < POINT_TOLERANCE*POINT_TOLERANCE && squareDist2D(p1, *tri[j]->second) < POINT_TOLERANCE*POINT_TOLERANCE && f.in(q0) && squareDist2D(q0,*q.second[0]) < squareDist2D(*q.second[0], tri[j]->getCenter()))
-                        {
-                            *q.second[0] = q0 ;
-                        }
-                        if(squareDist2D(p0, *tri[j]->first) < POINT_TOLERANCE*POINT_TOLERANCE && squareDist2D(p2, *tri[j]->third) < POINT_TOLERANCE*POINT_TOLERANCE && f.in(q1)&& squareDist2D(q1,*q.second[1]) < squareDist2D(*q.second[1], tri[j]->getCenter()))
-                        {
-                            *q.second[1] = q1 ;
-                        }
-                        if(squareDist2D(p1, *tri[j]->second) < POINT_TOLERANCE*POINT_TOLERANCE && squareDist2D(p2, *tri[j]->third) < POINT_TOLERANCE*POINT_TOLERANCE && f.in(q2)&& squareDist2D(q2,*q.second[2]) < squareDist2D(*q.second[2], tri[j]->getCenter()))
-                        {
-                            *q.second[2] = q2 ;
-                        }
-                    }
-
-                    pointsToCleanup.insert(pointsToCleanup.end(),
-                                           q.second.begin(),
-                                           q.second.end()) ;
-                    triangleToCleanup.insert(triangleToCleanup.end(),
-                                             q.first.begin(),
-                                             q.first.end()) ;
-                }
-
-                tri = newTris ;
-            }
-            //
-
+            dt->setElementOrder(CUBIC);
+            dt->refresh(&f);
+            tri = dt->getTriangles(true) ;
+                    
+            double jac = 2.*area()/*jacobianAtPoint(Point(.333333, .3333333))*/ ;
+            
             for(size_t i = 0 ; i < tri.size() ; i++)
             {
-
-                Function x = XTransform(tri[i]->getBoundingPoints(), f.getShapeFunctions()) ;
-                Function y = YTransform(tri[i]->getBoundingPoints(), f.getShapeFunctions()) ;
-                double jac = std::abs(jacobianAtPoint(Point(.333333, .3333333, .333333))) ;
-                tri[i]->refresh(&f) ;
+//                 tri[i]->print() ;
+                Function x = tri[i]->getXTransform() ;
+                Function y = tri[i]->getYTransform() ;
+               
 
                 GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 
@@ -3054,6 +2935,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                     gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
                 }
             }
+//             exit(0) ;
 
 
             delete dt ;
