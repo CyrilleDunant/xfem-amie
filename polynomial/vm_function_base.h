@@ -242,6 +242,7 @@ public:
     Function ( const Geometry * g, const ElementarySurface * s ) ;
     
     Function(const Geometry *g, const Point &p, const Segment &s,  ElementarySurface * surf);
+    Function(const Geometry *g, const Point &p, const Segment &s,  ElementarySurface * surf, Variable v);
     
     Function(const Geometry *g, const Point &p, const TriPoint &s,  ElementaryVolume * vol);
 

@@ -5792,7 +5792,6 @@ void DofDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron
         std::vector<size_t> id_ ;
         id_.push_back ( id );
 
-                
         apply3DBC ( volume,*gp,*Jinv,  id_, condition, data*getScale(),  a , axis ) ;
     }
     else

@@ -629,11 +629,6 @@ void HatEnrichment::eval(double * a, double * b, double * c) const
     if(g->in(p) == g->in(position))
     {
         double distTot = squareDist2D(p, pmin);
-        if(distTot < 1e-4)
-        {
-            *c = 1. ;
-            return ;
-        }
         double distPos = squareDist2D(position, p) ;
         *c = sqrt(distPos/distTot) ;
         *c = std::min(*c, 1.) ;
@@ -643,11 +638,6 @@ void HatEnrichment::eval(double * a, double * b, double * c) const
     else
     {                
         double distTot = squareDist2D(interseg, pmin);
-        if(distTot < 1e-4)
-        {
-            *c = 1. ;
-            return ;
-        }
         double distPos = squareDist2D(position, interseg) ;
         *c = sqrt(distPos/distTot) ;
         *c = std::min(*c, 1.) ;
@@ -670,81 +660,74 @@ int HatEnrichment::adressOffset() const
 }
 
 
-    HatEnrichmentDerivative::HatEnrichmentDerivative(const Geometry * g , const Point & p, const Segment & s, Variable v): g(g), p(p), s(s), v(v) { }
+HatEnrichmentDerivative::HatEnrichmentDerivative(const Geometry * g , const Point & p, const Segment & s, Variable v): g(g), p(p), s(s), v(v) { }
+
+void HatEnrichmentDerivative::eval(double * a, double * b, double * c) const
+{
     
-    void HatEnrichmentDerivative::eval(double * a, double * b, double * c) const
+    Point position ( *a, *b ) ;
+    Point positionm(position) ;
+    Point positionp(position) ;
+    if(v == XI)
     {
-        std::cout << "to imp-lement: hat derivative" << std::endl ;
-        exit(0) ;
-        
-        Point position ( *a, *b ) ;
-        if(squareDist2D(p, position) < 1e-8)
-        {
+        positionm.getX() -= .00001 ;
+        positionp.getX() += .00001 ;
+    }
+    else if(v == ETA)
+    {
+        positionm.getY() -= .00001 ;
+        positionp.getY() += .00001 ;
+    }
+
+    Line lm(p, positionm-p) ;
+    Line lp(p, positionp-p) ;
+
+    Point intersegm = lm.intersection(s) ;
+    Point intersegp = lp.intersection(s) ;
+    
+    std::vector<Point> intersgeom = lm.intersection(g) ;
+    std::vector<Point> intersgeop = lp.intersection(g) ;
+    if(intersgeom.empty() || intersgeop.empty())
+    {
         *c = 0 ;
         return ;
-        }
-        if(s.on(position))
-        {
-        *c = 0 ;
+    }
+    
+    Point pminm = intersgeom[0] ;
+    Point pminp = intersgeop[0] ;
+    if(intersgeom.size() == 2 && squareDist2D(p, intersgeom[1]) < squareDist2D(p, intersgeom[0]))
+        pminm = intersgeom[1] ;
+    if(intersgeop.size() == 2 && squareDist2D(p, intersgeop[1]) < squareDist2D(p, intersgeop[0]))
+        pminp = intersgeop[1] ;
+
+    if(g->in(p) == g->in(position))
+    {
+        double distTotm = squareDist2D(p, pminm);
+        double distTotp = squareDist2D(p, pminp);
+        double distPosm = squareDist2D(positionm, p) ;
+        double distPosp = squareDist2D(positionp, p) ;
+        *c = (sqrt(distPosp/distTotp)-sqrt(distPosm/distTotm))*50000. ;
         return ;
-        }
-        Line l(p, position-p) ;
-
-        Point interseg = l.intersection(s) ;
-        
-        std::vector<Point> intersgeo = l.intersection(g) ;
-        if(intersgeo.empty())
-        {
-            *c = 0 ;
-            return ;
-        }
-        
-        Point pmin = intersgeo[0] ;
-        if(intersgeo.size() == 2 && squareDist2D(p, intersgeo[1]) < squareDist2D(p, intersgeo[0]))
-            pmin = intersgeo[1] ;
-
-        if(g->in(p) == g->in(position))
-        {
-            double distTot = squareDist2D(p, pmin);
-            if(distTot < 1e-4)
-            {
-                *c = 1. ;
-                return ;
-            }
-            double distPos = squareDist2D(position, p) ;
-            *c = sqrt(distPos/distTot) ;
-            *c = std::min(*c, 1.) ;
-            
-            return ;
-        }
-        else
-        {                
-            double distTot = squareDist2D(interseg, pmin);
-            if(distTot < 1e-4)
-            {
-                *c = 1. ;
-                return ;
-            }
-            double distPos = squareDist2D(position, interseg) ;
-            *c = sqrt(distPos/distTot) ;
-            *c = std::min(*c, 1.) ;
-            return ;
-
-        }
-
-        
-        *c = 0 ;
     }
-    
-    GeometryOperation * HatEnrichmentDerivative::getCopy() const 
-    {
-        return new HatEnrichmentDerivative(g, p, s, v) ;
-    }
-    
-    int HatEnrichmentDerivative::adressOffset() const
-    {
-        return -2 ;
-    }
+               
+    double distTotm = squareDist2D(intersegm, pminm);
+    double distTotp = squareDist2D(intersegp, pminp);
+
+    double distPosm = squareDist2D(position, intersegm) ;
+    double distPosp = squareDist2D(position, intersegp) ;
+    *c = (sqrt(distPosp/distTotp)-sqrt(distPosm/distTotm))*50000. ;
+ 
+}
+
+GeometryOperation * HatEnrichmentDerivative::getCopy() const 
+{
+    return new HatEnrichmentDerivative(g, p, s, v) ;
+}
+
+int HatEnrichmentDerivative::adressOffset() const
+{
+    return -2 ;
+}
 
 
 

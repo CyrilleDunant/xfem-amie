@@ -32,6 +32,10 @@ bool EnrichmentInclusion::enrichmentTarget(DelaunayTriangle * t)
     bool in1 = in(*t->second)  ;
     bool in2 = in(*t->third)   ;
     
+    if(!t->intersects(getPrimitive()))
+        return false ;
+    if(t->intersection(getPrimitive()).size() != 2)
+        return false ;
     if((in0 && in1 && !in2) ||
        (in0 && !in1 && in2) || 
        (!in0 && in1 && in2) ||
@@ -349,19 +353,27 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
             hint.push_back(linter1) ;
         }
 
-        Function hat ; 
+        Function hat ;
+        Function hatdx ;
+        Function hatdy ;
         
          if(in(ring[i]->getBoundingPoint(0)) == in(ring[i]->getBoundingPoint(1)))
          {
              hat = Function(getPrimitive(), ring[i]->getBoundingPoint(2), Segment(ring[i]->getBoundingPoint(0),ring[i]->getBoundingPoint(1)), ring[i]) ;
+             hatdx = Function(getPrimitive(), ring[i]->getBoundingPoint(2), Segment(ring[i]->getBoundingPoint(0),ring[i]->getBoundingPoint(1)), ring[i], XI) ;
+             hatdy = Function(getPrimitive(), ring[i]->getBoundingPoint(2), Segment(ring[i]->getBoundingPoint(0),ring[i]->getBoundingPoint(1)), ring[i], ETA) ;
          }
          else if(in(ring[i]->getBoundingPoint(0)) == in(ring[i]->getBoundingPoint(2)))
          {
              hat = Function(getPrimitive(), ring[i]->getBoundingPoint(1), Segment(ring[i]->getBoundingPoint(0),ring[i]->getBoundingPoint(2)), ring[i]) ;
+             hatdx = Function(getPrimitive(), ring[i]->getBoundingPoint(1), Segment(ring[i]->getBoundingPoint(0),ring[i]->getBoundingPoint(2)), ring[i]) ;
+             hatdy = Function(getPrimitive(), ring[i]->getBoundingPoint(1), Segment(ring[i]->getBoundingPoint(0),ring[i]->getBoundingPoint(2)), ring[i]) ;
          }
          else if(in(ring[i]->getBoundingPoint(1)) == in(ring[i]->getBoundingPoint(2)))
          {
              hat = Function(getPrimitive(), ring[i]->getBoundingPoint(0), Segment(ring[i]->getBoundingPoint(1),ring[i]->getBoundingPoint(2)), ring[i]) ;
+             hatdx = Function(getPrimitive(), ring[i]->getBoundingPoint(0), Segment(ring[i]->getBoundingPoint(1),ring[i]->getBoundingPoint(2)), ring[i], XI) ;
+             hatdy = Function(getPrimitive(), ring[i]->getBoundingPoint(0), Segment(ring[i]->getBoundingPoint(1),ring[i]->getBoundingPoint(2)), ring[i], ETA) ;
          }
          else
          {
@@ -386,7 +398,12 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
                 }
                 f.setPoint(&ring[i]->getBoundingPoint(j)) ;
                 f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
-                ring[i]->setEnrichment( -f, getPrimitive()) ;
+                f.setNumberOfDerivatives(2);
+                Function fdx = father.getShapeFunction(j).d(XI)*hat+father.getShapeFunction(j)*hatdx ;
+                Function fdy = father.getShapeFunction(j).d(ETA)*hat+father.getShapeFunction(j)*hatdy ;
+                f.setDerivative(XI, fdx);
+                f.setDerivative(ETA, fdy);
+                ring[i]->setEnrichment( f, getPrimitive()) ;
             }
         }
         

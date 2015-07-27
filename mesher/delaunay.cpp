@@ -2863,7 +2863,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                     return *getCachedGaussPoints() ;
                 TriElement father(LINEAR) ;
 
-                size_t target = 512 ;
+                size_t target = 1024 ;
 
                 while(gp_alternative.size() < target)
                 {
