@@ -614,7 +614,9 @@ ConfigTreeItem * CommandLineParser::parseCommandLine( int argc, char *argv[] )
 
 void CommandLineParser::setNumThreads( int n )
 {
+#ifdef HAVE_OMP
 	omp_set_num_threads(std::max(n,1)) ;
+#endif
 }
 
 void CommandLineParser::printStatus( )
