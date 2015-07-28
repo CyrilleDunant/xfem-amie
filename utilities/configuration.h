@@ -89,6 +89,8 @@ public:
     /** Accessor, returns the last direct child.*/
     ConfigTreeItem * getLastChild() const ;
 
+    void configure( std::map<std::string, std::string> & cnf ) ;
+
     void removeAllChildren() ;
     void removeChild(std::string childLabel) ;
     void removeChild(std::vector<std::string> childLabelDecomposed) ;

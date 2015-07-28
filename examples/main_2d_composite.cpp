@@ -28,20 +28,15 @@ int main(int argc, char *argv[])
     CommandLineParser parser("Run a 2D AMIE simulation using the configuration parameters found in a *.ini file", true) ;
     parser.addFlag( "--print-microstructure", false , "print only the mesh and values of mechanical properties") ;
     parser.addArgument( "file_name", "../examples/data/composite/test_2d_composite.ini", "relative path to *.ini file to run") ;
-    ConfigTreeItem * define = parser.parseCommandLine( argc, argv ) ;
+    parser.parseCommandLine( argc, argv ) ;
     bool printMicrostructureOnly = parser.getFlag("--print-microstructure") ;
     std::string file = parser.getStringArgument(0) ;
+
+    ConfigTreeItem * define = parser.getConfiguration() ;
+    std::map<std::string, std::string> direct = parser.getDirectConfiguration() ;
+
     ConfigTreeItem * problem = ConfigParser::readFile(file, define) ;
-
-#ifdef HAVE_OMP
-    if(problem->hasChildFromFullLabel("parallel.number_of_threads"))
-    {
-        int threads = (int) problem->getData("parallel.number_of_threads", 1) ;
-        omp_set_num_threads(threads) ;
-    }
-
-//    omp_set_num_threads(1) ;
-#endif
+    problem->configure( direct ) ;
 
     std::vector<ExternalMaterialLaw *> common ;
     if(problem->hasChild("common_fields"))

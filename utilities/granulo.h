@@ -11,6 +11,9 @@
 //
 //
 
+#ifndef GRANULO_H
+#define GRANULO_H
+
 #include <iostream>
 #include <vector>
 #include "../features/microstructuregenerator.h"
@@ -323,6 +326,10 @@ public:
 	std::vector<double> getFieldValues(int) ;
 	std::vector<Feature *> getFeatures(TypeInclusion type, int ninc) ;
 	std::vector<Inclusion3D *> getInclusion3D(int ninc, double scale = 1) ;
+
+
+	static std::vector<std::vector<Feature *> > readConfigurationFile( std::string filename, FeatureTree * f) ;
+
 } ;
 
 
@@ -330,3 +337,4 @@ public:
 
 }
 
+#endif

@@ -44,7 +44,10 @@ protected:
 	std::vector< CommandLineArgument > arguments ;
 	std::string command ;
 	std::string description ;
+
 	bool commandLineConfiguration ;
+	ConfigTreeItem * config ;
+	std::map<std::string, std::string> directConfig ;
 
 public:
 	CommandLineParser(std::string d = std::string(), bool c = false) ;
@@ -63,7 +66,10 @@ public:
 	double getNumeralArgument( std::string arg ) ;
 	double getNumeralArgument( size_t i ) ;
 
-	ConfigTreeItem * parseCommandLine( int argc, char *argv[] ) ;
+	void parseCommandLine( int argc, char *argv[] ) ;
+
+	ConfigTreeItem * getConfiguration() { return config ; }
+	std::map<std::string, std::string> getDirectConfiguration() { return directConfig ; }
 
 	void setNumThreads(int n) ;
 
@@ -292,5 +298,52 @@ public:
 	static ConfigTreeItem * readFile(std::string f, ConfigTreeItem * def, bool define = true) ;
 
 } ;
+
+struct FunctionParser
+{
+	std::vector<FunctionParser *> tokens ;
+	std::vector<int> roots ;
+	bool isLinking ;
+
+	FunctionParser(std::vector<std::string> data) ;
+	FunctionParser(std::string f) ;
+	FunctionParser() : isLinking(false) { } ;
+
+	void renewExpression( std::vector<std::string> f ) ;
+
+	virtual bool isFinalToken() const { return false ; }
+
+	virtual void print(bool end = true) const ;
+
+	Function getFunction( size_t i ) const ;
+	Function getFunction() const ;
+
+	void link() ;
+
+	int getLeftTokenIndex( size_t i ) const ;
+	int getRightTokenIndex( size_t i ) const ;
+	Function getLeftFunction( size_t i ) const ;
+	Function getRightFunction( size_t i ) const ;
+
+	static Function getFunction( std::string f ) ;
+} ;
+
+struct FunctionParserToken : public FunctionParser
+{
+	std::string data ;
+
+	FunctionParserToken(std::string d) : data(d) { } ;
+
+	virtual bool isFinalToken() const { return true ; }
+
+	virtual void print(bool end = true ) const ;
+
+	TokenOperationType toFunctionToken() const ;
+
+} ;
+
+
+
+
 
 #endif // __PARSER_H_

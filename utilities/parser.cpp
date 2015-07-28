@@ -5,6 +5,7 @@
 //
 
 #include "parser.h"
+#include "../polynomial/vm_function_extra.h"
 
 void InclusionParser::readData()
 {
@@ -555,11 +556,11 @@ CommandLineParser::CommandLineParser(std::string d, bool c) : description(d), co
     addValue("--set-num-threads", -1, "set the number of threads available for OpenMP") ;
 }
 
-ConfigTreeItem * CommandLineParser::parseCommandLine( int argc, char *argv[] )
+void CommandLineParser::parseCommandLine( int argc, char *argv[] )
 {
 	command = std::string(argv[0]) ;
 
-	ConfigTreeItem * define = nullptr ;
+	config = nullptr ;
 	size_t i = 1 ;
 	while(i < (size_t) argc)
 	{
@@ -583,14 +584,19 @@ ConfigTreeItem * CommandLineParser::parseCommandLine( int argc, char *argv[] )
 		}
 		else if(commandLineConfiguration && test[0] == '@')
 		{
-			if(!define)
-				define = new ConfigTreeItem(nullptr, "define") ;
+			if(!config)
+				config = new ConfigTreeItem(nullptr, "define") ;
 			std::string testval = std::string(argv[i+1]) ;
 			bool isDouble = (testval.find_first_not_of("0123456789.e-") == std::string::npos ) ;
 			if(isDouble)
-				new ConfigTreeItem( define, test, atof(testval.c_str()) ) ;
+				new ConfigTreeItem( config, test, atof(testval.c_str()) ) ;
 			else
-				new ConfigTreeItem( define, test, testval ) ;
+				new ConfigTreeItem( config, test, testval ) ;
+			i++ ;
+		}
+		else if(commandLineConfiguration && test[0] == '.')
+		{
+			directConfig [test.substr(1)] = std::string (argv[i+1]) ;
 			i++ ;
 		}
 		i++ ;
@@ -609,7 +615,6 @@ ConfigTreeItem * CommandLineParser::parseCommandLine( int argc, char *argv[] )
 	if(getFlag("--help") || getFlag("--version"))
 		exit(0) ;
 
-	return define ;
 }
 
 void CommandLineParser::setNumThreads( int n )
@@ -745,4 +750,407 @@ double CommandLineParser::getNumeralArgument( std::string arg )
 			return arguments[i].val ;
 	}
 	return 0. ;
+}
+
+FunctionParser::FunctionParser(std::vector<std::string> f) : isLinking(false)
+{
+	renewExpression(f) ;
+}
+
+
+FunctionParser::FunctionParser(std::string f) : isLinking(false)
+{
+	std::string current ;
+	std::vector<std::string> str ;
+	size_t i = 0 ;
+	while(i < f.length())
+	{
+		bool cut = false ;
+		char test = f[i] ;
+		if(test == ' ')
+			cut = true ;
+		else
+			current += test ;
+		if(cut)
+		{
+			if(current.length() > 0)
+			{
+				str.push_back( current ) ;
+				current.clear() ;
+			}
+		}
+		i++ ;
+	}
+	if(current.length() > 0)
+		str.push_back( current ) ;
+	renewExpression(str) ;
+}
+
+bool isOpenBracket( std::string s) 
+{
+	return s== "(" ;
+}
+
+bool isCloseBracket(std::string s) 
+{
+	return s==")" ;
+}
+
+void FunctionParser::renewExpression(std::vector<std::string> str) 
+{
+	size_t i = 0 ;
+	std::vector<std::string> embeddedExpression ;
+	size_t openCount = 0 ;
+	
+	while(i < str.size())
+	{
+		if(openCount == 0 && !isOpenBracket( str[i] )  )
+			tokens.push_back( new FunctionParserToken( str[i] ) ) ;
+		else
+		{
+			if( isOpenBracket( str[i] ) )
+			{
+				if(openCount == 0)
+					embeddedExpression.clear() ;
+				else
+					embeddedExpression.push_back( str[i] ) ;
+				openCount++ ;
+			}
+			else if(isCloseBracket( str[i] ) )
+			{
+				openCount-- ;
+				if(openCount == 0)
+					tokens.push_back( new FunctionParser( embeddedExpression) ) ;
+				else
+					embeddedExpression.push_back( str[i] ) ;
+			}
+			else
+				embeddedExpression.push_back( str[i] ) ;
+		}
+		i++ ;
+	}
+
+	this->link() ;
+}
+
+void FunctionParser::link()
+{
+	if(isLinking || isFinalToken() )
+		return ;
+
+	isLinking=true ;
+
+	roots.resize(tokens.size(), -1) ;
+
+	for(size_t i = 0 ; i < tokens.size() ; i++)
+	{
+		if(tokens[i]->isFinalToken())
+		{
+			TokenOperationType elem = dynamic_cast<FunctionParserToken *>(tokens[i])->toFunctionToken() ;
+			switch(elem)
+			{
+				case TOKEN_OPERATION_ABS:
+				case TOKEN_OPERATION_COS:
+				case TOKEN_OPERATION_SIN:
+				case TOKEN_OPERATION_TAN:
+				case TOKEN_OPERATION_COSH:
+				case TOKEN_OPERATION_SINH:
+				case TOKEN_OPERATION_TANH:
+				case TOKEN_OPERATION_EXP:
+				case TOKEN_OPERATION_SIGN:
+				case TOKEN_OPERATION_POSITIVITY:
+				case TOKEN_OPERATION_NEGATIVITY:
+				case TOKEN_OPERATION_LOG:
+				case TOKEN_OPERATION_SQRT:
+					roots[i+1] = i ;
+					break ;
+				default:
+					break ;
+			}
+		}
+//		else
+//			tokens[i]->link() ;
+	}
+
+	for(size_t i = 0 ; i < tokens.size() ; i++)
+	{
+		if(tokens[i]->isFinalToken())
+		{
+			if( dynamic_cast<FunctionParserToken *>(tokens[i])->toFunctionToken() == TOKEN_OPERATION_POWER )
+			{
+				size_t left = i-1 ;
+				size_t c = 0 ;
+				while(roots[left] > -1 && c < tokens.size())
+				{
+					left = roots[left] ;
+					c++;
+				}
+				size_t right = i+1 ;
+				c = 0 ;
+				while(roots[right] > -1 && c < tokens.size())
+				{
+					right = roots[right] ;
+					c++;
+				}
+				roots[left] = i ;
+				roots[right] = i ;
+			}
+		}
+	}
+
+	for(size_t i = 0 ; i < tokens.size() ; i++)
+	{
+		if(tokens[i]->isFinalToken())
+		{
+			if( dynamic_cast<FunctionParserToken *>(tokens[i])->toFunctionToken() == TOKEN_OPERATION_TIMES )
+			{
+				size_t left = i-1 ;
+				size_t c = 0 ;
+				while(roots[left] > -1 && c < tokens.size())
+				{
+					left = roots[left] ;
+					c++;
+				}
+				size_t right = i+1 ;
+				c = 0 ;
+				while(roots[right] > -1 && c < tokens.size())
+				{
+					right = roots[right] ;
+					c++;
+				}
+				roots[left] = i ;
+				roots[right] = i ;
+			}
+		}
+	}
+
+	for(size_t i = 0 ; i < tokens.size() ; i++)
+	{
+		if(tokens[i]->isFinalToken())
+		{
+			if( dynamic_cast<FunctionParserToken *>(tokens[i])->toFunctionToken() == TOKEN_OPERATION_DIVIDES )
+			{
+				size_t left = i-1 ;
+				size_t c = 0 ;
+				while(roots[left] > -1 && c < tokens.size())
+				{
+					left = roots[left] ;
+					c++;
+				}
+				size_t right = i+1 ;
+				c = 0 ;
+				while(roots[right] > -1 && c < tokens.size())
+				{
+					right = roots[right] ;
+					c++;
+				}
+				roots[left] = i ;
+				roots[right] = i ;
+			}
+		}
+	}
+
+	for(size_t i = 0 ; i < tokens.size() ; i++)
+	{
+		if(tokens[i]->isFinalToken())
+		{
+			if( dynamic_cast<FunctionParserToken *>(tokens[i])->toFunctionToken() == TOKEN_OPERATION_MINUS )
+			{
+				size_t left = i-1 ;
+				size_t c = 0 ;
+				while(roots[left] > -1 && c < tokens.size())
+				{
+					left = roots[left] ;
+					c++;
+				}
+				size_t right = i+1 ;
+				c = 0 ;
+				while(roots[right] > -1 && c < tokens.size())
+				{
+					right = roots[right] ;
+					c++;
+				}
+				roots[left] = i ;
+				roots[right] = i ;
+			}
+		}
+	}
+
+	for(size_t i = 0 ; i < tokens.size() ; i++)
+	{
+		if(tokens[i]->isFinalToken())
+		{
+			if( dynamic_cast<FunctionParserToken *>(tokens[i])->toFunctionToken() == TOKEN_OPERATION_PLUS )
+			{
+				size_t left = i-1 ;
+				size_t c = 0 ;
+				while(roots[left] > -1 && c < tokens.size())
+				{
+					left = roots[left] ;
+					c++;
+				}
+				size_t right = i+1 ;
+				c = 0 ;
+				while(roots[right] > -1 && c < tokens.size())
+				{
+					right = roots[right] ;
+					c++;
+				}
+				roots[left] = i ;
+				roots[right] = i ;
+			}
+		}
+	}
+
+//	for(size_t i = 0 ; i < tokens.size() ; i++)
+//		std::cout << roots[i] << std::endl ;
+
+	isLinking = false ;
+
+}
+
+int FunctionParser::getLeftTokenIndex( size_t i ) const 
+{
+	for(size_t j = 0 ; j < roots.size() ; j++)
+	{
+		if(roots[j] == (int) i)
+			return j ;
+	}
+	return -1 ;
+}
+
+int FunctionParser::getRightTokenIndex( size_t i ) const 
+{
+	for(size_t j = 0 ; j < roots.size() ; j++)
+	{
+		if(roots[roots.size()-1-j] == (int) i)
+			return roots.size()-1-j ;
+	}
+	return -1 ;
+}
+
+Function FunctionParser::getLeftFunction( size_t i ) const 
+{
+	int j = getLeftTokenIndex(i) ;
+	if(j >= 0)
+		return getFunction(j) ;
+	return Function("0") ;
+}
+
+Function FunctionParser::getRightFunction( size_t i ) const 
+{
+	int j = getRightTokenIndex(i) ;
+	if(j >= 0)
+		return getFunction(j) ;
+	return Function("0") ;
+}
+
+Function FunctionParser::getFunction() const
+{
+	for(size_t i = 0 ; i < roots.size() ; i++)
+	{
+		if(roots[i] == -1)
+		{
+			return getFunction(i) ;
+		}
+	}
+	return Function("0") ;
+}
+
+Function FunctionParser::getFunction( size_t i ) const 
+{
+	if( tokens[i]->isFinalToken())
+	{
+		FunctionParserToken * local = dynamic_cast<FunctionParserToken *>( tokens[i] ) ; 
+		TokenOperationType type = local->toFunctionToken() ;
+		switch(type)
+		{
+			case TOKEN_OPERATION_CONSTANT:
+				return Function( (local->data).c_str() ) ;
+			case TOKEN_OPERATION_X:
+				return Function("x") ;
+			case TOKEN_OPERATION_Y:
+				return Function("y") ;
+			case TOKEN_OPERATION_Z:
+				return Function("z") ;
+			case TOKEN_OPERATION_T:
+				return Function("t") ;
+			case TOKEN_OPERATION_U:
+				return Function("u") ;
+			case TOKEN_OPERATION_V:
+				return Function("v") ;
+			case TOKEN_OPERATION_W:
+				return Function("w") ;
+			case TOKEN_OPERATION_PLUS:
+				return getLeftFunction(i)+getRightFunction(i) ;
+			case TOKEN_OPERATION_MINUS:
+				return getLeftFunction(i)-getRightFunction(i) ;
+			case TOKEN_OPERATION_TIMES:
+				return getLeftFunction(i)*getRightFunction(i) ;
+			case TOKEN_OPERATION_DIVIDES:
+				return getLeftFunction(i)/getRightFunction(i) ;
+			case TOKEN_OPERATION_POWER:
+				return getLeftFunction(i)^getRightFunction(i) ;
+			case TOKEN_OPERATION_ABS:
+				return f_abs( getLeftFunction(i) ) ;
+			case TOKEN_OPERATION_COS:
+				return f_cos( getLeftFunction(i) ) ;
+			case TOKEN_OPERATION_SIN:
+				return f_sin( getLeftFunction(i) ) ;
+			case TOKEN_OPERATION_TAN:
+				return f_tan( getLeftFunction(i) ) ;
+			case TOKEN_OPERATION_COSH:
+				return f_cosh( getLeftFunction(i) ) ;
+			case TOKEN_OPERATION_SINH:
+				return f_sinh( getLeftFunction(i) ) ;
+			case TOKEN_OPERATION_TANH:
+				return f_tanh( getLeftFunction(i) ) ;
+			case TOKEN_OPERATION_EXP:
+				return f_exp( getLeftFunction(i) ) ;
+			case TOKEN_OPERATION_SIGN:
+				return f_sign( getLeftFunction(i) ) ;
+			case TOKEN_OPERATION_POSITIVITY:
+				return f_positivity( getLeftFunction(i) ) ;
+			case TOKEN_OPERATION_NEGATIVITY:
+				return f_negativity( getLeftFunction(i) ) ;
+			case TOKEN_OPERATION_LOG:
+				return f_log( getLeftFunction(i) ) ;
+			case TOKEN_OPERATION_SQRT:
+				return f_sqrt( getLeftFunction(i) ) ;
+			default:
+				return Function("0") ;
+		}
+	}
+	return tokens[i]->getFunction() ;
+		
+}
+
+Function FunctionParser::getFunction( std::string f)
+{
+	FunctionParser expr(f) ;
+	return expr.getFunction() ;
+}
+
+void FunctionParser::print(bool end) const
+{
+	std::cout << "( " ;
+	for(size_t i = 0 ; i < tokens.size() ; i++)
+		tokens[i]->print(false) ;
+	std::cout << " ) " ;
+	if(end)
+		std::cout << std::endl ;
+}
+
+void FunctionParserToken::print(bool end) const
+{
+	std::cout << " " << data << " " ;
+	if(end)
+		std::cout << std::endl ;
+}
+
+TokenOperationType FunctionParserToken::toFunctionToken() const
+{
+	Function f ;
+	std::vector<double> v ;
+	return f.toToken( data, 0, v ).first ;
 }

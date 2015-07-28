@@ -97,8 +97,6 @@ protected :
     }*/
 
 protected:
-    functionParseElement toToken ( const std::string & str, int iter, std::vector<double> & v ) const ;
-
     bool isOperator ( const char c ) const ;
 
     bool isNumeral ( const char c ) const ;
@@ -259,6 +257,8 @@ public:
 // 	void setTransform(const ElementaryVolume * s) ;
 // 	void setTransform(const Function & x, const Function & y) ;
 // 	void setTransform(const Function & x, const Function & y, const Function & z) ;
+
+    functionParseElement toToken ( const std::string & str, int iter, std::vector<double> & v ) const ;
 
     /** \brief return the size of the ByteCode
      *
@@ -451,6 +451,8 @@ public:
      * @return a new Function
      */
     Function operator^ ( const int a ) const ;
+
+    Function operator^ ( const Function & f ) const ;
 
     /** \brief Multiply with a Function and assign
      *

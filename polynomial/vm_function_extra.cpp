@@ -227,6 +227,21 @@ Function f_sin(const Function &f)
     return ret ;
 }
 
+Function f_sinh(const Function &f)
+{
+    Function ret = f ;
+    ret.byteCode.push_back(TOKEN_OPERATION_SINH);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
+    ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
+    ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
+
+    return ret ;
+}
+
 
 Function f_sign(const Function &f)
 {
@@ -251,6 +266,51 @@ Function f_cos(const Function &f)
 {
     Function ret = f ;
     ret.byteCode.push_back(TOKEN_OPERATION_COS) ;
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
+    ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
+    ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
+
+    return ret ;
+}
+
+Function f_cosh(const Function &f)
+{
+    Function ret = f ;
+    ret.byteCode.push_back(TOKEN_OPERATION_COSH) ;
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
+    ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
+    ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
+
+    return ret ;
+}
+
+Function f_tan(const Function &f)
+{
+    Function ret = f ;
+    ret.byteCode.push_back(TOKEN_OPERATION_TAN) ;
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
+    ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
+    ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
+
+    return ret ;
+}
+
+Function f_tanh(const Function &f)
+{
+    Function ret = f ;
+    ret.byteCode.push_back(TOKEN_OPERATION_TANH) ;
     ret.adress_a.push_back(0);
     ret.adress_a.push_back(0);
     ret.adress_a.push_back(0);

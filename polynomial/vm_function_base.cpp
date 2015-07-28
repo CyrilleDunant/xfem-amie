@@ -2226,6 +2226,24 @@ Function Function::operator*(const Function &f) const
     return ret ;
 }
 
+Function Function::operator^(const Function &f) const
+{
+
+    Function ret ;
+    concatenateFunctions(*this, f, ret);
+    ret.byteCode.push_back(TOKEN_OPERATION_POWER)  ;
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
+    ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
+    ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
+
+    ret.setNumberOfDerivatives(0) ;
+    return ret ;
+}
+
 Function Function::operator/(const Function &f) const
 {
 

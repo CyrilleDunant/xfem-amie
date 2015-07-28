@@ -57,11 +57,12 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
             }
             else if (f.byteCode[i] ==  TOKEN_OPERATION_POWER)
             {
-                double val = REG_A ;
+                REG_C = std::pow(REG_A,REG_B) ;
+/*                double val = REG_A ;
                 int pow = REG_B-1 ;
                 REG_C = val ;
                 for(int j = 0 ; j < pow ; ++j)
-                    REG_C *= val;
+                    REG_C *= val;*/
 
             }
             else if (f.byteCode[i] ==  TOKEN_OPERATION_INPLACE_TIMES)

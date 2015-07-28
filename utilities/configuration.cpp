@@ -74,8 +74,40 @@ ConfigTreeItem * ConfigTreeItem::getFather() const
     return father ;
 }
 
+void ConfigTreeItem::configure( std::map<std::string, std::string> & cnf ) 
+{
+    for(auto i = cnf.begin() ; i != cnf.end() ; i++)
+    {
+        std::string childLabel = i->first ;
+        std::string testval = i->second ;
+        bool isDouble = (testval.find_first_not_of("0123456789.e-") == std::string::npos ) ;
+        ConfigTreeItem * child = getChildFromFullLabel( childLabel ) ;
+        if(child == nullptr)
+            break ;
+        if(isDouble)
+            child->setData( atof( testval.c_str() ) ) ;
+        else
+            child->setStringData(testval) ;
+    }
+}
+
+
 ConfigTreeItem * ConfigTreeItem::getChild(std::string childLabel)  const
 {
+    size_t pos_start = childLabel.find_first_of("@") ;
+    if(pos_start > 0 && pos_start < std::string::npos)
+    {
+        std::string title = childLabel.substr( 0, pos_start) ;
+        std::string remainder = childLabel.substr( pos_start+1 ) ;
+        size_t index = atof(remainder.c_str()) ;
+        std::vector<ConfigTreeItem *> test = getAllChildren(title) ;
+        if(test.size() > index)
+            return test[index] ;
+        else
+            return nullptr ;
+    }
+
+
     for(size_t i = 0 ; i < children.size() ; i++)
     {
         if(children[i]->is(childLabel))
@@ -283,6 +315,19 @@ void ConfigTreeItem::printTree() const
 
 bool ConfigTreeItem::hasChild( std::string l )  const
 {
+    size_t pos_start = l.find_first_of("@") ;
+    if(pos_start > 0 && pos_start < std::string::npos)
+    {
+        std::string title = l.substr( 0, pos_start) ;
+        std::string remainder = l.substr( pos_start+1 ) ;
+        size_t index = atof(remainder.c_str()) ;
+        std::vector<ConfigTreeItem *> test = getAllChildren(title) ;
+        if(test.size() > index)
+            return true ;
+        else
+            return false ;
+    }
+
     for(size_t i = 0 ; i < children.size() ; i++)
     {
         if(children[i]->is(l))

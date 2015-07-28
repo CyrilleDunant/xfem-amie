@@ -68,6 +68,34 @@ Function f_sin(const Function &f) ;
  */
 Function f_cos(const Function &f) ;
 
+/** \brief Helper function to create a Function which is the hyperbolic sine of the argument
+ * 
+ * @param f Function
+ * @return a new Function
+ */
+Function f_sinh(const Function &f) ;
+
+/** \brief Helper function to create a Function which is the hyperbolic cosine of the argument
+ * 
+ * @param f Function
+ * @return a new Function
+ */
+Function f_cosh(const Function &f) ;
+
+/** \brief Helper function to create a Function which is the tangent of the argument
+ * 
+ * @param f Function
+ * @return a new Function
+ */
+Function f_tan(const Function &f) ;
+
+/** \brief Helper function to create a Function which is the hyperbolic tangeant of the argument
+ * 
+ * @param f Function
+ * @return a new Function
+ */
+Function f_tanh(const Function &f) ;
+
 /** \brief Helper function to create a Function which is the sign of the argument
  * 
  * @param f Function
