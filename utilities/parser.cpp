@@ -551,6 +551,8 @@ CommandLineParser::CommandLineParser(std::string d, bool c) : description(d), co
 {
     addFlag("--help", false, "print help") ;
     addFlag("--version", false, "print current AMIE revision") ;
+    addFlag("--no-openmp", false, "disable OpenMP (equivalent to --set-num-threads 1)") ;
+    addValue("--set-num-threads", -1, "set the number of threads available for OpenMP") ;
 }
 
 ConfigTreeItem * CommandLineParser::parseCommandLine( int argc, char *argv[] )
@@ -599,10 +601,20 @@ ConfigTreeItem * CommandLineParser::parseCommandLine( int argc, char *argv[] )
 	if( getFlag("--help") )
 		printHelp() ;
 
+        if( getFlag("--no-openmp"))
+		setNumThreads(1) ;
+	else if( getValue("--set-num-threads") > 0)
+		setNumThreads( getValue("--set-num-threads") ) ;
+
 	if(getFlag("--help") || getFlag("--version"))
 		exit(0) ;
 
 	return define ;
+}
+
+void CommandLineParser::setNumThreads( int n )
+{
+	omp_set_num_threads(std::max(n,1)) ;
 }
 
 void CommandLineParser::printStatus( )
@@ -701,7 +713,7 @@ std::string CommandLineParser::getString( std::string f )
 
 std::string CommandLineParser::getStringArgument( size_t i )
 {
-	if(i < arguments.size())
+	if(i >= arguments.size())
 		return std::string() ;
 	return arguments[i].str ;
 }
@@ -718,7 +730,7 @@ std::string CommandLineParser::getStringArgument( std::string arg )
 
 double CommandLineParser::getNumeralArgument( size_t i )
 {
-	if(i < arguments.size())
+	if(i >= arguments.size())
 		return 0. ;
 	return arguments[i].val ;
 }

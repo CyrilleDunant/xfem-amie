@@ -319,7 +319,16 @@ Form * LogarithmicCreepWithExternalParameters::getCopy() const
 
         copy->setBlocks(blocks) ;
 	for(size_t i = 0 ; i < relations.size() ; i++)
+	{
 		copy->relations.push_back(relations[i]) ;
+		WeibullDistributedMaterialLaw * weib = dynamic_cast<WeibullDistributedMaterialLaw *>(relations[i]) ;
+		if(weib != nullptr)
+		{
+			std::pair< std::string, double> w = weib->getWeibullVariable() ;
+			if(external.find(w.first) == external.end())
+				copy->addMaterialParameter(w.first, w.second) ;
+		}
+	}
 
 	return copy ;
 

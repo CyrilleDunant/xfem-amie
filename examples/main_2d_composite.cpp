@@ -86,14 +86,6 @@ int main(int argc, char *argv[])
 
     F.step() ;
 
-    if(printMicrostructureOnly)
-    {
-        TriangleWriter trg(problem->getStringData("export.file_name","2d_composite_microstructure"), &F, 1 ) ;
-        trg.getField( TWFT_STIFFNESS ) ;
-        trg.write() ;
-        exit(0) ;
-    }
-
     std::vector<unsigned int> cacheIndex ;
     std::vector<unsigned int> aggCacheIndex ;
     std::cout << "generating cache for inclusion family 0/" << allFeatures.size() ;
@@ -109,6 +101,14 @@ int main(int argc, char *argv[])
     std::cout << "... done" << std::endl ;
     for(size_t i = 0 ; i < cacheIndex.size() ; i++)
         std::cout << "inclusion family " << i << " covering surface " << F.get2DMesh()->getArea( cacheIndex[i] ) << std::endl ;
+
+    if(printMicrostructureOnly)
+    {
+        TriangleWriter trg(problem->getStringData("export.file_name","2d_composite_microstructure"), &F, 1 ) ;
+        trg.getField( TWFT_STIFFNESS ) ;
+        trg.write() ;
+        exit(0) ;
+    }
 
     std::vector<ConfigTreeItem *> bcItem = problem->getAllChildren("boundary_condition") ;
     std::vector<std::pair<BoundaryCondition *, LinearInterpolatedExternalMaterialLaw *> > interpolatedBC ;

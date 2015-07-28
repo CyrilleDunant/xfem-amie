@@ -19,7 +19,7 @@ struct AggregateBehaviour : public WeibullDistributedStiffness
     double yield ;
     double c ;
     //Yield 30 MPa
-    AggregateBehaviour(double E=59e9, double nu=0.3, double up = 14.75e6, double yield = 0.00044, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+    AggregateBehaviour(double E=59e9, double nu=0.3, double up = 14.75e6, double yield = 0.00044, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
 
     virtual Form * getCopy() const ;
 
@@ -27,7 +27,7 @@ struct AggregateBehaviour : public WeibullDistributedStiffness
 
 struct ElasticOnlyAggregateBehaviour : public AggregateBehaviour
 {
-    ElasticOnlyAggregateBehaviour(double E=59e9, double nu=0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+    ElasticOnlyAggregateBehaviour(double E=59e9, double nu=0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
 
     virtual Form * getCopy() const ;
 
@@ -36,7 +36,7 @@ struct ElasticOnlyAggregateBehaviour : public AggregateBehaviour
 struct ViscoElasticOnlyAggregateBehaviour : public AggregateBehaviour
 {
     int freeblocks ;
-    ViscoElasticOnlyAggregateBehaviour(double E=59e9, double nu=0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+    ViscoElasticOnlyAggregateBehaviour(double E=59e9, double nu=0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
 
     virtual Form * getCopy() const ;
 } ;
@@ -45,7 +45,7 @@ struct ViscoDamageAggregateBehaviour : public AggregateBehaviour
 {
     double rad ;
     int freeblocks ;
-    ViscoDamageAggregateBehaviour(double E=59e9, double nu=0.3, double up = 0.00025, double r = 0.00025, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+    ViscoDamageAggregateBehaviour(double E=59e9, double nu=0.3, double up = 0.00025, double r = 0.00025, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
 
     virtual Form * getCopy() const ;
 } ;

@@ -20,6 +20,30 @@
 #include <omp.h>
 using namespace Amie ;
 
+double getSmoothingKernelSize( SmoothingFunctionType type )
+{
+    switch(type)
+    {
+        case QUARTIC_COMPACT:
+           return 4. ;
+        case GAUSSIAN_NONCOMPACT:
+           return 6. ;
+    }
+    return 1. ;
+}
+
+Function getSmoothingKernelFunction( SmoothingFunctionType type, Function & rrn )
+{
+    switch(type)
+    {
+        case QUARTIC_COMPACT:
+           return (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+        case GAUSSIAN_NONCOMPACT:
+           return f_exp(rrn*-0.5) ;
+    }
+    return Function("1") ;
+}
+
 FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, double delta_y, double delta_z) :
     restrictionSource(nullptr),
     initialScore(1),
@@ -46,13 +70,22 @@ FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, doub
     inIteration(false),
     mesh2d(nullptr), mesh3d(nullptr)
 {
+    overlap = getSmoothingKernelSize( smoothingType ) ;
+}
+
+void FractureCriterion::setSmoothingFunctionType( SmoothingFunctionType type, bool over)
+{
+    smoothingType = type ;
+    if(over)
+        overlap = getSmoothingKernelSize( smoothingType ) ;
 }
 
 void FractureCriterion::copyEssentialParameters( const FractureCriterion * frac ) 
 {
     setScoreTolerance( frac->getScoreTolerance() ) ;
     setMaterialCharacteristicRadius( frac->getMaterialCharacteristicRadius() ) ;
-    setSmoothingFunctionType( frac->getSmoothingFunctionType() ) ;
+    setSmoothingFunctionType( frac->getSmoothingFunctionType(), false ) ;
+    setSmoothingFunctionOverlap( frac->getSmoothingFunctionOverlap() ) ;
 }
 
 Vector FractureCriterion::getSmoothedField(FieldType f0,  ElementState &s ,double t)
@@ -127,9 +160,9 @@ void FractureCriterion::initialiseCache( ElementState & s)
         Function y = Function("y")-s.getParent()->getCenter().getY() ;
         Function rr = x*x+y*y ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-        Function smooth =  (smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+        Function smooth = getSmoothingKernelFunction( smoothingType, rrn ) ; //(smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 
-        double overlap = (smoothingType == QUARTIC_COMPACT)?8.:10. ;
+//        double overlap = getSmoothingKernelSize(smoothingType) ;// == QUARTIC_COMPACT)?4.:6. ;
         Circle epsilonAll( std::max(physicalCharacteristicRadius*1.1, s.getParent()->getRadius()*3. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         Circle epsilonReduced(physicalCharacteristicRadius*1.1+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         mesh2d = s.getMesh2D() ;
@@ -146,9 +179,9 @@ void FractureCriterion::initialiseCache( ElementState & s)
         Function z = Function("z")-s.getParent()->getCenter().getZ() ;
         Function rr = x*x+y*y+z*z ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-        Function smooth =  (smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+        Function smooth = getSmoothingKernelFunction( smoothingType, rrn ) ; //(smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 
-        double overlap = (smoothingType == QUARTIC_COMPACT)?8.:10. ;
+//        double overlap = getSmoothingKernelSize(smoothingType) ;//(smoothingType == QUARTIC_COMPACT)?4.:6. ;
         Sphere epsilonAll( std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*2. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         Sphere epsilonReduced(physicalCharacteristicRadius*1.1+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         mesh3d = s.getMesh3D() ;

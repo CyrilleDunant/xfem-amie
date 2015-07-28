@@ -20,10 +20,10 @@
 
 using namespace Amie ;
 
-PasteBehaviour::PasteBehaviour(double E, double nu, double up, double yield, double c, SpaceDimensionality dim) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up), yield(yield), c(c)
+PasteBehaviour::PasteBehaviour(double E, double nu, double up, double yield, double c, SpaceDimensionality dim, double var) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up), yield(yield), c(c)
 {
     materialRadius = 0.0005 ;
-    variability=.2 ;
+    variability= var ;
 }
 
 Form * PasteBehaviour::getCopy() const
@@ -37,7 +37,7 @@ Form * PasteBehaviour::getCopy() const
     return copy ;
 }
 
-ElasticOnlyPasteBehaviour::ElasticOnlyPasteBehaviour(double E, double nu, SpaceDimensionality dim) : PasteBehaviour(E,nu,0.,0.,0.,dim)
+ElasticOnlyPasteBehaviour::ElasticOnlyPasteBehaviour(double E, double nu, SpaceDimensionality dim, double var) : PasteBehaviour(E,nu,0.,0.,0.,dim, var)
 {
     variability = 0.2 ;
 }
@@ -49,7 +49,7 @@ Form * ElasticOnlyPasteBehaviour::getCopy() const
     return new Stiffness(param*factor) ;
 }
 
-ViscoElasticOnlyPasteBehaviour::ViscoElasticOnlyPasteBehaviour(double E, double nu, double e1, double e2, SpaceDimensionality dim) : PasteBehaviour(E, nu, 0.,0.,0., dim), e_1(e1), e_2(e2), freeblocks(0)
+ViscoElasticOnlyPasteBehaviour::ViscoElasticOnlyPasteBehaviour(double E, double nu, double e1, double e2, SpaceDimensionality dim, double var) : PasteBehaviour(E, nu, 0.,0.,0., dim, var), e_1(e1), e_2(e2), freeblocks(0)
 {
 
 }
@@ -84,7 +84,7 @@ Form * ShortTermViscoElasticOnlyPasteBehaviour::getCopy() const
     return new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C0, C1, E1) ;
 }
 
-ViscoDamagePasteBehaviour::ViscoDamagePasteBehaviour(double E, double nu, double e1, double e2 , double up_, double r, SpaceDimensionality dim) : PasteBehaviour(E, nu, up_,0.,0., dim), e_1(e1), e_2(e2), freeblocks(0), ctype(STRAIN_CRITERION)
+ViscoDamagePasteBehaviour::ViscoDamagePasteBehaviour(double E, double nu, double e1, double e2 , double up_, double r, SpaceDimensionality dim, double var) : PasteBehaviour(E, nu, up_,0.,0., dim, var), e_1(e1), e_2(e2), freeblocks(0), ctype(STRAIN_CRITERION)
 {
     materialRadius = r ;
     stressFraction = 1. ;
@@ -177,7 +177,7 @@ Form * ShortTermViscoDamagePasteBehaviour::getCopy() const
 
 }
 
-PseudoBurgerViscoElasticOnlyPasteBehaviour::PseudoBurgerViscoElasticOnlyPasteBehaviour(double E, double nu, double e1, double t2, SpaceDimensionality dim) : PasteBehaviour(E, nu, 0.,0.,0., dim), e_1(e1), t_2(t2)
+PseudoBurgerViscoElasticOnlyPasteBehaviour::PseudoBurgerViscoElasticOnlyPasteBehaviour(double E, double nu, double e1, double t2, SpaceDimensionality dim, double var) : PasteBehaviour(E, nu, 0.,0.,0., dim, var), e_1(e1), t_2(t2)
 {
     variability = 0. ;//0.001 ;
 }
@@ -200,7 +200,7 @@ Form * PseudoBurgerViscoElasticOnlyPasteBehaviour::getCopy() const
     return new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C0, branches) ;
 }
 
-PseudoBurgerViscoDamagePasteBehaviour::PseudoBurgerViscoDamagePasteBehaviour(double E, double nu, double e1, double t2, double up, double r, SpaceDimensionality dim) : PasteBehaviour(E, nu, up,0.,0., dim), e_1(e1), t_2(t2), freeblocks(0), ctype(STRESS_CRITERION)
+PseudoBurgerViscoDamagePasteBehaviour::PseudoBurgerViscoDamagePasteBehaviour(double E, double nu, double e1, double t2, double up, double r, SpaceDimensionality dim, double var) : PasteBehaviour(E, nu, up,0.,0., dim, var), e_1(e1), t_2(t2), freeblocks(0), ctype(STRESS_CRITERION)
 {
     stressFraction = 0.85 ;
     materialRadius = r ;

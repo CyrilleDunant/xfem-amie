@@ -65,6 +65,8 @@ public:
 
 	ConfigTreeItem * parseCommandLine( int argc, char *argv[] ) ;
 
+	void setNumThreads(int n) ;
+
 	void printStatus() ;
 
 	void printHelp() ;

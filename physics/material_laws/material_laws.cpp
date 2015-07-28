@@ -606,5 +606,10 @@ void WeibullDistributedMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElastic
         s.multiply(affected[i], w) ;
 }
 
+std::pair<std::string, double> WeibullDistributedMaterialLaw::getWeibullVariable() const
+{
+	return std::make_pair( weib, std::max(0., 1. - variability + variability*RandomNumber().weibull(1.,5.)) ) ;
+}
+
 }
 

@@ -338,11 +338,16 @@ std::vector<std::vector<PolygonalSample *> > PSDGenerator::get2DVoronoiPolygons(
 
     double r0 = (minDist < 0 ? morphology[morphology.size()-1].radius : minDist) ;
 
-    std::vector<Inclusion *> inclusions = PSDGenerator::get2DInclusions( r0, box->area()*0.9, new ConstantSizeDistribution(), PSDEndCriteria( r0*0.25, 0.01, truen) ) ;
+    std::vector<Inclusion *> inclusions = PSDGenerator::get2DInclusions( r0, box->area()*0.9, new ConstantSizeDistribution(), PSDEndCriteria( r0*0.25, box->area(), truen) ) ;
     std::vector<Feature *> circles ;
     for(size_t i = 0 ; i < inclusions.size() ; i++)
         circles.push_back(inclusions[i]) ;
-    std::vector<Feature *> placed = placement2D(box, circles, 0,0, 100*truen, M_PI) ;
+    double tries = 100 ;
+    if(morphology.size() == 1)
+    {
+       tries *= 10 ;
+    }
+    std::vector<Feature *> placed = placement2D(box, circles, 0,0, tries*truen, M_PI) ;
     std::random_shuffle( placed.begin(), placed.end() ) ;
 
     std::vector<int> index(placed.size(), -1) ;
@@ -400,7 +405,7 @@ std::vector<std::vector<PolygonalSample *> > PSDGenerator::get2DVoronoiPolygons(
         grains.push_back( std::make_pair( p, i ) ) ;
         j++ ;
 
-        if( (radius > r0 && current > area ) || count > target_count )
+        if( (morphology.size() > 1) && ((radius > r0 && current > area ) || (count > target_count) ))
         {
             i++ ;
             if( i < morphology.size())
@@ -662,10 +667,10 @@ std::vector<std::vector<Feature *> > PSDGenerator::get2DVoronoiPolygons(FeatureT
     double realn = (n == 0 ? F->getFeature(0)->area()/(minDist*minDist*M_PI) : n) ;
     for(size_t i = 0 ; i < feats.size() ; i++)
     {
-        double num = ((double) realn)*feats[i]->area()/F->getFeature(0)->area() ;
-        if(num > 1)
+        double num = ((double) realn)*sqrt(feats[i]->area()/F->getFeature(0)->area()) ;
+        if(num > 1 && feats[i]->getRadius() > minDist*1.5)
         {
-            std::vector<std::vector<Feature *> > poly = PSDGenerator::get2DVoronoiPolygons( feats[i], grains, std::max(3., num), minDist, border, nmax, copy, delta) ;
+            std::vector<std::vector<Feature *> > poly = PSDGenerator::get2DVoronoiPolygons( feats[i], grains, std::max(4., num), minDist, border, nmax, copy, delta) ;
             for(size_t j = 0 ; j < poly.size() ; j++)
             {
                 for(size_t k = 0 ; k < poly[j].size() ; k++)

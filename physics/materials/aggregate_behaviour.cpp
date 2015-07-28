@@ -20,10 +20,10 @@
 
 using namespace Amie ;
 
-AggregateBehaviour::AggregateBehaviour(double E, double nu, double up_, double yield, double c, SpaceDimensionality dim) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up_), yield(yield), c(c)
+AggregateBehaviour::AggregateBehaviour(double E, double nu, double up_, double yield, double c, SpaceDimensionality dim, double var) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up_), yield(yield), c(c)
 {
 	materialRadius = 0.0004 ;
-    variability = .2 ;
+    variability = var ;
 }
 
 Form * AggregateBehaviour::getCopy() const 
@@ -38,7 +38,7 @@ Form * AggregateBehaviour::getCopy() const
 	return copy ;
 }
 
-ElasticOnlyAggregateBehaviour::ElasticOnlyAggregateBehaviour(double E, double nu, SpaceDimensionality dim) : AggregateBehaviour(E,nu,0.,0.,0.,dim)
+ElasticOnlyAggregateBehaviour::ElasticOnlyAggregateBehaviour(double E, double nu, SpaceDimensionality dim, double var) : AggregateBehaviour(E,nu,0.,0.,0.,dim, var)
 {
 //	variability = 0.5 ;
 }
@@ -53,7 +53,7 @@ Form * ElasticOnlyAggregateBehaviour::getCopy() const
 }
 
 
-ViscoElasticOnlyAggregateBehaviour::ViscoElasticOnlyAggregateBehaviour(double E, double nu, SpaceDimensionality dim) : AggregateBehaviour(E,nu,0.,0.,0.,dim), freeblocks(0)
+ViscoElasticOnlyAggregateBehaviour::ViscoElasticOnlyAggregateBehaviour(double E, double nu, SpaceDimensionality dim, double var) : AggregateBehaviour(E,nu,0.,0.,0.,dim, var), freeblocks(0)
 {
 
 }
@@ -66,7 +66,7 @@ Form * ViscoElasticOnlyAggregateBehaviour::getCopy() const
 
 }
 
-ViscoDamageAggregateBehaviour::ViscoDamageAggregateBehaviour(double E, double nu, double up, double r, SpaceDimensionality dim) : AggregateBehaviour(E,nu,up,0.,0.,dim), rad(r), freeblocks(0)
+ViscoDamageAggregateBehaviour::ViscoDamageAggregateBehaviour(double E, double nu, double up, double r, SpaceDimensionality dim, double var) : AggregateBehaviour(E,nu,up,0.,0.,dim, var), rad(r), freeblocks(0)
 {
 	materialRadius = r ;
 }

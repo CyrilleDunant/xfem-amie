@@ -510,6 +510,16 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
         return ret ;
     }
 
+    if(type == "RADIATION_DEPENDENT_THERMAL_EXPANSION_COEFFICIENT")
+    {
+        return new RadiationDependentThermalExpansionCoefficientMaterialLaw() ;
+    }
+
+    if(type == "RADIATION_DEPENDENT_POISSON_RATIO")
+    {
+        return new RadiationDependentPoissonRatioMaterialLaw() ;
+    }
+
     if(type == "ANISOTROPIC_THERMAL_EXPANSION")
     {
         ret = new AnisotropicThermalExpansionMaterialLaw("temperature = 293") ;
@@ -1373,28 +1383,30 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime, std
 
     if(type == std::string("PASTE_BEHAVIOUR"))
     {
+        double var = getData("variability", 0.2) ;
         if(getStringData("damage","TRUE") == "FALSE")
         {
             if(spaceTime)
-                return new ViscoElasticOnlyPasteBehaviour( getData("young_modulus", 12e9) , getData( "poisson_ratio", 0.3), getData("short_term_creep_modulus", 0.3), getData("long_term_creep_modulus", 0.37), dim) ;
-            return new ElasticOnlyPasteBehaviour( getData("young_modulus", 12e9) , getData( "poisson_ratio", 0.3), dim) ;
+                return new ViscoElasticOnlyPasteBehaviour( getData("young_modulus", 12e9) , getData( "poisson_ratio", 0.3), getData("short_term_creep_modulus", 0.3), getData("long_term_creep_modulus", 0.37), dim, var) ;
+            return new ElasticOnlyPasteBehaviour( getData("young_modulus", 12e9) , getData( "poisson_ratio", 0.3), dim, var) ;
         }
         if(spaceTime)
-            return new ViscoDamagePasteBehaviour( getData("young_modulus", 12e9) , getData( "poisson_ratio", 0.3), getData( "tensile_strain_limit", 0.0003), 0.00025, dim) ;
-        return new PasteBehaviour( getData("young_modulus", 12e9) , getData( "poisson_ratio", 0.3), getData( "tensile_strain_limit", 0.0016666), 0.001666, 12000, dim) ;
+            return new ViscoDamagePasteBehaviour( getData("young_modulus", 12e9) , getData( "poisson_ratio", 0.3), getData( "tensile_strain_limit", 0.0003), 0.00025, dim, var) ;
+        return new PasteBehaviour( getData("young_modulus", 12e9) , getData( "poisson_ratio", 0.3), getData( "tensile_strain_limit", 0.0016666), 0.001666, 12000, dim, var) ;
     }
 
     if(type == std::string("AGGREGATE_BEHAVIOUR"))
     {
+        double var = getData("variability", 0.2) ;
         if(getStringData("damage","TRUE") == "FALSE")
         {
             if(spaceTime)
-                return new ViscoElasticOnlyAggregateBehaviour( getData("young_modulus", 59e9) , getData( "poisson_ratio", 0.3), dim) ;
-            return new ElasticOnlyAggregateBehaviour( getData("young_modulus", 59e9) , getData( "poisson_ratio", 0.3), dim) ;
+                return new ViscoElasticOnlyAggregateBehaviour( getData("young_modulus", 59e9) , getData( "poisson_ratio", 0.3), dim, var) ;
+            return new ElasticOnlyAggregateBehaviour( getData("young_modulus", 59e9) , getData( "poisson_ratio", 0.3), dim, var) ;
         }
         if(spaceTime)
-            return new ViscoDamageAggregateBehaviour( getData("young_modulus", 59e9) , getData( "poisson_ratio", 0.3), getData( "tensile_strain_limit", 0.0012), 0.00025, dim) ;
-        return new AggregateBehaviour( getData("young_modulus", 59e9) , getData( "poisson_ratio", 0.3), getData( "tensile_strain_limit", 0.0012), 0.00044, 12000, dim) ;
+            return new ViscoDamageAggregateBehaviour( getData("young_modulus", 59e9) , getData( "poisson_ratio", 0.3), getData( "tensile_strain_limit", 0.0012), 0.00025, dim, var) ;
+        return new AggregateBehaviour( getData("young_modulus", 59e9) , getData( "poisson_ratio", 0.3), getData( "tensile_strain_limit", 0.0012), 0.00044, 12000, dim, var) ;
     }
 
     if(type == std::string("ASR_GEL_BEHAVIOUR"))
@@ -1787,8 +1799,8 @@ InclusionGenerator * ConfigTreeItem::getInclusionGenerator() const
             return new PolygonalInclusionGenerator( side, orientation, orientation_var, side_var, rotation, force ) ;
         if(method == "GRAVEL")
         {
-            double param_p = getData("parameter_p", 1.5 ) ;
-            double param_m = getData("parameter_m", 0.2 ) ;
+            double param_p = getData("parameter_p", 0.9 ) ;
+            double param_m = getData("parameter_m", 1.9 ) ;
             int degree = getData("degree", 2) ;
             return new GravelPolygonalInclusionGenerator( param_p, param_m, degree, side, orientation, orientation_var, side_var, rotation, force ) ;
         }

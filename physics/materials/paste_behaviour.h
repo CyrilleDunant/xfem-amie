@@ -20,7 +20,7 @@ struct PasteBehaviour : public WeibullDistributedStiffness
     double up ;
     double yield ;
     double c ;
-    PasteBehaviour(double E = 12e9, double nu = 0.3,  double up = 4e6, double yield = 0.0001666, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+    PasteBehaviour(double E = 12e9, double nu = 0.3,  double up = 4e6, double yield = 0.0001666, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
 
     virtual Form * getCopy() const ;
 
@@ -111,7 +111,7 @@ struct HydratingDiffusionCementPaste final: public LinearForm
 
 struct ElasticOnlyPasteBehaviour : public PasteBehaviour
 {
-    ElasticOnlyPasteBehaviour(double E = 12e9, double nu = 0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+    ElasticOnlyPasteBehaviour(double E = 12e9, double nu = 0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
 
     virtual Form * getCopy() const ;
 } ;
@@ -123,14 +123,14 @@ struct ViscoElasticOnlyPasteBehaviour : public PasteBehaviour
     double e_2 ;
     int freeblocks ;
 
-    ViscoElasticOnlyPasteBehaviour(double E = 12e9, double nu = 0.3, double e1 = 0.3, double e2 = 0.37, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+    ViscoElasticOnlyPasteBehaviour(double E = 12e9, double nu = 0.3, double e1 = 0.3, double e2 = 0.37, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
 
     virtual Form * getCopy() const ;
 } ;
 
 struct ShortTermViscoElasticOnlyPasteBehaviour : public ViscoElasticOnlyPasteBehaviour
 {
-    ShortTermViscoElasticOnlyPasteBehaviour(double E = 12e9, double nu = 0.3, double e1 = 0.3, double e2 = 0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) : ViscoElasticOnlyPasteBehaviour(E, nu, e1,e2,dim) { } ;
+    ShortTermViscoElasticOnlyPasteBehaviour(double E = 12e9, double nu = 0.3, double e1 = 0.3, double e2 = 0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) : ViscoElasticOnlyPasteBehaviour(E, nu, e1,e2,dim, var) { } ;
 
     virtual Form * getCopy() const ;
 } ;
@@ -150,14 +150,14 @@ struct ViscoDamagePasteBehaviour : public PasteBehaviour
     PasteCriterion ctype ;
     double stressFraction ;
 
-    ViscoDamagePasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double e2=0.37, double up = 0.0003, double r  = 0.00018, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+    ViscoDamagePasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double e2=0.37, double up = 0.0003, double r  = 0.00018, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
 
     virtual Form * getCopy() const ;
 } ;
 
 struct ShortTermViscoDamagePasteBehaviour : public ViscoDamagePasteBehaviour
 {
-    ShortTermViscoDamagePasteBehaviour(double E = 12e9, double nu = 0.3, double e1 = 0.3, double e2 = 0.3,double r  = 0.00018,  SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) : ViscoDamagePasteBehaviour(E, nu, e1,e2,r,dim) { } ;
+    ShortTermViscoDamagePasteBehaviour(double E = 12e9, double nu = 0.3, double e1 = 0.3, double e2 = 0.3, double up = 0.0003, double r  = 0.00018,  SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) : ViscoDamagePasteBehaviour(E, nu, e1,e2,up,r,dim, var) { } ;
 
     virtual Form * getCopy() const ;
 } ;
@@ -167,7 +167,7 @@ struct PseudoBurgerViscoElasticOnlyPasteBehaviour : public PasteBehaviour
     double e_1 ;
     double t_2 ;
 
-    PseudoBurgerViscoElasticOnlyPasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double t2=300, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+    PseudoBurgerViscoElasticOnlyPasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double t2=300, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
 
     virtual Form * getCopy() const ;
 } ;
@@ -180,7 +180,7 @@ struct PseudoBurgerViscoDamagePasteBehaviour : public PasteBehaviour
     PasteCriterion ctype ;
     double stressFraction ;
 
-    PseudoBurgerViscoDamagePasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double t2=300, double up = 0.0003, double r  = 0.00018, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+    PseudoBurgerViscoDamagePasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double t2=300, double up = 0.0003, double r  = 0.00018, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
 
     virtual Form * getCopy() const ;
 } ;

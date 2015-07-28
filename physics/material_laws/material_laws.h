@@ -323,6 +323,8 @@ struct WeibullDistributedMaterialLaw : public ExternalMaterialLaw
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
     virtual ~WeibullDistributedMaterialLaw() { } ;
+
+    std::pair<std::string, double> getWeibullVariable() const ;
     
 
 } ;

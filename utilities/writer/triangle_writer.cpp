@@ -1116,7 +1116,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
         {
             if( tri->getBehaviour() && tri->getBehaviour()->getFractureCriterion())
             {
-                double d = tri->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
+                double d = tri->getBehaviour()->getFractureCriterion()->getScoreAtTimeStepEnd() ;
                 ret[2] = d ;
                 ret[1] = d ;
                 ret[0] = d ;

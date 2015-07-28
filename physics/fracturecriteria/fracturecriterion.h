@@ -41,7 +41,7 @@ typedef enum {
 
 typedef enum {
     QUARTIC_COMPACT,
-    GAUSSIAN_NONCOMPACT
+    GAUSSIAN_NONCOMPACT,
 } SmoothingFunctionType ;
 
 /**
@@ -73,6 +73,7 @@ protected:
 
     bool metAtStep ;
     bool stable ;
+    double overlap ;
 
     double minDeltaInNeighbourhood ;
     int maxModeInNeighbourhood ;
@@ -118,7 +119,9 @@ public:
     }
 
     SmoothingFunctionType getSmoothingFunctionType() const { return smoothingType ; }
-    void setSmoothingFunctionType( SmoothingFunctionType smooth ) { smoothingType = smooth ; }
+    void setSmoothingFunctionType( SmoothingFunctionType smooth, bool over = true ) ;// { smoothingType = smooth ; }
+    void setSmoothingFunctionOverlap( double d ) { overlap = d ; }
+    double getSmoothingFunctionOverlap() const { return overlap ; }
 
     double getScoreTolerance() const {
         return scoreTolerance ;

@@ -12,6 +12,26 @@ void ThermalExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticEle
     s.add("imposed_deformation", alpha*(T-T0)) ;
 }
 
+void RadiationDependentThermalExpansionCoefficientMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+{
+    double alpha_1 = s.get("thermal_expansion_coefficient_unirradiated", defaultValues) ;
+    double alpha_0 = s.get("thermal_expansion_coefficient_irradiated", defaultValues) ;
+    double epsilon = s.get("rive_previous", defaultValues)*3. ;
+    double epsilon_l = s.get("thermal_expansion_coefficient_latency", defaultValues) ;
+    double epsilon_c = s.get("thermal_expansion_coefficient_characteristic", defaultValues) ;
+    s.set("thermal_expansion_coefficient", alpha_0 + alpha_1*(1.-(1.-exp(-epsilon/epsilon_c))/(1.+exp(-(epsilon-epsilon_l)/epsilon_c)))  ) ;
+}
+
+void RadiationDependentPoissonRatioMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+{
+    double nu_1 = s.get("poisson_ratio_irradiated", defaultValues) ;
+    double nu_0 = s.get("poisson_ratio_unirradiated", defaultValues) ;
+    double epsilon = s.get("rive_previous", defaultValues) ;
+    double a = s.get("poisson_ratio_coefficient", defaultValues) ;
+    double b = s.get("poisson_ratio_exponent", defaultValues) ;
+    s.set("poisson_ratio", std::min( nu_0+(exp( a*std::pow(epsilon*3*100., b) )-1), nu_1 ) ) ;
+}
+
 void AnisotropicThermalExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     double T = s.get("temperature", defaultValues) ;
