@@ -839,7 +839,6 @@ bool Triangle::in(const Point &p) const
 std::vector<Point> Triangle::getSamplingBoundingPoints(size_t num_points) const
 {
     std::vector<Point> ret ;
-    assert(num_points%3 == 0) ;
 
     int n = getBoundingPoints().size() ;
 
@@ -926,18 +925,6 @@ void Triangle::sampleSurface(size_t num_points)
     Point p2 = getBoundingPoint( end_i )-p1 ;
     Point p3 = getBoundingPoint( end_i*2 )-p1 ;
     double d = (p2.norm()+p3.norm())*0.01 ;
-
-    /*	for(double i = 1./num_points ; i < 1 ; i += 1./num_points)
-    	{
-    		for(double j = 1./num_points ; j < i ; j += 1./num_points)
-    		{
-    			Point test = p1 + p2*(i+xrand) + p3*(j+yrand) ;
-    			if(in(test))
-    				newPoints.push_back(test) ;
-    		}
-    	}*/
-
-
 
 
     for(int i = 0 ; i < ((int)num_points-1) ; i+=1)

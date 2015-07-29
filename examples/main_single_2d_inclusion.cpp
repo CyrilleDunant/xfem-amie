@@ -48,31 +48,22 @@ void step()
         }
 //        featureTree->printReport();
        
-       Vector tmp(3) ;
-       for(double x = -100 ;  x <= 100 ; x += .25)
+       Vector tmp(2) ;
+       for(double x = -150 ;  x <= 150 ; x += .5)
        {
-           for(double y = -100 ;  y <= 100 ; y += .25)
-           {
-               featureTree->get2DMesh()->getField(STRAIN_FIELD, Point(x,y),tmp) ;
-                std::cout << tmp[0] << "  "<< std::flush ;
-           }
-           std::cout << std::endl ;
-       }
-       for(double x = -100 ;  x <= 100 ; x += .25)
-       {
-           for(double y = -100 ;  y <= 100 ; y += .25)
-           {
-               featureTree->get2DMesh()->getField(REAL_STRESS_FIELD, Point(x,y),tmp) ;
-                std::cout << tmp[0] << "  "<< std::flush ;
-           }
-           std::cout << std::endl ;
-       }
-       tmp.resize(2) ;
-       for(double x = -100 ;  x <= 100 ; x += .25)
-       {
-           for(double y = -100 ;  y <= 100 ; y += .25)
+           for(double y = -100 ;  y <= 100 ; y += .5)
            {
                featureTree->get2DMesh()->getField(DISPLACEMENT_FIELD, Point(x,y),tmp) ;
+                std::cout << tmp[0] << "  "<< std::flush ;
+           }
+           std::cout << std::endl ;
+       }
+       tmp.resize(3) ;
+       for(double x = -150 ;  x <= 150 ; x += .5)
+       {
+           for(double y = -100 ;  y <= 100 ; y += .5)
+           {
+               featureTree->get2DMesh()->getField(REAL_STRESS_FIELD, Point(x,y),tmp) ;
                 std::cout << tmp[0] << "  "<< std::flush ;
            }
            std::cout << std::endl ;
@@ -102,32 +93,33 @@ double partitionScore(const std::vector<int> & triplet)
 // 0 0.008 + sym + quad
 
 //tests should be 5 5 
-//   0  0
-//  -5 -5
+//   0   0
+//  -5   -5
 //  -10 -10
 //  -15 -15
-//  -5 -10
-//  -5 -15
+//  -5  -10
+//  -5  -15
 //  -10 -15
 int main(int argc, char *argv[])
 {
-
-    Sample samplers(nullptr, 200,200,0,0) ;
+    Sample samplers(nullptr, 300,200,0,0) ;
 
     FeatureTree F(&samplers) ;
     featureTree = &F ;
     int setup = -1 ; //atoi(argv[2]) ;
-    int load = -1 ; //atoi(argv[3]) ;
+    int load  = -1 ; //atoi(argv[3]) ;
 
     samplers.setBehaviour(new ElasticOnlyPasteBehaviour()) ;
-    ExpansiveZone inc(&samplers, 15, -50, 0,new GelBehaviour()) ;
-    Inclusion inc0(&samplers, 15, 50, 0) ; inc0.setBehaviour(new GelBehaviour());
+    ExpansiveZone inc(&samplers , 15, -100, 0,                     new GelBehaviour()) ;
+    Inclusion     inc0(&samplers, 15,  0  , 0) ; inc0.setBehaviour(new GelBehaviour()) ;
+    Inclusion     inc1(&samplers, 15,  100, 0) ; inc1.setBehaviour(new GelBehaviour()) ;
+    inc1.isVirtualFeature = true ;
 //     std::valarray<Point *> pts(5) ;
     
-//     pts[0] = new Point(-80, 50) ; 
-//     pts[1] = new Point(0.00, 20) ; 
-//     pts[2] = new Point(80, 80) ;
-//     pts[3] = new Point(50, -80) ; 
+//     pts[0] = new Point(-80,  50) ; 
+//     pts[1] = new Point( 0 ,  20) ; 
+//     pts[2] = new Point( 80,  80) ;
+//     pts[3] = new Point( 50, -80) ; 
 //     pts[4] = new Point(-80, -80) ;
 //     PolygonalSample inc(&samplers, pts) ;
     
@@ -138,6 +130,7 @@ int main(int argc, char *argv[])
 
     F.addFeature(&samplers, &inc) ;
 	F.addFeature(&samplers, &inc0) ;
+//     F.addFeature(&samplers, &inc1) ;
     F.setSamplingNumber(atof(argv[1])) ;
     
     std::vector<Geometry *> inclusion ;

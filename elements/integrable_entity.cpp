@@ -659,6 +659,9 @@ void ElementState::getExternalFieldAtGaussPoints ( Vector & nodalValues, int ext
 
 void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm, int ) 
 {
+    ret = 0 ;
+    if(!parent->getBehaviour() || parent->getBehaviour()->type == VOID_BEHAVIOUR)
+        return ;
     bool cleanup = !vm ;
     if ( !vm )
     {
@@ -756,26 +759,28 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             double y_xi = 0;
             double y_eta = 0;
 
-            if ( displacements.size() /2 == parent->getBoundingPoints().size() )
+            for ( size_t j = 0 ; j < parent->getShapeFunctions().size(); j++ )
             {
-                for ( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
+                if(j*2 >= displacements.size())
                 {
-                    double f_xi = vm ->deval ( parent->getShapeFunction ( j ), XI, *p_ ) ;
-                    double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, *p_ ) ;
-                    x_xi += f_xi * displacements[j * 2] ;
-                    x_eta += f_eta * displacements[j * 2] ;
-                    y_xi += f_xi * displacements[j * 2 + 1] ;
-                    y_eta += f_eta * displacements[j * 2 + 1] ;
+                    std::cerr << "displacement size mismatch" << std::endl ;
+                    break ;
                 }
+                double f_xi  = vm ->deval ( parent->getShapeFunction ( j ), XI , *p_ ) ;
+                double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, *p_ ) ;
+                x_xi  += f_xi * displacements[j * 2] ;
+                x_eta += f_eta * displacements[j * 2] ;
+                y_xi  += f_xi * displacements[j * 2 + 1] ;
+                y_eta += f_eta * displacements[j * 2 + 1] ;
             }
-            for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
+            for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
             {
-                double f_xi = vm ->deval ( parent->getEnrichmentFunction ( j ), XI, *p_ ) ;
+                double f_xi  = vm ->deval ( parent->getEnrichmentFunction ( j ), XI , *p_ ) ;
                 double f_eta = vm ->deval ( parent->getEnrichmentFunction ( j ), ETA, *p_ ) ;
 
-                x_xi += f_xi * enrichedDisplacements[j * 2] ;
+                x_xi  += f_xi * enrichedDisplacements[j * 2] ;
                 x_eta += f_eta * enrichedDisplacements[j * 2] ;
-                y_xi += f_xi * enrichedDisplacements[j * 2 + 1] ;
+                y_xi  += f_xi * enrichedDisplacements[j * 2 +1] ;
                 y_eta += f_eta * enrichedDisplacements[j * 2 + 1] ;
             }
 
@@ -803,7 +808,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             double z_eta = 0;
             double z_zeta = 0;
 
-            for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+            for ( size_t j = 0 ; j < parent->getShapeFunctions().size() ; j++ )
             {
                 double f_xi = vm ->deval ( parent->getShapeFunction ( j ), XI, *p_ ) ;
                 double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, *p_ ) ;
@@ -1052,7 +1057,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 delete p_ ;
             return ;
         }
-        ret = ( Vector ) ( parent->getBehaviour()->getTensor ( *p_, parent ) * ret ) - getParent()->getBehaviour()->getImposedStress ( *p_, parent ) ;
+        ret = ( Vector ) ( parent->getBehaviour()->getTensor ( *p_, parent ) * ret ) - parent->getBehaviour()->getImposedStress ( *p_, parent ) ;
         if ( cleanup )
         {
             delete vm ;

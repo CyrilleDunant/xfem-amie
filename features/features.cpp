@@ -552,7 +552,7 @@ void FeatureTree::setOrder ( Order ord )
     }
 
     father3D = new TetrahedralElement ( elemOrder ) ;
-    father3D->compileAndPrecalculate() ;
+//     father3D->compileAndPrecalculate() ;
 
 
     if ( father2D )
@@ -561,7 +561,7 @@ void FeatureTree::setOrder ( Order ord )
     }
 
     father2D = new TriElement ( elemOrder ) ;
-    father2D->compileAndPrecalculate() ;
+//     father2D->compileAndPrecalculate() ;
 
     if ( ord >= CONSTANT_TIME_LINEAR )
     {
@@ -2993,14 +2993,14 @@ void FeatureTree::setElementBehaviours()
         father3D = new TetrahedralElement ( elemOrder ) ;
     }
 
-    father3D->compileAndPrecalculate() ;
+//     father3D->compileAndPrecalculate() ;
 
     if ( !father2D )
     {
         father2D = new TriElement ( elemOrder ) ;
     }
 
-    father2D->compileAndPrecalculate() ;
+//     father2D->compileAndPrecalculate() ;
 
     if(structuredMesh)
     {
@@ -3299,7 +3299,7 @@ void FeatureTree::assemble()
         father3D = new TetrahedralElement ( elemOrder ) ;
     }
 
-    father3D->compileAndPrecalculate() ;
+//     father3D->compileAndPrecalculate() ;
 
     if(father2D && father2D->getOrder() != elemOrder)
         delete father2D ;
@@ -6835,7 +6835,7 @@ void FeatureTree::initializeElements( )
         father3D = new TetrahedralElement ( elemOrder ) ;
     }
 
-    father3D->compileAndPrecalculate() ;
+//     father3D->compileAndPrecalculate() ;
 
     if(father2D && father2D->getOrder() != elemOrder)
         delete father2D ;
@@ -6845,7 +6845,7 @@ void FeatureTree::initializeElements( )
         father2D = new TriElement ( elemOrder ) ;
     }
 
-    father2D->compileAndPrecalculate() ;
+//     father2D->compileAndPrecalculate() ;
 
     timeval time0, time1 ;
     gettimeofday ( &time0, nullptr );
@@ -6870,13 +6870,10 @@ void FeatureTree::initializeElements( )
                 {
                     i->refresh ( father2D );
                     i->getState().initialize ( j->second ) ;
-                    #pragma omp critical
+                    ecounter++ ;
+                    if ( ecounter % 100 == 0 )
                     {
-                        ecounter++ ;
-                        if ( ecounter % 100 == 0 )
-                        {
-                            std::cerr << "\r initialising... element " << ecounter << "/" << i.size() << std::flush ;
-                        }
+                        std::cerr << "\r initialising... element " << ecounter << "/" << i.size() << std::flush ;
                     }
                 }
             }

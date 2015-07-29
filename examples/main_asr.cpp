@@ -263,9 +263,9 @@ int main( int argc, char *argv[] )
         std::cout << "placed area = " <<  placed_area << std::endl ;
     }
 
-    gelManager = new GelManager(&F, nzones/baseGeometry.area(), feats) ;
+    gelManager = new GelManager(&F, nzones/baseGeometry.area(), feats, 0.5) ;
     F.addManager(gelManager) ;
-    F.setSamplingNumber( 72 ) ;
+    F.setSamplingNumber( 84 ) ;
 
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , LEFT ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , RIGHT ) ) ;

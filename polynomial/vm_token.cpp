@@ -596,12 +596,81 @@ int ProjectionBinaryOperation::adressOffset() const
 }
 
 
-HatEnrichment::HatEnrichment(const Geometry * g , const Point & p, const Segment & s) :g(g), p(p), s(s) {}
+
+HatEnrichmentAlt::HatEnrichmentAlt(const Geometry * g , const Point & head, const Point & p0, const Point & p1) : g(g), head(head),  p0(p0), p1(p1) { }
+
+void HatEnrichmentAlt::eval(double * a, double * b, double * c) const
+{
+    Point position ( *a, *b ) ;
+    
+    if(g->in(position) == g->in(p0))
+    {
+        Line l(p0, position-p0) ;
+        std::vector<Point> intersgeo = l.intersection(g) ;
+        if(intersgeo.empty())
+        {
+            *c = 0 ;
+            return ;
+        }
+        
+        Triangle t(p0, p1, head) ;
+        Point pmin = intersgeo[0] ;
+        if(!t.inCircumCircle(pmin))
+            pmin = intersgeo[1] ;
+        
+        double distTot = dist(p0, pmin);
+        double distPos = dist(position, p0) ;
+        *c = distPos/distTot ;
+        
+        return ;
+    }
+    
+    Line l(p1, position-p1) ;
+    std::vector<Point> intersgeo = l.intersection(g) ;
+    if(intersgeo.empty())
+    {
+        *c = 0 ;
+        return ;
+    }
+    
+    Triangle t(p0, p1, head) ;
+    Point pmin = intersgeo[0] ;
+    if(!t.inCircumCircle(pmin))
+        pmin = intersgeo[1] ;
+    
+    double distTot = dist(p1, pmin);
+    double distPos = dist(position, p1) ;
+    *c = distPos/distTot ;
+    
+    return ;
+}
+
+GeometryOperation * HatEnrichmentAlt::getCopy() const
+{
+    return new HatEnrichmentAlt(g, head, p0, p1) ;
+}
+
+int HatEnrichmentAlt::adressOffset() const
+{
+    return -2 ;
+}
+
+
+HatEnrichment::HatEnrichment(const Geometry * g , const Point & p, const Segment & s) :g(g), p(p), s(s) 
+{
+}
 
 void HatEnrichment::eval(double * a, double * b, double * c) const
 {
     Point position ( *a, *b ) ;
-    if(squareDist2D(p, position) < 1e-8)
+    
+    if(g->in(position))
+    {
+        *c = 0 ;
+        return ;
+    }
+    
+    if(p == position)
     {
        *c = 0 ;
        return ;
@@ -611,42 +680,51 @@ void HatEnrichment::eval(double * a, double * b, double * c) const
        *c = 0 ;
        return ;
     }
+    
     Line l(p, position-p) ;
-
-    Point interseg = l.intersection(s) ;
+    Line ls(s.first(), s.second()-s.first()) ;
+    Point interseg = l.intersection(ls) ;
     
     std::vector<Point> intersgeo = l.intersection(g) ;
-    if(intersgeo.empty())
+    if(intersgeo.size() < 2)
     {
         *c = 0 ;
         return ;
     }
-    
+
+    Triangle t(p, s.first(), s.second()) ;
     Point pmin = intersgeo[0] ;
-    if(intersgeo.size() == 2 && squareDist2D(p, intersgeo[1]) < squareDist2D(p, intersgeo[0]))
-        pmin = intersgeo[1] ;
-
-    if(g->in(p) == g->in(position))
-    {
-        double distTot = squareDist2D(p, pmin);
-        double distPos = squareDist2D(position, p) ;
-        *c = sqrt(distPos/distTot) ;
-        *c = std::min(*c, 1.) ;
-        
-        return ;
-    }
-    else
-    {                
-        double distTot = squareDist2D(interseg, pmin);
-        double distPos = squareDist2D(position, interseg) ;
-        *c = sqrt(distPos/distTot) ;
-        *c = std::min(*c, 1.) ;
-        return ;
-
-    }
-
     
-    *c = 0 ;
+    if(squareDist2D(t.getCircumCenter(), pmin) > squareDist2D(t.getCircumCenter(), intersgeo[1]))
+        pmin = intersgeo[1] ;
+        
+    
+   
+    double basis = dist(interseg, pmin) ;
+    if(g->in(p) == g->in(position))
+    { 
+        double distTotPoint = dist(p, pmin);
+        if(distTotPoint < default_derivation_delta)
+        {
+            *c = basis*basis ;
+            return ;
+        }
+        double distPos = dist(position, p) ;
+        *c = basis*basis*distPos/distTotPoint ;
+        return ;
+    }
+    
+    double distTotSeg = dist(interseg, pmin);   
+    if(distTotSeg < default_derivation_delta)
+    {
+        *c = basis*basis ;
+        return ;
+    }
+    
+    double distPos = dist(position, interseg) ;
+    
+    *c =  basis*basis*distPos/distTotSeg ;
+
 }
 
 GeometryOperation * HatEnrichment::getCopy() const 
@@ -666,57 +744,83 @@ void HatEnrichmentDerivative::eval(double * a, double * b, double * c) const
 {
     
     Point position ( *a, *b ) ;
-    Point positionm(position) ;
-    Point positionp(position) ;
-    if(v == XI)
-    {
-        positionm.getX() -= .00001 ;
-        positionp.getX() += .00001 ;
-    }
-    else if(v == ETA)
-    {
-        positionm.getY() -= .00001 ;
-        positionp.getY() += .00001 ;
-    }
-
-    Line lm(p, positionm-p) ;
-    Line lp(p, positionp-p) ;
-
-    Point intersegm = lm.intersection(s) ;
-    Point intersegp = lp.intersection(s) ;
-    
-    std::vector<Point> intersgeom = lm.intersection(g) ;
-    std::vector<Point> intersgeop = lp.intersection(g) ;
-    if(intersgeom.empty() || intersgeop.empty())
+    if(g->in(position))
     {
         *c = 0 ;
         return ;
     }
     
+    Point positionm(position) ;
+    Point positionp(position) ;
+    
+    double d = 0.0001*std::min(g->getRadius(), 0.5*dist(s.midPoint(), p)) ;
+    if(v == XI)
+    {
+        positionm.getX() -= d ;
+        positionp.getX() += d ;
+    }
+    else if(v == ETA)
+    {
+        positionm.getY() -= d ;
+        positionp.getY() += d ;
+    }
+
+    Line lm(p, positionm-p) ;
+    Line lp(p, positionp-p) ;    
+    Line ls(s.first(), s.second()-s.first()) ;
+    
+    std::vector<Point> intersgeom = lm.intersection(g) ;
+    std::vector<Point> intersgeop = lp.intersection(g) ;
+    if(intersgeom.size() < 2 || intersgeop.size() < 2 )
+    {
+        *c = 0 ;
+        return ;
+    }
+    
+    Point intersegm = lm.intersection(ls) ;
+    Point intersegp = lp.intersection(ls) ;
+
     Point pminm = intersgeom[0] ;
     Point pminp = intersgeop[0] ;
-    if(intersgeom.size() == 2 && squareDist2D(p, intersgeom[1]) < squareDist2D(p, intersgeom[0]))
+    
+    Triangle t(p, s.first(), s.second()) ;
+    
+    if(squareDist2D(t.getCircumCenter(), pminm) > squareDist2D(t.getCircumCenter(), intersgeom[1]))
         pminm = intersgeom[1] ;
-    if(intersgeop.size() == 2 && squareDist2D(p, intersgeop[1]) < squareDist2D(p, intersgeop[0]))
+    if(squareDist2D(t.getCircumCenter(), pminp) > squareDist2D(t.getCircumCenter(), intersgeop[1]))
         pminp = intersgeop[1] ;
+    
+    double basis = dist((intersegm+intersegp)*.5, p) ;
 
     if(g->in(p) == g->in(position))
     {
-        double distTotm = squareDist2D(p, pminm);
-        double distTotp = squareDist2D(p, pminp);
-        double distPosm = squareDist2D(positionm, p) ;
-        double distPosp = squareDist2D(positionp, p) ;
-        *c = (sqrt(distPosp/distTotp)-sqrt(distPosm/distTotm))*50000. ;
+            
+        double distTotmPoint = dist(p, pminm);
+        if(distTotmPoint < default_derivation_delta)
+        {
+            *c = 0 ;
+            return ;
+        }
+        
+        double distTotpPoint = dist(p, pminp);
+        double distPosm = dist(positionm, p) ;
+        double distPosp = dist(positionp, p) ;  
+        *c = basis*basis*0.5*(distPosp/distTotpPoint-distPosm/distTotmPoint)/d ;
+
         return ;
     }
-               
-    double distTotm = squareDist2D(intersegm, pminm);
-    double distTotp = squareDist2D(intersegp, pminp);
-
-    double distPosm = squareDist2D(position, intersegm) ;
-    double distPosp = squareDist2D(position, intersegp) ;
-    *c = (sqrt(distPosp/distTotp)-sqrt(distPosm/distTotm))*50000. ;
- 
+    
+    double distTotmSeg = dist(intersegm, pminm);
+    if(distTotmSeg < default_derivation_delta)
+    {
+        *c = 0 ;
+        return ;
+    }
+    double distTotpSeg = dist(intersegp, pminp);                   
+    double distPosm = dist(positionm, intersegm) ;
+    double distPosp = dist(positionp, intersegp) ;
+    *c = basis*basis*0.5*(distPosp/distTotpSeg-distPosm/distTotmSeg)/d ;
+    
 }
 
 GeometryOperation * HatEnrichmentDerivative::getCopy() const 
@@ -758,14 +862,14 @@ void HatEnrichment3D::eval(double * a, double * b, double * c) const
         {
             if(g->in(p) == g->in(position))
             {
-                double distTot = std::max(dist(p, intersgeo[i]), 1e-8) ;
+                double distTot =dist(p, intersgeo[i]) ;
                 double distPos = dist(position, p) ;
                 *a = distPos/distTot ;
                 return ;
             }
             else
             {                
-                double distTot = std::max(dist(interseg.front(), intersgeo[i]), 1e-8) ;
+                double distTot = dist(interseg.front(), intersgeo[i]) ;
                 double distPos = dist(position, interseg.front()) ;
                 *a = distPos/distTot ;
                 return ;

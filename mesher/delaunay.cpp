@@ -2772,6 +2772,30 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
     return to_add ;
 }
 
+std::vector<std::pair<Point, double> > monteCarloGaussPoints(int nPoints, DelaunayTriangle *t)
+{
+        std::vector<std::pair<Point, double> > gp_alternative ;
+        TriElement father(LINEAR) ;
+
+        size_t target = nPoints ;
+
+        while(gp_alternative.size() < target)
+        {
+
+            Point test = Point((double)rand()/RAND_MAX,(double)rand()/RAND_MAX);
+
+            if( father.in( test ) )
+            {
+                gp_alternative.push_back( std::make_pair( test, 0.5 ) ) ;
+            }
+        }
+
+        for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
+            gp_alternative[i].second = 2.*t->area()/gp_alternative.size() ;
+        
+        return gp_alternative ;
+}
+
 const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 {
     if(!enrichmentUpdated && getCachedGaussPoints())
@@ -2861,31 +2885,9 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             {
                 if(getCachedGaussPoints()->getId() == REGULAR_GRID)
                     return *getCachedGaussPoints() ;
-                TriElement father(LINEAR) ;
-
-                size_t target = 1024 ;
-
-                while(gp_alternative.size() < target)
-                {
-
-                    Point test = Point((double)rand()/RAND_MAX,(double)rand()/RAND_MAX);
-
-                    if( father.in( test ) )
-                    {
-                        gp_alternative.push_back( std::make_pair( test, 1. / 2. ) ) ;
-                    }
-
-                }
-
-//                 double fsum = 0 ;
-//                 for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
-//                     fsum += gp_alternative[i].second ;
-                for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
-                    gp_alternative[i].second = 2.*area()/gp_alternative.size() ;
-
 
                 delete cachedGps ;
-                cachedGps = new GaussPointArray(gp_alternative) ;
+                cachedGps = new GaussPointArray(monteCarloGaussPoints(4096, this)) ;
                 cachedGps->getId() = REGULAR_GRID ;
                 return *getCachedGaussPoints() ;
             }
@@ -2896,37 +2898,29 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             std::vector<Point *> pointsToCleanup = to_add;
             std::vector<DelaunayTriangle *> triangleToCleanup;
             std::vector<DelaunayTriangle *> tri ;
-            Function xtrans = getXTransform() ;
-            Function ytrans = getYTransform() ;
 
             DelaunayTree * dt = new DelaunayTree(to_add[0], to_add[1], to_add[2]) ;
-            TriElement f(CUBIC) ;
+            TriElement f(LINEAR) ;
             if(to_add.size() > 4)
                 std::random_shuffle(to_add.begin()+3, to_add.end()) ;
 
-//             for(size_t i = 0 ; i < to_add.size() ; i++)
-//                 to_add[i]->print() ;
-//             exit(0) ;
             for(size_t i = 3 ; i < to_add.size() ; i++)
             {
                 dt->insert(to_add[i]) ;
             }
 
-
-            dt->setElementOrder(CUBIC);
+            dt->setElementOrder(LINEAR); 
             dt->refresh(&f);
-            tri = dt->getTriangles(true) ;
+            tri = dt->getTriangles() ;
                     
-            double jac = 2.*area()/*jacobianAtPoint(Point(.333333, .3333333))*/ ;
+            double jac = area()*2. ;
             
             for(size_t i = 0 ; i < tri.size() ; i++)
             {
-//                 tri[i]->print() ;
                 Function x = tri[i]->getXTransform() ;
                 Function y = tri[i]->getYTransform() ;
                
-
-                GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
+                GaussPointArray gp_temp(monteCarloGaussPoints(64, tri[i])) ;
 
                 for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
                 {
@@ -2935,8 +2929,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                     gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
                 }
             }
-//             exit(0) ;
-
 
             delete dt ;
 

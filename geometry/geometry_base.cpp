@@ -3255,7 +3255,7 @@ ConvexPolygon::ConvexPolygon(const PointSet * po) : PointSet(po->size())
 
             //! this is a usual cross product of two vectors...
             if(  ((*i)->getY() - (*temphull.rbegin())->getY())*((*temphull.rbegin())->getX() - temphull[temphull.size()-2]->getX() ) -
-                    ((*i)->getX() - (*temphull.rbegin())->getX())*((*temphull.rbegin())->getY() - temphull[temphull.size()-2]->getY() ) >
+                 ((*i)->getX() - (*temphull.rbegin())->getX())*((*temphull.rbegin())->getY() - temphull[temphull.size()-2]->getY() ) >
                     POINT_TOLERANCE )
             {
                 temphull.push_back(*i) ;
@@ -3263,7 +3263,7 @@ ConvexPolygon::ConvexPolygon(const PointSet * po) : PointSet(po->size())
             else
             {
                 while( !(((*i)->getY() - (*temphull.rbegin())->getY())*((*temphull.rbegin())->getX() - temphull[temphull.size()-2]->getX() ) -
-                         ((*i)->getX() - (*temphull.rbegin())->getX())*((*temphull.rbegin())->getY() -temphull[temphull.size()-2]->getY() ) >
+                         ((*i)->getX() - (*temphull.rbegin())->getX())*((*temphull.rbegin())->getY() - temphull[temphull.size()-2]->getY() ) >
                          POINT_TOLERANCE))
                 {
                     temphull.pop_back();

@@ -454,6 +454,22 @@ public:
     virtual int adressOffset() const;
 } ;
 
+class HatEnrichmentAlt : public GeometryOperation
+{
+    const Geometry * g ;
+    Point  head ;
+    Point p0 ;
+    Point p1 ;
+public:
+    HatEnrichmentAlt(const Geometry * g , const Point & head,  const Point & p0, const Point & p1) ;
+    
+    virtual void eval(double * a, double * b, double * c) const;
+    
+    virtual GeometryOperation * getCopy() const ;
+    
+    virtual int adressOffset() const;
+} ;
+
 class HatEnrichmentDerivative : public GeometryOperation
 {
     const Geometry * g ;

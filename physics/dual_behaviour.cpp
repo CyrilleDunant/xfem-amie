@@ -65,7 +65,10 @@ Matrix BimaterialInterface::getViscousTensor(const Point & p, IntegrableEntity *
 Vector BimaterialInterface::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
     VirtualMachine vm ;
-    Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ytransform,  p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ztransform,  p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ttransform, p.getX(),p.getY(),p.getZ(),p.getT())) ;
+    Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()), 
+                       vm.eval(ytransform,  p.getX(), p.getY(), p.getZ(), p.getT()), 
+                       vm.eval(ztransform,  p.getX(), p.getY(), p.getZ(), p.getT()), 
+                       vm.eval(ttransform, p.getX(),p.getY(),p.getZ(),p.getT())) ;
 
     if(inGeometry->in(test))
         return inBehaviour->getImposedStress(p,e,g) ;
@@ -76,7 +79,10 @@ Vector BimaterialInterface::getImposedStress(const Point & p, IntegrableEntity *
 Vector BimaterialInterface::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
     VirtualMachine vm ;
-    Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ytransform,  p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ztransform,  p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ttransform, p.getX(),p.getY(),p.getZ(),p.getT())) ;
+    Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()), 
+                       vm.eval(ytransform,  p.getX(), p.getY(), p.getZ(), p.getT()), 
+                       vm.eval(ztransform,  p.getX(), p.getY(), p.getZ(), p.getT()), 
+                       vm.eval(ttransform, p.getX(),p.getY(),p.getZ(),p.getT())) ;
 
     if(inGeometry->in(test))
         inBehaviour->getImposedStrain(p,e,g) ;
@@ -246,11 +252,12 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 
     if(Jinv.size() == 0)
         return ret ;
-
-    Vector x = VirtualMachine().eval(xtransform,gp) ;
-    Vector y = VirtualMachine().eval(ytransform,gp) ;
-    Vector z = VirtualMachine().eval(ztransform,gp) ;
-    Vector t = VirtualMachine().eval(ttransform,gp) ;
+ 
+    VirtualMachine vm ;
+    Vector x = vm.eval(xtransform,gp) ;
+    Vector y = vm.eval(ytransform,gp) ;
+    Vector z = vm.eval(ztransform,gp) ;
+    Vector t = vm.eval(ttransform,gp) ;
     std::valarray<bool> inIn(false, x.size()) ;
     size_t inCount = 0;
     for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
@@ -371,9 +378,9 @@ Vector BimaterialInterface::getForcesFromAppliedStress( const Vector & data, Fun
 // 		 else
 // 			std::cout << "OUT" << std::endl ;
 //  	}
-//     if(inGeometry->in( Point(x,y,z,t) ))
+    if(inGeometry->in( Point(x,y,z,t) ))
         return inBehaviour->getForcesFromAppliedStress( data, shape, gp, Jinv, v, isVolumic, normal) ;
-//     return outBehaviour->getForcesFromAppliedStress( data, shape, gp, Jinv, v, isVolumic, normal) ;
+    return outBehaviour->getForcesFromAppliedStress( data, shape, gp, Jinv, v, isVolumic, normal) ;
 }
 
 Vector BimaterialInterface::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic,  const Vector & normal)
@@ -383,9 +390,9 @@ Vector BimaterialInterface::getForcesFromAppliedStress( const Function & data, s
     double y = vm.eval(ytransform,gp.gaussPoints[0].first) ;
     double z = vm.eval(ztransform,gp.gaussPoints[0].first) ;
     double t = vm.eval(ttransform,gp.gaussPoints[0].first) ;
-//     if(inGeometry->in( Point(x,y,z,t) ))
+    if(inGeometry->in( Point(x,y,z,t) ))
         return inBehaviour->getForcesFromAppliedStress( data, index, externaldofs, shape, e, gp, Jinv, v, isVolumic, normal) ;
-//     return outBehaviour->getForcesFromAppliedStress( data, index, externaldofs, shape, e, gp, Jinv, v, isVolumic, normal) ;
+    return outBehaviour->getForcesFromAppliedStress( data, index, externaldofs, shape, e, gp, Jinv, v, isVolumic, normal) ;
 }
 
 

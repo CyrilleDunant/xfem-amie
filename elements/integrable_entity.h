@@ -27,7 +27,7 @@ class Assembly ;
 class FractureCriterion ;
 
 typedef enum : char {
-    CONSTANT,
+    CONSTANT = 0,
     LINEAR,
     QUADRATIC,
     CUBIC,

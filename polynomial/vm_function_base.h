@@ -145,6 +145,9 @@ public:
      * @param  s Function source.
      */
     Function ( const Function & s ) ;
+    
+    /** \brief constant value function*/
+    Function(double v) ;
 
     Function ( const Function & s, int copyDerivative ) ;
 
@@ -240,6 +243,7 @@ public:
     Function ( const Geometry * g, const ElementarySurface * s ) ;
     
     Function(const Geometry *g, const Point &p, const Segment &s,  ElementarySurface * surf);
+    Function(const Geometry *g, const Point &head, const Point &p0, const Point &p1,  ElementarySurface * surf);
     Function(const Geometry *g, const Point &p, const Segment &s,  ElementarySurface * surf, Variable v);
     
     Function(const Geometry *g, const Point &p, const TriPoint &s,  ElementaryVolume * vol);
@@ -509,6 +513,10 @@ public:
     * @return a new Function
     */
     friend Function operator- ( double a, const Amie::Function & f ) {
+        Function ret ;
+        ret += a ;
+        return ret-f ;
+       /* 
         Amie::Function ret ( f ) ;
         ret.values.clear();
         ret.values.push_back ( a ) ;
@@ -582,7 +590,7 @@ public:
             }
         }
         ret.hasGeoOp = f.hasGeoOp ;
-        return ret ;
+        return ret ;*/
 
     }
 

@@ -34,8 +34,8 @@ bool EnrichmentInclusion::enrichmentTarget(DelaunayTriangle * t)
     
     if(!t->intersects(getPrimitive()))
         return false ;
-    if(t->intersection(getPrimitive()).size() != 2)
-        return false ;
+//     if(t->intersection(getPrimitive()).size() != 2)
+//         return false ;
     if((in0 && in1 && !in2) ||
        (in0 && !in1 && in2) || 
        (!in0 && in1 && in2) ||
@@ -168,7 +168,7 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
             pd[dist(*tri->first, getCenter())] = *tri->first ;
             pd[dist(*tri->second, getCenter())] = *tri->second ;
             pd[dist(*tri->third, getCenter())] = *tri->third ;
-            getCenter().set(pd.begin()->second) ;
+            setCenter(pd.begin()->second);
         }
     }
     freeIds[dtree].clear();
@@ -288,11 +288,66 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
         if(enrichmentTarget(disc[i]))
             ring.push_back(disc[i]) ;
     }
+    
+    if(ring.empty())
+    {
+        DelaunayTriangle * toHomogenise = disc[0];
+        for(size_t i = 0 ; i < disc.size() ; i++)
+        {
+            if(disc[i]->in(Circle::getCenter()))
+            {
+                toHomogenise = disc[i] ;
+                break ;
+            }
+        }
+        disc.clear() ;
+        disc.push_back(toHomogenise) ;
+        cache = disc ;
+        
+        for(size_t i = 0 ; i < disc.size() ; i++)
+        {
+            HomogeneisedBehaviour * hom = dynamic_cast<HomogeneisedBehaviour *>(disc[i]->getBehaviour());
+            if(hom)
+            {
+                if(disc.size() < 3)
+                {
+                    std::vector<Feature *> brother ;
+                    if(getFather())
+                        brother = getFather()->getChildren() ;
+                    std::vector<Feature *> feat ;
+                    for(size_t j = 0 ; j < brother.size() ; j++)
+                    {
+                        if(disc[i]->in(brother[j]->getCenter()))
+                            feat.push_back(brother[j]) ;
+                    }
+                    hom->updateEquivalentBehaviour(feat, disc[i]) ;
+                }
+            }
+            else
+            {
+                std::vector< Feature *> brother ;
+                if(getFather())
+                    brother = getFather()->getChildren() ;
+                std::vector< Feature *> feat ;
+                for(size_t j= 0 ; j < brother.size() ; j++)
+                {
+                    if(disc[i]->in(brother[j]->getCenter()))
+                        feat.push_back(brother[j]) ;
+                }
+                HomogeneisedBehaviour * hom2 = new HomogeneisedBehaviour(feat, disc[i]) ;
+                disc[i]->setBehaviour(dtree,hom2) ;
+                disc[i]->getBehaviour()->setSource(getPrimitive()) ;      
+            }
+        } 
+        return ; 
+    }
     //then we build a list of points to enrich
     std::set<Point *> points ;
+    
+    int factor  = ring[0]->getOrder() ;
     for(size_t i = 0 ; i < ring.size() ; i++)
     {
-        for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
+        for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j+=factor)
         {
             points.insert(&ring[i]->getBoundingPoint(j)) ;
         }
@@ -316,8 +371,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
     std::set<DelaunayTriangle *> enrichedElem;
     //then we iterate on every element
 
-    std::map<Point*, size_t> extradofs ;
-    TriElement father(ring[0]->getOrder()) ;
+    TriElement father(LINEAR) ;
     for(size_t i = 0 ; i < ring.size() ; i++)
     {
         enrichedElem.insert(ring[i]) ;
@@ -328,60 +382,81 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
         {
             Point linter0 = ring[i]->inLocalCoordinates(inter[0]) ;
             Point linter1 = ring[i]->inLocalCoordinates(inter[1]) ;
-//             double ar0 = Triangle(linter0, linter1, Point(0,0)).area() ;
-//             double ar1 = Triangle(linter0, linter1, Point(1,0)).area() ;
-//             double ar2 = Triangle(linter0, linter1, Point(0,1)).area() ;
-            
-//             if(ar0 < 0.00001 || ar1 < 0.00001 || ar2 < 0.00001)
-//                 continue ;
-//             
-            
-            Point h0 = inter[0]*.2+inter[1]*.8 ;
+
+            Point h0 = inter[0]*.5+inter[1]*.5 ;
             project(&h0);
             hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
-            h0 = inter[0]*.4+inter[1]*.6 ;
+            h0 = inter[0]*.25+inter[1]*.75 ;
             project(&h0);
             hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
-            h0 = inter[0]*.6+inter[1]*.4 ;
-            project(&h0);
-            hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
-            h0 = inter[0]*.8+inter[1]*.2 ;
+            h0 = inter[0]*.75+inter[1]*.25 ;
             project(&h0);
             hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
 
             hint.push_back(linter0) ;
-            hint.push_back(linter1) ;
+            hint.push_back(linter1) ;     
+            
+//             Point l0 = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(0)) ;
+//             Point l1 = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(1)) ;
+//             Point l2 = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(2)) ;
+// 
+//             double a = ring[i]->area()*2. ;
+//             if(in(ring[i]->getBoundingPoint(0)) == in(ring[i]->getBoundingPoint(1)))
+//             {
+//                 Triangle t0(l0, linter0, linter1) ;
+//                 Triangle t1(l1, l0, linter1) ;
+//                 Triangle t2(l2, linter0, linter1) ;
+//                 hint.push_back(Point(t0.getCenter().getX(),t0.getCenter().getY(), t0.area()*a));
+//                 hint.push_back(Point(t1.getCenter().getX(),t1.getCenter().getY(), t1.area()*a));
+//                 hint.push_back(Point(t2.getCenter().getX(),t2.getCenter().getY(), t2.area()*a));
+//             }
+//             else if(in(ring[i]->getBoundingPoint(0)) == in(ring[i]->getBoundingPoint(2)))
+//             {
+//                 Triangle t0(l0, linter0, linter1) ;
+//                 Triangle t1(l0, l2, linter1) ;
+//                 Triangle t2(l1, linter0, linter1) ;
+//                 hint.push_back(Point(t0.getCenter().getX(),t0.getCenter().getY(), t0.area()*a));
+//                 hint.push_back(Point(t1.getCenter().getX(),t1.getCenter().getY(), t1.area()*a));
+//                 hint.push_back(Point(t2.getCenter().getX(),t2.getCenter().getY(), t2.area()*a));
+//             }
+//             else if(in(ring[i]->getBoundingPoint(1)) == in(ring[i]->getBoundingPoint(2)))
+//             {
+//                 Triangle t0(l1, linter0, linter1) ;
+//                 Triangle t1(l1, l2, linter1) ;
+//                 Triangle t2(l0, linter0, linter1) ;
+//                 hint.push_back(Point(t0.getCenter().getX(),t0.getCenter().getY(), t0.area()*a));
+//                 hint.push_back(Point(t1.getCenter().getX(),t1.getCenter().getY(), t1.area()*a));
+//                 hint.push_back(Point(t2.getCenter().getX(),t2.getCenter().getY(), t2.area()*a));
+//             }
         }
 
         Function hat ;
         Function hatdx ;
         Function hatdy ;
         
-         if(in(ring[i]->getBoundingPoint(0)) == in(ring[i]->getBoundingPoint(1)))
-         {
-             hat = Function(getPrimitive(), ring[i]->getBoundingPoint(2), Segment(ring[i]->getBoundingPoint(0),ring[i]->getBoundingPoint(1)), ring[i]) ;
-             hatdx = Function(getPrimitive(), ring[i]->getBoundingPoint(2), Segment(ring[i]->getBoundingPoint(0),ring[i]->getBoundingPoint(1)), ring[i], XI) ;
-             hatdy = Function(getPrimitive(), ring[i]->getBoundingPoint(2), Segment(ring[i]->getBoundingPoint(0),ring[i]->getBoundingPoint(1)), ring[i], ETA) ;
-         }
-         else if(in(ring[i]->getBoundingPoint(0)) == in(ring[i]->getBoundingPoint(2)))
-         {
-             hat = Function(getPrimitive(), ring[i]->getBoundingPoint(1), Segment(ring[i]->getBoundingPoint(0),ring[i]->getBoundingPoint(2)), ring[i]) ;
-             hatdx = Function(getPrimitive(), ring[i]->getBoundingPoint(1), Segment(ring[i]->getBoundingPoint(0),ring[i]->getBoundingPoint(2)), ring[i]) ;
-             hatdy = Function(getPrimitive(), ring[i]->getBoundingPoint(1), Segment(ring[i]->getBoundingPoint(0),ring[i]->getBoundingPoint(2)), ring[i]) ;
-         }
-         else if(in(ring[i]->getBoundingPoint(1)) == in(ring[i]->getBoundingPoint(2)))
-         {
-             hat = Function(getPrimitive(), ring[i]->getBoundingPoint(0), Segment(ring[i]->getBoundingPoint(1),ring[i]->getBoundingPoint(2)), ring[i]) ;
-             hatdx = Function(getPrimitive(), ring[i]->getBoundingPoint(0), Segment(ring[i]->getBoundingPoint(1),ring[i]->getBoundingPoint(2)), ring[i], XI) ;
-             hatdy = Function(getPrimitive(), ring[i]->getBoundingPoint(0), Segment(ring[i]->getBoundingPoint(1),ring[i]->getBoundingPoint(2)), ring[i], ETA) ;
-         }
-         else
-         {
-             std::cout << "oops ?" << std::endl ;
-             hat = Function("1") ;
-         }
+        int factor  = ring[i]->getOrder() ;
+        
+        if(in(ring[i]->getBoundingPoint(0*factor)) == in(ring[i]->getBoundingPoint(1*factor)))
+        {
+            hat   = Function(getPrimitive(), ring[i]->getBoundingPoint(2*factor), Segment(ring[i]->getBoundingPoint(0*factor),ring[i]->getBoundingPoint(1*factor)), ring[i]) ;
+            hatdx = Function(getPrimitive(), ring[i]->getBoundingPoint(2*factor), Segment(ring[i]->getBoundingPoint(0*factor),ring[i]->getBoundingPoint(1*factor)), ring[i], XI) ;
+            hatdy = Function(getPrimitive(), ring[i]->getBoundingPoint(2*factor), Segment(ring[i]->getBoundingPoint(0*factor),ring[i]->getBoundingPoint(1*factor)), ring[i], ETA) ;
+        }
+        else if(in(ring[i]->getBoundingPoint(0*factor)) == in(ring[i]->getBoundingPoint(2*factor)))
+        {
+            hat   = Function(getPrimitive(), ring[i]->getBoundingPoint(1*factor), Segment(ring[i]->getBoundingPoint(2*factor),ring[i]->getBoundingPoint(1*factor)), ring[i]) ;
+            hatdx = Function(getPrimitive(), ring[i]->getBoundingPoint(1*factor), Segment(ring[i]->getBoundingPoint(2*factor),ring[i]->getBoundingPoint(1*factor)), ring[i]) ;
+            hatdy = Function(getPrimitive(), ring[i]->getBoundingPoint(1*factor), Segment(ring[i]->getBoundingPoint(2*factor),ring[i]->getBoundingPoint(1*factor)), ring[i]) ;
+        }
+        else 
+        {
+            hat   = Function(getPrimitive(), ring[i]->getBoundingPoint(0*factor), Segment(ring[i]->getBoundingPoint(1*factor),ring[i]->getBoundingPoint(2*factor)), ring[i]) ;
+            hatdx = Function(getPrimitive(), ring[i]->getBoundingPoint(0*factor), Segment(ring[i]->getBoundingPoint(1*factor),ring[i]->getBoundingPoint(2*factor)), ring[i], XI) ;
+            hatdy = Function(getPrimitive(), ring[i]->getBoundingPoint(0*factor), Segment(ring[i]->getBoundingPoint(1*factor),ring[i]->getBoundingPoint(2*factor)), ring[i], ETA) ;
+        }
+
          
-        for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
+        for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j+= factor)
         {
             bool hinted = false ;
             std::pair<DelaunayTriangle *, Point *> that(ring[i], &ring[i]->getBoundingPoint(j) ) ;
@@ -389,7 +464,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
             {
                 enriched.insert(that) ;
 
-                Function f = father.getShapeFunction(j)*hat ;
+                Function f = father.getShapeFunction(j/factor)*hat ;
 
                 if(!hinted)
                 {
@@ -398,16 +473,60 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
                 }
                 f.setPoint(&ring[i]->getBoundingPoint(j)) ;
                 f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
+
                 f.setNumberOfDerivatives(2);
-                Function fdx = father.getShapeFunction(j).d(XI)*hat+father.getShapeFunction(j)*hatdx ;
-                Function fdy = father.getShapeFunction(j).d(ETA)*hat+father.getShapeFunction(j)*hatdy ;
+                Function fdx = father.getShapeFunction(j/factor).d(XI)*hat+father.getShapeFunction(j/factor)*hatdx ;
+                Function fdy = father.getShapeFunction(j/factor).d(ETA)*hat+father.getShapeFunction(j/factor)*hatdy ;
                 f.setDerivative(XI, fdx);
                 f.setDerivative(ETA, fdy);
+    
                 ring[i]->setEnrichment( f, getPrimitive()) ;
+                
+                
+                
+                
+//                 for(double j = 0 ; j < 1 ; j+=0.001)
+//                 {
+//                     for(double k = 0 ; k < 1 ; k+=0.001)
+//                     {
+//                         if(j+k <= 1 && j >= 0 && k >= 0)
+//                             std::cout << VirtualMachine().deval(f,XI,  j,k) << "  " << std::flush ;
+//                         else
+//                             std::cout << 0 << "  " << std::flush ;
+//                     }
+//                     std::cout << std::endl ;
+//                 }
+//                 for(double j = 0 ; j < 1 ; j+=0.001)
+//                 {
+//                     for(double k = 0 ; k < 1 ; k+=0.001)
+//                     {
+//                         if(j+k <= 1 && j >= 0 && k >= 0)
+//                             std::cout << VirtualMachine().deval(f,ETA,  j,k) << "  " << std::flush ;
+//                         else
+//                             std::cout << 0 << "  " << std::flush ;
+//                     }
+//                     std::cout << std::endl ;
+//                 }
+//                 for(double j = 0 ; j < 1 ; j+=0.05)
+//                 {
+//                     for(double k =  0 ; k < 1 ; k+=0.05)
+//                     {
+//                         if(j+k <= 1 && j >= 0 && k >= 0)
+//                             std::cout << VirtualMachine().eval(f, j,k) << "  " << std::flush ;
+//                         else
+//                             std::cout << 0 << "  " << std::flush ;
+//                     }
+//                     std::cout << std::endl ;
+//                 }
+                
+                
+                
             }
         }
+//         exit(0) ;
         
     }
+//      exit(0) ;
 
     for(size_t i = 0 ; i < disc.size() ; i++)
     {

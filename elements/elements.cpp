@@ -1008,16 +1008,7 @@ TriElement::TriElement( Point * p0,  Point * p1,  Point * p2) : Triangle(p0, p1,
 {
     isFather = false ;
     setOrder(LINEAR) ;
-    shapefunc = nullptr ; //new std::valarray<Function>(Function(),0) ;
-    /*	Matrix xi(2,2) ; xi[1][0] = 1 ;
-    	Matrix eta(2,2) ; eta[0][1] = 1 ;
-    	Matrix one(2,2) ; one[0][0] = 1 ;
-    //0
-    	(*shapefunc)[0] = Function(eta) ;
-    //1
-    	(*shapefunc)[1] = Function(one-xi-eta) ;
-    //2
-    	(*shapefunc)[2] = Function(xi) ;*/
+    shapefunc = nullptr ; 
 }
 
 TriElement::TriElement(Order order_ ): moved(false)
@@ -1122,21 +1113,22 @@ TriElement::TriElement(Order order_ ): moved(false)
         shapefunc = new std::valarray<Function>(Function(),9) ;
         Function x("x") ;
         Function y("y") ;
-        (*shapefunc)[4] = (1.-x-y)*x*(0.66666666666666-x-y)          *13.5 ; //0
-        (*shapefunc)[8] = y*x*(x-0.66666666666666)                    *-13.5 ; //1
+
+        (*shapefunc)[0] = y*(y-0.33333333333333)*(y-0.66666666666666)           *4.5  ; //8 
+        (*shapefunc)[1] = (1.-x-y)*y*(y-0.33333333333333)                       *13.5 ; //5
+        (*shapefunc)[2] = (1.-x-y)*y*(0.66666666666666-x-y)                     *13.5 ; //6
         (*shapefunc)[3] = (1.-x-y)*(0.33333333333333-x-y)*(0.66666666666666-x-y)*4.5  ;// 2
-        (*shapefunc)[5] = (1.-x-y)*x*(x-0.33333333333333)             *13.5 ;// 3
-        (*shapefunc)[7] = y*x*(x-0.33333333333333)                    *13.5 ; //4 
-        (*shapefunc)[1] = (1.-x-y)*y*(y-0.33333333333333)             *13.5 ; //5
-        (*shapefunc)[2] = (1.-x-y)*y*(0.66666666666666-x-y)          *13.5 ; //6
-        (*shapefunc)[6] = x*(x-0.33333333333333)*(x-0.66666666666666)            *4.5  ;// 7
-        (*shapefunc)[0] = y*(y-0.33333333333333)*(y-0.66666666666666)            *4.5  ; //8
+        (*shapefunc)[4] = (1.-x-y)*x*(0.66666666666666-x-y)                     *13.5 ; //0
+        (*shapefunc)[5] = (1.-x-y)*x*(x-0.33333333333333)                       *13.5 ;// 3
+        (*shapefunc)[6] = x*(x-0.33333333333333)*(x-0.66666666666666)           *4.5  ;// 7
+        (*shapefunc)[7] = y*x*(x-0.33333333333333)                              *13.5 ; //4 
+        (*shapefunc)[8] = y*x*(x-0.66666666666666)                              *-13.5 ; //1
 
         break ;
     }
     case CONSTANT_TIME_LINEAR :
     {
-        std::cout << "element order not implemented" << std::endl ;
+        std::cerr << "element order not implemented" << std::endl ;
         exit(0) ;
 // 			shapefunc = new std::valarray<Function>(Function(),2) ;
 // 			Matrix m(1, 2) ;
@@ -1153,7 +1145,7 @@ TriElement::TriElement(Order order_ ): moved(false)
     }
     case CONSTANT_TIME_QUADRATIC :
     {
-        std::cout << "element order not implemented" << std::endl ;
+        std::cerr << "element order not implemented" << std::endl ;
         exit(0) ;
 // 			shapefunc = new std::valarray<Function>(Function(),3) ;
 // 			Matrix m(1, 3) ;
@@ -2313,6 +2305,7 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
             xdeta += deta*getBoundingPoint(i).getX() ;
             ydeta += deta*getBoundingPoint(i).getY() ;
         }
+        
         ret[0][0] = xdxi ;
         ret[0][1] = ydxi ;
         ret[1][0] = xdeta ;
@@ -2389,7 +2382,7 @@ bool TriElement::isMoved() const
 
 void TriElement::print() const
 {
-    std::cout << "coucou !" << std::endl ;
+    std::cerr << "coucou !" << std::endl ;
 }
 
 Point TriElement::inLocalCoordinates(const Point &p) const
@@ -2985,7 +2978,7 @@ TetrahedralElement::TetrahedralElement(Order order ): moved(false)
     }
     else
     {
-        std::cout << "this time-space order combination is not implemented" << std::endl ;
+        std::cerr << "this time-space order combination is not implemented" << std::endl ;
         assert(false) ;
     }
     assert(this->jacobianAtPoint(Tetrahedron::getCenter()) > 0) ;
