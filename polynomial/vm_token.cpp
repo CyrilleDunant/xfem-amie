@@ -753,7 +753,7 @@ void HatEnrichmentDerivative::eval(double * a, double * b, double * c) const
     Point positionm(position) ;
     Point positionp(position) ;
     
-    double d = 0.0001*std::min(g->getRadius(), 0.5*dist(s.midPoint(), p)) ;
+    double d = default_derivation_delta/std::min(g->getRadius(), 0.5*dist(s.midPoint(), p)) ;
     if(v == XI)
     {
         positionm.getX() -= d ;

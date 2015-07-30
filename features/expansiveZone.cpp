@@ -99,7 +99,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 
             if( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() ) )
             {
-                Matrix p = dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->getOriginalBehaviour()->getTensor(Point(1./3,1./3)) ;
+                Matrix p = dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->getOriginalBehaviour()->getTensor(Point(1./3, 1./3)) ;
                 bi = new BimaterialInterface( EnrichmentInclusion::getPrimitive(),
                                               getBehaviour()->getCopy(),
                                               dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->getOriginalBehaviour()->getCopy() ) ;
@@ -114,7 +114,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
             const Geometry * src =  ring[i]->getBehaviour()->getSource() ;
             ring[i]->setBehaviour( dtree, bi ) ;
 
-            bi->transform( ring[i]) ;
+            bi->transform( ring[i] ) ;
             bi->setSource( src );
         }
 
@@ -130,7 +130,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
         {
             Form * bi = getBehaviour()->getCopy() ;
 //			delete inDisc[i]->getBehaviour() ;
-            inDisc[i]->setBehaviour(dtree, bi) ;
+            inDisc[i]->setBehaviour( dtree, bi ) ;
             inDisc[i]->getBehaviour()->setSource( getPrimitive() );
         }
 
@@ -207,9 +207,8 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
             BimaterialInterface * bi = new BimaterialInterface( getPrimitive(),
                     inclusionBehaviour->getCopy(),
                     ring[i]->getBehaviour()->getCopy()) ;
-            delete ring[i]->getBehaviour() ;
             ring[i]->setBehaviour(dtree, bi) ;
-            bi->transform( ring[i]) ;
+            bi->transform( ring[i] ) ;
             bi->setSource( getPrimitive() );
         }
 
@@ -239,7 +238,6 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
                     inclusionBehaviour->getCopy(),
                     disc[0]->getBehaviour()->getCopy()
                                                               ) ;
-            delete disc[0]->getBehaviour() ;
             disc[0]->setBehaviour(dtree, bi) ;
             disc[0]->getBehaviour()->transform( disc[0]) ;
         }

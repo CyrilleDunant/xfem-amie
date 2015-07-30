@@ -147,7 +147,7 @@ int main( int argc, char *argv[] )
     featureTree = &F ;
 
     double itzSize = 0.00002;
-    int inclusionNumber = 3000 ;
+    int inclusionNumber = 1; 3000 ;
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
 
@@ -199,7 +199,7 @@ int main( int argc, char *argv[] )
     }
     else
     {
-        blocktop->setBehaviour(new OrthotropicStiffness(10.*1e-4, fact0, 10.*1e-4*10./(10.+10.),  0.1, 0.) ) ;
+        blocktop->setBehaviour(new OrthotropicStiffness(100.*1e-4, fact0, 100.*1e-4*100./(100.+100.),  0.1, 0.) ) ;
         blocks.push_back(blocktop);
     }
 
@@ -213,7 +213,7 @@ int main( int argc, char *argv[] )
     }
     else
     {
-        blockbottom->setBehaviour(new OrthotropicStiffness(10.*1e-4, 10., 10*1e-4*10./(10.+10.),  0.1, 0.) ) ;
+        blockbottom->setBehaviour(new OrthotropicStiffness(100.*1e-4, 100., 100.*1e-4*100./(100.+100.),  0.1, 0.) ) ;
         blocks.push_back(blockbottom);
     }
 
@@ -227,7 +227,7 @@ int main( int argc, char *argv[] )
     }
     else
     {
-        blockleft->setBehaviour(new OrthotropicStiffness(10., 10.*1e-4, 10*1e-4*10./(10.+10.),  0.1, 0.) ) ;
+        blockleft->setBehaviour(new OrthotropicStiffness(100., 100.*1e-4, 100.*1e-4*100./(100.+100.),  0.1, 0.) ) ;
         blocks.push_back(blockleft);
     }
 
@@ -241,7 +241,7 @@ int main( int argc, char *argv[] )
     }
     else
     {
-        blockright->setBehaviour(new OrthotropicStiffness(10., 10.*1e-4, 10.*1e-4*10./(10.+10.),  0.1, 0.)) ;
+        blockright->setBehaviour(new OrthotropicStiffness(100., 100.*1e-4, 100.*1e-4*100./(100.+100.),  0.1, 0.)) ;
         blocks.push_back(blockright);
     }
     F.addFeature( &sample, blockright );
@@ -253,6 +253,7 @@ int main( int argc, char *argv[] )
         F.setSamplingFactor(feats[i], 4.);
         placed_area += feats[i]->area() ;
     }
+
 
     std::cout << ", filling = " << placed_area / baseGeometry.area() * 100. << "%" << std::endl ;
 
@@ -269,6 +270,10 @@ int main( int argc, char *argv[] )
 
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , LEFT ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , RIGHT ) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , BOTTOM ) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , TOP ) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , LEFT ) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , RIGHT ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , BOTTOM ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , TOP ) ) ;
 

@@ -324,6 +324,7 @@ void BimaterialInterface::step(double timestep, ElementState & currentState, dou
 
 DamageModel * BimaterialInterface::getDamageModel() const
 {
+    
     DamageModel * inDamage = inBehaviour->getDamageModel() ;
     DamageModel * outDamage = outBehaviour->getDamageModel() ;
     if(inDamage && ! outDamage)
@@ -344,6 +345,7 @@ DamageModel * BimaterialInterface::getDamageModel() const
 
 FractureCriterion * BimaterialInterface::getFractureCriterion() const
 {
+    
     FractureCriterion * inCriterion = inBehaviour->getFractureCriterion() ;
     FractureCriterion * outCriterion = outBehaviour->getFractureCriterion() ;
     if(inCriterion && ! outCriterion)

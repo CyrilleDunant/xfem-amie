@@ -2173,7 +2173,6 @@ void DelaunayTree::insert(Point *p)
     if(cons.empty())
     {
         std::cout << "Failed insertion : in nothing !" << std::endl ;
-        exit(0) ;
         return ;
     }
     for(size_t i = 0 ; i < cons.size() ; i++)
@@ -2920,7 +2919,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 Function x = tri[i]->getXTransform() ;
                 Function y = tri[i]->getYTransform() ;
                
-                GaussPointArray gp_temp(monteCarloGaussPoints(64, tri[i])) ;
+                GaussPointArray gp_temp(monteCarloGaussPoints(32, tri[i])) ;
 
                 for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
                 {
@@ -2929,6 +2928,9 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                     gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
                 }
             }
+            
+            if(tri.size() == 0)
+                gp_alternative = monteCarloGaussPoints(128, this) ;
 
             delete dt ;
 
