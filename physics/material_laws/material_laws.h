@@ -35,6 +35,7 @@ typedef enum : char
 }  EMLOperation ;
 
 /* Basic structure for material law. This structure is empty ; the preProcess() and/or step() methods must be surcharged for the law to do something */
+/*SOURCE ExternalMaterialLaw */
 struct ExternalMaterialLaw
 {
     std::map<std::string, double> defaultValues ;
@@ -187,7 +188,7 @@ struct CopyFromFeatureTreeExternalMaterialLaw : public ExternalMaterialLaw
 };
 
 
-/*PARSE TimeDerivative ExternalMaterialLaw 
+/*PARSE TimeDerivative ExternalMaterialLaw
     @string[parameter] // name of the parameter to derive
  */
 struct TimeDerivativeMaterialLaw : public ExternalMaterialLaw
@@ -196,7 +197,7 @@ struct TimeDerivativeMaterialLaw : public ExternalMaterialLaw
     std::string base ;
     std::string previous ;
 
-    TimeDerivativeMaterialLaw(std::string b, std::string r, std::string p, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), rate(r), base(b), previous(p) { }
+    TimeDerivativeMaterialLaw(std::string b, std::string r, std::string p, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), rate(r), base(b), previous(p) { }
     TimeDerivativeMaterialLaw(std::string b) : ExternalMaterialLaw(), rate(b+"_rate"), base(b), previous(b+"_previous") { }
     virtual ~TimeDerivativeMaterialLaw() { } ;
 
@@ -211,17 +212,17 @@ struct TimeIntegralMaterialLaw : public ExternalMaterialLaw
     std::string integral ;
     std::string base ;
 
-    TimeIntegralMaterialLaw(std::string b, std::string i, double init = 0., std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), integral(i),  base(b){ defaultValues[integral] = init ; }
+    TimeIntegralMaterialLaw(std::string b, std::string i, double init = 0., std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), integral(i),  base(b){ defaultValues[integral] = init ; }
     TimeIntegralMaterialLaw(std::string b) : ExternalMaterialLaw(), integral(b+"_integral"),  base(b){ defaultValues[integral] = 0 ; }
     virtual ~TimeIntegralMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
-/*PARSE Minimum ExternalMaterialLaw 
+/*PARSE Minimum ExternalMaterialLaw
     @string[output] // parameter in which the output is stored
     @stringlist[parameters] // list of parameters which minima are taken
-    @string<EMLOperation>[operator] SET // operation to apply
+    @string<EMLOperation>[operation] SET // operation to apply
 */
 struct MinimumMaterialLaw : public ExternalMaterialLaw
 {
@@ -229,7 +230,7 @@ struct MinimumMaterialLaw : public ExternalMaterialLaw
     std::vector<std::string> coordinates ;
     EMLOperation op ;
 
-    MinimumMaterialLaw(std::string out, std::vector<std::string> coord, EMLOperation o = SET, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), external(out), coordinates(coord), op(o) { } ;
+    MinimumMaterialLaw(std::string out, std::vector<std::string> coord, EMLOperation o = SET, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), external(out), coordinates(coord), op(o) { } ;
     virtual ~MinimumMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
@@ -245,7 +246,7 @@ struct StoreMaximumValueMaterialLaw : public ExternalMaterialLaw
     std::string max ;
     double start ;
     
-    StoreMaximumValueMaterialLaw( std::string in, double s = 0., std::string append = std::string("_maximum"), std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), external(in), max(in+append), start(s) { } ;
+    StoreMaximumValueMaterialLaw( std::string in, double s = 0., std::string append = std::string("_maximum"), std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), external(in), max(in+append), start(s) { } ;
 
     virtual ~StoreMaximumValueMaterialLaw() { } ;
 
@@ -260,7 +261,7 @@ struct GetParticleOrientationMaterialLaw : public ExternalMaterialLaw
     std::string variable ;
     bool orthogonal ;
 
-    GetParticleOrientationMaterialLaw( std::string var = std::string("angle"), bool ortho = false, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), variable(var), orthogonal(ortho) { } ;
+    GetParticleOrientationMaterialLaw( std::string var = std::string("angle"), bool ortho = false, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), variable(var), orthogonal(ortho) { } ;
     GetParticleOrientationMaterialLaw( std::string var, EMLOperation op) : ExternalMaterialLaw(), variable(var), orthogonal(false) { } ;
 
     virtual ~GetParticleOrientationMaterialLaw() { } ;
@@ -276,8 +277,8 @@ struct StorePreviousValueMaterialLaw : public ExternalMaterialLaw
     std::vector<std::string>  external ;
     std::string append ;
     
-    StorePreviousValueMaterialLaw( std::vector<std::string> ext, std::string app = std::string("_previous"), std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), external(ext), append(app) { } ;
-
+    StorePreviousValueMaterialLaw( std::vector<std::string> ext, std::string app = std::string("_previous"), std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), external(ext), append(app) { } ;
+    StorePreviousValueMaterialLaw( std::string ext, std::string app = std::string("_previous"), std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), append(app) { external.push_back(ext) ; } ;
     virtual ~StorePreviousValueMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
@@ -294,7 +295,7 @@ struct StoreMinimumValueMaterialLaw : public ExternalMaterialLaw
     std::string max ;
     double start ;
     
-    StoreMinimumValueMaterialLaw( std::string in, double s = 0., std::string append = std::string("_minimum"), std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), external(in), max(in+append), start(s) { } ;
+    StoreMinimumValueMaterialLaw( std::string in, double s = 0., std::string append = std::string("_minimum"), std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), external(in), max(in+append), start(s) { } ;
 
     virtual ~StoreMinimumValueMaterialLaw() { } ;
 
@@ -312,7 +313,7 @@ struct MaximumMaterialLaw : public ExternalMaterialLaw
     std::vector<std::string> coordinates ;
     EMLOperation op ;
 
-    MaximumMaterialLaw(std::string out, std::vector<std::string> coord, EMLOperation o = SET, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), external(out), coordinates(coord), op(o) { } ;
+    MaximumMaterialLaw(std::string out, std::vector<std::string> coord, EMLOperation o = SET, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), external(out), coordinates(coord), op(o) { } ;
     virtual ~MaximumMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
@@ -327,23 +328,21 @@ struct ExponentialDecayMaterialLaw : public ExternalMaterialLaw
     std::string output ;
     std::string target ;
 
-    ExponentialDecayMaterialLaw(std::string out, std::string tar, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), output(out), target(tar) { } ;
-    ExponentialDecayMaterialLaw(std::string out, std::string tar) : ExternalMaterialLaw(), output(out), target(tar) { } ;
+    ExponentialDecayMaterialLaw(std::string out, std::string tar, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), output(out), target(tar) { } ;
     virtual ~ExponentialDecayMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 } ;
 
 /*PARSE GetField ExternalMaterialLaw 
-    @string<FieldType>[field] // name of the field to extract
+    @string[field] // name of the field to extract
 */
 struct GetFieldMaterialLaw : public ExternalMaterialLaw
 {
     FieldType field ;
     std::string base ;
 
-    GetFieldMaterialLaw(FieldType f, std::string b, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), field(f), base(b) { } ;
-    GetFieldMaterialLaw(std::string field) ;
+    GetFieldMaterialLaw(std::string field, std::string args = std::string(), char sep = ',')  ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
     virtual ~GetFieldMaterialLaw() { } ;
@@ -363,8 +362,8 @@ struct WeibullDistributedMaterialLaw : public ExternalMaterialLaw
     std::string scale ;
     std::string variability ;
 
-    WeibullDistributedMaterialLaw( std::string a, std::string w, std::string args = std::string(), char sep = 'c') ;
-    WeibullDistributedMaterialLaw( std::vector<std::string> aff, std::string w, std::string args = std::string(), char sep = 'c') ;
+    WeibullDistributedMaterialLaw( std::string a, std::string w, std::string args = std::string(), char sep = ',') ;
+    WeibullDistributedMaterialLaw( std::vector<std::string> aff, std::string w, std::string args = std::string(), char sep = ',') ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
     virtual ~WeibullDistributedMaterialLaw() { } ;

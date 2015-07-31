@@ -461,7 +461,7 @@ std::string ConfigTreeItem::getStringData(std::string path, std::string defaultV
 
 Sample * ConfigTreeItem::getSample(std::vector<ExternalMaterialLaw *> common)
 {
-    bool spaceTime = (ConfigTreeItem::translateOrder(getRoot()->getStringData("discretization.order","LINEAR")) >= CONSTANT_TIME_LINEAR) ;
+    bool spaceTime = (Enum::getOrder(getRoot()->getStringData("discretization.order","LINEAR")) >= CONSTANT_TIME_LINEAR) ;
     double sampleWidth = getData("width",1) ;
     double sampleHeight = getData("height",1) ;
     double sampleCenterX = getData("center.x",0) ;
@@ -1131,11 +1131,11 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
     {
         bool isFieldType = false ;
         std::string field =  getStringData("field", "NOT_A_FIELD") ;
-        FieldType f = ConfigTreeItem::translateFieldType( getStringData("field", "NOT_A_FIELD"), isFieldType ) ;
+        FieldType f = Enum::getFieldType( getStringData("field", "NOT_A_FIELD"), &isFieldType ) ;
         if(isFieldType)
         {
             std::transform(field.begin(), field.end(), field.begin(), ::tolower);
-            ret = new GetFieldMaterialLaw( f, field ) ;
+            ret = new GetFieldMaterialLaw( field ) ;
         }
     }
 
@@ -1164,16 +1164,16 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
             if(father->getStringData() == "LOGARITHMIC_CREEP" || father->getStringData("type") == "LOGARITHMIC_CREEP")
             {
                 if(father->hasChildFromFullLabel("parameters.compressive_strength") || father->hasChildFromFullLabel("parameters.compressive_strain"))
-                    ret = new NonLocalSpaceTimeMazars( father->getData("parameters.tensile_strain",0.001), father->getData("parameters.young_modulus", 1e9), father->getData("parameters.poisson_ratio", 0.2), father->getData("parameters.fracture_energy", 1), father->getData("parameters.compressive_strength", -1e6), father->getData("parameters.compressive_strain", -0.001),  father->getData("parameters.material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( father->getStringData("parameters.plane_type", "PLANE_STRESS") ) ) ;
+                    ret = new NonLocalSpaceTimeMazars( father->getData("parameters.tensile_strain",0.001), father->getData("parameters.young_modulus", 1e9), father->getData("parameters.poisson_ratio", 0.2), father->getData("parameters.fracture_energy", 1), father->getData("parameters.compressive_strength", -1e6), father->getData("parameters.compressive_strain", -0.001),  father->getData("parameters.material_characteristic_radius",0.001), Enum::getplaneType( father->getStringData("parameters.plane_type", "PLANE_STRESS") ) ) ;
                 else
-                    ret = new NonLocalSpaceTimeMazars( father->getData("parameters.tensile_strain",0.001), father->getData("parameters.young_modulus", 1e9), father->getData("parameters.poisson_ratio", 0.2), father->getData("parameters.fracture_energy", 1), father->getData("parameters.material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( father->getStringData("parameters.plane_type", "PLANE_STRESS") ) ) ;
+                    ret = new NonLocalSpaceTimeMazars( father->getData("parameters.tensile_strain",0.001), father->getData("parameters.young_modulus", 1e9), father->getData("parameters.poisson_ratio", 0.2), father->getData("parameters.fracture_energy", 1), father->getData("parameters.material_characteristic_radius",0.001), Enum::getplaneType( father->getStringData("parameters.plane_type", "PLANE_STRESS") ) ) ;
             }
             else
             {
                 if(hasChild("compressive_stress") || hasChild("compressive_strain"))
-                    ret = new NonLocalSpaceTimeMazars( getData("tensile_strain",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("compressive_strength", -1e6), getData("compressive_strain", -0.001),  getData("material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
+                    ret = new NonLocalSpaceTimeMazars( getData("tensile_strain",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("compressive_strength", -1e6), getData("compressive_strain", -0.001),  getData("material_characteristic_radius",0.001), Enum::getplaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
                 else
-                    ret = new NonLocalSpaceTimeMazars( getData("tensile_strain",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
+                    ret = new NonLocalSpaceTimeMazars( getData("tensile_strain",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("material_characteristic_radius",0.001), Enum::getplaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
             }
         }
         if(type == "MCFT")
@@ -1347,7 +1347,7 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
     {
         if(type == "MAZARS")
         {
-            ret = new NonLocalMazars( getData("tensile_strain",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("compressive_strength", -1e6), getData("compressive_strain", -0.001),  getData("material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
+            ret = new NonLocalMazars( getData("tensile_strain",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("compressive_strength", -1e6), getData("compressive_strain", -0.001),  getData("material_characteristic_radius",0.001), Enum::getplaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
         }
         if(type == "LIMIT_STRAIN")
         {
@@ -1398,7 +1398,7 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
     if(ret && hasChild("score_tolerance"))
         ret->setScoreTolerance(getData("score_tolerance",0.05)) ;
     if(ret && hasChild("smoothing_function_type"))
-        ret->setSmoothingFunctionType( ConfigTreeItem::translateSmoothingFunctionType( getStringData("smoothing_function_type","QUARTIC_COMPACT"))) ;
+        ret->setSmoothingFunctionType( Enum::getSmoothingFunctionType( getStringData("smoothing_function_type","QUARTIC_COMPACT"))) ;
 
     return ret ;
 }
@@ -1494,7 +1494,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime, std
 
     planeType pt = PLANE_STRESS ;
     if(hasChild("plane_type"))
-        pt = ConfigTreeItem::translatePlaneType( getStringData("plane_type", "PLANE_STRESS") ) ;
+        pt = Enum::getplaneType( getStringData("plane_type", "PLANE_STRESS") ) ;
 
     if(type == std::string("ELASTICITY"))
     {
@@ -1728,7 +1728,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime, std
         if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
             return new Viscoelasticity( PURE_VISCOSITY, getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), blocks) ;
         else
-            return new FiniteDifferenceViscoelasticity( PURE_VISCOSITY, getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), ConfigTreeItem::translateViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
+            return new FiniteDifferenceViscoelasticity( PURE_VISCOSITY, getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), Enum::getViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
     }
 
     if(type == std::string("KELVIN_VOIGT"))
@@ -1737,7 +1737,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime, std
         if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
             return new Viscoelasticity( KELVIN_VOIGT, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), blocks) ;
         else
-            return new FiniteDifferenceViscoelasticity( KELVIN_VOIGT, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), ConfigTreeItem::translateViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
+            return new FiniteDifferenceViscoelasticity( KELVIN_VOIGT, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), Enum::getViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
     }
 
     if(type == std::string("MAXWELL"))
@@ -1746,7 +1746,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime, std
         if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
             return new Viscoelasticity( MAXWELL, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), blocks) ;
         else
-            return new FiniteDifferenceViscoelasticity( MAXWELL, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), ConfigTreeItem::translateViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
+            return new FiniteDifferenceViscoelasticity( MAXWELL, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), Enum::getViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
     }
 
     if(type == std::string("BURGER"))
@@ -1755,7 +1755,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime, std
         if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
             return new Viscoelasticity( BURGER, getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt)*getData("kelvin_voigt.characteristic_time",1.), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt)*getData("maxwell.characteristic_time",1.),blocks) ;
         else
-            return new FiniteDifferenceViscoelasticity( BURGER, getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt)*getData("kelvin_voigt.characteristic_time",1.), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt)*getData("maxwell.characteristic_time",1.), ConfigTreeItem::translateViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
+            return new FiniteDifferenceViscoelasticity( BURGER, getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt)*getData("kelvin_voigt.characteristic_time",1.), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt)*getData("maxwell.characteristic_time",1.), Enum::getViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
     }
 
     if(type == std::string("GENERALIZED_KELVIN_VOIGT"))
@@ -1768,7 +1768,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime, std
         if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
             return new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, getChild("first_branch")->getStiffnessMatrix(dim, pt), branches, blocks) ;
         else
-            return new FiniteDifferenceViscoelasticity( GENERALIZED_KELVIN_VOIGT, getChild("first_branch")->getStiffnessMatrix(dim, pt), branches, ConfigTreeItem::translateViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
+            return new FiniteDifferenceViscoelasticity( GENERALIZED_KELVIN_VOIGT, getChild("first_branch")->getStiffnessMatrix(dim, pt), branches, Enum::getViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
     }
 
     if(type == std::string("GENERALIZED_MAXWELL"))
@@ -1781,7 +1781,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime, std
         if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
             return new Viscoelasticity( GENERALIZED_MAXWELL, getChild("first_branch")->getStiffnessMatrix(dim, pt), branches, blocks) ;
         else
-            return new FiniteDifferenceViscoelasticity( GENERALIZED_MAXWELL, getChild("first_branch")->getStiffnessMatrix(dim, pt), ConfigTreeItem::translateViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
+            return new FiniteDifferenceViscoelasticity( GENERALIZED_MAXWELL, getChild("first_branch")->getStiffnessMatrix(dim, pt), Enum::getViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
     }
 
     return new VoidForm() ;
@@ -1809,117 +1809,6 @@ Vector ConfigTreeItem::readVectorFromFile() const
     return ret ;
 }
 
-Order ConfigTreeItem::translateOrder(std::string order)
-{
-    if(order == "CONSTANT")
-        return CONSTANT ;
-    if(order == "LINEAR")
-        return LINEAR ;
-    if(order == "QUADRATIC")
-        return QUADRATIC ;
-    if(order == "CUBIC")
-        return CUBIC ;
-    if(order == "QUADRIC")
-        return QUADRIC ;
-    if(order == "QUINTIC")
-        return QUINTIC ;
-    if(order == "CONSTANT_TIME_LINEAR")
-        return CONSTANT_TIME_LINEAR ;
-    if(order == "CONSTANT_TIME_QUADRATIC")
-        return CONSTANT_TIME_QUADRATIC ;
-    if(order == "LINEAR_TIME_LINEAR")
-        return LINEAR_TIME_LINEAR ;
-    if(order == "LINEAR_TIME_QUADRATIC")
-        return LINEAR_TIME_QUADRATIC ;
-    if(order == "QUADRATIC_TIME_LINEAR")
-        return QUADRATIC_TIME_LINEAR ;
-    if(order == "QUADRATIC_TIME_QUADRATIC")
-        return QUADRATIC_TIME_QUADRATIC ;
-    if(order == "CUBIC_TIME_LINEAR")
-        return CUBIC_TIME_LINEAR ;
-    if(order == "CUBIC_TIME_QUADRATIC")
-        return CUBIC_TIME_QUADRATIC ;
-    if(order == "QUADRIC_TIME_LINEAR")
-        return QUADRIC_TIME_LINEAR ;
-    if(order == "QUADRIC_TIME_QUADRATIC")
-        return QUADRIC_TIME_QUADRATIC ;
-    if(order == "QUINTIC_TIME_LINEAR")
-        return QUINTIC_TIME_LINEAR ;
-    if(order == "QUINTIC_TIME_QUADRATIC")
-        return QUINTIC_TIME_QUADRATIC ;
-    if(order == "QUADTREE_REFINED")
-        return QUADTREE_REFINED ;
-    if(order == "REGULAR_GRID")
-        return REGULAR_GRID ;
-    return LINEAR ;
-}
-
-ViscoelasticFiniteDifferenceIntegration ConfigTreeItem::translateViscoelasticFiniteDifferenceIntegration( std::string op )
-{
-    if(op == "FORWARD_EULER")
-        return FORWARD_EULER ;
-    if(op == "BACKWARD_EULER")
-        return FORWARD_EULER ;
-    if(op == "NEWMARK")
-        return NEWMARK ;
-    if(op == "CENTRAL_DIFFERENCE")
-        return CENTRAL_DIFFERENCE ;
-    if(op == "ZIENKIEWICZ")
-        return ZIENKIEWICZ ;
-    return BACKWARD_EULER ;
-}
-
-EMLOperation ConfigTreeItem::translateEMLOperation( std::string op )
-{
-    if(op == "SET")
-        return SET ;
-    if(op == "ADD")
-        return ADD ;
-    if(op == "MULTIPLY")
-        return MULTIPLY ;
-    if(op == "SUBSTRACT")
-        return SUBSTRACT ;
-    if(op == "DIVIDE")
-        return DIVIDE ;
-    return SET ;
-}
-
-planeType ConfigTreeItem::translatePlaneType( std::string type )
-{
-    if(type == "PLANE_STRAIN")
-        return PLANE_STRAIN ;
-    if(type == "PLANE_STRESS")
-        return PLANE_STRESS ;
-    if(type == "PLANE_STRESS_FREE_G")
-        return PLANE_STRESS_FREE_G ;
-    return PLANE_STRESS ;
-}
-
-SmoothingFunctionType ConfigTreeItem::translateSmoothingFunctionType( std::string type )
-{
-    if(type == "QUARTIC_COMPACT")
-        return QUARTIC_COMPACT ;
-    if(type == "GAUSSIAN_NONCOMPACT")
-        return GAUSSIAN_NONCOMPACT ;
-    return QUARTIC_COMPACT ;
-}
-
-PSDSpecificationType ConfigTreeItem::translatePSDSpecificationType( std::string specification )
-{
-    if(specification == "CUMULATIVE_PERCENT")
-        return CUMULATIVE_PERCENT ;
-    if(specification == "CUMULATIVE_FRACTION")
-        return CUMULATIVE_FRACTION ;
-    if(specification == "CUMULATIVE_ABSOLUTE")
-        return CUMULATIVE_ABSOLUTE ;
-    if(specification == "CUMULATIVE_PERCENT_REVERSE")
-        return CUMULATIVE_PERCENT_REVERSE ;
-    if(specification == "CUMULATIVE_FRACTION_REVERSE")
-        return CUMULATIVE_FRACTION_REVERSE ;
-    if(specification == "CUMULATIVE_ABSOLUTE_REVERSE")
-        return CUMULATIVE_ABSOLUTE ;
-    return CUMULATIVE_PERCENT ;
-}
 
 ParticleSizeDistribution * ConfigTreeItem::getParticleSizeDistribution() const
 {
@@ -1962,7 +1851,7 @@ ParticleSizeDistribution * ConfigTreeItem::getParticleSizeDistribution() const
         double factor = getData("factor",1) ;
         double cutOffUp = getData("cutoff.up", -1.) ;
         double cutOffDown = getData("cutoff.down", -1.) ;
-        return new GranuloFromCumulativePSD(filename, ConfigTreeItem::translatePSDSpecificationType( specification ), factor, cutOffUp, cutOffDown) ;
+        return new GranuloFromCumulativePSD(filename, Enum::getPSDSpecificationType( specification ), factor, cutOffUp, cutOffDown) ;
     }
 
     if(type == std::string("FULLER"))
@@ -1973,56 +1862,6 @@ ParticleSizeDistribution * ConfigTreeItem::getParticleSizeDistribution() const
     }
 
     return new ConstantSizeDistribution() ;
-}
-
-TypeInclusion ConfigTreeItem::translateInclusionType(std::string type)
-{
-    if(type == std::string("CIRCLE"))
-        return CIRCLE_INCLUSION ;
-    if(type == std::string("SPHERE"))
-        return SPHERE_INCLUSION ;
-    if(type == std::string("ELLIPSE"))
-        return ELLIPSE_INCLUSION ;
-    return CIRCLE_INCLUSION ;
-}
-
-GeometryType ConfigTreeItem::translateGeometryType(std::string type)
-{
-    if(type == std::string("CIRCLE"))
-        return CIRCLE ;
-    if(type == std::string("LAYERED_CIRCLE"))
-        return LAYERED_CIRCLE ;
-    if(type == std::string("TRIANGLE"))
-        return TRIANGLE ;
-    if(type == std::string("RECTANGLE"))
-        return RECTANGLE ;
-    if(type == std::string("PARALLELOGRAMME"))
-        return PARALLELOGRAMME ;
-    if(type == std::string("CONVEX_POLYGON"))
-        return CONVEX_POLYGON ;
-    if(type == std::string("SEGMENTED_LINE"))
-        return SEGMENTED_LINE ;
-    if(type == std::string("ORIENTABLE_CIRCLE"))
-        return ORIENTABLE_CIRCLE ;
-    if(type == std::string("CLOSED_NURB"))
-        return CLOSED_NURB ;
-    if(type == std::string("TETRAHEDRON"))
-        return TETRAHEDRON ;
-    if(type == std::string("HEXAHEDRON"))
-        return HEXAHEDRON ;
-    if(type == std::string("SPHERE"))
-        return SPHERE ;
-    if(type == std::string("LAYERED_SPHERE"))
-        return LAYERED_SPHERE ;
-    if(type == std::string("REGULAR_OCTAHEDRON"))
-        return REGULAR_OCTAHEDRON ;
-    if(type == std::string("ELLIPSE"))
-        return ELLIPSE ;
-    if(type == std::string("LEVEL_SET"))
-        return LEVEL_SET ;
-    if(type == std::string("TIME_DEPENDENT_CIRCLE"))
-        return TIME_DEPENDENT_CIRCLE ;
-    return CIRCLE ;
 }
 
 InclusionGenerator * ConfigTreeItem::getInclusionGenerator() const
@@ -2179,7 +2018,7 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
         GranuloFromFile granulo( filename, columns ) ;
         std::string inclusion = getStringData("geometry.type","CIRCLE") ;
         int n = psdConfig->getData("number",1) ;
-        ret = granulo.getFeatures( ConfigTreeItem::translateInclusionType( inclusion ), n ) ;
+        ret = granulo.getFeatures( Enum::getTypeInclusion( inclusion ), n ) ;
         if(behaviour)
         {
             for(size_t i = 0 ; i < ret.size() ; i++)
@@ -2443,326 +2282,6 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
     return out ;
 }
 
-LagrangeMultiplierType ConfigTreeItem::translateLagrangeMultiplierType(std::string type)
-{
-    if(type == "GENERAL")
-        return GENERAL ;
-    if(type == "FIX_ALONG_ALL")
-        return FIX_ALONG_ALL ;
-    if(type == "FIX_ALONG_XI")
-        return FIX_ALONG_XI ;
-    if(type == "FIX_ALONG_ETA")
-        return FIX_ALONG_ETA ;
-    if(type == "FIX_ALONG_ZETA")
-        return FIX_ALONG_ZETA ;
-    if(type == "FIX_ALONG_XI_ETA")
-        return FIX_ALONG_XI_ETA ;
-    if(type == "FIX_ALONG_XI_ZETA")
-        return FIX_ALONG_XI_ZETA ;
-    if(type == "FIX_ALONG_ETA_ZETA")
-        return FIX_ALONG_ETA_ZETA ;
-    if(type == "SET_ALONG_XI")
-        return SET_ALONG_XI ;
-    if(type == "SET_ALONG_ETA")
-        return SET_ALONG_ETA ;
-    if(type == "SET_ALONG_ZETA")
-        return SET_ALONG_ZETA ;
-    if(type == "SET_ALONG_XI_ETA")
-        return SET_ALONG_XI_ETA ;
-    if(type == "SET_ALONG_XI_ZETA")
-        return SET_ALONG_XI_ZETA ;
-    if(type == "SET_ALONG_ETA_ZETA")
-        return SET_ALONG_ETA_ZETA ;
-    if(type == "INCREMENT_ALONG_XI")
-        return INCREMENT_ALONG_XI ;
-    if(type == "INCREMENT_ALONG_ETA")
-        return INCREMENT_ALONG_ETA ;
-    if(type == "INCREMENT_ALONG_ZETA")
-        return INCREMENT_ALONG_ZETA ;
-    if(type == "FIX_ALONG_INDEXED_AXIS")
-        return FIX_ALONG_INDEXED_AXIS ;
-    if(type == "SET_ALONG_INDEXED_AXIS")
-        return SET_ALONG_INDEXED_AXIS ;
-    if(type == "INCREMENT_ALONG_INDEXED_AXIS")
-        return INCREMENT_ALONG_INDEXED_AXIS ;
-    if(type == "SET_PROPORTIONAL_DISPLACEMENT")
-        return SET_PROPORTIONAL_DISPLACEMENT ;
-    if(type == "SET_PROPORTIONAL_DISPLACEMENT_XI_ETA")
-        return SET_PROPORTIONAL_DISPLACEMENT_XI_ETA ;
-    if(type == "SET_PROPORTIONAL_DISPLACEMENT_XI_ZETA")
-        return SET_PROPORTIONAL_DISPLACEMENT_XI_ZETA ;
-    if(type == "SET_PROPORTIONAL_DISPLACEMENT_ETA_ZETA")
-        return SET_PROPORTIONAL_DISPLACEMENT_ETA_ZETA ;
-    if(type == "SET_PROPORTIONAL_DISPLACEMENT_ETA_XI")
-        return SET_PROPORTIONAL_DISPLACEMENT_ETA_XI ;
-    if(type == "SET_PROPORTIONAL_DISPLACEMENT_ZETA_ETA")
-        return SET_PROPORTIONAL_DISPLACEMENT_ZETA_ETA ;
-    if(type == "SET_PROPORTIONAL_DISPLACEMENT_ZETA_XI")
-        return SET_PROPORTIONAL_DISPLACEMENT_ZETA_XI ;
-    if(type == "FIX_NORMAL_DISPLACEMENT")
-        return FIX_NORMAL_DISPLACEMENT ;
-    if(type == "SET_NORMAL_DISPLACEMENT")
-        return SET_NORMAL_DISPLACEMENT ;
-    if(type == "FIX_TANGENT_DISPLACEMENT")
-        return FIX_TANGENT_DISPLACEMENT ;
-    if(type == "SET_TANGENT_DISPLACEMENT")
-        return SET_TANGENT_DISPLACEMENT ;
-    if(type == "SET_FORCE_XI")
-        return SET_FORCE_XI ;
-    if(type == "SET_FORCE_ETA")
-        return SET_FORCE_ETA ;
-    if(type == "SET_FORCE_ZETA")
-        return SET_FORCE_ZETA ;
-    if(type == "SET_FORCE_INDEXED_AXIS")
-        return SET_FORCE_INDEXED_AXIS ;
-    if(type == "SET_FLUX_XI")
-        return SET_FLUX_XI ;
-    if(type == "SET_FLUX_ETA")
-        return SET_FLUX_ETA ;
-    if(type == "SET_FLUX_ZETA")
-        return SET_FLUX_ZETA ;
-    if(type == "SET_STRESS_XI")
-        return SET_STRESS_XI ;
-    if(type == "SET_STRESS_ETA")
-        return SET_STRESS_ETA ;
-    if(type == "SET_STRESS_ZETA")
-        return SET_STRESS_ZETA ;
-    if(type == "SET_VOLUMIC_STRESS_XI")
-        return SET_VOLUMIC_STRESS_XI ;
-    if(type == "SET_VOLUMIC_STRESS_ETA")
-        return SET_VOLUMIC_STRESS_ETA ;
-    if(type == "SET_VOLUMIC_STRESS_ZETA")
-        return SET_VOLUMIC_STRESS_ZETA ;
-    if(type == "SET_NORMAL_STRESS")
-        return SET_NORMAL_STRESS ;
-    if(type == "SET_TANGENT_STRESS")
-        return SET_TANGENT_STRESS ;
-    if(type == "VERTICAL_PLANE_SECTIONS")
-        return VERTICAL_PLANE_SECTIONS ;
-    if(type == "HORIZONTAL_PLANE_SECTIONS")
-        return HORIZONTAL_PLANE_SECTIONS ;
-    if(type == "SET_GLOBAL_FORCE_VECTOR")
-        return SET_GLOBAL_FORCE_VECTOR ;
-    if(type == "nullptr_CONDITION")
-        return nullptr_CONDITION ;
-    return GENERAL ;
-}
-
-BoundingBoxPosition ConfigTreeItem::translateBoundingBoxPosition( std::string position )
-{
-    if(position == "TOP")
-        return TOP ;
-    if(position == "TOP_LEFT")
-        return TOP_LEFT ;
-    if(position == "TOP_RIGHT")
-        return TOP_RIGHT ;
-    if(position == "TOP_BACK")
-        return TOP_BACK ;
-    if(position == "TOP_LEFT_FRONT")
-        return TOP_LEFT_FRONT ;
-    if(position == "TOP_LEFT_BACK")
-        return TOP_LEFT_BACK ;
-    if(position == "TOP_RIGHT_FRONT")
-        return TOP_RIGHT_FRONT ;
-    if(position == "TOP_RIGHT_BACK")
-        return TOP_RIGHT_BACK ;
-    if(position == "BOTTOM")
-        return BOTTOM ;
-    if(position == "BOTTOM_LEFT")
-        return BOTTOM_LEFT ;
-    if(position == "BOTTOM_RIGHT")
-        return BOTTOM_RIGHT ;
-    if(position == "BOTTOM_BACK")
-        return BOTTOM_BACK ;
-    if(position == "BOTTOM_LEFT_FRONT")
-        return BOTTOM_LEFT_FRONT ;
-    if(position == "BOTTOM_LEFT_BACK")
-        return BOTTOM_LEFT_BACK ;
-    if(position == "BOTTOM_RIGHT_FRONT")
-        return BOTTOM_RIGHT_FRONT ;
-    if(position == "BOTTOM_RIGHT_BACK")
-        return BOTTOM_RIGHT_BACK ;
-    if(position == "LEFT")
-        return LEFT ;
-    if(position == "RIGHT")
-        return RIGHT ;
-    if(position == "FRONT")
-        return FRONT ;
-    if(position == "FRONT_LEFT")
-        return FRONT_LEFT ;
-    if(position == "FRONT_RIGHT")
-        return FRONT_RIGHT ;
-    if(position == "FRONT_TOP")
-        return FRONT_TOP ;
-    if(position == "FRONT_BOTTOM")
-        return FRONT_BOTTOM ;
-    if(position == "BACK")
-        return BACK ;
-    if(position == "BACK_LEFT")
-        return BACK_LEFT ;
-    if(position == "BACK_RIGHT")
-        return BACK_RIGHT ;
-    if(position == "BEFORE")
-        return BEFORE ;
-    if(position == "NOW")
-        return NOW ;
-    if(position == "AFTER")
-        return AFTER ;
-    if(position == "TOP_BEFORE")
-        return TOP_BEFORE ;
-    if(position == "TOP_LEFT_BEFORE")
-        return TOP_LEFT_BEFORE ;
-    if(position == "TOP_RIGHT_BEFORE")
-        return TOP_RIGHT_BEFORE ;
-    if(position == "TOP_BACK_BEFORE")
-        return TOP_BACK_BEFORE ;
-    if(position == "TOP_LEFT_FRONT_BEFORE")
-        return TOP_LEFT_FRONT_BEFORE ;
-    if(position == "TOP_LEFT_BACK_BEFORE")
-        return TOP_LEFT_BACK_BEFORE ;
-    if(position == "TOP_RIGHT_FRONT_BEFORE")
-        return TOP_RIGHT_FRONT_BEFORE ;
-    if(position == "TOP_RIGHT_BACK_BEFORE")
-        return TOP_RIGHT_BACK_BEFORE ;
-    if(position == "BOTTOM_BEFORE")
-        return BOTTOM_BEFORE ;
-    if(position == "BOTTOM_LEFT_BEFORE")
-        return BOTTOM_LEFT_BEFORE ;
-    if(position == "BOTTOM_RIGHT_BEFORE")
-        return BOTTOM_RIGHT_BEFORE ;
-    if(position == "BOTTOM_BACK_BEFORE")
-        return BOTTOM_BACK_BEFORE ;
-    if(position == "BOTTOM_LEFT_FRONT_BEFORE")
-        return BOTTOM_LEFT_FRONT_BEFORE ;
-    if(position == "BOTTOM_LEFT_BACK_BEFORE")
-        return BOTTOM_LEFT_BACK_BEFORE ;
-    if(position == "BOTTOM_RIGHT_FRONT_BEFORE")
-        return BOTTOM_RIGHT_FRONT_BEFORE ;
-    if(position == "BOTTOM_RIGHT_BACK_BEFORE")
-        return BOTTOM_RIGHT_BACK_BEFORE ;
-    if(position == "LEFT_BEFORE")
-        return LEFT_BEFORE ;
-    if(position == "RIGHT_BEFORE")
-        return RIGHT_BEFORE ;
-    if(position == "FRONT_BEFORE")
-        return FRONT_BEFORE ;
-    if(position == "FRONT_LEFT_BEFORE")
-        return FRONT_LEFT_BEFORE ;
-    if(position == "FRONT_RIGHT_BEFORE")
-        return FRONT_RIGHT_BEFORE ;
-    if(position == "FRONT_TOP_BEFORE")
-        return FRONT_TOP_BEFORE ;
-    if(position == "FRONT_BOTTOM_BEFORE")
-        return FRONT_BOTTOM_BEFORE ;
-    if(position == "BACK_BEFORE")
-        return BACK_BEFORE ;
-    if(position == "BACK_LEFT_BEFORE")
-        return BACK_LEFT_BEFORE ;
-    if(position == "BACK_RIGHT_BEFORE")
-        return BACK_RIGHT_BEFORE ;
-    if(position == "TOP_NOW")
-        return TOP_NOW ;
-    if(position == "TOP_LEFT_NOW")
-        return TOP_LEFT_NOW ;
-    if(position == "TOP_RIGHT_NOW")
-        return TOP_RIGHT_NOW ;
-    if(position == "TOP_LEFT_FRONT_NOW")
-        return TOP_LEFT_FRONT_NOW ;
-    if(position == "TOP_LEFT_BACK_NOW")
-        return TOP_LEFT_BACK_NOW ;
-    if(position == "TOP_RIGHT_FRONT_NOW")
-        return TOP_RIGHT_FRONT_NOW ;
-    if(position == "TOP_RIGHT_BACK_NOW")
-        return TOP_RIGHT_BACK_NOW ;
-    if(position == "BOTTOM_NOW")
-        return BOTTOM_NOW ;
-    if(position == "BOTTOM_LEFT_NOW")
-        return BOTTOM_LEFT_NOW ;
-    if(position == "BOTTOM_RIGHT_NOW")
-        return BOTTOM_RIGHT_NOW ;
-    if(position == "BOTTOM_LEFT_FRONT_NOW")
-        return BOTTOM_LEFT_FRONT_NOW ;
-    if(position == "BOTTOM_LEFT_BACK_NOW")
-        return BOTTOM_LEFT_BACK_NOW ;
-    if(position == "BOTTOM_RIGHT_FRONT_NOW")
-        return BOTTOM_RIGHT_FRONT_NOW ;
-    if(position == "BOTTOM_RIGHT_BACK_NOW")
-        return BOTTOM_RIGHT_BACK_NOW ;
-    if(position == "LEFT_NOW")
-        return LEFT_NOW ;
-    if(position == "RIGHT_NOW")
-        return RIGHT_NOW ;
-    if(position == "FRONT_NOW")
-        return FRONT_NOW ;
-    if(position == "FRONT_LEFT_NOW")
-        return FRONT_LEFT_NOW ;
-    if(position == "FRONT_RIGHT_NOW")
-        return FRONT_RIGHT_NOW ;
-    if(position == "FRONT_TOP_NOW")
-        return FRONT_TOP_NOW ;
-    if(position == "FRONT_BOTTOM_NOW")
-        return FRONT_BOTTOM_NOW ;
-    if(position == "BACK_NOW")
-        return BACK_NOW ;
-    if(position == "BACK_LEFT_NOW")
-        return BACK_LEFT_NOW ;
-    if(position == "BACK_RIGHT_NOW")
-        return BACK_RIGHT_NOW ;
-    if(position == "TOP_AFTER")
-        return TOP_AFTER ;
-    if(position == "TOP_LEFT_AFTER")
-        return TOP_LEFT_AFTER ;
-    if(position == "TOP_RIGHT_AFTER")
-        return TOP_RIGHT_AFTER ;
-    if(position == "TOP_BACK_AFTER")
-        return TOP_BACK_AFTER ;
-    if(position == "TOP_LEFT_FRONT_AFTER")
-        return TOP_LEFT_FRONT_AFTER ;
-    if(position == "TOP_LEFT_BACK_AFTER")
-        return TOP_LEFT_BACK_AFTER ;
-    if(position == "TOP_RIGHT_FRONT_AFTER")
-        return TOP_RIGHT_FRONT_AFTER ;
-    if(position == "TOP_RIGHT_BACK_AFTER")
-        return TOP_RIGHT_BACK_AFTER ;
-    if(position == "BOTTOM_AFTER")
-        return BOTTOM_AFTER ;
-    if(position == "BOTTOM_LEFT_AFTER")
-        return BOTTOM_LEFT_AFTER ;
-    if(position == "BOTTOM_RIGHT_AFTER")
-        return BOTTOM_RIGHT_AFTER ;
-    if(position == "BOTTOM_BACK_AFTER")
-        return BOTTOM_BACK_AFTER ;
-    if(position == "BOTTOM_LEFT_FRONT_AFTER")
-        return BOTTOM_LEFT_FRONT_AFTER ;
-    if(position == "BOTTOM_LEFT_BACK_AFTER")
-        return BOTTOM_LEFT_BACK_AFTER ;
-    if(position == "BOTTOM_RIGHT_FRONT_AFTER")
-        return BOTTOM_RIGHT_FRONT_AFTER ;
-    if(position == "BOTTOM_RIGHT_BACK_AFTER")
-        return BOTTOM_RIGHT_BACK_AFTER ;
-    if(position == "LEFT_AFTER")
-        return LEFT_AFTER ;
-    if(position == "RIGHT_AFTER")
-        return RIGHT_AFTER ;
-    if(position == "FRONT_AFTER")
-        return FRONT_AFTER ;
-    if(position == "FRONT_LEFT_AFTER")
-        return FRONT_LEFT_AFTER ;
-    if(position == "FRONT_RIGHT_AFTER")
-        return FRONT_RIGHT_AFTER ;
-    if(position == "FRONT_TOP_AFTER")
-        return FRONT_TOP_AFTER ;
-    if(position == "FRONT_BOTTOM_AFTER")
-        return FRONT_BOTTOM_AFTER ;
-    if(position == "BACK_AFTER")
-        return BACK_AFTER ;
-    if(position == "BACK_LEFT_AFTER")
-        return BACK_LEFT_AFTER ;
-    if(position == "BACK_RIGHT_AFTER")
-        return BACK_RIGHT_AFTER ;
-    return NOW ;
-}
-
 std::vector<BoundaryCondition *> ConfigTreeItem::getAllBoundaryConditions(FeatureTree * F) const 
 {
     std::vector<BoundaryCondition *> cond ;
@@ -2785,7 +2304,7 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
         {
             int index = getData("geometry.index",0) ;
             Point n( getData("normal.x", 1 ), getData("normal.y", 0 )) ;
-            ret = new GeometryAndFaceDefinedSurfaceBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+            ret = new GeometryAndFaceDefinedSurfaceBoundaryCondition( Enum::getLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
                 dynamic_cast<Geometry *>(f->getFeature(index)), n, getData( "value", 0 ), (int) getData( "axis", 0 ) ) ;
         }
 
@@ -2795,8 +2314,8 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
             double maxy = getData("restriction.top_right.y", 1.) ;
             double minx = getData("restriction.bottom_left.x", -1.) ;
             double miny = getData("restriction.bottom_left.y", -1.) ;
-            ret = new BoundingBoxAndRestrictionDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
-                    ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ), minx, maxx, miny, maxy,
+            ret = new BoundingBoxAndRestrictionDefinedBoundaryCondition( Enum::getLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+                    Enum::getBoundingBoxPosition( getStringData( "position", "NOW" ) ), minx, maxx, miny, maxy,
                     getData( "value", 0 ), (int) getData( "axis", 0 ) ) ;
         }
         if(hasChild("point"))
@@ -2806,12 +2325,12 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
             double z = getData("point.z", 0.) ;
             double t = getData("point.t", 0.) ;
             Point p(x,y,z,t) ;
-            return new BoundingBoxNearestNodeDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
-                    ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ), p,
+            return new BoundingBoxNearestNodeDefinedBoundaryCondition( Enum::getLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+                    Enum::getBoundingBoxPosition( getStringData( "position", "NOW" ) ), p,
                     getData( "value", 0 ), getData( "axis", 0 ) ) ;
         }
-        ret = new BoundingBoxDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
-                ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ),
+        ret = new BoundingBoxDefinedBoundaryCondition( Enum::getLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+                Enum::getBoundingBoxPosition( getStringData( "position", "NOW" ) ),
                 getData( "value", 0 ), getData( "axis", 0 ) ) ;
 
         if( hasChild("interpolation") )
@@ -2830,7 +2349,7 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
         {
             int index = getData("geometry.index",0) ;
             Point n( getData("normal.x", 1 ), getData("normal.y", 0 )) ;
-            ret = new GeometryAndFaceDefinedSurfaceBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+            ret = new GeometryAndFaceDefinedSurfaceBoundaryCondition( Enum::getLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
                 dynamic_cast<Geometry *>(f->getFeature(index)), n, t, (int) getData( "axis", 0 ) ) ;
         }
     
@@ -2840,8 +2359,8 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
             double maxy = getData("restriction.top_right.y", 1.) ;
             double minx = getData("restriction.bottom_left.x", -1.) ;
             double miny = getData("restriction.bottom_left.y", -1.) ;
-            ret = new BoundingBoxAndRestrictionDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
-                    ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ), minx, maxx, miny, maxy,
+            ret = new BoundingBoxAndRestrictionDefinedBoundaryCondition( Enum::getLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+                    Enum::getBoundingBoxPosition( getStringData( "position", "NOW" ) ), minx, maxx, miny, maxy,
                     t, getData( "axis", 0 ) ) ;
         }
         if(hasChild("point"))
@@ -2851,12 +2370,12 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
             double z = getData("point.z", 0.) ;
             double t = getData("point.t", 0.) ;
             Point p(x,y,z,t) ;
-            ret = new BoundingBoxNearestNodeDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
-                    ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ), p,
+            ret = new BoundingBoxNearestNodeDefinedBoundaryCondition( Enum::getLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+                    Enum::getBoundingBoxPosition( getStringData( "position", "NOW" ) ), p,
                     t, getData( "axis", 0 ) ) ;
         }
-        ret = new BoundingBoxDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
-                ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ),
+        ret = new BoundingBoxDefinedBoundaryCondition( Enum::getLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+                Enum::getBoundingBoxPosition( getStringData( "position", "NOW" ) ),
                 t, getData( "axis", 0 ) ) ;
      }
      return ret ;
@@ -2875,100 +2394,6 @@ bool ConfigTreeItem::isAtTimeStep(int i, int nsteps) const
     return false ;
 }
 
-TWFieldType ConfigTreeItem::translateTriangleWriterFieldType( std::string field, bool & ok)
-{
-    ok = true ;
-    if(field == "CRITERION")
-        return TWFT_CRITERION ;
-    if(field == "STIFFNESS")
-        return TWFT_STIFFNESS ;
-    if(field == "VISCOSITY")
-        return TWFT_VISCOSITY ;
-    ok = false ;
-    return TWFT_COORDINATE ;
-}
-
-
-FieldType ConfigTreeItem::translateFieldType( std::string field, bool & ok)
-{
-    ok = true ;
-    if(field == "DISPLACEMENT_FIELD")
-        return DISPLACEMENT_FIELD ;
-    if(field == "ENRICHED_DISPLACEMENT_FIELD")
-        return ENRICHED_DISPLACEMENT_FIELD ;
-    if(field == "SPEED_FIELD")
-        return SPEED_FIELD ;
-    if(field == "SCALAR_DAMAGE_FIELD")
-        return SCALAR_DAMAGE_FIELD ;
-    if(field == "FLUX_FIELD")
-        return FLUX_FIELD ;
-    if(field == "GRADIENT_FIELD")
-        return GRADIENT_FIELD ;
-    if(field == "STRAIN_RATE_FIELD")
-        return STRAIN_RATE_FIELD ;
-    if(field == "STRAIN_FIELD")
-        return STRAIN_FIELD ;
-    if(field == "MECHANICAL_STRAIN_FIELD")
-        return MECHANICAL_STRAIN_FIELD ;
-    if(field == "EFFECTIVE_STRESS_FIELD")
-        return EFFECTIVE_STRESS_FIELD ;
-    if(field == "REAL_STRESS_FIELD")
-        return REAL_STRESS_FIELD ;
-    if(field == "PRINCIPAL_STRAIN_FIELD")
-        return PRINCIPAL_STRAIN_FIELD ;
-    if(field == "PRINCIPAL_EFFECTIVE_STRESS_FIELD")
-        return PRINCIPAL_EFFECTIVE_STRESS_FIELD ;
-    if(field == "PRINCIPAL_REAL_STRESS_FIELD")
-        return PRINCIPAL_REAL_STRESS_FIELD ;
-    if(field == "NON_ENRICHED_STRAIN_RATE_FIELD")
-        return NON_ENRICHED_STRAIN_RATE_FIELD ;
-    if(field == "NON_ENRICHED_STRAIN_FIELD")
-        return NON_ENRICHED_STRAIN_FIELD ;
-    if(field == "NON_ENRICHED_EFFECTIVE_STRESS_FIELD")
-        return NON_ENRICHED_EFFECTIVE_STRESS_FIELD ;
-    if(field == "NON_ENRICHED_REAL_STRESS_FIELD")
-        return NON_ENRICHED_REAL_STRESS_FIELD ;
-    if(field == "VON_MISES_STRAIN_FIELD")
-        return VON_MISES_STRAIN_FIELD ;
-    if(field == "VON_MISES_EFFECTIVE_STRESS_FIELD")
-        return VON_MISES_EFFECTIVE_STRESS_FIELD ;
-    if(field == "VON_MISES_REAL_STRESS_FIELD")
-        return VON_MISES_REAL_STRESS_FIELD ;
-    if(field == "PRINCIPAL_STRESS_ANGLE_FIELD")
-        return PRINCIPAL_STRESS_ANGLE_FIELD ;
-    if(field == "INTERNAL_VARIABLE_FIELD")
-        return INTERNAL_VARIABLE_FIELD ;
-    if(field == "GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD")
-        return GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD ;
-    if(field == "GENERALIZED_VISCOELASTIC_ENRICHED_DISPLACEMENT_FIELD")
-        return GENERALIZED_VISCOELASTIC_ENRICHED_DISPLACEMENT_FIELD ;
-    if(field == "GENERALIZED_VISCOELASTIC_SPEED_FIELD")
-        return GENERALIZED_VISCOELASTIC_SPEED_FIELD ;
-    if(field == "GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD")
-        return GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD ;
-    if(field == "GENERALIZED_VISCOELASTIC_STRAIN_FIELD")
-        return GENERALIZED_VISCOELASTIC_STRAIN_FIELD ;
-    if(field == "GENERALIZED_VISCOELASTIC_EFFECTIVE_STRESS_FIELD")
-        return GENERALIZED_VISCOELASTIC_EFFECTIVE_STRESS_FIELD ;
-    if(field == "GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD")
-        return GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD ;
-    if(field == "GENERALIZED_VISCOELASTIC_PRINCIPAL_STRAIN_FIELD")
-        return GENERALIZED_VISCOELASTIC_PRINCIPAL_STRAIN_FIELD ;
-    if(field == "GENERALIZED_VISCOELASTIC_PRINCIPAL_EFFECTIVE_STRESS_FIELD")
-        return GENERALIZED_VISCOELASTIC_PRINCIPAL_EFFECTIVE_STRESS_FIELD ;
-    if(field == "GENERALIZED_VISCOELASTIC_PRINCIPAL_REAL_STRESS_FIELD")
-        return GENERALIZED_VISCOELASTIC_PRINCIPAL_REAL_STRESS_FIELD ;
-    if(field == "GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_RATE_FIELD")
-        return GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_RATE_FIELD ;
-    if(field == "GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD")
-        return GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD ;
-    if(field == "GENERALIZED_VISCOELASTIC_NON_ENRICHED_EFFECTIVE_STRESS_FIELD")
-        return GENERALIZED_VISCOELASTIC_NON_ENRICHED_EFFECTIVE_STRESS_FIELD ;
-    if(field == "GENERALIZED_VISCOELASTIC_NON_ENRICHED_REAL_STRESS_FIELD")
-        return NON_ENRICHED_REAL_STRESS_FIELD ;
-    ok = false ;
-    return DISPLACEMENT_FIELD ;
-}
 
 ConfigTreeItem * ConfigTreeItem::makeTemplate()
 {
@@ -3084,7 +2509,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
         for(size_t i = 0 ; i < fields.size() ; i++)
         {
             bool isFieldType = true ;
-            FieldType ft = ConfigTreeItem::translateFieldType( fields[i]->getStringData(), isFieldType ) ;
+            FieldType ft = Enum::getFieldType( fields[i]->getStringData(), &isFieldType ) ;
             if(isFieldType)
             {
 //				std::cout << fields[i]->getStringData() << std::endl ;
@@ -3110,7 +2535,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
             for(size_t i = 0 ; i < ffields.size() ; i++)
             {
                 bool isFieldType = true ;
-                FieldType ft = ConfigTreeItem::translateFieldType( ffields[i]->getStringData(), isFieldType ) ;
+                FieldType ft = Enum::getFieldType( ffields[i]->getStringData(), &isFieldType ) ;
                 if(isFieldType)
                 {
                     Vector f = F->get2DMesh()->getField( ft, cacheIndex[index], -1, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
@@ -3133,12 +2558,12 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
         std::vector<ConfigTreeItem *> edges = getAllChildren("edge") ;
         for(size_t i = 0 ; i < edges.size() ; i++)
         {
-            BoundingBoxPosition pos = ConfigTreeItem::translateBoundingBoxPosition(edges[i]->getStringData("position", "BOTTOM")) ;
+            BoundingBoxPosition pos = Enum::getBoundingBoxPosition(edges[i]->getStringData("position", "BOTTOM")) ;
             std::vector<ConfigTreeItem *> ffields = edges[i]->getAllChildren("field") ;
             for(size_t i = 0 ; i < ffields.size() ; i++)
             {
                 bool isFieldType = true ;
-                FieldType ft = ConfigTreeItem::translateFieldType( ffields[i]->getStringData(), isFieldType ) ;
+                FieldType ft = Enum::getFieldType( ffields[i]->getStringData(), &isFieldType ) ;
                 if(isFieldType)
                 {
                     Vector f = F->getAverageFieldOnBoundary( pos, ft, -1, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
@@ -3166,7 +2591,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
             for(size_t i = 0 ; i < ffields.size() ; i++)
             {
                 bool isFieldType = true ;
-                FieldType ft = ConfigTreeItem::translateFieldType( ffields[i]->getStringData(), isFieldType ) ;
+                FieldType ft = Enum::getFieldType( ffields[i]->getStringData(), &isFieldType ) ;
                 if(isFieldType)
                 {
                     Vector f = F->getField( ft, p , -1 , false, true) ;
@@ -3202,7 +2627,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
                     for(size_t i = 0 ; i < ffields.size() ; i++)
                     {
                         bool isFieldType = true ;
-                        FieldType ft = ConfigTreeItem::translateFieldType( ffields[i]->getStringData(), isFieldType ) ;
+                        FieldType ft = Enum::getFieldType( ffields[i]->getStringData(), &isFieldType ) ;
                         if(isFieldType)
                         {
                             Vector f = F->getField( ft, p , -1 , false, true) ;
@@ -3243,9 +2668,9 @@ void ConfigTreeItem::exportTriangles(FeatureTree * F, int i, int nsteps)
         for(size_t i = 0 ; i < fields.size() ; i++)
         {
             bool isFieldType = true ;
-            FieldType f = ConfigTreeItem::translateFieldType( fields[i]->getStringData(), isFieldType ) ;
+            FieldType f = Enum::getFieldType( fields[i]->getStringData(), &isFieldType ) ;
             bool isTWFieldType = false ;
-            TWFieldType g = ConfigTreeItem::translateTriangleWriterFieldType( fields[i]->getStringData(), isTWFieldType ) ;
+            TWFieldType g = Enum::getTWFieldType( fields[i]->getStringData(), &isTWFieldType ) ;
             if(isFieldType)
                 trg.getField( f ) ;
             else if(isTWFieldType)
@@ -3276,9 +2701,9 @@ void ConfigTreeItem::exportSvgTriangles(MultiTriangleWriter * trg, FeatureTree *
         for(size_t i = 0 ; i < fields.size() ; i++)
         {
             bool isFieldType = true ;
-            FieldType f = ConfigTreeItem::translateFieldType( fields[i]->getStringData(), isFieldType ) ;
+            FieldType f = Enum::getFieldType( fields[i]->getStringData(), &isFieldType ) ;
             bool isTWFieldType = false ;
-            TWFieldType g = ConfigTreeItem::translateTriangleWriterFieldType( fields[i]->getStringData(), isTWFieldType ) ;
+            TWFieldType g = Enum::getTWFieldType( fields[i]->getStringData(), &isTWFieldType ) ;
             if(isFieldType)
             {
                 trg->getField( f ) ;

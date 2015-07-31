@@ -1,6 +1,6 @@
 #include "material_laws.h"
 #include "../../utilities/itoa.h"
-#include "../../utilities/configuration.h"
+#include "../../utilities/enumeration_translator.h"
 #include <stdlib.h>
 #include <fstream>
 
@@ -565,10 +565,10 @@ void ExponentialDecayMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticEl
 
 }
 
-GetFieldMaterialLaw::GetFieldMaterialLaw(std::string f) 
+GetFieldMaterialLaw::GetFieldMaterialLaw(std::string f, std::string args, char sep) : ExternalMaterialLaw(args, sep)
 {
     bool ok = false ;
-    field = ConfigTreeItem::translateFieldType( f, ok) ;
+    field = Enum::getFieldType( f, &ok) ;
     base = f.substr(0, f.length()-6) ;
     std::locale loc ;
     for(size_t i = 0 ; i < base.length() ; i++)

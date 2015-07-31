@@ -17,7 +17,7 @@
 namespace Amie
 {
 
-/*PARSE BulkShearConversion 0 VOID */
+/*PARSE BulkShearConversion ExternalMaterialLaw */
 struct BulkShearConversionMaterialLaw : public ExternalMaterialLaw
 {
 	BulkShearConversionMaterialLaw( std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { } 
@@ -26,7 +26,7 @@ struct BulkShearConversionMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 } ;
 
-/*PARSE AdjustStrainStressCurve 0 VOID */
+/*PARSE AdjustStrainStressCurve ExternalMaterialLaw */
 struct AdjustStrainStressCurveMaterialLaw : public ExternalMaterialLaw
 {
     AdjustStrainStressCurveMaterialLaw( std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { } 
@@ -35,7 +35,7 @@ struct AdjustStrainStressCurveMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 } ;
 
-/*PARSE BazantLoadNonLinearCreep 0 VOID */
+/*PARSE BazantLoadNonLinearCreep ExternalMaterialLaw */
 struct BazantLoadNonLinearCreepMaterialLaw : public ExternalMaterialLaw
 {
     BazantLoadNonLinearCreepMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { } 
@@ -44,7 +44,7 @@ struct BazantLoadNonLinearCreepMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
-/*PARSE TensionCompressionCreep 0 VOID */
+/*PARSE TensionCompressionCreep ExternalMaterialLaw */
 struct TensionCompressionCreepMaterialLaw : public ExternalMaterialLaw
 {
     TensionCompressionCreepMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { } 

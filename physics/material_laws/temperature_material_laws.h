@@ -22,7 +22,7 @@ namespace Amie
  * The reference temperature must be given in the defaults values
  * Temperatures must be set in Kelvin for compatibility with the Arrhenius law
  */
-/*PARSE ThermalExpansion 0 VOID */
+/*PARSE ThermalExpansion ExternalMaterialLaw */
 struct ThermalExpansionMaterialLaw : public ExternalMaterialLaw
 {
     ThermalExpansionMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
@@ -31,7 +31,7 @@ struct ThermalExpansionMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
-/*PARSE RadiationDependentThermalExpansionCoefficient 0 VOID */
+/*PARSE RadiationDependentThermalExpansionCoefficient ExternalMaterialLaw */
 struct RadiationDependentThermalExpansionCoefficientMaterialLaw : public ExternalMaterialLaw
 {
     RadiationDependentThermalExpansionCoefficientMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
@@ -40,7 +40,7 @@ struct RadiationDependentThermalExpansionCoefficientMaterialLaw : public Externa
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 } ;
 
-/*PARSE RadiationDependentPoissonRatio 0 VOID */
+/*PARSE RadiationDependentPoissonRatio ExternalMaterialLaw */
 struct RadiationDependentPoissonRatioMaterialLaw : public ExternalMaterialLaw
 {
     RadiationDependentPoissonRatioMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
@@ -57,7 +57,7 @@ struct AnisotropicThermalExpansionMaterialLaw : public ThermalExpansionMaterialL
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
-/*PARSE IncrementalThermalExpansion 0 VOID */
+/*PARSE IncrementalThermalExpansion ExternalMaterialLaw */
 struct IncrementalThermalExpansionMaterialLaw : public ExternalMaterialLaw
 {
     IncrementalThermalExpansionMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
@@ -74,7 +74,7 @@ struct AnisotropicIncrementalThermalExpansionMaterialLaw : public ExternalMateri
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
-/*PARSE RadiationInducedVolumetricExpansion 0 VOID */
+/*PARSE RadiationInducedVolumetricExpansion ExternalMaterialLaw */
 struct RadiationInducedVolumetricExpansionMaterialLaw : public ExternalMaterialLaw
 {
     RadiationInducedVolumetricExpansionMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
@@ -83,7 +83,7 @@ struct RadiationInducedVolumetricExpansionMaterialLaw : public ExternalMaterialL
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
-/*PARSE TemperatureDependentRadiationInducedVolumetricExpansion 0 VOID */
+/*PARSE TemperatureDependentRadiationInducedVolumetricExpansion ExternalMaterialLaw */
 struct TemperatureDependentRadiationInducedVolumetricExpansionMaterialLaw : public ExternalMaterialLaw
 {
     TemperatureDependentRadiationInducedVolumetricExpansionMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
@@ -96,7 +96,9 @@ struct TemperatureDependentRadiationInducedVolumetricExpansionMaterialLaw : publ
  * The material parameters must include the affected parameter, the activation energy for that parameter (in Kelvin^{-1}, and written as parameter"_activation_energy"), "temperature" and "temperature_reference" (both in Kelvin)
  * The reference value of the affected parameter and "temperature" must be given in the defaults values
  */
-/*PARSE Arrhenius 1 VOID */
+/*PARSE Arrhenius ExternalMaterialLaw
+    @string[parameter] // name of the parameter affected by the Arrhenius law
+ */
 struct ArrheniusMaterialLaw : public ExternalMaterialLaw
 {
     std::string affected ;
@@ -111,7 +113,7 @@ struct ArrheniusMaterialLaw : public ExternalMaterialLaw
  * The material parameters must include "creep_characteristic_time", "creep_modulus" (or the pair "creep_bulk" and "creep_shear"), "creep_activation_energy" (in Kelvin^{-1}), "temperature" and "temperature_reference"
  * The reference value of "creep_characteristic_time","creep_modulus" (or the pair "creep_bulk" and "creep_shear"), and "temperature" must be given in the default values
  */
-/*PARSE CreepArrhenius 0 VOID */
+/*PARSE CreepArrhenius ExternalMaterialLaw */
 struct CreepArrheniusMaterialLaw : public ExternalMaterialLaw
 {
     CreepArrheniusMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }

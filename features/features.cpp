@@ -13,6 +13,7 @@
 #include "sample.h"
 #include "sample3d.h"
 #include "../utilities/configuration.h"
+#include "../utilities/enumeration_translator.h"
 #include "../physics/void_form.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
 #include "../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
@@ -3886,7 +3887,7 @@ void FeatureTree::setDiscretizationParameters ( ConfigTreeItem * config, ConfigT
     std::string order = config->getStringData ( "order", def->getStringData ( "order" ) ) ;
     int restriction = config->getData ( "sampling_restriction", def->getData ( "sampling_restriction" ) ) ;
     setSamplingNumber ( sampling ) ;
-    setOrder ( ConfigTreeItem::translateOrder ( order ) ) ;
+    setOrder ( Enum::getOrder ( order ) ) ;
     setSamplingRestriction ( restriction ) ;
 
     std::vector<ConfigTreeItem *> zones = config->getAllChildren ( "refinement_zone" ) ;

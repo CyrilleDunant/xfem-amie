@@ -193,6 +193,7 @@ utilities/samplingcriterion.cpp
 features/microstructuregenerator.cpp
 utilities/writer/triangle_writer.cpp
 utilities/writer/voxel_writer.cpp
+utilities/object_translator.cpp
 )
 
 

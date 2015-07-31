@@ -248,42 +248,11 @@ public:
 
     InclusionGenerator * getInclusionGenerator() const ;
 
-    /** Translate a string in an element order*/
-    static Order translateOrder(std::string order) ;
-
-    /** Translate a string in a field type*/
-    static FieldType translateFieldType(std::string field, bool & ok) ;
-
-    static planeType translatePlaneType(std::string type) ;
-
-    static SmoothingFunctionType translateSmoothingFunctionType(std::string type) ;
-
-    /** Translate a string in a field type*/
-    static TWFieldType translateTriangleWriterFieldType(std::string field, bool & ok) ;
-
-    /** Translate a string in an inclusion type*/
-    static TypeInclusion translateInclusionType(std::string type) ;
-
-    /** Translate a string in a geometry type*/
-    static GeometryType translateGeometryType(std::string type) ;
-
-    /** Translate a string in a Lagrange multiplier type*/
-    static LagrangeMultiplierType translateLagrangeMultiplierType(std::string type) ;
-
-    static EMLOperation translateEMLOperation(std::string op) ;
-
-    static ViscoelasticFiniteDifferenceIntegration translateViscoelasticFiniteDifferenceIntegration(std::string op) ;
-
-    /** Translate a string in a PSD specification type*/
-    static PSDSpecificationType translatePSDSpecificationType( std::string specification ) ;
-
-    /** Translate a string in a bounding box position*/
-    static BoundingBoxPosition translateBoundingBoxPosition( std::string position ) ;
-
     /** Decomposes a path as father.current.child into a vector of strings {father, current, child} */
     static std::vector<std::string> decompose(std::string path) ;
 
     static Vector readLineAsVector(std::string line, char sep = ',') ;
+
     static std::vector<double> readLineAsStdVector(std::string line, char sep = ',') ;
 
 #ifdef __WIN32
