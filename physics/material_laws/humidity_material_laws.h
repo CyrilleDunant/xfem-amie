@@ -17,14 +17,16 @@
 namespace Amie
 {
 
-struct ThermalExpansionHumidityMaterialLaw : public ExternalMaterialLaw
+/*PARSE HumidityDependentThermalExpansionCoefficient 0 VOID */
+struct HumidityDependentThermalExpansionCoefficientMaterialLaw : public ExternalMaterialLaw
 {
-    ThermalExpansionHumidityMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { defaultValues["water_molar_volume"] = 1.8016e-5 ; }
-    virtual ~ThermalExpansionHumidityMaterialLaw() { } ;
+    HumidityDependentThermalExpansionCoefficientMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { defaultValues["water_molar_volume"] = 1.8016e-5 ; }
+    virtual ~HumidityDependentThermalExpansionCoefficientMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 } ;
 
+/*PARSE DryingShrinkage 1 VOID */
 struct DryingShrinkageMaterialLaw : public ExternalMaterialLaw
 {
     double order ;
@@ -40,15 +42,17 @@ struct DryingShrinkageMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
-struct CapillaryPressureDryingShrinkageMaterialLaw : public ExternalMaterialLaw
+/*PARSE CapillaryPressureDrivenDryingShrinkage 0 VOID */
+struct CapillaryPressureDrivenDryingShrinkageMaterialLaw : public ExternalMaterialLaw
 {
-    CapillaryPressureDryingShrinkageMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) {  }
-    virtual ~CapillaryPressureDryingShrinkageMaterialLaw() { } ;
+    CapillaryPressureDrivenDryingShrinkageMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) {  }
+    virtual ~CapillaryPressureDrivenDryingShrinkageMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 
 } ;
 
+/*PARSE KelvinCapillaryPressure 0 VOID */
 struct KelvinCapillaryPressureMaterialLaw : public ExternalMaterialLaw
 {
     KelvinCapillaryPressureMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { 
@@ -60,6 +64,7 @@ struct KelvinCapillaryPressureMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 } ;
 
+/*PARSE VanGenuchtenCapillaryPressure 0 VOID */
 struct VanGenuchtenCapillaryPressureMaterialLaw : public ExternalMaterialLaw
 {
     VanGenuchtenCapillaryPressureMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
@@ -68,6 +73,7 @@ struct VanGenuchtenCapillaryPressureMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 } ;
 
+/*PARSE VanGenuchtenWaterSaturation 0 VOID */
 struct VanGenuchtenWaterSaturationMaterialLaw : public ExternalMaterialLaw
 {
     VanGenuchtenWaterSaturationMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
@@ -76,14 +82,16 @@ struct VanGenuchtenWaterSaturationMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 } ;
 
-struct DisjoiningPressureDryingShrinkageMaterialLaw : public ExternalMaterialLaw
+/*PARSE DisjoiningPressureDrivenDryingShrinkage 0 VOID */
+struct DisjoiningPressureDrivenDryingShrinkageMaterialLaw : public ExternalMaterialLaw
 {
-    DisjoiningPressureDryingShrinkageMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
-    virtual ~DisjoiningPressureDryingShrinkageMaterialLaw() { } ;
+    DisjoiningPressureDrivenDryingShrinkageMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
+    virtual ~DisjoiningPressureDrivenDryingShrinkageMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
+/*PARSE BETIsotherm 0 VOID */
 struct BETIsothermMaterialLaw : public ExternalMaterialLaw
 {
 	std::string suffix ;
@@ -94,6 +102,7 @@ struct BETIsothermMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 } ;
 
+/*PARSE BiExponentialIsotherm 0 VOID */
 struct BiExponentialIsothermMaterialLaw : public BETIsothermMaterialLaw
 {
 	BiExponentialIsothermMaterialLaw(std::string suf = std::string(), std::string args = std::string(), char sep = ',') : BETIsothermMaterialLaw(suf, args, sep) { } ;
@@ -113,6 +122,7 @@ struct SorptionIsothermHysteresisMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 } ;
 
+/*PARSE WaterVapourSaturationPressure 0 VOID */
 struct WaterVapourSaturationPressureMaterialLaw : public ExternalMaterialLaw
 {
     std::string suffix ;
@@ -138,6 +148,7 @@ struct ClausiusClapeyronRelativeHumidityMaterialLaw : public ExternalMaterialLaw
 
 
 
+/*PARSE BenboudjemaDryingCreep 0 VOID */
 struct BenboudjemaDryingCreepMaterialLaw : public ExternalMaterialLaw
 {
     BenboudjemaDryingCreepMaterialLaw(std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep) { }
@@ -146,14 +157,16 @@ struct BenboudjemaDryingCreepMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt);
 };
 
-struct BazantCreepRelativeHumidityMaterialLaw : public ExternalMaterialLaw
+/*PARSE BazantRelativeHumidityDependentCreep 0 VOID */
+struct BazantRelativeHumidityDependentCreepMaterialLaw : public ExternalMaterialLaw
 {
-    BazantCreepRelativeHumidityMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { } 
-    virtual ~BazantCreepRelativeHumidityMaterialLaw() { } ;
+    BazantRelativeHumidityDependentCreepMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { } 
+    virtual ~BazantRelativeHumidityDependentCreepMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
+/*PARSE HavlasekDryingCreep 0 VOID */
 struct HavlasekDryingCreepMaterialLaw : public ExternalMaterialLaw
 {
     HavlasekDryingCreepMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { } 
@@ -163,10 +176,11 @@ struct HavlasekDryingCreepMaterialLaw : public ExternalMaterialLaw
 };
 
 
-struct WittmannCreepRelativeHumidityMaterialLaw : public ExternalMaterialLaw
+/*PARSE WittmannRelativeHumidityDependentCreep 0 VOID */
+struct WittmannRelativeHumidityDependentCreepMaterialLaw : public ExternalMaterialLaw
 {
-    WittmannCreepRelativeHumidityMaterialLaw(std::string args = std::string("creep_humidity_coefficient = 0.2"), char sep = 'c') : ExternalMaterialLaw(args, sep) { }
-    virtual ~WittmannCreepRelativeHumidityMaterialLaw() { } ;
+    WittmannRelativeHumidityDependentCreepMaterialLaw(std::string args = std::string("creep_humidity_coefficient = 0.2"), char sep = 'c') : ExternalMaterialLaw(args, sep) { }
+    virtual ~WittmannRelativeHumidityDependentCreepMaterialLaw() { } ;
 
     virtual void preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt);
 };

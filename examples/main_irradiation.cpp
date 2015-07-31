@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     Function f_weight_loss("0.015 x 0.0075 * +") ;
     Function f_ageing_creep("y t x / 1 + *") ;
     SpaceTimeDependentExternalMaterialLaw neutronRadiation("neutron_fluence", f_neutron_fluence) ;
-    RadiationInducedExpansionMaterialLaw radiationExpansion ;
+    RadiationInducedVolumetricExpansionMaterialLaw radiationExpansion ;
     LinearInterpolatedExternalMaterialLaw radiationDamage( std::make_pair("neutron_fluence","young_modulus"), "../examples/data/irradiation/limestone_aggregate_modulus" ) ;
 
     SimpleDependentExternalMaterialLaw dryingShrinkage("imposed_deformation","weight_loss", f_drying_shrinkage, ADD) ;

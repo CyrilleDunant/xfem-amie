@@ -5,8 +5,26 @@
 #include "../physics/damagemodels/damagemodel.h"
 #include "../physics/viscoelasticity.h"
 #include "../features/features.h"
+#include "../physics/material_laws/material_laws.h"
 
 namespace Amie {
+
+void BoundaryCondition::setInterpolation( LinearInterpolatedExternalMaterialLaw * inter ) 
+{
+    dataInterpolation = inter ;
+}
+
+void BoundaryCondition::setInterpolation( std::string f ) 
+{
+    dataInterpolation = new LinearInterpolatedExternalMaterialLaw( std::make_pair("data","t" ), f) ;
+}
+
+
+void BoundaryCondition::step(double realtime, double dt) 
+{
+    if(dataInterpolation)
+        data = dataInterpolation->get( realtime ) ;
+}
 
 BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, double d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ) { }
 

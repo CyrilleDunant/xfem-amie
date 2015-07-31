@@ -14,6 +14,6 @@ typedef enum
 	MIN_ONE_TO_ONE
 } TypeRef;
 
-} ;
+} 
 
 #endif

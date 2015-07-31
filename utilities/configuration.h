@@ -215,11 +215,21 @@ public:
     /** Translates the current item in a material law for log-creep behaviour*/
     ExternalMaterialLaw * getExternalMaterialLaw() const ;
 
+    std::vector<ExternalMaterialLaw *> getExternalMaterialLaws(std::map<std::string, std::string> alias = std::map<std::string, std::string>()) const ;
+
+    VariableDependentExternalMaterialLaw * getVariableDependentExternalMaterialLaw(std::map<std::string, std::string> alias = std::map<std::string, std::string>()) const ;
+
     /** Translates the current item in a vector of inclusions, and places them into a FeatureTree object*/
     std::vector<std::vector<Feature *> > getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers, std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>()  ) ;
 
+    std::vector<std::vector<Feature *> > getAllInclusions(FeatureTree * F, std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>()  ) ;
+
     /** Translates the current item in a boundary condition*/
     BoundaryCondition * getBoundaryCondition(FeatureTree * f) const ;
+
+    std::vector<BoundaryCondition *> getAllBoundaryConditions(FeatureTree * F) const ;
+
+    bool bindInput( std::vector<std::string> & callers ) ;
 
     /** Checks if data must be extracted and output at the i^th time step*/
     bool isAtTimeStep(int i, int nmax) const ;

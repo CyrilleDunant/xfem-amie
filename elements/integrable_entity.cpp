@@ -2980,6 +2980,8 @@ double ElementState::getDeltaTime() const
 
 double ElementState::getNodalCentralTime() const
 {
+    if( parent->timePlanes() < 2)
+        return timePos ;
     return 0.5* ( parent->getBoundingPoint ( parent->getBoundingPoints().size() -1 ).getT() + parent->getBoundingPoint ( 0 ).getT() ) ;
 }
 

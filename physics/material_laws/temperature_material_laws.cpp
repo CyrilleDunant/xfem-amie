@@ -7,7 +7,9 @@ namespace Amie
 void ThermalExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     double T = s.get("temperature", defaultValues) ;
-    double T0 = defaultValues["temperature"] ;
+    if(!s.has("temperature_reference") && !has("temperature_reference"))
+        defaultValues["temperature_reference"] = T ;
+    double T0 = s.get("temperature_reference", defaultValues) ;
     double alpha = s.get("thermal_expansion_coefficient", defaultValues) ;
     s.add("imposed_deformation", alpha*(T-T0)) ;
 }
@@ -35,7 +37,9 @@ void RadiationDependentPoissonRatioMaterialLaw::preProcess(GeneralizedSpaceTimeV
 void AnisotropicThermalExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     double T = s.get("temperature", defaultValues) ;
-    double T0 = defaultValues["temperature"] ;
+    if(!s.has("temperature_reference") && !has("temperature_reference"))
+        defaultValues["temperature_reference"] = T ;
+    double T0 = s.get("temperature_reference", defaultValues) ;
     if(!s.has("thermal_expansion_coefficient_xx"))
     {
         if(s.has("thermal_expansion_coefficient_11") && s.has("angle"))
@@ -120,7 +124,7 @@ void AnisotropicIncrementalThermalExpansionMaterialLaw::preProcess(GeneralizedSp
     s.add("imposed_deformation_yy", s.get("thermal_deformation_yy", defaultValues) ) ;
 }
 
-void RadiationInducedExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+void RadiationInducedVolumetricExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     double kappa = s.get("radiation_expansion_delay",defaultValues) ;
     double epsmax = s.get("maximum_radiation_expansion",defaultValues) ;
@@ -129,7 +133,7 @@ void RadiationInducedExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoE
     s.add("imposed_deformation", (kappa*epsmax*(exp(delta*N)-1)/(epsmax+kappa*exp(delta*N)))) ;
 }
 
-void TemperatureDependentRadiationInducedExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+void TemperatureDependentRadiationInducedVolumetricExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     if(!s.has("rive_previous"))
         s.set("rive_previous", 0.) ;
@@ -194,7 +198,9 @@ void ArrheniusMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementSta
 
 
     double T = s.get("temperature", defaultValues) ;
-    double T0 = defaultValues["temperature"] ;
+    if(!s.has("temperature_reference") && !has("temperature_reference"))
+        defaultValues["temperature_reference"] = T ;
+    double T0 = s.get("temperature_reference", defaultValues) ;
     double Ea = s.get(coefficient, defaultValues) ;
     s.multiply( affected, exp( Ea*(1./T-1./T0) ) ) ;
 }
@@ -208,7 +214,9 @@ void CreepArrheniusMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticEleme
         defaultValues["creep_characteristic_time"] = s.get("creep_characteristic_time", defaultValues) ;
 
     double T = s.get("temperature", defaultValues) ;
-    double T0 = defaultValues["temperature"] ;
+    if(!s.has("temperature_reference") && !has("temperature_reference"))
+        defaultValues["temperature_reference"] = T ;
+    double T0 = s.get("temperature_reference", defaultValues) ;
     double Ea = s.get("creep_activation_energy", defaultValues) ;
     s.multiply("creep_characteristic_time", exp( Ea*(1./T-1./T0) )) ;
 }

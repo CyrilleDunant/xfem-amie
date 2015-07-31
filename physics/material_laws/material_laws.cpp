@@ -1,5 +1,6 @@
 #include "material_laws.h"
 #include "../../utilities/itoa.h"
+#include "../../utilities/configuration.h"
 #include <stdlib.h>
 #include <fstream>
 
@@ -167,13 +168,13 @@ void VariableDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVisco
     }
     Point q ;
     if( has('u')) {
-        p.setX( s.get(coordinates['u'], defaultValues)) ;
+        q.setX( s.get(coordinates['u'], defaultValues)) ;
     }
     if( has('v')) {
-        p.setY( s.get(coordinates['v'], defaultValues)) ;
+        q.setY( s.get(coordinates['v'], defaultValues)) ;
     }
     if( has('w')) {
-        p.setZ( s.get(coordinates['w'], defaultValues)) ;
+        q.setZ( s.get(coordinates['w'], defaultValues)) ;
     }
     switch(op)
     {
@@ -504,7 +505,7 @@ void MaximumMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStat
     }
 }
 
-void MaximumHistoryMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+void StoreMaximumValueMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
     double v = s.get( external, defaultValues ) ;
     if(!s.has( max ))
@@ -514,7 +515,7 @@ void MaximumHistoryMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElem
         s.set( max, v ) ;
 }
 
-void MinimumHistoryMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+void StoreMinimumValueMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
     double v = s.get( external, defaultValues ) ;
     if(!s.has( max ))
@@ -554,15 +555,27 @@ void MinimumMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStat
     }
 }
 
-void ExponentiallyDecreasingMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+void ExponentialDecayMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
     double targetValue = s.get(target, defaultValues) ;
     double currentValue = s.get(output, defaultValues) ;
-    double tau = s.get(coefficient, defaultValues) ;
+    double tau = s.get(target+"_decay_coefficient", defaultValues) ;
     double nextValue = targetValue + (currentValue-targetValue)*(1-exp(-dt/tau)) ;
     s.set( output, nextValue ) ;
 
 }
+
+GetFieldMaterialLaw::GetFieldMaterialLaw(std::string f) 
+{
+    bool ok = false ;
+    field = ConfigTreeItem::translateFieldType( f, ok) ;
+    base = f.substr(0, f.length()-6) ;
+    std::locale loc ;
+    for(size_t i = 0 ; i < base.length() ; i++)
+        base[i] = std::tolower( base[i], loc ) ;
+    
+}
+
 
 void GetFieldMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
@@ -582,33 +595,50 @@ std::string GetFieldMaterialLaw::getParameterName(size_t i) const
     return b ;
 }
 
-WeibullDistributedMaterialLaw::WeibullDistributedMaterialLaw( std::string a, std::string w, double sh, double sc, double v, std::string args, char sep) : ExternalMaterialLaw(args, sep), weib(w), shape(sh), scale(sc)
+WeibullDistributedMaterialLaw::WeibullDistributedMaterialLaw( std::string a, std::string w, std::string args, char sep) : ExternalMaterialLaw(args, sep), weib(w), shape(w+"_shape"), scale(w+"_scale"), variability(w+"_variability")
 {
     affected.push_back(a) ;
     defaultValues[weib] = 1. ;
+    defaultValues[shape] = 5 ;
+    defaultValues[scale] = 1 ;
+    defaultValues[variability] = 0.2 ;
 }
 
-WeibullDistributedMaterialLaw::WeibullDistributedMaterialLaw( std::vector<std::string> aff, std::string w, double sh, double sc, double v, std::string args, char sep)  : ExternalMaterialLaw(args, sep), weib(w), shape(sh), scale(sc), variability(v)
+WeibullDistributedMaterialLaw::WeibullDistributedMaterialLaw( std::vector<std::string> aff, std::string w, std::string args, char sep)  : ExternalMaterialLaw(args, sep)
 {
     for(size_t i = 0 ; i < aff.size() ; i++)
         affected.push_back(aff[i]) ;
+    weib = w ;
+    shape = w+"_shape" ;
+    scale = w+"_scale" ;
+    variability = w+"_variability" ;
     defaultValues[weib] = 1. ;
+    defaultValues[shape] = 5 ;
+    defaultValues[scale] = 1 ;
+    defaultValues[variability] = 0.2 ;
 }
 
 void WeibullDistributedMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
+
     if(!s.has(weib))
     {
-        s.set(weib, std::max(0., 1. - variability + variability*RandomNumber().weibull(1.,5.)) ) ;
+        double var = s.get( variability, defaultValues ) ;
+        double sh = s.get( shape, defaultValues ) ;
+        double sc = s.get( scale, defaultValues ) ;
+        s.set(weib, std::max(0., 1. - var + var*RandomNumber().weibull(sc,sh)) ) ;
     }
     double w = s.get(weib, defaultValues) ;
     for(size_t i = 0 ; i < affected.size() ; i++)
         s.multiply(affected[i], w) ;
 }
 
-std::pair<std::string, double> WeibullDistributedMaterialLaw::getWeibullVariable() const
+std::pair<std::string, double> WeibullDistributedMaterialLaw::getWeibullVariable()
 {
-	return std::make_pair( weib, std::max(0., 1. - variability + variability*RandomNumber().weibull(1.,5.)) ) ;
+        double var = defaultValues[variability.c_str()] ;
+        double sh = defaultValues[shape.c_str()] ;
+        double sc = defaultValues[scale.c_str()] ;
+	return std::make_pair( weib, std::max(0., 1. - var + var*RandomNumber().weibull(sc,sh)) ) ;
 }
 
 }

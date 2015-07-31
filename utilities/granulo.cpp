@@ -1338,23 +1338,4 @@ double GranuloFromCumulativePSD::getNext3DDiameter(double diameter, double frac,
 }
 
 
-std::vector<std::vector<Feature *> > GranuloFromFile::readConfigurationFile( std::string filename, FeatureTree * F) 
-{
-    std::vector<std::vector<Feature *> > allFeatures ;
-    ConfigTreeItem * problem = ConfigParser::readFile(filename, nullptr) ;
-    if(problem->hasChild("inclusions"))
-    {
-        std::vector<Geometry *> inclusions ;
-        std::vector<Feature *> dummy ;
-        std::vector<ConfigTreeItem *> newInclusions = problem->getAllChildren("inclusions") ;
-        for(size_t i = 0 ; i < newInclusions.size() ; i++)
-        {
-            std::vector<std::vector<Feature *> > tmp = newInclusions[i]->getInclusions( F, dummy, inclusions ) ;
-            for(size_t j = 0 ; j < tmp[0].size() ; j++)
-                inclusions.push_back( dynamic_cast<Geometry *>(tmp[0][j]) ) ;
-            for(size_t j = 0 ; j < tmp.size() ; j++)
-                allFeatures.push_back( tmp[j] ) ;
-        }
-    }
-    return allFeatures ;
-}
+

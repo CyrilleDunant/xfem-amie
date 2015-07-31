@@ -59,7 +59,7 @@ void VanGenuchtenCapillaryPressureMaterialLaw::preProcess(GeneralizedSpaceTimeVi
     s.set("capillary_pressure", a*std::pow( std::pow(ws, -b)-1, -1.-1./b)  ) ;
 }
 
-void CapillaryPressureDryingShrinkageMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+void CapillaryPressureDrivenDryingShrinkageMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     double pc = s.get("capillary_pressure", defaultValues) ;
     double k = s.get("bulk_modulus", defaultValues) ;
@@ -70,7 +70,7 @@ void CapillaryPressureDryingShrinkageMaterialLaw::preProcess(GeneralizedSpaceTim
     s.add("imposed_deformation", -b/(3.*k)*xhi*pc) ;
 }
 
-void DisjoiningPressureDryingShrinkageMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+void DisjoiningPressureDrivenDryingShrinkageMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     double mw = s.get("mass_water_content", defaultValues) ;
     double ssa = s.get("specific_surface_area", defaultValues) ;
@@ -172,7 +172,7 @@ void SorptionIsothermHysteresisMaterialLaw::preProcess(GeneralizedSpaceTimeVisco
     s.set("mass_water_content_adsorption_previous", wca) ;
 }
 
-void ThermalExpansionHumidityMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+void HumidityDependentThermalExpansionCoefficientMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     double R = 8.3144621 ;
     double m = s.get("water_molar_volume", defaultValues) ;
@@ -233,7 +233,7 @@ void BenboudjemaDryingCreepMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElas
     }
 }
 
-void WittmannCreepRelativeHumidityMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+void WittmannRelativeHumidityDependentCreepMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     if(!s.has("creep_characteristic_time"))
         return ;
@@ -285,7 +285,7 @@ void HavlasekDryingCreepMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElastic
     s.set("creep_modulus", (eta+etadot*s.getNodalDeltaTime())/(1.+s.getNodalCentralTime()/tau) ) ;
 }
 
-void BazantCreepRelativeHumidityMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+void BazantRelativeHumidityDependentCreepMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     if(!s.has("creep_characteristic_time"))
         return ;

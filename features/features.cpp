@@ -4335,6 +4335,8 @@ void FeatureTree::solve()
         std::cerr << "\rApplying boundary conditions... " << i+1 << "/" << boundaryCondition.size() << std::flush ;
 //         }
 
+        boundaryCondition[i]->step( now, realDeltaTime ) ;
+
         if ( dtree )
         {
             boundaryCondition[i]->apply ( K, dtree ) ;

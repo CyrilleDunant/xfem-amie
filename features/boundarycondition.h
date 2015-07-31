@@ -18,6 +18,9 @@ namespace Amie {
 /** \brief Abstract boundary condition object for usage in multigrid solver.
  *
 */
+
+struct LinearInterpolatedExternalMaterialLaw ;
+
 class BoundaryCondition
 {
 protected:
@@ -26,11 +29,13 @@ protected:
     double scale ;
     bool active ;
     Function dataFunction ;
+    LinearInterpolatedExternalMaterialLaw * dataInterpolation ;
     int axis ;
     bool function ;
     std::vector<DelaunayTriangle *> cache2d ;
     std::vector<DelaunayTetrahedron *> cache3d ;
     std::vector<std::vector<Point> > cache ;
+
 public:
     BoundaryCondition(LagrangeMultiplierType t, const double & d, int a = 0) ;
     BoundaryCondition(LagrangeMultiplierType t, const Function & d, int a = 0) ;
@@ -49,6 +54,12 @@ public:
         return data ;
     }
     
+    virtual void setInterpolation( LinearInterpolatedExternalMaterialLaw * inter ) ;
+
+    virtual void step(double relatime, double dt) ;
+
+    virtual void setInterpolation( std::string f ) ; 
+
     virtual const Function & getDataFunction() const {
         return dataFunction ;
     }

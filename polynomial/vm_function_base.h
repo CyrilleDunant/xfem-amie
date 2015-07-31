@@ -97,11 +97,6 @@ protected :
     }*/
 
 protected:
-    bool isOperator ( const char c ) const ;
-
-    bool isNumeral ( const char c ) const ;
-
-    bool isSeparator ( const char c ) const ;
 
     std::pair<size_t, functionParseElement> getNext ( size_t init, const char * form, int iter, std::vector<double> & val ) ;
     std::pair<size_t, functionParseElement> getNext ( size_t init, const std::string & form, int iter, std::vector<double> & val ) ;
@@ -261,8 +256,6 @@ public:
 // 	void setTransform(const ElementaryVolume * s) ;
 // 	void setTransform(const Function & x, const Function & y) ;
 // 	void setTransform(const Function & x, const Function & y, const Function & z) ;
-
-    functionParseElement toToken ( const std::string & str, int iter, std::vector<double> & v ) const ;
 
     /** \brief return the size of the ByteCode
      *
@@ -884,6 +877,15 @@ Function operator()(const Function &f0, const Function &f1) const;*/
      * @return Vector of values at those points
      */
     const Vector & getPrecalculatedValue ( const GaussPointArray & gp, Variable v ) const ;
+} ;
+
+struct FunctionParserHelper
+{
+    static bool isBracket ( const char c ) ;
+    static bool isOperator ( const char c ) ;
+    static bool isNumeral ( const char c ) ;
+    static bool isSeparator ( const char c ) ;
+    static functionParseElement toToken ( const std::string & str, int iter , std::vector<double> & v ) ;
 } ;
 
 struct GradientDot ;

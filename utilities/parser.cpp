@@ -533,7 +533,25 @@ void ConfigParser::readData()
 
 }
 
-ConfigTreeItem * ConfigParser::readFile(std::string f, ConfigTreeItem * def, bool define)
+std::vector<std::vector<Feature *> > ConfigParser::getInclusions( std::string filename, FeatureTree * F) 
+{
+    std::vector<std::vector<Feature *> > allFeatures ;
+    ConfigTreeItem * problem = ConfigParser::readFile(filename, nullptr, false, true) ;
+    if(problem->hasChild("inclusions"))
+        allFeatures = problem->getChild("inclusions")->getAllInclusions(F) ;
+    return allFeatures ;
+}
+
+std::vector<BoundaryCondition *> ConfigParser::getBoundaryConditions( std::string filename, FeatureTree * F) 
+{
+    std::vector<BoundaryCondition *> ret ;
+    ConfigTreeItem * problem = ConfigParser::readFile(filename, nullptr, false, true) ;
+    if(problem->hasChild("boundary_conditions"))
+        ret = problem->getChild("boundary_conditions")->getAllBoundaryConditions(F) ;
+    return ret ;
+}
+
+ConfigTreeItem * ConfigParser::readFile(std::string f, ConfigTreeItem * def, bool define, bool bind)
 {
     ConfigParser parser(f) ;
     parser.readData() ;
@@ -544,6 +562,13 @@ ConfigTreeItem * ConfigParser::readFile(std::string f, ConfigTreeItem * def, boo
         ret->define(def, true) ;
     if(ret->hasChildFromFullLabel("define.path"))
         ret->definePath( ret->getStringData("define.path", "./") ) ;
+
+    if(bind)
+    {
+        std::vector<std::string> callers ;
+        callers.push_back(f) ;
+        ret->bindInput(callers) ;
+    }
 
     return ret ;
 }
@@ -565,7 +590,7 @@ void CommandLineParser::parseCommandLine( int argc, char *argv[] )
 	while(i < (size_t) argc)
 	{
 		std::string test = std::string(argv[i]) ;
-		if(i-1 < arguments.size() && test[0] != '-')
+		if(i-1 < arguments.size() && (test.length() < 2 || (test[0] != '-' || test[1] != '-')) )
 		{
 			arguments[i-1].str = test ;
 			arguments[i-1].val = atof(test.c_str()) ;
@@ -752,13 +777,17 @@ double CommandLineParser::getNumeralArgument( std::string arg )
 	return 0. ;
 }
 
-FunctionParser::FunctionParser(std::vector<std::string> f) : isLinking(false)
+FunctionParser::FunctionParser(std::vector<std::string> f, std::map<std::string, char> coordinates) : isLinking(false)
 {
-	renewExpression(f) ;
+	renewExpression(f, coordinates) ;
 }
 
+FunctionParser::FunctionParser(std::string f, std::map<std::string, char> coordinates) : isLinking(false)
+{
+	renewExpression( FunctionParser::breakString(f), coordinates) ;
+}
 
-FunctionParser::FunctionParser(std::string f) : isLinking(false)
+std::vector<std::string> FunctionParser::breakString(std::string f)
 {
 	std::string current ;
 	std::vector<std::string> str ;
@@ -767,7 +796,7 @@ FunctionParser::FunctionParser(std::string f) : isLinking(false)
 	{
 		bool cut = false ;
 		char test = f[i] ;
-		if(test == ' ')
+		if(test == ' ' || test == '\t')
 			cut = true ;
 		else
 			current += test ;
@@ -783,7 +812,7 @@ FunctionParser::FunctionParser(std::string f) : isLinking(false)
 	}
 	if(current.length() > 0)
 		str.push_back( current ) ;
-	renewExpression(str) ;
+	return str ;
 }
 
 bool isOpenBracket( std::string s) 
@@ -796,7 +825,14 @@ bool isCloseBracket(std::string s)
 	return s==")" ;
 }
 
-void FunctionParser::renewExpression(std::vector<std::string> str) 
+std::string FunctionParser::translateCoordinate( std::string test, std::map<std::string, char> coordinates)
+{
+	if(coordinates.find(test) != coordinates.end())
+		return std::string(1, coordinates[test]) ;
+	return test ;
+}
+
+void FunctionParser::renewExpression(std::vector<std::string> str, std::map<std::string, char> coordinates) 
 {
 	size_t i = 0 ;
 	std::vector<std::string> embeddedExpression ;
@@ -804,16 +840,28 @@ void FunctionParser::renewExpression(std::vector<std::string> str)
 	
 	while(i < str.size())
 	{
-		if(openCount == 0 && !isOpenBracket( str[i] )  )
-			tokens.push_back( new FunctionParserToken( str[i] ) ) ;
+		std::string translated = translateCoordinate( str[i], coordinates ) ;
+		if(openCount == 0 && !isOpenBracket( translated )  )
+		{
+			if(translated.size() > 1 && translated[0] == '-' && !FunctionParserHelper::isNumeral(translated[1]))
+			{
+				std::vector<std::string> tmp ;
+				tmp.push_back("-1") ;
+				tmp.push_back("*") ;
+				tmp.push_back(translateCoordinate( str[i].substr(1), coordinates )) ;
+				tokens.push_back( new FunctionParser( tmp ) ) ;
+			}
+			else
+				tokens.push_back( new FunctionParserToken( translated ) ) ;
+		}
 		else
 		{
-			if( isOpenBracket( str[i] ) )
+			if( isOpenBracket( translated ) )
 			{
 				if(openCount == 0)
 					embeddedExpression.clear() ;
 				else
-					embeddedExpression.push_back( str[i] ) ;
+					embeddedExpression.push_back( translated ) ;
 				openCount++ ;
 			}
 			else if(isCloseBracket( str[i] ) )
@@ -822,15 +870,46 @@ void FunctionParser::renewExpression(std::vector<std::string> str)
 				if(openCount == 0)
 					tokens.push_back( new FunctionParser( embeddedExpression) ) ;
 				else
-					embeddedExpression.push_back( str[i] ) ;
+					embeddedExpression.push_back( translated ) ;
 			}
 			else
-				embeddedExpression.push_back( str[i] ) ;
+				embeddedExpression.push_back( translated ) ;
 		}
 		i++ ;
 	}
 
 	this->link() ;
+}
+
+void FunctionParser::linkLeftAndRightToken( TokenOperationType op)
+{
+	for(size_t i = 0 ; i < tokens.size() ; i++)
+	{
+		if(tokens[i]->isFinalToken())
+		{
+			if( dynamic_cast<FunctionParserToken *>(tokens[i])->toFunctionToken() == op )
+			{
+				size_t left = i-1 ;
+				size_t c = 0 ;
+				while(roots[left] > -1 && c < tokens.size())
+				{
+					left = roots[left] ;
+					c++;
+				}
+				size_t right = i+1 ;
+				c = 0 ;
+				while(roots[right] > -1 && c < tokens.size())
+				{
+					right = roots[right] ;
+					c++;
+				}
+				if(roots[right] == -1 && right != i)
+					roots[right] = i ;
+				if(roots[left] == -1 && left != i)
+					roots[left] = i ;
+			}
+		}
+	}
 }
 
 void FunctionParser::link()
@@ -872,135 +951,11 @@ void FunctionParser::link()
 //			tokens[i]->link() ;
 	}
 
-	for(size_t i = 0 ; i < tokens.size() ; i++)
-	{
-		if(tokens[i]->isFinalToken())
-		{
-			if( dynamic_cast<FunctionParserToken *>(tokens[i])->toFunctionToken() == TOKEN_OPERATION_POWER )
-			{
-				size_t left = i-1 ;
-				size_t c = 0 ;
-				while(roots[left] > -1 && c < tokens.size())
-				{
-					left = roots[left] ;
-					c++;
-				}
-				size_t right = i+1 ;
-				c = 0 ;
-				while(roots[right] > -1 && c < tokens.size())
-				{
-					right = roots[right] ;
-					c++;
-				}
-				roots[left] = i ;
-				roots[right] = i ;
-			}
-		}
-	}
-
-	for(size_t i = 0 ; i < tokens.size() ; i++)
-	{
-		if(tokens[i]->isFinalToken())
-		{
-			if( dynamic_cast<FunctionParserToken *>(tokens[i])->toFunctionToken() == TOKEN_OPERATION_TIMES )
-			{
-				size_t left = i-1 ;
-				size_t c = 0 ;
-				while(roots[left] > -1 && c < tokens.size())
-				{
-					left = roots[left] ;
-					c++;
-				}
-				size_t right = i+1 ;
-				c = 0 ;
-				while(roots[right] > -1 && c < tokens.size())
-				{
-					right = roots[right] ;
-					c++;
-				}
-				roots[left] = i ;
-				roots[right] = i ;
-			}
-		}
-	}
-
-	for(size_t i = 0 ; i < tokens.size() ; i++)
-	{
-		if(tokens[i]->isFinalToken())
-		{
-			if( dynamic_cast<FunctionParserToken *>(tokens[i])->toFunctionToken() == TOKEN_OPERATION_DIVIDES )
-			{
-				size_t left = i-1 ;
-				size_t c = 0 ;
-				while(roots[left] > -1 && c < tokens.size())
-				{
-					left = roots[left] ;
-					c++;
-				}
-				size_t right = i+1 ;
-				c = 0 ;
-				while(roots[right] > -1 && c < tokens.size())
-				{
-					right = roots[right] ;
-					c++;
-				}
-				roots[left] = i ;
-				roots[right] = i ;
-			}
-		}
-	}
-
-	for(size_t i = 0 ; i < tokens.size() ; i++)
-	{
-		if(tokens[i]->isFinalToken())
-		{
-			if( dynamic_cast<FunctionParserToken *>(tokens[i])->toFunctionToken() == TOKEN_OPERATION_MINUS )
-			{
-				size_t left = i-1 ;
-				size_t c = 0 ;
-				while(roots[left] > -1 && c < tokens.size())
-				{
-					left = roots[left] ;
-					c++;
-				}
-				size_t right = i+1 ;
-				c = 0 ;
-				while(roots[right] > -1 && c < tokens.size())
-				{
-					right = roots[right] ;
-					c++;
-				}
-				roots[left] = i ;
-				roots[right] = i ;
-			}
-		}
-	}
-
-	for(size_t i = 0 ; i < tokens.size() ; i++)
-	{
-		if(tokens[i]->isFinalToken())
-		{
-			if( dynamic_cast<FunctionParserToken *>(tokens[i])->toFunctionToken() == TOKEN_OPERATION_PLUS )
-			{
-				size_t left = i-1 ;
-				size_t c = 0 ;
-				while(roots[left] > -1 && c < tokens.size())
-				{
-					left = roots[left] ;
-					c++;
-				}
-				size_t right = i+1 ;
-				c = 0 ;
-				while(roots[right] > -1 && c < tokens.size())
-				{
-					right = roots[right] ;
-					c++;
-				}
-				roots[left] = i ;
-				roots[right] = i ;
-			}
-		}
-	}
+	linkLeftAndRightToken( TOKEN_OPERATION_POWER ) ;
+	linkLeftAndRightToken( TOKEN_OPERATION_TIMES ) ;
+	linkLeftAndRightToken( TOKEN_OPERATION_DIVIDES ) ;
+	linkLeftAndRightToken( TOKEN_OPERATION_MINUS ) ;
+	linkLeftAndRightToken( TOKEN_OPERATION_PLUS ) ;
 
 //	for(size_t i = 0 ; i < tokens.size() ; i++)
 //		std::cout << roots[i] << std::endl ;
@@ -1082,15 +1037,35 @@ Function FunctionParser::getFunction( size_t i ) const
 			case TOKEN_OPERATION_W:
 				return Function("w") ;
 			case TOKEN_OPERATION_PLUS:
+			{
+				if(getLeftTokenIndex(i) == getRightTokenIndex(i))
+					return getRightFunction(i) ;
 				return getLeftFunction(i)+getRightFunction(i) ;
+			}
 			case TOKEN_OPERATION_MINUS:
+			{
+				if(getLeftTokenIndex(i) == getRightTokenIndex(i))
+					return -getRightFunction(i) ;
 				return getLeftFunction(i)-getRightFunction(i) ;
+			}
 			case TOKEN_OPERATION_TIMES:
+			{
+				if(getLeftTokenIndex(i) == getRightTokenIndex(i))
+					return getRightFunction(i) ;
 				return getLeftFunction(i)*getRightFunction(i) ;
+			}
 			case TOKEN_OPERATION_DIVIDES:
+			{
+				if(getLeftTokenIndex(i) == getRightTokenIndex(i))
+					return getRightFunction(i)^(-1) ;
 				return getLeftFunction(i)/getRightFunction(i) ;
+			}
 			case TOKEN_OPERATION_POWER:
+			{
+				if(getLeftTokenIndex(i) == getRightTokenIndex(i))
+					return getRightFunction(i) ;
 				return getLeftFunction(i)^getRightFunction(i) ;
+			}
 			case TOKEN_OPERATION_ABS:
 				return f_abs( getLeftFunction(i) ) ;
 			case TOKEN_OPERATION_COS:
@@ -1125,10 +1100,19 @@ Function FunctionParser::getFunction( size_t i ) const
 		
 }
 
-Function FunctionParser::getFunction( std::string f)
+Function FunctionParser::getFunction( std::string f, std::map<std::string, char> coordinates )
 {
-	FunctionParser expr(f) ;
+	FunctionParser expr(f, coordinates) ;
+//	expr.print() ;
+//	expr.printRoots() ;
 	return expr.getFunction() ;
+}
+
+void FunctionParser::printRoots() const
+{
+	for(size_t i = 0 ; i < roots.size() ; i++)
+		std::cout << roots[i] << " " ;
+	std::cout << std::endl ;
 }
 
 void FunctionParser::print(bool end) const
@@ -1150,7 +1134,6 @@ void FunctionParserToken::print(bool end) const
 
 TokenOperationType FunctionParserToken::toFunctionToken() const
 {
-	Function f ;
 	std::vector<double> v ;
-	return f.toToken( data, 0, v ).first ;
+	return FunctionParserHelper::toToken( data, 0, v ).first ;
 }

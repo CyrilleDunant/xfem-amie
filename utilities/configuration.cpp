@@ -38,8 +38,10 @@
 #include "../physics/fracturecriteria/limitstrains.h"
 #include "../physics/fracturecriteria/mazars.h"
 #include "../physics/fracturecriteria/nonlocalvonmises.h"
+#include "enumeration_translator.h"
 #include "writer/triangle_writer.h"
 #include "parser.h"
+#include "material_law_parser.h"
 #include "iostream"
 #include "fstream"
 
@@ -110,8 +112,8 @@ ConfigTreeItem * ConfigTreeItem::getChild(std::string childLabel)  const
 
     for(size_t i = 0 ; i < children.size() ; i++)
     {
-        if(children[i]->is(childLabel))
-            return children[i] ;
+        if(children[children.size()-1-i]->is(childLabel))
+            return children[children.size()-1-i] ;
     }
     return nullptr ;
 }
@@ -541,6 +543,221 @@ std::vector<double> ConfigTreeItem::readLineAsStdVector(std::string line, char s
     return v ;
 }
 
+VariableDependentExternalMaterialLaw * ConfigTreeItem::getVariableDependentExternalMaterialLaw(std::map<std::string, std::string> alias) const 
+{
+    std::string full = getStringData() ;
+    if(full.length() == 0 && FunctionParserHelper::isOperator( label[label.length()-1] ) )
+    {
+        std::stringstream stream ;
+        stream << std::fixed << std::setprecision(16) << getData() ;
+        full = stream.str() ;
+    }
+
+    std::vector<std::string> list = FunctionParser::breakString( full ) ;
+    if(list.size() == 0)
+        return nullptr ;
+    std::valarray<bool> free(7) ; free = true ;
+    std::vector<std::string> unknown ;
+    std::vector<double> dummy ;
+    std::string build ;
+    for(size_t i = 0 ; i < list.size() ; i++)
+    {
+        std::string test = list[i] ;
+        if(test[0] == '-' && test.size() > 1)
+            test = list[i].substr(1) ;
+
+        if( alias.find( test ) != alias.end())
+            test = alias[test] ;
+
+        build.append( test ) ;
+        if(i != list.size()-1)
+            build.append(" ") ;
+
+        if(FunctionParserHelper::isNumeral( test[0] ) || FunctionParserHelper::isOperator( test[0] ) || FunctionParserHelper::isBracket( test[0] ))
+            continue ;
+
+        if(test == "x")
+            free[0] = false ;
+        else if(test == "y")
+            free[1] = false ;
+        else if(test == "z")
+            free[2] = false ;
+        else if(test == "t")
+            free[3] = false ;
+        else if(test == "u")
+            free[4] = false ;
+        else if(test == "v")
+            free[5] = false ;
+        else if(test == "w")
+            free[6] = false ;
+
+        if( FunctionParserHelper::toToken( test, 0, dummy).first == TOKEN_OPERATION_W && test != "w" )
+            unknown.push_back( test ) ;
+    }
+
+    size_t count_free = 0 ;
+    for(size_t i = 0 ; i < free.size() ; i++)
+        count_free += free[i] ;
+
+    if(count_free >= unknown.size() || unknown.size() == 0)
+    {
+        std::map<std::string, char> coordinates ;
+        std::string var = "xyztuvw" ;
+        size_t j = 0 ;
+        for(size_t i = 0 ; i < unknown.size() ; i++)
+        {
+            while(!free[j])
+               j++ ;
+            coordinates[ unknown[i] ] = var[j] ;
+            j++ ;
+        }
+
+        Function f_ = FunctionParser::getFunction( build, coordinates ) ;
+        std::string output = label ;
+        EMLOperation op = Enum::getEMLOperation( getStringData("operation", "SET") ) ;
+        char last = label[label.length()-1] ;
+        if(last == '+')
+        {
+            op = ADD ;
+            output = label.substr(0, label.length()-1) ;
+        }
+        else if(last == '-')
+        {
+            op = SUBSTRACT ;
+            output = label.substr(0, label.length()-1) ;
+        }
+        else if(last == '*')
+        {
+            op = MULTIPLY ;
+            output = label.substr(0, label.length()-1) ;
+        }
+        else if(last == '/')
+        {
+            op = DIVIDE ;
+            output = label.substr(0, label.length()-1) ;
+        }
+
+        if(alias.find(output) != alias.end())
+            output = alias[output] ;
+
+        VariableDependentExternalMaterialLaw * ret = new VariableDependentExternalMaterialLaw( output, f_, op ) ;
+        if(unknown.size() > 0)
+        {
+            for(auto c = coordinates.begin() ; c != coordinates.end() ; c++)
+            {
+                if(c->second == 'x')
+                   ret->setAsX(c->first) ;
+                if(c->second == 'y')
+                   ret->setAsY(c->first) ;
+                if(c->second == 'z')
+                   ret->setAsZ(c->first) ;
+                if(c->second == 't')
+                   ret->setAsT(c->first) ;
+                if(c->second == 'u')
+                   ret->setAsU(c->first) ;
+                if(c->second == 'v')
+                   ret->setAsV(c->first) ;
+                if(c->second == 'w')
+                   ret->setAsW(c->first) ;
+            }
+        }
+        return ret ;
+
+    }
+    return nullptr ;
+}
+
+std::vector<ExternalMaterialLaw *> ConfigTreeItem::getExternalMaterialLaws(std::map<std::string, std::string> alias) const
+{
+    std::vector<ExternalMaterialLaw *> ret ;
+    for(size_t i = 0 ; i < children.size() ; i++)
+    {
+        if( children[i]->is("parameters") || children[i]->is("fracture_criterion") || children[i]->is("damage_model") )
+            continue ;
+
+        if( children[i]->is("material_law") )
+            ret.push_back( children[i]->getExternalMaterialLaw() ) ;
+        else
+        {
+            VariableDependentExternalMaterialLaw * test = children[i]->getVariableDependentExternalMaterialLaw(alias) ;
+            if(test != nullptr)
+                ret.push_back(test) ;
+        }
+    }
+    return ret ;
+}
+
+bool ConfigTreeItem::bindInput( std::vector<std::string> & callers ) 
+{
+    std::vector<ConfigTreeItem *> newchildren ;
+    bool mod = false ;
+    for(size_t i = 0 ; i < children.size() ; i++)
+    {
+        if( children[i]->is( "input" ) )
+        {
+            std::string next = children[i]->getStringData() ;
+            std::string nextfile = next ;
+            std::vector<std::string> arg ;
+            std::vector<ConfigTreeItem *> got ;
+            size_t start = next.find_first_of('[') ;
+            size_t end = next.find_last_of(']') ;
+            if( start != std::string::npos)
+            {
+                nextfile = next.substr(0, start) ;
+                size_t commas = next.find_first_of(',', start+1) ;
+                while(commas < std::string::npos)
+                {
+                    arg.push_back( next.substr( start+1, commas-start-1 ) ) ;
+                    start = commas ;
+                    commas = next.find_first_of(',', start+1) ;
+                }
+                arg.push_back( next.substr( start+1, end-start-1) ) ;
+            }
+            if( std::find( callers.begin(), callers.end(), nextfile ) != callers.end() )
+            {
+                std::cout << "warning: recursive input of file " << nextfile << " ignored" << std::endl ;
+                continue ;
+            }
+
+            std::vector<std::string> nextcallers = callers ;
+            callers.push_back( nextfile ) ;
+            ConfigTreeItem * nextitems = ConfigParser::readFile( nextfile , nullptr, false ) ;
+            nextitems->bindInput( nextcallers ) ;
+            if(arg.size() > 0)
+            {
+                for(size_t j = 0 ; j < arg.size() ; j++)
+                {
+                    got.push_back( nextitems->getChild( arg[j] ) )  ;
+                }
+            }
+            else
+                got = nextitems->getAllChildren() ;
+
+            for(size_t j = 0 ; j < got.size() ; j++)
+                newchildren.push_back( got[j] ) ;
+
+            mod = true ;
+
+
+        }
+        else
+        {
+            children[i]->bindInput( callers ) ;
+            newchildren.push_back(children[i]) ;
+        }
+    }
+
+    if(mod)
+    {
+        children.resize(0) ;
+        addChildren( newchildren ) ;
+    }
+
+    return mod ;
+
+}
+
+
 ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 {
     ExternalMaterialLaw * ret = nullptr ;
@@ -584,12 +801,12 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 
     if(type == "RADIATION_INDUCED_VOLUMETRIC_EXPANSION")
     {
-        return new RadiationInducedExpansionMaterialLaw() ;
+        return new RadiationInducedVolumetricExpansionMaterialLaw() ;
     }
 
     if(type == "TEMPERATURE_DEPENDENT_RADIATION_INDUCED_VOLUMETRIC_EXPANSION")
     {
-        return new TemperatureDependentRadiationInducedExpansionMaterialLaw() ;
+        return new TemperatureDependentRadiationInducedVolumetricExpansionMaterialLaw() ;
     }
 
     if(type == "BET_ISOTHERM")
@@ -650,20 +867,19 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 
     if(type == "ADJUST_STRESS_STRAIN_CURVE")
     {
-        std::string input = getStringData("input_parameter", "tensile_strength") ;
-        ret = new AdjustStrainStressCurveExternalMaterialLaw(input) ;
+        ret = new AdjustStrainStressCurveMaterialLaw() ;
         return ret ;
     }
 
     if(type == "EXPONENTIAL_DECREASE")
     {
-        ret = new ExponentiallyDecreasingMaterialLaw( getStringData("output_parameter", "none"), getStringData("target", "none"), getStringData("coefficient","none")) ;
+        ret = new ExponentialDecayMaterialLaw( getStringData("output_parameter", "none"), getStringData("target", "none"), getStringData("coefficient","none")) ;
         return ret ;
     }
 
     if(type == "LOAD_NONLINEAR_CREEP")
     {
-        ret = new LoadNonLinearCreepMaterialLaw() ;
+        ret = new BazantLoadNonLinearCreepMaterialLaw() ;
         return ret ;
     }
 
@@ -703,13 +919,13 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 
     if(type == "CREEP_HUMIDITY_WITTMANN" || type == "CREEP_HUMIDITY")
     {
-        ret = new WittmannCreepRelativeHumidityMaterialLaw() ;
+        ret = new WittmannRelativeHumidityDependentCreepMaterialLaw() ;
         ret->setDefaultValue("creep_humidity_coefficient", getData("creep_humidity_coefficient", 0.2)) ;
         return ret ;
     }
     if(type == "CREEP_HUMIDITY_BAZANT")
     {
-        ret = new BazantCreepRelativeHumidityMaterialLaw() ;
+        ret = new BazantRelativeHumidityDependentCreepMaterialLaw() ;
         ret->setDefaultValue("creep_humidity_coefficient", getData("creep_humidity_coefficient", 0.125)) ;
         return ret ;
     }
@@ -734,7 +950,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 
     if(type == "CAPILLARY_PRESSURE_DRYING_SHRINKAGE")
     {
-        ret = new CapillaryPressureDryingShrinkageMaterialLaw() ;
+        ret = new CapillaryPressureDrivenDryingShrinkageMaterialLaw() ;
         return ret ;
     }
 
@@ -752,7 +968,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 
     if(type == "DISJOINING_PRESSURE_DRYING_SHRINKAGE")
     {
-        ret = new DisjoiningPressureDryingShrinkageMaterialLaw() ;
+        ret = new DisjoiningPressureDrivenDryingShrinkageMaterialLaw() ;
         return ret ;
     }
 
@@ -777,15 +993,15 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 
     if(type == "WEIBULL")
     {
-        double scale = getData("scale_parameter", 1.) ;
+/*        double scale = getData("scale_parameter", 1.) ;
         double shape = getData("shape_parameter", 5.) ;
-        double variability = getData("variability", 0.2) ;
+        double variability = getData("variability", 0.2) ;*/
         std::vector<std::string> affected ;
         std::vector<ConfigTreeItem *> p = getAllChildren("parameter") ;
         for(size_t i = 0 ; i < p.size() ; i++)
             affected.push_back(p[i]->getStringData()) ;
         std::string w = getStringData("weibull_variable_name", "weibull_variable") ;
-        ret = new WeibullDistributedMaterialLaw(affected, w, scale, shape, variability) ;
+        ret = new WeibullDistributedMaterialLaw(affected, w) ;
         return ret ;
     }
 
@@ -797,7 +1013,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
             return nullptr ;
         }
         Function f = getChild("function")->getFunction() ;
-        ret = new SpaceTimeDependentExternalMaterialLaw( getStringData("output_parameter","none"), f, ConfigTreeItem::translateEMLOperation(getStringData("operation","SET"))) ;
+        ret = new SpaceTimeDependentExternalMaterialLaw( getStringData("output_parameter","none"), f, Enum::getEMLOperation(getStringData("operation","SET"))) ;
         return ret ;
     }
 
@@ -809,7 +1025,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
             return nullptr ;
         }
         Function f = getChild("function")->getFunction() ;
-        ret = new SimpleDependentExternalMaterialLaw( getStringData("output_parameter","none"), getStringData("input_parameter","x"), f, ConfigTreeItem::translateEMLOperation(getStringData("operation","SET"))) ;
+        ret = new SimpleDependentExternalMaterialLaw( getStringData("output_parameter","none"), getStringData("input_parameter","x"), f, Enum::getEMLOperation(getStringData("operation","SET"))) ;
         return ret ;
     }
 
@@ -821,7 +1037,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
             return nullptr ;
         }
         Function f = getChild("function")->getFunction() ;
-        ret = new VariableDependentExternalMaterialLaw( getStringData("output_parameter","none"), f, ConfigTreeItem::translateEMLOperation(getStringData("operation","SET"))) ;
+        ret = new VariableDependentExternalMaterialLaw( getStringData("output_parameter","none"), f, Enum::getEMLOperation(getStringData("operation","SET"))) ;
         if(hasChild("x"))
             dynamic_cast<VariableDependentExternalMaterialLaw*>(ret)->setAsX( getStringData("x","x")) ;
         if(hasChild("y"))
@@ -840,13 +1056,13 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
     }
 
     if(type == "BULK_SHEAR_CONVERSION")
-        return new BulkShearConversionExternalMaterialLaw() ;
+        return new BulkShearConversionMaterialLaw() ;
 
     if(type == "TENSION_COMPRESSION_CREEP")
         return new TensionCompressionCreepMaterialLaw() ;
 
     if(type == "THERMAL_EXPANSION_HUMIDITY")
-        return new ThermalExpansionHumidityMaterialLaw() ;
+        return new HumidityDependentThermalExpansionCoefficientMaterialLaw() ;
 
     if(type == "LINEAR_INTERPOLATED")
     {
@@ -856,10 +1072,10 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
             Vector out = ConfigTreeItem::readLineAsVector(getStringData("output_values","0,1")) ;
             std::string i = getStringData("input_parameter","t") ;
             std::string o = getStringData("output_parameter","none") ;
-            ret = new LinearInterpolatedExternalMaterialLaw( std::make_pair( i, o ), std::make_pair(in, out), ConfigTreeItem::translateEMLOperation(getStringData("operation","SET")) ) ;
+            ret = new LinearInterpolatedExternalMaterialLaw( std::make_pair( i, o ), std::make_pair(in, out), Enum::getEMLOperation(getStringData("operation","SET")) ) ;
         }
         else
-            ret = new LinearInterpolatedExternalMaterialLaw( std::make_pair(getStringData("input_parameter","t"),getStringData("output_parameter","none")), getStringData("file_name","file_name"), ConfigTreeItem::translateEMLOperation(getStringData("operation","SET"))) ;
+            ret = new LinearInterpolatedExternalMaterialLaw( std::make_pair(getStringData("input_parameter","t"),getStringData("output_parameter","none")), getStringData("file_name","file_name"), Enum::getEMLOperation(getStringData("operation","SET"))) ;
         return ret ;
     }
 
@@ -870,7 +1086,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
         std::string ir = getStringData("input_parameters.rows","x") ;
         std::string ic = getStringData("input_parameters.columns","t") ;
         std::string o = getStringData("output_parameter","none") ;
-        ret = new LinearBiInterpolatedExternalMaterialLaw( std::make_pair( ir, ic ), o, std::make_pair(xr, xc), getStringData("file_name","file_not_found"), ConfigTreeItem::translateEMLOperation(getStringData("operation","SET")) ) ;
+        ret = new LinearBiInterpolatedExternalMaterialLaw( std::make_pair( ir, ic ), o, std::make_pair(xr, xc), getStringData("file_name","file_not_found"), Enum::getEMLOperation(getStringData("operation","SET")) ) ;
         return ret ;
     }
 
@@ -894,16 +1110,16 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
             std::string in = all[0]->getStringData() ;
             double start = getData("initial_value", 0.) ;
             if(type == "MAXIMUM" )
-                ret = new MaximumHistoryMaterialLaw( in, start ) ;
+                ret = new StoreMaximumValueMaterialLaw( in, start ) ;
             else
-                ret = new MinimumHistoryMaterialLaw( in, start ) ;
+                ret = new StoreMinimumValueMaterialLaw( in, start ) ;
         }
         else
         {
             std::vector<std::string> coord ;
             for(size_t i = 0 ; i < all.size() ; i++)
                coord.push_back( all[i]->getStringData() ) ;
-            EMLOperation add = ConfigTreeItem::translateEMLOperation(getStringData("operation","SET")) ;
+            EMLOperation add = Enum::getEMLOperation(getStringData("operation","SET")) ;
             if(type == "MINIMUM")
                 ret = new MinimumMaterialLaw(  getStringData("output_parameter","none"), coord, add ) ;
             else
@@ -1331,7 +1547,6 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime, std
     }
 
     if(type == std::string("LOGARITHMIC_CREEP"))
-
     {
         if(!spaceTime)
             return nullptr ;
@@ -1887,6 +2102,29 @@ VoronoiGrain ConfigTreeItem::getVoronoiGrain(SpaceDimensionality dim, bool space
 
 }
 
+std::vector<std::vector<Feature *> > ConfigTreeItem::getAllInclusions(FeatureTree * F, std::vector<ExternalMaterialLaw *> common)
+{
+    std::vector<std::vector<Feature *> > allFeatures ;
+    std::vector<Geometry *> inclusions ;
+    std::vector<Feature *> dummy ;
+    if(hasChild("family"))
+    {
+        std::vector<ConfigTreeItem *> newInclusions = getAllChildren("family") ;
+        for(size_t i = 0 ; i < newInclusions.size() ; i++)
+        {
+            std::vector<std::vector<Feature *> > tmp = newInclusions[i]->getInclusions( F, dummy, inclusions ) ;
+            for(size_t j = 0 ; j < tmp[0].size() ; j++)
+                inclusions.push_back( dynamic_cast<Geometry *>(tmp[0][j]) ) ;
+            for(size_t j = 0 ; j < tmp.size() ; j++)
+                allFeatures.push_back( tmp[j] ) ;
+        }
+    }
+    else
+    {
+        allFeatures = getInclusions(F, dummy, inclusions, common) ;
+    }
+    return allFeatures ;
+}
 
 std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers, std::vector<ExternalMaterialLaw *> common)
 {
@@ -2167,13 +2405,13 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
     if(out.size() == 0)
         out.push_back(ret) ;
 
-    if(hasChild("inclusions"))
+    if(hasChild("family"))
     {
         if(type != "VORONOI")
         {
             std::vector<Feature *> newbase = ret ;
             std::vector<Geometry *> newbrothers ;
-            std::vector<ConfigTreeItem *> newInclusions = getAllChildren("inclusions") ;
+            std::vector<ConfigTreeItem *> newInclusions = getAllChildren("family") ;
             for(size_t i = 0 ; i < newInclusions.size() ; i++)
             {
                 std::vector<std::vector<Feature *> > tmp = newInclusions[i]->getInclusions( F, newbase, newbrothers ) ;
@@ -2185,7 +2423,7 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
         }
         else
         {
-            std::vector<ConfigTreeItem *> newInclusions = getAllChildren("inclusions") ;
+            std::vector<ConfigTreeItem *> newInclusions = getAllChildren("family") ;
             std::vector<std::vector<Geometry *> > newbrothers( out.size() ) ;
             for(size_t i = 0 ; i < newInclusions.size() ; i++)
             {
@@ -2525,16 +2763,29 @@ BoundingBoxPosition ConfigTreeItem::translateBoundingBoxPosition( std::string po
     return NOW ;
 }
 
+std::vector<BoundaryCondition *> ConfigTreeItem::getAllBoundaryConditions(FeatureTree * F) const 
+{
+    std::vector<BoundaryCondition *> cond ;
+    std::vector<ConfigTreeItem *> bc = getAllChildren("boundary_condition") ;
+    for(size_t j = 0 ; j < cond.size() ; j++)
+    {
+        cond.push_back( bc[j]->getBoundaryCondition(F) ) ;
+        F->addBoundaryCondition( cond[j] ) ;
+    }
+    return cond ;
+}
+
 
 BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
 {
+    BoundaryCondition * ret = nullptr ;
     if( !hasChild("rate") )
     {
         if(hasChild("geometry") && hasChild("normal"))
         {
             int index = getData("geometry.index",0) ;
-            Point n( getData("normal.x", 0.5 ), getData("normal.y", 0.5 )) ;
-            return new GeometryAndFaceDefinedSurfaceBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+            Point n( getData("normal.x", 1 ), getData("normal.y", 0 )) ;
+            ret = new GeometryAndFaceDefinedSurfaceBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
                 dynamic_cast<Geometry *>(f->getFeature(index)), n, getData( "value", 0 ), (int) getData( "axis", 0 ) ) ;
         }
 
@@ -2544,7 +2795,7 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
             double maxy = getData("restriction.top_right.y", 1.) ;
             double minx = getData("restriction.bottom_left.x", -1.) ;
             double miny = getData("restriction.bottom_left.y", -1.) ;
-            return new BoundingBoxAndRestrictionDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+            ret = new BoundingBoxAndRestrictionDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
                     ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ), minx, maxx, miny, maxy,
                     getData( "value", 0 ), (int) getData( "axis", 0 ) ) ;
         }
@@ -2559,45 +2810,56 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
                     ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ), p,
                     getData( "value", 0 ), getData( "axis", 0 ) ) ;
         }
-        return new BoundingBoxDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+        ret = new BoundingBoxDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
                 ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ),
                 getData( "value", 0 ), getData( "axis", 0 ) ) ;
-    }
-    Function t("t") ;
-    t *= getData( "rate", 0 ) ;
 
-    if(hasChild("geometry") && hasChild("normal"))
-    {
-        int index = getData("geometry.index",0) ;
-        Point n( getData("normal.x", 0.5 ), getData("normal.y", 0.5 )) ;
-        return new GeometryAndFaceDefinedSurfaceBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
-            dynamic_cast<Geometry *>(f->getFeature(index)), n, t, (int) getData( "axis", 0 ) ) ;
-    }
+        if( hasChild("interpolation") )
+            ret->setInterpolation( getStringData("interpolation") ) ;
 
-    if(hasChild("restriction"))
-    {
-        double maxx = getData("restriction.top_right.x", 1.) ;
-        double maxy = getData("restriction.top_right.y", 1.) ;
-        double minx = getData("restriction.bottom_left.x", -1.) ;
-        double miny = getData("restriction.bottom_left.y", -1.) ;
-        return new BoundingBoxAndRestrictionDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
-                ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ), minx, maxx, miny, maxy,
-                t, getData( "axis", 0 ) ) ;
+        if( hasChild("function") )
+            ret->setData( getChild("function")->getFunction() ) ;
+
     }
-    if(hasChild("point"))
+    else
     {
-        double x = getData("point.x", 0.) ;
-        double y = getData("point.y", 0.) ;
-        double z = getData("point.z", 0.) ;
-        double t = getData("point.t", 0.) ;
-        Point p(x,y,z,t) ;
-        return new BoundingBoxNearestNodeDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
-                ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ), p,
+        Function t("t") ;
+        t *= getData( "rate", 0 ) ;
+    
+        if(hasChild("geometry") && hasChild("normal"))
+        {
+            int index = getData("geometry.index",0) ;
+            Point n( getData("normal.x", 1 ), getData("normal.y", 0 )) ;
+            ret = new GeometryAndFaceDefinedSurfaceBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+                dynamic_cast<Geometry *>(f->getFeature(index)), n, t, (int) getData( "axis", 0 ) ) ;
+        }
+    
+        if(hasChild("restriction"))
+        {
+            double maxx = getData("restriction.top_right.x", 1.) ;
+            double maxy = getData("restriction.top_right.y", 1.) ;
+            double minx = getData("restriction.bottom_left.x", -1.) ;
+            double miny = getData("restriction.bottom_left.y", -1.) ;
+            ret = new BoundingBoxAndRestrictionDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+                    ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ), minx, maxx, miny, maxy,
+                    t, getData( "axis", 0 ) ) ;
+        }
+        if(hasChild("point"))
+        {
+            double x = getData("point.x", 0.) ;
+            double y = getData("point.y", 0.) ;
+            double z = getData("point.z", 0.) ;
+            double t = getData("point.t", 0.) ;
+            Point p(x,y,z,t) ;
+            ret = new BoundingBoxNearestNodeDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+                    ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ), p,
+                    t, getData( "axis", 0 ) ) ;
+        }
+        ret = new BoundingBoxDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+                ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ),
                 t, getData( "axis", 0 ) ) ;
-    }
-    return new BoundingBoxDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
-            ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ),
-            t, getData( "axis", 0 ) ) ;
+     }
+     return ret ;
 }
 
 bool ConfigTreeItem::isAtTimeStep(int i, int nsteps) const

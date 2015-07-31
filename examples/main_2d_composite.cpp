@@ -27,30 +27,26 @@ int main(int argc, char *argv[])
 
     CommandLineParser parser("Run a 2D AMIE simulation using the configuration parameters found in a *.ini file", true) ;
     parser.addFlag( "--print-microstructure", false , "print only the mesh and values of mechanical properties") ;
+    parser.addFlag( "--print-configuration-tree", false , "print only the configuration tree after parsing") ;
     parser.addArgument( "file_name", "../examples/data/composite/test_2d_composite.ini", "relative path to *.ini file to run") ;
     parser.parseCommandLine( argc, argv ) ;
     bool printMicrostructureOnly = parser.getFlag("--print-microstructure") ;
+    bool printConfigTree = parser.getFlag("--print-configuration-tree") ;
     std::string file = parser.getStringArgument(0) ;
 
     ConfigTreeItem * define = parser.getConfiguration() ;
     std::map<std::string, std::string> direct = parser.getDirectConfiguration() ;
 
-    ConfigTreeItem * problem = ConfigParser::readFile(file, define) ;
+    ConfigTreeItem * problem = ConfigParser::readFile(file, define, true, true) ;
     problem->configure( direct ) ;
 
-    std::vector<ExternalMaterialLaw *> common ;
-    if(problem->hasChild("common_fields"))
+    if(printConfigTree)
     {
-        std::vector<ConfigTreeItem *> mat = problem->getChild("common_fields")->getAllChildren("material_law") ;
-        for(size_t i = 0 ; i < mat.size() ; i++)
-        {
-            ExternalMaterialLaw * law = mat[i]->getExternalMaterialLaw() ;
-            if(law != nullptr)
-               common.push_back(law) ;
-        }
+        problem->printTree() ;
+        exit(0) ;
     }
 
-    FeatureTree F(problem->getChild("sample")->getSample( common )) ;
+    FeatureTree F(problem->getChild("sample")->getSample( )) ;
     if(problem->hasChildFromFullLabel("sample.sampling_number"))
         F.setSamplingFactor( F.getFeature(0), problem->getData("sample.sampling_number", 1.) ) ;
     F.setDiscretizationParameters(problem->getChild("discretization")) ;
@@ -58,27 +54,15 @@ int main(int argc, char *argv[])
     std::vector<std::vector<Geometry *> > allFeatures ;
     if(problem->hasChild("inclusions"))
     {
-        std::vector<Geometry *> inclusions ;
-        std::vector<Feature *> dummy ;
-        std::vector<ConfigTreeItem *> newInclusions = problem->getAllChildren("inclusions") ;
-        for(size_t i = 0 ; i < newInclusions.size() ; i++)
+        std::vector<std::vector<Feature *> > placed = problem->getChild("inclusions")->getAllInclusions( &F ) ;
+        for(size_t i = 0 ; i < placed.size() ; i++)
         {
-            std::vector<std::vector<Feature *> > tmp = newInclusions[i]->getInclusions( &F, dummy, inclusions, common ) ;
-            for(size_t j = 0 ; j < tmp[0].size() ; j++)
-                inclusions.push_back( dynamic_cast<Geometry *>(tmp[0][j]) ) ;
-            for(size_t j = 0 ; j < tmp.size() ; j++)
-            {
-                std::vector<Geometry *> geom ;
-                for(size_t k = 0 ; k < tmp[j].size() ; k++)
-                {
-                    if( F.getFeature(0)->in(tmp[j][k]->getCenter()) || F.getFeature(0)->intersects(tmp[j][k]))
-                        geom.push_back( dynamic_cast<Geometry *>(tmp[j][k]) ) ;
-                }
-                allFeatures.push_back( geom ) ;
-            }
+            std::vector<Geometry*> geom ;
+            for(size_t j = 0 ; j < placed[i].size() ; j++)
+                geom.push_back( dynamic_cast<Geometry*>( placed[i][j] ) ) ;
+            allFeatures.push_back( geom ) ;
         }
     }
-
     F.step() ;
 
     std::vector<unsigned int> cacheIndex ;
@@ -105,40 +89,9 @@ int main(int argc, char *argv[])
         exit(0) ;
     }
 
-    std::vector<ConfigTreeItem *> bcItem = problem->getAllChildren("boundary_condition") ;
-    std::vector<std::pair<BoundaryCondition *, LinearInterpolatedExternalMaterialLaw *> > interpolatedBC ;
-    std::vector<std::pair<BoundaryCondition *, Function> > functionBC ;
-    for(size_t i = 0 ; i < bcItem.size() ; i++)
-    {
-        BoundaryCondition * bc = bcItem[i]->getBoundaryCondition(&F) ;
-        if(bcItem[i]->hasChild("time_evolution"))
-        {
-            if(bcItem[i]->hasChildFromFullLabel("time_evolution.file_name"))
-            {
-                LinearInterpolatedExternalMaterialLaw * interpolation = new LinearInterpolatedExternalMaterialLaw(std::make_pair("t","value"), bcItem[i]->getStringData("time_evolution.file_name", "file_not_found")) ;
-                interpolatedBC.push_back(std::make_pair(bc, interpolation)) ;
-            }
-            if(bcItem[i]->hasChildFromFullLabel("time_evolution.function"))
-            {
-                Function f = bcItem[i]->getChildFromFullLabel("time_evolution.function")->getFunction() ;
-                functionBC.push_back(std::make_pair(bc, f)) ;
-            }
-            if(bcItem[i]->hasChildFromFullLabel("time_evolution.rate"))
-            {
-                Function f = "t" ;
-                f *= bcItem[i]->getData("time_evolution.rate", 0.) ;
-                functionBC.push_back(std::make_pair(bc, f)) ;
-            }
-            if(bcItem[i]->hasChildFromFullLabel("time_evolution.instants") && bcItem[i]->hasChildFromFullLabel("time_evolution.values"))
-            {
-                Vector t_ = ConfigTreeItem::readLineAsVector(bcItem[i]->getStringData("time_evolution.instants","0,1")) ;
-                Vector v_ = ConfigTreeItem::readLineAsVector(bcItem[i]->getStringData("time_evolution.values","0,0")) ;
-                LinearInterpolatedExternalMaterialLaw * interpolation = new LinearInterpolatedExternalMaterialLaw(std::make_pair("t","value"), std::make_pair(t_,v_) ) ;
-                interpolatedBC.push_back(std::make_pair(bc, interpolation)) ;
-            }
-        }
-        F.addBoundaryCondition(bc) ;
-    }
+    if(problem->hasChild("boundary_conditions"))
+        std::vector<BoundaryCondition * > bc = problem->getChild("boundary_conditions")->getAllBoundaryConditions(&F) ;
+
 
     MultiTriangleWriter * trg = nullptr ;
     if(problem->hasChildFromFullLabel("export.file_name"))
@@ -153,11 +106,6 @@ int main(int argc, char *argv[])
     {
         if(next)
             F.setDeltaTime( instants[i]-instants[i-1] ) ;
-
-        for(size_t j = 0 ; j < interpolatedBC .size() ; j++)
-            interpolatedBC[j].first->setData( interpolatedBC[j].second->get( instants[i] ) ) ;
-        for(size_t j = 0 ; j < functionBC .size() ; j++)
-            functionBC[j].first->setData( VirtualMachine().eval(functionBC[j].second, 0., 0., 0., instants[i] ) ) ;
 
         next = F.step() ;
 //		F.getAssembly()->print() ;

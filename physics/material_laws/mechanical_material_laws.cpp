@@ -5,7 +5,7 @@
 namespace Amie
 {
 
-void BulkShearConversionExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+void BulkShearConversionMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
     if(s.has("bulk_modulus") && s.has("shear_modulus"))
     {
@@ -66,7 +66,7 @@ void BulkShearConversionExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVis
     }
 }
 
-void LoadNonLinearCreepMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+void BazantLoadNonLinearCreepMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     if(!s.has("creep_modulus"))
         return ;
@@ -90,32 +90,29 @@ void LoadNonLinearCreepMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticE
     s.multiply("recoverable_modulus", factor) ;
 }
 
-void AdjustStrainStressCurveExternalMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+void AdjustStrainStressCurveMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
    double E = s.get("young_modulus", defaultValues) ;
-   if(base == std::string("tensile_strength"))
+   double sigma = s.get("tensile_strength", defaultValues) ;
+   s.set("tensile_strain", sigma/E ) ;
+   if(s.has("tensile_fracture_energy"))
    {
-       double sigma = s.get("tensile_strength", defaultValues) ;
-       s.set("tensile_strain", sigma/E ) ;
-       if(s.has("tensile_fracture_energy"))
-       {
-           double Gf = s.get("tensile_fracture_energy", defaultValues) ;
-           double smax = s.get("tensile_ultimate_strength", defaultValues) ;
-           double deltaEpsilon = 2.*Gf/std::abs(sigma-smax) ;
-           s.set("tensile_ultimate_strain", sigma/E+deltaEpsilon) ;
-       }
-       else if(s.has("tensile_softening_modulus"))
-       {
-           double Esoft = s.get("tensile_softening_modulus", defaultValues) ;
-           double smax = s.get("tensile_ultimate_strength", defaultValues) ;
-           double deltaEpsilon = std::abs(sigma-smax)/Esoft ;
-           s.set("tensile_ultimate_strain", sigma/E+deltaEpsilon) ;
-       }
-       else if(s.has("tensile_softening_strain"))
-       {
-           double deltaEpsilon = s.get("tensile_softening_strain", defaultValues) ;
-           s.set("tensile_ultimate_strain", sigma/E+deltaEpsilon) ;
-       }
+       double Gf = s.get("tensile_fracture_energy", defaultValues) ;
+       double smax = s.get("tensile_ultimate_strength", defaultValues) ;
+       double deltaEpsilon = 2.*Gf/std::abs(sigma-smax) ;
+       s.set("tensile_ultimate_strain", sigma/E+deltaEpsilon) ;
+   }
+   else if(s.has("tensile_softening_modulus"))
+   {
+       double Esoft = s.get("tensile_softening_modulus", defaultValues) ;
+       double smax = s.get("tensile_ultimate_strength", defaultValues) ;
+       double deltaEpsilon = std::abs(sigma-smax)/Esoft ;
+       s.set("tensile_ultimate_strain", sigma/E+deltaEpsilon) ;
+   }
+   else if(s.has("tensile_softening_strain"))
+   {
+       double deltaEpsilon = s.get("tensile_softening_strain", defaultValues) ;
+       s.set("tensile_ultimate_strain", sigma/E+deltaEpsilon) ;
    }
 }
 

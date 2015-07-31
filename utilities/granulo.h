@@ -328,8 +328,6 @@ public:
 	std::vector<Inclusion3D *> getInclusion3D(int ninc, double scale = 1) ;
 
 
-	static std::vector<std::vector<Feature *> > readConfigurationFile( std::string filename, FeatureTree * f) ;
-
 } ;
 
 

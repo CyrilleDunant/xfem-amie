@@ -295,7 +295,9 @@ public:
 	virtual void readData() ;
 	ConfigTreeItem * getData() { return trunk; }
 
-	static ConfigTreeItem * readFile(std::string f, ConfigTreeItem * def, bool define = true) ;
+	static ConfigTreeItem * readFile(std::string f, ConfigTreeItem * def, bool define = true, bool bind = false) ;
+	static std::vector<std::vector<Feature *> > getInclusions( std::string filename, FeatureTree * F) ;
+	static std::vector<BoundaryCondition *> getBoundaryConditions( std::string filename, FeatureTree * F) ;
 
 } ;
 
@@ -305,27 +307,32 @@ struct FunctionParser
 	std::vector<int> roots ;
 	bool isLinking ;
 
-	FunctionParser(std::vector<std::string> data) ;
-	FunctionParser(std::string f) ;
+	FunctionParser(std::vector<std::string> data, std::map<std::string, char> coordinates = std::map<std::string, char>()) ;
+	FunctionParser(std::string f, std::map<std::string, char> coordinates = std::map<std::string, char>()) ;
 	FunctionParser() : isLinking(false) { } ;
 
-	void renewExpression( std::vector<std::string> f ) ;
+	void renewExpression( std::vector<std::string> f, std::map<std::string, char> coordinates  = std::map<std::string, char>()) ;
+
+	std::string translateCoordinate( std::string test, std::map<std::string, char> coordinates) ;
 
 	virtual bool isFinalToken() const { return false ; }
 
 	virtual void print(bool end = true) const ;
+	virtual void printRoots() const ;
 
 	Function getFunction( size_t i ) const ;
 	Function getFunction() const ;
 
 	void link() ;
+	void linkLeftAndRightToken( TokenOperationType op) ;
 
 	int getLeftTokenIndex( size_t i ) const ;
 	int getRightTokenIndex( size_t i ) const ;
 	Function getLeftFunction( size_t i ) const ;
 	Function getRightFunction( size_t i ) const ;
 
-	static Function getFunction( std::string f ) ;
+	static Function getFunction( std::string f,  std::map<std::string, char> coordinates = std::map<std::string, char>() ) ;
+	static std::vector<std::string> breakString( std::string f ) ;
 } ;
 
 struct FunctionParserToken : public FunctionParser

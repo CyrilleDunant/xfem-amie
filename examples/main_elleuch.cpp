@@ -114,10 +114,10 @@ int main(int argc, char *argv[])
 
     ThermalExpansionMaterialLaw thermalExpansion("temperature=293") ;
     DryingShrinkageMaterialLaw dryingShrinkage("relative_humidity=1.") ;
-    RadiationInducedExpansionMaterialLaw radiationExpansion ;
+    RadiationInducedVolumetricExpansionMaterialLaw radiationExpansion ;
     LinearInterpolatedExternalMaterialLaw radiationDamage(std::make_pair("neutron_fluence","young_modulus"), "data_elleuch/aggregate_damage") ;
     CreepArrheniusMaterialLaw creepArrhenius("temperature=293, creep_modulus = 3.6e9, creep_characteristic_time=0.5, creep_activation_energy = 1.666e-4") ;
-    WittmannCreepRelativeHumidityMaterialLaw creepHumidity("creep_humidity_coefficient = 5") ;
+    WittmannRelativeHumidityDependentCreepMaterialLaw creepHumidity("creep_humidity_coefficient = 5") ;
 
     FractureCriterion * pasteCriterion = nullptr ;
     DamageModel * damageModel = nullptr ;

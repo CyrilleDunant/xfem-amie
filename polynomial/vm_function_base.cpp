@@ -688,9 +688,9 @@ void Function::setPoint(Point * id)
     this->ptID = id ;
 }
 
-functionParseElement Function::toToken(const std::string & str, int iter, std::vector<double> & val) const
+functionParseElement FunctionParserHelper::toToken(const std::string & str, int iter, std::vector<double> & val)
 {
-    if(isNumeral(str[0]) || (str.size() > 1 && str[0] == '-' && isNumeral(str[1])))
+    if(FunctionParserHelper::isNumeral(str[0]) || (str.size() > 1 && str[0] == '-' && FunctionParserHelper::isNumeral(str[1])))
     {
         return {TOKEN_OPERATION_CONSTANT, atof(str.c_str()), ""} ;
     }
@@ -810,7 +810,7 @@ functionParseElement Function::toToken(const std::string & str, int iter, std::v
     }
 }
 
-bool Function::isOperator(const char c) const
+bool FunctionParserHelper::isOperator(const char c)
 {
     if(
         c == '+' ||
@@ -823,7 +823,7 @@ bool Function::isOperator(const char c) const
     return false ;
 }
 
-bool Function::isNumeral(const char c) const
+bool FunctionParserHelper::isNumeral(const char c)
 {
     if(
         c == '0' ||
@@ -841,12 +841,19 @@ bool Function::isNumeral(const char c) const
     return false ;
 }
 
-bool Function::isSeparator(const char c) const
+bool FunctionParserHelper::isSeparator(const char c)
 {
     if(
         c == ' ' ||
         isOperator(c)
     )
+        return true ;
+    return false ;
+}
+
+bool FunctionParserHelper::isBracket(const char c)
+{
+    if(c == '(' || c == ')')
         return true ;
     return false ;
 }
@@ -860,28 +867,28 @@ std::pair<size_t, functionParseElement> Function::getNext(size_t init, const cha
 {
     std::string cur_token("") ;
     char cur_char  = form[init] ;
-    while(init < strlen(form) && isSeparator(cur_char) && !isOperator(cur_char))
+    while(init < strlen(form) && FunctionParserHelper::isSeparator(cur_char) && !FunctionParserHelper::isOperator(cur_char))
     {
         init++ ;
         cur_char  = form[init] ;
     }
     if(init == strlen(form))
-        return std::make_pair(init, toToken(cur_token, cstIterator, val)) ;
+        return std::make_pair(init, FunctionParserHelper::toToken(cur_token, cstIterator, val)) ;
 
-    if(isOperator(cur_char))
+    if(FunctionParserHelper::isOperator(cur_char))
     {
         if(cur_char != '-')
         {
             cur_token+=cur_char ;
             init++ ;
-            return std::make_pair(init, toToken(cur_token, cstIterator, val)) ;
+            return std::make_pair(init, FunctionParserHelper::toToken(cur_token, cstIterator, val)) ;
         }
-        else if (isNumeral(form[init+1]))
+        else if (FunctionParserHelper::isNumeral(form[init+1]))
         {
             cur_token+=cur_char ;
             init++ ;
             cur_char  = form[init] ;
-            while(!isSeparator(cur_char))
+            while(!FunctionParserHelper::isSeparator(cur_char))
             {
                 if(init < strlen(form))
                 {
@@ -892,16 +899,16 @@ std::pair<size_t, functionParseElement> Function::getNext(size_t init, const cha
                 else
                     break ;
             }
-            return std::make_pair(init, toToken(cur_token, cstIterator, val)) ;
+            return std::make_pair(init, FunctionParserHelper::toToken(cur_token, cstIterator, val)) ;
         }
         else
         {
             cur_token+=cur_char ;
             init++ ;
-            return std::make_pair(init, toToken(cur_token, cstIterator, val)) ;
+            return std::make_pair(init, FunctionParserHelper::toToken(cur_token, cstIterator, val)) ;
         }
     }
-    while(!isSeparator(cur_char))
+    while(!FunctionParserHelper::isSeparator(cur_char))
     {
         if(init < strlen(form))
         {
@@ -912,7 +919,7 @@ std::pair<size_t, functionParseElement> Function::getNext(size_t init, const cha
         else
             break ;
     }
-    return std::make_pair(init, toToken(cur_token, cstIterator, val)) ;
+    return std::make_pair(init, FunctionParserHelper::toToken(cur_token, cstIterator, val)) ;
 }
 
 void Function::initialiseAdresses(size_t offset)

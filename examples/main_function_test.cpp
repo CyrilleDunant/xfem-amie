@@ -44,6 +44,8 @@ int main(int argc, char *argv[])
 	parser.addString("--output", "", "writes output in specified file instead of console") ;
 	parser.addValue("--print-limit", 1e6, "maximum number of values printed (default 1e6)") ;
 	parser.addFlag("--print-vm", false, "print instructions of the AMIE virtual machine") ;
+	parser.addFlag("--print-roots", false, "print roots of token list of the expression parser") ;
+	parser.addFlag("--print-parser", false, "print token list of the expression parser") ;
 	parser.addFlag("--rpn", false, "parse function in Reverse Polish Notation") ;
 	
 	parser.parseCommandLine(argc, argv) ;
@@ -56,13 +58,24 @@ int main(int argc, char *argv[])
 	size_t counter = parser.getValue("--print-limit") ;
 	bool instruction = parser.getFlag("--print-vm") ;
 	bool rpn = parser.getFlag("--rpn") ;
+	bool roots = parser.getFlag("--print-roots") ;
+	bool parse = parser.getFlag("--print-parser") ;
 
-	
 	Function test ;
 	if(rpn)
 		test = Function(f_.c_str()) ;
 	else
+	{
 		test = FunctionParser::getFunction( f_ ) ;
+		if( roots || parse)
+		{
+			FunctionParser p( f_ ) ;
+			if(parse)
+				p.print() ;
+			if(roots)
+				p.printRoots() ;
+		}
+	}
 
 	VirtualMachine vm ;
 
