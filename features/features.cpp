@@ -74,7 +74,9 @@ std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles ( const Featur
     }
 }
 
-bool FeatureTree::getStateConvergence() const { return stateConverged ;}
+bool FeatureTree::getStateConvergence() const {
+    return stateConverged ;
+}
 
 FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gridsize ) :  state ( this ), nodes ( 0 ), grid ( nullptr ),grid3d ( nullptr )
 {
@@ -537,7 +539,7 @@ void FeatureTree::setOrder ( Order ord )
 
     if(ord == elemOrder)
         return ;
-    
+
 
 
     state.stitched = false ;
@@ -766,7 +768,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                 tree[j]->project ( &proj_2 ) ;
                 Point proj_3 ( *tets[i]->fourth ) ;
                 tree[j]->project ( &proj_3 ) ;
-                
+
                 if (
                     squareDist3D ( proj_0 , *tets[i]->first ) < POINT_TOLERANCE * POINT_TOLERANCE &&
                     squareDist3D ( proj_1 , *tets[i]->second ) < POINT_TOLERANCE * POINT_TOLERANCE
@@ -831,7 +833,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                 {
                     count++;
                     indexes.clear() ;
-                    
+
                     for ( size_t k = 0 ; k < tets[i]->getBoundingPoints().size() ; k++ )
                     {
                         if ( tets[i]->getBoundingPoint ( k ) == Point ( 0.5* ( tets[i]->third->getX() +tets[i]->second->getX() ),0.5* ( tets[i]->third->getY() +tets[i]->second->getY() ),0.5* ( tets[i]->third->getZ() +tets[i]->second->getZ() ),tets[i]->getBoundingPoint ( k ).getT() ) )
@@ -1343,7 +1345,7 @@ void FeatureTree::stitch()
 
     for(auto & bc : boundaryCondition)
         bc->clearCache() ;
-        
+
     if ( is2D() )
     {
         if ( elemOrder >= QUADRATIC )
@@ -1447,8 +1449,8 @@ void FeatureTree::stitch()
                 case QUINTIC_TIME_QUADRATIC:
                     projectTetrahedronsOnBoundaries ( 3, 2 ) ;
                     break ;
-                default: 
-                   std::cerr << "unsupported order" << std::endl ;
+                default:
+                    std::cerr << "unsupported order" << std::endl ;
                     exit(0) ;
                     break ;
                 }
@@ -1768,7 +1770,7 @@ void FeatureTree::sample()
             if ( samplingFactors.find ( tree[0] ) != samplingFactors.end() )
                 tree[0]->sample ( samplingFactors[tree[0]]*samplingNumber ) ;
             else
-                 tree[0]->sample ( samplingNumber ) ;
+                tree[0]->sample ( samplingNumber ) ;
             double total_area = tree[0]->area()  ;
             int count = 0 ;
             double base_shape_factor = tree[0]->area()/pow(tree[0]->volume(), .666666666) ;
@@ -2398,7 +2400,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
                             }
                             else
                             {
-                                b->setSource ( targets[i] );
+                                b->setSource (targets[i]);
                             }
                             found = b ;
                         }
@@ -2412,7 +2414,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
                             }
                             else
                             {
-                                b->setSource ( targets[i] );
+                                b->setSource (  targets[i] );
                             }
                             found = b ;
                         }
@@ -3089,7 +3091,7 @@ void FeatureTree::setElementBehaviours()
             i->refresh ( father3D ) ;
             Form * bf =  getElementBehaviour ( i );
             if(bf && bf->getDamageModel() && bf->getDamageModel()->alternating)
-                    setAlternating(true) ;
+                setAlternating(true) ;
 
             i->setBehaviour ( dtree3D, bf ) ;
 
@@ -3280,7 +3282,7 @@ void FeatureTree::enrich()
             }
         }
     }
-    
+
     if(enrichmentChange)
         K->clear();
 
@@ -3514,7 +3516,7 @@ Vector FeatureTree::getField ( FieldType f, Point * pt, int g , bool stepTree , 
                 {
                     double t0 = elements[i]->getBoundingPoint(0).getT() ;
                     double t1 = elements[i]->getBoundingPoint( elements[i]->getBoundingPoints().size() -1 ).getT() ;
-                    
+
                     pt->setT( t0 + (t1-t0)*(prevT+1)*0.5 ) ;
                 }
                 elements[i]->getState().getField ( f, *pt, ret, false ) ;
@@ -3565,7 +3567,7 @@ double FeatureTree::getField ( std::string f, Point * pt, int g , bool stepTree 
                 if( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables *>( &(elements[i]->getState()) ) )
                     return dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables *>( &(elements[i]->getState()) )->get( f, dummy ) ;
                 else
-                   return 0. ;
+                    return 0. ;
             }
         }
     }
@@ -3916,7 +3918,7 @@ Vector FeatureTree::setSteppingParameters ( ConfigTreeItem * config, ConfigTreeI
     setMinDeltaTime ( minDeltaTime ) ;
     setMaxIterationsPerStep ( maxIter ) ;
     Vector cinstants ( nSteps+1 ) ;
-    if( config->hasChild( "solver_precision" ) ) 
+    if( config->hasChild( "solver_precision" ) )
         K->setEpsilon( config->getData ( "solver_precision", POINT_TOLERANCE ) ) ;
     if ( config->hasChild ( "list_of_time_steps" ) )
     {
@@ -4481,7 +4483,7 @@ bool sortByScore ( DelaunayTriangle * tri1, DelaunayTriangle * tri2 )
 
 void FeatureTree::stepMesh()
 {
-    
+
     if ( is2D() )
     {
         for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
@@ -4495,12 +4497,40 @@ void FeatureTree::stepMesh()
 }
 
 bool FeatureTree::stepElements()
-{ 
+{
     behaviourChange = false ;
     stateConverged = false ;
     maxScore = -1 ;
     double maxTolerance = 1e-6 ;
     foundCheckPoint = true ;
+    if ( resetcalcul )
+    {
+        deltaTime = 0 ;
+        now = 0 ;
+        K->getDisplacements() = 0 ;
+        K->getPreviousDisplacements() = 0 ;
+        for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+        {
+            #pragma omp parallel
+            {
+                #pragma omp single
+                {
+                    for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                    {
+                        #pragma omp task firstprivate(i)
+                        {
+                            if ( i->getBehaviour()->getDamageModel() )
+                            {
+                                i->getBehaviour()->getDamageModel()->getState(true) = 0 ;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        resetcalcul = false ;
+    }
+
     if ( solverConvergence )
     {
         if ( is2D() )
@@ -4512,7 +4542,7 @@ bool FeatureTree::stepElements()
             }
             int lcounter = 0 ;
             double volume = 0 ;
-            
+
             for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
             {
                 if ( cachedVolumes[lcounter].empty() )
@@ -4544,7 +4574,6 @@ bool FeatureTree::stepElements()
             //the behaviour updates might depend on the global state of the
             //simulation.
 
-
             for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
             {
                 std::cerr << " stepping through elements... " << std::flush ;
@@ -4560,8 +4589,9 @@ bool FeatureTree::stepElements()
                                 {
                                     std::cerr << "\r stepping through elements... " << i.getPosition() << "/" << i.size() << std::flush ;
                                 }
-
                                 i->step ( deltaTime, &K->getDisplacements() ) ;
+
+
                             }
                         }
                     }
@@ -4773,13 +4803,13 @@ bool FeatureTree::stepElements()
                         }
                     }
                 }
-                
+
                 maxScore = -1. ;
 
                 if (foundCheckPoint )
                 {
                     std::cerr << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
-                    
+
                     maxTolerance = 1 ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
@@ -5026,13 +5056,13 @@ bool FeatureTree::stepElements()
                     }
                 }
             }
-            
+
             maxScore = -1. ;
 
             if ( !elastic && foundCheckPoint )
             {
                 std::cerr << "[" << averageDamage << " ; " << std::flush ;
-                
+
                 maxTolerance = 1 ;
 // 				double maxs = -1 ;
 // 				double maxtol = 1 ;
@@ -5162,7 +5192,7 @@ bool FeatureTree::stepElements()
     }
 
     stateConverged = foundCheckPoint && maxScore < maxTolerance ;
-    
+
     if ( behaviourChange )
     {
         residualError = 1e9 ;
@@ -5378,7 +5408,7 @@ void FeatureTree::resetBoundaryConditions()
     {
         K->clear() ;
     }
-} 
+}
 
 void FeatureTree::checkSpaceTimeConsistency()
 {
@@ -5426,17 +5456,27 @@ void FeatureTree::checkSpaceTimeConsistency()
         {
             maxBlocks = 3 ;
         }
-        if( dynamic_cast<ViscoElasticOnlyAggregateBehaviour*>(behaviour) || dynamic_cast<ViscoDamageAggregateBehaviour*>(behaviour) || 
-            dynamic_cast<ViscoElasticOnlyPasteBehaviour*>(behaviour) || dynamic_cast<ViscoDamagePasteBehaviour*>(behaviour) ||
-            dynamic_cast<ViscoElasticOnlyGelBehaviour*>(behaviour))
+        if( dynamic_cast<ViscoElasticOnlyAggregateBehaviour*>(behaviour) || dynamic_cast<ViscoDamageAggregateBehaviour*>(behaviour) ||
+                dynamic_cast<ViscoElasticOnlyPasteBehaviour*>(behaviour) || dynamic_cast<ViscoDamagePasteBehaviour*>(behaviour) ||
+                dynamic_cast<ViscoElasticOnlyGelBehaviour*>(behaviour))
         {
             spaceTimeElemBehaviour = true ;
             int fblocks = 3 ;
-            if( dynamic_cast<ViscoElasticOnlyAggregateBehaviour*>(behaviour) ) { fblocks += dynamic_cast<ViscoElasticOnlyAggregateBehaviour*>(behaviour)->freeblocks ; }
-            else if( dynamic_cast<ViscoDamageAggregateBehaviour*>(behaviour) ) { fblocks += dynamic_cast<ViscoDamageAggregateBehaviour*>(behaviour)->freeblocks ; }
-            else if( dynamic_cast<ViscoElasticOnlyPasteBehaviour*>(behaviour) ) { fblocks += dynamic_cast<ViscoElasticOnlyPasteBehaviour*>(behaviour)->freeblocks ; }
-            else if( dynamic_cast<ViscoDamagePasteBehaviour*>(behaviour) ) { fblocks += dynamic_cast<ViscoDamagePasteBehaviour*>(behaviour)->freeblocks ; }
-            else if( dynamic_cast<ViscoElasticOnlyGelBehaviour*>(behaviour) ) { fblocks += dynamic_cast<ViscoElasticOnlyGelBehaviour*>(behaviour)->freeblocks ; }
+            if( dynamic_cast<ViscoElasticOnlyAggregateBehaviour*>(behaviour) ) {
+                fblocks += dynamic_cast<ViscoElasticOnlyAggregateBehaviour*>(behaviour)->freeblocks ;
+            }
+            else if( dynamic_cast<ViscoDamageAggregateBehaviour*>(behaviour) ) {
+                fblocks += dynamic_cast<ViscoDamageAggregateBehaviour*>(behaviour)->freeblocks ;
+            }
+            else if( dynamic_cast<ViscoElasticOnlyPasteBehaviour*>(behaviour) ) {
+                fblocks += dynamic_cast<ViscoElasticOnlyPasteBehaviour*>(behaviour)->freeblocks ;
+            }
+            else if( dynamic_cast<ViscoDamagePasteBehaviour*>(behaviour) ) {
+                fblocks += dynamic_cast<ViscoDamagePasteBehaviour*>(behaviour)->freeblocks ;
+            }
+            else if( dynamic_cast<ViscoElasticOnlyGelBehaviour*>(behaviour) ) {
+                fblocks += dynamic_cast<ViscoElasticOnlyGelBehaviour*>(behaviour)->freeblocks ;
+            }
             if(fblocks > maxBlocks)
                 maxBlocks = fblocks ;
 
@@ -5459,37 +5499,37 @@ void FeatureTree::checkSpaceTimeConsistency()
     {
         switch(elemOrder)
         {
-            case CONSTANT:
-                std::cerr << "element type inappropriate for space-time finite element analysis, switching to CONSTANT_TIME_LINEAR element order" << std::endl ;
-                setOrder(CONSTANT_TIME_LINEAR) ;
-                break ;
-            case LINEAR:
-                std::cerr << "element type inappropriate for space-time finite element analysis, switching to LINEAR_TIME_LINEAR element order" << std::endl ;
-                setOrder(LINEAR_TIME_LINEAR) ;
-                break ;
-            case QUADRATIC:
-                std::cerr << "element type inappropriate for space-time finite element analysis, switching to QUADRATIC_TIME_LINEAR element order" << std::endl ;
-                setOrder(QUADRATIC_TIME_LINEAR) ;
-                break ;
-            case CUBIC:
-                std::cerr << "element type inappropriate for space-time finite element analysis, switching to CUBIC_TIME_LINEAR element order" << std::endl ;
-                setOrder(CUBIC_TIME_LINEAR) ;
-                break ;
-            case QUADRIC:
-                std::cerr << "element type inappropriate for space-time finite element analysis, switching to QUADRIC_TIME_LINEAR element order" << std::endl ;
-                setOrder(QUADRIC_TIME_LINEAR) ;
-                break ;
-            case QUINTIC:
-                std::cerr << "element type inappropriate for space-time finite element analysis, switching to QUINTIC_TIME_LINEAR element order" << std::endl ;
-                setOrder(QUINTIC_TIME_LINEAR) ;
-                break ;
-            case QUADTREE_REFINED:
-            case REGULAR_GRID:
-                std::cerr << "unable to convert " << (elemOrder == QUADTREE_REFINED ? "QUADTREE_REFINED" : "REGULAR_GRID") << " to space-time finite elements" << std::endl ;
-                exit(0) ;
-                break ;
-            default:
-                break ;
+        case CONSTANT:
+            std::cerr << "element type inappropriate for space-time finite element analysis, switching to CONSTANT_TIME_LINEAR element order" << std::endl ;
+            setOrder(CONSTANT_TIME_LINEAR) ;
+            break ;
+        case LINEAR:
+            std::cerr << "element type inappropriate for space-time finite element analysis, switching to LINEAR_TIME_LINEAR element order" << std::endl ;
+            setOrder(LINEAR_TIME_LINEAR) ;
+            break ;
+        case QUADRATIC:
+            std::cerr << "element type inappropriate for space-time finite element analysis, switching to QUADRATIC_TIME_LINEAR element order" << std::endl ;
+            setOrder(QUADRATIC_TIME_LINEAR) ;
+            break ;
+        case CUBIC:
+            std::cerr << "element type inappropriate for space-time finite element analysis, switching to CUBIC_TIME_LINEAR element order" << std::endl ;
+            setOrder(CUBIC_TIME_LINEAR) ;
+            break ;
+        case QUADRIC:
+            std::cerr << "element type inappropriate for space-time finite element analysis, switching to QUADRIC_TIME_LINEAR element order" << std::endl ;
+            setOrder(QUADRIC_TIME_LINEAR) ;
+            break ;
+        case QUINTIC:
+            std::cerr << "element type inappropriate for space-time finite element analysis, switching to QUINTIC_TIME_LINEAR element order" << std::endl ;
+            setOrder(QUINTIC_TIME_LINEAR) ;
+            break ;
+        case QUADTREE_REFINED:
+        case REGULAR_GRID:
+            std::cerr << "unable to convert " << (elemOrder == QUADTREE_REFINED ? "QUADTREE_REFINED" : "REGULAR_GRID") << " to space-time finite elements" << std::endl ;
+            exit(0) ;
+            break ;
+        default:
+            break ;
         }
         spaceTimeElemOrder = true ;
     }
@@ -5606,9 +5646,9 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
         }
     }
     while ( !needexit ) ;
-    
+
     totit += it ;
-    
+
     if(is2D())
     {
         for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
@@ -5652,13 +5692,13 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
             }
         }
     }
-    
+
     if ( notConvergedCounts >= 20 )
     {
         ret = false ;
     }
     std::cerr << std::endl ;
-    
+
     if ( ret && !guided)
     {
         setDeltaTime ( realDeltaTime, false ) ;
@@ -5669,7 +5709,7 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
 
     if(damageConverged)
         K->setPreviousDisplacements() ;
-    
+
     return solverConverged() && stateConverged && maxScore < 0 ;
 
 }
@@ -5687,20 +5727,20 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
     {
         initialscale  =std::min(bc->getScale(), initialscale) ;
     }
-    
-    int prevmaxit = maxitPerStep ;  
+
+    int prevmaxit = maxitPerStep ;
     maxitPerStep = 2 ;
     scaleBoundaryConditions ( 1. );
-    
+
     for(int iter = 0 ; iter < iterations ; iter++)
-    { 
+    {
 //         setDeltaTime ( realDeltaTime, false ) ;
         std::cout <<"["<<iter+1<<"/"<<iterations<< " : "<< maxScore << "]" << std::flush ;
-        step(true) ;      
+        step(true) ;
         if(maxScore < 0)
             break ;
-     }   
-     maxitPerStep = prevmaxit ;
+    }
+    maxitPerStep = prevmaxit ;
     //at this point, we should have found a checkpoint.
     if(maxScore > 0)
     {
@@ -5713,20 +5753,20 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
                 timec->instant = 0. ;
             }
         }
-        
+
         elastic = true ;
         double currentScale = 0.8 ;
         double highscale = 1. ;
         double bottomscale= 0. ;
-        
+
         while(highscale-bottomscale > precision*initialscale)
         {
             currentScale = highscale*.8+bottomscale*.2 ;
             scaleBoundaryConditions(currentScale) ;
-            
+
             bool met = false ;
             state.setStateTo ( XFEM_STEPPED, true ) ;
-            
+
             if(is2D())
             {
                 for ( auto j = layer2d.begin() ; j != layer2d.end() && !met; j++ )
@@ -5762,7 +5802,7 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
                     }
                 }
             }
-            
+
             if(met)
                 highscale = currentScale ;
             else
@@ -5771,7 +5811,7 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
         std::cout << "Scale = " << bottomscale << std::endl ;
         scaleBoundaryConditions(bottomscale) ;
         elastic = false ;
-        
+
         state.setStateTo ( XFEM_STEPPED, true ) ;
         if(damageConverged)
             K->setPreviousDisplacements() ;
@@ -5781,7 +5821,7 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
         if(damageConverged)
             K->setPreviousDisplacements() ;
     }
-   
+
     return true ;
 }
 
@@ -5862,20 +5902,20 @@ Vector FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, FieldT
             switch(edge)
             {
             case TOP:
-               pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
-               break ;
+                pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
+                break ;
             case BOTTOM:
-               pos = new Segment( tree[0]->getBoundingBox()[2], tree[0]->getBoundingBox()[3] ) ;
-               break ;
+                pos = new Segment( tree[0]->getBoundingBox()[2], tree[0]->getBoundingBox()[3] ) ;
+                break ;
             case LEFT:
-               pos = new Segment( tree[0]->getBoundingBox()[3], tree[0]->getBoundingBox()[0] ) ;
-               break ;
+                pos = new Segment( tree[0]->getBoundingBox()[3], tree[0]->getBoundingBox()[0] ) ;
+                break ;
             case RIGHT:
-               pos = new Segment( tree[0]->getBoundingBox()[1], tree[0]->getBoundingBox()[2] ) ;
-               break ;
+                pos = new Segment( tree[0]->getBoundingBox()[1], tree[0]->getBoundingBox()[2] ) ;
+                break ;
             default:
-               std::cout << "cannot calculate field on selected boundary" << std::endl ;
-               return get2DMesh()->getField ( f, -1, t ) ;
+                std::cout << "cannot calculate field on selected boundary" << std::endl ;
+                return get2DMesh()->getField ( f, -1, t ) ;
             }
             unsigned int id = get2DMesh()->generateCache( pos ) ;
             boundaryCache[ edge ] = std::make_pair( pos, id ) ;
@@ -5907,20 +5947,20 @@ double FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, std::s
             switch(edge)
             {
             case TOP:
-               pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
-               break ;
+                pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
+                break ;
             case BOTTOM:
-               pos = new Segment( tree[0]->getBoundingBox()[2], tree[0]->getBoundingBox()[3] ) ;
-               break ;
+                pos = new Segment( tree[0]->getBoundingBox()[2], tree[0]->getBoundingBox()[3] ) ;
+                break ;
             case LEFT:
-               pos = new Segment( tree[0]->getBoundingBox()[3], tree[0]->getBoundingBox()[0] ) ;
-               break ;
+                pos = new Segment( tree[0]->getBoundingBox()[3], tree[0]->getBoundingBox()[0] ) ;
+                break ;
             case RIGHT:
-               pos = new Segment( tree[0]->getBoundingBox()[1], tree[0]->getBoundingBox()[2] ) ;
-               break ;
+                pos = new Segment( tree[0]->getBoundingBox()[1], tree[0]->getBoundingBox()[2] ) ;
+                break ;
             default:
-               std::cout << "cannot calculate field on selected boundary" << std::endl ;
-               return get2DMesh()->getField ( f, -1 ) ;
+                std::cout << "cannot calculate field on selected boundary" << std::endl ;
+                return get2DMesh()->getField ( f, -1 ) ;
             }
             unsigned int id = get2DMesh()->generateCache( pos ) ;
             boundaryCache[ edge ] = std::make_pair( pos, id ) ;
@@ -6936,14 +6976,14 @@ double FeatureTree::getDeltaTime () const
     return deltaTime ;
 }
 
-void FeatureTree::setMinDeltaTime ( double d ) 
+void FeatureTree::setMinDeltaTime ( double d )
 {
     minDeltaTime = d ;
 }
 
-void FeatureTree::setMaxIterationsPerStep ( size_t its ) 
+void FeatureTree::setMaxIterationsPerStep ( size_t its )
 {
-        maxitPerStep = its ;
+    maxitPerStep = its ;
 }
 
 void FeatureTree::setDeltaTime ( double d, bool isreal )
@@ -7240,7 +7280,7 @@ void FeatureTree::generateElements()
 
                 for ( size_t k  =  0 ; k <  potentialFeatures.size() ; k++ )
                 {
-                    if ( i && tree[i] != potentialFeatures[k] 
+                    if ( i && tree[i] != potentialFeatures[k]
                             && !potentialFeatures[k]->isVirtualFeature
                             && potentialFeatures[k]->onBoundary ( tree[i]->getBoundingPoint ( j ), POINT_TOLERANCE )
                             && potentialFeatures[k]->getBoundingPoints().size() )
@@ -7512,16 +7552,16 @@ void FeatureTree::generateElements()
                     coOccuringFeatures.push_back ( dynamic_cast<const Feature *> ( coOccuringFeaturestmp[k] ) ) ;
                 }
 
-/*                if(tree[i]->getGeometryType() == ELLIPSE)
-		{
-			for(size_t j = 0 ; j < coOccuringFeatures.size() ; j++ )
-			{
-				if(coOccuringFeatures[j]->getGeometryType() != ELLIPSE)
-				{
-					std::cout << i << " " << j << " " << std::string( tree[i]->intersects(coOccuringFeatures[j]) ? "yes" : "no" ) << " " << tree[i]->intersection(coOccuringFeatures[j]).size() << std::endl ;
-				}
-			}
-		}*/
+                /*                if(tree[i]->getGeometryType() == ELLIPSE)
+                		{
+                			for(size_t j = 0 ; j < coOccuringFeatures.size() ; j++ )
+                			{
+                				if(coOccuringFeatures[j]->getGeometryType() != ELLIPSE)
+                				{
+                					std::cout << i << " " << j << " " << std::string( tree[i]->intersects(coOccuringFeatures[j]) ? "yes" : "no" ) << " " << tree[i]->intersection(coOccuringFeatures[j]).size() << std::endl ;
+                				}
+                			}
+                		}*/
 
 
                 for ( size_t j  = 0 ; j < coOccuringFeatures.size() ; j++ )
@@ -7542,7 +7582,7 @@ void FeatureTree::generateElements()
 
                         std::vector<Point> inter = tree[i]->intersection ( coOccuringFeatures[j] ) ;
 
-                        int base = inter.size() ; 
+                        int base = inter.size() ;
                         for( size_t k = 0 ; k < tree[i]->getBoundingPoints().size() ; k++)
                         {
                             if( coOccuringFeatures[j]->inBoundary(tree[i]->getBoundingPoint(k), pointDensity*0.1) && coOccuringFeatures[j]->inMask(tree[i]->getBoundingPoint(k), pointDensity*0.1))
@@ -7556,9 +7596,9 @@ void FeatureTree::generateElements()
                         }
 //			std::cout << i << " NOPE " << tree[i]->getGeometryType()  << " "<< coOccuringFeatures[j]->getGeometryType() << " " << inter.size() << " " << tree[i]->getBoundingPoints().size() << std::endl ;
                         if(inter.size() < 3)
-			{
+                        {
                             continue ;
-			}
+                        }
                         for ( size_t k = 0 ;  k < inter.size() ; k++ )
                         {
 
@@ -7598,7 +7638,7 @@ void FeatureTree::generateElements()
         for ( auto & feature : tree )
         {
             if(feature == tree[0])
-		continue ;
+                continue ;
 
             if ( !feature->isEnrichmentFeature && feature->getBoundingPoints().size() && !feature->isVirtualFeature && tree[0]->intersects ( feature ) && feature->getFather() != nullptr )
             {
@@ -7608,7 +7648,7 @@ void FeatureTree::generateElements()
                 std::vector<Feature *> descendants = feature->getDescendants() ;
                 std::vector<Feature *> fatherdescendants = tree[0]->getDescendants() ;
 
-                size_t base = inter.size() ; 
+                size_t base = inter.size() ;
                 for( size_t k = 0 ; k < tree[0]->getBoundingPoints().size() ; k++)
                 {
                     if( feature->inBoundary(tree[0]->getBoundingPoint(k), pointDensity*0.1) && feature->inMask(tree[0]->getBoundingPoint(k), pointDensity*0.1))
@@ -8231,7 +8271,7 @@ void FeatureTree::printReport(bool printHeader, bool vertical)
     }
     else
     {
-         Vector x = getDisplacements() ;
+        Vector x = getDisplacements() ;
 
         std::cout << "unknowns :" << x.size() << std::endl ;
 
@@ -8276,7 +8316,7 @@ void FeatureTree::printReport(bool printHeader, bool vertical)
         reportValues.back()[12] = stempm.first[4]  ;
         reportValues.back()[13] = stempm.second[5] ;
         reportValues.back()[14] = stempm.first[5]   ;
-        
+
         reportValues.back()[15] =  etempm.second[0] ;
         reportValues.back()[16] =  etempm.first[0]  ;
         reportValues.back()[17] =  etempm.second[1] ;
@@ -8289,7 +8329,7 @@ void FeatureTree::printReport(bool printHeader, bool vertical)
         reportValues.back()[24] =  etempm.first[4]  ;
         reportValues.back()[25] =  etempm.second[5]  ;
         reportValues.back()[26] =  etempm.first[5]  ;
-        
+
         reportValues.back()[27] =  vmm.second[0]    ;
         reportValues.back()[28] =  vmm.first[0]     ;
         reportValues.back()[29] =   stemp[0]        ;
@@ -8352,7 +8392,7 @@ void FeatureTree::printReport(bool printHeader, bool vertical)
             for(size_t i = 0 ; i < reportValues.size() ; i++)
                 std::cout << reportValues[i][8] << "\t" << std::flush ;
             std::cout << std::endl ;
-                        if(printHeader)
+            if(printHeader)
                 std::cout << "      max sigma12\t" << std::flush ;
             for(size_t i = 0 ; i < reportValues.size() ; i++)
                 std::cout << reportValues[i][9] << "\t" << std::flush ;
@@ -8412,7 +8452,7 @@ void FeatureTree::printReport(bool printHeader, bool vertical)
             for(size_t i = 0 ; i < reportValues.size() ; i++)
                 std::cout << reportValues[i][20] << "\t" << std::flush ;
             std::cout << std::endl ;
-                        if(printHeader)
+            if(printHeader)
                 std::cout << "    max epsilon12\t" << std::flush ;
             for(size_t i = 0 ; i < reportValues.size() ; i++)
                 std::cout << reportValues[i][21] << "\t" << std::flush ;
@@ -8542,7 +8582,7 @@ void FeatureTree::printReport(const std::vector<FieldType> & fields, bool vertic
                 for(size_t i = 0 ; i < vals.size() ;  i++)
                     std::cout << vals[i] << std::endl ;
             }
-                
+
         }
         else
         {
@@ -8565,7 +8605,7 @@ void FeatureTree::printReport(const std::vector<FieldType> & fields, bool vertic
                 for(size_t i = 0 ; i < vals.size() ;  i++)
                     std::cout << vals[i] << std::endl ;
             }
-                
+
         }
         else
         {

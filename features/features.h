@@ -171,6 +171,7 @@ protected:
     bool enrichmentChange ;
     bool stateConverged ;
     bool damageConverged ;
+    bool resetcalcul  = false; 
 
     bool elastic ;
     bool projectOnBoundaries ;
@@ -732,7 +733,11 @@ public:
      */
     void refine ( size_t nit, SamplingCriterion *cri ) ;
 
-
+    //Reset the elements of the feature and the currenttime
+    void reset () {
+      resetcalcul = true ; 
+    }
+    
     double getCurrentTime() const {
         return now ;
     }
