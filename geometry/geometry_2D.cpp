@@ -1337,17 +1337,17 @@ void Circle::project(Point * p) const
     Line l(*p, *p-getCenter()) ;
 
     std::vector<Point> inter = l.intersection(this) ;
+    *p = inter[0] ;
 // 	if(inter.empty() || inter.size() == 1)
 // 	{
 // 		p->print() ;
 // 		getCenter().print() ;
 // 	}
-    if(squareDist3D(inter[0], *p) < squareDist3D(inter[1], *p))
+    if((inter.size() == 2) && squareDist3D(inter[0], *p) > squareDist3D(inter[1], *p))
     {
-        *p = inter[0] ;
-        return ;
+       *p = inter[1] ;
     }
-    *p = inter[1] ;
+    
 }
 
 std::vector<Point> Circle::getSamplingBoundingPoints(size_t num_points) const
