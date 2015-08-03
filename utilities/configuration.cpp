@@ -41,7 +41,6 @@
 #include "enumeration_translator.h"
 #include "writer/triangle_writer.h"
 #include "parser.h"
-#include "material_law_parser.h"
 #include "iostream"
 #include "fstream"
 
