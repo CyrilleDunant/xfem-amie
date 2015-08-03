@@ -1,0 +1,708 @@
+/* this is an auto-generated file created on 31/6/2015 at 17:27  */
+
+#ifndef __ENUMERATION_TRANSLATOR_H__
+#define __ENUMERATION_TRANSLATOR_H__
+
+#include "../elements/integrable_entity.h"
+#include "../features/boundarycondition.h"
+#include "../geometry/geometry_base.h"
+#include "../physics/material_laws/material_laws.h"
+#include "../physics/fracturecriteria/mcft.h"
+#include "../physics/fracturecriteria/fracturecriterion.h"
+#include "../physics/materials/csh_behaviour.h"
+#include "../physics/materials/paste_behaviour.h"
+#include "../physics/viscoelasticity.h"
+#include "../physics/finite_difference_viscoelasticity.h"
+#include "../physics/damagemodels/damagemodel.h"
+#include "../polynomial/vm_function_base.h"
+#include "../polynomial/vm_token.h"
+#include "../polynomial/variable.h"
+#include "../polynomial/typeref.h"
+#include "../solvers/assembly.h"
+#include "../utilities/writer/voxel_writer.h"
+#include "../utilities/writer/triangle_writer.h"
+#include "../utilities/granulo.h"
+#include "../utilities/tensor.h"
+
+namespace Amie
+{
+
+struct Enum
+{
+
+    // parsed from header file: ../elements/integrable_entity.h
+    static Order getOrder(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "CONSTANT") { return CONSTANT ; }
+        if( type == "LINEAR") { return LINEAR ; }
+        if( type == "QUADRATIC") { return QUADRATIC ; }
+        if( type == "CUBIC") { return CUBIC ; }
+        if( type == "QUADRIC") { return QUADRIC ; }
+        if( type == "QUINTIC") { return QUINTIC ; }
+        if( type == "CONSTANT_TIME_LINEAR") { return CONSTANT_TIME_LINEAR ; }
+        if( type == "CONSTANT_TIME_QUADRATIC") { return CONSTANT_TIME_QUADRATIC ; }
+        if( type == "LINEAR_TIME_LINEAR") { return LINEAR_TIME_LINEAR ; }
+        if( type == "LINEAR_TIME_QUADRATIC") { return LINEAR_TIME_QUADRATIC ; }
+        if( type == "QUADRATIC_TIME_LINEAR") { return QUADRATIC_TIME_LINEAR ; }
+        if( type == "QUADRATIC_TIME_QUADRATIC") { return QUADRATIC_TIME_QUADRATIC ; }
+        if( type == "CUBIC_TIME_LINEAR") { return CUBIC_TIME_LINEAR ; }
+        if( type == "CUBIC_TIME_QUADRATIC") { return CUBIC_TIME_QUADRATIC ; }
+        if( type == "QUADRIC_TIME_LINEAR") { return QUADRIC_TIME_LINEAR ; }
+        if( type == "QUADRIC_TIME_QUADRATIC") { return QUADRIC_TIME_QUADRATIC ; }
+        if( type == "QUINTIC_TIME_LINEAR") { return QUINTIC_TIME_LINEAR ; }
+        if( type == "QUINTIC_TIME_QUADRATIC") { return QUINTIC_TIME_QUADRATIC ; }
+        if( type == "QUADTREE_REFINED") { return QUADTREE_REFINED ; }
+        if( type == "REGULAR_GRID") { return REGULAR_GRID ; }
+        if(ok) { *ok = false ; }
+        return CONSTANT ;
+    }
+   
+    // parsed from header file: ../elements/integrable_entity.h
+    static ParametersType getParametersType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "PURE_LINEAR") { return PURE_LINEAR ; }
+        if( type == "LINEAR_AND_CONSTANT") { return LINEAR_AND_CONSTANT ; }
+        if( type == "NON_LINEAR") { return NON_LINEAR ; }
+        if( type == "VOID_BEHAVIOUR") { return VOID_BEHAVIOUR ; }
+        if(ok) { *ok = false ; }
+        return PURE_LINEAR ;
+    }
+   
+    // parsed from header file: ../elements/integrable_entity.h
+    static StressCalculationMethod getStressCalculationMethod(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "REAL_STRESS") { return REAL_STRESS ; }
+        if( type == "EFFECTIVE_STRESS") { return EFFECTIVE_STRESS ; }
+        if(ok) { *ok = false ; }
+        return REAL_STRESS ;
+    }
+   
+    // parsed from header file: ../elements/integrable_entity.h
+    static FieldType getFieldType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "DISPLACEMENT_FIELD") { return DISPLACEMENT_FIELD ; }
+        if( type == "ENRICHED_DISPLACEMENT_FIELD") { return ENRICHED_DISPLACEMENT_FIELD ; }
+        if( type == "SPEED_FIELD") { return SPEED_FIELD ; }
+        if( type == "FLUX_FIELD") { return FLUX_FIELD ; }
+        if( type == "GRADIENT_FIELD") { return GRADIENT_FIELD ; }
+        if( type == "STRAIN_FIELD") { return STRAIN_FIELD ; }
+        if( type == "STRAIN_RATE_FIELD") { return STRAIN_RATE_FIELD ; }
+        if( type == "MECHANICAL_STRAIN_FIELD") { return MECHANICAL_STRAIN_FIELD ; }
+        if( type == "EFFECTIVE_STRESS_FIELD") { return EFFECTIVE_STRESS_FIELD ; }
+        if( type == "REAL_STRESS_FIELD") { return REAL_STRESS_FIELD ; }
+        if( type == "PRINCIPAL_STRAIN_FIELD") { return PRINCIPAL_STRAIN_FIELD ; }
+        if( type == "PRINCIPAL_MECHANICAL_STRAIN_FIELD") { return PRINCIPAL_MECHANICAL_STRAIN_FIELD ; }
+        if( type == "PRINCIPAL_EFFECTIVE_STRESS_FIELD") { return PRINCIPAL_EFFECTIVE_STRESS_FIELD ; }
+        if( type == "PRINCIPAL_REAL_STRESS_FIELD") { return PRINCIPAL_REAL_STRESS_FIELD ; }
+        if( type == "NON_ENRICHED_STRAIN_FIELD") { return NON_ENRICHED_STRAIN_FIELD ; }
+        if( type == "NON_ENRICHED_STRAIN_RATE_FIELD") { return NON_ENRICHED_STRAIN_RATE_FIELD ; }
+        if( type == "NON_ENRICHED_EFFECTIVE_STRESS_FIELD") { return NON_ENRICHED_EFFECTIVE_STRESS_FIELD ; }
+        if( type == "NON_ENRICHED_REAL_STRESS_FIELD") { return NON_ENRICHED_REAL_STRESS_FIELD ; }
+        if( type == "VON_MISES_STRAIN_FIELD") { return VON_MISES_STRAIN_FIELD ; }
+        if( type == "VON_MISES_REAL_STRESS_FIELD") { return VON_MISES_REAL_STRESS_FIELD ; }
+        if( type == "VON_MISES_EFFECTIVE_STRESS_FIELD") { return VON_MISES_EFFECTIVE_STRESS_FIELD ; }
+        if( type == "PRINCIPAL_STRESS_ANGLE_FIELD") { return PRINCIPAL_STRESS_ANGLE_FIELD ; }
+        if( type == "PRINCIPAL_STRAIN_ANGLE_FIELD") { return PRINCIPAL_STRAIN_ANGLE_FIELD ; }
+        if( type == "INTERNAL_VARIABLE_FIELD") { return INTERNAL_VARIABLE_FIELD ; }
+        if( type == "SCALAR_DAMAGE_FIELD") { return SCALAR_DAMAGE_FIELD ; }
+        if( type == "GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD") { return GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD ; }
+        if( type == "GENERALIZED_VISCOELASTIC_ENRICHED_DISPLACEMENT_FIELD") { return GENERALIZED_VISCOELASTIC_ENRICHED_DISPLACEMENT_FIELD ; }
+        if( type == "GENERALIZED_VISCOELASTIC_SPEED_FIELD") { return GENERALIZED_VISCOELASTIC_SPEED_FIELD ; }
+        if( type == "GENERALIZED_VISCOELASTIC_STRAIN_FIELD") { return GENERALIZED_VISCOELASTIC_STRAIN_FIELD ; }
+        if( type == "GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD") { return GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD ; }
+        if( type == "GENERALIZED_VISCOELASTIC_EFFECTIVE_STRESS_FIELD") { return GENERALIZED_VISCOELASTIC_EFFECTIVE_STRESS_FIELD ; }
+        if( type == "GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD") { return GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD ; }
+        if( type == "GENERALIZED_VISCOELASTIC_PRINCIPAL_STRAIN_FIELD") { return GENERALIZED_VISCOELASTIC_PRINCIPAL_STRAIN_FIELD ; }
+        if( type == "GENERALIZED_VISCOELASTIC_PRINCIPAL_EFFECTIVE_STRESS_FIELD") { return GENERALIZED_VISCOELASTIC_PRINCIPAL_EFFECTIVE_STRESS_FIELD ; }
+        if( type == "GENERALIZED_VISCOELASTIC_PRINCIPAL_REAL_STRESS_FIELD") { return GENERALIZED_VISCOELASTIC_PRINCIPAL_REAL_STRESS_FIELD ; }
+        if( type == "GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD") { return GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD ; }
+        if( type == "GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_RATE_FIELD") { return GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_RATE_FIELD ; }
+        if( type == "GENERALIZED_VISCOELASTIC_NON_ENRICHED_EFFECTIVE_STRESS_FIELD") { return GENERALIZED_VISCOELASTIC_NON_ENRICHED_EFFECTIVE_STRESS_FIELD ; }
+        if( type == "GENERALIZED_VISCOELASTIC_NON_ENRICHED_REAL_STRESS_FIELD") { return GENERALIZED_VISCOELASTIC_NON_ENRICHED_REAL_STRESS_FIELD ; }
+        if(ok) { *ok = false ; }
+        return DISPLACEMENT_FIELD ;
+    }
+   
+    // parsed from header file: ../elements/integrable_entity.h
+    static CompositionType getCompositionType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "SINGLE_OFF_DIAGONAL_VALUES") { return SINGLE_OFF_DIAGONAL_VALUES ; }
+        if( type == "DOUBLE_OFF_DIAGONAL_VALUES") { return DOUBLE_OFF_DIAGONAL_VALUES ; }
+        if(ok) { *ok = false ; }
+        return SINGLE_OFF_DIAGONAL_VALUES ;
+    }
+   
+    // parsed from header file: ../features/boundarycondition.h
+    static LoadingState getLoadingState(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "LOADING") { return LOADING ; }
+        if( type == "UNLOADING") { return UNLOADING ; }
+        if( type == "ULTIMATE_STRAIN") { return ULTIMATE_STRAIN ; }
+        if( type == "ULTIMATE_STRESS") { return ULTIMATE_STRESS ; }
+        if(ok) { *ok = false ; }
+        return LOADING ;
+    }
+   
+    // parsed from header file: ../geometry/geometry_base.h
+    static GeometryType getGeometryType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "nullptr_GEOMETRY") { return nullptr_GEOMETRY ; }
+        if( type == "CIRCLE") { return CIRCLE ; }
+        if( type == "LAYERED_CIRCLE") { return LAYERED_CIRCLE ; }
+        if( type == "TRIANGLE") { return TRIANGLE ; }
+        if( type == "RECTANGLE") { return RECTANGLE ; }
+        if( type == "PARALLELOGRAMME") { return PARALLELOGRAMME ; }
+        if( type == "CONVEX_POLYGON") { return CONVEX_POLYGON ; }
+        if( type == "SEGMENTED_LINE") { return SEGMENTED_LINE ; }
+        if( type == "POLYGON") { return POLYGON ; }
+        if( type == "ORIENTABLE_CIRCLE") { return ORIENTABLE_CIRCLE ; }
+        if( type == "CLOSED_NURB") { return CLOSED_NURB ; }
+        if( type == "TETRAHEDRON") { return TETRAHEDRON ; }
+        if( type == "HEXAHEDRON") { return HEXAHEDRON ; }
+        if( type == "SPHERE") { return SPHERE ; }
+        if( type == "LAYERED_SPHERE") { return LAYERED_SPHERE ; }
+        if( type == "REGULAR_OCTAHEDRON") { return REGULAR_OCTAHEDRON ; }
+        if( type == "POLYGON_PRISM") { return POLYGON_PRISM ; }
+        if( type == "LOFTED_POLYGON") { return LOFTED_POLYGON ; }
+        if( type == "ELLIPSE") { return ELLIPSE ; }
+        if( type == "LEVEL_SET") { return LEVEL_SET ; }
+        if( type == "TIME_DEPENDENT_CIRCLE") { return TIME_DEPENDENT_CIRCLE ; }
+        if(ok) { *ok = false ; }
+        return nullptr_GEOMETRY ;
+    }
+   
+    // parsed from header file: ../geometry/geometry_base.h
+    static GeometricTransformationType getGeometricTransformationType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "ROTATE") { return ROTATE ; }
+        if( type == "SCALE") { return SCALE ; }
+        if( type == "TRANSLATE") { return TRANSLATE ; }
+        if(ok) { *ok = false ; }
+        return ROTATE ;
+    }
+   
+    // parsed from header file: ../geometry/geometry_base.h
+    static BoundingBoxPosition getBoundingBoxPosition(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "TOP") { return TOP ; }
+        if( type == "LEFT") { return LEFT ; }
+        if( type == "BOTTOM") { return BOTTOM ; }
+        if( type == "RIGHT") { return RIGHT ; }
+        if( type == "FRONT") { return FRONT ; }
+        if( type == "BACK") { return BACK ; }
+        if( type == "BEFORE") { return BEFORE ; }
+        if( type == "NOW") { return NOW ; }
+        if( type == "AFTER") { return AFTER ; }
+        if( type == "TOP_LEFT") { return TOP_LEFT ; }
+        if( type == "TOP_RIGHT") { return TOP_RIGHT ; }
+        if( type == "BOTTOM_LEFT") { return BOTTOM_LEFT ; }
+        if( type == "BOTTOM_RIGHT") { return BOTTOM_RIGHT ; }
+        if( type == "FRONT_LEFT") { return FRONT_LEFT ; }
+        if( type == "FRONT_RIGHT") { return FRONT_RIGHT ; }
+        if( type == "BACK_LEFT") { return BACK_LEFT ; }
+        if( type == "BACK_RIGHT") { return BACK_RIGHT ; }
+        if( type == "FRONT_TOP") { return FRONT_TOP ; }
+        if( type == "FRONT_BOTTOM") { return FRONT_BOTTOM ; }
+        if( type == "BOTTOM_BACK") { return BOTTOM_BACK ; }
+        if( type == "TOP_BACK") { return TOP_BACK ; }
+        if( type == "TOP_LEFT_FRONT") { return TOP_LEFT_FRONT ; }
+        if( type == "TOP_LEFT_BACK") { return TOP_LEFT_BACK ; }
+        if( type == "BOTTOM_LEFT_FRONT") { return BOTTOM_LEFT_FRONT ; }
+        if( type == "BOTTOM_LEFT_BACK") { return BOTTOM_LEFT_BACK ; }
+        if( type == "TOP_RIGHT_FRONT") { return TOP_RIGHT_FRONT ; }
+        if( type == "TOP_RIGHT_BACK") { return TOP_RIGHT_BACK ; }
+        if( type == "BOTTOM_RIGHT_FRONT") { return BOTTOM_RIGHT_FRONT ; }
+        if( type == "BOTTOM_RIGHT_BACK") { return BOTTOM_RIGHT_BACK ; }
+        if( type == "TOP_BEFORE") { return TOP_BEFORE ; }
+        if( type == "LEFT_BEFORE") { return LEFT_BEFORE ; }
+        if( type == "BOTTOM_BEFORE") { return BOTTOM_BEFORE ; }
+        if( type == "RIGHT_BEFORE") { return RIGHT_BEFORE ; }
+        if( type == "FRONT_BEFORE") { return FRONT_BEFORE ; }
+        if( type == "BACK_BEFORE") { return BACK_BEFORE ; }
+        if( type == "TOP_LEFT_BEFORE") { return TOP_LEFT_BEFORE ; }
+        if( type == "TOP_RIGHT_BEFORE") { return TOP_RIGHT_BEFORE ; }
+        if( type == "BOTTOM_LEFT_BEFORE") { return BOTTOM_LEFT_BEFORE ; }
+        if( type == "BOTTOM_RIGHT_BEFORE") { return BOTTOM_RIGHT_BEFORE ; }
+        if( type == "FRONT_LEFT_BEFORE") { return FRONT_LEFT_BEFORE ; }
+        if( type == "FRONT_RIGHT_BEFORE") { return FRONT_RIGHT_BEFORE ; }
+        if( type == "BACK_LEFT_BEFORE") { return BACK_LEFT_BEFORE ; }
+        if( type == "BACK_RIGHT_BEFORE") { return BACK_RIGHT_BEFORE ; }
+        if( type == "FRONT_TOP_BEFORE") { return FRONT_TOP_BEFORE ; }
+        if( type == "FRONT_BOTTOM_BEFORE") { return FRONT_BOTTOM_BEFORE ; }
+        if( type == "TOP_LEFT_FRONT_BEFORE") { return TOP_LEFT_FRONT_BEFORE ; }
+        if( type == "TOP_LEFT_BACK_BEFORE") { return TOP_LEFT_BACK_BEFORE ; }
+        if( type == "BOTTOM_LEFT_FRONT_BEFORE") { return BOTTOM_LEFT_FRONT_BEFORE ; }
+        if( type == "BOTTOM_LEFT_BACK_BEFORE") { return BOTTOM_LEFT_BACK_BEFORE ; }
+        if( type == "TOP_RIGHT_FRONT_BEFORE") { return TOP_RIGHT_FRONT_BEFORE ; }
+        if( type == "TOP_RIGHT_BACK_BEFORE") { return TOP_RIGHT_BACK_BEFORE ; }
+        if( type == "BOTTOM_RIGHT_FRONT_BEFORE") { return BOTTOM_RIGHT_FRONT_BEFORE ; }
+        if( type == "BOTTOM_RIGHT_BACK_BEFORE") { return BOTTOM_RIGHT_BACK_BEFORE ; }
+        if( type == "BOTTOM_BACK_BEFORE") { return BOTTOM_BACK_BEFORE ; }
+        if( type == "TOP_BACK_BEFORE") { return TOP_BACK_BEFORE ; }
+        if( type == "TOP_NOW") { return TOP_NOW ; }
+        if( type == "LEFT_NOW") { return LEFT_NOW ; }
+        if( type == "BOTTOM_NOW") { return BOTTOM_NOW ; }
+        if( type == "RIGHT_NOW") { return RIGHT_NOW ; }
+        if( type == "FRONT_NOW") { return FRONT_NOW ; }
+        if( type == "BACK_NOW") { return BACK_NOW ; }
+        if( type == "TOP_LEFT_NOW") { return TOP_LEFT_NOW ; }
+        if( type == "TOP_RIGHT_NOW") { return TOP_RIGHT_NOW ; }
+        if( type == "BOTTOM_LEFT_NOW") { return BOTTOM_LEFT_NOW ; }
+        if( type == "BOTTOM_RIGHT_NOW") { return BOTTOM_RIGHT_NOW ; }
+        if( type == "FRONT_LEFT_NOW") { return FRONT_LEFT_NOW ; }
+        if( type == "FRONT_RIGHT_NOW") { return FRONT_RIGHT_NOW ; }
+        if( type == "BACK_LEFT_NOW") { return BACK_LEFT_NOW ; }
+        if( type == "BACK_RIGHT_NOW") { return BACK_RIGHT_NOW ; }
+        if( type == "FRONT_TOP_NOW") { return FRONT_TOP_NOW ; }
+        if( type == "BOTTOM_BACK_NOW") { return BOTTOM_BACK_NOW ; }
+        if( type == "TOP_BACK_NOW") { return TOP_BACK_NOW ; }
+        if( type == "FRONT_BOTTOM_NOW") { return FRONT_BOTTOM_NOW ; }
+        if( type == "TOP_LEFT_FRONT_NOW") { return TOP_LEFT_FRONT_NOW ; }
+        if( type == "TOP_LEFT_BACK_NOW") { return TOP_LEFT_BACK_NOW ; }
+        if( type == "BOTTOM_LEFT_FRONT_NOW") { return BOTTOM_LEFT_FRONT_NOW ; }
+        if( type == "BOTTOM_LEFT_BACK_NOW") { return BOTTOM_LEFT_BACK_NOW ; }
+        if( type == "TOP_RIGHT_FRONT_NOW") { return TOP_RIGHT_FRONT_NOW ; }
+        if( type == "TOP_RIGHT_BACK_NOW") { return TOP_RIGHT_BACK_NOW ; }
+        if( type == "BOTTOM_RIGHT_FRONT_NOW") { return BOTTOM_RIGHT_FRONT_NOW ; }
+        if( type == "BOTTOM_RIGHT_BACK_NOW") { return BOTTOM_RIGHT_BACK_NOW ; }
+        if( type == "TOP_AFTER") { return TOP_AFTER ; }
+        if( type == "LEFT_AFTER") { return LEFT_AFTER ; }
+        if( type == "BOTTOM_AFTER") { return BOTTOM_AFTER ; }
+        if( type == "RIGHT_AFTER") { return RIGHT_AFTER ; }
+        if( type == "FRONT_AFTER") { return FRONT_AFTER ; }
+        if( type == "BACK_AFTER") { return BACK_AFTER ; }
+        if( type == "TOP_LEFT_AFTER") { return TOP_LEFT_AFTER ; }
+        if( type == "TOP_RIGHT_AFTER") { return TOP_RIGHT_AFTER ; }
+        if( type == "BOTTOM_LEFT_AFTER") { return BOTTOM_LEFT_AFTER ; }
+        if( type == "BOTTOM_RIGHT_AFTER") { return BOTTOM_RIGHT_AFTER ; }
+        if( type == "FRONT_LEFT_AFTER") { return FRONT_LEFT_AFTER ; }
+        if( type == "FRONT_RIGHT_AFTER") { return FRONT_RIGHT_AFTER ; }
+        if( type == "BACK_LEFT_AFTER") { return BACK_LEFT_AFTER ; }
+        if( type == "BACK_RIGHT_AFTER") { return BACK_RIGHT_AFTER ; }
+        if( type == "FRONT_TOP_AFTER") { return FRONT_TOP_AFTER ; }
+        if( type == "FRONT_BOTTOM_AFTER") { return FRONT_BOTTOM_AFTER ; }
+        if( type == "TOP_LEFT_FRONT_AFTER") { return TOP_LEFT_FRONT_AFTER ; }
+        if( type == "TOP_LEFT_BACK_AFTER") { return TOP_LEFT_BACK_AFTER ; }
+        if( type == "BOTTOM_LEFT_FRONT_AFTER") { return BOTTOM_LEFT_FRONT_AFTER ; }
+        if( type == "BOTTOM_LEFT_BACK_AFTER") { return BOTTOM_LEFT_BACK_AFTER ; }
+        if( type == "TOP_RIGHT_FRONT_AFTER") { return TOP_RIGHT_FRONT_AFTER ; }
+        if( type == "TOP_RIGHT_BACK_AFTER") { return TOP_RIGHT_BACK_AFTER ; }
+        if( type == "BOTTOM_RIGHT_FRONT_AFTER") { return BOTTOM_RIGHT_FRONT_AFTER ; }
+        if( type == "BOTTOM_RIGHT_BACK_AFTER") { return BOTTOM_RIGHT_BACK_AFTER ; }
+        if( type == "BOTTOM_BACK_AFTER") { return BOTTOM_BACK_AFTER ; }
+        if( type == "TOP_BACK_AFTER") { return TOP_BACK_AFTER ; }
+        if(ok) { *ok = false ; }
+        return TOP ;
+    }
+   
+    // parsed from header file: ../geometry/geometry_base.h
+    static SpaceDimensionality getSpaceDimensionality(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "SPACE_ONE_DIMENSIONAL") { return SPACE_ONE_DIMENSIONAL ; }
+        if( type == "SPACE_TWO_DIMENSIONAL") { return SPACE_TWO_DIMENSIONAL ; }
+        if( type == "SPACE_THREE_DIMENSIONAL") { return SPACE_THREE_DIMENSIONAL ; }
+        if(ok) { *ok = false ; }
+        return SPACE_ONE_DIMENSIONAL ;
+    }
+   
+    // parsed from header file: ../physics/material_laws/material_laws.h
+    static EMLOperation getEMLOperation(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "SET") { return SET ; }
+        if( type == "ADD") { return ADD ; }
+        if( type == "MULTIPLY") { return MULTIPLY ; }
+        if( type == "SUBSTRACT") { return SUBSTRACT ; }
+        if( type == "DIVIDE") { return DIVIDE ; }
+        if(ok) { *ok = false ; }
+        return SET ;
+    }
+   
+    // parsed from header file: ../physics/fracturecriteria/mcft.h
+    static RedistributionType getRedistributionType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "UPPER_BOUND") { return UPPER_BOUND ; }
+        if( type == "LOWER_BOUND") { return LOWER_BOUND ; }
+        if( type == "AVERAGE") { return AVERAGE ; }
+        if(ok) { *ok = false ; }
+        return UPPER_BOUND ;
+    }
+   
+    // parsed from header file: ../physics/fracturecriteria/fracturecriterion.h
+    static MirrorState getMirrorState(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "NO_MIRROR") { return NO_MIRROR ; }
+        if( type == "MIRROR_X") { return MIRROR_X ; }
+        if( type == "MIRROR_Y") { return MIRROR_Y ; }
+        if( type == "MIRROR_Z") { return MIRROR_Z ; }
+        if( type == "MIRROR_XY") { return MIRROR_XY ; }
+        if( type == "MIRROR_XZ") { return MIRROR_XZ ; }
+        if( type == "MIRROR_YZ") { return MIRROR_YZ ; }
+        if(ok) { *ok = false ; }
+        return NO_MIRROR ;
+    }
+   
+    // parsed from header file: ../physics/fracturecriteria/fracturecriterion.h
+    static SmoothingFunctionType getSmoothingFunctionType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "QUARTIC_COMPACT") { return QUARTIC_COMPACT ; }
+        if( type == "GAUSSIAN_NONCOMPACT") { return GAUSSIAN_NONCOMPACT ; }
+        if(ok) { *ok = false ; }
+        return QUARTIC_COMPACT ;
+    }
+   
+    // parsed from header file: ../physics/materials/csh_behaviour.h
+    static CSHType getCSHType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "INNER_CSH") { return INNER_CSH ; }
+        if( type == "OUTER_CSH") { return OUTER_CSH ; }
+        if(ok) { *ok = false ; }
+        return INNER_CSH ;
+    }
+   
+    // parsed from header file: ../physics/materials/paste_behaviour.h
+    static PasteCriterion getPasteCriterion(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "STRAIN_CRITERION") { return STRAIN_CRITERION ; }
+        if( type == "STRESS_CRITERION") { return STRESS_CRITERION ; }
+        if( type == "MIXED_CRITERION") { return MIXED_CRITERION ; }
+        if(ok) { *ok = false ; }
+        return STRAIN_CRITERION ;
+    }
+   
+    // parsed from header file: ../physics/viscoelasticity.h
+    static ViscoelasticModel getViscoelasticModel(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "PURE_ELASTICITY") { return PURE_ELASTICITY ; }
+        if( type == "PURE_VISCOSITY") { return PURE_VISCOSITY ; }
+        if( type == "KELVIN_VOIGT") { return KELVIN_VOIGT ; }
+        if( type == "MAXWELL") { return MAXWELL ; }
+        if( type == "BURGER") { return BURGER ; }
+        if( type == "GENERALIZED_KELVIN_VOIGT") { return GENERALIZED_KELVIN_VOIGT ; }
+        if( type == "GENERALIZED_MAXWELL") { return GENERALIZED_MAXWELL ; }
+        if( type == "GENERAL_VISCOELASTICITY") { return GENERAL_VISCOELASTICITY ; }
+        if(ok) { *ok = false ; }
+        return PURE_ELASTICITY ;
+    }
+   
+    // parsed from header file: ../physics/viscoelasticity.h
+    static CreepComplianceModel getCreepComplianceModel(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "LOGPOWER_CREEP") { return LOGPOWER_CREEP ; }
+        if( type == "ACI_CREEP") { return ACI_CREEP ; }
+        if( type == "CEB_CREEP") { return CEB_CREEP ; }
+        if( type == "B3_DRYING_CREEP") { return B3_DRYING_CREEP ; }
+        if( type == "JSCE_CREEP") { return JSCE_CREEP ; }
+        if( type == "FIB_CREEP") { return FIB_CREEP ; }
+        if(ok) { *ok = false ; }
+        return LOGPOWER_CREEP ;
+    }
+   
+    // parsed from header file: ../physics/finite_difference_viscoelasticity.h
+    static ViscoelasticFiniteDifferenceIntegration getViscoelasticFiniteDifferenceIntegration(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "FORWARD_EULER") { return FORWARD_EULER ; }
+        if( type == "BACKWARD_EULER") { return BACKWARD_EULER ; }
+        if( type == "CENTRAL_DIFFERENCE") { return CENTRAL_DIFFERENCE ; }
+        if( type == "NEWMARK") { return NEWMARK ; }
+        if( type == "ZIENKIEWICZ") { return ZIENKIEWICZ ; }
+        if(ok) { *ok = false ; }
+        return FORWARD_EULER ;
+    }
+   
+    // parsed from header file: ../physics/damagemodels/damagemodel.h
+    static ConvergenceType getConvergenceType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "DISSIPATIVE") { return DISSIPATIVE ; }
+        if( type == "CONSERVATIVE") { return CONSERVATIVE ; }
+        if(ok) { *ok = false ; }
+        return DISSIPATIVE ;
+    }
+   
+    // parsed from header file: ../polynomial/vm_function_base.h
+    static PositionTokenType getPositionTokenType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "POSITION_TOKEN") { return POSITION_TOKEN ; }
+        if( type == "PROJECTION_TOKEN") { return PROJECTION_TOKEN ; }
+        if(ok) { *ok = false ; }
+        return POSITION_TOKEN ;
+    }
+   
+    // parsed from header file: ../polynomial/vm_function_base.h
+    static TemporayUsageType getTemporayUsageType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "NO_TEMPORARY") { return NO_TEMPORARY ; }
+        if( type == "SET_TEMPORARY") { return SET_TEMPORARY ; }
+        if( type == "SET_GET_TEMPORARY_A") { return SET_GET_TEMPORARY_A ; }
+        if( type == "SET_GET_TEMPORARY_B") { return SET_GET_TEMPORARY_B ; }
+        if( type == "GET_TEMPORARY_A") { return GET_TEMPORARY_A ; }
+        if( type == "GET_TEMPORARY_B") { return GET_TEMPORARY_B ; }
+        if(ok) { *ok = false ; }
+        return NO_TEMPORARY ;
+    }
+   
+    // parsed from header file: ../polynomial/vm_token.h
+    static TokenOperationType getTokenOperationType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "TOKEN_OPERATION_CONSTANT") { return TOKEN_OPERATION_CONSTANT ; }
+        if( type == "TOKEN_OPERATION_X") { return TOKEN_OPERATION_X ; }
+        if( type == "TOKEN_OPERATION_Y") { return TOKEN_OPERATION_Y ; }
+        if( type == "TOKEN_OPERATION_Z") { return TOKEN_OPERATION_Z ; }
+        if( type == "TOKEN_OPERATION_T") { return TOKEN_OPERATION_T ; }
+        if( type == "TOKEN_OPERATION_U") { return TOKEN_OPERATION_U ; }
+        if( type == "TOKEN_OPERATION_V") { return TOKEN_OPERATION_V ; }
+        if( type == "TOKEN_OPERATION_W") { return TOKEN_OPERATION_W ; }
+        if( type == "TOKEN_OPERATION_PLUS") { return TOKEN_OPERATION_PLUS ; }
+        if( type == "TOKEN_OPERATION_INPLACE_PLUS") { return TOKEN_OPERATION_INPLACE_PLUS ; }
+        if( type == "TOKEN_OPERATION_MINUS") { return TOKEN_OPERATION_MINUS ; }
+        if( type == "TOKEN_OPERATION_INPLACE_MINUS") { return TOKEN_OPERATION_INPLACE_MINUS ; }
+        if( type == "TOKEN_OPERATION_TIMES") { return TOKEN_OPERATION_TIMES ; }
+        if( type == "TOKEN_OPERATION_INPLACE_TIMES") { return TOKEN_OPERATION_INPLACE_TIMES ; }
+        if( type == "TOKEN_OPERATION_DIVIDES") { return TOKEN_OPERATION_DIVIDES ; }
+        if( type == "TOKEN_OPERATION_INPLACE_DIVIDES") { return TOKEN_OPERATION_INPLACE_DIVIDES ; }
+        if( type == "TOKEN_OPERATION_POWER") { return TOKEN_OPERATION_POWER ; }
+        if( type == "TOKEN_OPERATION_INPLACE_POWER") { return TOKEN_OPERATION_INPLACE_POWER ; }
+        if( type == "TOKEN_OPERATION_ABS") { return TOKEN_OPERATION_ABS ; }
+        if( type == "TOKEN_OPERATION_INPLACE_ABS") { return TOKEN_OPERATION_INPLACE_ABS ; }
+        if( type == "TOKEN_OPERATION_COS") { return TOKEN_OPERATION_COS ; }
+        if( type == "TOKEN_OPERATION_INPLACE_COS") { return TOKEN_OPERATION_INPLACE_COS ; }
+        if( type == "TOKEN_OPERATION_SIN") { return TOKEN_OPERATION_SIN ; }
+        if( type == "TOKEN_OPERATION_INPLACE_SIN") { return TOKEN_OPERATION_INPLACE_SIN ; }
+        if( type == "TOKEN_OPERATION_TAN") { return TOKEN_OPERATION_TAN ; }
+        if( type == "TOKEN_OPERATION_INPLACE_TAN") { return TOKEN_OPERATION_INPLACE_TAN ; }
+        if( type == "TOKEN_OPERATION_COSH") { return TOKEN_OPERATION_COSH ; }
+        if( type == "TOKEN_OPERATION_INPLACE_COSH") { return TOKEN_OPERATION_INPLACE_COSH ; }
+        if( type == "TOKEN_OPERATION_SINH") { return TOKEN_OPERATION_SINH ; }
+        if( type == "TOKEN_OPERATION_INPLACE_SINH") { return TOKEN_OPERATION_INPLACE_SINH ; }
+        if( type == "TOKEN_OPERATION_TANH") { return TOKEN_OPERATION_TANH ; }
+        if( type == "TOKEN_OPERATION_INPLACE_TANH") { return TOKEN_OPERATION_INPLACE_TANH ; }
+        if( type == "TOKEN_OPERATION_EXP") { return TOKEN_OPERATION_EXP ; }
+        if( type == "TOKEN_OPERATION_INPLACE_EXP") { return TOKEN_OPERATION_INPLACE_EXP ; }
+        if( type == "TOKEN_OPERATION_SIGN") { return TOKEN_OPERATION_SIGN ; }
+        if( type == "TOKEN_OPERATION_INPLACE_SIGN") { return TOKEN_OPERATION_INPLACE_SIGN ; }
+        if( type == "TOKEN_OPERATION_POSITIVITY") { return TOKEN_OPERATION_POSITIVITY ; }
+        if( type == "TOKEN_OPERATION_INPLACE_POSITIVITY") { return TOKEN_OPERATION_INPLACE_POSITIVITY ; }
+        if( type == "TOKEN_OPERATION_NEGATIVITY") { return TOKEN_OPERATION_NEGATIVITY ; }
+        if( type == "TOKEN_OPERATION_INPLACE_NEGATIVITY") { return TOKEN_OPERATION_INPLACE_NEGATIVITY ; }
+        if( type == "TOKEN_OPERATION_LOG") { return TOKEN_OPERATION_LOG ; }
+        if( type == "TOKEN_OPERATION_INPLACE_LOG") { return TOKEN_OPERATION_INPLACE_LOG ; }
+        if( type == "TOKEN_OPERATION_SQRT") { return TOKEN_OPERATION_SQRT ; }
+        if( type == "TOKEN_OPERATION_INPLACE_SQRT") { return TOKEN_OPERATION_INPLACE_SQRT ; }
+        if( type == "TOKEN_OPERATION_BESSEL") { return TOKEN_OPERATION_BESSEL ; }
+        if( type == "TOKEN_OPERATION_INPLACE_BESSEL") { return TOKEN_OPERATION_INPLACE_BESSEL ; }
+        if( type == "TOKEN_OPERATION_ATAN2") { return TOKEN_OPERATION_ATAN2 ; }
+        if( type == "TOKEN_OPERATION_INPLACE_ATAN2") { return TOKEN_OPERATION_INPLACE_ATAN2 ; }
+        if( type == "TOKEN_OPERATION_INTERPOLATE") { return TOKEN_OPERATION_INTERPOLATE ; }
+        if( type == "TOKEN_OPERATION_INPLACE_INTERPOLATE") { return TOKEN_OPERATION_INPLACE_INTERPOLATE ; }
+        if( type == "TOKEN_OPERATION_GEO_OPERATION") { return TOKEN_OPERATION_GEO_OPERATION ; }
+        if(ok) { *ok = false ; }
+        return TOKEN_OPERATION_CONSTANT ;
+    }
+   
+    // parsed from header file: ../polynomial/variable.h
+    static Variable getVariable(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "ONE") { return ONE ; }
+        if( type == "XI") { return XI ; }
+        if( type == "ETA") { return ETA ; }
+        if( type == "ZETA") { return ZETA ; }
+        if( type == "TIME_VARIABLE") { return TIME_VARIABLE ; }
+        if( type == "U_VARIABLE") { return U_VARIABLE ; }
+        if( type == "V_VARIABLE") { return V_VARIABLE ; }
+        if( type == "W_VARIABLE") { return W_VARIABLE ; }
+        if(ok) { *ok = false ; }
+        return ONE ;
+    }
+   
+    // parsed from header file: ../polynomial/typeref.h
+    static TypeRef getTypeRef(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "ZERO_TO_ONE") { return ZERO_TO_ONE ; }
+        if( type == "MIN_ONE_TO_ONE") { return MIN_ONE_TO_ONE ; }
+        if(ok) { *ok = false ; }
+        return ZERO_TO_ONE ;
+    }
+   
+    // parsed from header file: ../solvers/assembly.h
+    static LagrangeMultiplierType getLagrangeMultiplierType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "GENERAL") { return GENERAL ; }
+        if( type == "FIX_ALONG_ALL") { return FIX_ALONG_ALL ; }
+        if( type == "FIX_ALONG_XI") { return FIX_ALONG_XI ; }
+        if( type == "SET_ALONG_XI") { return SET_ALONG_XI ; }
+        if( type == "INCREMENT_ALONG_XI") { return INCREMENT_ALONG_XI ; }
+        if( type == "FIX_ALONG_ETA") { return FIX_ALONG_ETA ; }
+        if( type == "SET_ALONG_ETA") { return SET_ALONG_ETA ; }
+        if( type == "INCREMENT_ALONG_ETA") { return INCREMENT_ALONG_ETA ; }
+        if( type == "FIX_ALONG_ZETA") { return FIX_ALONG_ZETA ; }
+        if( type == "SET_ALONG_ZETA") { return SET_ALONG_ZETA ; }
+        if( type == "INCREMENT_ALONG_ZETA") { return INCREMENT_ALONG_ZETA ; }
+        if( type == "FIX_ALONG_XI_ETA") { return FIX_ALONG_XI_ETA ; }
+        if( type == "SET_ALONG_XI_ETA") { return SET_ALONG_XI_ETA ; }
+        if( type == "INCREMENT_ALONG_XI_ETA") { return INCREMENT_ALONG_XI_ETA ; }
+        if( type == "FIX_ALONG_XI_ZETA") { return FIX_ALONG_XI_ZETA ; }
+        if( type == "SET_ALONG_XI_ZETA") { return SET_ALONG_XI_ZETA ; }
+        if( type == "INCREMENT_ALONG_XI_ZETA") { return INCREMENT_ALONG_XI_ZETA ; }
+        if( type == "FIX_ALONG_ETA_ZETA") { return FIX_ALONG_ETA_ZETA ; }
+        if( type == "SET_ALONG_ETA_ZETA") { return SET_ALONG_ETA_ZETA ; }
+        if( type == "INCREMENT_ALONG_ETA_ZETA") { return INCREMENT_ALONG_ETA_ZETA ; }
+        if( type == "FIX_ALONG_INDEXED_AXIS") { return FIX_ALONG_INDEXED_AXIS ; }
+        if( type == "SET_ALONG_INDEXED_AXIS") { return SET_ALONG_INDEXED_AXIS ; }
+        if( type == "INCREMENT_ALONG_INDEXED_AXIS") { return INCREMENT_ALONG_INDEXED_AXIS ; }
+        if( type == "SET_PROPORTIONAL_DISPLACEMENT") { return SET_PROPORTIONAL_DISPLACEMENT ; }
+        if( type == "SET_PROPORTIONAL_DISPLACEMENT_XI_ETA") { return SET_PROPORTIONAL_DISPLACEMENT_XI_ETA ; }
+        if( type == "SET_PROPORTIONAL_DISPLACEMENT_XI_ZETA") { return SET_PROPORTIONAL_DISPLACEMENT_XI_ZETA ; }
+        if( type == "SET_PROPORTIONAL_DISPLACEMENT_ETA_XI") { return SET_PROPORTIONAL_DISPLACEMENT_ETA_XI ; }
+        if( type == "SET_PROPORTIONAL_DISPLACEMENT_ETA_ZETA") { return SET_PROPORTIONAL_DISPLACEMENT_ETA_ZETA ; }
+        if( type == "SET_PROPORTIONAL_DISPLACEMENT_ZETA_XI") { return SET_PROPORTIONAL_DISPLACEMENT_ZETA_XI ; }
+        if( type == "SET_PROPORTIONAL_DISPLACEMENT_ZETA_ETA") { return SET_PROPORTIONAL_DISPLACEMENT_ZETA_ETA ; }
+        if( type == "FIX_NORMAL_DISPLACEMENT") { return FIX_NORMAL_DISPLACEMENT ; }
+        if( type == "FIX_TANGENT_DISPLACEMENT") { return FIX_TANGENT_DISPLACEMENT ; }
+        if( type == "SET_NORMAL_DISPLACEMENT") { return SET_NORMAL_DISPLACEMENT ; }
+        if( type == "SET_TANGENT_DISPLACEMENT") { return SET_TANGENT_DISPLACEMENT ; }
+        if( type == "SET_FORCE_XI") { return SET_FORCE_XI ; }
+        if( type == "SET_FORCE_ETA") { return SET_FORCE_ETA ; }
+        if( type == "SET_FORCE_ZETA") { return SET_FORCE_ZETA ; }
+        if( type == "SET_FORCE_INDEXED_AXIS") { return SET_FORCE_INDEXED_AXIS ; }
+        if( type == "SET_FLUX_XI") { return SET_FLUX_XI ; }
+        if( type == "SET_FLUX_ETA") { return SET_FLUX_ETA ; }
+        if( type == "SET_FLUX_ZETA") { return SET_FLUX_ZETA ; }
+        if( type == "SET_VOLUMIC_STRESS_XI") { return SET_VOLUMIC_STRESS_XI ; }
+        if( type == "SET_VOLUMIC_STRESS_ETA") { return SET_VOLUMIC_STRESS_ETA ; }
+        if( type == "SET_VOLUMIC_STRESS_ZETA") { return SET_VOLUMIC_STRESS_ZETA ; }
+        if( type == "SET_STRESS_XI") { return SET_STRESS_XI ; }
+        if( type == "SET_STRESS_ETA") { return SET_STRESS_ETA ; }
+        if( type == "SET_STRESS_ZETA") { return SET_STRESS_ZETA ; }
+        if( type == "SET_NORMAL_STRESS") { return SET_NORMAL_STRESS ; }
+        if( type == "SET_TANGENT_STRESS") { return SET_TANGENT_STRESS ; }
+        if( type == "VERTICAL_PLANE_SECTIONS") { return VERTICAL_PLANE_SECTIONS ; }
+        if( type == "HORIZONTAL_PLANE_SECTIONS") { return HORIZONTAL_PLANE_SECTIONS ; }
+        if( type == "nullptr_CONDITION") { return nullptr_CONDITION ; }
+        if( type == "SET_GLOBAL_FORCE_VECTOR") { return SET_GLOBAL_FORCE_VECTOR ; }
+        if(ok) { *ok = false ; }
+        return GENERAL ;
+    }
+   
+    // parsed from header file: ../utilities/writer/voxel_writer.h
+    static VWFieldType getVWFieldType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "VWFT_PRINCIPAL_ANGLE") { return VWFT_PRINCIPAL_ANGLE ; }
+        if( type == "VWFT_STIFFNESS") { return VWFT_STIFFNESS ; }
+        if( type == "VWFT_STRAIN") { return VWFT_STRAIN ; }
+        if( type == "VWFT_STRESS") { return VWFT_STRESS ; }
+        if( type == "VWFT_PRINCIPAL_STRAIN") { return VWFT_PRINCIPAL_STRAIN ; }
+        if( type == "VWFT_PRINCIPAL_STRESS") { return VWFT_PRINCIPAL_STRESS ; }
+        if( type == "VWFT_STRAIN_AND_STRESS") { return VWFT_STRAIN_AND_STRESS ; }
+        if( type == "VWFT_CONCENTRATION") { return VWFT_CONCENTRATION ; }
+        if( type == "VWFT_GRADIENT") { return VWFT_GRADIENT ; }
+        if( type == "VWFT_FLUX") { return VWFT_FLUX ; }
+        if( type == "VWFT_GRADIENT_AND_FLUX") { return VWFT_GRADIENT_AND_FLUX ; }
+        if( type == "VWFT_VON_MISES") { return VWFT_VON_MISES ; }
+        if( type == "VWFT_ENRICHEMENT") { return VWFT_ENRICHEMENT ; }
+        if( type == "VWFT_DAMAGE") { return VWFT_DAMAGE ; }
+        if(ok) { *ok = false ; }
+        return VWFT_PRINCIPAL_ANGLE ;
+    }
+   
+    // parsed from header file: ../utilities/writer/triangle_writer.h
+    static TWFieldType getTWFieldType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "TWFT_COORDINATE") { return TWFT_COORDINATE ; }
+        if( type == "TWFT_DISPLACEMENTS") { return TWFT_DISPLACEMENTS ; }
+        if( type == "TWFT_SCALAR") { return TWFT_SCALAR ; }
+        if( type == "TWFT_DOH") { return TWFT_DOH ; }
+        if( type == "TWFT_PRINCIPAL_ANGLE") { return TWFT_PRINCIPAL_ANGLE ; }
+        if( type == "TWFT_TRIANGLE_ANGLE") { return TWFT_TRIANGLE_ANGLE ; }
+        if( type == "TWFT_CRACK_ANGLE") { return TWFT_CRACK_ANGLE ; }
+        if( type == "TWFT_CRITERION") { return TWFT_CRITERION ; }
+        if( type == "TWFT_STIFFNESS") { return TWFT_STIFFNESS ; }
+        if( type == "TWFT_VISCOSITY") { return TWFT_VISCOSITY ; }
+        if( type == "TWFT_STIFFNESS_X") { return TWFT_STIFFNESS_X ; }
+        if( type == "TWFT_STIFFNESS_Y") { return TWFT_STIFFNESS_Y ; }
+        if( type == "TWFT_STIFFNESS_Z") { return TWFT_STIFFNESS_Z ; }
+        if( type == "TWFT_ENRICHMENT") { return TWFT_ENRICHMENT ; }
+        if( type == "TWFT_IMPOSED_STRESS_NORM") { return TWFT_IMPOSED_STRESS_NORM ; }
+        if( type == "TWFT_PRINCIPAL_STRESS") { return TWFT_PRINCIPAL_STRESS ; }
+        if( type == "TWFT_PRINCIPAL_STRAIN") { return TWFT_PRINCIPAL_STRAIN ; }
+        if( type == "TWFT_DAMAGE") { return TWFT_DAMAGE ; }
+        if( type == "TWFT_GRADIENT") { return TWFT_GRADIENT ; }
+        if( type == "TWFT_FLUX") { return TWFT_FLUX ; }
+        if( type == "TWFT_GRADIENT_AND_FLUX") { return TWFT_GRADIENT_AND_FLUX ; }
+        if( type == "TWFT_VON_MISES") { return TWFT_VON_MISES ; }
+        if( type == "TWFT_CRACKS") { return TWFT_CRACKS ; }
+        if( type == "TWFT_INTERSECTION") { return TWFT_INTERSECTION ; }
+        if( type == "TWFT_FIELD_TYPE") { return TWFT_FIELD_TYPE ; }
+        if( type == "TWFT_INTERNAL_VARIABLE") { return TWFT_INTERNAL_VARIABLE ; }
+        if(ok) { *ok = false ; }
+        return TWFT_COORDINATE ;
+    }
+   
+    // parsed from header file: ../utilities/granulo.h
+    static TypeInclusion getTypeInclusion(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "CIRCLE_INCLUSION") { return CIRCLE_INCLUSION ; }
+        if( type == "SPHERE_INCLUSION") { return SPHERE_INCLUSION ; }
+        if( type == "ELLIPSE_INCLUSION") { return ELLIPSE_INCLUSION ; }
+        if(ok) { *ok = false ; }
+        return CIRCLE_INCLUSION ;
+    }
+   
+    // parsed from header file: ../utilities/granulo.h
+    static PSDSpecificationType getPSDSpecificationType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "CUMULATIVE_PERCENT") { return CUMULATIVE_PERCENT ; }
+        if( type == "CUMULATIVE_FRACTION") { return CUMULATIVE_FRACTION ; }
+        if( type == "CUMULATIVE_ABSOLUTE") { return CUMULATIVE_ABSOLUTE ; }
+        if( type == "CUMULATIVE_PERCENT_REVERSE") { return CUMULATIVE_PERCENT_REVERSE ; }
+        if( type == "CUMULATIVE_FRACTION_REVERSE") { return CUMULATIVE_FRACTION_REVERSE ; }
+        if( type == "CUMULATIVE_ABSOLUTE_REVERSE") { return CUMULATIVE_ABSOLUTE_REVERSE ; }
+        if(ok) { *ok = false ; }
+        return CUMULATIVE_PERCENT ;
+    }
+   
+    // parsed from header file: ../utilities/tensor.h
+    static planeType getplaneType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "PLANE_STRESS") { return PLANE_STRESS ; }
+        if( type == "PLANE_STRAIN") { return PLANE_STRAIN ; }
+        if( type == "PLANE_STRESS_FREE_G") { return PLANE_STRESS_FREE_G ; }
+        if(ok) { *ok = false ; }
+        return PLANE_STRESS ;
+    }
+   
+
+} ;
+
+}
+
+#endif // __ENUMERATION_TRANSLATOR_H__
