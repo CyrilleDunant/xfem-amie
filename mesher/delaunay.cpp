@@ -2802,16 +2802,13 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
         return *getCachedGaussPoints() ;
     }
     
-    const GaussPointArray & gp = getGaussPoints() ;
     size_t numberOfRefinements = 0 ;
     if(getEnrichmentFunctions().size() > getBoundingPoints().size())
         numberOfRefinements = 4 ;
     VirtualMachine vm ;
     if(getEnrichmentFunctions().size() > 0)
     {
-        double originalSum = 0 ;
-        for(auto & i : gp.gaussPoints)
-            originalSum += i.second ;
+
         std::vector<std::pair<Point, double> > gp_alternative ;
         if( order >= CONSTANT_TIME_LINEAR )
         {
@@ -2868,13 +2865,21 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
             }
 
+            double originalSum = 0 ;
+            for(auto & i : getGaussPoints().gaussPoints)
+                originalSum += i.second ;
             for(size_t i = 0 ; i < gp_alternative.size() ; i++)
             {
                 gp_alternative[i].second *= originalSum/fsum ;
             }
 
             delete dt ;
-
+            if(cachedGps)
+                *cachedGps = gp_alternative ;
+            else
+                cachedGps = new GaussPointArray(gp_alternative) ;
+            cachedGps->getId() = REGULAR_GRID ;      
+            return *getCachedGaussPoints();
 
         }
         else
@@ -2919,7 +2924,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 Function x = tri[i]->getXTransform() ;
                 Function y = tri[i]->getYTransform() ;
                
-                GaussPointArray gp_temp(monteCarloGaussPoints(32, tri[i])) ;
+                GaussPointArray gp_temp(monteCarloGaussPoints(128, tri[i])) ;
 
                 for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
                 {
@@ -2930,7 +2935,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             }
             
             if(tri.size() == 0)
-                gp_alternative = monteCarloGaussPoints(128, this) ;
+                gp_alternative = monteCarloGaussPoints(1024, this) ;
 
             delete dt ;
 
@@ -2961,7 +2966,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
     }
 
 
-    setCachedGaussPoints(new GaussPointArray(gp));
+    setCachedGaussPoints(new GaussPointArray(getGaussPoints()));
     return *getCachedGaussPoints();
 }
 

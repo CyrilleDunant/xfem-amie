@@ -133,21 +133,22 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
 
 int main( int argc, char *argv[] )
 {
-
-    int nzones = atof( argv[1] ) ;
-    double dmax = atof( argv[2] ) ;
-    double fact = atof( argv[3] ) ;
-    double fact0 = atof(argv[4]) ;
-
     double restraintDepth = 0.01 ;
+
+    int nzones   = atof( argv[1] )  ;
+    double dmax  = atof( argv[2] )  ;
+    double fact  = atof( argv[3] )*2.*restraintDepth/basesize  ;
+    double fact0 = atof( argv[4] )*2.*restraintDepth/basesize  ;
+
+    
 
     Sample sample( nullptr, basesize + restraintDepth, basesize + restraintDepth, 0, 0 ) ;
 
     FeatureTree F( &sample ) ;
     featureTree = &F ;
 
-    double itzSize = 0.00002;
-    int inclusionNumber = 3000 ;
+    double itzSize = 0.00002 ;
+    int inclusionNumber = /*1;*/ 3000 ;
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
 
@@ -161,87 +162,98 @@ int main( int argc, char *argv[] )
         volume += feats[i]->area() ;
 
     if( !feats.empty() )
-        std::cout << "n = " << feats.size() << ", largest r = " << feats.front()->getRadius() - itzSize
-                  << ", smallest r =" << feats.back()->getRadius() - itzSize << ", ratio = " << (feats.front()->getRadius() - itzSize) / (feats.back()->getRadius() - itzSize) <<std::endl ;
+        std::cout << "n = " << feats.size() 
+                  << ", largest r = " <<  feats.front()->getRadius() - itzSize
+                  << ", smallest r =" <<  feats.back()->getRadius()  - itzSize 
+                  << ", ratio = "     << (feats.front()->getRadius() - itzSize) / (feats.back()->getRadius() - itzSize) <<std::endl ;
 
     sample.setBehaviour( new PasteBehaviour()) ;
 
     std::vector<Feature *> blocks ;
 
-    Sample *voidtop = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().getX() - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + 0.0025 ) ;
-    voidtop->isVirtualFeature = true ;
+    Sample *voidtop = new Sample( nullptr, restraintDepth * .5, 
+                                           restraintDepth * .5, 
+                                           sample.getCenter().getX() - ( sample.width()  - restraintDepth )*.5 - restraintDepth * .25, 
+                                           sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25) ;
+//     voidtop->isVirtualFeature = true ;
     voidtop->setBehaviour( new VoidForm() );
     F.addFeature( &sample, voidtop );
 
-    Sample *voidbottom = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().getX() - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - 0.0025 ) ;
-    voidbottom->isVirtualFeature = true ;
+    Sample *voidbottom = new Sample( nullptr, restraintDepth * .5, 
+                                              restraintDepth * .5, 
+                                              sample.getCenter().getX() - ( sample.width()  - restraintDepth )*.5 - restraintDepth * .25, 
+                                              sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
+//     voidbottom->isVirtualFeature = true ;
     voidbottom->setBehaviour( new VoidForm() );
     F.addFeature( &sample, voidbottom );
 
-    Sample *voidleft = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + 0.0025 ) ;
-    voidleft->isVirtualFeature = true ;
+    Sample *voidleft = new Sample( nullptr, restraintDepth * .5, 
+                                            restraintDepth * .5, 
+                                            sample.getCenter().getX() + ( sample.width()  - restraintDepth )*.5 + restraintDepth * .25, 
+                                            sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
+//     voidleft->isVirtualFeature = true ;
     voidleft->setBehaviour( new VoidForm() );
     F.addFeature( &sample, voidleft );
 
-    Sample *voidright = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - 0.0025 ) ;
-    voidright->isVirtualFeature = true ;
+    Sample *voidright = new Sample( nullptr, restraintDepth * .5, 
+                                             restraintDepth * .5, 
+                                             sample.getCenter().getX() + ( sample.width()  - restraintDepth )*.5 + restraintDepth * .25, 
+                                             sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
+//     voidright->isVirtualFeature = true ;
     voidright->setBehaviour( new VoidForm() );
     F.addFeature( &sample, voidright );
 
-    //width are  1100000000 3340000000  4360000000      done: 11 13 10 20 12
-    //length are 1220000000 2180000000  3400000000      next: 12
+    //width are  1100000000 3340000000  4360000000      done: 
+    //length are 1220000000 2180000000  3400000000      next: 
 
     Sample *blocktop = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
     if(fact0 > 10)
     {
-        blocktop->setBehaviour(new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  0.1, 0.) ) ;
+        blocktop->setBehaviour(new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  0.05, 0.) ) ;
         blocks.push_back(blocktop);
     }
     else
     {
-        blocktop->setBehaviour(new OrthotropicStiffness(100.*1e-4, fact0, 100.*1e-4*100./(100.+100.),  0.1, 0.) ) ;
+        blocktop->setBehaviour(new OrthotropicStiffness(100.*1e-4, fact0, 100.*1e-4*100./(100.+100.),  0.05, 0.) ) ;
         blocks.push_back(blocktop);
     }
-
     F.addFeature( &sample, blocktop );
 
     Sample *blockbottom = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
     if(fact0 > 10)
     {
-        blockbottom->setBehaviour(new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  0.1, 0.) ) ;
+        blockbottom->setBehaviour(new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  0.05, 0.) ) ;
         blocks.push_back(blockbottom);
     }
     else
     {
-        blockbottom->setBehaviour(new OrthotropicStiffness(100.*1e-4, 100., 100.*1e-4*100./(100.+100.),  0.1, 0.) ) ;
+        blockbottom->setBehaviour(new OrthotropicStiffness(100.*1e-4, 100., 100.*1e-4*100./(100.+100.),  0.05, 0.) ) ;
         blocks.push_back(blockbottom);
     }
-
     F.addFeature( &sample, blockbottom );
 
     Sample *blockleft = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().getX() - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().getY() ) ;
     if(fact > 10)
     {
-        blockleft->setBehaviour(new OrthotropicStiffness(fact, fact*1e-4, fact*1e-4*fact/(fact+fact),  0.1, 0.) ) ;
+        blockleft->setBehaviour(new OrthotropicStiffness(fact, fact*1e-4, fact*1e-4*fact/(fact+fact),  0.05, 0.) ) ;
         blocks.push_back(blockleft);
     }
     else
     {
-        blockleft->setBehaviour(new OrthotropicStiffness(100., 100.*1e-4, 100.*1e-4*100./(100.+100.),  0.1, 0.) ) ;
+        blockleft->setBehaviour(new OrthotropicStiffness(100., 100.*1e-4, 100.*1e-4*100./(100.+100.),  0.05, 0.) ) ;
         blocks.push_back(blockleft);
     }
-
     F.addFeature( &sample, blockleft );
 
     Sample *blockright = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().getY() ) ;
     if(fact > 10)
     {
-        blockright->setBehaviour(new OrthotropicStiffness(fact, fact*1e-4, fact*1e-4*fact/(fact+fact),  0.1, 0.) ) ;
+        blockright->setBehaviour(new OrthotropicStiffness(fact, fact*1e-4, fact*1e-4*fact/(fact+fact),  0.05, 0.) ) ;
         blocks.push_back(blockright);
     }
     else
     {
-        blockright->setBehaviour(new OrthotropicStiffness(100., 100.*1e-4, 100.*1e-4*100./(100.+100.),  0.1, 0.)) ;
+        blockright->setBehaviour(new OrthotropicStiffness(100., 100.*1e-4, 100.*1e-4*100./(100.+100.),  0.05, 0.)) ;
         blocks.push_back(blockright);
     }
     F.addFeature( &sample, blockright );
@@ -252,6 +264,10 @@ int main( int argc, char *argv[] )
     {
         F.setSamplingFactor(feats[i], 4.);
         placed_area += feats[i]->area() ;
+    }
+    for( size_t i = 0 ; i < blocks.size() ; i++ )
+    {
+        F.setSamplingFactor(blocks[i], 4.);
     }
 
 
@@ -266,7 +282,7 @@ int main( int argc, char *argv[] )
 
     gelManager = new GelManager(&F, nzones/baseGeometry.area(), feats, 0.5) ;
     F.addManager(gelManager) ;
-    F.setSamplingNumber( 84 ) ;
+    F.setSamplingNumber( 92 ) ;
 
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , LEFT ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , RIGHT ) ) ;

@@ -697,33 +697,30 @@ void HatEnrichment::eval(double * a, double * b, double * c) const
     
     if(squareDist2D(t.getCircumCenter(), pmin) > squareDist2D(t.getCircumCenter(), intersgeo[1]))
         pmin = intersgeo[1] ;
-        
-    
-   
+
     double basis = dist(interseg, pmin) ;
     if(g->in(p) == g->in(position))
     { 
         double distTotPoint = dist(p, pmin);
-        if(distTotPoint < default_derivation_delta)
-        {
-            *c = basis*basis ;
-            return ;
-        }
+//         if(distTotPoint < default_derivation_delta/std::min(g->getRadius(), 0.5*dist(s.midPoint(), p)))
+//         {
+//             *c = basis ;
+//             return ;
+//         }
         double distPos = dist(position, p) ;
-        *c = basis*basis*distPos/distTotPoint ;
+        *c = basis*distPos/distTotPoint ;
         return ;
     }
     
     double distTotSeg = dist(interseg, pmin);   
-    if(distTotSeg < default_derivation_delta)
-    {
-        *c = basis*basis ;
-        return ;
-    }
-    
+//     if(distTotSeg < default_derivation_delta/std::min(g->getRadius(), 0.5*dist(s.midPoint(), p)))
+//     {
+//         *c = basis ;
+//         return ;
+//     }
     double distPos = dist(position, interseg) ;
     
-    *c =  basis*basis*distPos/distTotSeg ;
+    *c = basis*distPos/distTotSeg ;
 
 }
 
@@ -771,7 +768,7 @@ void HatEnrichmentDerivative::eval(double * a, double * b, double * c) const
     
     std::vector<Point> intersgeom = lm.intersection(g) ;
     std::vector<Point> intersgeop = lp.intersection(g) ;
-    if(intersgeom.size() < 2 || intersgeop.size() < 2 )
+    if( intersgeom.size() < 2 || intersgeop.size() < 2 )
     {
         *c = 0 ;
         return ;
@@ -785,41 +782,40 @@ void HatEnrichmentDerivative::eval(double * a, double * b, double * c) const
     
     Triangle t(p, s.first(), s.second()) ;
     
-    if(squareDist2D(t.getCircumCenter(), pminm) > squareDist2D(t.getCircumCenter(), intersgeom[1]))
+    if( squareDist2D(t.getCircumCenter(), pminm) > squareDist2D(t.getCircumCenter(), intersgeom[1]) )
         pminm = intersgeom[1] ;
-    if(squareDist2D(t.getCircumCenter(), pminp) > squareDist2D(t.getCircumCenter(), intersgeop[1]))
+    if( squareDist2D(t.getCircumCenter(), pminp) > squareDist2D(t.getCircumCenter(), intersgeop[1]) )
         pminp = intersgeop[1] ;
     
     double basis = dist((intersegm+intersegp)*.5, p) ;
 
     if(g->in(p) == g->in(position))
-    {
-            
+    {        
         double distTotmPoint = dist(p, pminm);
-        if(distTotmPoint < default_derivation_delta)
-        {
-            *c = 0 ;
-            return ;
-        }
+//         if(distTotmPoint < default_derivation_delta)
+//         {
+//             *c = 0 ;
+//             return ;
+//         }
         
         double distTotpPoint = dist(p, pminp);
         double distPosm = dist(positionm, p) ;
         double distPosp = dist(positionp, p) ;  
-        *c = basis*basis*0.5*(distPosp/distTotpPoint-distPosm/distTotmPoint)/d ;
+        *c = basis*0.5*(distPosp/distTotpPoint-distPosm/distTotmPoint)/d ;
 
         return ;
     }
     
     double distTotmSeg = dist(intersegm, pminm);
-    if(distTotmSeg < default_derivation_delta)
-    {
-        *c = 0 ;
-        return ;
-    }
+//     if(distTotmSeg < default_derivation_delta)
+//     {
+//         *c = 0 ;
+//         return ;
+//     }
     double distTotpSeg = dist(intersegp, pminp);                   
     double distPosm = dist(positionm, intersegm) ;
     double distPosp = dist(positionp, intersegp) ;
-    *c = basis*basis*0.5*(distPosp/distTotpSeg-distPosm/distTotmSeg)/d ;
+    *c = basis*0.5*(distPosp/distTotpSeg-distPosm/distTotmSeg)/d ;
     
 }
 
@@ -862,7 +858,7 @@ void HatEnrichment3D::eval(double * a, double * b, double * c) const
         {
             if(g->in(p) == g->in(position))
             {
-                double distTot =dist(p, intersgeo[i]) ;
+                double distTot = dist(p, intersgeo[i]) ;
                 double distPos = dist(position, p) ;
                 *a = distPos/distTot ;
                 return ;
