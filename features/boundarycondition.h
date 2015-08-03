@@ -29,7 +29,7 @@ protected:
     double scale ;
     bool active ;
     Function dataFunction ;
-    LinearInterpolatedExternalMaterialLaw * dataInterpolation ;
+    LinearInterpolatedExternalMaterialLaw * dataInterpolation = nullptr;
     int axis ;
     bool function ;
     std::vector<DelaunayTriangle *> cache2d ;
