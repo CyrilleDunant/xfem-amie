@@ -19,7 +19,7 @@ namespace Amie {
  *
 */
 
-struct LinearInterpolatedExternalMaterialLaw ;
+struct LinearInterpolatedMaterialLaw ;
 
 class BoundaryCondition
 {
@@ -29,7 +29,7 @@ protected:
     double scale ;
     bool active ;
     Function dataFunction ;
-    LinearInterpolatedExternalMaterialLaw * dataInterpolation = nullptr;
+    LinearInterpolatedMaterialLaw * dataInterpolation = nullptr ;
     int axis ;
     bool function ;
     std::vector<DelaunayTriangle *> cache2d ;
@@ -54,7 +54,7 @@ public:
         return data ;
     }
     
-    virtual void setInterpolation( LinearInterpolatedExternalMaterialLaw * inter ) ;
+    virtual void setInterpolation( LinearInterpolatedMaterialLaw * inter ) ;
 
     virtual void step(double relatime, double dt) ;
 

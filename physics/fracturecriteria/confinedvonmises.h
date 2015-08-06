@@ -20,6 +20,10 @@ namespace Amie {
 
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 */
+/*PARSE ConfinedVonMises FractureCriterion
+    @value[tensile_strength] // maximum stress in tension (positive)
+    @value[compressive_strength] // maximum stress in compression (negative)
+*/
 class ConfinedVonMises : public FractureCriterion
 {
 public:

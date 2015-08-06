@@ -24,6 +24,12 @@ namespace Amie
 /** \brief A linear Elastic Law
 * The field param is the Cauchy-Green Strain Tensor
 */
+/*PARSE Stiffness Form 
+    @value[young_modulus] // value of the Young modulus
+    @value[poisson_ratio] // value of the Poisson ratio
+    @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
+    @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+ */
 struct Stiffness : public LinearForm
 {
     std::vector<Variable> v ;
@@ -32,6 +38,7 @@ struct Stiffness : public LinearForm
     * @param rig Complete expression of the Cauchy-Green Strain Tensor
     */
     Stiffness(const Matrix & rig) ;
+    Stiffness(double E, double nu, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS) ;
 
     virtual ~Stiffness() ;
 

@@ -39,6 +39,7 @@
 #include "../physics/fracturecriteria/mazars.h"
 #include "../physics/fracturecriteria/nonlocalvonmises.h"
 #include "enumeration_translator.h"
+#include "object_translator.h"
 #include "writer/triangle_writer.h"
 #include "parser.h"
 #include "iostream"
@@ -474,30 +475,6 @@ Sample * ConfigTreeItem::getSample(std::vector<ExternalMaterialLaw *> common)
     return ret ;
 }
 
-Matrix ConfigTreeItem::getStiffnessMatrix(SpaceDimensionality dim, planeType pt) const
-{
-    if(hasChild("bulk_modulus"))
-    {
-        double k = getData("bulk_modulus",1e9) ;
-        double mu = getData("shear_modulus", 1e9) ;
-        return Tensor::cauchyGreen( k, mu, false, dim, pt) ;
-    } else {
-        double E = getData("young_modulus",1e9) ;
-        double nu = getData("poisson_ratio", 0.2) ;
-        return Tensor::cauchyGreen( E, nu, true, dim, pt) ;
-    }
-}
-
-Vector ConfigTreeItem::getImposedDeformation(SpaceDimensionality dim) const
-{
-    double alpha = getData("imposed_deformation", 0.) ;
-    Vector imp(3+3*(dim == SPACE_THREE_DIMENSIONAL)) ;
-    imp = 0 ;
-    for(size_t i = 0 ; i < 2+(dim == SPACE_THREE_DIMENSIONAL) ; i++)
-        imp[i] = alpha ;
-    return imp ;
-}
-
 Function ConfigTreeItem::getFunction() const
 {
     std::string function = getStringData() ;
@@ -540,150 +517,6 @@ std::vector<double> ConfigTreeItem::readLineAsStdVector(std::string line, char s
     }
     v.push_back( atof( next.c_str() ) ) ;
     return v ;
-}
-
-VariableDependentExternalMaterialLaw * ConfigTreeItem::getVariableDependentExternalMaterialLaw(std::map<std::string, std::string> alias) const 
-{
-    std::string full = getStringData() ;
-    if(full.length() == 0 && FunctionParserHelper::isOperator( label[label.length()-1] ) )
-    {
-        std::stringstream stream ;
-        stream << std::fixed << std::setprecision(16) << getData() ;
-        full = stream.str() ;
-    }
-
-    std::vector<std::string> list = FunctionParser::breakString( full ) ;
-    if(list.size() == 0)
-        return nullptr ;
-    std::valarray<bool> free(7) ; free = true ;
-    std::vector<std::string> unknown ;
-    std::vector<double> dummy ;
-    std::string build ;
-    for(size_t i = 0 ; i < list.size() ; i++)
-    {
-        std::string test = list[i] ;
-        if(test[0] == '-' && test.size() > 1)
-            test = list[i].substr(1) ;
-
-        if( alias.find( test ) != alias.end())
-            test = alias[test] ;
-
-        build.append( test ) ;
-        if(i != list.size()-1)
-            build.append(" ") ;
-
-        if(FunctionParserHelper::isNumeral( test[0] ) || FunctionParserHelper::isOperator( test[0] ) || FunctionParserHelper::isBracket( test[0] ))
-            continue ;
-
-        if(test == "x")
-            free[0] = false ;
-        else if(test == "y")
-            free[1] = false ;
-        else if(test == "z")
-            free[2] = false ;
-        else if(test == "t")
-            free[3] = false ;
-        else if(test == "u")
-            free[4] = false ;
-        else if(test == "v")
-            free[5] = false ;
-        else if(test == "w")
-            free[6] = false ;
-
-        if( FunctionParserHelper::toToken( test, 0, dummy).first == TOKEN_OPERATION_W && test != "w" )
-            unknown.push_back( test ) ;
-    }
-
-    size_t count_free = 0 ;
-    for(size_t i = 0 ; i < free.size() ; i++)
-        count_free += free[i] ;
-
-    if(count_free >= unknown.size() || unknown.size() == 0)
-    {
-        std::map<std::string, char> coordinates ;
-        std::string var = "xyztuvw" ;
-        size_t j = 0 ;
-        for(size_t i = 0 ; i < unknown.size() ; i++)
-        {
-            while(!free[j])
-               j++ ;
-            coordinates[ unknown[i] ] = var[j] ;
-            j++ ;
-        }
-
-        Function f_ = FunctionParser::getFunction( build, coordinates ) ;
-        std::string output = label ;
-        EMLOperation op = Enum::getEMLOperation( getStringData("operation", "SET") ) ;
-        char last = label[label.length()-1] ;
-        if(last == '+')
-        {
-            op = ADD ;
-            output = label.substr(0, label.length()-1) ;
-        }
-        else if(last == '-')
-        {
-            op = SUBSTRACT ;
-            output = label.substr(0, label.length()-1) ;
-        }
-        else if(last == '*')
-        {
-            op = MULTIPLY ;
-            output = label.substr(0, label.length()-1) ;
-        }
-        else if(last == '/')
-        {
-            op = DIVIDE ;
-            output = label.substr(0, label.length()-1) ;
-        }
-
-        if(alias.find(output) != alias.end())
-            output = alias[output] ;
-
-        VariableDependentExternalMaterialLaw * ret = new VariableDependentExternalMaterialLaw( output, f_, op ) ;
-        if(unknown.size() > 0)
-        {
-            for(auto c = coordinates.begin() ; c != coordinates.end() ; c++)
-            {
-                if(c->second == 'x')
-                   ret->setAsX(c->first) ;
-                if(c->second == 'y')
-                   ret->setAsY(c->first) ;
-                if(c->second == 'z')
-                   ret->setAsZ(c->first) ;
-                if(c->second == 't')
-                   ret->setAsT(c->first) ;
-                if(c->second == 'u')
-                   ret->setAsU(c->first) ;
-                if(c->second == 'v')
-                   ret->setAsV(c->first) ;
-                if(c->second == 'w')
-                   ret->setAsW(c->first) ;
-            }
-        }
-        return ret ;
-
-    }
-    return nullptr ;
-}
-
-std::vector<ExternalMaterialLaw *> ConfigTreeItem::getExternalMaterialLaws(std::map<std::string, std::string> alias) const
-{
-    std::vector<ExternalMaterialLaw *> ret ;
-    for(size_t i = 0 ; i < children.size() ; i++)
-    {
-        if( children[i]->is("parameters") || children[i]->is("fracture_criterion") || children[i]->is("damage_model") )
-            continue ;
-
-        if( children[i]->is("material_law") )
-            ret.push_back( children[i]->getExternalMaterialLaw() ) ;
-        else
-        {
-            VariableDependentExternalMaterialLaw * test = children[i]->getVariableDependentExternalMaterialLaw(alias) ;
-            if(test != nullptr)
-                ret.push_back(test) ;
-        }
-    }
-    return ret ;
 }
 
 bool ConfigTreeItem::bindInput( std::vector<std::string> & callers ) 
@@ -757,1033 +590,141 @@ bool ConfigTreeItem::bindInput( std::vector<std::string> & callers )
 }
 
 
-ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
+ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw()
 {
-    ExternalMaterialLaw * ret = nullptr ;
-    std::string type = (str.length() > 0 ? str : getStringData("type","ABSTRACT")) ;
-    if(type == "ABSTRACT")
-        return ret ;
+    if(str.length() == 0 && !FunctionParserHelper::isOperator(label[label.size()-1]) )
+        return nullptr ; 
 
-    if(type == "THERMAL_EXPANSION")
+    std::map<std::string, std::string> strings ;
+    std::map<std::string, std::vector<std::string>> stringlists ;
+    std::map<std::string, double> values ;
+    strings["output"] = label ;
+    strings["operation"] = "SET" ;
+    if(label[label.size()-1] == '-')
+         strings["operation"] = "SUBSTRACT" ;
+    if(label[label.size()-1] == '+')
+         strings["operation"] = "ADD" ;
+    if(label[label.size()-1] == '*')
+         strings["operation"] = "MULTIPLY" ;
+    if(label[label.size()-1] == '/')
+         strings["operation"] = "DIVIDE" ;
+    if(strings["operation"] != "SET") 
     {
-        ret = new ThermalExpansionMaterialLaw("temperature = 293") ;
-        ret->setDefaultValue("temperature", getData("reference_temperature", 293)) ;
-        return ret ;
+         strings["output"] = label.substr(0, label.size()-1) ;
+         if(str.length() == 0)
+         {
+             std::stringstream stream ;
+             stream << std::fixed << std::setprecision(16) << data ;
+             str = stream.str() ;
+         }
     }
 
-    if(type == "RADIATION_DEPENDENT_THERMAL_EXPANSION_COEFFICIENT")
+    std::string type = "Eval" ;
+    if(str.find("(") < std::string::npos)
     {
-        return new RadiationDependentThermalExpansionCoefficientMaterialLaw() ;
-    }
-
-    if(type == "RADIATION_DEPENDENT_POISSON_RATIO")
-    {
-        return new RadiationDependentPoissonRatioMaterialLaw() ;
-    }
-
-    if(type == "ANISOTROPIC_THERMAL_EXPANSION")
-    {
-        ret = new AnisotropicThermalExpansionMaterialLaw("temperature = 293") ;
-        ret->setDefaultValue("temperature", getData("reference_temperature", 293)) ;
-        return ret ;
-    }
-
-    if(type == "INCREMENTAL_THERMAL_EXPANSION")
-    {
-        return new IncrementalThermalExpansionMaterialLaw() ;
-    }
-
-    if(type == "ANISOTROPIC_INCREMENTAL_THERMAL_EXPANSION")
-    {
-        return new AnisotropicIncrementalThermalExpansionMaterialLaw() ;
-    }
-
-    if(type == "RADIATION_INDUCED_VOLUMETRIC_EXPANSION")
-    {
-        return new RadiationInducedVolumetricExpansionMaterialLaw() ;
-    }
-
-    if(type == "TEMPERATURE_DEPENDENT_RADIATION_INDUCED_VOLUMETRIC_EXPANSION")
-    {
-        return new TemperatureDependentRadiationInducedVolumetricExpansionMaterialLaw() ;
-    }
-
-    if(type == "BET_ISOTHERM")
-    {
-        ret = new BETIsothermMaterialLaw() ;
-        return ret ;
-    }
-
-    if(type == "GET_PARTICLE_ORIENTATION")
-    {
-        std::string variable = getStringData("output_parameter","angle") ;
-        bool ortho = getStringData("orthogonal", "FALSE") == "TRUE";
-        ret = new GetParticleOrientationMaterialLaw(variable, ortho) ;
-        return ret ;
-    }
-
-    if(type == "BIEXPONENTIAL_ISOTHERM")
-    {
-        ret = new BiExponentialIsothermMaterialLaw() ;
-        return ret ;
-    }
-
-    if(type == "SORPTION_ISOTHERM_HYSTERESIS")
-    {
-        ExternalMaterialLaw * desorption = getChild("desorption")->getExternalMaterialLaw() ;
-        ExternalMaterialLaw * adsorption = getChild("adsorption")->getExternalMaterialLaw() ;
-        if(dynamic_cast<BETIsothermMaterialLaw *>(desorption))
-            dynamic_cast<BETIsothermMaterialLaw *>(desorption)->suffix = "_desorption" ;
-        if(dynamic_cast<BETIsothermMaterialLaw *>(adsorption))
-            dynamic_cast<BETIsothermMaterialLaw *>(adsorption)->suffix = "_adsorption" ;
-        ret = new SorptionIsothermHysteresisMaterialLaw(desorption, adsorption) ;
-        return ret ;
-    }
-
-    if(type == "CLAUSIUS_CLAPEYRON_RELATIVE_HUMIDITY")
-    {
-        ExternalMaterialLaw * bet = getChild("bet_reference")->getExternalMaterialLaw() ;
-        if(dynamic_cast<BETIsothermMaterialLaw *>(bet))
-            dynamic_cast<BETIsothermMaterialLaw *>(bet)->suffix = "_T1" ;
-        ret = new ClausiusClapeyronRelativeHumidityMaterialLaw(bet) ;
-        return ret ;
-    }
-
-    if(type == "WATER_VAPOUR_SATURATION_PRESSURE")
-    {
-        ret = new WaterVapourSaturationPressureMaterialLaw() ;
-        return ret ;
-    }
-
-    if(type == "DRYING_SHRINKAGE")
-    {
-        std::string input = getStringData("input_parameter", "relative_humidity") ;
-        double order = getData("order", 1.) ;
-        ret = new DryingShrinkageMaterialLaw(input, order) ;
-        ret->setDefaultValue(input+"_reference", getData("reference_"+input, 1.)) ;
-        return ret ;
-    }
-
-    if(type == "ADJUST_STRESS_STRAIN_CURVE")
-    {
-        ret = new AdjustStrainStressCurveMaterialLaw() ;
-        return ret ;
-    }
-
-    if(type == "EXPONENTIAL_DECREASE")
-    {
-        ret = new ExponentialDecayMaterialLaw( getStringData("output_parameter", "none"), getStringData("target", "none"), getStringData("coefficient","none")) ;
-        return ret ;
-    }
-
-    if(type == "LOAD_NONLINEAR_CREEP")
-    {
-        ret = new BazantLoadNonLinearCreepMaterialLaw() ;
-        return ret ;
-    }
-
-    if(type == "STORE_PREVIOUS_VALUE")
-    {
-        std::vector<std::string> input ;
-        std::vector<ConfigTreeItem *> cfg = getAllChildren("input_parameter") ;
-        for(size_t i = 0 ; i < cfg.size() ; i++)
-            input.push_back(cfg[i]->getStringData()) ;
-        std::string append = getStringData("append","_previous") ;
-        ret = new StorePreviousValueMaterialLaw( input, append ) ;
-        return ret ;
-    }
-
-    if(type == "ARRHENIUS")
-    {
-        std::string affected = getStringData("parameter_affected","none") ;
-        ret = new ArrheniusMaterialLaw(affected, "temperature = 293") ;
-        ret->setDefaultValue("temperature", getData("reference_temperature", 293)) ;
-        return ret ;
-    }
-
-    if(type == "STRAIN_RATE_DEPENDENT_STRENGTH")
-    {
-        double p = getData("exponent", 0.1) ;
-        double eps = getData("reference_strain_rate", 1e-2) ;
-        ret = new StrainRateDependentStrengthMaterialLaw(p, eps) ;
-        return ret ;
-    }
-
-    if(type == "CREEP_ARRHENIUS")
-    {
-        ret = new CreepArrheniusMaterialLaw("temperature = 293") ;
-        ret->setDefaultValue("temperature", getData("reference_temperature", 293)) ;
-        return ret ;
-    }
-
-    if(type == "CREEP_HUMIDITY_WITTMANN" || type == "CREEP_HUMIDITY")
-    {
-        ret = new WittmannRelativeHumidityDependentCreepMaterialLaw() ;
-        ret->setDefaultValue("creep_humidity_coefficient", getData("creep_humidity_coefficient", 0.2)) ;
-        return ret ;
-    }
-    if(type == "CREEP_HUMIDITY_BAZANT")
-    {
-        ret = new BazantRelativeHumidityDependentCreepMaterialLaw() ;
-        ret->setDefaultValue("creep_humidity_coefficient", getData("creep_humidity_coefficient", 0.125)) ;
-        return ret ;
-    }
-
-    if(type == "KELVIN_CAPILLARY_PRESSURE")
-    {
-        ret = new KelvinCapillaryPressureMaterialLaw() ;
-        return ret ;
-    }
-
-    if(type == "BENBOUDJEMA_DRYING_CREEP")
-    {
-        ret = new BenboudjemaDryingCreepMaterialLaw() ;
-        return ret ;
-    }
-
-    if(type == "HAVLASEK_DRYING_CREEP")
-    {
-        ret = new HavlasekDryingCreepMaterialLaw() ;
-        return ret ;
-    }
-
-    if(type == "CAPILLARY_PRESSURE_DRYING_SHRINKAGE")
-    {
-        ret = new CapillaryPressureDrivenDryingShrinkageMaterialLaw() ;
-        return ret ;
-    }
-
-    if(type == "VAN_GENUCHTEN_CAPILLARY_PRESSURE")
-    {
-        ret = new VanGenuchtenCapillaryPressureMaterialLaw() ;
-        return ret ;
-    }
-
-    if(type == "VAN_GENUCHTEN_WATER_SATURATION")
-    {
-        ret = new VanGenuchtenWaterSaturationMaterialLaw() ;
-        return ret ;
-    }
-
-    if(type == "DISJOINING_PRESSURE_DRYING_SHRINKAGE")
-    {
-        ret = new DisjoiningPressureDrivenDryingShrinkageMaterialLaw() ;
-        return ret ;
-    }
-
-    if(type == "CONSTANT")
-    {
-        ret = new ConstantExternalMaterialLaw(std::string()) ;
-        std::vector<ConfigTreeItem *> parameters = getAllChildren() ;
-        for(size_t i = 1 ; i < parameters.size() ; i++)
+        std::string test = str.substr(0, str.find("(")) ;
+        if( Object::isExternalMaterialLaw( test ) )
         {
-            ret->setDefaultValue( parameters[i]->getLabel(), parameters[i]->getData() ) ;
-        }
-        return ret ;
-    }
-
-    if(type == "ASSIGN")
-    {
-        std::string in = getStringData("input_parameter", "FIELD_NOT_FOUND") ;
-        std::string out = getStringData("output_parameter", "FIELD_NOT_FOUND") ;
-        ret = new AssignExternalMaterialLaw(in, out) ;
-        return ret ;
-    }
-
-    if(type == "WEIBULL")
-    {
-/*        double scale = getData("scale_parameter", 1.) ;
-        double shape = getData("shape_parameter", 5.) ;
-        double variability = getData("variability", 0.2) ;*/
-        std::vector<std::string> affected ;
-        std::vector<ConfigTreeItem *> p = getAllChildren("parameter") ;
-        for(size_t i = 0 ; i < p.size() ; i++)
-            affected.push_back(p[i]->getStringData()) ;
-        std::string w = getStringData("weibull_variable_name", "weibull_variable") ;
-        ret = new WeibullDistributedMaterialLaw(affected, w) ;
-        return ret ;
-    }
-
-    if(type == "SPACE_TIME_DEPENDENT")
-    {
-        if(!hasChild("function"))
-        {
-            std::cout << "no function found while creating SpaceTimeDependentMaterialLaw" << std::endl ;
-            return nullptr ;
-        }
-        Function f = getChild("function")->getFunction() ;
-        ret = new SpaceTimeDependentExternalMaterialLaw( getStringData("output_parameter","none"), f, Enum::getEMLOperation(getStringData("operation","SET"))) ;
-        return ret ;
-    }
-
-    if(type == "SIMPLE_DEPENDENT")
-    {
-        if(!hasChild("function"))
-        {
-            std::cout << "no function found while creating SimpleDependentExternalMaterialLaw" << std::endl ;
-            return nullptr ;
-        }
-        Function f = getChild("function")->getFunction() ;
-        ret = new SimpleDependentExternalMaterialLaw( getStringData("output_parameter","none"), getStringData("input_parameter","x"), f, Enum::getEMLOperation(getStringData("operation","SET"))) ;
-        return ret ;
-    }
-
-    if(type == "VARIABLE_DEPENDENT")
-    {
-        if(!hasChild("function"))
-        {
-            std::cout << "no function found while creating SimpleDependentExternalMaterialLaw" << std::endl ;
-            return nullptr ;
-        }
-        Function f = getChild("function")->getFunction() ;
-        ret = new VariableDependentExternalMaterialLaw( getStringData("output_parameter","none"), f, Enum::getEMLOperation(getStringData("operation","SET"))) ;
-        if(hasChild("x"))
-            dynamic_cast<VariableDependentExternalMaterialLaw*>(ret)->setAsX( getStringData("x","x")) ;
-        if(hasChild("y"))
-            dynamic_cast<VariableDependentExternalMaterialLaw*>(ret)->setAsY( getStringData("y","y")) ;
-        if(hasChild("z"))
-            dynamic_cast<VariableDependentExternalMaterialLaw*>(ret)->setAsZ( getStringData("z","z")) ;
-        if(hasChild("t"))
-            dynamic_cast<VariableDependentExternalMaterialLaw*>(ret)->setAsT( getStringData("t","t")) ;
-        if(hasChild("u"))
-            dynamic_cast<VariableDependentExternalMaterialLaw*>(ret)->setAsU( getStringData("u","u")) ;
-        if(hasChild("v"))
-            dynamic_cast<VariableDependentExternalMaterialLaw*>(ret)->setAsV( getStringData("v","v")) ;
-        if(hasChild("w"))
-            dynamic_cast<VariableDependentExternalMaterialLaw*>(ret)->setAsW( getStringData("w","w")) ;
-        return ret ;
-    }
-
-    if(type == "BULK_SHEAR_CONVERSION")
-        return new BulkShearConversionMaterialLaw() ;
-
-    if(type == "TENSION_COMPRESSION_CREEP")
-        return new TensionCompressionCreepMaterialLaw() ;
-
-    if(type == "THERMAL_EXPANSION_HUMIDITY")
-        return new HumidityDependentThermalExpansionCoefficientMaterialLaw() ;
-
-    if(type == "LINEAR_INTERPOLATED")
-    {
-        if(hasChild("input_values") && hasChild("output_values"))
-        {
-            Vector in = ConfigTreeItem::readLineAsVector(getStringData("input_values","0,1")) ;
-            Vector out = ConfigTreeItem::readLineAsVector(getStringData("output_values","0,1")) ;
-            std::string i = getStringData("input_parameter","t") ;
-            std::string o = getStringData("output_parameter","none") ;
-            ret = new LinearInterpolatedExternalMaterialLaw( std::make_pair( i, o ), std::make_pair(in, out), Enum::getEMLOperation(getStringData("operation","SET")) ) ;
-        }
-        else
-            ret = new LinearInterpolatedExternalMaterialLaw( std::make_pair(getStringData("input_parameter","t"),getStringData("output_parameter","none")), getStringData("file_name","file_name"), Enum::getEMLOperation(getStringData("operation","SET"))) ;
-        return ret ;
-    }
-
-    if(type == "LINEAR_BIINTERPOLATED")
-    {
-        Vector xr = ConfigTreeItem::readLineAsVector(getStringData("input_values.rows","0,1")) ;
-        Vector xc = ConfigTreeItem::readLineAsVector(getStringData("input_values.columns","0,1")) ;
-        std::string ir = getStringData("input_parameters.rows","x") ;
-        std::string ic = getStringData("input_parameters.columns","t") ;
-        std::string o = getStringData("output_parameter","none") ;
-        ret = new LinearBiInterpolatedExternalMaterialLaw( std::make_pair( ir, ic ), o, std::make_pair(xr, xc), getStringData("file_name","file_not_found"), Enum::getEMLOperation(getStringData("operation","SET")) ) ;
-        return ret ;
-    }
-
-    if(type == "TIME_DERIVATIVE")
-    {
-        ret = new TimeDerivativeMaterialLaw( getStringData("input_parameter","none"), getStringData("output_parameter", getStringData("input_parameter","none")+"_rate"), getStringData("temporary_parameter", getStringData("input_parameter","none")+"_previous")) ;
-        return ret ;
-    }
-
-    if(type == "TIME_INTEGRAL")
-    {
-        ret = new TimeIntegralMaterialLaw( getStringData("input_parameter","none"), getStringData("output_parameter", getStringData("input_parameter","none")+"_integral")) ;
-        return ret ;
-    }
-
-    if(type == "MINIMUM" || type == "MAXIMUM")
-    {
-        std::vector<ConfigTreeItem *> all = getAllChildren("input_parameter") ;
-        if(all.size() == 1)
-        {
-            std::string in = all[0]->getStringData() ;
-            double start = getData("initial_value", 0.) ;
-            if(type == "MAXIMUM" )
-                ret = new StoreMaximumValueMaterialLaw( in, start ) ;
-            else
-                ret = new StoreMinimumValueMaterialLaw( in, start ) ;
-        }
-        else
-        {
-            std::vector<std::string> coord ;
-            for(size_t i = 0 ; i < all.size() ; i++)
-               coord.push_back( all[i]->getStringData() ) ;
-            EMLOperation add = Enum::getEMLOperation(getStringData("operation","SET")) ;
-            if(type == "MINIMUM")
-                ret = new MinimumMaterialLaw(  getStringData("output_parameter","none"), coord, add ) ;
-            else
-                ret = new MaximumMaterialLaw(  getStringData("output_parameter","none"), coord, add ) ;
-        }
-    }
-
-    if(type == "GET_FIELD")
-    {
-        bool isFieldType = false ;
-        std::string field =  getStringData("field", "NOT_A_FIELD") ;
-        FieldType f = Enum::getFieldType( getStringData("field", "NOT_A_FIELD"), &isFieldType ) ;
-        if(isFieldType)
-        {
-            std::transform(field.begin(), field.end(), field.begin(), ::tolower);
-            ret = new GetFieldMaterialLaw( field ) ;
-        }
-    }
-
-    return ret ;
-}
-
-LogCreepAccumulator * ConfigTreeItem::getLogCreepAccumulator()
-{
-    std::string type = (str.length() > 0 ? str : getStringData("type","REAL_TIME_ACCUMULATOR")) ;
-    if(type == "REAL_TIME_ACCUMULATOR")
-        return new RealTimeLogCreepAccumulator() ;
-    if(type == "TIME_UNDER_LOAD_ACCUMULATOR")
-        return new TimeUnderLoadLogCreepAccumulator() ;
-
-    return new RealTimeLogCreepAccumulator() ;
-}
-
-FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
-{
-    FractureCriterion * ret = nullptr ;
-    std::string type = (str.length() > 0 ? str : getStringData("type","MAXIMUM_TENSILE_STRAIN")) ;
-    if(spaceTime)
-    {
-        if(type == "MAZARS")
-        {
-            if(father->getStringData() == "LOGARITHMIC_CREEP" || father->getStringData("type") == "LOGARITHMIC_CREEP")
+            type = test ;
+            std::string args = str.substr( str.find("(")+1, str.find(")")-str.find("(")-1 ) ;
+            if(args.find(",") < std::string::npos)
             {
-                if(father->hasChildFromFullLabel("parameters.compressive_strength") || father->hasChildFromFullLabel("parameters.compressive_strain"))
-                    ret = new NonLocalSpaceTimeMazars( father->getData("parameters.tensile_strain",0.001), father->getData("parameters.young_modulus", 1e9), father->getData("parameters.poisson_ratio", 0.2), father->getData("parameters.fracture_energy", 1), father->getData("parameters.compressive_strength", -1e6), father->getData("parameters.compressive_strain", -0.001),  father->getData("parameters.material_characteristic_radius",0.001), Enum::getplaneType( father->getStringData("parameters.plane_type", "PLANE_STRESS") ) ) ;
-                else
-                    ret = new NonLocalSpaceTimeMazars( father->getData("parameters.tensile_strain",0.001), father->getData("parameters.young_modulus", 1e9), father->getData("parameters.poisson_ratio", 0.2), father->getData("parameters.fracture_energy", 1), father->getData("parameters.material_characteristic_radius",0.001), Enum::getplaneType( father->getStringData("parameters.plane_type", "PLANE_STRESS") ) ) ;
+                std::vector<std::string> params ;
+                size_t start = 0 ;
+                size_t next = args.find(",",start+1) ;
+                while( next < std::string::npos )
+                {
+                    params.push_back( args.substr( start+(start > 0), next-start-(start > 0) ) ) ;
+                    start = next ;
+                    next = args.find(",",start+1) ;
+                }
+                params.push_back( args.substr( start+1 ) ) ;
+                stringlists["parameters"] = params ;
+                strings["parameter"] = params[0] ;
             }
             else
             {
-                if(hasChild("compressive_stress") || hasChild("compressive_strain"))
-                    ret = new NonLocalSpaceTimeMazars( getData("tensile_strain",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("compressive_strength", -1e6), getData("compressive_strain", -0.001),  getData("material_characteristic_radius",0.001), Enum::getplaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
-                else
-                    ret = new NonLocalSpaceTimeMazars( getData("tensile_strain",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("material_characteristic_radius",0.001), Enum::getplaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
+                strings["parameter"] = args ;
+                std::vector<std::string> params ;
+                params.push_back(args) ;
+                stringlists["parameters"] = params ;
             }
         }
-        if(type == "MCFT")
+        else if( str.find(".txt") < std::string::npos || str.find(".dat") < std::string::npos ) 
         {
-            ret = new NonLocalSpaceTimeMCFT( getData("limit_compressive_strain",-0.001), getFather()->getData("young_modulus",1e9), getData("material_characteristic_radius",0.001)) ;
-            std::vector<ConfigTreeItem *> rebarItems = getAllChildren("rebar") ;
-            std::vector<std::pair<double, double> > rebars ;
-            for(size_t i = 0 ; i < rebarItems.size() ; i++)
-            {
-                rebars.push_back( std::make_pair ( rebarItems[i]->getData("location",0.001), rebarItems[i]->getData("diameter",0.0001) ) ) ;
-            }
-        }
-        if(type == "MAXIMUM_TENSILE_STRAIN")
-        {
-            ret = new SpaceTimeNonLocalMaximumStrain( getData("limit_tensile_strain",0.001) ) ;
-        }
-        if(type == "MAXIMUM_TENSILE_STRESS")
-        {
-            ret = new SpaceTimeNonLocalMaximumStress( getData( "limit_tensile_stress",1e6) ) ;
-        }
-        if(type == "LINEAR_SOFTENING_MAXIMUM_TENSILE_STRAIN")
-        {
-            ret = new SpaceTimeNonLocalLinearSofteningMaximumStrain( getData("limit_tensile_strain",0.001), getData("limit_tensile_stress",1e6), getData("maximum_tensile_strain",0.002) ) ;
-        }
-        if(type == "ELLIPSOIDAL_SOFTENING_MAXIMUM_TENSILE_STRESS")
-        {
-            ret = new SpaceTimeNonLocalEllipsoidalMixedCriterion( getData("limit_tensile_strain",0.001), getData("limit_tensile_stress",1e6), getData("instantaneous_modulus",10e9), getData( "relaxed_modulus",1e9) ) ;
-        }
-
-        if(type == "FLOW_RULE")
-        {
-            if(hasChild("function"))
-            {
-                ret = new SpaceTimeNonLocalDamageFlowRule( getChild("function")->getFunction() ) ;
-            }
-            else
-            {
-                if(hasChild("file_name"))
-                    ret = new SpaceTimeNonLocalDamageFlowRule( getStringData("file_name", "file_not_found") ) ;
-                else
-                {
-                    Vector strain = ConfigTreeItem::readLineAsVector( getStringData("strain","0,0.00048,0.0015") ) ;
-                    Vector damage = ConfigTreeItem::readLineAsVector( getStringData("damage","0,0,1") ) ;
-                    ret = new SpaceTimeNonLocalDamageFlowRule( std::make_pair( strain, damage ) ) ;
-                }
-
-            }
-        }
-
-        if(type == "MULTI_LINEAR_SOFTENING_TENSILE_STRESS")
-        {
-            double E = getFather()->getData("parameters.young_modulus",1e9) ;
-            double e_ = getData( "strain_renormalization_factor", 1e4) ;
-            double s_ = getData( "stress_renormalization_factor", 1e-6) ;
-            std::string file = getStringData("file_name", "file_not_found") ;
-            ret = new SpaceTimeNonLocalMultiLinearSofteningFractureCriterion(file, E, e_, s_) ;
-        }
-        if(type == "MULTI_LINEAR_SOFTENING_TENSILE_COMPRESSIVE_STRESS")
-        {
-            double E = getFather()->getData("parameters.young_modulus",1e9) ;
-            if(! getFather()->hasChildFromFullLabel("parameters.young_modulus"))
-            {
-                double k = getFather()->getData("parameters.bulk_modulus",1e9) ;
-                double mu = getFather()->getData("parameters.shear_modulus",1e9) ;
-                E = (9*k*mu)/(3*k+mu) ;
-            }
-            double e_ = getData( "strain_renormalization_factor", 1e4) ;
-            double s_ = getData( "stress_renormalization_factor", 1e-6) ;
-            if(hasChild("tension_file_name") || hasChild("compression_file_name"))
-            {
-                std::string tfile = getStringData("tension_file_name", "") ;
-                std::string cfile = getStringData("compression_file_name", "") ;
-                ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(tfile, cfile, E, 1.1, e_, s_) ;
-            }
-            else if(hasChild("strain_stress_curve"))
-            {
-                std::vector<Point> tension ;
-                std::vector<Point> compression ;
-                if(hasChildFromFullLabel("strain_stress_curve.tension") && hasChildFromFullLabel("strain_stress_curve.tension.strain") && hasChildFromFullLabel("strain_stress_curve.tension.stress"))
-                {
-                    Vector stress = ConfigTreeItem::readLineAsVector( getStringData("strain_stress_curve.tension.stress","1e6,0") ) ;
-                    Vector strain = ConfigTreeItem::readLineAsVector( getStringData("strain_stress_curve.tension.strain","0.0001,0.0002") ) ;
-                    if(stress.size() != strain.size())
-                    {
-                        std::cout << "stress-strain data do not match!" << std::endl ;
-                        exit(0) ;
-                    }
-                    for(size_t i = 0 ; i < stress.size() ; i++)
-                        tension.push_back( Point(strain[i], stress[i]) )  ;
-                }
-                if(hasChildFromFullLabel("strain_stress_curve.compression") && hasChildFromFullLabel("strain_stress_curve.compression.strain") && hasChildFromFullLabel("strain_stress_curve.compression.stress"))
-                {
-                    Vector stress = ConfigTreeItem::readLineAsVector( getStringData("strain_stress_curve.compression.stress","1e6,0") ) ;
-                    Vector strain = ConfigTreeItem::readLineAsVector( getStringData("strain_stress_curve.compression.strain","0.0001,0.0002") ) ;
-                    if(stress.size() != strain.size())
-                    {
-                        std::cout << "stress-strain data do not match!" << std::endl ;
-                        exit(0) ;
-                    }
-                    for(size_t i = 0 ; i < stress.size() ; i++)
-                        compression.push_back( Point(strain[i], stress[i]) ) ;
-                }
-                std::cout << tension.size() <<std::endl ;
-                ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(tension, compression, E, 1.1, e_, s_) ;
-            }
-            else
-            {
-                std::vector<Point> ptension ;
-                double tensileStrength = getFather()->getData("parameters.tensile_strength",-1) ;
-                double tensileStrain = getFather()->getData("parameters.tensile_strain",-1) ;
-                if(tensileStrength > 0 && tensileStrain < 0)
-                    tensileStrain = tensileStrength/E ;
-                if(tensileStrength < 0 && tensileStrain > 0)
-                    tensileStrength = tensileStrain*E ;
-                if(tensileStrength > 0 && tensileStrain > 0)
-                    ptension.push_back( Point(tensileStrain, tensileStrength) ) ;
-                if(ptension.size() > 0)
-                {
-                    double ultimateTensileStrength = getFather()->getData("parameters.tensile_ultimate_strength",-1) ;
-                    double ultimateTensileStrain = getFather()->getData("parameters.tensile_ultimate_strain",-1) ;
-                    if(ultimateTensileStrength < 0 && tensileStrength > 0)
-                    {
-                        double tensileStrengthDecreaseFactor = getFather()->getData("parameters.tensile_strength_decrease_factor",-1) ;
-                        if(tensileStrengthDecreaseFactor > -POINT_TOLERANCE)
-                            ultimateTensileStrength = tensileStrength*(1.-tensileStrengthDecreaseFactor) ;
-                    }
-                    if(ultimateTensileStrain < 0 && tensileStrain > 0)
-                    {
-                        double tensileStrainIncreaseFactor = getFather()->getData("parameters.tensile_strain_increase_factor",-1) ;
-                        if(tensileStrainIncreaseFactor > -POINT_TOLERANCE)
-                            ultimateTensileStrain = tensileStrain*tensileStrainIncreaseFactor ;
-                    }
-                    if(ultimateTensileStrength > -POINT_TOLERANCE && ultimateTensileStrain > 0)
-                        ptension.push_back( Point(ultimateTensileStrain, ultimateTensileStrength) ) ;
-                }
-                std::vector<Point> pcompression ;
-                double compressiveStrength = getFather()->getData("parameters.compressive_strength",1) ;
-                double compressiveStrain = getFather()->getData("parameters.compressive_strain",1) ;
-                if(compressiveStrength < 0 && compressiveStrain > 0)
-                    compressiveStrain = compressiveStrength/E ;
-                if(compressiveStrength > 0 && compressiveStrain < 0)
-                    compressiveStrength = compressiveStrain*E ;
-                if(compressiveStrength < 0 && compressiveStrain < 0)
-                    pcompression.push_back( Point(compressiveStrain, compressiveStrength) ) ;
-                if(pcompression.size() > 0)
-                {
-                    double ultimateCompressiveStrength = getFather()->getData("parameters.compressive_ultimate_strength",1) ;
-                    double ultimateCompressiveStrain = getFather()->getData("parameters.compressive_ultimate_strain",1) ;
-                    if(ultimateCompressiveStrength > 0 && compressiveStrength < 0)
-                    {
-                        double compressiveStrengthDecreaseFactor = getFather()->getData("parameters.compressive_strength_decrease_factor",-1) ;
-                        if(compressiveStrengthDecreaseFactor > -POINT_TOLERANCE)
-                            ultimateCompressiveStrength = compressiveStrength*(1.-compressiveStrengthDecreaseFactor) ;
-                    }
-                    if(ultimateCompressiveStrain > 0 && compressiveStrain < 0)
-                    {
-                        double compressiveStrainIncreaseFactor = getFather()->getData("parameters.compressive_strain_increase_factor",-1) ;
-                        if(compressiveStrainIncreaseFactor > -POINT_TOLERANCE)
-                            ultimateCompressiveStrain = compressiveStrain*compressiveStrainIncreaseFactor ;
-                    }
-                    if(ultimateCompressiveStrength < POINT_TOLERANCE && ultimateCompressiveStrain < 0)
-                        pcompression.push_back( Point(ultimateCompressiveStrain, ultimateCompressiveStrength) ) ;
-                }
-                double fmax = getFather()->getData("parameters.maximum_fraction",1.1) ;
-                ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(ptension, pcompression, E, fmax, e_, s_) ;
-            }
-        }
-
-    }
-    else
-    {
-        if(type == "MAZARS")
-        {
-            ret = new NonLocalMazars( getData("tensile_strain",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("compressive_strength", -1e6), getData("compressive_strain", -0.001),  getData("material_characteristic_radius",0.001), Enum::getplaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
-        }
-        if(type == "LIMIT_STRAIN")
-        {
-            ret = new LimitStrains( getData("limit_tensile_strain",0.001), getData("limit_compressive_strain",-0.001) ) ;
-        }
-        if(type == "MOHR_COULOMB")
-        {
-            ret = new NonLocalMohrCoulomb( getData("limit_tensile_strain",0.001), getData("limit_compressive_strain",-0.001), getFather()->getData("young_modulus",1e9) ) ;
-        }
-        if(type == "CONFINED_MOHR_COULOMB")
-        {
-            ret = new ConfinedMohrCoulomb( getData("limit_tensile_strain",0.001), getData("limit_compressive_strain",-0.001) ) ;
-        }
-        if(type == "CONFINED_MOHR_COULOMB_WITH_STRAIN_LIMIT")
-        {
-            ret = new ConfinedMohrCoulombWithStrainLimit( getData("limit_tensile_strain",0.001), getData("limit_compressive_strain",-0.001), getData("maximum_tensile_strain",0.002) ) ;
-        }
-        if(type == "LINEAR_SOFTENING_MOHR_COULOMB")
-        {
-            ret = new NonLocalLinearlyDecreasingMohrCoulomb( getData("limit_tensile_strain",0.001), getData("limit_compressive_strain",-0.001), getData("maximum_tensile_strain",0.002), getData("maximum_compressive_strain",-0.002), getFather()->getData("young_modulus",1e9) ) ;
-        }
-        if(type == "EXPONENTIAL_SOFTENING_MOHR_COULOMB")
-        {
-            ret = new NonLocalExponentiallyDecreasingMohrCoulomb( getData("limit_tensile_strain",0.001), getData("limit_compressive_strain",-0.001), getData("maximum_tensile_strain",0.002), getData("maximum_compressive_strain",-0.002), getFather()->getData("young_modulus",1e9) ) ;
-        }
-        if(type == "MCFT")
-        {
-            ret = new NonLocalMCFT( getData("limit_compressive_strain",-0.001), getFather()->getData("young_modulus",1e9), getData("material_characteristic_radius",0.001)) ;
-            std::vector<ConfigTreeItem *> rebarItems = getAllChildren("rebar") ;
-            std::vector<std::pair<double, double> > rebars ;
-            for(size_t i = 0 ; i < rebarItems.size() ; i++)
-            {
-                rebars.push_back( std::make_pair ( rebarItems[i]->getData("location",0.001), rebarItems[i]->getData("diameter",0.0001) ) ) ;
-            }
-        }
-        if(type == "BOUNDED_VON_MISES")
-        {
-            ret = new BoundedVonMises( getData("limit_tensile_stress",1e6),  getData("damage_threshold", 0.6) ) ;
-        }
-        if(type == "VON_MISES")
-        {
-            ret = new NonLocalVonMises( getData("limit_tensile_stress",1e6),  getFather()->getData("young_modulus",1e9), getData("material_characteristic_radius",0.001) ) ;
+            type = "LinearInterpolated" ;
+            strings["file_name"] = str.substr(0, str.find("(")-1) ;
+            strings["input"] = str.substr(str.find("(")+1, str.find(")")-str.find("(")-1 ) ;
         }
     }
+    else if( Object::isExternalMaterialLaw(str))
+        type = str ;
+    if(type == "Eval")
+        strings["function"] = str ;
 
-    if(ret && hasChild("material_characteristic_radius"))
-        ret->setMaterialCharacteristicRadius(getData("material_characteristic_radius",0.001)) ;
-    if(ret && hasChild("score_tolerance"))
-        ret->setScoreTolerance(getData("score_tolerance",0.05)) ;
-    if(ret && hasChild("smoothing_function_type"))
-        ret->setSmoothingFunctionType( Enum::getSmoothingFunctionType( getStringData("smoothing_function_type","QUARTIC_COMPACT"))) ;
+    for(size_t i = 0 ; i < children.size() ; i++)
+        values[ children[i]->getLabel() ] = children[i]->getData() ;
 
-    return ret ;
-}
-
-DamageModel * ConfigTreeItem::getDamageModel(bool spaceTime)
-{
-    DamageModel * ret = nullptr ;
-    std::string type = (str.length() > 0 ? str : getStringData("type","ISOTROPIC_LINEAR_DAMAGE")) ;
-    if(type == "ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE")
-    {
-        if(spaceTime)
-        {
-            ret = new SpaceTimeFiberBasedIsotropicLinearDamage( getData("damage_increment",0.1), getData("time_tolerance",1e-9), getData("maximum_damage",1.) ) ;
-        }
-        else
-            ret = new FiberBasedIsotropicLinearDamage( getData("damage_increment",0.1) ) ;
-    }
-    if(type == "ISOTROPIC_LINEAR_DAMAGE")
-    {
-        if(spaceTime)
-        {
-            ret = new SpaceTimeIsotropicLinearDamage() ;
-        }
-        else
-            ret = new IsotropicLinearDamage() ;
-    }
-    if(type == "PLASTIC_STRAIN")
-    {
-        if(spaceTime)
-            std::cout << "warning: damage model incompatible with finite element discretization" << std::endl ;
-        ret = new PlasticStrain() ;
-    }
-
-    if(ret)
-    {
-        if(hasChild("maximum_damage"))
-            ret->setThresholdDamageDensity(getData("maximum_damage",1.)) ;
-        if(hasChild("residual_stiffness_fraction"))
-            ret->setResidualStiffnessFraction(getData("residual_stiffness_fraction",1e-4)) ;
-    }
-
-
-    return ret ;
+    return Object::getExternalMaterialLaw( type, strings, stringlists, values ) ;
 }
 
 Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime, std::vector<ExternalMaterialLaw *> common)
 {
-    std::string type = (str.length() > 0 ? str : getStringData("type","VOID_BEHAVIOUR")) ;
+    std::map<std::string, double> values ;
+    std::map<std::string, std::string> strings ;
+    std::map<std::string, FractureCriterion *> frac ;
+    std::map<std::string, DamageModel *> dam ;
+    std::map<std::string, ExternalMaterialLawList *> law ;
+    std::map<std::string, LogCreepAccumulator *> acc ;
+    ExternalMaterialLawList laws ;
+    strings[ "dimension" ] = Enum::fromSpaceDimensionality( dim ) ;
 
-    if(type == std::string("VOID_BEHAVIOUR"))
+    for(size_t i = 0 ; i < children.size() ; i++)
+    {
+       if(children[i]->getStringData().length() == 0 && !FunctionParserHelper::isOperator(children[i]->getLabel()[children[i]->getLabel().length()-1])  )
+          values[ children[i]->getLabel() ] = children[i]->getData() ;
+       else
+       {
+          strings[ children[i]->getLabel() ] = children[i]->getStringData() ;
+
+          if(children[i]->getLabel() != "fracture_criterion" || children[i]->getLabel() != "damage_model" || children[i]->getLabel() != "accumulator" )
+          {
+              ExternalMaterialLaw * test = children[i]->getExternalMaterialLaw() ;
+              if(test != nullptr)
+                  laws.push_back(test) ;
+          }
+       }
+    }
+    if(laws.size() > 0)
+        law[ "relations" ] = &laws ;
+
+
+    std::string type = getStringData() ;
+    if(type.length() == 0)
+        type = "LogarithmicCreepWithExternalParameters" ;
+    if(!Object::isForm(type))
         return new VoidForm() ;
 
-    if(type == std::string("FROM_PARENT_DISTRIBUTION"))
+    if(hasChild("fracture_criterion"))
     {
-        if(father->getFather() && father->getFather()->hasChild("behaviour"))
-            return father->getFather()->getChild("behaviour")->getBehaviour(dim, spaceTime, common) ;
-        return new VoidForm() ;
+        std::string ctype = getStringData("fracture_criterion") ;
+        if(Object::isFractureCriterion(ctype))
+            frac[ "fracture_criterion" ] = Object::getFractureCriterion( ctype, values, strings ) ;
+    }
+    if(hasChild("damage_model"))
+    {
+        std::string dtype = getStringData("damage_model") ;
+        if(Object::isDamageModel(dtype))
+             dam[ "damage_model" ] = Object::getDamageModel( dtype, values ) ;
+    }
+    if(hasChild("accumulator"))
+    {
+        std::string atype = getStringData("accumulator") ;
+        if(Object::isLogCreepAccumulator(atype))
+             acc[ "accumulator" ] = Object::getLogCreepAccumulator( atype, values ) ;
     }
 
-    if(type == std::string("FROM_FIRST_DISTRIBUTION"))
-    {
-        if(father->getFather() && father->getFather()->hasChild("inclusions") && father->getFather()->getChild("inclusions")->hasChild("behaviour"))
-        {
-            Form * form = father->getFather()->getChild("inclusions")->getChild("behaviour")->getBehaviour( dim, spaceTime, common ) ;
-            if(father->getFather()->getChild("inclusions")->getStringData("behaviour") == "LOGARITHMIC_CREEP" || father->getFather()->getChild("inclusions")->getStringData("behaviour.type") == "LOGARITHMIC_CREEP")
-            {
-                LogarithmicCreepWithExternalParameters * realForm = dynamic_cast<LogarithmicCreepWithExternalParameters *>(form) ;
-                if(hasChild("remove_material_law"))
-                {
-                    std::vector<ConfigTreeItem *> idx = getChild("remove_material_law")->getAllChildren("index") ;
-                    for(size_t i = 0 ; i < idx.size() ; i++)
-                        realForm->removeMaterialLaw( idx[i]->getData() ) ;
-                }
-                if(hasChild("parameters"))
-                {
-                    std::vector<ConfigTreeItem *> param = getChild("parameters")->getAllChildren() ;
-                    for(size_t i = 0 ; i < param.size() ; i++)
-                        realForm->addMaterialParameter( param[i]->getLabel(), param[i]->getData() ) ;
-                }
-                std::vector<ConfigTreeItem *> laws = getAllChildren("material_law") ;
-                for(size_t i = 0 ; i < laws.size() ; i++)
-                {
-                   int index = -1. ;
-                   if( laws[i]->hasChild("index") ) { index = laws[i]->getData("index") ; }
-                   realForm->replaceMaterialLaw( laws[i]->getExternalMaterialLaw(), index ) ;
-                }
-                return realForm ;
-            }
-            return form ;
-        }
-        return new VoidForm() ;
-    }
-
-    planeType pt = PLANE_STRESS ;
-    if(hasChild("plane_type"))
-        pt = Enum::getplaneType( getStringData("plane_type", "PLANE_STRESS") ) ;
-
-    if(type == std::string("ELASTICITY"))
-    {
-        if(spaceTime)
-        {
-            int blocks = getData("additional_viscoelastic_variables",0) ;
-            return new Viscoelasticity( PURE_ELASTICITY, getStiffnessMatrix(dim, pt), blocks) ;
-        }
-        return new Stiffness( getStiffnessMatrix(dim, pt) ) ;
-    }
-
-    if(type == std::string("ELASTICITY_AND_FRACTURE"))
-    {
-        FractureCriterion * frac = getChild("fracture_criterion")->getFractureCriterion(spaceTime) ;
-        DamageModel * dam = getChild("damage_model")->getDamageModel(spaceTime) ;
-        if(frac && dam)
-        {
-            if(spaceTime)
-            {
-                int blocks = getData("additional_viscoelastic_variables",0) ;
-                return new ViscoelasticityAndFracture( PURE_ELASTICITY, getStiffnessMatrix(dim, pt), frac, dam, blocks) ;
-            }
-            return new StiffnessAndFracture( getStiffnessMatrix(dim, pt), frac, dam ) ;
-        }
-        else
-        {
-            if(!frac)
-                std::cout << "fracture criterion undefined!" << std::endl ;
-            if(!dam)
-                std::cout << "damage model undefined!" << std::endl ;
-
-            if(spaceTime)
-            {
-                int blocks = getData("additional_viscoelastic_variables",0) ;
-                return new Viscoelasticity( PURE_ELASTICITY, getStiffnessMatrix(dim, pt), blocks) ;
-            }
-            return new Stiffness( getStiffnessMatrix(dim, pt) ) ;
-        }
-    }
-
-    if(type == std::string("ELASTICITY_AND_IMPOSED_DEFORMATION"))
-    {
-        if(spaceTime)
-        {
-            int blocks = getData("additional_viscoelastic_variables",0) ;
-            Vector imp = getImposedDeformation(dim) ;
-            return new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, getStiffnessMatrix(dim, pt), imp, blocks) ;
-        }
-        return new StiffnessWithImposedDeformation( getStiffnessMatrix(dim, pt), getImposedDeformation(dim) ) ;
-    }
-
-    if(type == std::string("LOGARITHMIC_CREEP"))
-    {
-        if(!spaceTime)
-            return nullptr ;
-
-        LogarithmicCreepWithExternalParameters * log = nullptr;
-
-        if(!hasChild("parameters"))
-        {
-            std::cout << "log-creep law without parameters!" << std::endl ;
-            return nullptr ;
-        }
-
-        if(hasChildFromFullLabel("parameters.tensile_strength") || hasChildFromFullLabel("parameters.tensile_strain") || hasChildFromFullLabel("parameters.compressive_strength") || hasChildFromFullLabel("parameters.compressive_strain") || hasChildFromFullLabel("parameters.tension_file_name") || hasChildFromFullLabel("parameters.compression_file_name") || hasChildFromFullLabel("parameters.strain_stress_curve") || hasChildFromFullLabel("parameters.damage_increment") )
-        {
-            if(!hasChild("fracture_criterion"))
-            {
-                ConfigTreeItem * crit = new ConfigTreeItem(nullptr, "fracture_criterion") ;
-                new ConfigTreeItem(crit, "type", "MULTI_LINEAR_SOFTENING_TENSILE_COMPRESSIVE_STRESS") ;
-                new ConfigTreeItem(crit, "material_characteristic_radius", getData("parameters.material_characteristic_radius", 1e4)) ;
-                new ConfigTreeItem(crit, "strain_renormalization_factor", getData("parameters.strain_renormalization_factor", 1e4)) ;
-                new ConfigTreeItem(crit, "stress_renormalization_factor", getData("parameters.stress_renormalization_factor", 1e-6)) ;
-                if(hasChildFromFullLabel("parameters.tension_file_name"))
-                    new ConfigTreeItem(crit, "tension_file_name", getStringData("parameters.tension_file_name", "")) ;
-                if(hasChildFromFullLabel("parameters.compression_file_name"))
-                    new ConfigTreeItem(crit, "compression_file_name", getStringData("parameters.compression_file_name", "")) ;
-                if(hasChildFromFullLabel("parameters.strain_stress_curve"))
-                {
-                    ConfigTreeItem * critCurve = new ConfigTreeItem(crit, "strain_stress_curve") ;
-                    if(hasChildFromFullLabel("parameters.strain_stress_curve.tension"))
-                    {
-                        ConfigTreeItem * critTCurve = new ConfigTreeItem(critCurve, "tension") ;
-                        new ConfigTreeItem(critTCurve, "strain", getStringData("parameters.strain_stress_curve.tension.strain","1,1")) ;
-                        new ConfigTreeItem(critTCurve, "stress", getStringData("parameters.strain_stress_curve.tension.stress","1e9,0")) ;
-                    }
-                    if(hasChildFromFullLabel("parameters.strain_stress_curve.compression"))
-                    {
-                        ConfigTreeItem * critCCurve = new ConfigTreeItem(critCurve, "compression") ;
-                        new ConfigTreeItem(critCCurve, "strain", getStringData("parameters.strain_stress_curve.compression.strain","-1,-1")) ;
-                        new ConfigTreeItem(critCCurve, "stress", getStringData("parameters.strain_stress_curve.compression.stress","-1e9,0")) ;
-                    }
-                }
-                this->addChild(crit) ;
-            }
-            if(!hasChild("damage_model"))
-            {
-                ConfigTreeItem * dam = new ConfigTreeItem(nullptr, "damage_model") ;
-                new ConfigTreeItem(dam, "type", "ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE") ;
-                new ConfigTreeItem(dam, "damage_increment", getData("parameters.damage_increment", 0.1)) ;
-                new ConfigTreeItem(dam, "maximum_damage", getData("parameters.maximum_damage", 0.99999)) ;
-                new ConfigTreeItem(dam, "time_tolerance", getData("parameters.time_tolerance", 1e-9)) ;
-                new ConfigTreeItem(dam, "residual_stiffness_fraction", getData("parameters.residual_stiffness_fraction", 1e-4)) ;
-                this->addChild(dam) ;
-            }
-        }
-
-        LogCreepAccumulator * acc ;
-	if(hasChild("accumulator"))
-            acc = getChild("accumulator")->getLogCreepAccumulator() ;
-        else
-            acc = new RealTimeLogCreepAccumulator() ;
-        if(hasChild("fracture_criterion") && hasChild("damage_model"))
-        {
-            FractureCriterion * frac = getChild("fracture_criterion")->getFractureCriterion(true) ;
-            DamageModel * dam = getChild("damage_model")->getDamageModel(true) ;
-            if(frac && dam)
-                log = new LogarithmicCreepWithExternalParameters(std::string(), frac, dam, acc) ;
-        }
-
-        if(!log)
-            log = new LogarithmicCreepWithExternalParameters(std::string(), acc) ;
-
-        log->plane = pt ;
-
-        std::vector<ConfigTreeItem *> parameters = getChild("parameters")->getAllChildren() ;
-        for(size_t i = 0 ; i < parameters.size() ; i++)
-        {
-//			std::cout << parameters[i]->getLabel() << "\t" << parameters[i]->getData() << std::endl ;
-            log->addMaterialParameter( parameters[i]->getLabel(), parameters[i]->getData() ) ;
-        }
-
-        for(size_t i = 0 ; i < common.size() ; i++)
-            log->addMaterialLaw( common[i] ) ;
-
-        std::vector<ConfigTreeItem *> laws = getAllChildren("material_law") ;
-        for(size_t i = 0 ; i < laws.size() ; i++)
-        {
-            log->addMaterialLaw( laws[i]->getExternalMaterialLaw() ) ;
-        }
-
-//		std::cout << getFullLabel() << std::endl ;
-
-        return log ;
-    }
-
-    if(type == std::string("PASTE_BEHAVIOUR"))
-    {
-        double var = getData("variability", 0.2) ;
-        if(getStringData("damage","TRUE") == "FALSE")
-        {
-            if(spaceTime)
-                return new ViscoElasticOnlyPasteBehaviour( getData("young_modulus", 12e9) , getData( "poisson_ratio", 0.3), getData("short_term_creep_modulus", 0.3), getData("long_term_creep_modulus", 0.37), dim, var) ;
-            return new ElasticOnlyPasteBehaviour( getData("young_modulus", 12e9) , getData( "poisson_ratio", 0.3), dim, var) ;
-        }
-        if(spaceTime)
-            return new ViscoDamagePasteBehaviour( getData("young_modulus", 12e9) , getData( "poisson_ratio", 0.3), getData( "tensile_strain_limit", 0.0003), 0.00025, dim, var) ;
-        return new PasteBehaviour( getData("young_modulus", 12e9) , getData( "poisson_ratio", 0.3), getData( "tensile_strain_limit", 0.0016666), 0.001666, 12000, dim, var) ;
-    }
-
-    if(type == std::string("AGGREGATE_BEHAVIOUR"))
-    {
-        double var = getData("variability", 0.2) ;
-        if(getStringData("damage","TRUE") == "FALSE")
-        {
-            if(spaceTime)
-                return new ViscoElasticOnlyAggregateBehaviour( getData("young_modulus", 59e9) , getData( "poisson_ratio", 0.3), dim, var) ;
-            return new ElasticOnlyAggregateBehaviour( getData("young_modulus", 59e9) , getData( "poisson_ratio", 0.3), dim, var) ;
-        }
-        if(spaceTime)
-            return new ViscoDamageAggregateBehaviour( getData("young_modulus", 59e9) , getData( "poisson_ratio", 0.3), getData( "tensile_strain_limit", 0.0012), 0.00025, dim, var) ;
-        return new AggregateBehaviour( getData("young_modulus", 59e9) , getData( "poisson_ratio", 0.3), getData( "tensile_strain_limit", 0.0012), 0.00044, 12000, dim, var) ;
-    }
-
-    if(type == std::string("ASR_GEL_BEHAVIOUR"))
-    {
-        if(spaceTime)
-            return new ViscoElasticOnlyGelBehaviour( getData("young_modulus", 22e9) , getData( "poisson_ratio", 0.18), getData( "imposed_deformation", 0.22), dim) ;
-        return new GelBehaviour( getData("young_modulus", 22e9) , getData( "poisson_ratio", 0.18), getData( "imposed_deformation", 0.22), dim) ;
-    }
-
-    if(type == std::string("C3S_BEHAVIOUR"))
-    {
-        return new C3SBehaviour( getData("young_modulus", 138e9) , getData( "poisson_ratio", 0.28), dim) ;
-    }
-
-    if(type == std::string("CH_BEHAVIOUR"))
-    {
-        return new CHBehaviour( getData("young_modulus", 35.4e9) , getData( "poisson_ratio", 0.28), dim) ;
-    }
-
-    if(type == std::string("CSH_BEHAVIOUR"))
-    {
-        
-        return new CSHBehaviour( getStringData("csh_type", "INNER") == "INNER" ? INNER_CSH : OUTER_CSH , ConfigTreeItem::readLineAsStdVector( getStringData("density","2"))  , ConfigTreeItem::readLineAsStdVector( getStringData("shrinkage_stresses","0"))  , ConfigTreeItem::readLineAsStdVector( getStringData("instants","0")) , getData("young_modulus", 25e9), getData( "poisson_ratio", 0.25), dim) ;
-    }
-
-    if(type == std::string("CONCRETE_BEHAVIOUR"))
-    {
-        if(spaceTime)
-        {
-            std::cout << "cannot make a space-time concrete behaviour" << std::endl ;
-            return nullptr ;
-        }
-        return new ConcreteBehaviour( getData("young_modulus", 37e9) , getData( "poisson_ratio", 0.3), getData( "compressive_strength", -37e6), PLANE_STRESS, UPPER_BOUND, dim) ;
-    }
-
-    if(type == std::string("REBAR_BEHAVIOUR"))
-    {
-        if(spaceTime)
-        {
-            std::cout << "cannot make a space-time rebar behaviour" << std::endl ;
-            return nullptr ;
-        }
-        return new RebarBehaviour( getData("young_modulus", 59e9) , getData( "poisson_ratio", 0.3), getData( "tensile_strength", 57000), dim) ;
-    }
-
-    if(type == std::string("STEEL_BEHAVIOUR"))
-    {
-        if(spaceTime)
-        {
-            std::cout << "cannot make a space-time steel behaviour" << std::endl ;
-            return nullptr ;
-        }
-        return new SteelBehaviour( getData("young_modulus", 210e9) , getData( "poisson_ratio", 0.3), getData( "tensile_strength", 276e6), dim) ;
-    }
-
-    if(type == std::string("VISCOSITY"))
-    {
-        int blocks = getData("additional_viscoelastic_variables",0) ;
-        if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
-            return new Viscoelasticity( PURE_VISCOSITY, getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), blocks) ;
-        else
-            return new FiniteDifferenceViscoelasticity( PURE_VISCOSITY, getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), Enum::getViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
-    }
-
-    if(type == std::string("KELVIN_VOIGT"))
-    {
-        int blocks = getData("additional_viscoelastic_variables",0) ;
-        if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
-            return new Viscoelasticity( KELVIN_VOIGT, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), blocks) ;
-        else
-            return new FiniteDifferenceViscoelasticity( KELVIN_VOIGT, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), Enum::getViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
-    }
-
-    if(type == std::string("MAXWELL"))
-    {
-        int blocks = getData("additional_viscoelastic_variables",0) ;
-        if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
-            return new Viscoelasticity( MAXWELL, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), blocks) ;
-        else
-            return new FiniteDifferenceViscoelasticity( MAXWELL, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), Enum::getViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
-    }
-
-    if(type == std::string("BURGER"))
-    {
-        int blocks = getData("additional_viscoelastic_variables",0) ;
-        if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
-            return new Viscoelasticity( BURGER, getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt)*getData("kelvin_voigt.characteristic_time",1.), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt)*getData("maxwell.characteristic_time",1.),blocks) ;
-        else
-            return new FiniteDifferenceViscoelasticity( BURGER, getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt)*getData("kelvin_voigt.characteristic_time",1.), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt)*getData("maxwell.characteristic_time",1.), Enum::getViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
-    }
-
-    if(type == std::string("GENERALIZED_KELVIN_VOIGT"))
-    {
-        int blocks = getData("additional_viscoelastic_variables",0) ;
-        std::vector<std::pair<Matrix, Matrix> > branches ;
-        std::vector<ConfigTreeItem *> config = getAllChildren("branch") ;
-        for(size_t i = 0 ; i < config.size() ; i++)
-            branches.push_back(std::make_pair( config[i]->getStiffnessMatrix(dim, pt), config[i]->getStiffnessMatrix(dim, pt)*config[i]->getData("characteristic_time",1.) ) ) ;
-        if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
-            return new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, getChild("first_branch")->getStiffnessMatrix(dim, pt), branches, blocks) ;
-        else
-            return new FiniteDifferenceViscoelasticity( GENERALIZED_KELVIN_VOIGT, getChild("first_branch")->getStiffnessMatrix(dim, pt), branches, Enum::getViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
-    }
-
-    if(type == std::string("GENERALIZED_MAXWELL"))
-    {
-        int blocks = getData("additional_viscoelastic_variables",0) ;
-        std::vector<std::pair<Matrix, Matrix> > branches ;
-        std::vector<ConfigTreeItem *> config = getAllChildren("branch") ;
-        for(size_t i = 0 ; i < config.size() ; i++)
-            branches.push_back(std::make_pair( config[i]->getStiffnessMatrix(dim, pt), config[i]->getStiffnessMatrix(dim, pt)*config[i]->getData("characteristic_time",1.) ) ) ;
-        if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
-            return new Viscoelasticity( GENERALIZED_MAXWELL, getChild("first_branch")->getStiffnessMatrix(dim, pt), branches, blocks) ;
-        else
-            return new FiniteDifferenceViscoelasticity( GENERALIZED_MAXWELL, getChild("first_branch")->getStiffnessMatrix(dim, pt), Enum::getViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
-    }
-
-    return new VoidForm() ;
+    return Object::getForm( type, values, strings, frac, dam, law, acc ) ;
 }
 
 Vector ConfigTreeItem::readVectorFromFile() const
@@ -1811,120 +752,37 @@ Vector ConfigTreeItem::readVectorFromFile() const
 
 ParticleSizeDistribution * ConfigTreeItem::getParticleSizeDistribution() const
 {
-    std::string type = (str.length() > 0 ? str : getStringData("type","CONSTANT")) ;
+    std::string type = str ;
+    if(!Object::isParticleSizeDistribution(type))
+        type = "ConstantSizeDistribution" ;
 
-    if(type == std::string("CONSTANT"))
+    std::map<std::string, std::string> strings ;
+    std::map<std::string, double> values ;
+    for(size_t i = 0 ; i < children.size() ; i++)
     {
-        return new ConstantSizeDistribution() ;
+        if(children[i]->getStringData().length() == 0)
+            values[ children[i]->getLabel() ] = children[i]->getData() ;
+        else
+            strings[ children[i]->getLabel() ] = children[i]->getStringData() ;
     }
 
-    if(type == std::string("BOLOME_A"))
-    {
-        return new PSDBolomeA() ;
-    }
+    return Object::getParticleSizeDistribution(type, values, strings) ;
 
-    if(type == std::string("BOLOME_B"))
-    {
-        return new PSDBolomeB() ;
-    }
 
-    if(type == std::string("BOLOME_C"))
-    {
-        return new PSDBolomeC() ;
-    }
-
-    if(type == std::string("BOLOME_D"))
-    {
-        return new PSDBolomeD() ;
-    }
-
-    if(type == std::string("FROM_CUMULATIVE_FILE"))
-    {
-        std::string filename = getStringData("file_name","file_not_found") ;
-        if(filename == std::string("file_not_found"))
-        {
-            std::cout << "no psd file specified, falling back to constant particle size distribution" << std::endl ;
-            return new ConstantSizeDistribution() ;
-        }
-        std::string specification = getStringData("psd_specification_type","CUMULATIVE_PERCENT") ;
-        double factor = getData("factor",1) ;
-        double cutOffUp = getData("cutoff.up", -1.) ;
-        double cutOffDown = getData("cutoff.down", -1.) ;
-        return new GranuloFromCumulativePSD(filename, Enum::getPSDSpecificationType( specification ), factor, cutOffUp, cutOffDown) ;
-    }
-
-    if(type == std::string("FULLER"))
-    {
-        double rmin = getData("rmin",0) ;
-        double exp = getData("exponent", 0.5) ;
-        return new PSDFuller(rmin*2., exp) ;
-    }
-
-    return new ConstantSizeDistribution() ;
 }
 
 InclusionGenerator * ConfigTreeItem::getInclusionGenerator() const
 {
-    std::string inclusion = (str.length() > 0 ? str : getStringData("type","CIRCLE")) ;
-    double rotation = getData("authorized_rotation",0.) ;
-    if( inclusion == "ELLIPSE")
+    std::string type = str ;
+    if(!Object::isInclusionGenerator(type))
+        type = "Circular" ;
+    std::map<std::string, double> parameters ;
+    for(size_t i = 0 ; i < children.size() ; i++)
     {
-        double shape = getData("shape_factor", 0.75) ;
-        double orientation = getData("orientation", 0.) ;
-        double orientation_var = getData("orientation_variability", M_PI) ;
-        double shape_var = getData("shape_factor_variability", 0) ;
-
-        return new EllipsoidalInclusionGenerator( shape, orientation, orientation_var, shape_var, rotation ) ;
+        if(children[i]->getStringData().length() == 0)
+            parameters[ children[i]->getLabel() ] = children[i]->getData() ;
     }
-    if( inclusion == "RECTANGLE")
-    {
-        double shape = getData("shape_factor", 0.75) ;
-        double orientation = getData("orientation", 0.) ;
-        double orientation_var = getData("orientation_variability", M_PI) ;
-        double shape_var = getData("shape_factor_variability", 0) ;
-
-        return new RectangularInclusionGenerator( shape, orientation, orientation_var, shape_var, rotation ) ;
-    }
-    if( inclusion == "POLYGON")
-    {
-        int side = getData("side", 5) ;
-        double orientation = getData("orientation", 0.) ;
-        double orientation_var = getData("orientation_variability", M_PI) ;
-        bool force = getStringData("force_orientation","FALSE") == "TRUE" ;
-        int side_var = getData("side_variability", 0) ;
-        std::string method = getStringData("method", "REGULAR") ;
-        if(method == "REGULAR")
-            return new PolygonalInclusionGenerator( side, orientation, orientation_var, side_var, rotation, force ) ;
-        if(method == "GRAVEL")
-        {
-            double param_p = getData("parameter_p", 0.9 ) ;
-            double param_m = getData("parameter_m", 1.9 ) ;
-            int degree = getData("degree", 2) ;
-            return new GravelPolygonalInclusionGenerator( param_p, param_m, degree, side, orientation, orientation_var, side_var, rotation, force ) ;
-        }
-        if(method == "VORONOI")
-        {
-            double box = getData("box_width", 0.1 ) ;
-            int grains = getData("grains", 100 ) ;
-            double minDist = getData("distance", 0.001) ;
-            return new VoronoiPolygonalInclusionGenerator( box, grains, minDist, orientation, orientation_var, rotation, force ) ;
-        }
-        if(method == "CRUSHED")
-        {
-            double shape = getData("shape_factor", 0.75 ) ;
-            return new CrushedPolygonalInclusionGenerator( shape, side, orientation, orientation_var, side_var, rotation, force ) ;
-        }
-        if(method == "CRUSHED_SUBTENDED")
-        {
-            double shape = getData("shape_factor", 0.75 ) ;
-            double delta = getData("parameter_delta", 0.15 ) ;
-            return new CrushedSubtendedPolygonalInclusionGenerator( shape, delta, orientation, orientation_var, side_var, rotation, force ) ;
-        }
-
-        return new PolygonalInclusionGenerator( side, orientation, orientation_var, side_var, rotation, force ) ;
-    }
-
-    return new InclusionGenerator( rotation ) ;
+    return Object::getInclusionGenerator( str, parameters ) ;
 }
 
 VoronoiGrain ConfigTreeItem::getVoronoiGrain(SpaceDimensionality dim, bool spaceTime, std::vector<ExternalMaterialLaw *> common)
@@ -1962,6 +820,128 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getAllInclusions(FeatureTre
         allFeatures = getInclusions(F, dummy, inclusions, common) ;
     }
     return allFeatures ;
+}
+
+InclusionFamily * ConfigTreeItem::getInclusionFamily(std::string type)
+{
+    if(type.length() == 0 || type != ".")
+        type = str ;
+    if(!Object::isInclusionFamily( type ))
+        type = "." ;
+ 
+    std::map<std::string, double> values ;
+    std::map<std::string, std::string> strings ;
+    for(size_t i = 0 ; i < children.size() ; i++)
+    {
+        if(children[i]->is("particle_size_distribution") || children[i]->is("geometry") || children[i]->is("behaviour") )
+        {
+
+        }
+        if(children[i]->getStringData().length() == 0)
+            values[ children[i]->getLabel() ] = children[i]->getData() ;
+        else
+            strings[ children[i]->getLabel() ] = children[i]->getStringData() ;
+    }
+    std::map<std::string, InclusionGenerator *> geometry ;
+    std::map<std::string, ParticleSizeDistribution *> distribution ;
+    std::string gtype = "Circular" ;
+    if(hasChild("geometry"))
+    {
+        std::string test = getChild("geometry")->getStringData() ;
+        if(Object::isInclusionGenerator(test))
+            gtype = test ;
+    }
+    geometry["geometry"] = Object::getInclusionGenerator( gtype, values ) ;
+    std::string ptype = "Constant" ;
+    if(hasChild("particle_size_distribution"))
+    {
+        std::string test = getChild("particle_size_distribution")->getStringData() ;
+        if(Object::isParticleSizeDistribution(test))
+            ptype = test ;
+    }
+    distribution["particle_size_distribution"] = Object::getParticleSizeDistribution( ptype, values, strings ) ;
+
+    return Object::getInclusionFamily( type, values, distribution, geometry ) ;
+}
+
+Point ConfigTreeItem::getPoint(Point def ) 
+{
+    return Point( getData("x", def.getX()), getData("y", def.getY()), getData("z", def.getZ()), getData("t", def.getT()) ) ;
+}
+
+InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, InclusionFamily * father, int index )
+{
+    SpaceDimensionality dim = F->is2D() ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ;
+    bool spaceTime = F->getOrder() >= CONSTANT_TIME_LINEAR ;
+
+    if(!hasChild("family"))
+    {
+        Rectangle * placement = dynamic_cast<Rectangle *>(F->getFeature(0)) ;
+        if( hasChild("placement") )
+        {
+            Point c = placement->getCenter() ;
+            if(hasChildFromFullLabel("placement.center"))
+                c = getChildFromFullLabel("placement.center")->getPoint(c) ;
+            placement = new Rectangle( getData("placement.width", placement->width()), getData("placement.height", placement->height()), c.getX(), c.getY() ) ;
+        }
+        if(hasChild("surface_fraction"))
+            addChild( new ConfigTreeItem( nullptr, "surface", getData("surface_fraction")*placement->area() ) ) ; 
+
+        InclusionFamily * inc = getInclusionFamily() ;
+        if(hasChild("behaviour"))
+            inc->setBehaviour( getChild("behaviour")->getBehaviour( dim, spaceTime ), 0, getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
+        if( father )
+            inc->setFather( father, index ) ;
+        inc->place( placement, getData("placement.spacing", 0), getData("placement.tries", 1000), getData("placement.random_seed", 1) ) ;
+        inc->addToFeatureTree(F) ;
+        if(hasChild("inclusions"))
+        {
+            InclusionFamily * son = getChild("inclusions")->makeInclusionFamily( F, inc, 0 ) ;
+            inc->concatenate(son) ;
+        }
+        return inc ;
+    }
+
+    Rectangle * placement = dynamic_cast<Rectangle *>(F->getFeature(0)) ;
+    if( hasChild("placement") )
+    {
+        Point c = placement->getCenter() ;
+        if(hasChildFromFullLabel("placement.center"))
+            c = getChildFromFullLabel("placement.center")->getPoint(c) ;
+        placement = new Rectangle( getData("placement.width", placement->width()), getData("placement.height", placement->height()), c.getX(), c.getY() ) ;
+    }
+
+    std::vector<ConfigTreeItem *> all = getAllChildren("family") ;
+    InclusionFamily * ret = nullptr ;
+    for(size_t i = 0 ; i < all.size() ; i++)
+    {
+        if(all[i]->hasChild("surface_fraction"))
+            all[i]->addChild( new ConfigTreeItem( nullptr, "surface", all[i]->getData("surface_fraction")*placement->area() ) ) ; 
+        InclusionFamily * current = all[i]->getInclusionFamily( str ) ;
+        if(all[i]->hasChild("behaviour"))
+            current->setBehaviour( all[i]->getChild("behaviour")->getBehaviour( dim, spaceTime ), 0, getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
+        if( father )
+            current->setFather( father, index ) ;
+
+        if(!ret)
+            ret = current ;
+        else
+            ret->concatenate(current) ;
+    }
+
+    ret->place( placement, getData("placement.spacing", 0), getData("placement.tries", 1000), getData("placement.random_seed", 1) ) ;
+    ret->addToFeatureTree( F ) ;
+
+    for(size_t i = 0 ; i < all.size() ; i++)
+    {
+        if(all[i]->hasChild("inclusions"))
+        {
+            InclusionFamily * son = getChild("inclusions")->makeInclusionFamily( F, ret, i ) ;
+            ret->concatenate(son) ;
+        }
+    }
+
+    return ret ;
 }
 
 std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers, std::vector<ExternalMaterialLaw *> common)
@@ -2404,16 +1384,6 @@ ConfigTreeItem * ConfigTreeItem::makeTemplate()
     }
     ConfigTreeItem * ret = ConfigParser::readFile(source, nullptr, false) ;
 
-    /*	std::vector<ConfigTreeItem *> toAdd = getAllChildren("add") ;
-    	for(size_t i = 0 ; i < toAdd.size() ; i++)
-    	{
-    		ConfigTreeItem * newFather = ret ;
-    		if(toAdd[i]->hasChild("destination"))
-    			newFather = ret->getChildFromFullLabel( toAdd[i]->getStringData("destination",".") ) ;
-    		toAdd[i]->setLabel( toAdd[i]->getStringData("label","label") ) ;
-    		newFather->addChild( toAdd[i] ) ;
-    	}*/
-
     if(hasChild("define") && ret->hasChild("define"))
     {
         ConfigTreeItem * def = ret->getChild("define") ;
@@ -2430,57 +1400,6 @@ ConfigTreeItem * ConfigTreeItem::makeTemplate()
         }
 
     }
-
-    /*	if(hasChild("remove"))
-    	{
-    		ConfigTreeItem * remove = getChild("remove") ;
-    		std::vector<ConfigTreeItem *> toRemove = remove->getAllChildren() ;
-    		for(size_t i = 0 ; i < toRemove.size() ; i++)
-    		{
-    			ret->removeChildFromFullLabel( toRemove[i]->getLabel() ) ;
-    		}
-    	}
-
-    	if(hasChild("replace"))
-    	{
-    		ConfigTreeItem * replace = getChild("replace") ;
-    		std::vector<ConfigTreeItem *> toReplace = replace->getAllChildren() ;
-    		for(size_t i = 0 ; i < toReplace.size() ; i++)
-    		{
-    			if(ret->hasChildFromFullLabel( toReplace[i]->getLabel() ))
-    			{
-    				ConfigTreeItem * previous = ret->getChildFromFullLabel( toReplace[i]->getLabel() ) ;
-    				ConfigTreeItem * next = toReplace[i] ;
-    				if(toReplace[i]->getAllChildren().size() > 0)
-    				{
-    					previous->removeAllChildren() ;
-    					previous->addChildren( next->getAllChildren() ) ;
-    				}
-    				previous->setData( next->getData() ) ;
-    				previous->setStringData( next->getStringData() ) ;
-    			}
-    		}
-    	}
-
-    	if(hasChild("add"))
-    	{
-    		ConfigTreeItem * add = getChild("add") ;
-    		std::vector<ConfigTreeItem *> toAdd = add->getAllChildren() ;
-    		ret->addChildren(toAdd) ;
-    	}
-
-    	if(hasChild("attach"))
-    	{
-    		ConfigTreeItem * attach = getChild("attach") ;
-    		std::vector<ConfigTreeItem *> toAttach = attach->getAllChildren() ;
-    		for(size_t i = 0 ; i < toAttach.size() ; i++)
-    		{
-    			ConfigTreeItem * nextFather = ret->getChildFromFullLabel( toAttach[i]->getLabel() ) ;
-    			std::vector<ConfigTreeItem *> nextChildren = toAttach[i]->getAllChildren() ;
-    			nextFather->addChildren( nextChildren ) ;
-    		}
-    	}*/
-
 
     return ret ;
 

@@ -126,7 +126,6 @@ struct Viscoelasticity : public LinearForm
   
 } ;
 
-
 typedef enum 
 {
 	LOGPOWER_CREEP,

@@ -21,6 +21,11 @@ namespace Amie {
 	The Mohr-Coulomb is met when the maximum principal stresses is below or above the prescribed limits 
 	
 */
+
+/*PARSE MohrCoulomb FractureCriterion 
+    @value[tensile_strength] // maximum stress in tension (positive)
+    @value[compressive_strength] // maximum stress in compression (negative)
+*/
 class MohrCoulomb : public FractureCriterion
 {
 public:
@@ -52,6 +57,11 @@ public:
 	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
 };
 
+/*PARSE NonLocalMohrCoulomb FractureCriterion 
+    @value[tensile_strength] // maximum stress in tension (positive)
+    @value[compressive_strength] // maximum stress in compression (negative)
+    @value[young_modulus] // Young modulus of the material
+*/
 class NonLocalMohrCoulomb : public FractureCriterion
 {
 protected:
@@ -99,6 +109,11 @@ public:
 };
 
 
+/*PARSE SpaceTimeNonLocalMohrCoulomb FractureCriterion 
+    @value[tensile_strength] // maximum stress in tension (positive)
+    @value[compressive_strength] // maximum stress in compression (negative)
+    @value[young_modulus] // Young modulus of the material
+*/
 class SpaceTimeNonLocalMohrCoulomb : public NonLocalMohrCoulomb
 {
 protected:
@@ -122,6 +137,13 @@ public:
 };
 
 
+/*PARSE NonLocalLinearlyDecreasingMohrCoulomb FractureCriterion 
+    @value[tensile_strength] // maximum stress in tension (positive)
+    @value[compressive_strength] // maximum stress in compression (negative)
+    @value[tensile_ultimate_strain] // strain in tension at the end of the softening (positive)
+    @value[compressive_ultimate_strain] // strain in compression at the end of the softening (negative)
+    @value[young_modulus] // Young modulus of the material
+*/
 class NonLocalLinearlyDecreasingMohrCoulomb : public FractureCriterion
 {
 public:
@@ -168,6 +190,13 @@ public:
 	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
 };
 
+/*PARSE NonLocalExponentiallyDecreasingMohrCoulomb FractureCriterion 
+    @value[tensile_strength] // maximum stress in tension (positive)
+    @value[compressive_strength] // maximum stress in compression (negative)
+    @value[tensile_ultimate_strain] // strain in tension at the end of the softening (positive)
+    @value[compressive_ultimate_strain] // strain in compression at the end of the softening (negative)
+    @value[young_modulus] // Young modulus of the material
+*/
 class NonLocalExponentiallyDecreasingMohrCoulomb : public FractureCriterion
 {
 public:
@@ -223,6 +252,12 @@ public:
 	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
 };
 
+/*PARSE NonLocalInverseRootMohrCoulomb FractureCriterion 
+    @value[tensile_strain] // maximum strain in tension (positive)
+    @value[tensile_ultimate_strain] // strain in tension at the end of the softening (positive)
+    @value[young_modulus] // Young modulus of the material
+    @value[tensile_strain_coefficient] // indicates how fast the softening occurs
+*/
 class NonLocalInverseRootMohrCoulomb : public FractureCriterion
 {
 public:

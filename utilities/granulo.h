@@ -124,7 +124,7 @@ class PSDGenerator
 {
 public:
 	PSDGenerator() ;
-	
+
 	/**
 	 * \brief Generic method to get 2D inclusions
 	 * @param rmax maximum radius in the particle size distribution
@@ -145,13 +145,17 @@ public:
 	 */
 	static std::vector<Inclusion3D *> get3DInclusions(double rmax, double area, ParticleSizeDistribution * type, PSDEndCriteria crit) ;
 		
-        static std::vector<std::vector<PolygonalSample *> > get2DVoronoiPolygons(Rectangle * box, std::vector<VoronoiGrain> & grains, size_t n, double minDist, double delta = 0) ;
+        static std::vector<std::vector<PolygonalSample *> > get2DSourceVoronoiPolygons(Rectangle * box, std::vector<VoronoiGrain> & grains, size_t n, double minDist, double delta = 0) ;
 
         static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(FeatureTree * F, std::vector<VoronoiGrain> & grains, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false, double delta = 0) ;
+
+        static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(Rectangle * box, std::vector<VoronoiGrain> & grains, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false, double delta = 0) ;
 
         static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(Feature * feat, std::vector<VoronoiGrain> & grains, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false, double delta = 0) ;
 
         static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(FeatureTree * F, std::vector<VoronoiGrain> & grains, std::vector<Feature *> feats, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false, double delta = 0) ;
+
+        static std::vector<std::vector<Feature *> > get2DVoronoiPolygons(Rectangle * box, std::vector<VoronoiGrain> & grains, std::vector<Feature *> feats, size_t n, double minDist, double border = 0, size_t nmax = 16, bool copy = false, double delta = 0) ;
 
 	/**
 	 * \brief Creates PSD for mortar square samples
@@ -219,11 +223,10 @@ public:
 
 } ;
 
-
 class ParticleSizeDistribution
 {
 public:
-    virtual ~ParticleSizeDistribution() {} ;
+	virtual ~ParticleSizeDistribution() {} ;
 		/**
 	 * \brief Gives the next diameter for 2D inclusions. This method is to be overloaded by inherited classes
 	 * @param diameter previous diameter found in the distribution
@@ -241,8 +244,10 @@ public:
 	 * @return next diameter
 	 */
 		virtual double getNext2DDiameter(double diameter, double fraction, double dmax) = 0;
+
 } ;
 
+/*PARSE PSDBolomeA ParticleSizeDistribution */
 class PSDBolomeA : public ParticleSizeDistribution
 {
 public:
@@ -250,6 +255,7 @@ public:
 	virtual double getNext3DDiameter(double diameter, double fraction, double dmax) ;
 } ;
 
+/*PARSE PSDBolomeB ParticleSizeDistribution */
 class PSDBolomeB : public ParticleSizeDistribution
 {
 public:
@@ -257,6 +263,7 @@ public:
 	virtual double getNext3DDiameter(double diameter, double fraction, double dmax) ;
 } ;
 
+/*PARSE PSDBolomeC ParticleSizeDistribution */
 class PSDBolomeC : public ParticleSizeDistribution
 {
 public:
@@ -264,6 +271,7 @@ public:
 	virtual double getNext3DDiameter(double diameter, double fraction, double dmax) ;
 } ;
 
+/*PARSE PSDBolomeD ParticleSizeDistribution */
 class PSDBolomeD : public ParticleSizeDistribution
 {
 public:
@@ -271,6 +279,10 @@ public:
 	virtual double getNext3DDiameter(double diameter, double fraction, double dmax) ;
 } ;
 
+/*PARSE PSDFuller ParticleSizeDistribution 
+	@value[radius_minimum] 0 // minimum radius of the Fuller distribution
+	@value[exponent] 0.5 // exponent of the Fuller distribution
+*/
 class PSDFuller : public ParticleSizeDistribution
 {
 public:
@@ -286,6 +298,7 @@ public:
 } ;
 
 
+/*PARSE ConstantSizeDistribution ParticleSizeDistribution */
 class ConstantSizeDistribution : public ParticleSizeDistribution
 {
 public:
@@ -299,6 +312,13 @@ public:
 	}
 } ;
 
+/*PARSE GranuloFromCumulativePSD ParticleSizeDistribution 
+	@string[file_name]  // path to the file containing the particle size distribution
+	@string<PSDSpecificationType>[specification] // how to read the file
+	@value[factor] 1 // coefficient by which all radii will be multiplied
+	@value[radius_maximum] -1 // cuts off the distribution above the specified radius (if positive)
+	@value[radius_minimum] -1 // cuts off the distribution below the specified radius (if positive)
+*/
 class GranuloFromCumulativePSD : public ParticleSizeDistribution
 {
 private:

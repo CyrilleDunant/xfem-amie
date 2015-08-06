@@ -50,6 +50,8 @@ struct ExternalMaterialLaw
     bool has(std::string test) const { return defaultValues.find(test) != defaultValues.end() ; }
 };
 
+typedef std::vector<ExternalMaterialLaw *> ExternalMaterialLawList ;
+
 /* Generic material law to set one or several variables to a constant
  * The variables affected and their values are the variables specified in the arguments
  */
@@ -109,15 +111,21 @@ struct AssignExternalMaterialLaw: public ExternalMaterialLaw
  *
  * For functions of a single parameter, use the SimpleDependentExternalMaterialLaw instead.
  */
-struct VariableDependentExternalMaterialLaw: public SpaceTimeDependentExternalMaterialLaw
+/*PARSE Eval ExternalMaterialLaw
+    @string[output] // name of the output
+    @string[function] // natural form of the function
+    @string<EMLOperation>[operation] SET // operation to apply
+*/
+struct EvalMaterialLaw: public SpaceTimeDependentExternalMaterialLaw
 {
     std::map<char, std::string> coordinates ;
     bool useSpaceTimeCoordinates ;
-    VariableDependentExternalMaterialLaw( std::string e, const char *f_, EMLOperation a = SET, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_,a, args, sep), useSpaceTimeCoordinates(u) { }
-    VariableDependentExternalMaterialLaw( std::string e, Function & f_, EMLOperation a = SET, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_, a, args, sep), useSpaceTimeCoordinates(u) { }
-    VariableDependentExternalMaterialLaw( std::string e, const char *f_, std::map<char, std::string> c, EMLOperation a = SET, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_, a, args, sep), coordinates(c),useSpaceTimeCoordinates(u) { }
-    VariableDependentExternalMaterialLaw( std::string e, Function & f_, std::map<char, std::string> c, EMLOperation a = SET, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_, a, args, sep), coordinates(c),useSpaceTimeCoordinates(u) { }
-    virtual ~VariableDependentExternalMaterialLaw() { } ;
+    EvalMaterialLaw( std::string e, const char *f_, EMLOperation a = SET, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_,a, args, sep), useSpaceTimeCoordinates(u) { }
+    EvalMaterialLaw( std::string e, Function & f_, EMLOperation a = SET, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_, a, args, sep), useSpaceTimeCoordinates(u) { }
+    EvalMaterialLaw( std::string e, const char *f_, std::map<char, std::string> c, EMLOperation a = SET, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_, a, args, sep), coordinates(c),useSpaceTimeCoordinates(u) { }
+    EvalMaterialLaw( std::string e, Function & f_, std::map<char, std::string> c, EMLOperation a = SET, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_, a, args, sep), coordinates(c),useSpaceTimeCoordinates(u) { }
+    EvalMaterialLaw( std::string out, std::string expr, EMLOperation a = SET) ;
+    virtual ~EvalMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 
@@ -132,20 +140,27 @@ struct VariableDependentExternalMaterialLaw: public SpaceTimeDependentExternalMa
 
 };
 
+
 /* Generic material law to set an external variable as a function of another one variable, using a linear interpolation.
  * "external" contains the pair of variable (first the input variable, second the variable to be set
  * "values" contains the list of values for the linear interpolation (first the input variable, second the output variable) [this vector can be read from a two-columns file, without delimiters]
  * The interpolation does not extrapolate outside the given bounds: the bounding values are used instead
  */
-struct LinearInterpolatedExternalMaterialLaw : public ExternalMaterialLaw
+/*PARSE LinearInterpolated MaterialLaw
+    @string[output] // output parameter
+    @string[input] // x coordinates for the linear interpolation
+    @string[file_name] // address written as "file_name(input)"
+    @string<EMLOperation>[operation] // operation to apply
+*/
+struct LinearInterpolatedMaterialLaw : public ExternalMaterialLaw
 {
     std::pair<std::string, std::string> external ;
     std::pair<Vector, Vector> values ;
     EMLOperation op ;
 
-    LinearInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e,std::pair<Vector, Vector> v, EMLOperation o = SET, std::string args = std::string(), char sep = ',' ) : ExternalMaterialLaw(args, sep), external(e), values(v), op(o) { }
-    LinearInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e, std::string file, EMLOperation o = SET, std::string args = std::string(), char sep = ',' ) ;
-    virtual ~LinearInterpolatedExternalMaterialLaw() { } ;
+    LinearInterpolatedMaterialLaw(std::pair<std::string, std::string> e,std::pair<Vector, Vector> v, EMLOperation o = SET, std::string args = std::string(), char sep = ',' ) : ExternalMaterialLaw(args, sep), external(e), values(v), op(o) { }
+    LinearInterpolatedMaterialLaw(std::pair<std::string, std::string> e, std::string file, EMLOperation o = SET, std::string args = std::string(), char sep = ',' ) ;
+    virtual ~LinearInterpolatedMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
     double get(double x) const ;
@@ -321,7 +336,7 @@ struct MaximumMaterialLaw : public ExternalMaterialLaw
 
 /*PARSE ExponentialDecay ExternalMaterialLaw 
     @string[output] // parameter in which the output is stored
-    @string[target] // target towards which the output tends to with an exponential decay
+    @string[parameter] // target towards which the output tends to with an exponential decay
 */
 struct ExponentialDecayMaterialLaw : public ExternalMaterialLaw
 {
@@ -335,7 +350,7 @@ struct ExponentialDecayMaterialLaw : public ExternalMaterialLaw
 } ;
 
 /*PARSE GetField ExternalMaterialLaw 
-    @string[field] // name of the field to extract
+    @string[parameter] // name of the field to extract
 */
 struct GetFieldMaterialLaw : public ExternalMaterialLaw
 {

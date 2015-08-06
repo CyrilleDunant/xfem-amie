@@ -20,6 +20,12 @@ namespace Amie {
 	
 		@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 	*/
+
+	/*PARSE NonLocalVonMises FractureCriterion
+		@value[tensile_strength] // maximum stress of the material
+		@value[young_modulus] // Young modulus of the material
+		@value[material_characteristic_radius] // characteristic length for the non-local damage
+	*/
 	class NonLocalVonMises : public FractureCriterion
 	{
 		bool met ;

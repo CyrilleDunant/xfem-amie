@@ -22,6 +22,10 @@ namespace Amie {
 	The maximum (tensile) strain criterion is met when a strain limit is reached.
 	
 */
+/*PARSE LimitStrains FractureCriterion
+    @value[tensile_strain] // maximum strain in tension (positive)
+    @value[compressive_strain] // maximum strain in compression (negative)
+*/
 class LimitStrains : public FractureCriterion
 {
 	double maxUpVal ;

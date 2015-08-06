@@ -24,6 +24,14 @@ namespace Amie
 * The field param is the Cauchy-Green Strain Tensor
 * The imposed deformation are given as a vector
 */
+
+/*PARSE StiffnessWithImposedDeformation Form
+    @value[young_modulus] // value of the Young modulus
+    @value[poisson_ratio] // value of the Poisson ratio
+    @value[imposed_deformation] // value of the linear imposed strain
+    @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
+    @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+*/
 struct StiffnessWithImposedDeformation : public LinearForm
 {
     std::vector<Variable> v ;
@@ -37,7 +45,7 @@ struct StiffnessWithImposedDeformation : public LinearForm
     */
     StiffnessWithImposedDeformation(const Matrix & rig, const Vector & imposedDef) ;
 
-    StiffnessWithImposedDeformation(double E, double nu, double alpha, SpaceDimensionality dim) ;
+    StiffnessWithImposedDeformation(double E, double nu, double alpha, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS) ;
 
     virtual ~StiffnessWithImposedDeformation() ;
 

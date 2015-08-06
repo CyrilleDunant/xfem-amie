@@ -13,6 +13,20 @@ LogarithmicCreepWithExternalParameters::LogarithmicCreepWithExternalParameters(s
 
 }
 
+LogarithmicCreepWithExternalParameters::LogarithmicCreepWithExternalParameters(std::map<std::string, double> values, ExternalMaterialLawList * mat, FractureCriterion * c, DamageModel * d, LogCreepAccumulator * acc, SpaceDimensionality dim, planeType pt) : LogarithmicCreepWithImposedDeformationAndFracture( Matrix( 3+3*(dim == SPACE_THREE_DIMENSIONAL), 3+3*(dim == SPACE_THREE_DIMENSIONAL)), Vector(), c,d, acc), plane(pt), external( values )
+{
+	noFracture = (c == nullptr) ;
+	if(values.size() > 0)
+		makeProperties(external) ;
+
+	if(mat != nullptr)
+	{
+		for(auto law = mat->begin() ; law != mat->end() ; law++)
+			addMaterialLaw( *law ) ;
+	}
+
+}
+
 LogarithmicCreepWithExternalParameters::LogarithmicCreepWithExternalParameters(std::string args, std::string ftension, std::string fcompression, DamageModel * d, LogCreepAccumulator * acc, SpaceDimensionality dim, planeType pt, char sep) : LogarithmicCreepWithImposedDeformationAndFracture( Matrix( 3+3*(dim == SPACE_THREE_DIMENSIONAL), 3+3*(dim == SPACE_THREE_DIMENSIONAL)), Vector(), nullptr,d, acc), plane(pt), external(parseDefaultValues(args, sep))
 {
 	double E = 0. ;	
@@ -262,10 +276,10 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 			{
 				double cstress = values["compressive_stress"] ;
 				double cstrain = values["compressive_strain"] ;
-				mazar->resetParameters( thr, E, nu, Gf, cstress, cstrain ) ;
+				mazar->reset( thr, E, nu, Gf, cstress, cstrain ) ;
 			}
 			else
-				mazar->resetParameters( thr, E, nu, Gf ) ;
+				mazar->reset( thr, E, nu, Gf ) ;
 		}
 			
 		

@@ -333,7 +333,7 @@ double getMaximumRadius( Feature * f, std::vector<Geometry *> geom)
     return d ;
 }
 
-std::vector<std::vector<PolygonalSample *> > PSDGenerator::get2DVoronoiPolygons(Rectangle * box, std::vector<VoronoiGrain> & morphology, size_t truen, double minDist, double delta)
+std::vector<std::vector<PolygonalSample *> > PSDGenerator::get2DSourceVoronoiPolygons(Rectangle * box, std::vector<VoronoiGrain> & morphology, size_t truen, double minDist, double delta)
 {
     std::vector<Geometry *> exclusion ;
     std::vector<std::pair<Point, size_t > > grains ;
@@ -626,7 +626,7 @@ std::vector<std::vector<Feature *> > PSDGenerator::get2DVoronoiPolygons(FeatureT
     Sample * sample = dynamic_cast<Sample *>(F->getFeature(0)) ;
     Rectangle * placement = new Rectangle( sample->width()+minDist*2.+border*2., sample->height()+minDist*2.+border*2., sample->getCenter().getX(), sample->getCenter().getY() ) ;
     double realn = placement->area()/(minDist*minDist*M_PI) ;
-    std::vector<std::vector<PolygonalSample *> > poly = PSDGenerator::get2DVoronoiPolygons( placement, grains, (n==0?realn : n), minDist, delta) ;
+    std::vector<std::vector<PolygonalSample *> > poly = PSDGenerator::get2DSourceVoronoiPolygons( placement, grains, (n==0?realn : n), minDist, delta) ;
     std::vector<std::vector<Feature *> > ret( std::max(1, (int) grains.size()) ) ;
 
     for(size_t i = 0 ; i < poly.size() ; i++)
@@ -641,12 +641,33 @@ std::vector<std::vector<Feature *> > PSDGenerator::get2DVoronoiPolygons(FeatureT
     return ret ;
 }
 
+std::vector<std::vector<Feature *> > PSDGenerator::get2DVoronoiPolygons(Rectangle * placement, std::vector<VoronoiGrain> & grains, size_t n, double minDist, double border, size_t nmax, bool copy, double delta)
+{
+    double r0 = minDist ;
+    if(r0 < 0)
+        r0 = grains[grains.size()-1].radius ;
+    double realn = placement->area()/(r0*r0*M_PI) ;
+    std::vector<std::vector<PolygonalSample *> > poly = PSDGenerator::get2DSourceVoronoiPolygons( placement, grains, (n==0?realn : n), minDist, delta) ;
+    std::vector<std::vector<Feature *> > ret( std::max(1, (int) grains.size()) ) ;
+
+    for(size_t i = 0 ; i < poly.size() ; i++)
+    {
+        for(size_t j = 0 ; j < poly[i].size() ; j++)
+        {
+            poly[i][j]->setBehaviour( copy ? grains[i].behaviour->getCopy() : grains[i].behaviour ) ;
+//            F->addFeature( sample, poly[i][j] ) ;
+            ret[i].push_back(poly[i][j]) ;
+        }
+    }
+    return ret ;
+}
+
 std::vector<std::vector<Feature *> > PSDGenerator::get2DVoronoiPolygons(Feature * feat, std::vector<VoronoiGrain> & grains, size_t n, double minDist, double border, size_t nmax, bool copy, double delta)
 {
     std::vector<Point> box = feat->getBoundingBox() ;
     Rectangle * placement = new Rectangle( box ) ;
     Rectangle * realbox = new Rectangle( placement->width()+minDist+border*2., placement->height()+minDist+border*2., placement->getCenter().getX(), placement->getCenter().getY() ) ;
-    std::vector<std::vector<PolygonalSample *> > poly = PSDGenerator::get2DVoronoiPolygons( realbox, grains, n, minDist, delta) ;
+    std::vector<std::vector<PolygonalSample *> > poly = PSDGenerator::get2DSourceVoronoiPolygons( realbox, grains, n, minDist, delta) ;
     std::vector<std::vector<Feature *> > ret( std::max(1, (int) grains.size()) ) ;
     for(size_t i = 0 ; i < poly.size() ; i++)
     {
@@ -678,6 +699,32 @@ std::vector<std::vector<Feature *> > PSDGenerator::get2DVoronoiPolygons(FeatureT
                 for(size_t k = 0 ; k < poly[j].size() ; k++)
                 {
                     F->addFeature(feats[i], poly[j][k]) ;
+                    ret[j].push_back(poly[j][k]) ;
+                }
+            }
+        }
+    }
+
+    return ret ;
+}
+
+std::vector<std::vector<Feature *> > PSDGenerator::get2DVoronoiPolygons(Rectangle * box, std::vector<VoronoiGrain> & grains, std::vector<Feature *> feats, size_t n, double minDist, double border, size_t nmax, bool copy, double delta)
+{
+    std::vector<std::vector<Feature *> > ret( std::max(1, (int) grains.size()) ) ;
+    double r0 = minDist ;
+    if(r0 < 0) { r0 = grains[grains.size()-1].radius ; }
+    double realn = (n == 0 ? box->area()/(r0*r0*M_PI) : n) ;
+    for(size_t i = 0 ; i < feats.size() ; i++)
+    {
+        double num = ((double) realn)*sqrt(feats[i]->area()/box->area()) ;
+        if(num > 1 && feats[i]->getRadius() > r0*1.5)
+        {
+            std::vector<std::vector<Feature *> > poly = PSDGenerator::get2DVoronoiPolygons( feats[i], grains, std::max(4., num), r0, border, nmax, copy, delta) ;
+            for(size_t j = 0 ; j < poly.size() ; j++)
+            {
+                for(size_t k = 0 ; k < poly[j].size() ; k++)
+                {
+//                    F->addFeature(feats[i], poly[j][k]) ;
                     ret[j].push_back(poly[j][k]) ;
                 }
             }

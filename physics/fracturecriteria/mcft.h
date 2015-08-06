@@ -23,6 +23,12 @@ typedef enum
     AVERAGE
 } RedistributionType ;
 
+/*PARSE NonLocalMCFT FractureCriterion
+    @value[compressive_strength] // compressive strength of the material
+    @value[young_modulus] // Young modulus of the material
+    @value[material_characteristic_radius] // characteristic radius of the non-local damage model
+    @string<RedistributionType>[redistribution_type] // indicates how the strength is redistributed towards the rebars
+*/
 class NonLocalMCFT : public FractureCriterion
 {
 protected:
@@ -102,6 +108,12 @@ public:
     virtual double getTensileLimit(const ElementState & s) const ;
 };
 
+/*PARSE NonLocalSpaceTimeMCFT FractureCriterion
+    @value[compressive_strength] // compressive strength of the material
+    @value[young_modulus] // Young modulus of the material
+    @value[material_characteristic_radius] // characteristic radius of the non-local damage model
+    @string<RedistributionType>[redistribution_type] // indicates how the strength is redistributed towards the rebars
+*/
 class NonLocalSpaceTimeMCFT : public NonLocalMCFT
 {
 public:

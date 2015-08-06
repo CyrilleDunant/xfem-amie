@@ -231,7 +231,7 @@ void SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximumStrain(do
 	}
 }
 
-AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( std::string ftension, std::string fcompression, double E_, double f, double e, double s, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain(E_, mirroring, delta_x, delta_y, delta_z), E(E_), renormStrain(e), renormStress(s), fmax(f), currentFraction(0.)
+AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( std::string ftension, std::string fcompression, double E_, double e, double s, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain(E_, mirroring, delta_x, delta_y, delta_z), E(E_), renormStrain(e), renormStress(s)
 {
 	tensileStressStrainCurve = nullptr ;
 	compressiveStressStrainCurve = nullptr ;
@@ -326,7 +326,7 @@ AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpac
 	}
 }
 
-AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( const std::vector<Point> & ptension, const std::vector<Point> & pcompression, double E_, double f, double e, double s, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain( 0., mirroring, delta_x, delta_y, delta_z), E(E_), renormStrain(e), renormStress(s), fmax(f), currentFraction(0.)
+AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( const std::vector<Point> & ptension, const std::vector<Point> & pcompression, double E_, double e, double s, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain( 0., mirroring, delta_x, delta_y, delta_z), E(E_), renormStrain(e), renormStress(s)
 {
 	tensileStressStrainCurve = nullptr ;
 	compressiveStressStrainCurve = nullptr ;
@@ -400,7 +400,7 @@ FractureCriterion * AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCrite
 			pcompression.push_back(q) ;
 		}
 	}
-	AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion * ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( ptension, pcompression, E, fmax, renormStrain, renormStress ) ;
+	AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion * ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( ptension, pcompression, E, renormStrain, renormStress ) ;
 	ret->copyEssentialParameters( this ) ;
 	return ret ;
 }

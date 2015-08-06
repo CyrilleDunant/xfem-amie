@@ -33,6 +33,9 @@ public:
 *
 * @param energy Threshold energy density
 */
+	/*PARSE RuptureEnergy FractureCriterion
+		@value[tensile_fracture_energy] // maximum fracture energy in tension
+	*/
 	RuptureEnergy(double energy, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
 
 	virtual ~RuptureEnergy();

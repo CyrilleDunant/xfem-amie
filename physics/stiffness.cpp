@@ -30,6 +30,14 @@ Stiffness::Stiffness(const Matrix & rig) : LinearForm(rig, false, false, rig.num
     }
 }
 
+Stiffness::Stiffness(double E, double nu, SpaceDimensionality dim, planeType pt) : LinearForm( Tensor::cauchyGreen(E, nu, true, dim, pt), false, false, dim)
+{
+    v.push_back(XI);
+    v.push_back(ETA);
+    if(dim > 2)
+        v.push_back(ZETA);
+}
+
 Stiffness::~Stiffness() { } 
 
 void Stiffness::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const

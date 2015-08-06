@@ -373,7 +373,7 @@ VoronoiPolygonalInclusionGenerator::VoronoiPolygonalInclusionGenerator( double b
 	Rectangle rect( box, box, 0,0 ) ;
 	std::vector<VoronoiGrain> morphology ;
 	morphology.push_back( VoronoiGrain( nullptr, minDist, 1., 1.) ) ;
-	source = PSDGenerator::get2DVoronoiPolygons(&rect, morphology, seed, minDist)[0] ;
+	source = PSDGenerator::get2DSourceVoronoiPolygons(&rect, morphology, seed, minDist)[0] ;
 	if(source.size() == 0)
 	{
 		std::cout << "no polygons available after Voronoi tesselation, exiting now" << std::endl ;

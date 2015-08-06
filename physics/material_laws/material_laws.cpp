@@ -1,5 +1,6 @@
 #include "material_laws.h"
 #include "../../utilities/itoa.h"
+#include "../../utilities/parser.h"
 #include "../../utilities/enumeration_translator.h"
 #include <stdlib.h>
 #include <fstream>
@@ -145,8 +146,81 @@ void StorePreviousValueMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElastic
     }
 }
 
+EvalMaterialLaw::EvalMaterialLaw( std::string out, std::string expression, EMLOperation op) : SpaceTimeDependentExternalMaterialLaw(out, "0", op)
+{
+    std::vector<std::string> list = FunctionParser::breakString( expression ) ;
+    std::valarray<bool> free(7) ; free = true ;
+    std::vector<std::string> unknown ;
+    std::vector<double> dummy ;
+    std::string build ;
+    for(size_t i = 0 ; i < list.size() ; i++)
+    {
+        std::string test = list[i] ;
+        bool minus = false ;
+        if(test[0] == '-' && test.size() > 1)
+        {
+            test = list[i].substr(1) ;
+            minus = true ;
+        }
 
-void VariableDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )
+        if(minus)
+            build.append("( " + test + " * -1 )") ;
+        else
+            build.append( test ) ;
+        if(i != list.size()-1)
+            build.append(" ") ;
+
+        if(FunctionParserHelper::isNumeral( test[0] ) || FunctionParserHelper::isOperator( test[0] ) || FunctionParserHelper::isBracket( test[0] ))
+            continue ;
+
+        if(test == "x")
+            free[0] = false ;
+        else if(test == "y")
+            free[1] = false ;
+        else if(test == "z")
+            free[2] = false ;
+        else if(test == "t")
+            free[3] = false ;
+        else if(test == "u")
+            free[4] = false ;
+        else if(test == "v")
+            free[5] = false ;
+        else if(test == "w")
+            free[6] = false ;
+
+        if( FunctionParserHelper::toToken( test, 0, dummy).first == TOKEN_OPERATION_W && test != "w" )
+            unknown.push_back( test ) ;
+    }
+
+    size_t count_free = 0 ;
+    for(size_t i = 0 ; i < free.size() ; i++)
+        count_free += free[i] ;
+
+    if(count_free >= unknown.size() || unknown.size() == 0)
+    {
+        std::map<std::string, char> coordinates ;
+        std::string var = "xyztuvw" ;
+        size_t j = 0 ;
+        for(size_t i = 0 ; i < unknown.size() ; i++)
+        {
+            while(!free[j])
+               j++ ;
+            coordinates[ unknown[i] ] = var[j] ;
+            if(j == 0) { setAsX( unknown[i] ) ; }
+            if(j == 1) { setAsY( unknown[i] ) ; }
+            if(j == 2) { setAsZ( unknown[i] ) ; }
+            if(j == 3) { setAsT( unknown[i] ) ; }
+            if(j == 4) { setAsU( unknown[i] ) ; }
+            if(j == 5) { setAsV( unknown[i] ) ; }
+            if(j == 6) { setAsW( unknown[i] ) ; }
+            j++ ;
+        }
+
+        f = FunctionParser::getFunction( build, coordinates ) ;
+    }
+}
+
+void EvalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )
 {
     Point p ;
     if(useSpaceTimeCoordinates)
@@ -199,7 +273,7 @@ void VariableDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVisco
     }
 }
 
-LinearInterpolatedExternalMaterialLaw::LinearInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e, std::string file, EMLOperation o, std::string args, char sep) : ExternalMaterialLaw(args, sep), external(e), op(o)
+LinearInterpolatedMaterialLaw::LinearInterpolatedMaterialLaw(std::pair<std::string, std::string> e, std::string file, EMLOperation o, std::string args, char sep) : ExternalMaterialLaw(args, sep), external(e), op(o)
 {
     std::vector<double> x ;
     std::vector<double> y ;
@@ -262,7 +336,7 @@ LinearBiInterpolatedExternalMaterialLaw::LinearBiInterpolatedExternalMaterialLaw
 }
 
 
-void LinearInterpolatedExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+void LinearInterpolatedMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
     double v = 0. ;
     if(external.first == std::string("x"))
@@ -351,7 +425,7 @@ void LinearBiInterpolatedExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVi
     }
 }
 
-double LinearInterpolatedExternalMaterialLaw::get(double x) const
+double LinearInterpolatedMaterialLaw::get(double x) const
 {
     if(x < values.first[0]+POINT_TOLERANCE)
         return values.second[0] ;

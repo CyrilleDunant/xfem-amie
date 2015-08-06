@@ -94,6 +94,18 @@ struct EnumerationConstructor
 		return ret ;
 	}
 
+	std::string getStringConstructorLine(size_t i)
+	{
+		if(i+1 > values.size())
+			return std::string() ;
+		std::string ret("            case ") ;
+		ret.append(values[i]) ;
+		ret.append(": return \"") ;
+		ret.append(values[i]) ;
+		ret.append("\" ;") ;		
+		return ret ;
+	}
+
 	std::string getDeclarationLine()
 	{
 		std::string ret("    static ") ;
@@ -101,6 +113,16 @@ struct EnumerationConstructor
 		ret.append(" get") ;
 		ret.append(type) ;
 		ret.append("(std::string type, bool * ok = 0)") ;
+		return ret ;
+	}
+
+	std::string getStringDeclarationLine()
+	{
+		std::string ret("    static std::string from") ;
+		ret.append(type) ;
+		ret.append("(") ;
+		ret.append(type) ;
+		ret.append(" value)") ;
 		return ret ;
 	}
 
@@ -114,6 +136,21 @@ struct EnumerationConstructor
 			ret.push_back( getConstructorLine(i)) ;
 		ret.push_back("        if(ok) { *ok = false ; }") ;
 		ret.push_back("        return "+values[0]+" ;") ;
+		ret.push_back("    }") ;		
+		return ret ;
+	}
+
+	std::vector<std::string> printStringConstructor()
+	{
+		std::vector<std::string> ret ;
+		ret.push_back( getStringDeclarationLine() ) ;
+		ret.push_back("    {") ;
+		ret.push_back("        switch(value)") ;
+		ret.push_back("        {") ;
+		for(size_t i = 0 ; i < values.size() ; i++)
+			ret.push_back( getStringConstructorLine(i)) ;
+		ret.push_back("        }") ;		
+		ret.push_back("        return \""+values[0]+"\" ;") ;
 		ret.push_back("    }") ;		
 		return ret ;
 	}
@@ -206,6 +243,9 @@ struct AMIEEnumerationParser
 					std::vector<std::string> tmp = headers[i].enums[j].printConstructor() ;
 					for(size_t k = 0 ; k < tmp.size() ; k++)
 						ret.push_back(tmp[k]) ;
+					std::vector<std::string> tmpstr = headers[i].enums[j].printStringConstructor() ;
+					for(size_t k = 0 ; k < tmpstr.size() ; k++)
+						ret.push_back(tmpstr[k]) ;
 					ret.push_back("   ") ;
 					done.push_back( headers[i].enums[j].type ) ;
 				}

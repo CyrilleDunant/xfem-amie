@@ -21,6 +21,10 @@ namespace Amie {
 
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 */
+/*PARSE BoundedVonMises FractureCriterion
+    @value[tensile_strength] // value of the tensile strength of the material
+    @value[maximum_damage] // value of damage above which an element is considered broken
+*/
 class BoundedVonMises : public FractureCriterion
 {
 public:

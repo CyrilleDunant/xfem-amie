@@ -108,14 +108,14 @@ int main(int argc, char *argv[])
     std::fstream out ;
     out.open(outputFile.c_str(), std::ios::out) ;
 
-    LinearInterpolatedExternalMaterialLaw temperature(std::make_pair("t", "temperature"), temperatureHistory) ;
-    LinearInterpolatedExternalMaterialLaw fluence(std::make_pair("t", "neutron_fluence"), fluenceHistory) ;
+    LinearInterpolatedMaterialLaw temperature(std::make_pair("t", "temperature"), temperatureHistory) ;
+    LinearInterpolatedMaterialLaw fluence(std::make_pair("t", "neutron_fluence"), fluenceHistory) ;
     ElleuchRelativeHumidityHistoryExternalMaterialLaw humidity("permeability_coefficient = 25") ;
 
     ThermalExpansionMaterialLaw thermalExpansion("temperature=293") ;
     DryingShrinkageMaterialLaw dryingShrinkage("relative_humidity=1.") ;
     RadiationInducedVolumetricExpansionMaterialLaw radiationExpansion ;
-    LinearInterpolatedExternalMaterialLaw radiationDamage(std::make_pair("neutron_fluence","young_modulus"), "data_elleuch/aggregate_damage") ;
+    LinearInterpolatedMaterialLaw radiationDamage(std::make_pair("neutron_fluence","young_modulus"), "data_elleuch/aggregate_damage") ;
     CreepArrheniusMaterialLaw creepArrhenius("temperature=293, creep_modulus = 3.6e9, creep_characteristic_time=0.5, creep_activation_energy = 1.666e-4") ;
     WittmannRelativeHumidityDependentCreepMaterialLaw creepHumidity("creep_humidity_coefficient = 5") ;
 

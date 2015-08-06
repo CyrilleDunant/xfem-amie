@@ -94,6 +94,21 @@ struct InclusionGenerator
 
 } ;
 
+/*PARSE Circular InclusionGenerator
+    @value[placement_rotation] 0 // maximum angle of the rotation authorized during placement (if 0, the inclusion will keep its generated orientation)
+*/
+struct CircularInclusionGenerator : public InclusionGenerator
+{
+    CircularInclusionGenerator(double rot = 0.) : InclusionGenerator(rot) { } ;
+} ;
+
+/*PARSE Ellipsoidal InclusionGenerator
+    @value[shape_factor] // ratio between major and minor axis of the ellipses
+    @value[orientation] 0 // default angle of the major axis
+    @value[orientation_variability] 3.141592 // extent of the random uniform distribution of the angles of the major axis
+    @value[shape_factor_variability] 0 // extent of the random uniform distribution of the shape factor
+    @value[placement_rotation] 0 // maximum angle of the rotation authorized during placement (if 0, the inclusion will keep its generated orientation)
+*/
 struct EllipsoidalInclusionGenerator : public InclusionGenerator
 {
     double shape ;
@@ -107,6 +122,13 @@ struct EllipsoidalInclusionGenerator : public InclusionGenerator
 
 } ;
 
+/*PARSE Rectangular InclusionGenerator
+    @value[shape_factor] // ratio between major and minor sides of the rectangle
+    @value[orientation] 0 // default angle of the major axis
+    @value[orientation_variability] 3.141592 // extent of the random uniform distribution of the angles of the major axis
+    @value[shape_factor_variability] 0 // extent of the random uniform distribution of the shape factor
+    @value[placement_rotation] 0 // maximum angle of the rotation authorized during placement (if 0, the inclusion will keep its generated orientation)
+*/
 struct RectangularInclusionGenerator : public InclusionGenerator
 {
     double shape ;
@@ -120,6 +142,13 @@ struct RectangularInclusionGenerator : public InclusionGenerator
 
 } ;
 
+/*PARSE Polygonal InclusionGenerator
+    @value[vertex] // number of vertexes of the polygons
+    @value[orientation] 0 // default angle of the major axis
+    @value[orientation_variability] 3.141592 // extent of the random uniform distribution of the angles of the major axis
+    @value[vertex_variability] 0 // extent of the random uniform distribution of the number of vertexes
+    @value[placement_rotation] 0 // maximum angle of the rotation authorized during placement (if 0, the inclusion will keep its generated orientation)
+*/
 struct PolygonalInclusionGenerator : public InclusionGenerator
 {
     int vertex ;
@@ -134,6 +163,14 @@ struct PolygonalInclusionGenerator : public InclusionGenerator
     virtual Feature * convert(Inclusion * inc ) const ;
 } ;
 
+/*PARSE VoronoiPolygonal InclusionGenerator
+    @value[box_width] // width of the box in which the Voronoi distribution is generated
+    @value[grains] // number of points from which the Voronoi distribution is generated
+    @value[spacing] // distance between two different points of the Voronoi distribution
+    @value[orientation] 0 // default angle of the major axis
+    @value[orientation_variability] 3.141592 // extent of the random uniform distribution of the angles of the major axis
+    @value[placement_rotation] 0 // maximum angle of the rotation authorized during placement (if 0, the inclusion will keep its generated orientation)
+*/
 struct VoronoiPolygonalInclusionGenerator : public PolygonalInclusionGenerator
 {
     std::vector<PolygonalSample *> source ;
@@ -144,6 +181,16 @@ struct VoronoiPolygonalInclusionGenerator : public PolygonalInclusionGenerator
 } ; 
 
 // see Beddow and Meloy 1980, cited by Wang et al 1999
+/*PARSE GravelPolygonal InclusionGenerator
+    @value[amplitude_factor] 0.9 // controls the shape of the aggregates
+    @value[amplitude_exponent] 1.9 // controls the shape of the aggregates
+    @value[degree] 2 // degree of the harmonic function
+    @value[vertex] // number of vertexes of the polygons
+    @value[orientation] 0 // default angle of the major axis
+    @value[orientation_variability] 3.141592 // extent of the random uniform distribution of the angles of the major axis
+    @value[vertex_variability] 0 // extent of the random uniform distribution of the number of vertexes
+    @value[placement_rotation] 0 // maximum angle of the rotation authorized during placement (if 0, the inclusion will keep its generated orientation)
+*/
 struct GravelPolygonalInclusionGenerator : public PolygonalInclusionGenerator
 {
     double p ;
@@ -156,6 +203,14 @@ struct GravelPolygonalInclusionGenerator : public PolygonalInclusionGenerator
 } ;
 
 // see Wang et al 1999 option A
+/*PARSE CrushedPolygonal InclusionGenerator
+    @value[shape_factor] // ratio between major and minor axis of the aggregate
+    @value[vertex] // number of vertexes of the polygons
+    @value[orientation] 0 // default angle of the major axis
+    @value[orientation_variability] 3.141592 // extent of the random uniform distribution of the angles of the major axis
+    @value[vertex_variability] 0 // extent of the random uniform distribution of the number of vertexes
+    @value[placement_rotation] 0 // maximum angle of the rotation authorized during placement (if 0, the inclusion will keep its generated orientation)
+*/
 struct CrushedPolygonalInclusionGenerator : public PolygonalInclusionGenerator
 {
     double shape ; // between 0 and 1
@@ -166,6 +221,15 @@ struct CrushedPolygonalInclusionGenerator : public PolygonalInclusionGenerator
 } ;
 
 // see Wang et al 1999 option B
+/*PARSE CrushedSubtendedPolygonal InclusionGenerator
+    @value[shape_factor] // ratio between major and minor axis of the aggregate
+    @value[angle_variability] // extent of the random uniform distribution of the angles between consecutive segments of the aggregate
+    @value[vertex] // number of vertexes of the polygons
+    @value[orientation] 0 // default angle of the major axis
+    @value[orientation_variability] 3.141592 // extent of the random uniform distribution of the angles of the major axis
+    @value[vertex_variability] 0 // extent of the random uniform distribution of the number of vertexes
+    @value[placement_rotation] 0 // maximum angle of the rotation authorized during placement (if 0, the inclusion will keep its generated orientation)
+*/
 struct CrushedSubtendedPolygonalInclusionGenerator : public PolygonalInclusionGenerator
 {
     double shape ; // between 0 and 1

@@ -20,6 +20,7 @@ namespace Amie
 
 /** \brief A void law
 */
+/*PARSE VoidForm Form */
 class VoidForm : public LinearForm
 {
 public:

@@ -41,12 +41,12 @@ int main(int argc, char *argv[])
     Function f_ageing_creep("y t x / 1 + *") ;
     SpaceTimeDependentExternalMaterialLaw neutronRadiation("neutron_fluence", f_neutron_fluence) ;
     RadiationInducedVolumetricExpansionMaterialLaw radiationExpansion ;
-    LinearInterpolatedExternalMaterialLaw radiationDamage( std::make_pair("neutron_fluence","young_modulus"), "../examples/data/irradiation/limestone_aggregate_modulus" ) ;
+    LinearInterpolatedMaterialLaw radiationDamage( std::make_pair("neutron_fluence","young_modulus"), "../examples/data/irradiation/limestone_aggregate_modulus" ) ;
 
     SimpleDependentExternalMaterialLaw dryingShrinkage("imposed_deformation","weight_loss", f_drying_shrinkage, ADD) ;
     SimpleDependentExternalMaterialLaw weightLoss("weight_loss", "neutron_fluence", f_weight_loss ) ;
 
-    VariableDependentExternalMaterialLaw ageingCreep("creep_modulus",  f_ageing_creep) ;
+    EvalMaterialLaw ageingCreep("creep_modulus",  f_ageing_creep) ;
     ageingCreep.setAsX("creep_characteristic_time") ;
     ageingCreep.setAsY("creep_modulus_28days") ;
 

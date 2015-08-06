@@ -20,7 +20,7 @@ SpaceTimeNonLocalDamageFlowRule::SpaceTimeNonLocalDamageFlowRule( const Function
 
 }
 
-SpaceTimeNonLocalDamageFlowRule::SpaceTimeNonLocalDamageFlowRule( LinearInterpolatedExternalMaterialLaw * data, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain( 0., mirroring, delta_x, delta_y, delta_z), ruleData(data), ruleFunction("0")
+SpaceTimeNonLocalDamageFlowRule::SpaceTimeNonLocalDamageFlowRule( LinearInterpolatedMaterialLaw * data, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain( 0., mirroring, delta_x, delta_y, delta_z), ruleData(data), ruleFunction("0")
 {
 
 }
@@ -28,13 +28,13 @@ SpaceTimeNonLocalDamageFlowRule::SpaceTimeNonLocalDamageFlowRule( LinearInterpol
 SpaceTimeNonLocalDamageFlowRule::SpaceTimeNonLocalDamageFlowRule( std::pair<Vector, Vector> data, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain( 0., mirroring, delta_x, delta_y, delta_z), ruleData(nullptr), ruleFunction("0")
 {
    std::pair<std::string, std::string> tmp = std::make_pair( "strain", "damage") ;
-   ruleData = new LinearInterpolatedExternalMaterialLaw( tmp, data ) ;
+   ruleData = new LinearInterpolatedMaterialLaw( tmp, data ) ;
 }
 
 SpaceTimeNonLocalDamageFlowRule::SpaceTimeNonLocalDamageFlowRule( std::string file, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain( 0., mirroring, delta_x, delta_y, delta_z), ruleData(nullptr), ruleFunction("0")
 {
    std::pair<std::string, std::string> tmp = std::make_pair( "strain", "damage") ;
-   ruleData = new LinearInterpolatedExternalMaterialLaw( tmp, file ) ;
+   ruleData = new LinearInterpolatedMaterialLaw( tmp, file ) ;
 }
 
 FractureCriterion * SpaceTimeNonLocalDamageFlowRule::getCopy() const 

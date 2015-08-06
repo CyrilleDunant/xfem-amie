@@ -182,6 +182,7 @@ utilities/configuration.cpp
 utilities/grid.cpp
 utilities/optimizer.cpp
 utilities/granulo.cpp
+utilities/inclusion_family.cpp
 utilities/tensor.cpp
 utilities/parser.cpp
 utilities/pid.cpp

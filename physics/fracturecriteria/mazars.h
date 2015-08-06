@@ -16,6 +16,17 @@
 
 namespace Amie {
 
+/*PARSE NonLocalMazars FractureCriterion --has-reset
+    @value[tensile_strain] // maximum strain in tension (positive)
+    @value[young_modulus] // Young modulus of the material
+    @value[poisson_ratio] // Poisson ratio of the material
+    @value[tensile_fracture_energy] // fracture energy in tension
+    @value[compressive_strain] 1 // maximum strain in compression (negative; a positive value disables the compressive part of the criterion)
+    @value[compressive_stress] 1 // maximum stress in compression (negative; a positive value disables the compressive part of the criterion)
+    @value[material_characteristic_radius] // characteristic length of the non-local approximation
+    @string<planeType>[plane_type] PLANE_STRESS // planar approximation in 2 dimensions 
+*/
+
 	/** \brief The Mazars fracture criterion is met when the equivalent Mazars strain reaches a threshold level
 	      @author Adrien Hilaire <adrien.hilaire@epfl.ch>
 	*/
@@ -70,14 +81,24 @@ namespace Amie {
 		
 		virtual double getTensileLimit(const ElementState & s) const {return threshold ;};
 
-		virtual void resetParameters( double thr, double E, double nu, double Gf, double cstress, double cstrain) ;
+		virtual void reset( double thr, double E, double nu, double Gf, double cstress, double cstrain, double r = -1, planeType = PLANE_STRESS) ;
 
-		virtual void resetParameters( double thr, double E, double nu, double Gf) ;
+		virtual void reset( double thr, double E, double nu, double Gf) ;
 	
 
 	};
 	
 
+/*PARSE NonLocalSpaceTimeMazars FractureCriterion --has-reset
+    @value[tensile_strain] // maximum strain in tension (positive)
+    @value[young_modulus] // Young modulus of the material
+    @value[poisson_ratio] // Poisson ratio of the material
+    @value[tensile_fracture_energy] // fracture energy in tension
+    @value[compressive_strain] 1 // maximum strain in compression (negative; a positive value disables the compressive part of the criterion)
+    @value[compressive_stress] 1 // maximum stress in compression (negative; a positive value disables the compressive part of the criterion)
+    @value[material_characteristic_radius] // characteristic length of the non-local approximation
+    @string<planeType>[plane_type] PLANE_STRESS // planar approximation in 2 dimensions 
+*/
 class NonLocalSpaceTimeMazars : public NonLocalMazars
 {
 public:

@@ -20,6 +20,9 @@ namespace Amie {
 
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 */
+/*PARSE VonMises FractureCriterion
+    @value[tensile_strength] // maximum stress in tension of the material
+*/ 
 class VonMises : public FractureCriterion
 {
 public:
@@ -53,6 +56,9 @@ public:
 
 @author Cyrille Dunant <cyrille.dunant@epfl.ch>
 */
+/*PARSE VonMisesStrain FractureCriterion
+    @value[tensile_strain] // maximum strain in tension of the material
+*/ 
 class VonMisesStrain : public FractureCriterion
 {
 public:

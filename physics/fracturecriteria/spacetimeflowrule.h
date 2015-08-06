@@ -20,14 +20,17 @@
 namespace Amie {
 
 
+/*PARSE SpaceTimeNonLocalDamageFlowRule FractureCriterion
+	@string[file_name] // location of the file containing the linear interpolation of damage vs strain
+*/
 class SpaceTimeNonLocalDamageFlowRule : public MaximumStrain
 {
 public:
-	LinearInterpolatedExternalMaterialLaw * ruleData ;
+	LinearInterpolatedMaterialLaw * ruleData ;
 	Function ruleFunction ;
 
 	SpaceTimeNonLocalDamageFlowRule( const Function & f, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
-	SpaceTimeNonLocalDamageFlowRule( LinearInterpolatedExternalMaterialLaw * data, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
+	SpaceTimeNonLocalDamageFlowRule( LinearInterpolatedMaterialLaw * data, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
 	SpaceTimeNonLocalDamageFlowRule( std::pair<Vector, Vector> data, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
 	SpaceTimeNonLocalDamageFlowRule( std::string file, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
 

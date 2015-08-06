@@ -32,6 +32,16 @@ namespace Amie
  *
  * The local values of the parameters are stored in the element state (explicitely described as a GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables ) and not in the behaviour. The behaviour contains the default values for the parameters in case they are not found in the element state.
  */
+
+/*PARSE LogarithmicCreepWithExternalParameters Form
+    @value[] // map of strings and doubles
+    @object<ExternalMaterialLawList>[relations] nullptr // vector of material laws to apply
+    @object<FractureCriterion>[fracture_criterion] nullptr // fracture criterion to calculate when damage occurs
+    @object<DamageModel>[damage_model] nullptr // damage algorithm
+    @object<LogCreepAccumulator>[accumulator] RealTimeLogCreepAccumulator() // how the logrithmic creep is obtained
+    @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
+    @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+*/ 
 struct LogarithmicCreepWithExternalParameters : public LogarithmicCreepWithImposedDeformationAndFracture
 {
 public:
@@ -47,6 +57,7 @@ public:
     LogarithmicCreepWithExternalParameters(std::string args, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, char sep = ',') ;
     LogarithmicCreepWithExternalParameters(std::string args, std::string ptension, std::string pcompression , DamageModel * d, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, char sep = ',') ;
     LogarithmicCreepWithExternalParameters(std::string args, FractureCriterion * c, DamageModel * d, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, char sep = ',') ;
+    LogarithmicCreepWithExternalParameters(std::map<std::string, double> values, ExternalMaterialLawList * mats, FractureCriterion * c, DamageModel * d, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS) ;
     virtual ~LogarithmicCreepWithExternalParameters() ; //{ if(dfunc) {delete dfunc ; } if(criterion) {delete criterion ;} }
 
     virtual ElementState * createElementState( IntegrableEntity * e) ;

@@ -20,6 +20,17 @@ struct LogCreepAccumulator
 	virtual LogCreepAccumulator * getCopy() const { return new LogCreepAccumulator() ; }
 } ;
 
+/*PARSE No LogCreepAccumulator */
+struct NoLogCreepAccumulator : public LogCreepAccumulator
+{
+	NoLogCreepAccumulator() : LogCreepAccumulator() { } ;
+        virtual ~NoLogCreepAccumulator() { } ;
+	virtual LogCreepAccumulator * getCopy() const { return new NoLogCreepAccumulator() ; }
+} ;
+
+/*PARSE RealTime LogCreepAccumulator
+	@value[viscous_flow] 0 // initial value of the viscous strain
+*/
 struct RealTimeLogCreepAccumulator : public LogCreepAccumulator
 {
 	double t ;
@@ -33,6 +44,7 @@ struct RealTimeLogCreepAccumulator : public LogCreepAccumulator
 	virtual LogCreepAccumulator * getCopy() const { return new RealTimeLogCreepAccumulator() ; }
 } ;
 
+/*PARSE TimeUnderLoad LogCreepAccumulator */
 struct TimeUnderLoadLogCreepAccumulator : public LogCreepAccumulator
 {
 	double accumulatedStress ;

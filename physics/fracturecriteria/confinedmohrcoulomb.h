@@ -21,6 +21,10 @@ namespace Amie {
 	The Mohr-Coulomb is met when the maximum principal stresses is below or above the prescribed limits 
 	
 */
+/*PARSE ConfinedMohrCoulomb FractureCriterion
+    @value[tensile_strength] // maximum stress in tension (positive)
+    @value[compressive_strength] // maximum stress in compression (negative)
+*/
 class ConfinedMohrCoulomb : public FractureCriterion
 {
 	bool metInCompression  ;

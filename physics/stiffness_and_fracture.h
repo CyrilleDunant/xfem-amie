@@ -27,6 +27,15 @@ namespace Amie
 *
 * The field param is the Cauchy-Green Strain Tensor
 */
+
+/*PARSE StiffnessAndFracture Form 
+    @value[young_modulus] // value of the Young modulus
+    @value[poisson_ratio] // value of the Poisson ratio
+    @object<FractureCriterion>[fracture_criterion] // criterion to calculate the damage
+    @object<DamageModel>[damage_model] nullptr // algorithm to compute the damage
+    @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
+    @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+ */
 struct StiffnessAndFracture : public LinearForm
 {
 // 		AnisotropicLinearDamage * dfunc ;
@@ -41,6 +50,8 @@ struct StiffnessAndFracture : public LinearForm
     * @param c  FractureCriterion to use. The behaviour is responsible for deleting the criterion upon cleanup.
     */
     StiffnessAndFracture(const Matrix & rig, FractureCriterion * c, DamageModel * d = nullptr)  ;
+
+    StiffnessAndFracture(double E, double nu, FractureCriterion * c, DamageModel * d = nullptr, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS)  ;
 
     virtual ~StiffnessAndFracture();
 

@@ -21,6 +21,7 @@
 #include "../physics/finite_difference_viscoelasticity.h"
 #include "matrixops.h"
 #include "granulo.h"
+#include "inclusion_family.h"
 #include "writer/triangle_writer.h"
 
 #include <string>
@@ -29,6 +30,13 @@
 
 namespace Amie
 {
+
+/* COMMENTED: boolean-string conversion
+please do not erase!
+typedef enum {
+    false,
+    true,
+} bool ;*/
 
 /** Configuration atom for the configuration tree.
  *
@@ -192,40 +200,27 @@ public:
     /** Translates the current item in a mechanical behaviour*/
     Form * getBehaviour(SpaceDimensionality dim, bool spaceTime = false, std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>() ) ;
 
-    /** Translates the current item in a fracture criterion*/
-    FractureCriterion * getFractureCriterion(bool spaceTime = false) ;
-
-    /** Translates the current item in a damage model*/
-    DamageModel * getDamageModel(bool spaceTime = false) ;
-
-    /** Translates the current item in a logarithmic creep accumulator*/
-    LogCreepAccumulator * getLogCreepAccumulator() ;
-
-    /** Translates the current item in a Cauchy-Green stiffness matrix*/
-    Matrix getStiffnessMatrix(SpaceDimensionality dim, planeType pt = PLANE_STRESS) const ;
-
-    /** Translates the current item in a vector of imposed strain*/
-    Vector getImposedDeformation(SpaceDimensionality dim) const ;
-
     VoronoiGrain getVoronoiGrain(SpaceDimensionality dim, bool spaceTime = false, std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>() ) ;
 
     /** Translates the current item in a particle size distribution*/
     ParticleSizeDistribution * getParticleSizeDistribution() const ;
 
     /** Translates the current item in a material law for log-creep behaviour*/
-    ExternalMaterialLaw * getExternalMaterialLaw() const ;
-
-    std::vector<ExternalMaterialLaw *> getExternalMaterialLaws(std::map<std::string, std::string> alias = std::map<std::string, std::string>()) const ;
-
-    VariableDependentExternalMaterialLaw * getVariableDependentExternalMaterialLaw(std::map<std::string, std::string> alias = std::map<std::string, std::string>()) const ;
+    ExternalMaterialLaw * getExternalMaterialLaw() ;
 
     /** Translates the current item in a vector of inclusions, and places them into a FeatureTree object*/
     std::vector<std::vector<Feature *> > getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers, std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>()  ) ;
+
+    InclusionFamily * makeInclusionFamily( FeatureTree * f, InclusionFamily * father = nullptr, int index = 0) ;
 
     std::vector<std::vector<Feature *> > getAllInclusions(FeatureTree * F, std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>()  ) ;
 
     /** Translates the current item in a boundary condition*/
     BoundaryCondition * getBoundaryCondition(FeatureTree * f) const ;
+
+    Point getPoint(Point def = Point(0,0,0,0)) ;
+
+    InclusionFamily * getInclusionFamily(std::string type = std::string()) ;
 
     std::vector<BoundaryCondition *> getAllBoundaryConditions(FeatureTree * F) const ;
 

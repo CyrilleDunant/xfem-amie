@@ -51,31 +51,24 @@ int main(int argc, char *argv[])
         F.setSamplingFactor( F.getFeature(0), problem->getData("sample.sampling_number", 1.) ) ;
     F.setDiscretizationParameters(problem->getChild("discretization")) ;
     Vector instants = F.setSteppingParameters(problem->getChild("stepping")) ;
-    std::vector<std::vector<Geometry *> > allFeatures ;
+    InclusionFamily * allFeatures = nullptr ;
     if(problem->hasChild("inclusions"))
-    {
-        std::vector<std::vector<Feature *> > placed = problem->getChild("inclusions")->getAllInclusions( &F ) ;
-        for(size_t i = 0 ; i < placed.size() ; i++)
-        {
-            std::vector<Geometry*> geom ;
-            for(size_t j = 0 ; j < placed[i].size() ; j++)
-                geom.push_back( dynamic_cast<Geometry*>( placed[i][j] ) ) ;
-            allFeatures.push_back( geom ) ;
-        }
-    }
+        allFeatures = problem->getChild("inclusions")->makeInclusionFamily( &F ) ;
+    else
+        allFeatures = new InclusionFamily( ) ;
     F.step() ;
 
     std::vector<unsigned int> cacheIndex ;
     std::vector<unsigned int> aggCacheIndex ;
-    std::cout << "generating cache for inclusion family 0/" << allFeatures.size() ;
+    std::cout << "generating cache for inclusion family 0/" << allFeatures->features.size() ;
     cacheIndex.push_back( 0 ) ;
-    for(size_t i = 0 ; i < allFeatures.size() ; i++)
+    for(size_t i = 0 ; i < allFeatures->features.size() ; i++)
     {
-        std::cout << "\rgenerating cache for inclusion family " << i+1 << "/" << allFeatures.size() ;
-        cacheIndex.push_back( F.get2DMesh()->generateCache( allFeatures[i] ) ) ;
+        std::cout << "\rgenerating cache for inclusion family " << i+1 << "/" << allFeatures->features.size() ;
+        cacheIndex.push_back( F.get2DMesh()->generateCache( allFeatures->getFeaturesAsGeometry(i) ) ) ;
         aggCacheIndex.push_back( cacheIndex[cacheIndex.size()-1] ) ;
     }
-    std::cout << "generating cache for inclusion family 0/" << allFeatures.size() ;
+    std::cout << "generating cache for inclusion family 0/" << allFeatures->features.size() ;
     cacheIndex[0] = F.get2DMesh()->generateCacheOut( aggCacheIndex ) ;
     std::cout << "... done" << std::endl ;
     for(size_t i = 0 ; i < cacheIndex.size() ; i++)

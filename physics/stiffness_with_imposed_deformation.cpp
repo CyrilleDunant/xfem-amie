@@ -24,7 +24,7 @@ StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(const Matrix & 
     this->time_d = false ;
 }
 
-StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(double E, double nu, double alpha, SpaceDimensionality dim) : LinearForm(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim), false, false, dim),v(2)
+StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(double E, double nu, double alpha, SpaceDimensionality dim, planeType pt) : LinearForm(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim, pt), false, false, dim),v(2)
 {
     v.push_back(XI) ;
     v.push_back(ETA) ;

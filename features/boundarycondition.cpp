@@ -9,20 +9,22 @@
 
 namespace Amie {
 
-void BoundaryCondition::setInterpolation( LinearInterpolatedExternalMaterialLaw * inter ) 
+void BoundaryCondition::setInterpolation( LinearInterpolatedMaterialLaw * inter ) 
 {
     dataInterpolation = inter ;
 }
 
 void BoundaryCondition::setInterpolation( std::string f ) 
 {
-    dataInterpolation = new LinearInterpolatedExternalMaterialLaw( std::make_pair("data","t" ), f) ;
+    dataInterpolation = new LinearInterpolatedMaterialLaw( std::make_pair("data","t" ), f) ;
 }
 
 
 void BoundaryCondition::step(double realtime, double dt) 
 {
-    if(dataInterpolation)
+/*    if(dataInterpolation == nullptr)
+        std::cout << "dafuq" << std::endl ;*/
+    if(dataInterpolation != nullptr)
         data = dataInterpolation->get( realtime ) ;
 }
 
@@ -7294,9 +7296,9 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTet
     BoundaryCondition::apply(a,t);
 }
 
-BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const double & d, int a ) :  condition ( t ),data ( d ), scale ( 1 ), active(false), axis ( a ), function ( false ) { }
+BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const double & d, int a ) :  condition ( t ),data ( d ), scale ( 1 ), active(false), dataInterpolation(nullptr), axis ( a ), function ( false ) { }
 
-BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const Function & d, int a ) :  condition ( t ), scale ( 1 ), active(false), dataFunction ( d ), axis ( a ), function ( true ) { }
+BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const Function & d, int a ) :  condition ( t ), scale ( 1 ), active(false), dataFunction ( d ), dataInterpolation(nullptr), axis ( a ), function ( true ) { }
 
 void BoundaryCondition::setScale ( double d )
 {

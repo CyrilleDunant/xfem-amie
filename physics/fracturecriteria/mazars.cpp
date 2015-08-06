@@ -23,7 +23,7 @@ NonLocalMazars::NonLocalMazars(double thresh, double E, double nu, double Gf, do
     B_t = (0.1*E*thresh) / (Gf - E*0.1*thresh*thresh*0.5);
     B_c = -1./(sqrt(2.)*nu*cstrain);
     A_c = -(E*thresh + sqrt(2.)*cstress*nu)/((E*std::exp(B_c*thresh - 1.)/B_c) - E*thresh);
-    tensionOnly = false ;
+    tensionOnly = (cstress > 0 || cstrain > 0) ;
 }
 
 NonLocalMazars::NonLocalMazars(double thresh, double E, double nu, double Gf, double radius, planeType pt, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
@@ -41,7 +41,7 @@ NonLocalMazars::~NonLocalMazars()
 {
 }
 
-void NonLocalMazars::resetParameters( double thresh, double E_, double nu_, double Gf_, double cstress_, double cstrain_ )
+void NonLocalMazars::reset( double thresh, double E_, double nu_, double Gf_, double cstress_, double cstrain_, double r, planeType p )
 {
     threshold = std::abs( thresh ) ;
     E = E_ ;
@@ -52,10 +52,13 @@ void NonLocalMazars::resetParameters( double thresh, double E_, double nu_, doub
     B_t = (0.1*E*thresh) / (Gf - E*0.1*thresh*thresh*0.5);
     B_c = -1./(sqrt(2.)*nu*cstrain);
     A_c = -(E*thresh + sqrt(2.)*cstress*nu)/((E*std::exp(B_c*thresh - 1.)/B_c) - E*thresh);
-    tensionOnly = false ;
+    tensionOnly = (cstress > 0 || cstrain > 0) ;
+    if(r > 0)
+        setMaterialCharacteristicRadius(r);
+    pt = p ;
 }
 
-void NonLocalMazars::resetParameters( double thresh, double E_, double nu_, double Gf_)
+void NonLocalMazars::reset( double thresh, double E_, double nu_, double Gf_)
 {
     threshold = std::abs( thresh ) ;
     E = E_ ;

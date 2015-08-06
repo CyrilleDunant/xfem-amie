@@ -118,9 +118,9 @@ int main(int argc, char *argv[])
     std::fstream out ;
     out.open(outputFile.c_str(), std::ios::out) ;
 
-    LinearInterpolatedExternalMaterialLaw * temperature = new LinearInterpolatedExternalMaterialLaw(std::make_pair("t","temperature"),"temperature_history_misa.txt") ;
-     LinearInterpolatedExternalMaterialLaw * humidity = new LinearInterpolatedExternalMaterialLaw(std::make_pair("t","relative_humidity"),"RH_misa.txt") ;
-      LinearInterpolatedExternalMaterialLaw * fluence = new LinearInterpolatedExternalMaterialLaw(std::make_pair("t","neutron_fluence"),"fluence_misa.txt") ;
+    LinearInterpolatedMaterialLaw * temperature = new LinearInterpolatedMaterialLaw(std::make_pair("t","temperature"),"temperature_history_misa.txt") ;
+     LinearInterpolatedMaterialLaw * humidity = new LinearInterpolatedMaterialLaw(std::make_pair("t","relative_humidity"),"RH_misa.txt") ;
+      LinearInterpolatedMaterialLaw * fluence = new LinearInterpolatedMaterialLaw(std::make_pair("t","neutron_fluence"),"fluence_misa.txt") ;
 
 //applying of the function to material law
    // LinearInterpolatedExternalMaterialLaw temperature(std::make_pair("t", "temperature"), temperatureHistory) ;
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
     ThermalExpansionMaterialLaw thermalExpansion("temperature=293") ;
     DryingShrinkageMaterialLaw dryingShrinkage("relative_humidity=0.6") ;
     RadiationInducedVolumetricExpansionMaterialLaw radiationExpansion ;
-    LinearInterpolatedExternalMaterialLaw radiationDamage(std::make_pair("neutron_fluence","young_modulus"), "../examples/data/elleuch/aggregate_damage") ;
+    LinearInterpolatedMaterialLaw radiationDamage(std::make_pair("neutron_fluence","young_modulus"), "../examples/data/elleuch/aggregate_damage") ;
     CreepArrheniusMaterialLaw creepArrhenius("temperature=293, creep_modulus = 3.6e9, creep_characteristic_time=0.5, creep_activation_energy = 1.666e-4") ;
     WittmannRelativeHumidityDependentCreepMaterialLaw creepHumidity("creep_humidity_coefficient = 5") ;
 

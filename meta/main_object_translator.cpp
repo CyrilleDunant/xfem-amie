@@ -47,6 +47,7 @@ struct ObjectConstructor
 	std::string token ;
 	std::string father ;
 	std::vector<std::pair<std::string, std::string> > arguments ;
+	std::vector<std::string> helpers ;
 	std::map<std::string, std::string> preprocessor ;
 	std::map<std::string, std::string> defaultValues ;
 	bool reset ;
@@ -77,12 +78,43 @@ struct ObjectConstructor
 				}
 				arguments.push_back( std::make_pair( type, arg ) ) ;
 
-				if(command[i+1].find('@') == std::string::npos && command[i+1].find("*/") == std::string::npos)
+				if(command[i+1].find('@') == std::string::npos && command[i+1].find("*/") == std::string::npos && command[i+1] != "//")
 				{
 					defaultValues[ arg ] = command[i+1] ;
 				}
+//				std::cout << command[i] ;
+//				std::cout << command[i+1] ;
+//				std::cout << command[i+2] ;
+				if(command[i+2] == "//" || command[i+1] == "//")
+				{
+					size_t j = i+(command[i+2] == "//" ? 3 : 2) ;
+					std::string comment = command[j] ;
+					while(j+1 < command.size() && command[j+1].find('@') != 0 && command[j+1].find("*/") != 0)
+					{
+						j++ ;
+						comment.append(" "+command[j]) ;
+					}
+					helpers.push_back(comment) ;
+				}
+				else
+					helpers.push_back(" ") ;
 			}
 		}
+	}
+
+	std::vector<std::string> printTemplate(std::string basic)
+	{
+		std::vector<std::string> ret ;
+		ret.push_back("."+basic+" = "+token) ;
+		for(size_t i = 0 ; i < arguments.size() ; i++)
+		{
+			std::string tmp = ".."+arguments[i].second+" = " ;
+			if(defaultValues.find(arguments[i].second) != defaultValues.end() && arguments[i].first != "object")
+				tmp.append(defaultValues[arguments[i].second]+" ") ;
+			tmp.append("# ("+arguments[i].first+") "+helpers[i]) ;
+			ret.push_back(tmp) ;
+		}
+		return ret ;
 	}
 
 	static std::string getMapName( std::string natural )
@@ -101,31 +133,37 @@ struct ObjectConstructor
 		return natural+"s" ;
 	}
 
-	std::string getClassName(std::string suffix)  { return token+suffix ; }
+	std::string getClassName(std::string suffix)  
+	{
+		if(token == ".") { return suffix ; }
+		return token+suffix ; 
+	}
 
 	std::string getExistenceCondition( int i )
 	{
 		std::string ret("            if( ") ;
-		ret.append( arguments[i].first ) ;
-		ret.append("s.find(\"") ;
+		std::string type = arguments[i].first ;
+		if(type == "object")
+			type = preprocessor[ arguments[i].second ]+"*" ;
+		ret.append(ObjectConstructor::getMapName( type )) ;
+		ret.append(".find(\"") ;
 		ret.append( arguments[i].second ) ;
 		ret.append("\") == ") ;
-		ret.append( arguments[i].first ) ;
-		ret.append("s.end() )") ;
+		ret.append(ObjectConstructor::getMapName( type )) ;
+		ret.append(".end() )") ;
 		return ret ;
 	}
 
 	std::string getForceExistence( int i )
 	{
-		std::string ret("                ") ;
 		std::string type = arguments[i].first ;
 		if(type == "object")
 			type = preprocessor[ arguments[i].second ]+"*" ;
-		ret.append(ObjectConstructor::getMapName( type )) ;
+		std::string ret = ObjectConstructor::getMapName( type ) ;
 		ret.append("[\"") ;
 		ret.append(arguments[i].second) ;
 		ret.append("\"] = ") ;
-		if( arguments[i].first == "object")
+		if( arguments[i].first == "object" && defaultValues[arguments[i].second] != "nullptr")
 			ret.append("new ") ;
 		if( arguments[i].first == "string")
 			ret.append("\"") ;
@@ -143,8 +181,11 @@ struct ObjectConstructor
 		{
 			if( defaultValues.find( arguments[i].second ) != defaultValues.end() )
 			{
-				ret.push_back(getExistenceCondition(i)) ;
-				ret.push_back(getForceExistence(i)) ;
+				std::string def = getExistenceCondition(i) ;
+				def.append(" { ") ; 
+				def.append(getForceExistence(i)) ;
+				def.append(" } ; ") ; 
+				ret.push_back(def) ;
 			}
 		}
 		return ret ;
@@ -170,26 +211,20 @@ struct ObjectConstructor
 				std::string type = arguments[i].first ;
 				if(type == "object")
 					type = preprocessor[ arguments[i].second ]+"*" ;
-				if(preprocessor.find(arguments[i].second) != preprocessor.end())
+				if(preprocessor.find(arguments[i].second) != preprocessor.end() && arguments[i].first == "string")
 				{
-					if(arguments[i].first == "string")
-					{
-						ret.append( "Enum::get" ) ;
-						ret.append( preprocessor[arguments[i].second] ) ;
-					}
-					else
-					{
-						ret.append( "dynamic_cast<" ) ;
-						ret.append( preprocessor[arguments[i].second] ) ;
-						ret.append( " * >" ) ;
-					}
+					ret.append( "Enum::get" ) ;
+					ret.append( preprocessor[arguments[i].second] ) ;
 					ret.append( "(" ) ;
 				}
 				ret.append( ObjectConstructor::getMapName( type ) ) ;
-				ret.append("[\"") ;
-				ret.append( arguments[i].second ) ;
-				ret.append("\"]") ;
-				if(preprocessor.find(arguments[i].second) != preprocessor.end())
+				if(arguments[i].second.length() > 0)
+                                {
+					ret.append("[\"") ;
+					ret.append( arguments[i].second ) ;
+					ret.append("\"]") ;
+				}
+				if(preprocessor.find(arguments[i].second) != preprocessor.end()  && arguments[i].first == "string")
 					ret.append( ")" ) ;
 				if( i+1 < arguments.size() )
 					ret.append(", ") ;
@@ -247,6 +282,14 @@ struct ObjectConstructor
 		ret.append( ") ;" ) ;
 		return ret ;
 	}
+
+	std::string getEvalLine()  
+        {
+                std::string ret("        if( type == \"") ;
+                ret.append( token ) ;
+                ret.append("\" ) { return true ; }") ;
+		return ret ;
+        }
 
 	std::string getConstructorLine(std::string suffix)  
 	{
@@ -352,11 +395,12 @@ struct ObjectHeaderFile
 						std::string next ;
 						getline( test, next ) ;
 						found = next.find("*/") != std::string::npos ;
-						size_t comment = next.find("//") ;
-						current.append(next.substr(0, comment-1)+" ") ;
+//						size_t comment = next.find("//") ;
+						current.append(next+" ") ;
 					}
 				}
-				if(current.find( type) < std::string::npos)
+				std::vector<std::string> test = breakString( current ) ;
+				if(test[2] == type)
 					construct.push_back( ObjectConstructor(current) ) ;
 			}
 		}
@@ -402,18 +446,20 @@ struct AMIEConstructorParser
 {
 	std::string className ;
 	std::string suffix ;
+	std::string alias ;
 	std::vector<std::string> types ;
 	std::vector<std::string> resettypes ;
 	std::vector<ObjectHeaderFile> headers ;
 	std::vector<std::string> req ;
 
-	AMIEConstructorParser( std::string c, std::string s, std::vector<std::string> r ) : className(c), suffix( s ), req(r) { } ;
+	AMIEConstructorParser( std::string c, std::string s, std::string a, std::vector<std::string> r ) : className(c), suffix( s ), alias( a ), req(r) { } ;
 
 	static std::string getCppType( std::string natural )
 	{
 		if(natural == "string") { return "std::string" ; } 
 		if(natural == "stringlist") { return "std::vector<std::string>" ; } 
 		if(natural == "char") { return "char" ; } 
+		if(natural == "bool") { return "bool" ; } 
 		if(natural == "value") { return "double" ; } 
 		if(natural == "vector") { return "std::vector<double>" ; } 
 		if(natural.find("*") < std::string::npos) { return natural ; }
@@ -467,6 +513,17 @@ struct AMIEConstructorParser
 			ret.append( ObjectConstructor::getMapName( types[i] ) ) ;
 		}
 		ret.append(")") ;
+		if(header) { ret.append(" ;") ; }
+		return ret ;
+	}
+
+	std::string getEvalDeclaration(bool header)
+	{
+		std::string ret = "    " ;
+		if(header) { ret.append("static bool is") ; }
+		else { ret.append("bool Object::is") ; }
+		ret.append(className) ;
+		ret.append("(std::string type)") ;
 		if(header) { ret.append(" ;") ; }
 		return ret ;
 	}
@@ -540,6 +597,27 @@ struct AMIEConstructorParser
 		return lines ;
 	}
 
+	std::vector<std::string> printEval()
+	{
+		std::vector<std::string> lines ;
+		lines.push_back( getEvalDeclaration(false) ) ;
+		lines.push_back( "    {") ;
+		for(size_t i = 0 ; i < headers.size() ; i++)
+		{
+			if(headers[i].construct.size() > 0)
+				lines.push_back( headers[i].getHeaderComment() ) ;
+			for(size_t j = 0 ; j < headers[i].construct.size() ; j++)
+			{
+				lines.push_back( headers[i].construct[j].getEvalLine() ) ;
+			}
+			if(headers[i].construct.size() > 0)
+				lines.push_back( std::string("   ") ) ;
+		}
+		lines.push_back("        return false ;") ;
+		lines.push_back("    }") ;
+		return lines ;
+	}
+
 	std::vector<std::string> getAllRequirements( std::vector<std::string> old ) 
 	{
 		std::vector<std::string> ret = old ;
@@ -551,6 +629,23 @@ struct AMIEConstructorParser
 		return ret ;
 	}
 
+	void printAllTemplates()
+	{
+		std::fstream out ;
+		std::string file = "../examples/data/templates/"+alias+".ini" ;
+		out.open(file.c_str(), std::ios::out) ;
+		for(size_t i = 0 ; i < headers.size() ; i++)
+		{
+			for(size_t j = 0 ; j < headers[i].construct.size() ; j++)
+			{
+				std::vector<std::string> tmp = headers[i].construct[j].printTemplate(alias) ;
+				for(size_t k = 0 ; k < tmp.size() ; k++)
+					out << tmp[k] << std::endl ;
+			}
+		}
+		out.close() ;
+	}
+
 } ;
 
 int main(int argc, char *argv[])
@@ -558,9 +653,60 @@ int main(int argc, char *argv[])
 	std::vector<AMIEConstructorParser> all ;
 
 	std::vector<std::string> materialLawReq ; materialLawReq.push_back("../physics/material_laws/material_laws.h") ;
-	AMIEConstructorParser materialLaw("ExternalMaterialLaw","MaterialLaw", materialLawReq) ;
+	AMIEConstructorParser materialLaw("ExternalMaterialLaw","MaterialLaw","material_law", materialLawReq) ;
 	materialLaw.parseFolder("../physics/material_laws/") ;
+
 	all.push_back(materialLaw) ;
+
+	std::vector<std::string> behaviourReq ; 
+	behaviourReq.push_back("../elements/integrable_entity.h") ;
+	behaviourReq.push_back("../physics/material_laws/material_laws.h") ;
+	behaviourReq.push_back("../physics/material_laws/logcreep_accumulator.h") ;
+	behaviourReq.push_back("../physics/damagemodels/damagemodel.h") ;
+	behaviourReq.push_back("../physics/fracturecriteria/fracturecriterion.h") ;
+	AMIEConstructorParser behaviour("Form",std::string(),"behaviour", behaviourReq) ;
+        behaviour.parseFolder("../physics/") ;
+
+	all.push_back(behaviour) ;
+
+	std::vector<std::string> damageReq ; 
+	damageReq.push_back("../physics/damagemodels/damagemodel.h") ;
+	AMIEConstructorParser damage("DamageModel","LinearDamage","damage_model", damageReq) ;
+        damage.parseFolder("../physics/damagemodels/") ;
+
+	all.push_back(damage) ;
+
+	std::vector<std::string> criterionReq ; 
+	criterionReq.push_back("../physics/fracturecriteria/fracturecriterion.h") ;
+	AMIEConstructorParser criterion("FractureCriterion",std::string(),"fracture_criterion", criterionReq) ;
+        criterion.parseFolder("../physics/fracturecriteria/") ;
+
+	all.push_back(criterion) ;
+
+	std::vector<std::string> accReq ; 
+	accReq.push_back("../physics/material_laws/logcreep_accumulator.h") ;
+	AMIEConstructorParser acc("LogCreepAccumulator","LogCreepAccumulator","accumulator", accReq) ;
+        acc.parseFolder("../physics/material_laws/") ;
+
+	all.push_back(acc) ;
+
+	std::vector<std::string> incGenReq ; incGenReq.push_back("../features/microstructuregenerator.h") ;
+	AMIEConstructorParser incGen("InclusionGenerator","InclusionGenerator","inclusion_generator", incGenReq) ;
+	incGen.parseFolder("../features/") ;
+
+	all.push_back(incGen) ;
+
+	std::vector<std::string> granuloReq ; granuloReq.push_back("../utilities/granulo.h") ;
+	AMIEConstructorParser granulo("ParticleSizeDistribution",std::string(),"particle_size_stribution", granuloReq) ;
+	granulo.parseFolder("../utilities/") ;
+
+	all.push_back(granulo) ;
+
+	std::vector<std::string> familyReq ; familyReq.push_back("../utilities/inclusion_family.h") ;
+	AMIEConstructorParser family("InclusionFamily","InclusionFamily","family", familyReq) ;
+	family.parseFolder("../utilities/") ;
+
+	all.push_back(family) ;
 
 	std::vector<std::string> req ;
 	for(size_t i = 0 ; i < all.size() ; i++)
@@ -593,9 +739,10 @@ int main(int argc, char *argv[])
 	{
 		head << "    // parsed from header file: " << all[i].req[0] << std::endl ;
 		head << all[i].getConstructorDeclaration( true ) << std::endl ;
+		head << all[i].getEvalDeclaration( true ) << std::endl ;
 		head << all[i].getResetDeclaration( true ) << std::endl ;
+		head << std::endl ;
 	}
-	head << std::endl ;
 	head << "} ;" << std::endl ;
 	head << std::endl ;
 	head << "}" << std::endl ;
@@ -615,7 +762,7 @@ int main(int argc, char *argv[])
 	{
 		for(size_t j = 0 ; j < all[i].headers.size() ; j++)
 		{
-			if( std::find( done.begin(), done.end(), all[i].headers[j].file ) == done.end() )
+			if( std::find( done.begin(), done.end(), all[i].headers[j].file ) == done.end() && all[i].headers[j].construct.size() > 0)
 			{
 				src << all[i].headers[j].getInclude() << std::endl ;
 				done.push_back( all[i].headers[j].file ) ;
@@ -629,9 +776,13 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < all.size() ; i++)
 	{
 		std::vector<std::string> cons = all[i].printConstructor() ;
+		std::vector<std::string> evl = all[i].printEval() ;
 		std::vector<std::string> res = all[i].printReset() ;
 		for(size_t j = 0 ; j < cons.size() ; j++)
 			src << cons[j] << std::endl ;
+		src << std::endl ;
+		for(size_t j = 0 ; j < evl.size() ; j++)
+			src << evl[j] << std::endl ;
 		src << std::endl ;
 		for(size_t j = 0 ; j < res.size() ; j++)
 			src << res[j] << std::endl ;
@@ -639,6 +790,9 @@ int main(int argc, char *argv[])
 	}
 	src << "}" << std::endl ;
 	src << std::endl ;
+
+	for(size_t i = 0 ; i < all.size() ; i++)
+		all[i].printAllTemplates() ;
 
 
 	return 0 ;
