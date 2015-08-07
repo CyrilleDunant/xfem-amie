@@ -260,6 +260,7 @@ public:
     virtual ~Assembly() ;
 
     size_t getMaxDofID() const ;
+    size_t getMaxNodeID() const ;
     std::set<unsigned long int> updatedDofs ;
 
     /** \brief add element to assembly*/

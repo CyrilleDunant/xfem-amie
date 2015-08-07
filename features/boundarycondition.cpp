@@ -7501,9 +7501,9 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangl
     }
     else
     {
-        size_t extraDofPerPlane = 0 ;
+/*        size_t extraDofPerPlane = 0 ;
         if( ndofmax <  previousDisp.size()/dof )
-            extraDofPerPlane = (previousDisp.size()/dof-ndofmax)/timePlanes ;
+            extraDofPerPlane = (previousDisp.size()/dof-ndofmax)/timePlanes ;*/
 
         for ( size_t i = 0 ; i < timePlanes-1 ; i++ )
         {

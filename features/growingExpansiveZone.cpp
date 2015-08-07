@@ -14,10 +14,11 @@
 
 using namespace Amie ;
 
-GrowingExpansiveZone::GrowingExpansiveZone(Feature* father, const Function & g, double x, double y, Form* i) : TimeDependentEnrichmentInclusion(father,g,x,y), imp(i)
+GrowingExpansiveZone::GrowingExpansiveZone(Feature* father, const Function & g, double x, double y, Form* i, double start) : TimeDependentEnrichmentInclusion(father,g,x,y), imp(i)
 {
     Feature::setBehaviour(i) ;
     changed = true ;
+    this->TimeDependentCircle::center.getT() = start ;
 }
 
 GrowingExpansiveZone::GrowingExpansiveZone(Feature* father, const Function & g, double x, double y) : TimeDependentEnrichmentInclusion(father,g,x,y)
@@ -74,6 +75,7 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
         }
     }
 
+    std::set<Point *> donePoints ;
     for(size_t i = 0 ; i < disc.size() ; i++)
     {
         disc[i]->clearBoundaryConditions() ;
@@ -93,7 +95,6 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 
         size_t enrichedDofPerTimePlanes = disc[i]->getEnrichmentFunctions().size()/disc[i]->timePlanes() ;
 
-        std::set<Point *> donePoints ;
         for(size_t j = 0 ; j < disc[i]->getEnrichmentFunctions().size() - enrichedDofPerTimePlanes ; j++)
         {
             if(donePoints.find(disc[i]->getEnrichmentFunction(j).getPoint()) == donePoints.end())
@@ -118,6 +119,7 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 //disc[i]->addBoundaryCondition( new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, disc[i], gp, Jinv, dofIdCurrent[disc[i]->getEnrichmentFunction(j).getPoint()], 0., n) ) ;
         }
     }
+
 
 
 // 	if(disc.size() < 6)
@@ -148,17 +150,17 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
         for(size_t j = 0 ; j < nodesIterator.size() && !added ; j++)
         {
             Point A = disc[i]->getBoundingPoint( nodesIterator[j][0] ) ;
-            if(in(A))
+            if(getPrimitive()->in(A))
                 bin= true ;
             else
                 bout = true ;
             Point B = disc[i]->getBoundingPoint( nodesIterator[j][1] ) ;
-            if(in(B))
+            if(getPrimitive()->in(B))
                 bin= true ;
             else
                 bout = true ;
             Point C = disc[i]->getBoundingPoint( nodesIterator[j][2] ) ;
-            if(in(C))
+            if(getPrimitive()->in(C))
                 bin= true ;
             else
                 bout = true ;
@@ -175,6 +177,7 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
         {
             Point p = disc[i]->getCenter() ;
             p.getT() = VirtualMachine().eval( disc[i]->getTTransform(), 0,0,0,0) ;
+            p.print() ;
             if(getPrimitive()->in(p))
                 inDisc.push_back( disc[i] ) ;
         }
@@ -220,6 +223,8 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
     bimateralInterfaced = newInterface ;
 
     std::vector<DelaunayTriangle *> enriched(enrichedElem.begin(), enrichedElem.end());
+
+    std::cout << enriched.size() << " " << expansive.size() << " " << bimateralInterfaced.size() << std::endl ;
 
 
     dofIdPrev = dofIdCurrent ;

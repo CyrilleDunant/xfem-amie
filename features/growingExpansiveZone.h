@@ -23,7 +23,7 @@ class GrowingExpansiveZone :  public TimeDependentEnrichmentInclusion
 
 public:
 
-    GrowingExpansiveZone(Feature *father, const Function & g, double x, double y, Form * i) ;
+    GrowingExpansiveZone(Feature *father, const Function & g, double x, double y, Form * i, double s = -1) ;
     GrowingExpansiveZone(Feature *father, const Function & g, double x, double y) ;
     virtual ~GrowingExpansiveZone() ;
 

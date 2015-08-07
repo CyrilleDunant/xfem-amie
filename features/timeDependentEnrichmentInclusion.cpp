@@ -81,6 +81,8 @@ void TimeDependentEnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTre
 
     if(cache.empty())
         std::cout << "cache empty !" << std::endl ;
+
+    updated = false ;
 }
 
 Function getTimeDependentBlendingFunction(const std::map<const Point *, int> & dofIds, const DelaunayTriangle * t)
@@ -129,7 +131,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 {
 
     freeIds.clear() ;
-    if(true)//updated)
+    if(updated)
     {
         update(dtree) ;
     }
@@ -337,13 +339,13 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 
 void TimeDependentEnrichmentInclusion::step(double dt, std::valarray< double >*, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree)
 {
-/*    if(dt > POINT_TOLERANCE)
+    if(dt > POINT_TOLERANCE)
     {
         if( VirtualMachine().deval(TimeDependentCircle::getRadiusFunction(), TIME_VARIABLE, 0,0,0,dt) > POINT_TOLERANCE)
         {
 
 //            changed = true ;
-//            updated = true ;
+            updated = true ;
 
         }
         else
@@ -352,7 +354,7 @@ void TimeDependentEnrichmentInclusion::step(double dt, std::valarray< double >*,
             updated = false ;
         }
     }
-    else*/
+    else
 
         changed = false ;
         updated = false ;

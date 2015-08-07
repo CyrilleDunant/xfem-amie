@@ -317,9 +317,6 @@ void Assembly::setBoundaryConditions()
 
             for(int p = start_multiplier_in_line_index ; p != end_multiplier_in_line_index ; p++)
             {
-                if(multipliers[p].getId() == 2 || multipliers[p].getId() == 3)
-                    std::cout << p << " " << multipliers[p].type << " " << multipliers[p].getId() << " " << multipliers[p].getValue() << std::endl ;
-
                 if(multipliers[p].type != SET_FORCE_XI
                         &&  multipliers[p].type != SET_FORCE_ETA
                         &&  multipliers[p].type != SET_FORCE_ZETA
@@ -534,12 +531,10 @@ void Assembly::setBoundaryConditions()
         }
     }
 
-
     gettimeofday ( &time1, nullptr );
     double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
     std::cerr << " ...done (" << delta/1000000 << " seconds)" << std::endl ;
     multipliersBuffer.clear() ;
-    std::cout << externalForces[2] << " " << externalForces[3] << " " << externalForces[36] << " " << externalForces[37] << std::endl ;
 
     for(size_t i = 0 ; i < multipliers.size() ; i++)
     {
@@ -610,8 +605,8 @@ void Assembly::setBoundaryConditions()
     {
 
         size_t totaldofs = getMatrix().row_size.size()*getMatrix().stride ;
-        rowstart = totaldofs/2 ;
-        colstart = totaldofs/2 ;
+        rowstart = getMaxNodeID()*ndof/2 ;
+        colstart = getMaxNodeID()*ndof/2 ;
         if( element2d[0]->getOrder() == CONSTANT_TIME_QUADRATIC || element2d[0]->getOrder() == LINEAR_TIME_QUADRATIC || element2d[0]->getOrder() == QUADRATIC_TIME_QUADRATIC )
         {
             rowstart = 2*totaldofs/3 ;
@@ -627,8 +622,8 @@ void Assembly::setBoundaryConditions()
      {
 
         size_t totaldofs = getMatrix().row_size.size()*getMatrix().stride ;
-        rowstart = totaldofs/2 ;
-        colstart = totaldofs/2 ;
+        rowstart = getMaxNodeID()*ndof ;
+        colstart = getMaxNodeID()*ndof ;
         if( element3d[0]->getOrder() == CONSTANT_TIME_QUADRATIC || element3d[0]->getOrder() == LINEAR_TIME_QUADRATIC || element3d[0]->getOrder() == QUADRATIC_TIME_QUADRATIC )
         {
             rowstart = 2*totaldofs/3 ;
@@ -640,7 +635,6 @@ void Assembly::setBoundaryConditions()
             rowstart = 0 ;
         }
     }
-
 
     prevDisplacements.resize(rowstart) ;
     prevDisplacements = 0. ;
@@ -2233,6 +2227,34 @@ std::map<std::pair<size_t, size_t>, Matrix> incompleteCholeskyDecomposition(std:
 Vector solveCholeskyDecomposedSystem(std::map<std::pair<size_t, size_t>, Matrix> & choleskyDecomposition, const Vector &b)
 {
     return Vector() ; //shut up the compiler
+}
+
+size_t Assembly::getMaxNodeID() const
+{
+    int max = 0 ;
+    if(has2DElements())
+    {
+        for(size_t i = 0 ; i < element2d.size() ; i++)
+        {
+            for(size_t j = 0 ; j < element2d[i]->getBoundingPoints().size() ; j++)
+            {
+                max = (element2d[i]->getBoundingPoint(j).getId() > max ? element2d[i]->getBoundingPoint(j).getId() : max ) ;
+            }
+        }
+        return max+1 ;
+    }
+    if(has3DElements())
+    {
+        for(size_t i = 0 ; i < element3d.size() ; i++)
+        {
+            for(size_t j = 0 ; j < element3d[i]->getBoundingPoints().size() ; j++)
+            {
+                max = (element3d[i]->getBoundingPoint(j).getId() > max ? element3d[i]->getBoundingPoint(j).getId() : max ) ;
+            }
+        }
+        return max+1 ;
+    }
+    return 0 ;
 }
 
 size_t Assembly::getMaxDofID() const

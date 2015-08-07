@@ -21,6 +21,7 @@ protected:
 	std::map<const Point *, int> dofIdPrev ;
 	std::map<const Point *, int> dofIdCurrent ;
 	std::set<DelaunayTriangle *> enrichedElem;
+	bool first = true ;
   
 public:
 	TimeDependentEnrichmentInclusion(Feature * father, const Function & r, double x, double y) ;

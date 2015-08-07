@@ -60,7 +60,7 @@ GaussPointArray GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGauss
         {
             gp_alternative.push_back ( trg->getGaussPoints().gaussPoints[i*3] );
             gp_alternative.back().first.getT() = time ;
-            gp_alternative.back().second /= 1./3. ;
+            gp_alternative.back().second *= 6. ;
         }
 
         gp.gaussPoints.resize ( gp_alternative.size() ) ;
@@ -101,7 +101,7 @@ GaussPointArray  GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaus
         {
             gp_alternative.push_back ( tet->getGaussPoints().gaussPoints[i*3] );
             gp_alternative.back().first.getT() = time ;
-            gp_alternative.back().second /= 1./3. ;
+            gp_alternative.back().second *= 3./2. ;
         }
 
         gp.gaussPoints.resize ( gp_alternative.size() ) ;
@@ -164,7 +164,7 @@ double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType
         double w = gp.gaussPoints[i].second*weights[i] ;
         bool cached = false ;
 
-        if(dummy < 0 && (f == GENERALIZED_VISCOELASTIC_STRAIN_FIELD || f == GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD || f == STRAIN_FIELD || f == PRINCIPAL_STRAIN_FIELD || f == STRAIN_RATE_FIELD || f == REAL_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD || f == EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == MECHANICAL_STRAIN_FIELD || f == PRINCIPAL_MECHANICAL_STRAIN_FIELD) )
+        if(dummy < 0 && gp.gaussPoints.size() < 2 && (f == GENERALIZED_VISCOELASTIC_STRAIN_FIELD || f == GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD || f == STRAIN_FIELD || f == PRINCIPAL_STRAIN_FIELD || f == STRAIN_RATE_FIELD || f == REAL_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD || f == EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == MECHANICAL_STRAIN_FIELD || f == PRINCIPAL_MECHANICAL_STRAIN_FIELD) )
         {
             if(std::abs ( t-1 ) < POINT_TOLERANCE)
             {
@@ -205,14 +205,23 @@ double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType
     	{
     		int * p = nullptr ;
     		*p = 3 ;
-    	}
+    	}*/
 
+    if(false) //weights.size() > 200 && abs(ret[1]) > 1e7)
+    {
+    	std::cout << "enrichment=" << parent->getEnrichmentFunctions().size() << std::endl ;
+        std::cout << "displacements=" ;
+	for(size_t i = 0 ; i < enrichedDisplacements.size() ; i++)
+		std::cout << enrichedDisplacements[i] << "," ;
+ 	std::cout << std::endl ;
     	std::cout << "weight=" << weights.size() << std::endl ;
     	std::cout << "time=" << t << std::endl ;
     	std::cout << "field=" << f << std::endl ;
-    	std::cout << "dummy=" << dummy << std::endl ;
+    	std::cout << "ret[0]=" << ret[0] << std::endl ;
+    	std::cout << "ret[1]=" << ret[1] << std::endl ;
     	std::cout << "area=" <<(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? parent->area() : parent->volume()) << std::endl ;
-    	std::cout << "total=" << total << std::endl ;*/
+    	std::cout << "total=" << total << std::endl ;
+    }
 
     return total ;//parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? parent->area() : parent->volume() ;
 }
@@ -410,7 +419,7 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointA
                     genStrainAtGaussPointAfter[ j*ret.size() + k] = generalizedBuffer[k] ;
             }
         }
-        ret.resize( 3+(3*parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ) ;
+        ret.resize( (3+(3*parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ) ;
         // find result in cache
         for(size_t j = 0 ; j < ret.size() ; j++)
             ret[j] = genStrainAtGaussPointAfter[ i*genStrainAtGaussPointAfter.size()/gp.gaussPoints.size() + j] ;
@@ -1129,7 +1138,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 y_tau += f_tau * displacements[j * totaldof + 1] ;
             }
 
-            for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
+/*            for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
             {
                 double f_xi = vm->deval ( parent->getEnrichmentFunction ( j ), XI, p_ ) ;
                 double f_eta = vm->deval ( parent->getEnrichmentFunction ( j ), ETA, p_ ) ;
@@ -1138,7 +1147,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 x_eta += f_eta * enrichedDisplacements[j * totaldof] ;
                 y_xi += f_xi * enrichedDisplacements[j * totaldof + 1] ;
                 y_eta += f_eta * enrichedDisplacements[j * totaldof + 1] ;
-            }
+            }*/
 
             if(!JinvCache || parent->isMoved())
             {
@@ -2282,6 +2291,10 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         generalizedBufferSecond = ( Vector ) ( parent->getBehaviour()->getTensor ( p_, parent ) * generalizedBuffer ) ;
         getField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, p_, generalizedBuffer, true,vm ) ;
         generalizedBufferSecond += ( Vector ) ( parent->getBehaviour()->getViscousTensor ( p_, parent ) * generalizedBuffer ) ;
+
+
+        if( parent->getBehaviour()->getTensor( p_ )[0][0] < 11e9 && parent->getBehaviour()->getImposedStress( p_, parent )[0] > 1e7 )
+            std::cout << parent->getBehaviour()->getTensor( p_ )[0][0] << "/" << parent->getBehaviour()->getImposedStress( p_, parent )[0] << "    " ;
 
         for ( size_t i = 0 ; i < ret.size() ; i++ )
         {
