@@ -408,13 +408,13 @@ LogarithmicCreepWithExternalParameters::~LogarithmicCreepWithExternalParameters(
 /*	if(dfunc) 
 		{delete dfunc ; } 
 	if(criterion) 
-		{delete criterion ;} */
+		{delete criterion ;} 
 	for(size_t i = 0 ; i < relations.size() ; i++)
 	{
 		if(relations[i])
 			delete relations[i] ;
 	}
-	relations.resize(0) ;
+	relations.resize(0) ;*/
 }
 
 std::vector<BoundaryCondition * > LogarithmicCreepWithExternalParameters::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const

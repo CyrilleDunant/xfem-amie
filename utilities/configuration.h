@@ -208,12 +208,7 @@ public:
     /** Translates the current item in a material law for log-creep behaviour*/
     ExternalMaterialLaw * getExternalMaterialLaw() ;
 
-    /** Translates the current item in a vector of inclusions, and places them into a FeatureTree object*/
-    std::vector<std::vector<Feature *> > getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers, std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>()  ) ;
-
     InclusionFamily * makeInclusionFamily( FeatureTree * f, InclusionFamily * father = nullptr, int index = 0) ;
-
-    std::vector<std::vector<Feature *> > getAllInclusions(FeatureTree * F, std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>()  ) ;
 
     /** Translates the current item in a boundary condition*/
     BoundaryCondition * getBoundaryCondition(FeatureTree * f) const ;

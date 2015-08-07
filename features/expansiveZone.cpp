@@ -18,23 +18,41 @@ using namespace Amie ;
 
 ExpansiveZone::ExpansiveZone( Feature *father, double radius, double x, double y, const Matrix &tensor, Vector def ) : EnrichmentInclusion( father, radius, x, y ),  imposedDef( def ), cgTensor( tensor )
 {
-    setBehaviour( new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ) ;
+    Feature::setBehaviour( new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ) ;
     isVirtualFeature = true ;
     homogeneized = false ;
 }
 
-ExpansiveZone::ExpansiveZone( Feature *father, double radius, double x, double y, Form * gel ) : EnrichmentInclusion( father, radius, x, y ), imposedDef(0., 3), cgTensor( gel->param )
+ExpansiveZone::ExpansiveZone( Feature *father, double radius, double x, double y, Form * gel ) : EnrichmentInclusion( father, radius, x, y ), imposedDef(0., 3), cgTensor( 3,3 )
 {
-    if(dynamic_cast<StiffnessWithImposedDeformation *>(gel))
+    if(gel)
+    {
+        cgTensor = gel->param ;
+        Feature::setBehaviour( gel->getCopy() ) ;
+    }
+
+    if(gel && dynamic_cast<StiffnessWithImposedDeformation *>(gel))
     {
         imposedDef= dynamic_cast<StiffnessWithImposedDeformation *>(gel)->imposed  ;
     }
-    setBehaviour( gel->getCopy() ) ;
     isVirtualFeature = true ;
     homogeneized = false ;
 }
 
 ExpansiveZone::~ExpansiveZone() {}
+
+void ExpansiveZone::setBehaviour(Form * const gel) 
+{
+    if(gel && dynamic_cast<StiffnessWithImposedDeformation *>(gel))
+    {
+        imposedDef= dynamic_cast<StiffnessWithImposedDeformation *>(gel)->imposed  ;
+    }
+    if(gel)
+    {
+        cgTensor = gel->param ;
+        Feature::setBehaviour( gel->getCopy() ) ;
+    }
+}
 
 
 void ExpansiveZone::reset()
@@ -163,9 +181,9 @@ void ExpansiveZone::setExpansion( Vector a )
 }
 
 
-MaterialInclusion::MaterialInclusion( Feature *father, double radius, double x, double y, LinearForm *inclusionBehaviour ) : EnrichmentInclusion( father, radius, x, y ),  inclusionBehaviour( inclusionBehaviour )
+MaterialInclusion::MaterialInclusion( Feature *father, double radius, double x, double y, Form * b ) : EnrichmentInclusion( father, radius, x, y )
 {
-
+    this->setBehaviour(b) ;
 }
 
 MaterialInclusion::~MaterialInclusion() {}

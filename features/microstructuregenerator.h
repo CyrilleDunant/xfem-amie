@@ -102,6 +102,24 @@ struct CircularInclusionGenerator : public InclusionGenerator
     CircularInclusionGenerator(double rot = 0.) : InclusionGenerator(rot) { } ;
 } ;
 
+/*PARSE XFEM InclusionGenerator */
+struct XFEMInclusionGenerator : public InclusionGenerator
+{
+    XFEMInclusionGenerator() : InclusionGenerator(0.) { } ;
+
+    virtual Feature * convert(Inclusion * inc) const ;
+
+} ;
+
+/*PARSE SpaceTimeXFEM InclusionGenerator */
+struct SpaceTimeXFEMInclusionGenerator : public XFEMInclusionGenerator
+{
+    SpaceTimeXFEMInclusionGenerator() : XFEMInclusionGenerator() { } ;
+
+    virtual Feature * convert(Inclusion * inc) const ;
+
+} ;
+
 /*PARSE Ellipsoidal InclusionGenerator
     @value[shape_factor] // ratio between major and minor axis of the ellipses
     @value[orientation] 0 // default angle of the major axis

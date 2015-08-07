@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 5/7/2015 at 9:33  */
+/* this is an auto-generated file created on 6/7/2015 at 14:26  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -30,6 +30,7 @@
 #include "../features/microstructuregenerator.h"
 #include "../utilities/granulo.h"
 #include "../utilities/inclusion_family.h"
+#include "../features/enrichmentmanagers/gelmanager.h"
 
 namespace Amie
 {
@@ -517,6 +518,8 @@ namespace Amie
             if( values.find("placement_rotation") == values.end() ) { values["placement_rotation"] = 0 ; } ; 
             return new CircularInclusionGenerator(values["placement_rotation"]) ;
         }
+        if( type == "XFEM" ) { return new XFEMInclusionGenerator() ; }
+        if( type == "SpaceTimeXFEM" ) { return new SpaceTimeXFEMInclusionGenerator() ; }
         if( type == "Ellipsoidal" )
         { 
             if( values.find("orientation") == values.end() ) { values["orientation"] = 0 ; } ; 
@@ -583,6 +586,8 @@ namespace Amie
     {
         // parsed from header file: ../features/microstructuregenerator.h
         if( type == "Circular" ) { return true ; }
+        if( type == "XFEM" ) { return true ; }
+        if( type == "SpaceTimeXFEM" ) { return true ; }
         if( type == "Ellipsoidal" ) { return true ; }
         if( type == "Rectangular" ) { return true ; }
         if( type == "Polygonal" ) { return true ; }
@@ -655,7 +660,7 @@ namespace Amie
         if( type == "Voronoi" )
         { 
             if( values.find("maximum_vertex") == values.end() ) { values["maximum_vertex"] = 20 ; } ; 
-            return new VoronoiInclusionFamily(values["radius"], values["fraction"], values["correction_factor"], values["number_of_grains"], values["maximum_vertex"]) ;
+            return new VoronoiInclusionFamily(values["radius"], values["surface_fraction"], values["correction_factor"], values["number_of_grains"], values["maximum_vertex"]) ;
         }
    
         return nullptr ;
@@ -676,6 +681,45 @@ namespace Amie
     void Object::resetInclusionFamily(InclusionFamily * target)
     {
         // parsed from header file: ../utilities/inclusion_family.h
+   
+    }
+
+    EnrichmentManager * Object::getEnrichmentManager(std::string type, std::map<std::string, FeatureTree*> & featuretrees, std::map<std::string, InclusionFamily*> & inclusionfamilys, std::map<std::string, double> & values, std::map<std::string, std::string> & strings)
+    {
+        // parsed from header file: ../features/enrichmentmanagers/gelmanager.h
+        if( type == "Gel" )
+        { 
+            if( values.find("reactive_fraction") == values.end() ) { values["reactive_fraction"] = 0.1 ; } ; 
+            if( values.find("radius_increment") == values.end() ) { values["radius_increment"] = -1 ; } ; 
+            return new GelManager(featuretrees["feature_tree"], inclusionfamilys["zones"], values["index"], values["reactive_fraction"], values["radius_increment"]) ;
+        }
+        if( type == "FunctionBasedGel" )
+        { 
+            if( values.find("reactive_fraction") == values.end() ) { values["reactive_fraction"] = 0.1 ; } ; 
+            return new FunctionBasedGelManager(featuretrees["feature_tree"], inclusionfamilys["zones"], values["index"], strings["radius"], values["reactive_fraction"]) ;
+        }
+        if( type == "SpaceTimeGel" )
+        { 
+            if( values.find("reactive_fraction") == values.end() ) { values["reactive_fraction"] = 0.1 ; } ; 
+            return new SpaceTimeGelManager(featuretrees["feature_tree"], inclusionfamilys["zones"], values["index"], strings["radius"], values["reactive_fraction"]) ;
+        }
+   
+        return nullptr ;
+    }
+
+    bool Object::isEnrichmentManager(std::string type)
+    {
+        // parsed from header file: ../features/enrichmentmanagers/gelmanager.h
+        if( type == "Gel" ) { return true ; }
+        if( type == "FunctionBasedGel" ) { return true ; }
+        if( type == "SpaceTimeGel" ) { return true ; }
+   
+        return false ;
+    }
+
+    void Object::resetEnrichmentManager(EnrichmentManager * target)
+    {
+        // parsed from header file: ../features/enrichmentmanagers/gelmanager.h
    
     }
 

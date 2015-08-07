@@ -2437,12 +2437,12 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
 
             behaviour->apply(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], vm) ;
 
-            for(size_t j = 0 ; j < i ; j++)
+            for(size_t j = start ; j < i ; j++)
             {
                 behaviour->apply(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j], vm) ;
                 cachedElementaryMatrix[i][j].transpose(cachedElementaryMatrix[j][i]) ;
             }
-            for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+            for(size_t j = startEnriched ; j < getEnrichmentFunctions().size() ; j++)
             {
                 behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j+getShapeFunctions().size()], vm) ;
                 cachedElementaryMatrix[i][j+getShapeFunctions().size()].transpose(cachedElementaryMatrix[j+getShapeFunctions().size()][i]) ;
@@ -2453,7 +2453,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
         {
             behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], vm) ;
 
-            for(size_t j = 0 ; j < i ; j++)
+            for(size_t j = startEnriched ; j < i ; j++)
             {
                 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], vm) ;
                 cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()].transpose(cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()]) ;
@@ -2813,7 +2813,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
         if( order >= CONSTANT_TIME_LINEAR )
         {
 
-            if(getCachedGaussPoints()->getId() == REGULAR_GRID)
+            if((getCachedGaussPoints() != nullptr) && (getCachedGaussPoints()->getId() == REGULAR_GRID))
                 return *getCachedGaussPoints() ;
 
 

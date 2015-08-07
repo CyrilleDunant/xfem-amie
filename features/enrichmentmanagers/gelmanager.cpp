@@ -4,6 +4,11 @@
 namespace Amie
 {
 
+GelManager::GelManager(FeatureTree * f) : deltaRadius(0), reactedArea(0), aggregateArea(0), reactiveFraction(0), ftree(f)
+{
+
+}
+
 GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vector<Feature *> & aggregates,double reactiveFraction, double dr, double initialRadius) :deltaRadius(dr), reactedArea(0),aggregateArea(0), reactiveFraction(reactiveFraction), ftree(ftree)
 {
     if(aggregates.empty())
@@ -89,6 +94,29 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
     }
 }
 
+GelManager::GelManager( FeatureTree * f, InclusionFamily * inc, int gel, double rf, double dr)  : deltaRadius(dr), reactedArea(0), aggregateArea(0), reactiveFraction(rf), ftree(f)
+{
+    aggregateArea = 0 ;
+    reactedArea = 0 ;
+
+    std::vector<Feature *> found ;
+    for(size_t i = 0 ; i < inc->features[gel].size() ; i++)
+    {
+        ExpansiveZone * test = dynamic_cast<ExpansiveZone *>( inc->features[gel][i] ) ;
+        Feature * agg = inc->features[gel][i]->getFather() ;
+        if( test != nullptr && agg != nullptr )
+        {
+            zones.push_back( std::make_pair( test, agg ) ) ;
+            reactedArea += test->area() ;
+            if(std::find( found.begin(), found.end(), agg ) == found.end())
+            {
+                found.push_back( agg ) ;
+                aggregateArea += agg->area() ;
+            }
+        }
+    }
+}
+
 double GelManager::getReactedFraction() const
 {
     return reactedArea/aggregateArea ;
@@ -168,4 +196,118 @@ void GelManager::setDeltaRadius(double dr)
 {
     deltaRadius = dr ;
 }
+
+FunctionBasedGelManager::FunctionBasedGelManager( FeatureTree * f, InclusionFamily * inc, int gel, std::string function, double rf) : GelManager(f, inc, gel, rf, -1), radius(function)
+{
+    reactiveFraction = rf ;
+    aggregateArea = 0 ;
+    reactedArea = 0 ;
+    deltaRadius = 0 ;
+
+    std::vector<Feature *> found ;
+    for(size_t i = 0 ; i < inc->features[gel].size() ; i++)
+    {
+        ExpansiveZone * test = dynamic_cast<ExpansiveZone *>( inc->features[gel][i] ) ;
+        Feature * agg = inc->features[gel][i]->getFather() ;
+        if( test != nullptr && agg != nullptr )
+        {
+            zones.push_back( std::make_pair( test, agg ) ) ;
+            reactedArea += test->area() ;
+            if(std::find( found.begin(), found.end(), agg ) == found.end())
+            {
+                found.push_back( agg ) ;
+                aggregateArea += agg->area() ;
+            }
+        }
+    }
+}
+
+bool FunctionBasedGelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree)
+{
+    if(dt < POINT_TOLERANCE)
+        return false ;
+
+    setDeltaRadius( VirtualMachine().eval( radius, 0,0,0, ftree->getCurrentTime() ) - VirtualMachine().eval( radius, 0,0,0, std::max(0., ftree->getCurrentTime()-dt) ) ) ;
+
+    return GelManager::step( dt, v, dtree ) ;
+}
+
+SpaceTimeGelManager::SpaceTimeGelManager( FeatureTree * f, InclusionFamily * inc, int gel, std::string r, double rf)  : GelManager(f, inc, gel, rf, -1)
+{
+    Function radius(r) ;
+
+    aggregateArea = 0 ;
+    reactedArea = 0 ;
+
+    std::vector<Feature *> found ;
+    for(size_t i = 0 ; i < inc->features[gel].size() ; i++)
+    {
+        GrowingExpansiveZone * test = dynamic_cast<GrowingExpansiveZone *>( inc->features[gel][i] ) ;
+        Feature * agg = inc->features[gel][i]->getFather() ;
+        if( test != nullptr && agg != nullptr )
+        {
+            stzones.push_back( std::make_pair( test, agg ) ) ;
+            test->setRadiusFunction( radius ) ;
+            if(std::find( found.begin(), found.end(), agg ) == found.end())
+            {
+                found.push_back( agg ) ;
+                aggregateArea += agg->area() ;
+            }
+        }
+    }
+}
+
+bool SpaceTimeGelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree)
+{
+    if(dt < POINT_TOLERANCE)
+        return false ;
+
+    Feature *current = nullptr ;
+
+    if( !stzones.empty() )
+        current = stzones[0].second ;
+
+    double currentArea = 0 ;
+    int currentNumber = 0 ;
+    int stoppedReaction = 0 ;
+    reactedArea = 0 ;
+    ftree->forceEnrichmentChange();
+
+    std::vector<Circle> tests ;
+
+    for( size_t z = 0 ; z < stzones.size() ; z++ )
+    {
+        tests.push_back( stzones[z].first->circleAtTime( Point(0,0,0, ftree->getCurrentTime() ) ) ) ;
+//        zones[z].first->setRadius( zones[z].first->getRadius() + deltaRadius ) ;
+
+//         std::cout << zones[z].first->getRadius() + deltaRadius << std::endl ;
+        if( stzones[z].second == current )
+        {
+            currentArea += tests[z].area() ;
+            currentNumber++ ;
+        }
+        else
+        {
+            if( currentArea / stzones[z - 1].second->area() > reactiveFraction )
+            {
+                stoppedReaction++ ;
+
+                for( int m = 0 ; m < currentNumber ; m++ )
+                {
+                    Function finalRadius( tests[z - 1 - m].getRadius() ) ;
+                    stzones[z - 1 - m].first->setRadiusFunction( finalRadius ) ;
+                }
+            }
+
+            currentArea = tests[z].area() ;
+            currentNumber = 1 ;
+            current = stzones[z].second ;
+        }
+
+        reactedArea += tests[z].area() ;
+    }
+    
+    return true ;
+}
+
 }

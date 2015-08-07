@@ -5647,6 +5647,12 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
             ret = false ;
             needexit = true ;
         }
+
+/*        std::cout << foundCheckPoint << std::endl ;
+        std::cout << enrichmentChange << std::endl ;
+        std::cout << behaviourChanged() << std::endl ;
+        std::cout << needexit << std::endl ;*/
+
     }
     while ( !needexit ) ;
 

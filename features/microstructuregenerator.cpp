@@ -4,6 +4,7 @@
 //
 
 #include "microstructuregenerator.h"
+#include "../physics/stiffness.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 #include "../utilities/optimizer.h"
@@ -331,6 +332,17 @@ Feature * RectangularInclusionGenerator::convert(Inclusion * inc) const
 	RectangularInclusion * ret = new RectangularInclusion(inc->getFather(), A-center, C-center, D-center, B-center) ;
 	ret->setBehaviour( inc->getBehaviour()) ;
 	return ret ;
+}
+
+Feature * XFEMInclusionGenerator::convert(Inclusion * inc) const 
+{
+	return new ExpansiveZone( inc->getFather(), inc->getRadius(), inc->getCenter().getX(), inc->getCenter().getY(), inc->getBehaviour() ) ;
+}
+
+Feature * SpaceTimeXFEMInclusionGenerator::convert(Inclusion * inc) const 
+{
+	Function r( inc->getRadius() ) ;
+	return new GrowingExpansiveZone( inc->getFather(), r, inc->getCenter().getX(), inc->getCenter().getY() ) ;
 }
 
 PolygonalSample * PolygonalInclusionGenerator::generatePolygon(double radius) const

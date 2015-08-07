@@ -14,7 +14,13 @@
 
 using namespace Amie ;
 
-GrowingExpansiveZone::GrowingExpansiveZone(Feature* father, Function & g, double x, double y, ViscoelasticityAndImposedDeformation* i) : TimeDependentEnrichmentInclusion(father,g,x,y), imp(i)
+GrowingExpansiveZone::GrowingExpansiveZone(Feature* father, const Function & g, double x, double y, Form* i) : TimeDependentEnrichmentInclusion(father,g,x,y), imp(i)
+{
+    Feature::setBehaviour(i) ;
+    changed = true ;
+}
+
+GrowingExpansiveZone::GrowingExpansiveZone(Feature* father, const Function & g, double x, double y) : TimeDependentEnrichmentInclusion(father,g,x,y)
 {
     changed = true ;
 }

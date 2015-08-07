@@ -630,7 +630,7 @@ void transform(Geometry * g, GeometricTransformationType transformation, const P
     case SCALE:
         if( p.getX() < POINT_TOLERANCE || p.getY() < POINT_TOLERANCE || ( g->spaceDimensions() == SPACE_THREE_DIMENSIONAL && p.getZ() < POINT_TOLERANCE) )
         {
-            std::cout << "try to scale geometry with factor = 0... do nothing instead" << std::endl ;
+//            std::cout << "try to scale geometry with factor = 0 ... do nothing instead" << std::endl ;
             return ;
         }
         if(g->getGeometryType() == CIRCLE)

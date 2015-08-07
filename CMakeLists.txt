@@ -460,7 +460,13 @@ target_link_libraries( test_viscodamage_multilinearsoftening Amie ${ALL_LINK_FLA
 add_executable( test_viscoelasticity_kv examples/test/main_test_viscoelasticity_kv.cpp )
 target_link_libraries( test_viscoelasticity_kv Amie ${ALL_LINK_FLAGS})
 
+add_executable( test_xfem examples/test/main_test_xfem.cpp )
+target_link_libraries( test_xfem Amie ${ALL_LINK_FLAGS})
+
+#add_executable( test_stxfem examples/test/main_test_stxfem.cpp )
+#target_link_libraries( test_stxfem Amie ${ALL_LINK_FLAGS})
+
 ADD_CUSTOM_TARGET(test)
-ADD_DEPENDENCIES(test check_test test_logcreep test_viscodamage_multilinearsoftening test_viscoelasticity_kv)
+ADD_DEPENDENCIES(test check_test test_logcreep test_viscodamage_multilinearsoftening test_viscoelasticity_kv test_xfem)
 
 

@@ -313,8 +313,13 @@ void Assembly::setBoundaryConditions()
             double * blockstart =  &(getMatrix()[lineBlockIndex*stride][columnBlockIndex*stride]) ; 
             if(!blockstart)
                 continue ;
+
+
             for(int p = start_multiplier_in_line_index ; p != end_multiplier_in_line_index ; p++)
             {
+                if(multipliers[p].getId() == 2 || multipliers[p].getId() == 3)
+                    std::cout << p << " " << multipliers[p].type << " " << multipliers[p].getId() << " " << multipliers[p].getValue() << std::endl ;
+
                 if(multipliers[p].type != SET_FORCE_XI
                         &&  multipliers[p].type != SET_FORCE_ETA
                         &&  multipliers[p].type != SET_FORCE_ZETA
@@ -534,6 +539,8 @@ void Assembly::setBoundaryConditions()
     double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
     std::cerr << " ...done (" << delta/1000000 << " seconds)" << std::endl ;
     multipliersBuffer.clear() ;
+    std::cout << externalForces[2] << " " << externalForces[3] << " " << externalForces[36] << " " << externalForces[37] << std::endl ;
+
     for(size_t i = 0 ; i < multipliers.size() ; i++)
     {
         if(multipliers[i].type == GENERAL)

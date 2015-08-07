@@ -42,6 +42,7 @@ public:
     */
     ExpansiveZone(Feature *father, double radius, double x, double y, const Matrix & cgTensor, Vector deformation) ;
     ExpansiveZone(Feature *father, double radius, double x, double y, Form * gel) ;
+    ExpansiveZone(Feature *father, double radius, double x, double y) : EnrichmentInclusion( father, radius, x, y ), imposedDef(0., 3), cgTensor( 3,3 ), homogeneized(false) { isVirtualFeature = true ; } ;
     virtual ~ExpansiveZone() ;
 
     /** \brief enrich elements and change their Behaviour if required*/
@@ -54,6 +55,8 @@ public:
     virtual std::vector<Amie::DelaunayTriangle*> getElements2D(FeatureTree*) {
         return std::vector<Amie::DelaunayTriangle*>() ;
     }
+
+    virtual void setBehaviour(Form * const b) ;
 
     virtual void print() const
     {
@@ -83,7 +86,7 @@ class MaterialInclusion :  public EnrichmentInclusion
 {
     std::set<DelaunayTriangle *> bimateralInterfaced ;
     std::set<DelaunayTriangle *> internal ;
-    LinearForm * inclusionBehaviour ;
+    Form * inclusionBehaviour ;
 public:
 
     /** \brief Constructor. construct the zone
@@ -94,7 +97,10 @@ public:
     * @param y center y
     * @param inclusionBehaviour Inclusion behaviour
     */
-    MaterialInclusion(Feature *father, double radius, double x, double y, LinearForm * inclusionBehaviour) ;
+    MaterialInclusion(Feature *father, double radius, double x, double y, Form * inclusionBehaviour) ;
+
+    MaterialInclusion(Feature *father, double radius, double x, double y) : EnrichmentInclusion( father, radius, x, y ) { } ;
+
     virtual ~MaterialInclusion() ;
 
     /** \brief enrich elements and change their Behaviour if required*/
@@ -107,6 +113,8 @@ public:
     virtual std::vector<Amie::DelaunayTriangle*> getElements(Mesh<DelaunayTriangle, DelaunayTreeItem>*) {
         return std::vector<Amie::DelaunayTriangle*>() ;
     }
+
+    virtual void setBehaviour(Form * const b) { inclusionBehaviour = b ; Feature::setBehaviour(b) ; }
 
     virtual void print() const
     {

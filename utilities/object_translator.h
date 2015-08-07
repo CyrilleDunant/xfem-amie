@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 5/7/2015 at 15:48  */
+/* this is an auto-generated file created on 6/7/2015 at 14:26  */
 
 #ifndef __OBJECT_TRANSLATOR_H__
 #define __OBJECT_TRANSLATOR_H__
@@ -11,6 +11,7 @@
 #include "../features/microstructuregenerator.h"
 #include "../utilities/granulo.h"
 #include "../utilities/inclusion_family.h"
+#include "../features/features.h"
 
 namespace Amie
 {
@@ -57,6 +58,11 @@ struct Object
     static InclusionFamily * getInclusionFamily(std::string type, std::map<std::string, double> & values, std::map<std::string, ParticleSizeDistribution*> & particlesizedistributions, std::map<std::string, InclusionGenerator*> & inclusiongenerators) ;
     static bool isInclusionFamily(std::string type) ;
     static void resetInclusionFamily(InclusionFamily * target) ;
+
+    // parsed from header file: ../features/features.h
+    static EnrichmentManager * getEnrichmentManager(std::string type, std::map<std::string, FeatureTree*> & featuretrees, std::map<std::string, InclusionFamily*> & inclusionfamilys, std::map<std::string, double> & values, std::map<std::string, std::string> & strings) ;
+    static bool isEnrichmentManager(std::string type) ;
+    static void resetEnrichmentManager(EnrichmentManager * target) ;
 
 } ;
 

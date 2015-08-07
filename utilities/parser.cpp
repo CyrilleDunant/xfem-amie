@@ -533,15 +533,6 @@ void ConfigParser::readData()
 
 }
 
-std::vector<std::vector<Feature *> > ConfigParser::getInclusions( std::string filename, FeatureTree * F) 
-{
-    std::vector<std::vector<Feature *> > allFeatures ;
-    ConfigTreeItem * problem = ConfigParser::readFile(filename, nullptr, false, true) ;
-    if(problem->hasChild("inclusions"))
-        allFeatures = problem->getChild("inclusions")->getAllInclusions(F) ;
-    return allFeatures ;
-}
-
 std::vector<BoundaryCondition *> ConfigParser::getBoundaryConditions( std::string filename, FeatureTree * F) 
 {
     std::vector<BoundaryCondition *> ret ;

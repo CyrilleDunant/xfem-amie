@@ -14,7 +14,7 @@
 
 using namespace Amie ;
 
-TimeDependentEnrichmentInclusion::TimeDependentEnrichmentInclusion(Feature * father, Function & r, double x, double y) : EnrichmentInclusion( father, VirtualMachine().eval(r, Point(0,0,0,0)),x,y), TimeDependentCircle(r,Point(x,y))
+TimeDependentEnrichmentInclusion::TimeDependentEnrichmentInclusion(Feature * father, const Function & r, double x, double y) : EnrichmentInclusion( father, VirtualMachine().eval(r, Point(0,0,0,0)),x,y), TimeDependentCircle(r,Point(x,y))
 {
 
 }
@@ -116,7 +116,12 @@ Function getTimeDependentBlendingFunction(const std::map<const Point *, int> & d
     {
         return Function("1")-father.getShapeFunction(2) ;
     }
-    return Function("1") ;
+    return Function("0") ;
+}
+
+bool idsLowerThan(Point * a, Point * b)
+{
+    return a->id < b->id ;
 }
 
 
@@ -124,7 +129,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 {
 
     freeIds.clear() ;
-    if(updated)
+    if(true)//updated)
     {
         update(dtree) ;
     }
@@ -188,12 +193,13 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
     std::sort(ring.begin(), ring.end()) ;
 
     //then we build a list of points to enrich
-    std::set<Point *> points ;
+    std::vector<Point *> points ;
     for(size_t i = 0 ; i < ring.size() ; i++)
     {
         for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
         {
-            points.insert(&ring[i]->getBoundingPoint(j)) ;
+            if(std::find(points.begin(), points.end(), &ring[i]->getBoundingPoint(j)) == points.end())
+                 points.push_back(&ring[i]->getBoundingPoint(j)) ;
         }
         ring[i]->enrichmentUpdated = false ;
         std::vector<DelaunayTriangle *> neighbourhood = dtree->getNeighbourhood(ring[i]) ;
@@ -202,6 +208,8 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
             n->enrichmentUpdated = false ;
         }
     }
+
+    std::sort( points.begin(), points.end(), idsLowerThan ) ;
 
     //we build a map of the points and corresponding enrichment ids
     std::map<const Point *, int> dofId ;
@@ -329,21 +337,25 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 
 void TimeDependentEnrichmentInclusion::step(double dt, std::valarray< double >*, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree)
 {
-    if(dt > POINT_TOLERANCE)
+/*    if(dt > POINT_TOLERANCE)
     {
         if( VirtualMachine().deval(TimeDependentCircle::getRadiusFunction(), TIME_VARIABLE, 0,0,0,dt) > POINT_TOLERANCE)
         {
 
-            changed = true ;
-            updated = true ;
+//            changed = true ;
+//            updated = true ;
 
         }
+        else
+        {
+            changed = false ;
+            updated = false ;
+        }
     }
-    else
-    {
+    else*/
+
         changed = false ;
         updated = false ;
-    }
 
 }
 

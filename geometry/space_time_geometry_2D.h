@@ -57,6 +57,9 @@ public:
     void setInitialTime( double t) {
         center.getT() = t ;
     }
+
+    void setRadiusFunction(Function & f) { radius_t = f ; }
+
 } ;
 
 }

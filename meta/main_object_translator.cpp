@@ -708,6 +708,12 @@ int main(int argc, char *argv[])
 
 	all.push_back(family) ;
 
+	std::vector<std::string> enrichmentReq ; enrichmentReq.push_back("../features/features.h") ;
+	AMIEConstructorParser enrichment("EnrichmentManager","Manager","enrichment", enrichmentReq) ;
+	enrichment.parseFolder("../features/enrichmentmanagers/") ;
+
+	all.push_back(enrichment) ;
+
 	std::vector<std::string> req ;
 	for(size_t i = 0 ; i < all.size() ; i++)
 		req = all[i].getAllRequirements( req ) ;

@@ -14,17 +14,17 @@
 namespace Amie
 {
 
-class GrowingExpansiveZone final:  public TimeDependentEnrichmentInclusion
+class GrowingExpansiveZone :  public TimeDependentEnrichmentInclusion
 {
     std::set<DelaunayTriangle *> bimateralInterfaced ;
     std::set<DelaunayTriangle *> expansive ;
-    bool changed ;
-    ViscoelasticityAndImposedDeformation * imp ;
+    Form * imp ;
     std::map<Point *, std::vector<double> > pointsAndValues ;
 
 public:
 
-    GrowingExpansiveZone(Feature *father, Function & g, double x, double y, ViscoelasticityAndImposedDeformation * i) ;
+    GrowingExpansiveZone(Feature *father, const Function & g, double x, double y, Form * i) ;
+    GrowingExpansiveZone(Feature *father, const Function & g, double x, double y) ;
     virtual ~GrowingExpansiveZone() ;
 
     virtual void print() const
@@ -37,6 +37,8 @@ public:
     virtual bool moved() const {
         return changed ;
     } ;
+
+    virtual void setBehaviour(Form * const b) { imp = b ; Feature::setBehaviour(b) ; }
 
     virtual void step(double dt, std::valarray<double> *, Mesh <Amie::DelaunayTriangle, Amie::DelaunayTreeItem > * dtree);
 

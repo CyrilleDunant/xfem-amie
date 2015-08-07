@@ -1220,9 +1220,9 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
             Point C_ = tri->inLocalCoordinates(C) ;
             C_.getT() = t ;
 
-            ret[2] = (tri->getBehaviour()->getViscousTensor( A_ )[3][3]+tri->getBehaviour()->getViscousTensor( A_ )[3][4])*.5 ;
-            ret[1] = (tri->getBehaviour()->getViscousTensor( B_ )[3][3]+tri->getBehaviour()->getViscousTensor( B_ )[3][4])*.5 ;
-            ret[0] = (tri->getBehaviour()->getViscousTensor( C_ )[3][3]+tri->getBehaviour()->getViscousTensor( C_ )[3][4])*.5 ;
+            ret[2] = (tri->getBehaviour()->getViscousTensor( A_ )[3][3]+tri->getBehaviour()->getViscousTensor( A_ )[4][4])*.5 ;
+            ret[1] = (tri->getBehaviour()->getViscousTensor( B_ )[3][3]+tri->getBehaviour()->getViscousTensor( B_ )[4][4])*.5 ;
+            ret[0] = (tri->getBehaviour()->getViscousTensor( C_ )[3][3]+tri->getBehaviour()->getViscousTensor( C_ )[4][4])*.5 ;
             found = true ;
 
             break ;

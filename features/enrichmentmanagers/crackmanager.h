@@ -42,7 +42,7 @@ namespace Amie
             void setMinimumRadius(double) ;
             void setMaximumExpansion(double) ;
 
-            bool converged()  ;
+            virtual bool converged()  ;
     } ;
     
 } 

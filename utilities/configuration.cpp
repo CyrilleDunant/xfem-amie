@@ -777,10 +777,13 @@ InclusionGenerator * ConfigTreeItem::getInclusionGenerator() const
     if(!Object::isInclusionGenerator(type))
         type = "Circular" ;
     std::map<std::string, double> parameters ;
+    std::map<std::string, std::string> strings ;
     for(size_t i = 0 ; i < children.size() ; i++)
     {
         if(children[i]->getStringData().length() == 0)
             parameters[ children[i]->getLabel() ] = children[i]->getData() ;
+        else
+            strings[ children[i]->getLabel() ] = children[i]->getStringData() ;
     }
     return Object::getInclusionGenerator( str, parameters ) ;
 }
@@ -798,30 +801,6 @@ VoronoiGrain ConfigTreeItem::getVoronoiGrain(SpaceDimensionality dim, bool space
 
 }
 
-std::vector<std::vector<Feature *> > ConfigTreeItem::getAllInclusions(FeatureTree * F, std::vector<ExternalMaterialLaw *> common)
-{
-    std::vector<std::vector<Feature *> > allFeatures ;
-    std::vector<Geometry *> inclusions ;
-    std::vector<Feature *> dummy ;
-    if(hasChild("family"))
-    {
-        std::vector<ConfigTreeItem *> newInclusions = getAllChildren("family") ;
-        for(size_t i = 0 ; i < newInclusions.size() ; i++)
-        {
-            std::vector<std::vector<Feature *> > tmp = newInclusions[i]->getInclusions( F, dummy, inclusions ) ;
-            for(size_t j = 0 ; j < tmp[0].size() ; j++)
-                inclusions.push_back( dynamic_cast<Geometry *>(tmp[0][j]) ) ;
-            for(size_t j = 0 ; j < tmp.size() ; j++)
-                allFeatures.push_back( tmp[j] ) ;
-        }
-    }
-    else
-    {
-        allFeatures = getInclusions(F, dummy, inclusions, common) ;
-    }
-    return allFeatures ;
-}
-
 InclusionFamily * ConfigTreeItem::getInclusionFamily(std::string type)
 {
     if(type.length() == 0 || type != ".")
@@ -833,10 +812,8 @@ InclusionFamily * ConfigTreeItem::getInclusionFamily(std::string type)
     std::map<std::string, std::string> strings ;
     for(size_t i = 0 ; i < children.size() ; i++)
     {
-        if(children[i]->is("particle_size_distribution") || children[i]->is("geometry") || children[i]->is("behaviour") )
-        {
-
-        }
+        if(children[i]->is("particle_size_distribution") || children[i]->is("geometry") || children[i]->is("behaviour") || children[i]->is("manager"))
+            continue ;
         if(children[i]->getStringData().length() == 0)
             values[ children[i]->getLabel() ] = children[i]->getData() ;
         else
@@ -893,7 +870,30 @@ InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, Inclusio
         if( father )
             inc->setFather( father, index ) ;
         inc->place( placement, getData("placement.spacing", 0), getData("placement.tries", 1000), getData("placement.random_seed", 1) ) ;
+        inc->features[0][0]->getCenter().print() ;
         inc->addToFeatureTree(F) ;
+        if(hasChild("enrichment") && Object::isEnrichmentManager( getStringData("enrichment", "NoEnrichment" ) ) )
+        {
+            std::map<std::string, double> values ;
+            std::map<std::string, std::string> strings ;
+            std::map<std::string, FeatureTree *> trees ;
+            std::map<std::string, InclusionFamily *> families ;
+            for(size_t i = 0 ; i < children.size() ; i++)
+            {
+                if(children[i]->is("particle_size_distribution") || children[i]->is("geometry") || children[i]->is("behaviour") || children[i]->is("manager"))
+                    continue ;
+                if(children[i]->getStringData().length() == 0)
+                    values[ children[i]->getLabel() ] = children[i]->getData() ;
+                else
+                    strings[ children[i]->getLabel() ] = children[i]->getStringData() ;
+            }
+            trees["feature_tree"] = F ;
+            families["zones"] = inc ;
+            values["index"] = 0 ;
+            EnrichmentManager * manager = Object::getEnrichmentManager( getStringData("enrichment", "NoEnrichment" ), trees, families, values, strings ) ;
+            if(manager != nullptr)
+               F->addManager( manager ) ;
+        }
         if(hasChild("inclusions"))
         {
             InclusionFamily * son = getChild("inclusions")->makeInclusionFamily( F, inc, 0 ) ;
@@ -934,6 +934,30 @@ InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, Inclusio
 
     for(size_t i = 0 ; i < all.size() ; i++)
     {
+        if(all[i]->hasChild("enrichment") && Object::isEnrichmentManager( all[i]->getStringData("enrichment", "NoEnrichment" ) ) )
+        {
+            std::map<std::string, double> values ;
+            std::map<std::string, std::string> strings ;
+            std::map<std::string, FeatureTree *> trees ;
+            std::map<std::string, InclusionFamily *> families ;
+            std::vector<ConfigTreeItem *> current = all[i]->getAllChildren() ;
+            for(size_t j = 0 ; j < current.size() ; j++)
+            {
+                if(current[j]->is("particle_size_distribution") || current[j]->is("geometry") || current[j]->is("behaviour") || current[j]->is("manager"))
+                    continue ;
+                if(current[j]->getStringData().length() == 0)
+                    values[ current[j]->getLabel() ] = current[j]->getData() ;
+                else
+                    strings[ current[j]->getLabel() ] = current[j]->getStringData() ;
+            }
+            trees["feature_tree"] = F ;
+            families["zones"] = ret ;
+            values["index"] = i ;
+            EnrichmentManager * manager = Object::getEnrichmentManager( getStringData("enrichment", "NoEnrichment" ), trees, families, values, strings ) ;
+            if(manager != nullptr)
+               F->addManager( manager ) ;
+        }
+
         if(all[i]->hasChild("inclusions"))
         {
             InclusionFamily * son = getChild("inclusions")->makeInclusionFamily( F, ret, i ) ;
@@ -942,323 +966,6 @@ InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, Inclusio
     }
 
     return ret ;
-}
-
-std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers, std::vector<ExternalMaterialLaw *> common)
-{
-    std::vector<Feature *> ret ;
-    std::vector<std::vector<Feature *> > out ;
-    ConfigTreeItem * psdConfig = getChild("particle_size_distribution") ;
-    if(!psdConfig)
-        return out ;
-    std::string type = (psdConfig->getStringData().length() > 0 ? psdConfig->getStringData() : psdConfig->getStringData("type","CONSTANT")) ;
-
-    Form * behaviour = nullptr ;
-    if(hasChild("behaviour"))
-        behaviour = getChild("behaviour")->getBehaviour( F->is2D() ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL , F->getOrder() >= CONSTANT_TIME_LINEAR, common ) ;
-
-
-    if(type == "VORONOI")
-    {
-        size_t seeds = psdConfig->getData("maximum_grain_number", 0) ;
-        double minDist = getData("minimum_grain_distance", -1) ;
-        double border = std::max(psdConfig->getData("border_width", 0.001), 0.) ;
-        size_t max = psdConfig->getData("maximum_edges", 16) ;
-        double interlayer = psdConfig->getData("interface_width", 0) ;
-        bool copy = (psdConfig->getStringData("copy_grain_behaviour", "TRUE") == std::string("TRUE")) ;
-        std::vector< VoronoiGrain > grains ;
-        std::vector<ConfigTreeItem *> g = getAllChildren( "grain" ) ;
-        for(size_t i = 0 ; i < g.size() ; i++)
-        {
-            grains.push_back( g[i]->getVoronoiGrain( F->is2D() ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL , F->getOrder() >= CONSTANT_TIME_LINEAR, common ) ) ;
-//            std::cout << grains[i].fraction << "\t" << grains[i].radius << std::endl ;
-        }
-
-        if(minDist < 0)
-            minDist = grains[grains.size()-1].radius ;
-
-        if(base.size() == 0)
-            out = PSDGenerator::get2DVoronoiPolygons( F, grains, seeds, minDist, border, max, copy, interlayer ) ;
-        else
-            out = PSDGenerator::get2DVoronoiPolygons( F, grains, base, seeds, minDist, border, max, copy, interlayer ) ;   
-    }
-    else if(type == "FROM_INCLUSION_FILE")
-    {
-        std::vector<std::string> columns ;
-        std::vector<ConfigTreeItem *> tree = psdConfig->getAllChildren("column") ;
-        for(size_t i = 0 ; i < tree.size() ; i++)
-            columns.push_back(tree[i]->getStringData()) ;
-        std::string filename = psdConfig->getStringData("file_name","file_not_found") ;
-        if(filename == std::string("file_not_found"))
-        {
-            std::cout << "no inclusion file specified" << std::endl ;
-            return out ;
-        }
-        GranuloFromFile granulo( filename, columns ) ;
-        std::string inclusion = getStringData("geometry.type","CIRCLE") ;
-        int n = psdConfig->getData("number",1) ;
-        ret = granulo.getFeatures( Enum::getTypeInclusion( inclusion ), n ) ;
-        if(behaviour)
-        {
-            for(size_t i = 0 ; i < ret.size() ; i++)
-                ret[i]->setBehaviour( behaviour ) ;
-        }
-        for(size_t i = 0 ; i < ret.size() ; i++)
-        {
-            bool placed = false ;
-            for(size_t j = 0 ; j < base.size() ; j++)
-            {
-                if(base[j]->in(ret[i]->getCenter()))
-                {
-                    F->addFeature( base[j], ret[i]) ;
-                    placed = true ;
-                    break ;
-                }
-            }
-            if(!placed)
-                F->addFeature( F->getFeature(0), ret[i]) ;
-        }
-    }
-    else if(type == "UNIQUE")
-    {
-        std::string inclusion = getStringData("geometry.type","CIRCLE") ;
-        if(inclusion == "CIRCLE")
-        {
-            double r = getData("geometry.radius",0.1) ;
-            double x = getData("geometry.center.x",0.) ;
-            double y = getData("geometry.center.y",0.) ;
-            Inclusion * inc = new Inclusion( r, x, y) ;
-            inc->setBehaviour(behaviour) ;
-            Feature * f = F->getFeature(0) ;
-            Point p(x,y) ;
-            for(size_t i = 0 ; i < base.size() ; i++)
-            {
-                if(base[i]->in(p))
-                    f = base[i] ;
-            }
-            F->addFeature( f, inc) ;
-            ret.push_back(inc) ;
-        }
-        if(inclusion == "ELLIPSE")
-        {
-            double a = getData("geometry.major_radius",0.1) ;
-            double b = getData("geometry.minor_radius",0.1) ;
-            if(b > a)
-            {
-                double tmp = a ;
-                a = b ;
-                b = tmp ;
-            }
-            double x = getData("geometry.center.x",0.) ;
-            double y = getData("geometry.center.y",0.) ;
-            double ax = getData("geometry.major_axis.x",1.) ;
-            double ay = getData("geometry.major_axis.y",0.) ;
-            if(ax*ax+ay*ay != 1)
-            {
-                double tmp = sqrt(ax*ax+ay*ay) ;
-                ax /= tmp ;
-                ay /= tmp ;
-            }
-            Point C(x,y) ;
-            Point A(ax*a, ay*a) ;
-            Point B(-ay*b, ax*b) ;
-            EllipsoidalInclusion * inc = new EllipsoidalInclusion( C, A , B) ;
-            inc->setBehaviour(behaviour) ;
-            Feature * f = F->getFeature(0) ;
-            Point p(x,y) ;
-            for(size_t i = 0 ; i < base.size() ; i++)
-            {
-                if(base[i]->in(p))
-                    f = base[i] ;
-            }
-            F->addFeature( f, inc) ;
-            ret.push_back(inc) ;
-        }
-        if(inclusion == "RECTANGLE")
-        {
-            double h = getData("geometry.height",0.1) ;
-            double w = getData("geometry.width",0.1) ;
-            double x = getData("geometry.center.x",0.) ;
-            double y = getData("geometry.center.y",0.) ;
-            Sample * inc = new Sample( nullptr, w, h, x, y) ;
-            inc->setBehaviour(behaviour) ;
-            Feature * f = F->getFeature(0) ;
-            Point p(x,y) ;
-            for(size_t i = 0 ; i < base.size() ; i++)
-            {
-                if(base[i]->in(p))
-                    f = base[i] ;
-            }
-            if(base.size() == 0 && f->intersects(dynamic_cast<Rectangle *>(inc)))
-                F->addFeature( nullptr, inc) ;
-            else
-                F->addFeature( f, inc) ;
-            ret.push_back(inc) ;
-        }
-        if(inclusion == "POLYGON")
-        {
-            if(hasChild("geometry.method") && hasChild("geometry.radius"))
-            {
-                PolygonalInclusionGenerator * gen = dynamic_cast<PolygonalInclusionGenerator *>( getChild("geometry")->getInclusionGenerator() ) ;
-                if(gen)
-                {
-                    PolygonalSample * poly = gen->generatePolygon( getData("geometry.radius") ) ;
-                    poly->setCenter( Point( getData("center.x", 0), getData("center.y", 0) ) ) ;
-                    Feature * f = F->getFeature(0) ;
-                    Point p( poly->getCenter() ) ;
-                    for(size_t i = 0 ; i < base.size() ; i++)
-                    {
-                        if(base[i]->in(p))
-                            f = base[i] ;
-                    }
-                    F->addFeature( f, poly ) ;
-                    ret.push_back( poly ) ;
-                }
-            }
-            else
-            {
-                std::vector<ConfigTreeItem *> items = getChild("geometry")->getAllChildren("points") ;
-                if(items.size() > 2)
-                {
-                    std::valarray<Point *> points(items.size()) ;
-                    for(size_t j = 0 ; j < items.size() ; j++)
-                        points[j] = new Point( items[j]->getData("x", 0), items[j]->getData("y", 0)) ;
-                    PolygonalSample * poly = new PolygonalSample(nullptr, points) ;
-                    poly->setBehaviour(behaviour) ;
-                    Feature * f = F->getFeature(0) ;
-                    Point p( poly->getCenter() ) ;
-                    for(size_t i = 0 ; i < base.size() ; i++)
-                    {
-                        if(base[i]->in(p))
-                            f = base[i] ;
-                    }
-                    F->addFeature( f, poly ) ;
-                    ret.push_back( poly ) ;
-                }
-            }
-        }
-
-    }
-    else if(type == "FROM_PARENT_DISTRIBUTION")
-    {
-        Function f("x") ;
-        if(psdConfig->hasChild("layer_thickness_function"))
-            f = psdConfig->getChild("layer_thickness_function")->getFunction() ;
-        else
-            f -= psdConfig->getData("layer_thickness",0.0001) ;
-
-        VirtualMachine vm ;
-        for(size_t i = 0 ; i < base.size() ; i++)
-        {
-            double newr = vm.eval(f, base[i]->getRadius()) ;
-            if(newr > POINT_TOLERANCE && newr < base[i]->getRadius() - POINT_TOLERANCE)
-            {
-                Inclusion * inc = new Inclusion( newr, base[i]->getCenter().getX(), base[i]->getCenter().getY()) ;
-                inc->setBehaviour(behaviour) ;
-                F->addFeature( base[i], inc) ;
-                ret.push_back(inc) ;
-            }
-        }
-
-    }
-    else
-    {
-        ParticleSizeDistribution * psd = psdConfig->getParticleSizeDistribution() ;
-        int n = psdConfig->getData("number",1) ;
-        double rmax = psdConfig->getData("rmax",0.1) ;
-        double fraction = psdConfig->getData("fraction", 0.8) ;
-//        std::string geometry = getStringData("geometry.type","CIRCLE") ;
-        InclusionGenerator * generator = getChild("geometry")->getInclusionGenerator() ;
-//        double aspectRatio = getData("geometry.aspect_ratio",1.) ;
-//        double orientation = getData("geometry.orientation",M_PI) ;
-        Sample * placement = nullptr ;
-        int tries = getData("placement.tries", 1e6) ;
-        double spacing = getData("placement.spacing",1e-5) ;
-        int seed = getData("placement.seed", 1) ;
-        bool mask = getStringData("placement.mask", "TRUE") == "TRUE" ;
-        std::string position = getStringData("placement.position", "FREE") ;
-        if(hasChildFromFullLabel("placement.box"))
-        {
-            placement = getChildFromFullLabel("placement.box")->getSample() ;
-        }
-        if(base.size() == 0)
-        {
-            ret = PSDGenerator::get2DConcrete( F, behaviour, n, rmax, spacing, psd, generator, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
-        }
-        else if(position == "ON_EDGE" || position == "ON_VERTEX")
-        {
-            ret = PSDGenerator::get2DInclusionsOnEdge( F, behaviour, base, mask, position == "ON_VERTEX", n, rmax, spacing, psd, generator, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
-        }
-        else
-        {
-            if(mask)
-                ret = PSDGenerator::get2DMaskedInclusions( F, behaviour, base, n, rmax, spacing, psd, generator, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
-            else
-                ret = PSDGenerator::get2DEmbeddedInclusions( F, behaviour, base, n, rmax, spacing, psd, generator, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
-        }
-
-	
-    }
-
-    if(hasChild("sampling_factor"))
-    {
-        for(size_t i = 0 ; i < ret.size() ; i++)
-            F->setSamplingFactor( ret[i], getData("sampling_factor",1.) ) ;
-        for(size_t i = 0 ; i < out.size() ; i++)
-        {
-            for(size_t j = 0 ; j < out[i].size() ; j++)
-                F->setSamplingFactor( out[i][j], getData("sampling_factor",1.) ) ;
-        }
-    }
-
-    if(hasChild("intersection_sampling_factor"))
-    {
-        for(size_t i = 0 ; i < ret.size() ; i++)
-        {
-            if(F->getFeature(0)->intersects(ret[i]))
-                F->setSamplingFactor( ret[i], getData("intersection_sampling_factor",1.) ) ;
-        }
-    }
-
-    if(out.size() == 0)
-        out.push_back(ret) ;
-
-    if(hasChild("family"))
-    {
-        if(type != "VORONOI")
-        {
-            std::vector<Feature *> newbase = ret ;
-            std::vector<Geometry *> newbrothers ;
-            std::vector<ConfigTreeItem *> newInclusions = getAllChildren("family") ;
-            for(size_t i = 0 ; i < newInclusions.size() ; i++)
-            {
-                std::vector<std::vector<Feature *> > tmp = newInclusions[i]->getInclusions( F, newbase, newbrothers ) ;
-                for(size_t j = 0 ; j < tmp[0].size() ; j++)
-                    newbrothers.push_back( dynamic_cast<Geometry *>(tmp[0][j]) ) ;
-                for(size_t j = 0 ; j < tmp.size() ; j++)
-                    out.push_back(tmp[j]) ;
-            }
-        }
-        else
-        {
-            std::vector<ConfigTreeItem *> newInclusions = getAllChildren("family") ;
-            std::vector<std::vector<Geometry *> > newbrothers( out.size() ) ;
-            for(size_t i = 0 ; i < newInclusions.size() ; i++)
-            {
-                size_t index = newInclusions[i]->getData("index", 0) ;
-                if(index >= out.size())
-                   continue ;
-                std::vector<Feature *> newbase = out[index] ;
-                std::vector<std::vector<Feature *> > tmp = newInclusions[i]->getInclusions( F, newbase, newbrothers[index] ) ;
-                for(size_t j = 0 ; j < tmp[0].size() ; j++)
-                    newbrothers[index].push_back( dynamic_cast<Geometry *>(tmp[0][j]) ) ;
-                for(size_t j = 0 ; j < tmp.size() ; j++)
-                    out.push_back(tmp[j]) ;
-            }
-        }
-    }
-
-    return out ;
 }
 
 std::vector<BoundaryCondition *> ConfigTreeItem::getAllBoundaryConditions(FeatureTree * F) const 

@@ -296,7 +296,6 @@ public:
 	ConfigTreeItem * getData() { return trunk; }
 
 	static ConfigTreeItem * readFile(std::string f, ConfigTreeItem * def, bool define = true, bool bind = false) ;
-	static std::vector<std::vector<Feature *> > getInclusions( std::string filename, FeatureTree * F) ;
 	static std::vector<BoundaryCondition *> getBoundaryConditions( std::string filename, FeatureTree * F) ;
 
 } ;

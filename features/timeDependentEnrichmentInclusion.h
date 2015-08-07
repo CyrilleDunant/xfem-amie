@@ -23,7 +23,7 @@ protected:
 	std::set<DelaunayTriangle *> enrichedElem;
   
 public:
-	TimeDependentEnrichmentInclusion(Feature * father, Function & r, double x, double y) ;
+	TimeDependentEnrichmentInclusion(Feature * father, const Function & r, double x, double y) ;
 	TimeDependentEnrichmentInclusion( Function & r, double x, double y) ;
 	virtual ~TimeDependentEnrichmentInclusion() ;
   	

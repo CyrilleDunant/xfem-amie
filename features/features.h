@@ -933,7 +933,7 @@ public:
         /** \brief update enrichment geometry*/
     virtual bool step(double dt, Vector * v, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) = 0 ;
     
-    bool converged() { return stable ; } ;
+    virtual bool converged() { return stable ; } ;
 } ;
 
 
