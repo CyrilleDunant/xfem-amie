@@ -20,7 +20,7 @@ struct InclusionFamily
 	std::vector<std::vector<Feature *> > features ;
 	std::vector<double> rotations ;
 	size_t fatherIndex ;
-	InclusionFamily * father ;
+	InclusionFamily * father = nullptr ;
 
 	InclusionFamily() { keepNoFatherFeatures = true ; } 
 	InclusionFamily( size_t n, double rmax, double surface, ParticleSizeDistribution * type = nullptr, InclusionGenerator * geometry = nullptr) ;

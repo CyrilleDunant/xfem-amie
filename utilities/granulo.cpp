@@ -407,6 +407,7 @@ std::vector<std::vector<PolygonalSample *> > PSDGenerator::get2DSourceVoronoiPol
         grains.push_back( std::make_pair( p, i ) ) ;
         j++ ;
 
+
         if( (morphology.size() > 1) && ((radius > r0 && current > area ) || (count > target_count) ))
         {
             i++ ;

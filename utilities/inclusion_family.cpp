@@ -212,12 +212,15 @@ void VoronoiInclusionFamily::concatenate( InclusionFamily * brother )
 void VoronoiInclusionFamily::place( Rectangle * box, double spacing, size_t tries, size_t seed )
 {
 	srand(seed) ;
-	
+
 	if(father == nullptr)
 		features = PSDGenerator::get2DVoronoiPolygons( box, grains, n, -1, spacing, nmax, copy, spacing ) ;
 	else
-		features = PSDGenerator::get2DVoronoiPolygons(box, grains, father->getFeatures(fatherIndex), n, -1, spacing, nmax, copy, spacing) ;
+		features = PSDGenerator::get2DVoronoiPolygons( box, grains, father->getFeatures(fatherIndex), n, -1, spacing, nmax, copy, spacing) ;
 	generated = true ;
+
+	
+
 }
 
 
