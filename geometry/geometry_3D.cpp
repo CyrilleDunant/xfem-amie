@@ -1807,17 +1807,40 @@ PolygonPrism::PolygonPrism(const std::valarray<Point *> & points, const Point & 
 
 LoftedPolygonPrism::LoftedPolygonPrism(const std::valarray< Point* >& points, const std::vector< Point >& ip) :  NonConvexGeometry(0),base(points),interpolationPoints(ip)
 {
-    for(size_t i = 0 ; i < interpolationPoints.size() ; i++)
-    {
-        std::swap(interpolationPoints[i].getZ(),interpolationPoints[i].getY()) ;
-    }
     vstart = 2.*interpolationPoints[0] - interpolationPoints[1] ;
     vend = 2.*interpolationPoints[interpolationPoints.size()-1]-interpolationPoints[interpolationPoints.size()-2] ;
 
     transform(&base,TRANSLATE, -base.getCenter());
     gType = LOFTED_POLYGON ;
     computeCenter();    
+    centerInXYPlane = true ;
+    centerInXZPlane = false ;
+    centerInYZPlane = false ; 
+    tanAtCentre = interpolatingPointAndTangent(0.5).second ;
+    if(abs(tanAtCentre*Point(0,1,0)) > abs(tanAtCentre*Point(0,0,1)))
+    {
+        centerInXYPlane = false ;
+        centerInXZPlane = true ;
+        centerInYZPlane = false ;
+        
+        if(abs(tanAtCentre*Point(1,0,0)) > abs(tanAtCentre*Point(0,1,0)))
+        {
+            centerInXYPlane = false ;
+            centerInXZPlane = false ;
+            centerInYZPlane = true ;
+        }
+    }
 
+/*   
+    for(double t = 0 ; t < 1 ; t += 0.01)
+    {
+        interpolatingPointAndTangent(t, Point(-10, -10)) ;
+        interpolatingPointAndTangent(t, Point(-10,  10)) ;
+        interpolatingPointAndTangent(t, Point(-0 ,  20)) ;
+        interpolatingPointAndTangent(t, Point( 10,  10)) ;
+        interpolatingPointAndTangent(t, Point( 10, -10)) ;
+    }
+    exit(0) ;*/
 }
 
 Point catmullRom(double t_, const std::vector<Point> & controlPoints)
@@ -1862,102 +1885,12 @@ Point catmullRomTangent(double t_, const std::vector<Point> & controlPoints)
         Point B2 = A2*(t3 - t_)/(t3-t1) +  A3*(t_-t1)/(t3-t1) ;
         Point B2_ = A2_*(t3 - t_)/(t3-t1) - A2/(t3-t1) +  A3_*(t_-t1)/(t3-t1) +  A3/(t3-t1);
        
-        return   B1_*(t2-t_)/(t2-t1) - B1/(t2-t1) + B2_*(t_-t1)/(t2-t1) + B2/(t2-t1)  ;                                  
+        Point tan = B1_*(t2-t_)/(t2-t1) - B1/(t2-t1) + B2_*(t_-t1)/(t2-t1) + B2/(t2-t1)  ; 
+        return tan / tan.norm() ;                                   
 }
 
 std::pair<Point,Point> LoftedPolygonPrism::interpolatingPointAndTangent(double t) const
 {
-    
-//     for(double t = 0 ; t <=1 ; t+=.01)
-//     {
-        size_t endIndex = ceil(t*(interpolationPoints.size()-1)) ;
-        if(endIndex > interpolationPoints.size()-1)
-            endIndex = interpolationPoints.size()-1 ;
-        if(endIndex < 1 )
-            endIndex = 1 ;
-        size_t startindex = endIndex-1 ;
-        
-        std::vector<Point> controlPoints ;
-        if(startindex == 0)
-        {
-            controlPoints.push_back(vstart);
-            
-            if(controlPoints.size() == 2)
-            {
-                controlPoints.push_back(interpolationPoints[0]);
-                controlPoints.push_back(interpolationPoints[1]);
-                controlPoints.push_back(vend);
-            }
-            else
-            {
-                controlPoints.push_back(interpolationPoints[0]);
-                controlPoints.push_back(interpolationPoints[1]);
-                controlPoints.push_back(interpolationPoints[2]);
-            }
-            
-        }
-        else if(startindex == interpolationPoints.size()-2)
-        {
-            if(controlPoints.size() == 2)
-            {
-                controlPoints.push_back(vstart);
-                controlPoints.push_back(interpolationPoints[0]);
-                controlPoints.push_back(interpolationPoints[1]);
-                controlPoints.push_back(vend);
-            }
-            else
-            {
-                controlPoints.push_back(interpolationPoints[startindex-1]);
-                controlPoints.push_back(interpolationPoints[startindex]);
-                controlPoints.push_back(interpolationPoints[startindex+1]);
-                controlPoints.push_back(vend);
-            }
-        }
-        else
-        {
-            controlPoints.push_back(interpolationPoints[startindex-1]);
-            controlPoints.push_back(interpolationPoints[startindex]);
-            controlPoints.push_back(interpolationPoints[startindex+1]);
-            controlPoints.push_back(interpolationPoints[startindex+2]);
-        }
-  
-        
-    //         return std::make_pair(interpolationPoints[startindex],tangents[startindex]) ;
-
-        double t_ =  t*(interpolationPoints.size()-1.) - startindex ;
-        t_ = std::min(std::max(t_, 0.), 1.) ;
-
-        Point ipoint = catmullRom(t_, controlPoints) ;
-//         ipoint.print();
-        Point itan = catmullRomTangent(t_, controlPoints);
-//         Point off = rotateToVector(itan)*Point() ;
-//         rotateToVector(itan).print();
-       
-//     }
-//           
-//           exit(0) ;
-    return std::make_pair(ipoint,itan) ;
-}
-
-std::pair<Point,Point> LoftedPolygonPrism::interpolatingPointAndTangent(double t, const Point & offset) const
-{
-
-    Point offsetVend = vend;
-    Point offsetVstart = vstart;
-    std::vector<Point> offsetIpoints = interpolationPoints;
-//     for(size_t i = 0 ; i < interpolationPoints.size()+1 ;  i++)
-//     {
-//         std::pair<Point,Point> pt = interpolatingPointAndTangent((double)i/interpolationPoints.size()) ;
-//         Point roffset = rotateFromVector(pt.second)*offset ;
-//         roffset = rotateFromVector(offset)*roffset ;
-//         offsetIpoints.push_back(pt.first+roffset);
-//         if(i == 0)
-//             offsetVstart = vstart + roffset ;
-//         if(i == interpolationPoints.size())
-//             offsetVend = vend + roffset ;
-//     }
-//     if(correctForNorm)
-//         t = t*sweepNorm(offset,t)/sweepNorm(t) ;
     
     size_t endIndex = ceil(t*(interpolationPoints.size()-1)) ;
     if(endIndex > interpolationPoints.size()-1)
@@ -1969,19 +1902,19 @@ std::pair<Point,Point> LoftedPolygonPrism::interpolatingPointAndTangent(double t
     std::vector<Point> controlPoints ;
     if(startindex == 0)
     {
-        controlPoints.push_back(offsetVstart);
+        controlPoints.push_back(vstart);
         
         if(controlPoints.size() == 2)
         {
-            controlPoints.push_back(offsetIpoints[0]);
-            controlPoints.push_back(offsetIpoints[1]);
-            controlPoints.push_back(offsetVend);
+            controlPoints.push_back(interpolationPoints[0]);
+            controlPoints.push_back(interpolationPoints[1]);
+            controlPoints.push_back(vend);
         }
         else
         {
-            controlPoints.push_back(offsetIpoints[0]);
-            controlPoints.push_back(offsetIpoints[1]);
-            controlPoints.push_back(offsetIpoints[2]);
+            controlPoints.push_back(interpolationPoints[0]);
+            controlPoints.push_back(interpolationPoints[1]);
+            controlPoints.push_back(interpolationPoints[2]);
         }
         
     }
@@ -1989,162 +1922,153 @@ std::pair<Point,Point> LoftedPolygonPrism::interpolatingPointAndTangent(double t
     {
         if(controlPoints.size() == 2)
         {
-            controlPoints.push_back(offsetVstart);
-            controlPoints.push_back(offsetIpoints[0]);
-            controlPoints.push_back(offsetIpoints[1]);
-            controlPoints.push_back(offsetVend);
+            controlPoints.push_back(vstart);
+            controlPoints.push_back(interpolationPoints[0]);
+            controlPoints.push_back(interpolationPoints[1]);
+            controlPoints.push_back(vend);
         }
         else
         {
-            controlPoints.push_back(offsetIpoints[startindex-1]);
-            controlPoints.push_back(offsetIpoints[startindex]);
-            controlPoints.push_back(offsetIpoints[startindex+1]);
-            controlPoints.push_back(offsetVend);
+            controlPoints.push_back(interpolationPoints[startindex-1]);
+            controlPoints.push_back(interpolationPoints[startindex]);
+            controlPoints.push_back(interpolationPoints[startindex+1]);
+            controlPoints.push_back(vend);
         }
     }
     else
     {
-        controlPoints.push_back(offsetIpoints[startindex-1]);
-        controlPoints.push_back(offsetIpoints[startindex]);
-        controlPoints.push_back(offsetIpoints[startindex+1]);
-        controlPoints.push_back(offsetIpoints[startindex+2]);
+        controlPoints.push_back(interpolationPoints[startindex-1]);
+        controlPoints.push_back(interpolationPoints[startindex]);
+        controlPoints.push_back(interpolationPoints[startindex+1]);
+        controlPoints.push_back(interpolationPoints[startindex+2]);
     }
 
+    double t_ =  t*(interpolationPoints.size()-1.) - startindex ;
+    t_ = std::min(std::max(t_, 0.), 1.) ;
+
+    Point ipoint = catmullRom(t_, controlPoints) ;
+    Point itan = catmullRomTangent(t_, controlPoints); 
+
+    return std::make_pair(ipoint,itan) ;
+}
+
+std::pair<Point,Point> LoftedPolygonPrism::interpolatingPointAndTangent(double t, const Point & offset) const
+{
+    size_t endIndex = ceil(t*(interpolationPoints.size()-1)) ;
+    if(endIndex > interpolationPoints.size()-1)
+        endIndex = interpolationPoints.size()-1 ;
+    if(endIndex < 1 )
+        endIndex = 1 ;
+    size_t startindex = endIndex-1 ;
     
-//         return std::make_pair(interpolationPoints[startindex],tangents[startindex]) ;
+    std::vector<Point> controlPoints ;
+    if(startindex == 0)
+    {
+        controlPoints.push_back(vstart);
+        
+        if(controlPoints.size() == 2)
+        {
+            controlPoints.push_back(interpolationPoints[0]);
+            controlPoints.push_back(interpolationPoints[1]);
+            controlPoints.push_back(vend);
+        }
+        else
+        {
+            controlPoints.push_back(interpolationPoints[0]);
+            controlPoints.push_back(interpolationPoints[1]);
+            controlPoints.push_back(interpolationPoints[2]);
+        }
+        
+    }
+    else if(startindex == interpolationPoints.size()-2)
+    {
+        if(controlPoints.size() == 2)
+        {
+            controlPoints.push_back(vstart);
+            controlPoints.push_back(interpolationPoints[0]);
+            controlPoints.push_back(interpolationPoints[1]);
+            controlPoints.push_back(vend);
+        }
+        else
+        {
+            controlPoints.push_back(interpolationPoints[startindex-1]);
+            controlPoints.push_back(interpolationPoints[startindex]);
+            controlPoints.push_back(interpolationPoints[startindex+1]);
+            controlPoints.push_back(vend);
+        }
+    }
+    else
+    {
+        controlPoints.push_back(interpolationPoints[startindex-1]);
+        controlPoints.push_back(interpolationPoints[startindex]);
+        controlPoints.push_back(interpolationPoints[startindex+1]);
+        controlPoints.push_back(interpolationPoints[startindex+2]);
+    }
 
     double t_ =  t*(interpolationPoints.size()-1.) - startindex ;
     t_ = std::min(std::max(t_, 0.), 1.) ;
      
     Point ipoint = catmullRom(t_, controlPoints) ;
     Point itan = catmullRomTangent(t_, controlPoints);
-    ipoint = rotateToVector(itan)*ipoint ;
-    ipoint +=offset ;
-    ipoint = rotateFromVector(itan)*ipoint ;
+    
+    Matrix transform = rotateFromVector(Point(0,0,1),itan) ;
+    Point rof = offset*transform ;
+    ipoint  = ipoint + rof ;
+//     std::cout << ipoint.getX() << "  "<< ipoint.getY() << "  "<< ipoint.getZ() << "  " << std::endl ;
+    
     return std::make_pair(ipoint,itan) ;
 }
 
-Matrix LoftedPolygonPrism::rotateToVector(const Point & vector) const
-{
-    Point renormAxis = vector/vector.norm() ;
-    Matrix rotx  = identity(3) ;
-    Matrix rotx_ = identity(3) ;
-    Matrix roty  = identity(3) ;
-    double angle ;
-    double cost  ;
-    double sint  ;
-    
-    if(std::abs(renormAxis.getY()) > POINT_TOLERANCE || std::abs(renormAxis.getZ()) > POINT_TOLERANCE)
-    {
-        angle = atan2( renormAxis.getY(),renormAxis.getZ()) ;
-        cost = cos(angle) ;
-        sint = sin(angle) ;
-
-        rotx[0][0] = 1 ;
-        rotx[1][1] = cost ;
-        rotx[1][2] = -sint ;
-        rotx[2][1] = sint ;
-        rotx[2][2] = cost ;
-
-        renormAxis = rotx*renormAxis ;
-    }
-    if(std::abs(renormAxis.getX()) > POINT_TOLERANCE || std::abs(renormAxis.getZ()) > POINT_TOLERANCE)
-    {
-        angle = atan2( renormAxis.getX(),renormAxis.getZ()) ;
-        cost = cos(angle) ;
-        sint = sin(angle) ;
-        
-        roty[0][0] = cost ;
-        roty[0][2] = -sint ;
-        roty[1][1] = 1 ;
-        roty[2][0] = sint ;
-        roty[2][2] = cost ;
-        renormAxis = roty*renormAxis ;
-    }
-    if(std::abs(renormAxis.getX()) > POINT_TOLERANCE || std::abs(renormAxis.getY()) > POINT_TOLERANCE)
-    {
-        angle = atan2( renormAxis.getX(),renormAxis.getY()) ;
-        cost = cos(angle) ;
-        sint = sin(angle) ;
-
-        rotx_[0][0] = cost ;
-        rotx_[0][1] = -sint ;
-        rotx_[1][0] = sint ;
-        rotx_[1][1] = cost ;
-        rotx_[2][2] = 1 ;
-
-    }
-    
-    Matrix ret = -(rotx*roty*rotx_) ;
-//     std::swap(ret[2][0],ret[1][0]) ;
-//     std::swap(ret[2][1],ret[1][1]) ;
-//     std::swap(ret[2][2],ret[1][2]) ;
-//     std::swap(ret[0][0],ret[1][0]) ;
-//     std::swap(ret[0][1],ret[1][1]) ;
-//     std::swap(ret[0][2],ret[1][2]) ;
-    return ret   ;
-
+Matrix LoftedPolygonPrism::rotateToVector(const Point & tovector,const Point & fromvector) const
+{   
+    return inverse3x3Matrix(rotateFromVector(tovector,fromvector)) ;
 }
 
-Matrix LoftedPolygonPrism::rotateFromVector(const Point & vector) const
+Matrix LoftedPolygonPrism::rotateFromVector(const Point & fromvector, const Point & tovector) const
 {
-    Point renormAxis = vector/vector.norm() ;
-    Matrix rotx  = identity(3)  ;
-    Matrix rotx_ = identity(3) ;
-    Matrix roty  = identity(3)  ;
-    double angle ;
-    double cost  ;
-    double sint  ;
-    
-    if(std::abs(renormAxis.getY()) > POINT_TOLERANCE || std::abs(renormAxis.getZ()) > POINT_TOLERANCE)
+    double nprod = (fromvector.norm()*tovector.norm()) ;
+
+    Point renormAxis = fromvector^tovector ;
+    double norm = renormAxis.norm() ;
+    if(nprod < POINT_TOLERANCE*POINT_TOLERANCE || norm < POINT_TOLERANCE)
     {
-        angle = atan2( renormAxis.getY(),renormAxis.getZ()) ;
-        cost = cos(angle) ;
-        sint = sin(angle) ;
-
-        rotx[0][0] = 1 ;
-        rotx[1][1] = cost ;
-        rotx[1][2] = -sint ;
-        rotx[2][1] = sint ;
-        rotx[2][2] = cost ;
-
-        renormAxis = rotx*renormAxis ;
+        double angle = acos(tanAtCentre*tovector) + M_PI *.5;
+        if(tovector.getY()*tovector.getX() > 0)
+            angle = -angle + M_PI;
+        Matrix rot(3,3) ;
+        rot[0][0] = cos(-angle) ; rot[0][1] = sin(-angle) ; 
+        rot[1][0] = -sin(-angle) ; rot[1][1] = cos(-angle) ; rot[2][2] = 1 ;
+        return rot ;
     }
-    if(std::abs(renormAxis.getX()) > POINT_TOLERANCE || std::abs(renormAxis.getZ()) > POINT_TOLERANCE)
-    {
-        angle = atan2( renormAxis.getX(),renormAxis.getZ()) ;
-
-        cost = cos(angle) ;
-        sint = sin(angle) ;
-        roty[0][0] = cost ;
-        roty[0][2] = -sint ;
-        roty[1][1] = 1 ;
-        roty[2][0] = sint ;
-        roty[2][2] = cost ;
-        renormAxis = roty*renormAxis ;
-    }
-    if(std::abs(renormAxis.getX()) > POINT_TOLERANCE || std::abs(renormAxis.getY()) > POINT_TOLERANCE)
-    {
-        angle = atan2( renormAxis.getX(),renormAxis.getY()) ;
-        cost = cos(angle) ;
-        sint = sin(angle) ;
-
-        rotx_[0][0] = cost ;
-        rotx_[0][1] = -sint ;
-        rotx_[1][0] = sint ;
-        rotx_[1][1] = cost ;
-        rotx_[2][2] = 1 ;
-    }
+    double angle = asin(norm/nprod) ;
+    renormAxis /= norm ;
+    // from the quaternions defined by the axis, we have the rotation matrix
+    // q = (x i + y j + z k)*sin(angle/2) + cos(angle/2);
+    double q0, q1, q2, q3 ;
+    q1 = renormAxis.getX()*sin(angle*.5) ;
+    q2 = renormAxis.getY()*sin(angle*.5) ;
+    q3 = renormAxis.getZ()*sin(angle*.5) ;
+    q0 = cos(angle*.5) ;
     
-    Matrix ret = -inverse3x3Matrix(rotx*roty*rotx_) ;
-//     std::swap(ret[2][0],ret[1][0]) ;
-//     std::swap(ret[2][1],ret[1][1]) ;
-//     std::swap(ret[2][2],ret[1][2]) ;
-//     std::swap(ret[0][0],ret[1][0]) ;
-//     std::swap(ret[0][1],ret[1][1]) ;
-//     std::swap(ret[0][2],ret[1][2]) ;
+    double n = sqrt(q1*q1+q0*q0+q2*q2+q3*q3) ;
+    q0 /= n ;
+    q1 /= n ;
+    q2 /= n ;
+    q3 /= n ;
+    Matrix transform(3,3) ;
+    transform[0][0] = q0*q0+q1*q1-q2*q2-q3*q3 ; transform[0][1] = 2.*(q1*q2-q0*q3)        ; transform[0][2] = 2.*(q0*q2+q1*q3) ;
+    transform[1][0] = 2.*(q1*q2+q0*q3)        ; transform[1][1] = q0*q0-q1*q1+q2*q2-q3*q3 ; transform[1][2] = 2.*(q3*q2-q1*q0) ;
+    transform[2][0] = 2.*(q1*q3-q0*q2)        ; transform[2][1] = 2.*(q0*q1+q2*q3)        ; transform[2][2] = q0*q0-q1*q1-q2*q2+q3*q3 ;
     
-    return ret ;
+    angle = acos(tanAtCentre*tovector) + M_PI;
+    if(tovector.getY()*tovector.getX() > 0)
+        angle = -angle ;
+    Matrix rot(3,3) ;
+    rot[0][0] = cos(-angle) ; rot[0][1] = sin(-angle) ; 
+    rot[1][0] = -sin(-angle) ; rot[1][1] = cos(-angle) ; rot[2][2] = 1 ;
+    
+    return rot*transform ;
+ 
 }
 
 PolygonPrism::~PolygonPrism() { }
@@ -2238,7 +2162,7 @@ std::vector<Point> LoftedPolygonPrism::getSamplingBoundingPoints(size_t num_poin
     for(size_t j = 0 ; j< basel.getInPoints().size() ; j++)
     {
         Point p = basel.getInPoint(j) ;
-        p = rotateFromVector(interpolatingPointAndTangent(0.).second) * p;
+        p = p*rotateFromVector(Point(0,0,1), interpolatingPointAndTangent(0.).second);
         p += interpolationPoints.front() ;
         ret.push_back(p);
     }
@@ -2257,7 +2181,7 @@ std::vector<Point> LoftedPolygonPrism::getSamplingBoundingPoints(size_t num_poin
     for(size_t j = 0 ; j< basel.getInPoints().size() ; j++)
     {
         Point p = basel.getInPoint(j) ;
-        p = rotateFromVector(interpolatingPointAndTangent(1.).second) * p;
+        p = p*rotateFromVector(Point(0,0,1), interpolatingPointAndTangent(1.).second) ;
         p += interpolationPoints.back() ;
         ret.push_back(p);
     }
@@ -2336,7 +2260,7 @@ bool LoftedPolygonPrism::in(const Point & v) const
     
     Point tpoint(v) ;
     tpoint -= toCenter.first ;
-    tpoint = rotateToVector(toCenter.second)*tpoint;
+    tpoint = tpoint*rotateToVector(Point(0,0,1), toCenter.second);
     tpoint.getZ() = 0 ;
 
     return base.in(tpoint) ;
@@ -2446,18 +2370,18 @@ Point LoftedPolygonPrism::projectTest(const Amie::Point& init, const std::pair< 
     {
         Point tpoint(init) ;
         tpoint -= interpolationPoints.front() ;
-        tpoint = rotateToVector(toCenter.second)*tpoint;
+        tpoint = tpoint*rotateToVector(Point(0,0,1), toCenter.second);
         tpoint.getZ() = 0 ;
         if(base.in(tpoint))
         {
-            tpoint = rotateFromVector(toCenter.second)*tpoint;
+            tpoint = tpoint*rotateFromVector(Point(0,0,1), toCenter.second);
             tpoint += interpolationPoints.front() ; 
             return tpoint;
         }
         else
         {
             base.project(&tpoint);
-            tpoint = rotateFromVector(toCenter.second)*tpoint;
+            tpoint = tpoint*rotateFromVector(Point(0,0,1), toCenter.second);
             tpoint += interpolationPoints.front() ; 
             return tpoint;
         }
@@ -2467,18 +2391,18 @@ Point LoftedPolygonPrism::projectTest(const Amie::Point& init, const std::pair< 
         Point tpoint(init) ;
         tpoint -= interpolationPoints.back() ;
         
-        tpoint = rotateToVector(toCenter.second)*tpoint;
+        tpoint = tpoint*rotateToVector(Point(0,0,1), toCenter.second);
         tpoint.getZ() = 0 ;
         if(base.in(tpoint))
         {
-            tpoint = rotateFromVector(toCenter.second)*tpoint;
+            tpoint = tpoint*rotateFromVector(Point(0,0,1), toCenter.second);
             tpoint += interpolationPoints.back() ; 
             return tpoint;
         }
         else
         {
             base.project(&tpoint);
-            tpoint = rotateFromVector(toCenter.second)*tpoint;
+            tpoint = tpoint*rotateFromVector(Point(0,0,1), toCenter.second);
             tpoint += interpolationPoints.back() ; 
             return tpoint;
         }
@@ -2486,10 +2410,10 @@ Point LoftedPolygonPrism::projectTest(const Amie::Point& init, const std::pair< 
     
     Point tpoint(init) ;
     tpoint -= toCenter.first ;
-    tpoint = rotateToVector(toCenter.second)*tpoint;
+    tpoint = tpoint*rotateToVector(Point(0,0,1), toCenter.second);
     tpoint.getZ() = 0 ;
     base.project(&tpoint);
-    tpoint = rotateFromVector(toCenter.second)*tpoint;
+    tpoint = tpoint*rotateFromVector(Point(0,0,1), toCenter.second);
     tpoint += toCenter.first ; 
     return tpoint ;
 }
@@ -2637,7 +2561,7 @@ std::vector<Point> LoftedPolygonPrism::getBoundingBox() const
     std::valarray<Point> baseCopy = base.originalPoints;
     for(size_t i = 0 ; i < baseCopy.size() ; i++ )
     {
-        baseCopy[i] = rotateToVector(interpolationPoints.front()-vstart)*baseCopy[i];
+        baseCopy[i] = baseCopy[i]*rotateToVector(Point(0,0,1), interpolationPoints.front()-vstart);
         baseCopy[i] += interpolationPoints.front() ;
     }
 
@@ -2664,7 +2588,7 @@ std::vector<Point> LoftedPolygonPrism::getBoundingBox() const
         std::valarray<Point> baseCopy = base.originalPoints;
         for(size_t j = 0 ; j < baseCopy.size() ; j++ )
         {
-            baseCopy[j] = rotateToVector(pt.second)*baseCopy[j];
+            baseCopy[j] = baseCopy[j]*rotateToVector(Point(0,0,1), pt.second);
             baseCopy[j] += pt.first ;
         }
         for(size_t j = 0 ; j < baseCopy.size() ; j++ )

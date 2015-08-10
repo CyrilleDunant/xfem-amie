@@ -159,10 +159,10 @@ void FractureCriterion::initialiseCache( ElementState & s)
         Function x = Function("x")-s.getParent()->getCenter().getX() ;
         Function y = Function("y")-s.getParent()->getCenter().getY() ;
         Function rr = x*x+y*y ;
+        //it is desirable to always have a meaningful non-local law
+        physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*1.5) ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-        Function smooth = getSmoothingKernelFunction( smoothingType, rrn ) ; //(smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
-
-//        double overlap = getSmoothingKernelSize(smoothingType) ;// == QUARTIC_COMPACT)?4.:6. ;
+        Function smooth = getSmoothingKernelFunction( smoothingType, rrn ) ; 
         Circle epsilonAll( std::max(physicalCharacteristicRadius*1.1, s.getParent()->getRadius()*3. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         Circle epsilonReduced(physicalCharacteristicRadius*1.1+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         mesh2d = s.getMesh2D() ;
@@ -178,10 +178,9 @@ void FractureCriterion::initialiseCache( ElementState & s)
         Function y = Function("y")-s.getParent()->getCenter().getY() ;
         Function z = Function("z")-s.getParent()->getCenter().getZ() ;
         Function rr = x*x+y*y+z*z ;
+        physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*1.5) ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-        Function smooth = getSmoothingKernelFunction( smoothingType, rrn ) ; //(smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
-
-//        double overlap = getSmoothingKernelSize(smoothingType) ;//(smoothingType == QUARTIC_COMPACT)?4.:6. ;
+        Function smooth = getSmoothingKernelFunction( smoothingType, rrn ) ; 
         Sphere epsilonAll( std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*2. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         Sphere epsilonReduced(physicalCharacteristicRadius*1.1+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         mesh3d = s.getMesh3D() ;

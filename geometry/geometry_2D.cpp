@@ -2436,16 +2436,15 @@ std::vector<Polygon> Polygon::getInscribedPolygons( double delta ) const
        Point first = tentative.intersection( tentative_prev ) ;
        Point second = tentative.intersection( tentative_next ) ;
        if(!in( first ) || !in( second) )
-       {
-           if(in(first))
+       { 
+           Segment s(first, second) ;
+           if(in(first) && s.intersects(this))
            {
-               Segment s(first, second) ;
                Point test = s.intersection(this)[0]-first ;
                second = first + test*(test.norm()-delta)/test.norm() ;
            }
-           else if(in(second))
+           else if(in(second) && s.intersects(this))
            {
-               Segment s(first, second) ;
                Point test = s.intersection(this)[0]-second ;
                first = second + test*(test.norm()-delta)/test.norm() ;
            }

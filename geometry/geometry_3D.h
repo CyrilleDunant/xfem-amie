@@ -282,15 +282,21 @@ protected:
     double sweepNorm(double end = 1.) const ;
     double sweepNorm( const Point & offset, double end = 1.) const ;
     
+    bool centerInXYPlane ;
+    bool centerInXZPlane ;
+    bool centerInYZPlane ;
+    
     Point vstart ;
     Point vend ;
+    
+    Point tanAtCentre ;
     std::vector<Point> interpolationPoints ;
     std::pair<Point,Point> interpolatingPointAndTangent(double t) const ;
     std::pair<Point,Point> interpolatingPointAndTangent(double t, const Point & offset) const ;
     Point projectTest(const Amie::Point& v, const std::pair< Amie::Point, Amie::Point >& toCenter) const ;
     
-    Matrix rotateToVector(const Point & vector) const ;
-    Matrix rotateFromVector(const Point & vector) const ;
+    Matrix rotateToVector(const Amie::Point& fromvector, const Amie::Point& tovector) const ;
+    Matrix rotateFromVector(const Point & fromvector,const Point & vector) const ;
     std::pair<Point,Point> projectToCenterLine(const Point & p, double * coordinate = nullptr) const ;
     std::pair<Point,Point>projectToOffsetCenterLine(const Point & p, const Point & offset) const ;
      std::vector<double> isoDistribute(int npoints) const;
