@@ -186,6 +186,7 @@ VoronoiInclusionFamily::VoronoiInclusionFamily( double radius, double fraction, 
 	grains.push_back( VoronoiGrain( nullptr, radius, fraction, correction ) ) ;
 	copy = false ;
 	generated = false ;
+	rotations.push_back(0) ;
 }
 
 void VoronoiInclusionFamily::concatenate( InclusionFamily * brother )   
@@ -205,6 +206,9 @@ void VoronoiInclusionFamily::concatenate( InclusionFamily * brother )
 		for(size_t i = 0 ; i < voronoi->grains.size() ; i++)
 			grains.push_back( voronoi->grains[i] ) ;
 	}
+
+	rotations.push_back( 0. ) ;
+
 }
 
 

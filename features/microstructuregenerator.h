@@ -175,7 +175,7 @@ struct PolygonalInclusionGenerator : public InclusionGenerator
     int vertexVariability ;
     bool forceOrientation ;
 
-    PolygonalInclusionGenerator(int v, double o = 0., double ov = M_PI, int vv = 0, double rot = 0., bool force = false) : InclusionGenerator(rot), vertex(v), orientation(o), orientationVariability(ov), vertexVariability(vv), forceOrientation(force) { } ;
+    PolygonalInclusionGenerator(int v, double o = 0., double ov = M_PI, int vv = 0, double rot = 0., bool force = true) : InclusionGenerator(rot), vertex(v), orientation(o), orientationVariability(ov), vertexVariability(vv), forceOrientation(force) { } ;
 
     virtual PolygonalSample * generatePolygon(double radius) const;
     virtual Feature * convert(Inclusion * inc ) const ;
@@ -193,7 +193,7 @@ struct VoronoiPolygonalInclusionGenerator : public PolygonalInclusionGenerator
 {
     std::vector<PolygonalSample *> source ;
 
-    VoronoiPolygonalInclusionGenerator( double box, size_t seed, double minDist, double o = 0., double ov = M_PI, double rot = 0., bool force = false) ;
+    VoronoiPolygonalInclusionGenerator( double box, size_t seed, double minDist, double o = 0., double ov = M_PI, double rot = 0., bool force = true) ;
 
     virtual PolygonalSample * generatePolygon(double radius) const;
 } ; 
@@ -215,7 +215,7 @@ struct GravelPolygonalInclusionGenerator : public PolygonalInclusionGenerator
     double b ;
     size_t m ;
 
-    GravelPolygonalInclusionGenerator(double p_, double b_, size_t m_, int v, double o = 0., double ov = M_PI, int vv = 0, double rot = 0., bool f = false) : PolygonalInclusionGenerator(v,o,ov,vv,rot, f), p(p_), b(b_),m(m_) { } ;
+    GravelPolygonalInclusionGenerator(double p_, double b_, size_t m_, int v, double o = 0., double ov = M_PI, int vv = 0, double rot = 0., bool f = true) : PolygonalInclusionGenerator(v,o,ov,vv,rot, f), p(p_), b(b_),m(m_) { } ;
 
     virtual PolygonalSample * generatePolygon(double radius) const;
 } ;
@@ -233,7 +233,7 @@ struct CrushedPolygonalInclusionGenerator : public PolygonalInclusionGenerator
 {
     double shape ; // between 0 and 1
 
-    CrushedPolygonalInclusionGenerator(double s, int v, double o = 0., double ov = M_PI, int vv = 0, double rot = 0., bool f = false) : PolygonalInclusionGenerator(v,o,ov,vv, rot, f), shape(s<0? -s : s) { if(s > 1-POINT_TOLERANCE) { shape = 0.999 ; } } ;
+    CrushedPolygonalInclusionGenerator(double s, int v, double o = 0., double ov = M_PI, int vv = 0, double rot = 0., bool f = true) : PolygonalInclusionGenerator(v,o,ov,vv, rot, f), shape(s<0? -s : s) { if(s > 1-POINT_TOLERANCE) { shape = 0.999 ; } } ;
 
     virtual PolygonalSample * generatePolygon(double radius) const;
 } ;
@@ -253,7 +253,7 @@ struct CrushedSubtendedPolygonalInclusionGenerator : public PolygonalInclusionGe
     double shape ; // between 0 and 1
     double delta ; // between 0 and 1
 
-    CrushedSubtendedPolygonalInclusionGenerator(double s, double d, int v, double o = 0., double ov = M_PI, int vv = 0, double rot = 0., bool f = false) : PolygonalInclusionGenerator(v,o,ov,vv,rot, f), shape(s<0? -s : s), delta(d<0? -d: d) { if(shape > 1-POINT_TOLERANCE) { shape = 0.999 ; } if(delta > 1-POINT_TOLERANCE) { delta = 0.999 ; } } ;
+    CrushedSubtendedPolygonalInclusionGenerator(double s, double d, int v, double o = 0., double ov = M_PI, int vv = 0, double rot = 0., bool f = true) : PolygonalInclusionGenerator(v,o,ov,vv,rot, f), shape(s<0? -s : s), delta(d<0? -d: d) { if(shape > 1-POINT_TOLERANCE) { shape = 0.999 ; } if(delta > 1-POINT_TOLERANCE) { delta = 0.999 ; } } ;
 
     virtual PolygonalSample * generatePolygon(double radius) const ;
 } ;

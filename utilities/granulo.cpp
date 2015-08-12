@@ -726,6 +726,7 @@ std::vector<std::vector<Feature *> > PSDGenerator::get2DVoronoiPolygons(Rectangl
                 for(size_t k = 0 ; k < poly[j].size() ; k++)
                 {
 //                    F->addFeature(feats[i], poly[j][k]) ;
+                    poly[j][k]->setFather( feats[i] ) ;
                     ret[j].push_back(poly[j][k]) ;
                 }
             }
