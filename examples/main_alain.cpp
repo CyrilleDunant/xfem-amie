@@ -34,12 +34,12 @@ int main( int argc, char *argv[] )
     FeatureTree F(&box) ;
     F.setOrder(LINEAR_TIME_LINEAR) ;
     Function radius(0.02) ; //radius += "t 0.002 *" ;
-    GrowingExpansiveZone * exp = new GrowingExpansiveZone( &box, radius, 0,0, new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, C*2, v ) ) ;
+    GrowingExpansiveZone * exp = new GrowingExpansiveZone( &box, radius, 0,0, new Viscoelasticity( PURE_ELASTICITY, C ) ) ;
     F.addFeature(&box, exp) ;
 
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT_AFTER ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER ) ) ;
-//    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, 1e6 ) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_ETA, TOP_AFTER, 1e-6 ) ) ;
 
     F.setSamplingNumber(8) ;
     F.setDeltaTime(1) ;
@@ -53,7 +53,7 @@ int main( int argc, char *argv[] )
         Vector eps = F.getAverageField( STRAIN_FIELD, -1, 1 ) ;
         Vector str = F.getAverageField( REAL_STRESS_FIELD, -1, 1 ) ;
         std::cout << F.getCurrentTime() << "\t" << exp->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << F.getAssembly()->getMaxDofID() << "\t" << eps[0] << "\t" << eps[1] << "\t" << eps[2] << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << std::endl ;
-        F.getAssembly()->print() ;
+//        F.getAssembly()->print() ;
     }
     
     TriangleWriter trg( "fields", &F, 1) ;

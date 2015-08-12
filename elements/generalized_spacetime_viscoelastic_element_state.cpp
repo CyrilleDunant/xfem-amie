@@ -248,10 +248,12 @@ void  GeneralizedSpaceTimeViscoElasticElementState::step ( double dt, const Vect
 Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointBefore( FieldType f, GaussPointArray & gp, size_t i, VirtualMachine * vm)
 {
     Vector ret ;
+    size_t size = gp.gaussPoints.size() * fieldTypeElementarySize( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, parent->spaceDimensions(), parent->getBehaviour()->getNumberOfDegreesOfFreedom()/parent->spaceDimensions()) ;
+    size_t blocksize = size/gp.gaussPoints.size() ;
     if(f == GENERALIZED_VISCOELASTIC_STRAIN_FIELD)
     {
         // build cache if it does not exist
-        if(genStrainAtGaussPointBefore.size() == 0)
+        if(genStrainAtGaussPointBefore.size() != size )
         {
             genStrainAtGaussPointBefore.resize( gp.gaussPoints.size() * fieldTypeElementarySize( f, parent->spaceDimensions(), parent->getBehaviour()->getNumberOfDegreesOfFreedom()/parent->spaceDimensions())) ;
             for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
@@ -259,19 +261,19 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointB
                 generalizedBuffer = 0. ;
                 getField( f, gp.gaussPoints[j].first, generalizedBuffer, true, vm ) ;
                 for(size_t k = 0 ; k < generalizedBuffer.size() ; k++)
-                    genStrainAtGaussPointBefore[ j*ret.size() + k] = generalizedBuffer[k] ;
+                    genStrainAtGaussPointBefore[ j*blocksize + k] = generalizedBuffer[k] ;
             }
         }
         ret.resize( genStrainAtGaussPointBefore.size()/gp.gaussPoints.size() ) ;
         // find result in cache
         for(size_t j = 0 ; j < ret.size() ; j++)
-            ret[j] = genStrainAtGaussPointBefore[ i*ret.size() + j] ;
+            ret[j] = genStrainAtGaussPointBefore[ i*blocksize + j] ;
         return ret ;
     }
     if(f == STRAIN_FIELD)
     {
         // build cache if it does not exist
-        if(genStrainAtGaussPointBefore.size() == 0)
+        if(genStrainAtGaussPointBefore.size() != size)
         {
             genStrainAtGaussPointBefore.resize( gp.gaussPoints.size() * fieldTypeElementarySize( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, parent->spaceDimensions(), parent->getBehaviour()->getNumberOfDegreesOfFreedom()/parent->spaceDimensions())) ;
             for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
@@ -279,13 +281,13 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointB
                 generalizedBuffer = 0. ;
                 getField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, gp.gaussPoints[j].first, generalizedBuffer, true, vm ) ;
                 for(size_t k = 0 ; k < generalizedBuffer.size() ; k++)
-                    genStrainAtGaussPointBefore[ j*ret.size() + k] = generalizedBuffer[k] ;
+                    genStrainAtGaussPointBefore[ j*blocksize + k] = generalizedBuffer[k] ;
             }
         }
         ret.resize( 3+(3*parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ) ;
         // find result in cache
         for(size_t j = 0 ; j < ret.size() ; j++)
-            ret[j] = genStrainAtGaussPointBefore[ i*genStrainAtGaussPointBefore.size()/gp.gaussPoints.size() + j] ;
+            ret[j] = genStrainAtGaussPointBefore[ i*blocksize + j] ;
         return ret ;
     }
     if(f == MECHANICAL_STRAIN_FIELD)
@@ -303,7 +305,7 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointB
     if(f == GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD)
     {
         // build cache if it does not exist
-        if(genStrainRateAtGaussPointBefore.size() == 0)
+        if(genStrainRateAtGaussPointBefore.size() != size)
         {
             genStrainRateAtGaussPointBefore.resize( gp.gaussPoints.size() * fieldTypeElementarySize( f, parent->spaceDimensions(), parent->getBehaviour()->getNumberOfDegreesOfFreedom()/parent->spaceDimensions())) ;
             for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
@@ -311,19 +313,19 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointB
                 generalizedBuffer = 0. ;
                 getField( f, gp.gaussPoints[j].first, generalizedBuffer, true, vm ) ;
                 for(size_t k = 0 ; k < generalizedBuffer.size() ; k++)
-                    genStrainRateAtGaussPointBefore[ j*ret.size() + k] = generalizedBuffer[k] ;
+                    genStrainRateAtGaussPointBefore[ j*blocksize + k] = generalizedBuffer[k] ;
             }
         }
         ret.resize( genStrainRateAtGaussPointBefore.size()/gp.gaussPoints.size() ) ;
         // find result in cache
         for(size_t j = 0 ; j < ret.size() ; j++)
-            ret[j] = genStrainRateAtGaussPointBefore[ i*ret.size() + j] ;
+            ret[j] = genStrainRateAtGaussPointBefore[ i*blocksize + j] ;
         return ret ;
     }
     if(f == STRAIN_RATE_FIELD)
     {
         // build cache if it does not exist
-        if(genStrainRateAtGaussPointBefore.size() == 0)
+        if(genStrainRateAtGaussPointBefore.size() != size)
         {
             genStrainRateAtGaussPointBefore.resize( gp.gaussPoints.size() * fieldTypeElementarySize( f, parent->spaceDimensions(), parent->getBehaviour()->getNumberOfDegreesOfFreedom()/parent->spaceDimensions())) ;
             for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
@@ -331,13 +333,13 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointB
                 generalizedBuffer = 0. ;
                 getField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, gp.gaussPoints[j].first, generalizedBuffer, true, vm ) ;
                 for(size_t k = 0 ; k < generalizedBuffer.size() ; k++)
-                    genStrainRateAtGaussPointBefore[ j*ret.size() + k] = generalizedBuffer[k] ;
+                    genStrainRateAtGaussPointBefore[ j*blocksize + k] = generalizedBuffer[k] ;
             }
         }
         ret.resize( 3+(3*parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ) ;
         // find result in cache
         for(size_t j = 0 ; j < ret.size() ; j++)
-            ret[j] = genStrainRateAtGaussPointBefore[ i*genStrainRateAtGaussPointBefore.size()/gp.gaussPoints.size() + j] ;
+            ret[j] = genStrainRateAtGaussPointBefore[ i*blocksize + j] ;
         return ret ;
     }
     if(f == REAL_STRESS_FIELD)
@@ -382,47 +384,46 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointB
     return ret ;
 }
 
+void GeneralizedSpaceTimeViscoElasticElementState::getCache( FieldType f, GaussPointArray & gp, Vector & ret, VirtualMachine * vm) 
+{
+    size_t size = gp.gaussPoints.size() * fieldTypeElementarySize( f, parent->spaceDimensions(), parent->getBehaviour()->getNumberOfDegreesOfFreedom()/parent->spaceDimensions()) ;
+    size_t blocksize = size/gp.gaussPoints.size() ;
+    if(ret.size() != size)
+        ret.resize( size ) ;
+    for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+    {
+        generalizedBuffer = 0. ;
+        getField( f, gp.gaussPoints[j].first, generalizedBuffer, true, vm ) ;
+        for(size_t k = 0 ; k < generalizedBuffer.size() ; k++)
+             ret[ j*blocksize + k] = generalizedBuffer[k] ;
+    }
+}
+
 Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointAfter( FieldType f, GaussPointArray & gp, size_t i, VirtualMachine * vm)
 {
     Vector ret ;
+    size_t size = gp.gaussPoints.size() * fieldTypeElementarySize( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, parent->spaceDimensions(), parent->getBehaviour()->getNumberOfDegreesOfFreedom()/parent->spaceDimensions()) ;
+    size_t blocksize = size/gp.gaussPoints.size() ;
     if(f == GENERALIZED_VISCOELASTIC_STRAIN_FIELD)
     {
         // build cache if it does not exist
-        if(genStrainAtGaussPointAfter.size() == 0)
-        {
-            genStrainAtGaussPointAfter.resize( gp.gaussPoints.size() * fieldTypeElementarySize( f, parent->spaceDimensions(), parent->getBehaviour()->getNumberOfDegreesOfFreedom()/parent->spaceDimensions())) ;
-            for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
-            {
-                generalizedBuffer = 0. ;
-                getField( f, gp.gaussPoints[j].first, generalizedBuffer, true, vm ) ;
-                for(size_t k = 0 ; k < generalizedBuffer.size() ; k++)
-                    genStrainAtGaussPointAfter[ j*ret.size() + k] = generalizedBuffer[k] ;
-            }
-        }
-        ret.resize( genStrainAtGaussPointAfter.size()/gp.gaussPoints.size() ) ;
+        if(genStrainAtGaussPointAfter.size() != size)
+            getCache( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, gp, genStrainAtGaussPointAfter, vm) ;
+        ret.resize( blocksize ) ;
         // find result in cache
         for(size_t j = 0 ; j < ret.size() ; j++)
-            ret[j] = genStrainAtGaussPointAfter[ i*ret.size() + j] ;
+            ret[j] = genStrainAtGaussPointAfter[ i*blocksize + j] ;
         return ret ;
     }
     if(f == STRAIN_FIELD)
     {
         // build cache if it does not exist
-        if(genStrainAtGaussPointAfter.size() == 0)
-        {
-            genStrainAtGaussPointAfter.resize( gp.gaussPoints.size() * fieldTypeElementarySize( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, parent->spaceDimensions(), parent->getBehaviour()->getNumberOfDegreesOfFreedom()/parent->spaceDimensions())) ;
-            for(size_t j = 0; j < gp.gaussPoints.size() ; j++)
-            {
-                generalizedBuffer = 0. ;
-                getField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, gp.gaussPoints[j].first, generalizedBuffer, true, vm ) ;
-                for(size_t k = 0 ; k < generalizedBuffer.size() ; k++)
-                    genStrainAtGaussPointAfter[ j*ret.size() + k] = generalizedBuffer[k] ;
-            }
-        }
+        if(genStrainAtGaussPointAfter.size() != size)
+            getCache( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, gp, genStrainAtGaussPointAfter, vm) ;
         ret.resize( (3+(3*parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ) ;
         // find result in cache
         for(size_t j = 0 ; j < ret.size() ; j++)
-            ret[j] = genStrainAtGaussPointAfter[ i*genStrainAtGaussPointAfter.size()/gp.gaussPoints.size() + j] ;
+            ret[j] = genStrainAtGaussPointAfter[ i*blocksize + j] ;
         return ret ;
     }
     if(f == MECHANICAL_STRAIN_FIELD)
@@ -440,41 +441,23 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointA
     if(f == GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD)
     {
         // build cache if it does not exist
-        if(genStrainRateAtGaussPointAfter.size() == 0)
-        {
-            genStrainRateAtGaussPointAfter.resize( gp.gaussPoints.size() * fieldTypeElementarySize( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, parent->spaceDimensions(), parent->getBehaviour()->getNumberOfDegreesOfFreedom()/parent->spaceDimensions())) ;
-            for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
-            {
-                generalizedBuffer = 0. ;
-                getField( f, gp.gaussPoints[j].first, generalizedBuffer, true, vm ) ;
-                for(size_t k = 0 ; k < generalizedBuffer.size() ; k++)
-                    genStrainRateAtGaussPointAfter[ j*ret.size() + k] = generalizedBuffer[k] ;
-            }
-        }
+        if(genStrainRateAtGaussPointAfter.size() != size)
+            getCache( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, gp, genStrainRateAtGaussPointAfter, vm) ;
         ret.resize( genStrainRateAtGaussPointAfter.size()/gp.gaussPoints.size() ) ;
         // find result in cache
         for(size_t j = 0 ; j < ret.size() ; j++)
-            ret[j] = genStrainRateAtGaussPointAfter[ i*ret.size() + j] ;
+            ret[j] = genStrainRateAtGaussPointAfter[ i*blocksize + j] ;
         return ret ;
     }
     if(f == STRAIN_RATE_FIELD)
     {
         // build cache if it does not exist
-        if(genStrainRateAtGaussPointAfter.size() == 0)
-        {
-            genStrainRateAtGaussPointAfter.resize( gp.gaussPoints.size() * fieldTypeElementarySize( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, parent->spaceDimensions(), parent->getBehaviour()->getNumberOfDegreesOfFreedom()/parent->spaceDimensions())) ;
-            for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
-            {
-                generalizedBuffer = 0. ;
-                getField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, gp.gaussPoints[j].first, generalizedBuffer, true, vm ) ;
-                for(size_t k = 0 ; k < generalizedBuffer.size() ; k++)
-                    genStrainRateAtGaussPointAfter[ j*ret.size() + k] = generalizedBuffer[k] ;
-            }
-        }
+        if(genStrainRateAtGaussPointAfter.size() != size)
+            getCache( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, gp, genStrainRateAtGaussPointAfter, vm) ;
         ret.resize( 3+(3*parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ) ;
         // find result in cache
         for(size_t j = 0 ; j < ret.size() ; j++)
-            ret[j] = genStrainRateAtGaussPointAfter[ i*genStrainRateAtGaussPointAfter.size()/gp.gaussPoints.size() + j] ;
+            ret[j] = genStrainRateAtGaussPointAfter[ i*blocksize + j] ;
         return ret ;
     }
     if(f == REAL_STRESS_FIELD)
@@ -1138,7 +1121,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 y_tau += f_tau * displacements[j * totaldof + 1] ;
             }
 
-/*            for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
+            for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
             {
                 double f_xi = vm->deval ( parent->getEnrichmentFunction ( j ), XI, p_ ) ;
                 double f_eta = vm->deval ( parent->getEnrichmentFunction ( j ), ETA, p_ ) ;
@@ -1147,7 +1130,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 x_eta += f_eta * enrichedDisplacements[j * totaldof] ;
                 y_xi += f_xi * enrichedDisplacements[j * totaldof + 1] ;
                 y_eta += f_eta * enrichedDisplacements[j * totaldof + 1] ;
-            }*/
+            }
 
             if(!JinvCache || parent->isMoved())
             {

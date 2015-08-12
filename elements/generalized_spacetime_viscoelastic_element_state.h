@@ -36,6 +36,8 @@ class GeneralizedSpaceTimeViscoElasticElementState : public ElementState
     Vector generalizedBuffer ;
     Vector generalizedBufferSecond ;
 
+private:
+   void getCache( FieldType f, GaussPointArray & gp, Vector & ret, VirtualMachine * vm ) ;
 
 public:
 
