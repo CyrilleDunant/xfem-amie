@@ -253,6 +253,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 
         hat.setNumberOfDerivatives(0);
 
+        Point p_((double) rand()/RAND_MAX,(double) rand()/RAND_MAX,0,(double) rand()/RAND_MAX) ; 
         for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
         {
             std::pair<DelaunayTriangle *, Point *> that(ring[i], &ring[i]->getBoundingPoint(j) ) ;
@@ -271,6 +272,17 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
                 ring[i]->setEnrichment( f, getPrimitive()) ;
             }
         }
+
+/*        Function sum("0") ;
+        for(size_t j = 0 ; j< ring[i]->getShapeFunctions().size() ; j++)
+            sum += ring[i]->getShapeFunction(j) ;
+        for(size_t j = 0 ; j< ring[i]->getEnrichmentFunctions().size() ; j++)
+            sum += ring[i]->getEnrichmentFunction(j) ;
+        for(size_t j = 0 ; j< ring[i]->getShapeFunctions().size() ; j++)
+            ring[i]->getShapeFunction(j) /= sum ;
+        for(size_t j = 0 ; j< ring[i]->getEnrichmentFunctions().size() ; j++)
+            ring[i]->getEnrichmentFunction(j) /= sum ;*/
+
 //		ring[i]->enrichmentUpdated = true ;
 
         hint.clear();
@@ -312,8 +324,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
                     {
                         enriched.insert(that) ;
                         Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-                        Function f ;
-                        f =  t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.getX(), p.getY(),p.getZ(),p.getT())) ;
+                        Function f =  t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.getX(), p.getY(),p.getZ(),p.getT())) ;
                         if(!hinted)
                         {
                             f.setIntegrationHint(hint) ;

@@ -664,11 +664,11 @@ void HatEnrichment::eval(double * a, double * b, double * c) const
 {
     Point position ( *a, *b ) ;
     
-    if(g->in(position))
+/*    if(g->in(position))
     {
         *c = 0 ;
         return ;
-    }
+    }*/
     
     if(p == position)
     {
@@ -739,13 +739,13 @@ HatEnrichmentDerivative::HatEnrichmentDerivative(const Geometry * g , const Poin
 
 void HatEnrichmentDerivative::eval(double * a, double * b, double * c) const
 {
-    
+ 
     Point position ( *a, *b ) ;
-    if(g->in(position))
+/*    if(g->in(position))
     {
         *c = 0 ;
         return ;
-    }
+    }*/
     
     Point positionm(position) ;
     Point positionp(position) ;

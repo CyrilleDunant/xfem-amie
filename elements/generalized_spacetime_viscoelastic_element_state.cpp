@@ -1121,7 +1121,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 y_tau += f_tau * displacements[j * totaldof + 1] ;
             }
 
-            for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
+            for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
             {
                 double f_xi = vm->deval ( parent->getEnrichmentFunction ( j ), XI, p_ ) ;
                 double f_eta = vm->deval ( parent->getEnrichmentFunction ( j ), ETA, p_ ) ;
@@ -1257,6 +1257,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case GENERALIZED_VISCOELASTIC_STRAIN_FIELD:
     {
+//        std::cout << p_.getT() << " " ;
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
 
@@ -1283,14 +1284,14 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
 
             }
 
-            for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
+            for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
             {
                 double f_xi = vm->deval ( parent->getEnrichmentFunction ( j ), XI, p_ ) ;
                 double f_eta = vm->deval ( parent->getEnrichmentFunction ( j ), ETA, p_ ) ;
                 double f_tau = vm->deval ( parent->getEnrichmentFunction ( j ), TIME_VARIABLE, p_ ) ;
                 for ( int i = 0 ; i < totaldof ; i++ )
                 {
-                    dx[i] += f_xi  * enrichedDisplacements[j * totaldof + i] ;
+                    dx[i] += f_xi * enrichedDisplacements[j * totaldof + i] ;
                     dy[i] += f_eta * enrichedDisplacements[j * totaldof + i] ;
                     dt[i] += f_tau * enrichedDisplacements[j * totaldof + i] ;
                 }
@@ -1313,6 +1314,12 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 ret[i*3+0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;//+ x_tau * Jinv[0][2];
                 ret[i*3+1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;//+ y_tau * Jinv[1][2] ;
                 ret[i*3+2] = 0.5 * ( ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( y_xi ) * (*JinvCache)[0][0] + ( y_eta ) * (*JinvCache)[0][1] );//+ x_tau * Jinv[1][2]  + y_tau * Jinv[0][2]);
+/*                ret[i*3+0] = x_xi ;
+                ret[i*3+1] = y_eta ;
+                ret[i*3+2] = 0 ;
+
+                std::cout << x_xi << "/" << x_eta << "\t" ;*/
+
             }
 
         }

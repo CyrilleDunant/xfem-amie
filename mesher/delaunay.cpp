@@ -2491,7 +2491,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
                 behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], vm) ;
             }
         }
-
     }
 
     if(behaviour->isViscous())
@@ -2933,6 +2932,18 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                     gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
                 }
             }
+
+            double fsum = 0. ;
+            for(size_t i = 0 ; i < gp_alternative.size() ; i++)
+                fsum += gp_alternative[i].second ;
+
+            double originalSum = 0 ;
+            for(auto & i : getGaussPoints().gaussPoints)
+                originalSum += i.second ;
+
+            for(size_t i = 0 ; i < gp_alternative.size() ; i++)
+                gp_alternative[i].second *= originalSum / fsum ;
+
             
             if(tri.size() == 0)
                 gp_alternative = monteCarloGaussPoints(1024, this) ;
@@ -2954,7 +2965,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             for(size_t i = 0 ; i < pointsToCleanup.size() ; i++)
                 delete pointsToCleanup[i] ;
         }
-
 
         if(cachedGps)
             *cachedGps = gp_alternative ;

@@ -3176,10 +3176,10 @@ const  Function & ElementarySurface::getEnrichmentFunction(size_t i) const
     return this->enrichfunc[i];
 }
 
-//  Function & ElementarySurface::getEnrichmentFunction(size_t i)
-// {
-// 	return this->enrichfunc[i];
-// }
+/*  Function & ElementarySurface::getEnrichmentFunction(size_t i)
+ {
+ 	return this->enrichfunc[i];
+ }*/
 
 
 const std::valarray< Function >  & TriElement::getShapeFunctions() const

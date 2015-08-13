@@ -92,6 +92,8 @@ Vector BimaterialInterface::getImposedStrain(const Point & p, IntegrableEntity *
 
 void BimaterialInterface::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
+    ret = 0 ;
+
     bool allin = true ;
     bool allout = true ;
     Vector x = vm->eval(xtransform,gp) ;
@@ -123,7 +125,6 @@ void BimaterialInterface::apply(const Function & p_i, const Function & p_j, cons
     }
     else if(allout)
     {
-//		std::cout << "all aout !" << std::endl ;
         outBehaviour->apply(p_i, p_j, gp, Jinv,ret,vm) ;
         return ;
     }
@@ -150,6 +151,7 @@ void BimaterialInterface::apply(const Function & p_i, const Function & p_j, cons
             gpOut.gaussPoints[outIterator++] = gp.gaussPoints[i] ;
         }
     }
+    ret = 0 ;
     Matrix retIn(ret) ;
     inBehaviour->apply(p_i, p_j, gpIn, inMatrixArray, retIn,vm) ;
     outBehaviour->apply(p_i, p_j, gpOut, outMatrixArray,ret,vm) ;
