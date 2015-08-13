@@ -144,8 +144,6 @@ bool Feature::onMaskBoundary(const Point &p, double d) const
 
 bool Feature::inBoundary(const Point &p, double d) const
 {
-    if(p == getCenter())
-        return true ;
 
     bool inMaskBoundary = false ;
     for(size_t i = 0 ; i < mask.size() ; i++)

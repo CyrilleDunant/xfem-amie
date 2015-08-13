@@ -423,6 +423,7 @@ Matrix &Matrix::operator =(double a)
 
 Matrix &Matrix::operator =(const Matrix &m)
 {
+    
     noClean = false ;
 // 	v->resize(m.array().size()) ;
 // 	v = new Vector(m.array()) ;
@@ -431,7 +432,8 @@ Matrix &Matrix::operator =(const Matrix &m)
         r = m.numRows() ;
         c = m.numCols() ;
 
-        v = new Vector(m.array()) ;
+        v = new Vector(m.array().size()) ;
+        *v = m.array() ;
     }
     else if(!m.isNull())
     {

@@ -3464,7 +3464,7 @@ Vector FeatureTree::getDisplacements ( Point * pt, int g , bool stepTree )
         for ( size_t i = 0 ; i < elements.size() ; i++ )
         {
 
-            if ( elements[i]->in ( *pt ) )
+            if ( elements[i]->in ( *pt )  && elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
             {
                 ret.resize ( elements[i]->getBehaviour()->getNumberOfDegreesOfFreedom() , 0. ) ;
                 elements[i]->getState().getField ( DISPLACEMENT_FIELD, *pt, ret, false ) ;
@@ -3480,7 +3480,7 @@ Vector FeatureTree::getDisplacements ( Point * pt, int g , bool stepTree )
         std::vector<DelaunayTetrahedron *> elements = dtree3D->getConflictingElements ( pt ) ;
         for ( size_t i = 0 ; i < elements.size() ; i++ )
         {
-            if ( elements[i]->in ( *pt ) )
+            if ( elements[i]->in ( *pt ) && elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
             {
                 ret.resize ( elements[i]->getBehaviour()->getNumberOfDegreesOfFreedom() , 0. ) ;
                 elements[i]->getState().getField ( DISPLACEMENT_FIELD, *pt, ret, false ) ;
@@ -5622,7 +5622,7 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
         deltaTime = 0 ;
         if ( solverConverged() )
         {
-            std::cout << "." << std::flush ;
+            std::cerr << "." << std::flush ;
             notConvergedCounts = 0 ;
 
             if(foundCheckPoint  && !(enrichmentChange || behaviourChanged() ) )
@@ -7425,7 +7425,8 @@ void FeatureTree::generateElements()
                             && !potentialFeatures[l]->isEnrichmentFeature
                             && std::binary_search ( descendants.begin(), descendants.end(), potentialFeatures[l] ) )
                     {
-                        potentialChildren.push_back ( potentialFeatures[l] ) ;
+                        if(potentialFeatures[l]->getFather() == tree[i])
+                            potentialChildren.push_back ( potentialFeatures[l] ) ;
                     }
                 }
 
@@ -7440,7 +7441,8 @@ void FeatureTree::generateElements()
                             && !potentialFeatures[l]->isEnrichmentFeature
                             && potentialFeatures[l]->isMaskedBy( tree[i] ) )
                     {
-                        potentialChildren.push_back ( potentialFeatures[l] ) ;
+                        if(potentialFeatures[l]->getFather() == tree[i])
+                            potentialChildren.push_back ( potentialFeatures[l] ) ;
                     }
                 }
 
@@ -7501,7 +7503,11 @@ void FeatureTree::generateElements()
                 {
                     isIn = false ;
                 }
-
+                
+                if ( descendants.empty() )
+                {
+                    isIn = false ;
+                }
 
                 for ( size_t k = 0 ; k < nullFatherFeatures.size() ; k++ )
                 {

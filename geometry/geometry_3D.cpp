@@ -16,7 +16,7 @@ namespace Amie
 
 RegularOctahedron::RegularOctahedron(double s, double x, double y, double z) : ConvexGeometry(6), length(s)
 {
-    this->gType = REGULAR_OCTAHEDRON ;
+    gType = REGULAR_OCTAHEDRON ;
     getCenter().set(x, y, z) ;
     double h = s/std::sqrt(2.) ;
     //the four points of the basis are
@@ -32,7 +32,7 @@ RegularOctahedron::RegularOctahedron(double s, double x, double y, double z) : C
 
 RegularOctahedron::RegularOctahedron(double s, Point c) : ConvexGeometry(6), length(s)
 {
-    this->gType = REGULAR_OCTAHEDRON ;
+    gType = REGULAR_OCTAHEDRON ;
     getCenter().set(c) ;
     double h = s/std::sqrt(2.) ;
     //the four points of the basis are
@@ -57,7 +57,7 @@ void RegularOctahedron::sampleBoundingSurface(size_t num_points)
 
     random_shuffle(samplingPoints.begin(), samplingPoints.end()) ;
 
-    this->boundingPoints.resize(samplingPoints.size()) ;
+    boundingPoints.resize(samplingPoints.size()) ;
     for(size_t i = 0 ; i < samplingPoints.size() ; i++)
         boundingPoints[i] = new Point(samplingPoints[i]) ;
 }
@@ -384,10 +384,10 @@ void Tetrahedron::sampleBoundingSurface(size_t num_points)
 
 void Tetrahedron::computeCenter()
 {
-    this->center = Point(0,0,0) ;
+    center = Point(0,0,0) ;
     for(size_t i = 0  ; i < boundingPoints.size() ; i++)
     {
-        this->center += (*boundingPoints[i])/boundingPoints.size() ;
+        center += (*boundingPoints[i])/boundingPoints.size() ;
     }
 }
 
@@ -541,7 +541,7 @@ double Tetrahedron::area() const
 
 double Tetrahedron::computeArea() 
 {
-    if(this->getBoundingPoints().size() == 4)
+    if(getBoundingPoints().size() == 4)
     {
         Segment s0(getBoundingPoint(1), getBoundingPoint(0)) ;
         Segment s1(getBoundingPoint(1), getBoundingPoint(2)) ;
@@ -571,7 +571,7 @@ double Tetrahedron::volume() const
 
 double Tetrahedron::computeVolume() 
 {
-    if(this->getBoundingPoints().size() == 4 || timePlanes() > 1)
+    if(getBoundingPoints().size() == 4 || timePlanes() > 1)
     {
         return ((getBoundingPoint(1)- getBoundingPoint(2))^(getBoundingPoint(1)- getBoundingPoint(0)))*(getBoundingPoint(1)- getBoundingPoint(3))/6. ;
     }
@@ -670,7 +670,7 @@ Hexahedron::Hexahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p
 
 // 	std::stable_sort(pts.begin(), pts.end(), PointLessThan()) ;
 
-    this->boundingPoints.resize(8) ;
+    boundingPoints.resize(8) ;
     for(size_t i = 0 ;  i < 8 ; i++)
     {
         boundingPoints[i] = pts[i] ;
@@ -944,7 +944,7 @@ void Hexahedron::computeCenter()
 {
     for(size_t i = 0  ; i < boundingPoints.size() ; i++)
     {
-        this->center += (*boundingPoints[i])/boundingPoints.size() ;
+        center += (*boundingPoints[i])/boundingPoints.size() ;
     }
 }
 
@@ -1550,7 +1550,7 @@ void Sphere::sampleSurface(size_t num_points)
             points.push_back(newPoints[j]/*+ dr*/) ;
         }
     }
-    points.push_back(this->center) ;
+    points.push_back(center) ;
     for(size_t i = 0 ; i < inPoints.size() ; i++)
         delete inPoints[i] ;
 
@@ -1622,7 +1622,7 @@ void Sphere::computeCenter() { }
 
 double Sphere::getRadius() const
 {
-    return this->radius ;
+    return radius ;
 }
 
 void Sphere::setRadius(double newr)
@@ -1642,8 +1642,8 @@ void Sphere::setRadius(double newr)
         getInPoint(i).getY() = (getInPoint(i).getY() - center.getY())*ratio + center.getY() ;
     }
 
-    this->sqradius = newr*newr ;
-    this->radius = newr ;
+    sqradius = newr*newr ;
+    radius = newr ;
 }
 
 void TriangulatedSurface::addPoint(Point * p)
@@ -1831,16 +1831,16 @@ LoftedPolygonPrism::LoftedPolygonPrism(const std::valarray< Point* >& points, co
         }
     }
 
-/*   
-    for(double t = 0 ; t < 1 ; t += 0.01)
-    {
-        interpolatingPointAndTangent(t, Point(-10, -10)) ;
-        interpolatingPointAndTangent(t, Point(-10,  10)) ;
-        interpolatingPointAndTangent(t, Point(-0 ,  20)) ;
-        interpolatingPointAndTangent(t, Point( 10,  10)) ;
-        interpolatingPointAndTangent(t, Point( 10, -10)) ;
-    }
-    exit(0) ;*/
+   
+//     for(double t = 0. ; t < 1 ; t += 0.01)
+//     {
+//         interpolatingPointAndTangent(t, Point(-10, -10)) ;
+//         interpolatingPointAndTangent(t, Point(-10,  10)) ;
+//         interpolatingPointAndTangent(t, Point(-0 ,  20)) ;
+//         interpolatingPointAndTangent(t, Point( 10,  10)) ;
+//         interpolatingPointAndTangent(t, Point( 10, -10)) ;
+//     }
+//     exit(0) ;
 }
 
 Point catmullRom(double t_, const std::vector<Point> & controlPoints)
@@ -2010,7 +2010,7 @@ std::pair<Point,Point> LoftedPolygonPrism::interpolatingPointAndTangent(double t
      
     Point ipoint = catmullRom(t_, controlPoints) ;
     Point itan = catmullRomTangent(t_, controlPoints);
-    
+//     std::cout << ipoint.getX() << "  "<< ipoint.getY() << "  "<< ipoint.getZ() << "  " << std::endl ;
     Matrix transform = rotateFromVector(Point(0,0,1),itan) ;
     Point rof = offset*transform ;
     ipoint  = ipoint + rof ;
@@ -2021,6 +2021,7 @@ std::pair<Point,Point> LoftedPolygonPrism::interpolatingPointAndTangent(double t
 
 Matrix LoftedPolygonPrism::rotateToVector(const Point & tovector,const Point & fromvector) const
 {   
+//     inverse3x3Matrix(rotateFromVector(tovector,fromvector)).print() ;
     return inverse3x3Matrix(rotateFromVector(tovector,fromvector)) ;
 }
 
@@ -2029,6 +2030,7 @@ Matrix LoftedPolygonPrism::rotateFromVector(const Point & fromvector, const Poin
     double nprod = (fromvector.norm()*tovector.norm()) ;
 
     Point renormAxis = fromvector^tovector ;
+//     std::cout << " a " ;  renormAxis.print();
     double norm = renormAxis.norm() ;
     if(nprod < POINT_TOLERANCE*POINT_TOLERANCE || norm < POINT_TOLERANCE)
     {
@@ -2042,6 +2044,7 @@ Matrix LoftedPolygonPrism::rotateFromVector(const Point & fromvector, const Poin
     }
     double angle = asin(norm/nprod) ;
     renormAxis /= norm ;
+//     std::cout << " b " << angle << "  " ;renormAxis.print();
     // from the quaternions defined by the axis, we have the rotation matrix
     // q = (x i + y j + z k)*sin(angle/2) + cos(angle/2);
     double q0, q1, q2, q3 ;
@@ -2051,6 +2054,7 @@ Matrix LoftedPolygonPrism::rotateFromVector(const Point & fromvector, const Poin
     q0 = cos(angle*.5) ;
     
     double n = sqrt(q1*q1+q0*q0+q2*q2+q3*q3) ;
+//     std::cout << " c " << n << std::endl ;
     q0 /= n ;
     q1 /= n ;
     q2 /= n ;
@@ -2059,14 +2063,24 @@ Matrix LoftedPolygonPrism::rotateFromVector(const Point & fromvector, const Poin
     transform[0][0] = q0*q0+q1*q1-q2*q2-q3*q3 ; transform[0][1] = 2.*(q1*q2-q0*q3)        ; transform[0][2] = 2.*(q0*q2+q1*q3) ;
     transform[1][0] = 2.*(q1*q2+q0*q3)        ; transform[1][1] = q0*q0-q1*q1+q2*q2-q3*q3 ; transform[1][2] = 2.*(q3*q2-q1*q0) ;
     transform[2][0] = 2.*(q1*q3-q0*q2)        ; transform[2][1] = 2.*(q0*q1+q2*q3)        ; transform[2][2] = q0*q0-q1*q1-q2*q2+q3*q3 ;
-    
-    angle = acos(tanAtCentre*tovector) + M_PI;
-    if(tovector.getY()*tovector.getX() > 0)
-        angle = -angle ;
+//     std::cout << " d " ; transform.print();
+//     std::cout << " d' " << tanAtCentre*tovector << std::endl ;
+    double nn = tovector.norm()*tanAtCentre.norm() ;
+//     std::cout << " d'' " << nn << std::endl ;
+    if(nn < POINT_TOLERANCE*POINT_TOLERANCE || std::abs((tanAtCentre*tovector)/nn - 1.) < POINT_TOLERANCE)
+        angle = .5*M_PI ;
+    else
+    {
+        angle = acos((tanAtCentre*tovector)/nn) + .5*M_PI;
+//         std::cout << " e " << angle << std::endl ;
+        if(tovector.getY()*tovector.getX() > 0)
+            angle = -angle + M_PI ;
+    }
     Matrix rot(3,3) ;
     rot[0][0] = cos(-angle) ; rot[0][1] = sin(-angle) ; 
     rot[1][0] = -sin(-angle) ; rot[1][1] = cos(-angle) ; rot[2][2] = 1 ;
-    
+//     std::cout << " f "  ; rot.print();
+//     std::cout << " g "  ; ((Matrix)(rot*transform)).print();
     return rot*transform ;
  
 }
@@ -2561,8 +2575,12 @@ std::vector<Point> LoftedPolygonPrism::getBoundingBox() const
     std::valarray<Point> baseCopy = base.originalPoints;
     for(size_t i = 0 ; i < baseCopy.size() ; i++ )
     {
-        baseCopy[i] = baseCopy[i]*rotateToVector(Point(0,0,1), interpolationPoints.front()-vstart);
+//         std::cout << "---" << std::endl ;
+        baseCopy[i] = baseCopy[i]*rotateToVector(Point(0,0,1), interpolationPoints.front());
+//         baseCopy[i].print() ;
+//         std::cout << "---" << std::endl ;
         baseCopy[i] += interpolationPoints.front() ;
+//         exit(0) ;
     }
 
     double maxx = baseCopy[0].getX() ;
@@ -2582,14 +2600,12 @@ std::vector<Point> LoftedPolygonPrism::getBoundingBox() const
         minz = std::min(minz,baseCopy[i].getZ()) ;
     }
     
-    for(size_t i = 0 ; i < interpolationPoints.size()+1 ;  i++)
+    for(double i = 0 ; i < interpolationPoints.size()+1 ;  i++)
     {
-        std::pair<Point,Point> pt = interpolatingPointAndTangent((double)i/interpolationPoints.size()) ;
         std::valarray<Point> baseCopy = base.originalPoints;
         for(size_t j = 0 ; j < baseCopy.size() ; j++ )
         {
-            baseCopy[j] = baseCopy[j]*rotateToVector(Point(0,0,1), pt.second);
-            baseCopy[j] += pt.first ;
+            baseCopy[j] = interpolatingPointAndTangent(i/interpolationPoints.size(), baseCopy[j]).first ;
         }
         for(size_t j = 0 ; j < baseCopy.size() ; j++ )
         {
