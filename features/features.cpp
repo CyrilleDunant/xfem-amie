@@ -4299,7 +4299,7 @@ void FeatureTree::solve()
 
     timeval time0, time1 ;
     gettimeofday ( &time0, nullptr );
-
+    VirtualMachine vm ;
     if ( dtree )
     {
         std::cerr << "finding nodes for boundary conditions... " << std::flush ;
@@ -4307,6 +4307,7 @@ void FeatureTree::solve()
         {
             for ( auto i = j->second->begin() ; i != j->second->end() ; i++ )
             {
+                i->getElementaryMatrix(&vm) ;
                 i->applyBoundaryCondition ( K ) ;
             }
         }
@@ -4317,6 +4318,7 @@ void FeatureTree::solve()
         std::cerr << "finding nodes for boundary conditions... " << std::flush ;
         for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
         {
+            i->getElementaryMatrix(&vm) ;
             i->applyBoundaryCondition ( K ) ;
         }
     }

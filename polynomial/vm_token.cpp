@@ -666,7 +666,7 @@ void HatEnrichment::eval(double * a, double * b, double * c) const
 {
     Point position ( *a, *b ) ;
     Triangle test(p, s.first(), s.second()) ;
-    while(!test.in(position))
+    if(!test.in(position))
     {
         test.project(&position);
     }
@@ -831,6 +831,22 @@ void HatEnrichment3D::eval(double * a, double * b, double * c) const
     Line l(p, p-position) ;
     Tetrahedron t (p, s.first(), s.second(), s.third()) ;
     
+    if(!t.in(position))
+    {
+        t.project(&position);
+    }
+
+    if(p == position)
+    {
+       *c = 0 ;
+       return ;
+    }
+//     if(s.on(position))
+//     {
+//        *c = 0 ;
+//        return ;
+//     }
+    
     std::vector<Point> interseg = l.intersection(s) ;
     if(interseg.empty())
     {
@@ -843,25 +859,26 @@ void HatEnrichment3D::eval(double * a, double * b, double * c) const
        return ;
     }
     std::vector<Point> intersgeo = l.intersection(g) ;
-    for(size_t i = 0 ;  i < intersgeo.size() ; i++)
-    {
-        if(g->in(p) == g->in(position))
-        {
-            double distTot = dist(p, intersgeo[i]) ;
-            double distPos = dist(position, p) ;
-            *a = distPos/distTot ;
-            return ;
-        }
-        else
-        {                
-            double distTot = dist(interseg.front(), intersgeo[i]) ;
-            double distPos = dist(position, interseg.front()) ;
-            *a = distPos/distTot ;
-            return ;
-        }
-    }
     
-    *a = 0 ;
+    Point pmin = intersgeo[0] ;
+    
+    if(squareDist3D(t.getCircumCenter(), pmin) > squareDist3D(t.getCircumCenter(), intersgeo[1]))
+        pmin = intersgeo[1] ;
+
+    
+
+    if(g->in(p) == g->in(position))
+    {
+        double distTot = dist(p, pmin) ;
+        double distPos = dist(position, p) ;
+        *a = distPos/distTot ;
+        return ;
+    }
+             
+    double distTot = dist(interseg.front(), pmin) ;
+    double distPos = dist(position, interseg.front()) ;
+    *a = distPos/distTot ;
+
 }
 
 GeometryOperation * HatEnrichment3D::getCopy() const 

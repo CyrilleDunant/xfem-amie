@@ -43,7 +43,10 @@ void BimaterialInterface::transform(ElementaryVolume * e)
 Matrix BimaterialInterface::getTensor(const Point & p, IntegrableEntity * e, int g) const
 {
     VirtualMachine vm ;
-    Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ytransform,  p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ztransform,  p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ttransform, p.getX(),p.getY(),p.getZ(),p.getT())) ;
+    Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()), 
+                       vm.eval(ytransform,  p.getX(), p.getY(), p.getZ(), p.getT()), 
+                       vm.eval(ztransform,  p.getX(), p.getY(), p.getZ(), p.getT()), 
+                       vm.eval(ttransform, p.getX(),p.getY(),p.getZ(),p.getT())) ;
 
     if(inGeometry->in(test))
         return inBehaviour->getTensor(p, e, g) ;
@@ -54,7 +57,10 @@ Matrix BimaterialInterface::getTensor(const Point & p, IntegrableEntity * e, int
 Matrix BimaterialInterface::getViscousTensor(const Point & p, IntegrableEntity * e, int g) const
 {
     VirtualMachine vm ;
-    Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ytransform,  p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ztransform,  p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ttransform, p.getX(),p.getY(),p.getZ(),p.getT())) ;
+    Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()), 
+                       vm.eval(ytransform,  p.getX(), p.getY(), p.getZ(), p.getT()), 
+                       vm.eval(ztransform,  p.getX(), p.getY(), p.getZ(), p.getT()), 
+                       vm.eval(ttransform, p.getX(),p.getY(),p.getZ(),p.getT())) ;
 
     if(inGeometry->in(test))
         return inBehaviour->getViscousTensor(p, e, g) ;
@@ -249,12 +255,11 @@ bool BimaterialInterface::fractured() const
 
 std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
-   
     std::vector<BoundaryCondition * > ret ;
 
     if(Jinv.size() == 0)
         return ret ;
- 
+     
     VirtualMachine vm ;
     Vector x = vm.eval(xtransform,gp) ;
     Vector y = vm.eval(ytransform,gp) ;
@@ -275,7 +280,7 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
         return outBehaviour->getBoundaryConditions(s,id, p_i, gp, Jinv) ;
     if(inCount == gp.gaussPoints.size())
         return inBehaviour->getBoundaryConditions(s,id, p_i, gp, Jinv) ;
-
+    
     std::valarray<std::pair<Point, double> > inArray(inCount) ;
     std::valarray<Matrix> inMatrixArray( Matrix(Jinv[0].numRows(), Jinv[0].numCols()),inCount) ;
     std::valarray<std::pair<Point, double> > outArray(gp.gaussPoints.size()-inCount) ;
@@ -285,30 +290,32 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 
     int outIterator = 0;
     int inIterator = 0 ;
+    double insum = 0 ;
+    double outsum = 0 ;
     for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
     {
         if(inIn[i])
         {
             inMatrixArray[inIterator] = Jinv[i] ;
             gpIn.gaussPoints[inIterator] = gp.gaussPoints[i] ;
+            insum += gp.gaussPoints[i].second ;
             inIterator++ ;
         }
         else
         {
             outMatrixArray[outIterator] = Jinv[i] ;
             gpOut.gaussPoints[outIterator] = gp.gaussPoints[i] ;
+            outsum += gp.gaussPoints[i].second ;
             outIterator++ ;
         }
     }
 
-
     std::vector<BoundaryCondition * > temp = inBehaviour->getBoundaryConditions(s,id, p_i, gpIn, inMatrixArray) ;
-// 	for(size_t i = 0 ; i < temp.size() ; i++)
-// 		temp[i]->setData(temp[i]->getData()*1.5) ;
+
     ret.insert(ret.end(), temp.begin(), temp.end()) ;
     temp.clear() ;
     temp = outBehaviour->getBoundaryConditions(s,id, p_i, gpOut, outMatrixArray) ;
-//	std::cout << gpOut.gaussPoints.size() << "/" << gp.gaussPoints.size() << std::endl ;
+
     ret.insert(ret.end(), temp.begin(), temp.end()) ;
 
 //

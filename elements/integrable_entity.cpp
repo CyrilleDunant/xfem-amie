@@ -303,22 +303,22 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
                 delete boundaryConditionCachetmp[j] ;
             }
         }
-//         for ( size_t i = start ; i < getEnrichmentFunctions().size() ; i++ )
-//         {
-//             std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions ( getState(), getEnrichmentFunction ( i ).getDofID(),  getEnrichmentFunction ( i ), getGaussPoints(), Jinv ) ;
-//             for ( size_t j = 0 ; j < boundaryConditionCachetmp.size() ; j++ )
-//             {
-//                 if ( get2DMesh() )
-//                 {
-//                     boundaryConditionCachetmp[j]->apply ( a, get2DMesh() ) ;
-//                 }
-//                 else
-//                 {
-//                     boundaryConditionCachetmp[j]->apply ( a, get3DMesh() ) ;
-//                 }
-//                 delete boundaryConditionCachetmp[j] ;
-//             }
-//         }
+        for ( size_t i = start ; i < getEnrichmentFunctions().size() ; i++ )
+        {
+            std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions ( getState(), getEnrichmentFunction ( i ).getDofID(),  getEnrichmentFunction ( i ), getGaussPoints(), Jinv ) ;
+            for ( size_t j = 0 ; j < boundaryConditionCachetmp.size() ; j++ )
+            {
+                if ( get2DMesh() )
+                {
+                    boundaryConditionCachetmp[j]->apply ( a, get2DMesh() ) ;
+                }
+                else
+                {
+                    boundaryConditionCachetmp[j]->apply ( a, get3DMesh() ) ;
+                }
+                delete boundaryConditionCachetmp[j] ;
+            }
+        }
 
     }
 }
@@ -768,6 +768,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 }
                 double f_xi  = vm ->deval ( parent->getShapeFunction ( j ), XI , *p_ ) ;
                 double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, *p_ ) ;
+                
                 x_xi  += f_xi * displacements[j * 2] ;
                 x_eta += f_eta * displacements[j * 2] ;
                 y_xi  += f_xi * displacements[j * 2 + 1] ;
@@ -1057,7 +1058,18 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 delete p_ ;
             return ;
         }
+        
+        Vector delta(0., 3) ;
+//         if(parent->getEnrichmentFunctions().size())
+//         {
+//             Vector ret2(ret) ;
+//             getField ( NON_ENRICHED_STRAIN_FIELD, *p_, ret2, true, vm ) ;
+// //             std::cout << (ret[0]-ret2[0])/ret[0] << "  " << (ret[1]-ret2[1])/ret[1] << "  " << (ret[2]-ret2[2])/ret[2] << "  " << std::endl ;
+//             delta = ret2-ret ;
+//         }
+//         
         ret = ( Vector ) ( parent->getBehaviour()->getTensor ( *p_, parent ) * ret ) - parent->getBehaviour()->getImposedStress ( *p_, parent ) ;
+
         if ( cleanup )
         {
             delete vm ;
