@@ -19,6 +19,7 @@ FiberBasedIsotropicLinearDamage::FiberBasedIsotropicLinearDamage(double f, doubl
     alt = false ;
     thresholdDamageDensity = c ;
     getState(true).resize(1, 0.);
+    residualStiffnessFraction = 1e-3 ;
     isNull = false ;
 }
 
@@ -36,7 +37,7 @@ Matrix FiberBasedIsotropicLinearDamage::apply(const Matrix & m, const Point & p,
 {
 
     if(fractured())
-        return m*1e-4 ;
+        return m*residualStiffnessFraction ;
 
     return m*(1.-state[0]) ;
 }
