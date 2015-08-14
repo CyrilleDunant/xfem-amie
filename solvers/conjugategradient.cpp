@@ -30,12 +30,12 @@ ConjugateGradient::ConjugateGradient( Assembly* a ) :LinearSolver(a), r(x.size()
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
 
-    double realeps = std::max(1e-8, eps) ;
+    double realeps = std::max(1e-16, eps) ;
     size_t Maxit ;
     if(maxit != -1)
         Maxit = maxit ;
     else
-        Maxit = std::max(round(x.size()), 1000.) ;
+        Maxit = x.size() ;
     if(x0.size() == assembly->getForces().size())
     {
         x.resize(x0.size());

@@ -4358,7 +4358,9 @@ void FeatureTree::solve()
     {
 
         solverConvergence = K->cgsolve ( lastx ) ;
-
+        
+        solverConvergence = true ;
+        
         Vector r = K->getMatrix() * K->getDisplacements() - K->getForces() ;
         double perror = residualError ;
         residualError = sqrt ( parallel_inner_product ( &r[0], &r[0], r.size() ) ) ;
@@ -4374,6 +4376,7 @@ void FeatureTree::solve()
 
 
         solverConvergence = K->cgsolve() ;
+        solverConvergence = true ;
 
 // 		dtree->project(coarseTrees[3], K->getDisplacements(), coarseAssemblies[3]->getDisplacements(), false) ;
         Vector r = K->getMatrix() * K->getDisplacements() - K->getForces() ;
@@ -5624,7 +5627,7 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
         deltaTime = 0 ;
         if ( solverConverged() )
         {
-            std::cerr << "." << std::flush ;
+            std::cout << "." << std::flush ;
             notConvergedCounts = 0 ;
 
             if(foundCheckPoint  && !(enrichmentChange || behaviourChanged() ) )
@@ -5635,7 +5638,7 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
             notConvergedCounts++ ;
             if(notConvergedCounts > 5)
                 needexit = true ;
-            std::cerr << "+" << std::flush ;
+            std::cout << "+" << std::flush ;
         }
 
         if ( enrichmentChange || needMeshing )
