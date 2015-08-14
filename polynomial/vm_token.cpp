@@ -1,3 +1,5 @@
+
+
 //
 // C++ Implementation: vm_token
 //
@@ -663,13 +665,12 @@ HatEnrichment::HatEnrichment(const Geometry * g , const Point & p, const Segment
 void HatEnrichment::eval(double * a, double * b, double * c) const
 {
     Point position ( *a, *b ) ;
-    
-/*    if(g->in(position))
+    Triangle test(p, s.first(), s.second()) ;
+    while(!test.in(position))
     {
-        *c = 0 ;
-        return ;
-    }*/
-    
+        test.project(&position);
+    }
+
     if(p == position)
     {
        *c = 0 ;
@@ -698,26 +699,16 @@ void HatEnrichment::eval(double * a, double * b, double * c) const
     if(squareDist2D(t.getCircumCenter(), pmin) > squareDist2D(t.getCircumCenter(), intersgeo[1]))
         pmin = intersgeo[1] ;
 
-    double basis = dist(interseg, pmin) ;
+    double basis = 1. ;
     if(g->in(p) == g->in(position))
     { 
         double distTotPoint = dist(p, pmin);
-//         if(distTotPoint < default_derivation_delta/std::min(g->getRadius(), 0.5*dist(s.midPoint(), p)))
-//         {
-//             *c = basis ;
-//             return ;
-//         }
         double distPos = dist(position, p) ;
         *c = basis*distPos/distTotPoint ;
         return ;
     }
     
     double distTotSeg = dist(interseg, pmin);   
-//     if(distTotSeg < default_derivation_delta/std::min(g->getRadius(), 0.5*dist(s.midPoint(), p)))
-//     {
-//         *c = basis ;
-//         return ;
-//     }
     double distPos = dist(position, interseg) ;
     
     *c = basis*distPos/distTotSeg ;
@@ -854,22 +845,19 @@ void HatEnrichment3D::eval(double * a, double * b, double * c) const
     std::vector<Point> intersgeo = l.intersection(g) ;
     for(size_t i = 0 ;  i < intersgeo.size() ; i++)
     {
-        if(t.in(intersgeo[i]))
+        if(g->in(p) == g->in(position))
         {
-            if(g->in(p) == g->in(position))
-            {
-                double distTot = dist(p, intersgeo[i]) ;
-                double distPos = dist(position, p) ;
-                *a = distPos/distTot ;
-                return ;
-            }
-            else
-            {                
-                double distTot = dist(interseg.front(), intersgeo[i]) ;
-                double distPos = dist(position, interseg.front()) ;
-                *a = distPos/distTot ;
-                return ;
-            }
+            double distTot = dist(p, intersgeo[i]) ;
+            double distPos = dist(position, p) ;
+            *a = distPos/distTot ;
+            return ;
+        }
+        else
+        {                
+            double distTot = dist(interseg.front(), intersgeo[i]) ;
+            double distPos = dist(position, interseg.front()) ;
+            *a = distPos/distTot ;
+            return ;
         }
     }
     

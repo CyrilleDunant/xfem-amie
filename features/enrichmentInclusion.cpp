@@ -491,11 +491,11 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
                 f.setPoint(&ring[i]->getBoundingPoint(j)) ;
                 f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
 
-/*                f.setNumberOfDerivatives(2);
-                Function fdx = father.getShapeFunction(j).d(XI) *hat + father.getShapeFunction(j)*hatdx ;
-                Function fdy = father.getShapeFunction(j).d(ETA)*hat + father.getShapeFunction(j)*hatdy ;
-                f.setDerivative(XI , fdx);
-                f.setDerivative(ETA, fdy);*/
+//                 f.setNumberOfDerivatives(2);
+//                 Function fdx = (father.getShapeFunction(j).d(XI) *hat + father.getShapeFunction(j)*hatdx) ;
+//                 Function fdy = (father.getShapeFunction(j).d(ETA)*hat + father.getShapeFunction(j)*hatdy) ;
+//                 f.setDerivative(XI , fdx);
+//                 f.setDerivative(ETA, fdy);
     
                 ring[i]->setEnrichment( f, getPrimitive()) ;
                 
