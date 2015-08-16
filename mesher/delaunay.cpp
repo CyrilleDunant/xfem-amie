@@ -2802,8 +2802,8 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
     }
     
     size_t numberOfRefinements = 0 ;
-    if(getEnrichmentFunctions().size() > getBoundingPoints().size())
-        numberOfRefinements = 4 ;
+//     if(getEnrichmentFunctions().size() > getBoundingPoints().size())
+//         numberOfRefinements = 4 ;
     VirtualMachine vm ;
     if(getEnrichmentFunctions().size() > 0)
     {
@@ -2937,9 +2937,9 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             for(size_t i = 0 ; i < gp_alternative.size() ; i++)
                 fsum += gp_alternative[i].second ;
 
-            double originalSum = 0 ;
-            for(auto & i : getGaussPoints().gaussPoints)
-                originalSum += i.second ;
+            double originalSum = jac ;
+//             for(auto & i : getGaussPoints().gaussPoints)
+//                 originalSum += i.second ;
 
             for(size_t i = 0 ; i < gp_alternative.size() ; i++)
                 gp_alternative[i].second *= originalSum / fsum ;
@@ -2970,7 +2970,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             *cachedGps = gp_alternative ;
         else
             cachedGps = new GaussPointArray(gp_alternative) ;
-        cachedGps->getId() = REGULAR_GRID ;      
+//         cachedGps->getId() = REGULAR_GRID ;      
         return *getCachedGaussPoints();
 
     }

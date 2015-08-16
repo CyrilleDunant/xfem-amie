@@ -4429,6 +4429,7 @@ void FeatureTree::stepXfem()
                 {
                     reuseDisplacements = false ;
                 }
+                enrichmentChange = enrichmentChange || moved;
             }
 
             for ( size_t i = 0 ; i < tree.size() ; i++ )
@@ -4462,6 +4463,7 @@ void FeatureTree::stepXfem()
                 {
                     reuseDisplacements = false ;
                 }
+                enrichmentChange = enrichmentChange || moved;
             }
             for ( size_t i = 0 ; i < tree.size() ; i++ )
             {

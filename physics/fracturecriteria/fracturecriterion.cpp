@@ -160,7 +160,7 @@ void FractureCriterion::initialiseCache( ElementState & s)
         Function y = Function("y")-s.getParent()->getCenter().getY() ;
         Function rr = x*x+y*y ;
         //it is desirable to always have a meaningful non-local law
-        physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*1.5) ;
+//         physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*1.5) ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
         Function smooth = getSmoothingKernelFunction( smoothingType, rrn ) ; 
         Circle epsilonAll( std::max(physicalCharacteristicRadius*1.1, s.getParent()->getRadius()*3. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
@@ -178,7 +178,7 @@ void FractureCriterion::initialiseCache( ElementState & s)
         Function y = Function("y")-s.getParent()->getCenter().getY() ;
         Function z = Function("z")-s.getParent()->getCenter().getZ() ;
         Function rr = x*x+y*y+z*z ;
-        physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*1.5) ;
+//         physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*1.5) ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
         Function smooth = getSmoothingKernelFunction( smoothingType, rrn ) ; 
         Sphere epsilonAll( std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*2. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;

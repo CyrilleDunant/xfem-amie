@@ -130,6 +130,11 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
             }
 
             const Geometry * src =  ring[i]->getBehaviour()->getSource() ;
+//             if(bi->getDamageModel())
+//             {
+//                 bi->getDamageModel()->setResidualStiffnessFraction(.1);
+//                 bi->getDamageModel()->setThresholdDamageDensity(.9);
+//             }
             ring[i]->setBehaviour( dtree, bi ) ;
 
             bi->transform( ring[i] ) ;

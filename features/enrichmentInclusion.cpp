@@ -481,7 +481,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
             {
                 enriched.insert(that) ;
 
-                Function f = father.getShapeFunction(j)*(hat-VirtualMachine().eval(hat, ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)))) ;
+                Function f = father.getShapeFunction(j)*hat ;
 
                 if(!hinted)
                 {
