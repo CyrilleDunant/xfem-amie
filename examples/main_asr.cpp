@@ -152,7 +152,7 @@ int main( int argc, char *argv[] )
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
 
-    std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, new AggregateBehaviour(),  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), nullptr, 100000, 0.8, &placeGeometry) ;
+    std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, new /*ElasticOnly*/AggregateBehaviour(),  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), nullptr, 100000, 0.8, &placeGeometry) ;
 
     int nAgg = 1 ;
 
@@ -167,7 +167,7 @@ int main( int argc, char *argv[] )
                   << ", smallest r =" <<  feats.back()->getRadius()  - itzSize 
                   << ", ratio = "     << (feats.front()->getRadius() - itzSize) / (feats.back()->getRadius() - itzSize) <<std::endl ;
 
-    sample.setBehaviour( new PasteBehaviour()) ;
+    sample.setBehaviour( new /*ElasticOnly*/PasteBehaviour()) ;
 
     std::vector<Feature *> blocks ;
 
@@ -214,7 +214,7 @@ int main( int argc, char *argv[] )
     }
     else
     {
-        blocktop->setBehaviour(new OrthotropicStiffness(100.*1e-4, fact0, 100.*1e-4*100./(100.+100.),  0.05, 0.) ) ;
+        blocktop->setBehaviour(new OrthotropicStiffness(1000.*1e-4, fact0, 1000.*1e-4*1000./(1000.+1000.),  0.05, 0.) ) ;
         blocks.push_back(blocktop);
     }
     F.addFeature( &sample, blocktop );
@@ -227,7 +227,7 @@ int main( int argc, char *argv[] )
     }
     else
     {
-        blockbottom->setBehaviour(new OrthotropicStiffness(100.*1e-4, 100., 100.*1e-4*100./(100.+100.),  0.05, 0.) ) ;
+        blockbottom->setBehaviour(new OrthotropicStiffness(1000.*1e-4, 1000., 1000.*1e-4*1000./(1000.+1000.),  0.05, 0.) ) ;
         blocks.push_back(blockbottom);
     }
     F.addFeature( &sample, blockbottom );
@@ -240,7 +240,7 @@ int main( int argc, char *argv[] )
     }
     else
     {
-        blockleft->setBehaviour(new OrthotropicStiffness(100., 100.*1e-4, 100.*1e-4*100./(100.+100.),  0.05, 0.) ) ;
+        blockleft->setBehaviour(new OrthotropicStiffness(1000., 1000.*1e-4, 1000.*1e-4*1000./(1000.+1000.),  0.05, 0.) ) ;
         blocks.push_back(blockleft);
     }
     F.addFeature( &sample, blockleft );
@@ -253,7 +253,7 @@ int main( int argc, char *argv[] )
     }
     else
     {
-        blockright->setBehaviour(new OrthotropicStiffness(100., 100.*1e-4, 100.*1e-4*100./(100.+100.),  0.05, 0.)) ;
+        blockright->setBehaviour(new OrthotropicStiffness(1000., 100.*1e-4, 1000.*1e-4*100./(1000.+1000.),  0.05, 0.)) ;
         blocks.push_back(blockright);
     }
     F.addFeature( &sample, blockright );
@@ -280,9 +280,9 @@ int main( int argc, char *argv[] )
         std::cout << "placed area = " <<  placed_area << std::endl ;
     }
 
-    gelManager = new GelManager(&F, nzones/baseGeometry.area(), feats, 0.5) ;
+    gelManager = new GelManager(&F, nzones/baseGeometry.area(), feats, 0.5, 1e-5) ;
     F.addManager(gelManager) ;
-    F.setSamplingNumber( 92 ) ;
+    F.setSamplingNumber( 72 ) ;
 
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , LEFT ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , RIGHT ) ) ;

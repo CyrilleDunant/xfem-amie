@@ -4359,7 +4359,7 @@ void FeatureTree::solve()
 
         solverConvergence = K->cgsolve ( lastx ) ;
         
-        solverConvergence = true ;
+//         solverConvergence = true ;
         
         Vector r = K->getMatrix() * K->getDisplacements() - K->getForces() ;
         double perror = residualError ;
@@ -4376,7 +4376,7 @@ void FeatureTree::solve()
 
 
         solverConvergence = K->cgsolve() ;
-        solverConvergence = true ;
+//         solverConvergence = true ;
 
 // 		dtree->project(coarseTrees[3], K->getDisplacements(), coarseAssemblies[3]->getDisplacements(), false) ;
         Vector r = K->getMatrix() * K->getDisplacements() - K->getForces() ;
@@ -5636,7 +5636,7 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
         else
         {
             notConvergedCounts++ ;
-            if(notConvergedCounts > 5)
+            if(notConvergedCounts > 8)
                 needexit = true ;
             std::cout << "+" << std::flush ;
         }

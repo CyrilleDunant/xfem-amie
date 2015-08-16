@@ -2923,7 +2923,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 Function x = tri[i]->getXTransform() ;
                 Function y = tri[i]->getYTransform() ;
                
-                GaussPointArray gp_temp(monteCarloGaussPoints(32, tri[i])) ;
+                GaussPointArray gp_temp(monteCarloGaussPoints(64, tri[i])) ;
 
                 for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
                 {
