@@ -345,7 +345,7 @@ public:
     /** \brief return result of the system*/
     Vector & getDisplacements() {
         return displacements ;
-    }
+    }    
 // 	const Vector & getForces() const;
 
     Vector & getPreviousDisplacements() {

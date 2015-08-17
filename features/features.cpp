@@ -84,6 +84,7 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
     initialValue = 0 ;
     previousDeltaTime = 0 ;
     minDeltaTime = 0.001 ;
+    epsilonA = 10e-12;
     reuseDisplacements = false ;
     foundCheckPoint = true ;
     averageDamage = 0 ;
@@ -204,6 +205,7 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     initialValue = 0 ;
     previousDeltaTime = 0 ;
     minDeltaTime = 0.001 ;
+    epsilonA = 10.e-12 ;
     reuseDisplacements = false ;
     foundCheckPoint = true ;
     averageDamage = 0 ;
@@ -4356,7 +4358,7 @@ void FeatureTree::solve()
 
     if ( solverConvergence || reuseDisplacements )
     {
-
+ 	K->setEpsilon(epsilonA);     
         solverConvergence = K->cgsolve ( lastx ) ;
         
 //         solverConvergence = true ;
@@ -4374,7 +4376,7 @@ void FeatureTree::solve()
     {
         lastx = 0 ;
 
-
+ 	K->setEpsilon(epsilonA);  
         solverConvergence = K->cgsolve() ;
 //         solverConvergence = true ;
 
@@ -6995,6 +6997,11 @@ double FeatureTree::getDeltaTime () const
 void FeatureTree::setMinDeltaTime ( double d )
 {
     minDeltaTime = d ;
+}
+
+void FeatureTree::setEpsilonA ( double e )
+{
+    epsilonA = e ;
 }
 
 void FeatureTree::setMaxIterationsPerStep ( size_t its )

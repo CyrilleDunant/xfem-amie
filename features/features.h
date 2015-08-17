@@ -153,6 +153,7 @@ protected:
     double previousDeltaTime ;
     double realDeltaTime ;
     double minDeltaTime ;
+    double epsilonA ;
 
     size_t numdofs ;
     size_t samplingNumber ;
@@ -733,7 +734,7 @@ public:
      */
     void refine ( size_t nit, SamplingCriterion *cri ) ;
 
-    //Reset the elements of the feature and the currenttime
+    //Reset the displacements, stresses and damage of the simulation  and the currenttime
     void reset () {
       resetcalcul = true ; 
     }
@@ -799,6 +800,7 @@ public:
     double getDeltaTime () const ;
     void setDeltaTime ( double d, bool isreal = true ) ;
     void setMinDeltaTime ( double d );
+    void setEpsilonA ( double e );    
 
     void moveFirstTimePlanes ( double d, const Mesh<DelaunayTetrahedron, DelaunayTreeItem3D >::iterator & begin,  const Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>::iterator & end ) ;
     void moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator & begin,  const Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator & end ) ;
