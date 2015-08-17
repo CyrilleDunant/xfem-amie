@@ -5997,6 +5997,7 @@ bool isAligned(const Point &test, const Point &f0, const Point &f1)
 
     if(test == f1 || test == f0)
         return true ;
+
 //	if(std::abs((f0 - test) * (f1 - test)) < POINT_TOLERANCE)
 //		return false ;
 
@@ -6010,6 +6011,8 @@ bool isAligned(const Point &test, const Point &f0, const Point &f1)
     f0_   *= scale ;
     f1_   *= scale ;
     test_ *= scale ;
+
+
 //	if (std::abs(signedAlignement(test_, f0_, f1_)) > 2.*POINT_TOLERANCE)
 //		return false ;
 

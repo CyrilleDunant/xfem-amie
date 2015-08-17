@@ -8120,7 +8120,7 @@ void FeatureTree::printReport(bool printHeader, bool vertical)
     {
         Vector x = getDisplacements() ;
 
-        std::cout << "unknowns :" << x.size() << std::endl ;
+        std::cout << "unknowns: " << x.size() << std::endl ;
 
         int npoints = get2DMesh()->begin()->getBoundingPoints().size() ;
 

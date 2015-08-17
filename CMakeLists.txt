@@ -451,6 +451,9 @@ target_link_libraries( tension_visco Amie ${ALL_LINK_FLAGS})
 add_executable( tension_visco_damage examples/main_tension_visco_damage.cpp )
 target_link_libraries( tension_visco_damage Amie ${ALL_LINK_FLAGS})
 
+add_executable( performance examples/main_performance.cpp )
+target_link_libraries( performance Amie ${ALL_LINK_FLAGS})
+
 add_executable( test_logcreep examples/test/main_test_logcreep.cpp )
 target_link_libraries( test_logcreep Amie ${ALL_LINK_FLAGS})
 

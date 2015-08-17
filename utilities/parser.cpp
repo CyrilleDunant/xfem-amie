@@ -646,6 +646,8 @@ void CommandLineParser::printStatus( )
 		std::cout << f->first << " = " << (f->second ? "TRUE" : "FALSE") << std::endl ;
 	for(auto f = values.begin() ; f != values.end() ; f++)
 		std::cout << f->first << " = " << f->second << std::endl ;
+	for(auto f = strings.begin() ; f != strings.end() ; f++)
+		std::cout << f->first << " = " << f->second << std::endl ;
 
 }
 
