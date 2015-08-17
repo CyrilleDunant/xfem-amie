@@ -2867,6 +2867,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             double originalSum = 0 ;
             for(auto & i : getGaussPoints().gaussPoints)
                 originalSum += i.second ;
+
             for(size_t i = 0 ; i < gp_alternative.size() ; i++)
             {
                 gp_alternative[i].second *= originalSum/fsum ;

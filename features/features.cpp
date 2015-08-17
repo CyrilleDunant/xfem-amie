@@ -84,7 +84,7 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
     initialValue = 0 ;
     previousDeltaTime = 0 ;
     minDeltaTime = 0.001 ;
-    epsilonA = 10e-12;
+    epsilonA = -1 ;
     reuseDisplacements = false ;
     foundCheckPoint = true ;
     averageDamage = 0 ;
@@ -205,7 +205,7 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     initialValue = 0 ;
     previousDeltaTime = 0 ;
     minDeltaTime = 0.001 ;
-    epsilonA = 10.e-12 ;
+    epsilonA = -1 ;
     reuseDisplacements = false ;
     foundCheckPoint = true ;
     averageDamage = 0 ;
@@ -3052,6 +3052,7 @@ void FeatureTree::setElementBehaviours()
         {
             int setcount = 0 ;
             std::cerr << "\r setting behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount++ << "/" << i->second->begin().size() << "    " << std::flush ;
+
             for ( auto j = i->second->begin() ; j != i->second->end() ; j++ )
             {
                 if ( setcount++ % 1000 == 0 )
@@ -4358,7 +4359,8 @@ void FeatureTree::solve()
 
     if ( solverConvergence || reuseDisplacements )
     {
- 	K->setEpsilon(epsilonA);     
+        if(epsilonA > 0)
+            K->setEpsilon(epsilonA);     
         solverConvergence = K->cgsolve ( lastx ) ;
         
 //         solverConvergence = true ;
@@ -4376,7 +4378,8 @@ void FeatureTree::solve()
     {
         lastx = 0 ;
 
- 	K->setEpsilon(epsilonA);  
+        if(epsilonA > 0)
+            K->setEpsilon(epsilonA);  
         solverConvergence = K->cgsolve() ;
 //         solverConvergence = true ;
 
@@ -6999,7 +7002,7 @@ void FeatureTree::setMinDeltaTime ( double d )
     minDeltaTime = d ;
 }
 
-void FeatureTree::setEpsilonA ( double e )
+void FeatureTree::setSolverPrecision ( double e )
 {
     epsilonA = e ;
 }

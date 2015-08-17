@@ -1753,7 +1753,13 @@ Function::Function(const Geometry *g, const Point & p, const Segment & s,  Eleme
 {
     Function x = surf->getXTransform() ;
     Function y = surf->getYTransform() ;
-    concatenateFunctions(x, y, *this);
+    if(surf->timePlanes() > 1)
+    {
+        Function t = surf->getTTransform() ;
+        concatenateFunctions(x, y, t, *this);
+    }
+    else
+        concatenateFunctions(x, y, *this);
     byteCode.push_back(TOKEN_OPERATION_GEO_OPERATION);
     adress_a.push_back(0);
     adress_a.push_back(0);

@@ -122,7 +122,6 @@ void BimaterialInterface::apply(const Function & p_i, const Function & p_j, cons
         }
 
     }
-//		std::cout << t[0] << "\t" << inCount << "\t" << gp.gaussPoints.size() << std::endl ;
 
     if(allin)
     {

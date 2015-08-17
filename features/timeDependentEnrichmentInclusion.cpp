@@ -227,15 +227,111 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
     //then we iterate on every element
 
     std::map<Point*, size_t> extradofs ;
+    TriElement father(LINEAR_TIME_LINEAR) ;
 
     for(size_t i = 0 ; i < ring.size() ; i++)
     {
         enrichedElem.insert(ring[i]) ;
         std::vector<Point> hint ;
 
+        Function hat_before ;
+        Function hat_after ;
+
+        int factor  = nodesPerEdge ;
+        
+        if(in(ring[i]->getBoundingPoint(0*factor)) == in(ring[i]->getBoundingPoint(1*factor)))
+        {
+            hat_before = Function(getPrimitive(), ring[i]->getBoundingPoint(2*factor), Segment(ring[i]->getBoundingPoint(0*factor),ring[i]->getBoundingPoint(1*factor)), ring[i]) ;
+            hat_after = Function(getPrimitive(), ring[i]->getBoundingPoint(2*factor+nodesPerPlane), Segment(ring[i]->getBoundingPoint(0*factor+nodesPerPlane),ring[i]->getBoundingPoint(1*factor+nodesPerPlane)), ring[i]) ;
+        }
+        else if(in(ring[i]->getBoundingPoint(0*factor)) == in(ring[i]->getBoundingPoint(2*factor)))
+        {
+            hat_before = Function(getPrimitive(), ring[i]->getBoundingPoint(1*factor), Segment(ring[i]->getBoundingPoint(2*factor),ring[i]->getBoundingPoint(0*factor)), ring[i]) ;
+            hat_after = Function(getPrimitive(), ring[i]->getBoundingPoint(1*factor+nodesPerPlane), Segment(ring[i]->getBoundingPoint(2*factor+nodesPerPlane),ring[i]->getBoundingPoint(0*factor+nodesPerPlane)), ring[i]) ;
+        }
+        else 
+        {
+            hat_before = Function(getPrimitive(), ring[i]->getBoundingPoint(0*factor), Segment(ring[i]->getBoundingPoint(1*factor),ring[i]->getBoundingPoint(2*factor)), ring[i]) ;
+            hat_after = Function(getPrimitive(), ring[i]->getBoundingPoint(0*factor+nodesPerPlane), Segment(ring[i]->getBoundingPoint(1*factor+nodesPerPlane),ring[i]->getBoundingPoint(2*factor+nodesPerPlane)), ring[i]) ;
+        }
+
+        for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j+= factor)
+        {
+            bool hinted = false ;
+            std::pair<DelaunayTriangle *, Point *> that(ring[i], &ring[i]->getBoundingPoint(j) ) ;
+            if(enriched.find(that) == enriched.end())
+            {
+                enriched.insert(that) ;
+
+                Function f = father.getShapeFunction(j) *(hat_after) ;//-VirtualMachine().eval(hat_after, ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)))) ;
+                if( j < nodesPerPlane )
+                    f = father.getShapeFunction(j) *(hat_before) ;//-VirtualMachine().eval(hat_before, ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)))) ;
+
+                if(!hinted)
+                {
+                    f.setIntegrationHint(hint) ;
+                    hinted = true ;
+                }
+                f.setPoint(&ring[i]->getBoundingPoint(j)) ;
+                f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
+
+//                 f.setNumberOfDerivatives(2);
+//                 Function fdx = (father.getShapeFunction(j).d(XI) *hat + father.getShapeFunction(j)*hatdx) ;
+//                 Function fdy = (father.getShapeFunction(j).d(ETA)*hat + father.getShapeFunction(j)*hatdy) ;
+//                 f.setDerivative(XI , fdx);
+//                 f.setDerivative(ETA, fdy);
+    
+                ring[i]->setEnrichment( f, getPrimitive()) ;
+                
+                
+                
+                
+//                 for(double j = 0 ; j < 1 ; j+=0.001)
+//                 {
+//                     for(double k = 0 ; k < 1 ; k+=0.001)
+//                     {
+//                         if(j+k <= 1 && j >= 0 && k >= 0)
+//                             std::cout << VirtualMachine().deval(f,XI,  j,k) << "  " << std::flush ;
+//                         else
+//                             std::cout << 0 << "  " << std::flush ;
+//                     }
+//                     std::cout << std::endl ;
+//                 }
+//                 for(double j = 0 ; j < 1 ; j+=0.001)
+//                 {
+//                     for(double k = 0 ; k < 1 ; k+=0.001)
+//                     {
+//                         if(j+k <= 1 && j >= 0 && k >= 0)
+//                             std::cout << VirtualMachine().deval(f,ETA,  j,k) << "  " << std::flush ;
+//                         else
+//                             std::cout << 0 << "  " << std::flush ;
+//                     }
+//                     std::cout << std::endl ;
+//                 }
+//                 for(double j = 0 ; j < 1 ; j+=0.05)
+//                 {
+//                     for(double k =  0 ; k < 1 ; k+=0.05)
+//                     {
+//                         if(j+k <= 1 && j >= 0 && k >= 0)
+//                             std::cout << VirtualMachine().eval(f, j,k) << "  " << std::flush ;
+//                         else
+//                             std::cout << 0 << "  " << std::flush ;
+//                     }
+//                     std::cout << std::endl ;
+//                 }
+                
+                
+                
+            }
+        }
+//         exit(0) ;
+        
+    }
+//      exit(0) ;
+
         //we build the enrichment function, first, we get the transforms from the triangle
         //this function returns the distance to the centre
-        Function x("x") ;
+/*        Function x("x") ;
         Function y("y") ;
 
         Function position = f_sqrt((x-getCenter().getX())*(x-getCenter().getX()) +
@@ -281,7 +377,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
         for(size_t j = 0 ; j< ring[i]->getShapeFunctions().size() ; j++)
             ring[i]->getShapeFunction(j) /= sum ;
         for(size_t j = 0 ; j< ring[i]->getEnrichmentFunctions().size() ; j++)
-            ring[i]->getEnrichmentFunction(j) /= sum ;*/
+            ring[i]->getEnrichmentFunction(j) /= sum ;
 
 //		ring[i]->enrichmentUpdated = true ;
 
@@ -337,7 +433,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
                 }
             }
         }
-    }
+    }*/
 
 
     for(size_t i = 0 ; i < disc.size() ; i++)

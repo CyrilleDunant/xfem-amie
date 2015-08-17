@@ -664,11 +664,12 @@ HatEnrichment::HatEnrichment(const Geometry * g , const Point & p, const Segment
 
 void HatEnrichment::eval(double * a, double * b, double * c) const
 {
-    Point position ( *a, *b ) ;
+    Point position ( *a, *b, 0, p.getT() ) ;
     Triangle test(p, s.first(), s.second()) ;
     if(!test.in(position))
     {
         test.project(&position);
+        position.getId() = -1 ;
     }
 
     if(p == position)
@@ -712,7 +713,6 @@ void HatEnrichment::eval(double * a, double * b, double * c) const
     double distPos = dist(position, interseg) ;
     
     *c = basis*distPos/distTotSeg ;
-
 }
 
 GeometryOperation * HatEnrichment::getCopy() const 

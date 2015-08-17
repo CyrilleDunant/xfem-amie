@@ -80,6 +80,7 @@ protected :
     std::vector<Function *> * transforms ;
     bool derivativeTransformed = false ;
 
+
     /*void defaultInitialise()
     {
     	derivative(nullptr),

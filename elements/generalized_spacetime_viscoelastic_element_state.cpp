@@ -101,7 +101,7 @@ GaussPointArray  GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaus
         {
             gp_alternative.push_back ( tet->getGaussPoints().gaussPoints[i*3] );
             gp_alternative.back().first.getT() = time ;
-            gp_alternative.back().second *= 3./2. ;
+            gp_alternative.back().second *= 6. ;
         }
 
         gp.gaussPoints.resize ( gp_alternative.size() ) ;
@@ -164,7 +164,7 @@ double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType
         double w = gp.gaussPoints[i].second*weights[i] ;
         bool cached = false ;
 
-        if(dummy < 0 && gp.gaussPoints.size() < 2 && (f == GENERALIZED_VISCOELASTIC_STRAIN_FIELD || f == GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD || f == STRAIN_FIELD || f == PRINCIPAL_STRAIN_FIELD || f == STRAIN_RATE_FIELD || f == REAL_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD || f == EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == MECHANICAL_STRAIN_FIELD || f == PRINCIPAL_MECHANICAL_STRAIN_FIELD) )
+        if(dummy < 0 && (f == GENERALIZED_VISCOELASTIC_STRAIN_FIELD || f == GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD || f == STRAIN_FIELD || f == PRINCIPAL_STRAIN_FIELD || f == STRAIN_RATE_FIELD || f == REAL_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD || f == EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == MECHANICAL_STRAIN_FIELD || f == PRINCIPAL_MECHANICAL_STRAIN_FIELD) )
         {
             if(std::abs ( t-1 ) < POINT_TOLERANCE)
             {
@@ -2281,10 +2281,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         generalizedBufferSecond = ( Vector ) ( parent->getBehaviour()->getTensor ( p_, parent ) * generalizedBuffer ) ;
         getField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, p_, generalizedBuffer, true,vm ) ;
         generalizedBufferSecond += ( Vector ) ( parent->getBehaviour()->getViscousTensor ( p_, parent ) * generalizedBuffer ) ;
-
-
-        if( parent->getBehaviour()->getTensor( p_ )[0][0] < 11e9 && parent->getBehaviour()->getImposedStress( p_, parent )[0] > 1e7 )
-            std::cout << parent->getBehaviour()->getTensor( p_ )[0][0] << "/" << parent->getBehaviour()->getImposedStress( p_, parent )[0] << "    " ;
 
         for ( size_t i = 0 ; i < ret.size() ; i++ )
         {

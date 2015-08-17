@@ -177,7 +177,6 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
         {
             Point p = disc[i]->getCenter() ;
             p.getT() = VirtualMachine().eval( disc[i]->getTTransform(), 0,0,0,0) ;
-            p.print() ;
             if(getPrimitive()->in(p))
                 inDisc.push_back( disc[i] ) ;
         }
@@ -224,7 +223,7 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 
     std::vector<DelaunayTriangle *> enriched(enrichedElem.begin(), enrichedElem.end());
 
-    std::cout << enriched.size() << " " << expansive.size() << " " << bimateralInterfaced.size() << std::endl ;
+//    std::cout << enriched.size() << " " << expansive.size() << " " << bimateralInterfaced.size() << std::endl ;
 
 
     dofIdPrev = dofIdCurrent ;

@@ -3746,6 +3746,35 @@ std::vector<Point> Line::intersection(const Geometry * g) const
         return std::vector<Point>(0) ;
 
     }
+    case TIME_DEPENDENT_CIRCLE:
+    {
+        double r = dynamic_cast<const TimeDependentCircle *>(g)->radiusAtTime(p) ;
+        double a = v.sqNorm() ;
+        double b = ((p.getX()-g->getCenter().getX())*v.getX() + (p.getY()-g->getCenter().getY())*v.getY())*2. ;
+        double c = (p.getX()-g->getCenter().getX())*(p.getX()-g->getCenter().getX())
+                   +(p.getY()-g->getCenter().getY())*(p.getY()-g->getCenter().getY())
+                   -r*r ;
+        double delta = b*b - 4.*a*c ;
+
+        if (delta > POINT_TOLERANCE)
+        {
+            std::vector<Point> ret ;
+            ret.push_back(p+v*((-b + sqrt(delta))/(2.*a))) ;
+            ret.push_back(p+v*((-b - sqrt(delta))/(2.*a))) ;
+            return ret ;
+        }
+        else if (delta > 0)
+        {
+
+            std::vector<Point> ret ;
+            ret.push_back(p+v*(-b/(2.*a))) ;
+            return ret ;
+        }
+
+
+        return std::vector<Point>(0) ;
+
+    }
     case ELLIPSE:
     {
         std::vector<Point> ret ;

@@ -800,7 +800,7 @@ public:
     double getDeltaTime () const ;
     void setDeltaTime ( double d, bool isreal = true ) ;
     void setMinDeltaTime ( double d );
-    void setEpsilonA ( double e );    
+    void setSolverPrecision ( double e = -1 );
 
     void moveFirstTimePlanes ( double d, const Mesh<DelaunayTetrahedron, DelaunayTreeItem3D >::iterator & begin,  const Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>::iterator & end ) ;
     void moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator & begin,  const Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator & end ) ;
