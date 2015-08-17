@@ -13,6 +13,7 @@
 #include "../../physics/materials/paste_behaviour.h"
 #include "../../utilities/writer/triangle_writer.h"
 #include "../../features/sample.h"
+#include "../../utilities/parser.h"
 
 #include <fstream>
 #include <omp.h>
@@ -27,6 +28,12 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
+	CommandLineParser parser("Test a multi-linear softening damage behaviour on two elements") ;
+	parser.addFlag("--renew-base", false, "renew the base of results") ;
+	parser.parseCommandLine(argc, argv) ;
+	bool renew = parser.getFlag("--renew-base") ;
+
+
         Sample rect(nullptr, 0.01,0.01,0,0) ;
 	Matrix C = ElasticOnlyPasteBehaviour(10e9).param ;
 	Point t1(0.0001, 1e6) ;
@@ -51,7 +58,10 @@ int main(int argc, char *argv[])
 	f.addBoundaryCondition( disp ) ;
 
 	std::ofstream out ;
-	out.open("../examples/test/test_viscodamage_multilinearsoftening_current", std::ios::out) ;
+	if(renew)
+		out.open("../examples/test/test_viscodamage_multilinearsoftening_base", std::ios::out) ;
+	else
+		out.open("../examples/test/test_viscodamage_multilinearsoftening_current", std::ios::out) ;
 
 	for(size_t i = 0 ; i < 30 ; i++)
 	{

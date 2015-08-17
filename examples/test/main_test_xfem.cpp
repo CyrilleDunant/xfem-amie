@@ -11,7 +11,7 @@
 #include "../../features/expansiveZone.h"
 #include "../../physics/stiffness.h"
 #include "../../physics/stiffness_with_imposed_deformation.h"
-
+#include "../../utilities/parser.h"
 
 #include <fstream>
 #include <cmath>
@@ -24,6 +24,12 @@ using namespace Amie ;
 
 int main( int argc, char *argv[] )
 {
+	CommandLineParser parser("Test a single XFEM inclusion") ;
+	parser.addFlag("--renew-base", false, "renew the base of results") ;
+	parser.parseCommandLine(argc, argv) ;
+	bool renew = parser.getFlag("--renew-base") ;
+
+
     Matrix C = Tensor::cauchyGreen( 10e9, 0.2, true, SPACE_TWO_DIMENSIONAL, PLANE_STRAIN ) ;
     Vector v(3) ; v[0] = 0.01 ; v[1] = 0.01 ;
 
@@ -41,7 +47,10 @@ int main( int argc, char *argv[] )
     F.setDeltaTime(1) ;
 
     std::ofstream out ;
-    out.open("../examples/test/test_xfem_current", std::ios::out) ;
+    if(renew)
+        out.open("../examples/test/test_xfem_base", std::ios::out) ;
+    else
+        out.open("../examples/test/test_xfem_current", std::ios::out) ;
 
     F.step() ;
     Vector str = F.getAverageField( STRAIN_FIELD ) ;

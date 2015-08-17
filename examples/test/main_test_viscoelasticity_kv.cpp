@@ -10,6 +10,7 @@
 #include "../../physics/materials/paste_behaviour.h"
 #include "../../utilities/writer/triangle_writer.h"
 #include "../../features/sample.h"
+#include "../../utilities/parser.h"
 
 #include <fstream>
 #include <omp.h>
@@ -24,6 +25,11 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
+	CommandLineParser parser("Test a generalized Kelvin-Voigt material behaviour on two elements") ;
+	parser.addFlag("--renew-base", false, "renew the base of results") ;
+	parser.parseCommandLine(argc, argv) ;
+	bool renew = parser.getFlag("--renew-base") ;
+
         Sample rect(nullptr, 0.04,0.04,0,0) ;
 	Matrix C = ElasticOnlyPasteBehaviour(10e9).param ;
 	rect.setBehaviour(new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C, C, C*25 ) ) ;
@@ -40,7 +46,10 @@ int main(int argc, char *argv[])
 	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -1e6 ) ) ;
 
 	std::ofstream out ;
-	out.open("../examples/test/test_viscoelasticity_kv_current", std::ios::out) ;
+	if(renew)
+		out.open("../examples/test/test_viscoelasticity_kv_base", std::ios::out) ;
+	else
+		out.open("../examples/test/test_viscoelasticity_kv_current", std::ios::out) ;
 
 	for(size_t i = 0 ; i < 30 ; i++)
 	{

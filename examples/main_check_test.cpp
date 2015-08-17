@@ -79,11 +79,30 @@ int main(int argc, char *argv[])
 {
 	CommandLineParser parser("Run all tests found in AMIE test base") ;
 	parser.addFlag("--zero", false, "set tolerance to 0") ;
+	parser.addFlag("--renew-base", false, "renew the base of results") ;
 	parser.addValue("--tolerance", 0.01, "set tolerance for evaluation of test success" ) ;
 	parser.parseCommandLine(argc, argv) ;
 	double tol = std::abs(parser.getValue("--tolerance")) ;
 	if(parser.getFlag("--zero"))
 		tol = 0 ; 
+
+	bool renew = parser.getFlag("--renew-base") ;
+	if(renew)
+	{
+		std::cout << "Warning: you are about to renew the base of results. Do you wish to continue? [y/n]" << std::flush ;
+		std::string buffer ;
+		getline( std::cin, buffer ) ;
+		if(buffer.size() == 0 || buffer == "y" || buffer == "yes" || buffer == "Y" || buffer == "YES")
+		{
+			std::cout << "overriding existing results..." <<std::endl ;
+		}
+		else
+		{
+			std::cout << "cancelled by user. Exiting now." <<std::endl ;
+			exit(0) ;
+		}
+	}
+
 
 	std::string path("../examples/test/") ;
 	std::vector<std::string> exec ;
@@ -103,8 +122,11 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	std::cout << "cleaning existing results..." << std::endl ;
-	std::system("rm ../examples/test/*_current") ;
+	if(!renew)
+	{
+		std::cout << "cleaning existing results..." << std::endl ;
+		std::system("rm ../examples/test/*_current") ;
+	}
 
 	for(size_t i = 0 ; i < exec.size() ; i++)
 	{
@@ -112,17 +134,32 @@ int main(int argc, char *argv[])
 		gettimeofday ( &time0, nullptr );
 		std::cout << "--------------" << std::endl ;
 		std::cout << "starting test " << exec[i] << std::endl ;
-		std::string command = "./" + exec[i]+" 1>"+exec[i]+".out 2>"+exec[i]+".err" ;
-		std::system(command.c_str()) ;
+		std::string command = "./" + exec[i] ;
+		for(int j = 1 ; j < argc ; j++)
+			command += " " + std::string(argv[j]) ;
+		command += " 1>"+exec[i]+".out 2>"+exec[i]+".err" ;
+		int r = std::system(command.c_str()) ;
 		gettimeofday ( &time1, nullptr );
 		double dt = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
 		std::cout << "run time: " << dt/1000000 << " seconds" << std::endl ;
 
-		int delta = getDelta( "../examples/test/"+exec[i]+"_base", "../examples/test/"+exec[i]+"_current", tol) ;
-		if(delta == 0)
-			std::cout << "SUCCESS" << std::endl ;
+		if(!renew)
+		{
+			int delta = getDelta( "../examples/test/"+exec[i]+"_base", "../examples/test/"+exec[i]+"_current", tol) ;
+			if(delta == 0 && r == 0)
+				std::cout << "SUCCESS" << std::endl ;
+			else if( r == 0)
+				std::cout << "FAIL: " << delta << " error(s) found" << std::endl ;
+			else
+				std::cout << "FAIL (return value " << r << ")" << std::endl ;
+		}
 		else
-			std::cout << "FAIL: " << delta << " error(s) found" << std::endl ;
+		{
+			if(r == 0)
+				std::cout << "SUCCESS" << std::endl ;
+			else
+				std::cout << "FAIL (return value " << r << ")" << std::endl ;
+		}
 		
 		
 	}
