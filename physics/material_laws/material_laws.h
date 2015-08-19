@@ -146,7 +146,7 @@ struct EvalMaterialLaw: public SpaceTimeDependentExternalMaterialLaw
  * "values" contains the list of values for the linear interpolation (first the input variable, second the output variable) [this vector can be read from a two-columns file, without delimiters]
  * The interpolation does not extrapolate outside the given bounds: the bounding values are used instead
  */
-/*PARSE LinearInterpolated MaterialLaw
+/*PARSE LinearInterpolated ExternalMaterialLaw
     @string[output] // output parameter
     @string[input] // x coordinates for the linear interpolation
     @string[file_name] // address written as "file_name(input)"
@@ -160,6 +160,7 @@ struct LinearInterpolatedMaterialLaw : public ExternalMaterialLaw
 
     LinearInterpolatedMaterialLaw(std::pair<std::string, std::string> e,std::pair<Vector, Vector> v, EMLOperation o = SET, std::string args = std::string(), char sep = ',' ) : ExternalMaterialLaw(args, sep), external(e), values(v), op(o) { }
     LinearInterpolatedMaterialLaw(std::pair<std::string, std::string> e, std::string file, EMLOperation o = SET, std::string args = std::string(), char sep = ',' ) ;
+    LinearInterpolatedMaterialLaw(std::string out, std::string in, std::string file, EMLOperation o = SET, std::string args = std::string(), char sep = ',' ) ;
     virtual ~LinearInterpolatedMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;

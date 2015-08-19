@@ -307,6 +307,40 @@ LinearInterpolatedMaterialLaw::LinearInterpolatedMaterialLaw(std::pair<std::stri
 
 }
 
+LinearInterpolatedMaterialLaw::LinearInterpolatedMaterialLaw(std::string out, std::string in, std::string file, EMLOperation o, std::string args, char sep) : ExternalMaterialLaw(args, sep), external(std::make_pair(in, out)), op(o)
+{
+    std::vector<double> x ;
+    std::vector<double> y ;
+
+    std::fstream input(file) ;
+    if(!input.is_open())
+    {
+        std::cout << "file " << file << " doesn't exist!" << std::endl ;
+        exit(0) ;
+    }
+
+    double buffer ;
+
+    do {
+        input >> buffer ;
+        x.push_back(buffer) ;
+        input >> buffer ;
+        y.push_back(buffer) ;
+    } while(!input.eof()) ;
+    x.pop_back() ;
+    y.pop_back() ;
+
+    Vector first(x.size()) ;
+    Vector second(y.size()) ;
+    for(size_t i = 0 ; i < x.size() ; i++)
+    {
+        first[i] = x[i] ;
+        second[i] = y[i] ;
+    }
+    values = std::make_pair(first,second) ;
+
+}
+
 LinearBiInterpolatedExternalMaterialLaw::LinearBiInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e, std::string out, std::pair<Vector, Vector> v, std::string file, EMLOperation o, std::string args, char sep) : ExternalMaterialLaw(args, sep), input(e), output(out), values(v), op(o)
 {
     data.resize( values.first.size(), values.second.size() ) ;

@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 6/7/2015 at 14:26  */
+/* this is an auto-generated file created on 19/7/2015 at 9:31  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -63,6 +63,7 @@ namespace Amie
             if( strings.find("operation") == strings.end() ) { strings["operation"] = "SET" ; } ; 
             return new EvalMaterialLaw(strings["output"], strings["function"], Enum::getEMLOperation(strings["operation"])) ;
         }
+        if( type == "LinearInterpolated" ) { return new LinearInterpolatedMaterialLaw(strings["output"], strings["input"], strings["file_name"], Enum::getEMLOperation(strings["operation"])) ; }
         if( type == "TimeDerivative" ) { return new TimeDerivativeMaterialLaw(strings["parameter"]) ; }
         if( type == "TimeIntegral" ) { return new TimeIntegralMaterialLaw(strings["parameter"]) ; }
         if( type == "Minimum" )
@@ -138,6 +139,7 @@ namespace Amie
    
         // parsed from header file: ../physics/material_laws/material_laws.h
         if( type == "Eval" ) { return true ; }
+        if( type == "LinearInterpolated" ) { return true ; }
         if( type == "TimeDerivative" ) { return true ; }
         if( type == "TimeIntegral" ) { return true ; }
         if( type == "Minimum" ) { return true ; }

@@ -94,7 +94,7 @@ struct Viscoelasticity : public LinearForm
 
 	virtual bool fractured() const ;
 
-	virtual bool isViscous() const { return true ; }
+	virtual bool isViscous() const { return eta.array().max() > POINT_TOLERANCE ; }
 
 	virtual ElementState * createElementState( IntegrableEntity * e) ;
 

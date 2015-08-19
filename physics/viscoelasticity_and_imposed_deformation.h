@@ -39,9 +39,9 @@ struct ViscoelasticityAndImposedDeformation : public Viscoelasticity
 
     virtual ~ViscoelasticityAndImposedDeformation() ;
 
-    virtual bool isViscous() const {
+/*    virtual bool isViscous() const {
         return true ;
-    }
+    }*/
 
     virtual Form * getCopy() const ;
 
@@ -85,9 +85,9 @@ struct ViscoelasticityAndVariableImposedDeformation : public ViscoelasticityAndI
 
     virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 
-    virtual bool isViscous() const {
+/*    virtual bool isViscous() const {
         return true ;
-    }
+    }*/
 
 } ;
 

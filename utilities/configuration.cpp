@@ -436,7 +436,9 @@ void ConfigTreeItem::definePath( std::string baseDirectory)
             || label == std::string("file_name")
             || label == std::string("tension_file_name")
             || label == std::string("compression_name")
-            || label == std::string("list_of_time_steps"))
+            || label == std::string("list_of_time_steps")
+            || str.find(".dat") != std::string::npos 
+            || str.find(".txt") != std::string::npos )
     {
         str = baseDirectory+"/"+str ;
     }
@@ -653,7 +655,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw()
         else if( str.find(".txt") < std::string::npos || str.find(".dat") < std::string::npos ) 
         {
             type = "LinearInterpolated" ;
-            strings["file_name"] = str.substr(0, str.find("(")-1) ;
+            strings["file_name"] = str.substr(0, str.find("(")) ;
             strings["input"] = str.substr(str.find("(")+1, str.find(")")-str.find("(")-1 ) ;
         }
     }
@@ -859,7 +861,9 @@ InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, Inclusio
             Point c = placement->getCenter() ;
             if(hasChildFromFullLabel("placement.center"))
                 c = getChildFromFullLabel("placement.center")->getPoint(c) ;
-            placement = new Rectangle( getData("placement.width", placement->width()), getData("placement.height", placement->height()), c.getX(), c.getY() ) ;
+            double w = getData("placement.width", placement->width()) ;
+            double h = getData("placement.height", placement->height()) ;
+            placement = new Rectangle( w, h, c.getX(), c.getY() ) ;
         }
         if(hasChild("surface_fraction"))
             addChild( new ConfigTreeItem( nullptr, "surface", getData("surface_fraction")*placement->area() ) ) ; 
@@ -870,7 +874,6 @@ InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, Inclusio
         if( father )
             inc->setFather( father, index ) ;
         inc->place( placement, getData("placement.spacing", 0), getData("placement.tries", 1000), getData("placement.random_seed", 1) ) ;
-        inc->features[0][0]->getCenter().print() ;
         inc->addToFeatureTree(F) ;
         if(hasChild("enrichment") && Object::isEnrichmentManager( getStringData("enrichment", "NoEnrichment" ) ) )
         {
@@ -972,7 +975,7 @@ std::vector<BoundaryCondition *> ConfigTreeItem::getAllBoundaryConditions(Featur
 {
     std::vector<BoundaryCondition *> cond ;
     std::vector<ConfigTreeItem *> bc = getAllChildren("boundary_condition") ;
-    for(size_t j = 0 ; j < cond.size() ; j++)
+    for(size_t j = 0 ; j < bc.size() ; j++)
     {
         cond.push_back( bc[j]->getBoundaryCondition(F) ) ;
         F->addBoundaryCondition( cond[j] ) ;
@@ -1024,6 +1027,8 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
 
         if( hasChild("function") )
             ret->setData( getChild("function")->getFunction() ) ;
+
+        return ret ;
 
     }
     else
