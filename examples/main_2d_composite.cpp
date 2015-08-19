@@ -36,8 +36,9 @@ int main(int argc, char *argv[])
 
     ConfigTreeItem * define = parser.getConfiguration() ;
     std::map<std::string, std::string> direct = parser.getDirectConfiguration() ;
+    std::vector<std::string> flags = parser.getActiveFlags() ;
 
-    ConfigTreeItem * problem = ConfigParser::readFile(file, define, true, true, parser.getActiveFlags() ) ;
+    ConfigTreeItem * problem = ConfigParser::readFile(file, define, true, true, flags ) ;
     problem->configure( direct ) ;
 
     if(printConfigTree)
@@ -104,9 +105,9 @@ int main(int argc, char *argv[])
 //		F.getAssembly()->print() ;
 //		exit(0) ;
         if(problem->hasChild("output"))
-            problem->getChild("output")->writeOutput(&F, i, instants.size(), cacheIndex) ;
+            problem->getChild("output")->writeOutput(&F, i, instants.size(), cacheIndex, flags) ;
         if(problem->hasChild("export"))
-            problem->getChild("export")->exportSvgTriangles(trg, &F, i, instants.size()) ;
+            problem->getChild("export")->exportSvgTriangles(trg, &F, i, instants.size(), flags) ;
     }
 
     gettimeofday ( &time1, nullptr );

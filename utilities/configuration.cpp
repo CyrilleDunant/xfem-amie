@@ -1136,21 +1136,25 @@ ConfigTreeItem * ConfigTreeItem::makeTemplate()
 
 }
 
-void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector<unsigned int> cacheIndex)
+void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector<unsigned int> cacheIndex, std::vector<std::string> flags)
 {
     if(getStringData("file_name","file_not_found") == "file_not_found")
         return ;
 
+    std::string path  = getStringData("file_name","output") ;
+    for(size_t j = 0 ; j < flags.size() ; j++)
+        path += flags[j] ;
+
     if(i == 1)
     {
         std::fstream out ;
-        out.open(getStringData("file_name","output").c_str(), std::ios::out) ;
+        out.open( path.c_str(), std::ios::out) ;
         out.close() ;
     }
     if(getChild("time_step")->isAtTimeStep(i, nsteps))
     {
         std::fstream out ;
-        out.open(getStringData("file_name","output").c_str(), std::ios::out | std::ios::app) ;
+        out.open( path.c_str(), std::ios::out | std::ios::app) ;
         std::cout << F->getCurrentTime() << "\t" ;
         out << F->getCurrentTime() << "\t" ;
         std::string instant = getStringData("instant","NOW") ;
@@ -1304,15 +1308,20 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
     }
 }
 
-void ConfigTreeItem::exportTriangles(FeatureTree * F, int i, int nsteps)
+void ConfigTreeItem::exportTriangles(FeatureTree * F, int i, int nsteps, std::vector<std::string> flags)
 {
     if(getStringData("file_name","file_not_found") == "file_not_found")
         return ;
 
+    std::string path  = getStringData("file_name","triangles") ;
+    for(size_t j = 0 ; j < flags.size() ; j++)
+        path += flags[j] ;
+    path += (itoa(i)) ;
+
     if(getChild("time_step")->isAtTimeStep(i, nsteps))
     {
         std::string instant = getStringData("instant","NOW") ;
-        TriangleWriter trg(getStringData("file_name","output_").append(itoa(i)), F, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
+        TriangleWriter trg( path , F, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
         std::vector<ConfigTreeItem *> fields = getAllChildren("field") ;
         for(size_t i = 0 ; i < fields.size() ; i++)
         {
@@ -1331,14 +1340,14 @@ void ConfigTreeItem::exportTriangles(FeatureTree * F, int i, int nsteps)
     }
 }
 
-void ConfigTreeItem::exportSvgTriangles(MultiTriangleWriter * trg, FeatureTree * F, int i, int nsteps)
+void ConfigTreeItem::exportSvgTriangles(MultiTriangleWriter * trg, FeatureTree * F, int i, int nsteps, std::vector<std::string> flags)
 {
     if(!trg)
         return ;
 
     if(getStringData("svg", "TRUE") == "FALSE")
     {
-        exportTriangles( F, i, nsteps) ;
+        exportTriangles( F, i, nsteps, flags) ;
         return ;
     }
 

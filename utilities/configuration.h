@@ -225,13 +225,13 @@ public:
     bool isAtTimeStep(int i, int nmax) const ;
 
     /** Writes average field values taken from f in a determined output file*/
-    void writeOutput(FeatureTree * f, int n, int nmax, std::vector<unsigned int> cacheIndex) ;
+    void writeOutput(FeatureTree * f, int n, int nmax, std::vector<unsigned int> cacheIndex, std::vector<std::string> flags = std::vector<std::string>()) ;
 
     /** Writes field values taken from f in a determined triangle file*/
-    void exportTriangles(FeatureTree * f, int n, int nmax) ;
+    void exportTriangles(FeatureTree * f, int n, int nmax, std::vector<std::string> flags = std::vector<std::string>()) ;
 
     /** Writes field values taken from f in a determined svg triangle file*/
-    void exportSvgTriangles(MultiTriangleWriter * trg, FeatureTree * f, int n, int nmax) ;
+    void exportSvgTriangles(MultiTriangleWriter * trg, FeatureTree * f, int n, int nmax, std::vector<std::string> flags = std::vector<std::string>()) ;
 
     /** Reads a template file and modifies it according to a set of rules*/
     ConfigTreeItem * makeTemplate() ;
