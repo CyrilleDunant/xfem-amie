@@ -298,7 +298,7 @@ public:
 	virtual void readData() ;
 	ConfigTreeItem * getData() { return trunk; }
 
-	static ConfigTreeItem * readFile(std::string f, ConfigTreeItem * def, bool define = true, bool bind = false, std::vector<std::string> flags = std::vector<std::string>()) ;
+	static ConfigTreeItem * readFile(std::string f, ConfigTreeItem * def, bool define = true, bool bind = false, std::vector<std::string> flags = std::vector<std::string>(), std::string path = std::string()) ;
 	static std::vector<BoundaryCondition *> getBoundaryConditions( std::string filename, FeatureTree * F) ;
 
 } ;

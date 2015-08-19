@@ -28,6 +28,7 @@ int main(int argc, char *argv[])
     CommandLineParser parser("Run a 2D AMIE simulation using the configuration parameters found in a *.ini file", true, true) ;
     parser.addFlag( "--print-microstructure", false , "print only the mesh and values of mechanical properties") ;
     parser.addFlag( "--print-configuration-tree", false , "print only the configuration tree after parsing") ;
+    parser.addString( "--directory", std::string() , "directory to read additional input and write output") ;
     parser.addArgument( "file_name", "../examples/data/composite/test_2d_composite.ini", "relative path to *.ini file to run") ;
     parser.parseCommandLine( argc, argv ) ;
     bool printMicrostructureOnly = parser.getFlag("--print-microstructure") ;
@@ -36,9 +37,10 @@ int main(int argc, char *argv[])
 
     ConfigTreeItem * define = parser.getConfiguration() ;
     std::map<std::string, std::string> direct = parser.getDirectConfiguration() ;
+    std::string path = parser.getString("--directory") ;
     std::vector<std::string> flags = parser.getActiveFlags() ;
 
-    ConfigTreeItem * problem = ConfigParser::readFile(file, define, true, true, flags ) ;
+    ConfigTreeItem * problem = ConfigParser::readFile(file, define, true, true, flags, path ) ;
     problem->configure( direct ) ;
 
     if(printConfigTree)

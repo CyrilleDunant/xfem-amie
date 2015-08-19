@@ -542,7 +542,7 @@ std::vector<BoundaryCondition *> ConfigParser::getBoundaryConditions( std::strin
     return ret ;
 }
 
-ConfigTreeItem * ConfigParser::readFile(std::string f, ConfigTreeItem * def, bool define, bool bind, std::vector<std::string> flags)
+ConfigTreeItem * ConfigParser::readFile(std::string f, ConfigTreeItem * def, bool define, bool bind, std::vector<std::string> flags, std::string path )
 {
     ConfigParser parser(f) ;
     parser.readData() ;
@@ -551,14 +551,19 @@ ConfigTreeItem * ConfigParser::readFile(std::string f, ConfigTreeItem * def, boo
         ret = ret->getChild("template")->makeTemplate() ;
     if(define)
         ret->define(def, true) ;
-    if(ret->hasChildFromFullLabel("define.path"))
+    if(path.size() > 0)
+        ret->definePath( path ) ;
+    else if(ret->hasChildFromFullLabel("define.path"))
         ret->definePath( ret->getStringData("define.path", "./") ) ;
 
     if(bind)
     {
+        std::string realpath = path ;
+        if(path.size() == 0 && ret->hasChildFromFullLabel("define.path"))
+            realpath = ret->getStringData("define.path", std::string()) ;
         std::vector<std::string> callers ;
         callers.push_back(f) ;
-        ret->bindInput(callers, ret->getStringData("define.path", std::string()), flags ) ;
+        ret->bindInput(callers, realpath, flags ) ;
     }
 
     return ret ;
