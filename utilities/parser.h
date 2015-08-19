@@ -46,11 +46,12 @@ protected:
 	std::string description ;
 
 	bool commandLineConfiguration ;
+	bool forceUnrecognizedFlags ;
 	ConfigTreeItem * config ;
 	std::map<std::string, std::string> directConfig ;
 
 public:
-	CommandLineParser(std::string d = std::string(), bool c = false) ;
+	CommandLineParser(std::string d = std::string(), bool c = false, bool f = false) ;
 
 	void addFlag( std::string f, bool activated, std::string h = std::string() ) { flags[f] = activated ; help[f] = h ; }
 	void addValue( std::string f, double val, std::string h = std::string() ) { values[f] = val ; help[f] = h ; }
@@ -67,6 +68,8 @@ public:
 	double getNumeralArgument( size_t i ) ;
 
 	void parseCommandLine( int argc, char *argv[] ) ;
+
+	std::vector<std::string> getActiveFlags() ;
 
 	ConfigTreeItem * getConfiguration() { return config ; }
 	std::map<std::string, std::string> getDirectConfiguration() { return directConfig ; }
@@ -295,7 +298,7 @@ public:
 	virtual void readData() ;
 	ConfigTreeItem * getData() { return trunk; }
 
-	static ConfigTreeItem * readFile(std::string f, ConfigTreeItem * def, bool define = true, bool bind = false) ;
+	static ConfigTreeItem * readFile(std::string f, ConfigTreeItem * def, bool define = true, bool bind = false, std::vector<std::string> flags = std::vector<std::string>()) ;
 	static std::vector<BoundaryCondition *> getBoundaryConditions( std::string filename, FeatureTree * F) ;
 
 } ;

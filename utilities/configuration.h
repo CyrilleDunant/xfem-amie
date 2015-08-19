@@ -219,7 +219,7 @@ public:
 
     std::vector<BoundaryCondition *> getAllBoundaryConditions(FeatureTree * F) const ;
 
-    bool bindInput( std::vector<std::string> & callers ) ;
+    bool bindInput( std::vector<std::string> & callers, std::string baseDirectory, std::vector<std::string> flags = std::vector<std::string>() ) ;
 
     /** Checks if data must be extracted and output at the i^th time step*/
     bool isAtTimeStep(int i, int nmax) const ;

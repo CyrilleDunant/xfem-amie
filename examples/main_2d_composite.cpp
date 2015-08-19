@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     timeval time0, time1 ;
     gettimeofday ( &time0, nullptr );
 
-    CommandLineParser parser("Run a 2D AMIE simulation using the configuration parameters found in a *.ini file", true) ;
+    CommandLineParser parser("Run a 2D AMIE simulation using the configuration parameters found in a *.ini file", true, true) ;
     parser.addFlag( "--print-microstructure", false , "print only the mesh and values of mechanical properties") ;
     parser.addFlag( "--print-configuration-tree", false , "print only the configuration tree after parsing") ;
     parser.addArgument( "file_name", "../examples/data/composite/test_2d_composite.ini", "relative path to *.ini file to run") ;
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     ConfigTreeItem * define = parser.getConfiguration() ;
     std::map<std::string, std::string> direct = parser.getDirectConfiguration() ;
 
-    ConfigTreeItem * problem = ConfigParser::readFile(file, define, true, true) ;
+    ConfigTreeItem * problem = ConfigParser::readFile(file, define, true, true, parser.getActiveFlags() ) ;
     problem->configure( direct ) ;
 
     if(printConfigTree)

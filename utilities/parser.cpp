@@ -542,7 +542,7 @@ std::vector<BoundaryCondition *> ConfigParser::getBoundaryConditions( std::strin
     return ret ;
 }
 
-ConfigTreeItem * ConfigParser::readFile(std::string f, ConfigTreeItem * def, bool define, bool bind)
+ConfigTreeItem * ConfigParser::readFile(std::string f, ConfigTreeItem * def, bool define, bool bind, std::vector<std::string> flags)
 {
     ConfigParser parser(f) ;
     parser.readData() ;
@@ -558,13 +558,13 @@ ConfigTreeItem * ConfigParser::readFile(std::string f, ConfigTreeItem * def, boo
     {
         std::vector<std::string> callers ;
         callers.push_back(f) ;
-        ret->bindInput(callers) ;
+        ret->bindInput(callers, ret->getStringData("define.path", std::string()), flags ) ;
     }
 
     return ret ;
 }
 
-CommandLineParser::CommandLineParser(std::string d, bool c) : description(d), commandLineConfiguration(c)
+CommandLineParser::CommandLineParser(std::string d, bool c, bool f) : description(d), commandLineConfiguration(c), forceUnrecognizedFlags(f)
 {
     addFlag("--help", false, "print help") ;
     addFlag("--version", false, "print current AMIE revision") ;
@@ -614,6 +614,10 @@ void CommandLineParser::parseCommandLine( int argc, char *argv[] )
 		{
 			directConfig [test.substr(1)] = std::string (argv[i+1]) ;
 			i++ ;
+		}
+		else if(forceUnrecognizedFlags && test.find("--") == 0)
+		{
+			flags[test] = true ;
 		}
 		i++ ;
 	}
@@ -720,6 +724,17 @@ bool CommandLineParser::getFlag( std::string f )
 	if( flags.find( f ) == flags.end() )
 		return false ;
 	return flags[f] ;
+}
+
+std::vector<std::string> CommandLineParser::getActiveFlags( )
+{
+	std::vector<std::string> active ;
+	for(auto f = flags.begin() ; f != flags.end() ; f++)
+	{
+		if( f->second )
+			active.push_back( f->first ) ;
+	}
+	return active ;
 }
 
 double CommandLineParser::getValue( std::string f )

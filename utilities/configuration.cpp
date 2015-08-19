@@ -433,6 +433,7 @@ void ConfigTreeItem::define(ConfigTreeItem * definition)
 void ConfigTreeItem::definePath( std::string baseDirectory)
 {
     if(label == std::string("file")
+            || label.find("input") == 0
             || label == std::string("file_name")
             || label == std::string("tension_file_name")
             || label == std::string("compression_name")
@@ -521,20 +522,36 @@ std::vector<double> ConfigTreeItem::readLineAsStdVector(std::string line, char s
     return v ;
 }
 
-bool ConfigTreeItem::bindInput( std::vector<std::string> & callers ) 
+bool ConfigTreeItem::bindInput( std::vector<std::string> & callers, std::string dir, std::vector<std::string> flags ) 
 {
     std::vector<ConfigTreeItem *> newchildren ;
     bool mod = false ;
     for(size_t i = 0 ; i < children.size() ; i++)
     {
-        if( children[i]->is( "input" ) )
+        if( children[i]->is( "input" ) || children[i]->getLabel().find("input[") == 0)
         {
+            std::string lab = children[i]->getLabel() ;
+            size_t start = lab.find("[") ;
+            size_t end = lab.find("]") ;
+            if(start < std::string::npos && end < std::string::npos)
+            {
+                std::string flag = lab.substr(start+1, end-start-1) ;
+                bool found = false ;
+                for(size_t f = 0 ; f < flags.size() ; f++)
+                    found |= (flags[f] == flag) ;
+                if(!found)
+                {
+                    std::cout << "flag " << flag << " not activated!" << std::endl ;
+                    continue ;
+                }
+            }
+
             std::string next = children[i]->getStringData() ;
             std::string nextfile = next ;
             std::vector<std::string> arg ;
             std::vector<ConfigTreeItem *> got ;
-            size_t start = next.find_first_of('[') ;
-            size_t end = next.find_last_of(']') ;
+            start = next.find_first_of('[') ;
+            end = next.find_last_of(']') ;
             if( start != std::string::npos)
             {
                 nextfile = next.substr(0, start) ;
@@ -556,7 +573,9 @@ bool ConfigTreeItem::bindInput( std::vector<std::string> & callers )
             std::vector<std::string> nextcallers = callers ;
             callers.push_back( nextfile ) ;
             ConfigTreeItem * nextitems = ConfigParser::readFile( nextfile , nullptr, false ) ;
-            nextitems->bindInput( nextcallers ) ;
+            if(dir.size() > 0)
+                nextitems->definePath( dir ) ;
+            nextitems->bindInput( nextcallers, dir, flags ) ;
             if(arg.size() > 0)
             {
                 for(size_t j = 0 ; j < arg.size() ; j++)
@@ -576,7 +595,7 @@ bool ConfigTreeItem::bindInput( std::vector<std::string> & callers )
         }
         else
         {
-            children[i]->bindInput( callers ) ;
+            children[i]->bindInput( callers, dir, flags ) ;
             newchildren.push_back(children[i]) ;
         }
     }
