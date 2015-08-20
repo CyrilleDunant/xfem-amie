@@ -17,6 +17,7 @@ InclusionFamily::InclusionFamily( size_t n, double rmax, double fraction, Partic
 	std::vector<Feature *> feats = geometry->convert( incs ) ;
 	features.push_back(feats) ;
 	rotations.push_back( geometry->authorizeRotationsDuringPlacement ) ;
+	factors.push_back(-1) ;
 }
 
 std::vector<Feature *> InclusionFamily::getFeatures(size_t i)
@@ -45,6 +46,7 @@ void InclusionFamily::concatenate( InclusionFamily * brother )
 	{
 		features.push_back( brother->features[i] ) ;
 		rotations.push_back( brother->rotations[i] ) ;
+		factors.push_back( brother->factors[i] ) ;
 	}
 }
 
@@ -58,6 +60,8 @@ void InclusionFamily::addToFeatureTree(FeatureTree * f)
 				f->addFeature( features[i][j]->getFather(), features[i][j] ) ;
 			else if( keepNoFatherFeatures )
 				f->addFeature( f->getFeature(0), features[i][j] ) ;
+			if(factors[i] > 0)
+				f->setSamplingFactor( features[i][j], factors[i] ) ;
 		}
 	}
 }
@@ -187,6 +191,7 @@ VoronoiInclusionFamily::VoronoiInclusionFamily( double radius, double fraction, 
 	copy = false ;
 	generated = false ;
 	rotations.push_back(0) ;
+	factors.push_back(-1) ;
 }
 
 void VoronoiInclusionFamily::concatenate( InclusionFamily * brother )   
@@ -208,6 +213,7 @@ void VoronoiInclusionFamily::concatenate( InclusionFamily * brother )
 	}
 
 	rotations.push_back( 0. ) ;
+	factors.push_back(-1) ;
 
 }
 

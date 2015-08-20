@@ -2341,7 +2341,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
         for ( size_t i = 0 ; i < targetstmp.size() ; i++ )
         {
             const Feature * tmp = dynamic_cast<const Feature *> ( targetstmp[i] ) ;
-            if ( tmp->getLayer() == layer && ( tmp->getBoundingPoints().size() || tmp->isVirtualFeature || samplingRestriction == 0 ) )
+            if ( tmp->getLayer() == layer && ( (tmp->getBoundingPoints().size()  && tmp->getInPoints().size()) || tmp->isVirtualFeature || samplingRestriction == 0 ) )
             {
                 targets.push_back ( const_cast<Feature *> ( tmp ) ) ;
             }
@@ -2351,7 +2351,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
     {
         for ( size_t i = 0 ; i < tree.size() ; i++ )
         {
-            if ( tree[i]->getLayer() == layer && ( tree[i]->getBoundingPoints().size() || tree[i]->isVirtualFeature || samplingRestriction == 0 ) )
+            if ( tree[i]->getLayer() == layer && ( (tree[i]->getBoundingPoints().size() && tree[i]->getInPoints().size()) || tree[i]->isVirtualFeature || samplingRestriction == 0 ) )
             {
                 targets.push_back ( tree[i] ) ;
             }
@@ -2374,7 +2374,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
 
                 for ( size_t j = 0 ; j < descendants.size() ; j++ )
                 {
-                    if ( descendants[j]->getLayer() == layer && !descendants[j]->isEnrichmentFeature && descendants[j]->in ( t->getCenter() ) && descendants[j]->inMask ( t->getCenter(), 0. ) )
+                    if ( descendants[j]->getLayer() == layer && !descendants[j]->isEnrichmentFeature && descendants[j]->in ( t->getCenter() ) && descendants[j]->inMask ( t->getCenter(), 0. ) && descendants[j]->getInPoints().size() > 0)
                     {
                         notInChildren = false ;
                         break ;
@@ -7483,7 +7483,7 @@ void FeatureTree::generateElements()
                         )
                     )
                     {
-                        if ( potentialChildren[k]->getBoundingPoints().size() )
+                        if ( potentialChildren[k]->getBoundingPoints().size() && potentialChildren[k]->getInPoints().size() )
                         {
                             isIn = true ;
                             break ;
@@ -7563,7 +7563,7 @@ void FeatureTree::generateElements()
         std::set< std::pair<const Feature*, const Feature*> > done ;
         for ( size_t i = 1 ;  i < tree.size() ; i++ )
         {
-            if ( !tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature && tree[i]->getFather() != nullptr )
+            if ( !tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature && tree[i]->getFather() != nullptr && tree[i]->getInPoints().size() > 0)
             {
                 std::vector<const Geometry *> coOccuringFeaturestmp ;
                 std::vector<Feature *> descendants = tree[i]->getDescendants() ;

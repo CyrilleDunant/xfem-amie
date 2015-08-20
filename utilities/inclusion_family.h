@@ -19,6 +19,7 @@ struct InclusionFamily
 	bool keepNoFatherFeatures ;
 	std::vector<std::vector<Feature *> > features ;
 	std::vector<double> rotations ;
+	std::vector<double> factors ;
 	size_t fatherIndex ;
 	InclusionFamily * father = nullptr ;
 
@@ -38,6 +39,8 @@ struct InclusionFamily
 	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed ) ;
 
 	virtual void addToFeatureTree( FeatureTree * f) ;
+
+	void setSamplingFactor(size_t i, double f) { factors[i] = f ; }
 } ;
 
 /*PARSE Embedded InclusionFamily 

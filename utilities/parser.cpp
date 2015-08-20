@@ -6,6 +6,7 @@
 
 #include "parser.h"
 #include "../polynomial/vm_function_extra.h"
+#include <sys/stat.h>
 
 void InclusionParser::readData()
 {
@@ -722,6 +723,11 @@ void CommandLineParser::printVersion( )
 {
 	std::cout << "current AMIE version: svn " << std::flush ;
 	std::system("svnversion ..") ;
+	
+	struct stat attr ;
+	stat( command.c_str(), &attr ) ;
+	std::cout << "last compiled on: " << ctime(&attr.st_mtime) << std::endl ;
+
 }
 
 bool CommandLineParser::getFlag( std::string f )

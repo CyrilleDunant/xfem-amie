@@ -57,7 +57,7 @@ public:
 
     virtual void sample(size_t n)
     {
-        if(2*n >= getOriginalPoints().size())
+//        if(2*n >= getOriginalPoints().size())
              this->sampleSurface(n) ;
 //        else
 //             std::cout << "NOT MESHED" << n << " " << getOriginalPoints().size() << std::endl ;

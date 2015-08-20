@@ -893,6 +893,8 @@ InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, Inclusio
         if( father )
             inc->setFather( father, index ) ;
         inc->place( placement, getData("placement.spacing", 0), getData("placement.tries", 1000), getData("placement.random_seed", 1) ) ;
+        if( hasChild("sampling_factor" ) )
+            inc->setSamplingFactor(0, getData("sampling_factor" ,-1) ) ;
         inc->addToFeatureTree(F) ;
         if(hasChild("enrichment") && Object::isEnrichmentManager( getStringData("enrichment", "NoEnrichment" ) ) )
         {
@@ -944,6 +946,9 @@ InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, Inclusio
             current->setBehaviour( all[i]->getChild("behaviour")->getBehaviour( dim, spaceTime ), 0, getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
         if( father )
             current->setFather( father, index ) ;
+
+        if(all[i]->hasChild("sampling_factor"))
+            current->setSamplingFactor( 0, getData("sampling_factor",-1) ) ;
 
         if(!ret)
             ret = current ;
