@@ -3923,7 +3923,7 @@ Vector FeatureTree::setSteppingParameters ( ConfigTreeItem * config, ConfigTreeI
     setMaxIterationsPerStep ( maxIter ) ;
     Vector cinstants ( nSteps+1 ) ;
     if( config->hasChild( "solver_precision" ) )
-        K->setEpsilon( config->getData ( "solver_precision", POINT_TOLERANCE ) ) ;
+        setSolverPrecision( config->getData ( "solver_precision", -1 ) ) ;
     if ( config->hasChild ( "list_of_time_steps" ) )
     {
         if(config->getStringData("list_of_time_steps").find(',') != std::string::npos)

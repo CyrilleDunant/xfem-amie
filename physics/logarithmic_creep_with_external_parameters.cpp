@@ -2,6 +2,7 @@
 #include "../elements/generalized_spacetime_viscoelastic_element_state.h"
 #include "fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
 #include "fracturecriteria/mazars.h"
+#include "../utilities/object_translator.h"
 
 using namespace Amie ;
 
@@ -280,6 +281,11 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 			}
 			else
 				mazar->reset( thr, E, nu, Gf ) ;
+		}
+		else
+		{
+			std::map<std::string, std::string> str ;
+			Object::resetFractureCriterion( criterion, values, str ) ;
 		}
 			
 		

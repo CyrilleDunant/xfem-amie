@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 19/7/2015 at 9:31  */
+/* this is an auto-generated file created on 20/7/2015 at 15:14  */
 
 #ifndef __ENUMERATION_TRANSLATOR_H__
 #define __ENUMERATION_TRANSLATOR_H__
@@ -6,24 +6,24 @@
 #include "../elements/integrable_entity.h"
 #include "../features/boundarycondition.h"
 #include "../geometry/geometry_base.h"
+#include "../physics/materials/paste_behaviour.h"
+#include "../physics/materials/csh_behaviour.h"
+#include "../physics/damagemodels/damagemodel.h"
+#include "../physics/finite_difference_viscoelasticity.h"
+#include "../physics/viscoelasticity.h"
 #include "../physics/material_laws/material_laws.h"
 #include "../physics/fracturecriteria/mcft.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
-#include "../physics/materials/csh_behaviour.h"
-#include "../physics/materials/paste_behaviour.h"
-#include "../physics/viscoelasticity.h"
-#include "../physics/finite_difference_viscoelasticity.h"
-#include "../physics/damagemodels/damagemodel.h"
-#include "../polynomial/vm_function_base.h"
 #include "../polynomial/vm_token.h"
+#include "../polynomial/vm_function_base.h"
 #include "../polynomial/variable.h"
 #include "../polynomial/typeref.h"
 #include "../solvers/assembly.h"
-#include "../utilities/writer/voxel_writer.h"
-#include "../utilities/writer/triangle_writer.h"
-#include "../utilities/configuration.h"
 #include "../utilities/granulo.h"
+#include "../utilities/configuration.h"
 #include "../utilities/tensor.h"
+#include "../utilities/writer/triangle_writer.h"
+#include "../utilities/writer/voxel_writer.h"
 
 namespace Amie
 {
@@ -591,6 +591,148 @@ struct Enum
         return "SPACE_ONE_DIMENSIONAL" ;
     }
    
+    // parsed from header file: ../physics/materials/paste_behaviour.h
+    static PasteCriterion getPasteCriterion(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "STRAIN_CRITERION") { return STRAIN_CRITERION ; }
+        if( type == "STRESS_CRITERION") { return STRESS_CRITERION ; }
+        if( type == "MIXED_CRITERION") { return MIXED_CRITERION ; }
+        if(ok) { *ok = false ; }
+        return STRAIN_CRITERION ;
+    }
+    static std::string fromPasteCriterion(PasteCriterion value)
+    {
+        switch(value)
+        {
+            case STRAIN_CRITERION: return "STRAIN_CRITERION" ;
+            case STRESS_CRITERION: return "STRESS_CRITERION" ;
+            case MIXED_CRITERION: return "MIXED_CRITERION" ;
+        }
+        return "STRAIN_CRITERION" ;
+    }
+   
+    // parsed from header file: ../physics/materials/csh_behaviour.h
+    static CSHType getCSHType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "INNER_CSH") { return INNER_CSH ; }
+        if( type == "OUTER_CSH") { return OUTER_CSH ; }
+        if(ok) { *ok = false ; }
+        return INNER_CSH ;
+    }
+    static std::string fromCSHType(CSHType value)
+    {
+        switch(value)
+        {
+            case INNER_CSH: return "INNER_CSH" ;
+            case OUTER_CSH: return "OUTER_CSH" ;
+        }
+        return "INNER_CSH" ;
+    }
+   
+    // parsed from header file: ../physics/damagemodels/damagemodel.h
+    static ConvergenceType getConvergenceType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "DISSIPATIVE") { return DISSIPATIVE ; }
+        if( type == "CONSERVATIVE") { return CONSERVATIVE ; }
+        if(ok) { *ok = false ; }
+        return DISSIPATIVE ;
+    }
+    static std::string fromConvergenceType(ConvergenceType value)
+    {
+        switch(value)
+        {
+            case DISSIPATIVE: return "DISSIPATIVE" ;
+            case CONSERVATIVE: return "CONSERVATIVE" ;
+        }
+        return "DISSIPATIVE" ;
+    }
+   
+    // parsed from header file: ../physics/finite_difference_viscoelasticity.h
+    static ViscoelasticFiniteDifferenceIntegration getViscoelasticFiniteDifferenceIntegration(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "FORWARD_EULER") { return FORWARD_EULER ; }
+        if( type == "BACKWARD_EULER") { return BACKWARD_EULER ; }
+        if( type == "CENTRAL_DIFFERENCE") { return CENTRAL_DIFFERENCE ; }
+        if( type == "NEWMARK") { return NEWMARK ; }
+        if( type == "ZIENKIEWICZ") { return ZIENKIEWICZ ; }
+        if(ok) { *ok = false ; }
+        return FORWARD_EULER ;
+    }
+    static std::string fromViscoelasticFiniteDifferenceIntegration(ViscoelasticFiniteDifferenceIntegration value)
+    {
+        switch(value)
+        {
+            case FORWARD_EULER: return "FORWARD_EULER" ;
+            case BACKWARD_EULER: return "BACKWARD_EULER" ;
+            case CENTRAL_DIFFERENCE: return "CENTRAL_DIFFERENCE" ;
+            case NEWMARK: return "NEWMARK" ;
+            case ZIENKIEWICZ: return "ZIENKIEWICZ" ;
+        }
+        return "FORWARD_EULER" ;
+    }
+   
+    // parsed from header file: ../physics/viscoelasticity.h
+    static ViscoelasticModel getViscoelasticModel(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "PURE_ELASTICITY") { return PURE_ELASTICITY ; }
+        if( type == "PURE_VISCOSITY") { return PURE_VISCOSITY ; }
+        if( type == "KELVIN_VOIGT") { return KELVIN_VOIGT ; }
+        if( type == "MAXWELL") { return MAXWELL ; }
+        if( type == "BURGER") { return BURGER ; }
+        if( type == "GENERALIZED_KELVIN_VOIGT") { return GENERALIZED_KELVIN_VOIGT ; }
+        if( type == "GENERALIZED_MAXWELL") { return GENERALIZED_MAXWELL ; }
+        if( type == "GENERAL_VISCOELASTICITY") { return GENERAL_VISCOELASTICITY ; }
+        if(ok) { *ok = false ; }
+        return PURE_ELASTICITY ;
+    }
+    static std::string fromViscoelasticModel(ViscoelasticModel value)
+    {
+        switch(value)
+        {
+            case PURE_ELASTICITY: return "PURE_ELASTICITY" ;
+            case PURE_VISCOSITY: return "PURE_VISCOSITY" ;
+            case KELVIN_VOIGT: return "KELVIN_VOIGT" ;
+            case MAXWELL: return "MAXWELL" ;
+            case BURGER: return "BURGER" ;
+            case GENERALIZED_KELVIN_VOIGT: return "GENERALIZED_KELVIN_VOIGT" ;
+            case GENERALIZED_MAXWELL: return "GENERALIZED_MAXWELL" ;
+            case GENERAL_VISCOELASTICITY: return "GENERAL_VISCOELASTICITY" ;
+        }
+        return "PURE_ELASTICITY" ;
+    }
+   
+    // parsed from header file: ../physics/viscoelasticity.h
+    static CreepComplianceModel getCreepComplianceModel(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "LOGPOWER_CREEP") { return LOGPOWER_CREEP ; }
+        if( type == "ACI_CREEP") { return ACI_CREEP ; }
+        if( type == "CEB_CREEP") { return CEB_CREEP ; }
+        if( type == "B3_DRYING_CREEP") { return B3_DRYING_CREEP ; }
+        if( type == "JSCE_CREEP") { return JSCE_CREEP ; }
+        if( type == "FIB_CREEP") { return FIB_CREEP ; }
+        if(ok) { *ok = false ; }
+        return LOGPOWER_CREEP ;
+    }
+    static std::string fromCreepComplianceModel(CreepComplianceModel value)
+    {
+        switch(value)
+        {
+            case LOGPOWER_CREEP: return "LOGPOWER_CREEP" ;
+            case ACI_CREEP: return "ACI_CREEP" ;
+            case CEB_CREEP: return "CEB_CREEP" ;
+            case B3_DRYING_CREEP: return "B3_DRYING_CREEP" ;
+            case JSCE_CREEP: return "JSCE_CREEP" ;
+            case FIB_CREEP: return "FIB_CREEP" ;
+        }
+        return "LOGPOWER_CREEP" ;
+    }
+   
     // parsed from header file: ../physics/material_laws/material_laws.h
     static EMLOperation getEMLOperation(std::string type, bool * ok = 0)
     {
@@ -683,194 +825,6 @@ struct Enum
             case GAUSSIAN_NONCOMPACT: return "GAUSSIAN_NONCOMPACT" ;
         }
         return "QUARTIC_COMPACT" ;
-    }
-   
-    // parsed from header file: ../physics/materials/csh_behaviour.h
-    static CSHType getCSHType(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "INNER_CSH") { return INNER_CSH ; }
-        if( type == "OUTER_CSH") { return OUTER_CSH ; }
-        if(ok) { *ok = false ; }
-        return INNER_CSH ;
-    }
-    static std::string fromCSHType(CSHType value)
-    {
-        switch(value)
-        {
-            case INNER_CSH: return "INNER_CSH" ;
-            case OUTER_CSH: return "OUTER_CSH" ;
-        }
-        return "INNER_CSH" ;
-    }
-   
-    // parsed from header file: ../physics/materials/paste_behaviour.h
-    static PasteCriterion getPasteCriterion(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "STRAIN_CRITERION") { return STRAIN_CRITERION ; }
-        if( type == "STRESS_CRITERION") { return STRESS_CRITERION ; }
-        if( type == "MIXED_CRITERION") { return MIXED_CRITERION ; }
-        if(ok) { *ok = false ; }
-        return STRAIN_CRITERION ;
-    }
-    static std::string fromPasteCriterion(PasteCriterion value)
-    {
-        switch(value)
-        {
-            case STRAIN_CRITERION: return "STRAIN_CRITERION" ;
-            case STRESS_CRITERION: return "STRESS_CRITERION" ;
-            case MIXED_CRITERION: return "MIXED_CRITERION" ;
-        }
-        return "STRAIN_CRITERION" ;
-    }
-   
-    // parsed from header file: ../physics/viscoelasticity.h
-    static ViscoelasticModel getViscoelasticModel(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "PURE_ELASTICITY") { return PURE_ELASTICITY ; }
-        if( type == "PURE_VISCOSITY") { return PURE_VISCOSITY ; }
-        if( type == "KELVIN_VOIGT") { return KELVIN_VOIGT ; }
-        if( type == "MAXWELL") { return MAXWELL ; }
-        if( type == "BURGER") { return BURGER ; }
-        if( type == "GENERALIZED_KELVIN_VOIGT") { return GENERALIZED_KELVIN_VOIGT ; }
-        if( type == "GENERALIZED_MAXWELL") { return GENERALIZED_MAXWELL ; }
-        if( type == "GENERAL_VISCOELASTICITY") { return GENERAL_VISCOELASTICITY ; }
-        if(ok) { *ok = false ; }
-        return PURE_ELASTICITY ;
-    }
-    static std::string fromViscoelasticModel(ViscoelasticModel value)
-    {
-        switch(value)
-        {
-            case PURE_ELASTICITY: return "PURE_ELASTICITY" ;
-            case PURE_VISCOSITY: return "PURE_VISCOSITY" ;
-            case KELVIN_VOIGT: return "KELVIN_VOIGT" ;
-            case MAXWELL: return "MAXWELL" ;
-            case BURGER: return "BURGER" ;
-            case GENERALIZED_KELVIN_VOIGT: return "GENERALIZED_KELVIN_VOIGT" ;
-            case GENERALIZED_MAXWELL: return "GENERALIZED_MAXWELL" ;
-            case GENERAL_VISCOELASTICITY: return "GENERAL_VISCOELASTICITY" ;
-        }
-        return "PURE_ELASTICITY" ;
-    }
-   
-    // parsed from header file: ../physics/viscoelasticity.h
-    static CreepComplianceModel getCreepComplianceModel(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "LOGPOWER_CREEP") { return LOGPOWER_CREEP ; }
-        if( type == "ACI_CREEP") { return ACI_CREEP ; }
-        if( type == "CEB_CREEP") { return CEB_CREEP ; }
-        if( type == "B3_DRYING_CREEP") { return B3_DRYING_CREEP ; }
-        if( type == "JSCE_CREEP") { return JSCE_CREEP ; }
-        if( type == "FIB_CREEP") { return FIB_CREEP ; }
-        if(ok) { *ok = false ; }
-        return LOGPOWER_CREEP ;
-    }
-    static std::string fromCreepComplianceModel(CreepComplianceModel value)
-    {
-        switch(value)
-        {
-            case LOGPOWER_CREEP: return "LOGPOWER_CREEP" ;
-            case ACI_CREEP: return "ACI_CREEP" ;
-            case CEB_CREEP: return "CEB_CREEP" ;
-            case B3_DRYING_CREEP: return "B3_DRYING_CREEP" ;
-            case JSCE_CREEP: return "JSCE_CREEP" ;
-            case FIB_CREEP: return "FIB_CREEP" ;
-        }
-        return "LOGPOWER_CREEP" ;
-    }
-   
-    // parsed from header file: ../physics/finite_difference_viscoelasticity.h
-    static ViscoelasticFiniteDifferenceIntegration getViscoelasticFiniteDifferenceIntegration(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "FORWARD_EULER") { return FORWARD_EULER ; }
-        if( type == "BACKWARD_EULER") { return BACKWARD_EULER ; }
-        if( type == "CENTRAL_DIFFERENCE") { return CENTRAL_DIFFERENCE ; }
-        if( type == "NEWMARK") { return NEWMARK ; }
-        if( type == "ZIENKIEWICZ") { return ZIENKIEWICZ ; }
-        if(ok) { *ok = false ; }
-        return FORWARD_EULER ;
-    }
-    static std::string fromViscoelasticFiniteDifferenceIntegration(ViscoelasticFiniteDifferenceIntegration value)
-    {
-        switch(value)
-        {
-            case FORWARD_EULER: return "FORWARD_EULER" ;
-            case BACKWARD_EULER: return "BACKWARD_EULER" ;
-            case CENTRAL_DIFFERENCE: return "CENTRAL_DIFFERENCE" ;
-            case NEWMARK: return "NEWMARK" ;
-            case ZIENKIEWICZ: return "ZIENKIEWICZ" ;
-        }
-        return "FORWARD_EULER" ;
-    }
-   
-    // parsed from header file: ../physics/damagemodels/damagemodel.h
-    static ConvergenceType getConvergenceType(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "DISSIPATIVE") { return DISSIPATIVE ; }
-        if( type == "CONSERVATIVE") { return CONSERVATIVE ; }
-        if(ok) { *ok = false ; }
-        return DISSIPATIVE ;
-    }
-    static std::string fromConvergenceType(ConvergenceType value)
-    {
-        switch(value)
-        {
-            case DISSIPATIVE: return "DISSIPATIVE" ;
-            case CONSERVATIVE: return "CONSERVATIVE" ;
-        }
-        return "DISSIPATIVE" ;
-    }
-   
-    // parsed from header file: ../polynomial/vm_function_base.h
-    static PositionTokenType getPositionTokenType(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "POSITION_TOKEN") { return POSITION_TOKEN ; }
-        if( type == "PROJECTION_TOKEN") { return PROJECTION_TOKEN ; }
-        if(ok) { *ok = false ; }
-        return POSITION_TOKEN ;
-    }
-    static std::string fromPositionTokenType(PositionTokenType value)
-    {
-        switch(value)
-        {
-            case POSITION_TOKEN: return "POSITION_TOKEN" ;
-            case PROJECTION_TOKEN: return "PROJECTION_TOKEN" ;
-        }
-        return "POSITION_TOKEN" ;
-    }
-   
-    // parsed from header file: ../polynomial/vm_function_base.h
-    static TemporayUsageType getTemporayUsageType(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "NO_TEMPORARY") { return NO_TEMPORARY ; }
-        if( type == "SET_TEMPORARY") { return SET_TEMPORARY ; }
-        if( type == "SET_GET_TEMPORARY_A") { return SET_GET_TEMPORARY_A ; }
-        if( type == "SET_GET_TEMPORARY_B") { return SET_GET_TEMPORARY_B ; }
-        if( type == "GET_TEMPORARY_A") { return GET_TEMPORARY_A ; }
-        if( type == "GET_TEMPORARY_B") { return GET_TEMPORARY_B ; }
-        if(ok) { *ok = false ; }
-        return NO_TEMPORARY ;
-    }
-    static std::string fromTemporayUsageType(TemporayUsageType value)
-    {
-        switch(value)
-        {
-            case NO_TEMPORARY: return "NO_TEMPORARY" ;
-            case SET_TEMPORARY: return "SET_TEMPORARY" ;
-            case SET_GET_TEMPORARY_A: return "SET_GET_TEMPORARY_A" ;
-            case SET_GET_TEMPORARY_B: return "SET_GET_TEMPORARY_B" ;
-            case GET_TEMPORARY_A: return "GET_TEMPORARY_A" ;
-            case GET_TEMPORARY_B: return "GET_TEMPORARY_B" ;
-        }
-        return "NO_TEMPORARY" ;
     }
    
     // parsed from header file: ../polynomial/vm_token.h
@@ -988,6 +942,52 @@ struct Enum
             case TOKEN_OPERATION_GEO_OPERATION: return "TOKEN_OPERATION_GEO_OPERATION" ;
         }
         return "TOKEN_OPERATION_CONSTANT" ;
+    }
+   
+    // parsed from header file: ../polynomial/vm_function_base.h
+    static PositionTokenType getPositionTokenType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "POSITION_TOKEN") { return POSITION_TOKEN ; }
+        if( type == "PROJECTION_TOKEN") { return PROJECTION_TOKEN ; }
+        if(ok) { *ok = false ; }
+        return POSITION_TOKEN ;
+    }
+    static std::string fromPositionTokenType(PositionTokenType value)
+    {
+        switch(value)
+        {
+            case POSITION_TOKEN: return "POSITION_TOKEN" ;
+            case PROJECTION_TOKEN: return "PROJECTION_TOKEN" ;
+        }
+        return "POSITION_TOKEN" ;
+    }
+   
+    // parsed from header file: ../polynomial/vm_function_base.h
+    static TemporayUsageType getTemporayUsageType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "NO_TEMPORARY") { return NO_TEMPORARY ; }
+        if( type == "SET_TEMPORARY") { return SET_TEMPORARY ; }
+        if( type == "SET_GET_TEMPORARY_A") { return SET_GET_TEMPORARY_A ; }
+        if( type == "SET_GET_TEMPORARY_B") { return SET_GET_TEMPORARY_B ; }
+        if( type == "GET_TEMPORARY_A") { return GET_TEMPORARY_A ; }
+        if( type == "GET_TEMPORARY_B") { return GET_TEMPORARY_B ; }
+        if(ok) { *ok = false ; }
+        return NO_TEMPORARY ;
+    }
+    static std::string fromTemporayUsageType(TemporayUsageType value)
+    {
+        switch(value)
+        {
+            case NO_TEMPORARY: return "NO_TEMPORARY" ;
+            case SET_TEMPORARY: return "SET_TEMPORARY" ;
+            case SET_GET_TEMPORARY_A: return "SET_GET_TEMPORARY_A" ;
+            case SET_GET_TEMPORARY_B: return "SET_GET_TEMPORARY_B" ;
+            case GET_TEMPORARY_A: return "GET_TEMPORARY_A" ;
+            case GET_TEMPORARY_B: return "GET_TEMPORARY_B" ;
+        }
+        return "NO_TEMPORARY" ;
     }
    
     // parsed from header file: ../polynomial/variable.h
@@ -1161,47 +1161,92 @@ struct Enum
         return "GENERAL" ;
     }
    
-    // parsed from header file: ../utilities/writer/voxel_writer.h
-    static VWFieldType getVWFieldType(std::string type, bool * ok = 0)
+    // parsed from header file: ../utilities/granulo.h
+    static TypeInclusion getTypeInclusion(std::string type, bool * ok = 0)
     {
         if(ok) { *ok = true ; }
-        if( type == "VWFT_PRINCIPAL_ANGLE") { return VWFT_PRINCIPAL_ANGLE ; }
-        if( type == "VWFT_STIFFNESS") { return VWFT_STIFFNESS ; }
-        if( type == "VWFT_STRAIN") { return VWFT_STRAIN ; }
-        if( type == "VWFT_STRESS") { return VWFT_STRESS ; }
-        if( type == "VWFT_PRINCIPAL_STRAIN") { return VWFT_PRINCIPAL_STRAIN ; }
-        if( type == "VWFT_PRINCIPAL_STRESS") { return VWFT_PRINCIPAL_STRESS ; }
-        if( type == "VWFT_STRAIN_AND_STRESS") { return VWFT_STRAIN_AND_STRESS ; }
-        if( type == "VWFT_CONCENTRATION") { return VWFT_CONCENTRATION ; }
-        if( type == "VWFT_GRADIENT") { return VWFT_GRADIENT ; }
-        if( type == "VWFT_FLUX") { return VWFT_FLUX ; }
-        if( type == "VWFT_GRADIENT_AND_FLUX") { return VWFT_GRADIENT_AND_FLUX ; }
-        if( type == "VWFT_VON_MISES") { return VWFT_VON_MISES ; }
-        if( type == "VWFT_ENRICHEMENT") { return VWFT_ENRICHEMENT ; }
-        if( type == "VWFT_DAMAGE") { return VWFT_DAMAGE ; }
+        if( type == "CIRCLE_INCLUSION") { return CIRCLE_INCLUSION ; }
+        if( type == "SPHERE_INCLUSION") { return SPHERE_INCLUSION ; }
+        if( type == "ELLIPSE_INCLUSION") { return ELLIPSE_INCLUSION ; }
         if(ok) { *ok = false ; }
-        return VWFT_PRINCIPAL_ANGLE ;
+        return CIRCLE_INCLUSION ;
     }
-    static std::string fromVWFieldType(VWFieldType value)
+    static std::string fromTypeInclusion(TypeInclusion value)
     {
         switch(value)
         {
-            case VWFT_PRINCIPAL_ANGLE: return "VWFT_PRINCIPAL_ANGLE" ;
-            case VWFT_STIFFNESS: return "VWFT_STIFFNESS" ;
-            case VWFT_STRAIN: return "VWFT_STRAIN" ;
-            case VWFT_STRESS: return "VWFT_STRESS" ;
-            case VWFT_PRINCIPAL_STRAIN: return "VWFT_PRINCIPAL_STRAIN" ;
-            case VWFT_PRINCIPAL_STRESS: return "VWFT_PRINCIPAL_STRESS" ;
-            case VWFT_STRAIN_AND_STRESS: return "VWFT_STRAIN_AND_STRESS" ;
-            case VWFT_CONCENTRATION: return "VWFT_CONCENTRATION" ;
-            case VWFT_GRADIENT: return "VWFT_GRADIENT" ;
-            case VWFT_FLUX: return "VWFT_FLUX" ;
-            case VWFT_GRADIENT_AND_FLUX: return "VWFT_GRADIENT_AND_FLUX" ;
-            case VWFT_VON_MISES: return "VWFT_VON_MISES" ;
-            case VWFT_ENRICHEMENT: return "VWFT_ENRICHEMENT" ;
-            case VWFT_DAMAGE: return "VWFT_DAMAGE" ;
+            case CIRCLE_INCLUSION: return "CIRCLE_INCLUSION" ;
+            case SPHERE_INCLUSION: return "SPHERE_INCLUSION" ;
+            case ELLIPSE_INCLUSION: return "ELLIPSE_INCLUSION" ;
         }
-        return "VWFT_PRINCIPAL_ANGLE" ;
+        return "CIRCLE_INCLUSION" ;
+    }
+   
+    // parsed from header file: ../utilities/granulo.h
+    static PSDSpecificationType getPSDSpecificationType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "CUMULATIVE_PERCENT") { return CUMULATIVE_PERCENT ; }
+        if( type == "CUMULATIVE_FRACTION") { return CUMULATIVE_FRACTION ; }
+        if( type == "CUMULATIVE_ABSOLUTE") { return CUMULATIVE_ABSOLUTE ; }
+        if( type == "CUMULATIVE_PERCENT_REVERSE") { return CUMULATIVE_PERCENT_REVERSE ; }
+        if( type == "CUMULATIVE_FRACTION_REVERSE") { return CUMULATIVE_FRACTION_REVERSE ; }
+        if( type == "CUMULATIVE_ABSOLUTE_REVERSE") { return CUMULATIVE_ABSOLUTE_REVERSE ; }
+        if(ok) { *ok = false ; }
+        return CUMULATIVE_PERCENT ;
+    }
+    static std::string fromPSDSpecificationType(PSDSpecificationType value)
+    {
+        switch(value)
+        {
+            case CUMULATIVE_PERCENT: return "CUMULATIVE_PERCENT" ;
+            case CUMULATIVE_FRACTION: return "CUMULATIVE_FRACTION" ;
+            case CUMULATIVE_ABSOLUTE: return "CUMULATIVE_ABSOLUTE" ;
+            case CUMULATIVE_PERCENT_REVERSE: return "CUMULATIVE_PERCENT_REVERSE" ;
+            case CUMULATIVE_FRACTION_REVERSE: return "CUMULATIVE_FRACTION_REVERSE" ;
+            case CUMULATIVE_ABSOLUTE_REVERSE: return "CUMULATIVE_ABSOLUTE_REVERSE" ;
+        }
+        return "CUMULATIVE_PERCENT" ;
+    }
+   
+    // parsed from header file: ../utilities/configuration.h
+    static bool getbool(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "false") { return false ; }
+        if( type == "true") { return true ; }
+        if(ok) { *ok = false ; }
+        return false ;
+    }
+    static std::string frombool(bool value)
+    {
+        switch(value)
+        {
+            case false: return "false" ;
+            case true: return "true" ;
+        }
+        return "false" ;
+    }
+   
+    // parsed from header file: ../utilities/tensor.h
+    static planeType getplaneType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "PLANE_STRESS") { return PLANE_STRESS ; }
+        if( type == "PLANE_STRAIN") { return PLANE_STRAIN ; }
+        if( type == "PLANE_STRESS_FREE_G") { return PLANE_STRESS_FREE_G ; }
+        if(ok) { *ok = false ; }
+        return PLANE_STRESS ;
+    }
+    static std::string fromplaneType(planeType value)
+    {
+        switch(value)
+        {
+            case PLANE_STRESS: return "PLANE_STRESS" ;
+            case PLANE_STRAIN: return "PLANE_STRAIN" ;
+            case PLANE_STRESS_FREE_G: return "PLANE_STRESS_FREE_G" ;
+        }
+        return "PLANE_STRESS" ;
     }
    
     // parsed from header file: ../utilities/writer/triangle_writer.h
@@ -1271,92 +1316,47 @@ struct Enum
         return "TWFT_COORDINATE" ;
     }
    
-    // parsed from header file: ../utilities/configuration.h
-    static bool getbool(std::string type, bool * ok = 0)
+    // parsed from header file: ../utilities/writer/voxel_writer.h
+    static VWFieldType getVWFieldType(std::string type, bool * ok = 0)
     {
         if(ok) { *ok = true ; }
-        if( type == "false") { return false ; }
-        if( type == "true") { return true ; }
+        if( type == "VWFT_PRINCIPAL_ANGLE") { return VWFT_PRINCIPAL_ANGLE ; }
+        if( type == "VWFT_STIFFNESS") { return VWFT_STIFFNESS ; }
+        if( type == "VWFT_STRAIN") { return VWFT_STRAIN ; }
+        if( type == "VWFT_STRESS") { return VWFT_STRESS ; }
+        if( type == "VWFT_PRINCIPAL_STRAIN") { return VWFT_PRINCIPAL_STRAIN ; }
+        if( type == "VWFT_PRINCIPAL_STRESS") { return VWFT_PRINCIPAL_STRESS ; }
+        if( type == "VWFT_STRAIN_AND_STRESS") { return VWFT_STRAIN_AND_STRESS ; }
+        if( type == "VWFT_CONCENTRATION") { return VWFT_CONCENTRATION ; }
+        if( type == "VWFT_GRADIENT") { return VWFT_GRADIENT ; }
+        if( type == "VWFT_FLUX") { return VWFT_FLUX ; }
+        if( type == "VWFT_GRADIENT_AND_FLUX") { return VWFT_GRADIENT_AND_FLUX ; }
+        if( type == "VWFT_VON_MISES") { return VWFT_VON_MISES ; }
+        if( type == "VWFT_ENRICHEMENT") { return VWFT_ENRICHEMENT ; }
+        if( type == "VWFT_DAMAGE") { return VWFT_DAMAGE ; }
         if(ok) { *ok = false ; }
-        return false ;
+        return VWFT_PRINCIPAL_ANGLE ;
     }
-    static std::string frombool(bool value)
+    static std::string fromVWFieldType(VWFieldType value)
     {
         switch(value)
         {
-            case false: return "false" ;
-            case true: return "true" ;
+            case VWFT_PRINCIPAL_ANGLE: return "VWFT_PRINCIPAL_ANGLE" ;
+            case VWFT_STIFFNESS: return "VWFT_STIFFNESS" ;
+            case VWFT_STRAIN: return "VWFT_STRAIN" ;
+            case VWFT_STRESS: return "VWFT_STRESS" ;
+            case VWFT_PRINCIPAL_STRAIN: return "VWFT_PRINCIPAL_STRAIN" ;
+            case VWFT_PRINCIPAL_STRESS: return "VWFT_PRINCIPAL_STRESS" ;
+            case VWFT_STRAIN_AND_STRESS: return "VWFT_STRAIN_AND_STRESS" ;
+            case VWFT_CONCENTRATION: return "VWFT_CONCENTRATION" ;
+            case VWFT_GRADIENT: return "VWFT_GRADIENT" ;
+            case VWFT_FLUX: return "VWFT_FLUX" ;
+            case VWFT_GRADIENT_AND_FLUX: return "VWFT_GRADIENT_AND_FLUX" ;
+            case VWFT_VON_MISES: return "VWFT_VON_MISES" ;
+            case VWFT_ENRICHEMENT: return "VWFT_ENRICHEMENT" ;
+            case VWFT_DAMAGE: return "VWFT_DAMAGE" ;
         }
-        return "false" ;
-    }
-   
-    // parsed from header file: ../utilities/granulo.h
-    static TypeInclusion getTypeInclusion(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "CIRCLE_INCLUSION") { return CIRCLE_INCLUSION ; }
-        if( type == "SPHERE_INCLUSION") { return SPHERE_INCLUSION ; }
-        if( type == "ELLIPSE_INCLUSION") { return ELLIPSE_INCLUSION ; }
-        if(ok) { *ok = false ; }
-        return CIRCLE_INCLUSION ;
-    }
-    static std::string fromTypeInclusion(TypeInclusion value)
-    {
-        switch(value)
-        {
-            case CIRCLE_INCLUSION: return "CIRCLE_INCLUSION" ;
-            case SPHERE_INCLUSION: return "SPHERE_INCLUSION" ;
-            case ELLIPSE_INCLUSION: return "ELLIPSE_INCLUSION" ;
-        }
-        return "CIRCLE_INCLUSION" ;
-    }
-   
-    // parsed from header file: ../utilities/granulo.h
-    static PSDSpecificationType getPSDSpecificationType(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "CUMULATIVE_PERCENT") { return CUMULATIVE_PERCENT ; }
-        if( type == "CUMULATIVE_FRACTION") { return CUMULATIVE_FRACTION ; }
-        if( type == "CUMULATIVE_ABSOLUTE") { return CUMULATIVE_ABSOLUTE ; }
-        if( type == "CUMULATIVE_PERCENT_REVERSE") { return CUMULATIVE_PERCENT_REVERSE ; }
-        if( type == "CUMULATIVE_FRACTION_REVERSE") { return CUMULATIVE_FRACTION_REVERSE ; }
-        if( type == "CUMULATIVE_ABSOLUTE_REVERSE") { return CUMULATIVE_ABSOLUTE_REVERSE ; }
-        if(ok) { *ok = false ; }
-        return CUMULATIVE_PERCENT ;
-    }
-    static std::string fromPSDSpecificationType(PSDSpecificationType value)
-    {
-        switch(value)
-        {
-            case CUMULATIVE_PERCENT: return "CUMULATIVE_PERCENT" ;
-            case CUMULATIVE_FRACTION: return "CUMULATIVE_FRACTION" ;
-            case CUMULATIVE_ABSOLUTE: return "CUMULATIVE_ABSOLUTE" ;
-            case CUMULATIVE_PERCENT_REVERSE: return "CUMULATIVE_PERCENT_REVERSE" ;
-            case CUMULATIVE_FRACTION_REVERSE: return "CUMULATIVE_FRACTION_REVERSE" ;
-            case CUMULATIVE_ABSOLUTE_REVERSE: return "CUMULATIVE_ABSOLUTE_REVERSE" ;
-        }
-        return "CUMULATIVE_PERCENT" ;
-    }
-   
-    // parsed from header file: ../utilities/tensor.h
-    static planeType getplaneType(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "PLANE_STRESS") { return PLANE_STRESS ; }
-        if( type == "PLANE_STRAIN") { return PLANE_STRAIN ; }
-        if( type == "PLANE_STRESS_FREE_G") { return PLANE_STRESS_FREE_G ; }
-        if(ok) { *ok = false ; }
-        return PLANE_STRESS ;
-    }
-    static std::string fromplaneType(planeType value)
-    {
-        switch(value)
-        {
-            case PLANE_STRESS: return "PLANE_STRESS" ;
-            case PLANE_STRAIN: return "PLANE_STRAIN" ;
-            case PLANE_STRESS_FREE_G: return "PLANE_STRESS_FREE_G" ;
-        }
-        return "PLANE_STRESS" ;
+        return "VWFT_PRINCIPAL_ANGLE" ;
     }
    
 

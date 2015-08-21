@@ -83,7 +83,7 @@ public:
 
 /*PARSE SpaceTimeNonLocalLinearSofteningMaximumStrain FractureCriterion --has-reset
     @value[tensile_strain] // strain at the peak in tension
-    @value[tensile_stress] // stress at the peak in tension
+    @value[tensile_strength] // stress at the peak in tension
     @value[tensile_ultimate_strain] // maximum strain in tension
 */
 class SpaceTimeNonLocalLinearSofteningMaximumStrain : public SpaceTimeNonLocalMaximumStrain
@@ -96,7 +96,7 @@ public:
 	
 	SpaceTimeNonLocalLinearSofteningMaximumStrain(double up, double mstr, double lim, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) : SpaceTimeNonLocalMaximumStrain(up, mirroring, delta_x, delta_y, delta_z),yieldstrain(lim),maxstress(mstr) { } ;
 
-	void reset(double up, double mstr, double lim) { upVal = up, maxstress = mstr, yieldstrain = lim ; }
+	void reset(double up, double mstr, double lim) { upVal = up; maxstress = mstr; yieldstrain = lim ; }
 
 	virtual ~SpaceTimeNonLocalLinearSofteningMaximumStrain() { } ;
 
@@ -109,7 +109,7 @@ public:
 };
 
 /*PARSE SpaceTimeNonLocalMaximumStress FractureCriterion
-    @value[tensile_stress] // stress at the peak in tension
+    @value[tensile_strength] // stress at the peak in tension
 */
 class SpaceTimeNonLocalMaximumStress : public MaximumStrain
 {
