@@ -576,16 +576,19 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( imposed, shapeFunctions[j], gp, Jinv, v, true, Vector() ) ;
 
-                Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
-                if ( visc && visc->model > KELVIN_VOIGT )
+                if(v.size() == 3)
                 {
-                    a->addForceToExternalForces ( 0, forces[0], id[idit] ) ;
-                    a->addForceToExternalForces ( 1, forces[1], id[idit] ) ;
-                    for ( int b = 1 ; b < visc->blocks ;  b++ )
+                    Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
+                    if ( visc && visc->model > KELVIN_VOIGT )
                     {
-                        a->addForceToExternalForces ( 2*b, -forces[0], id[idit] ) ;
-                        a->addForceToExternalForces ( 2*b+1, -forces[1], id[idit] ) ;
-                    }
+                        a->addForceToExternalForces ( 0, forces[0], id[idit] ) ;
+                        a->addForceToExternalForces ( 1, forces[1], id[idit] ) ;
+                        for ( int b = 1 ; b < visc->blocks ;  b++ )
+                        {
+                            a->addForceToExternalForces ( 2*b, -forces[0], id[idit] ) ;
+                            a->addForceToExternalForces ( 2*b+1, -forces[1], id[idit] ) ;
+                        }
+                    } 
                 } else {
 
                     a->addForceOn ( XI, forces[0], id[idit] ) ;
@@ -643,16 +646,89 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( imposed, shapeFunctions[j], gp, Jinv, v, true, Vector() ) ;
 
-                Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
-                if ( visc && visc->model > KELVIN_VOIGT )
+                if(v.size() == 3)
                 {
-                    a->addForceToExternalForces ( 0, forces[0], id[idit] ) ;
-                    a->addForceToExternalForces ( 1, forces[1], id[idit] ) ;
-                    for ( int b = 1 ; b < visc->blocks ;  b++ )
+                    Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
+                    if ( visc && visc->model > KELVIN_VOIGT )
                     {
-                        a->addForceToExternalForces ( 2*b, -forces[0], id[idit] ) ;
-                        a->addForceToExternalForces ( 2*b+1, -forces[1], id[idit] ) ;
+                        a->addForceToExternalForces ( 0, forces[0], id[idit] ) ;
+                        a->addForceToExternalForces ( 1, forces[1], id[idit] ) ;
+                        for ( int b = 1 ; b < visc->blocks ;  b++ )
+                        {
+                            a->addForceToExternalForces ( 2*b, -forces[0], id[idit] ) ;
+                            a->addForceToExternalForces ( 2*b+1, -forces[1], id[idit] ) ;
+                        }
+                    } 
+                } else {
+
+                    a->addForceOn ( XI, forces[0], id[idit] ) ;
+                    a->addForceOn ( ETA, forces[1], id[idit] ) ;
+                }
+
+            }
+
+            return ;
+        }
+
+        case SET_VOLUMIC_STRESS_XI_ETA:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            std::vector<Function> shapeFunctions ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+                {
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
+                    {
+                        shapeFunctions.push_back ( Function(e->getShapeFunction ( i ), 2) ) ;
                     }
+                }
+                for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+                {
+                    if ( (int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    {
+                        shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
+                    }
+                }
+
+            }
+
+            std::vector<Variable> v ( 2 ) ;
+
+            v[0] = XI ;
+            v[1] = ETA ;
+            if ( e->getOrder() >= CONSTANT_TIME_LINEAR )
+            {
+                v.push_back ( TIME_VARIABLE ) ;
+            }
+
+            Vector imposed ( 3 ) ;
+            imposed[0] = 0 ;
+            imposed[1] = 0 ;
+            imposed[2] = data ;
+
+            for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
+            {
+                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( imposed, shapeFunctions[j], gp, Jinv, v, true, Vector() ) ;
+
+                if(v.size() == 3)
+                {
+                    Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
+                    if ( visc && visc->model > KELVIN_VOIGT )
+                    {
+                        a->addForceToExternalForces ( 0, forces[0], id[idit] ) ;
+                        a->addForceToExternalForces ( 1, forces[1], id[idit] ) ;
+                        for ( int b = 1 ; b < visc->blocks ;  b++ )
+                        {
+                            a->addForceToExternalForces ( 2*b, -forces[0], id[idit] ) ;
+                            a->addForceToExternalForces ( 2*b+1, -forces[1], id[idit] ) ;
+                        }
+                    } 
                 } else {
 
                     a->addForceOn ( XI, forces[0], id[idit] ) ;

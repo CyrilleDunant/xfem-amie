@@ -670,7 +670,10 @@ public:
                     double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
                     double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
 
-                    coefs[position][iter].push_back ( vm.eval ( smoothing, xx, xy, xz, 0. ) );
+                    if(element->getBehaviour()->fractured())
+                        coefs[position][iter].push_back ( vm.eval ( smoothing, xx, xy, xz, 0. ) );
+                    else
+                        coefs[position][iter].push_back ( 0. );
                 }
 
             }
@@ -970,6 +973,11 @@ public:
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     IntegrableEntity *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
                     
+                    if(ci->getBehaviour()->fractured())
+                        continue ;
+                    if(ci->getBehaviour()->getSource() != e->getBehaviour()->getSource())
+                        continue ;
+                    
                     double v = 0; 
                     if(restrict.empty() || e != ci )
                         v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
@@ -1166,6 +1174,8 @@ public:
 
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     IntegrableEntity *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
+                    if(ci->getBehaviour()->fractured())
+                        continue ;
                     if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
                        
                         double v = 0; 
@@ -1412,6 +1422,8 @@ public:
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
+               if(ci->getBehaviour()->fractured())
+                        continue ;
                 double v = ci->getState().getAverageField ( f0, buffer, &vm, dummy, t, coefs[cacheID][i] );
                 if ( !first.size() ) {
                     first.resize ( 0., buffer.size() );
@@ -1421,6 +1433,8 @@ public:
             }
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
+                if(ci->getBehaviour()->fractured())
+                        continue ;                    
                 if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
                     double v = ci->getState().getAverageField ( f1, buffer, &vm, dummy, t,coefs[cacheID][i] );
                     if ( !second.size() ) {

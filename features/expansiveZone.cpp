@@ -105,11 +105,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 
     for( size_t i = 0 ; i < ring.size() ; i++ )
     {
-        if(ring[i]->getBehaviour()->getFractureCriterion())
-        {
-                ring[i]->getSubTriangulatedGaussPoints() ;
-                ring[i]->getBehaviour()->getFractureCriterion()->setRestriction(getPrimitive(),ring[i]->getState()) ;
-        }
+
         if( bimateralInterfaced.find( ring[i] ) == bimateralInterfaced.end() )
         {            
 
@@ -118,27 +114,28 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
             if( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() ) )
             {
                 Matrix p = dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->getOriginalBehaviour()->getTensor(Point(1./3, 1./3)) ;
-                bi = new BimaterialInterface( EnrichmentInclusion::getPrimitive(),
+                bi = new BimaterialInterface( getPrimitive(),
                                               getBehaviour()->getCopy(),
                                               dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->getOriginalBehaviour()->getCopy() ) ;
             }
             else
             {
-                bi = new BimaterialInterface( EnrichmentInclusion::getPrimitive(),
+                bi = new BimaterialInterface( getPrimitive(),
                                               getBehaviour()->getCopy(),
                                               ring[i]->getBehaviour()->getCopy() ) ;
             }
 
-            const Geometry * src =  ring[i]->getBehaviour()->getSource() ;
-//             if(bi->getDamageModel())
-//             {
-//                 bi->getDamageModel()->setResidualStiffnessFraction(.1);
-//                 bi->getDamageModel()->setThresholdDamageDensity(.9);
-//             }
+             const Geometry * src =  ring[i]->getBehaviour()->getSource() ;
+
             ring[i]->setBehaviour( dtree, bi ) ;
 
             bi->transform( ring[i] ) ;
             bi->setSource( src );
+        }
+        if(ring[i]->getBehaviour()->getFractureCriterion())
+        {
+                ring[i]->getElementaryMatrix() ;
+                ring[i]->getBehaviour()->getFractureCriterion()->setRestriction(getPrimitive(),ring[i]->getState()) ;
         }
 
 

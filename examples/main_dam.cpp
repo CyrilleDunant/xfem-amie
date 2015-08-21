@@ -39,16 +39,16 @@ void step(FeatureTree * featureTree)
         Vector tmp(3) ;
         double size = 350 ;
 
-        for(double z = -size*.5 ;  z <= size*.5 ; z += 1)
+        for(double z = -size*.5 ;  z <= size*.5 ; z += .5)
         {
-            for(double y = -size*.5 ;  y <= size*.5 ; y += 1)
+            for(double y = -size*.5 ;  y <= size*.5 ; y += .5)
             {
                 featureTree->get3DMesh()->getField(PRINCIPAL_REAL_STRESS_FIELD, Point(0,y,z),tmp) ;
                     std::cout <<  tmp[0]<< "  "<< std::flush ;
             }
             std::cout << std::endl ;
         }
-        
+/*        
         for(double z = -size*.5 ;  z <= size*.5 ; z += 1)
         {
             for(double y = -size*.5 ;  y <= size*.5 ; y += 1)
@@ -57,10 +57,10 @@ void step(FeatureTree * featureTree)
                     std::cout <<  tmp[1]<< "  "<< std::flush ;
             }
             std::cout << std::endl ;
-        }
-        for(double z = -size*.5 ;  z <= size*.5 ; z += 1)
+        }*/
+        for(double z = -size*.5 ;  z <= size*.5 ; z += .5)
         {
-            for(double y = -size*.5 ;  y <= size*.5 ; y += 1)
+            for(double y = -size*.5 ;  y <= size*.5 ; y += .5)
             {
                 featureTree->get3DMesh()->getField(PRINCIPAL_REAL_STRESS_FIELD, Point(0,y,z),tmp) ;
                     std::cout <<  tmp[2]<< "  "<< std::flush ;
@@ -71,7 +71,7 @@ void step(FeatureTree * featureTree)
 //         VoxelWriter vw1("stiffness", 50) ;
 //         vw1.getField(featureTree, VWFT_STIFFNESS) ;
 //         vw1.write();
-//         exit(0) ;
+        exit(0) ;
 
         if(i == 0)
         {
@@ -191,8 +191,8 @@ int main(int argc, char *argv[])
     std::valarray<Point *> groundProfile(8) ;  
     groundProfile[0] = new Point( -130,160 ) ;
     groundProfile[1] = new Point( -90, 160 ) ;
-    groundProfile[2] = new Point( -90 , 50 ) ;
-    groundProfile[3] = new Point( 90 , 50 ) ;
+    groundProfile[2] = new Point( -90 , 55 ) ;
+    groundProfile[3] = new Point( 90 , 55 ) ;
     groundProfile[4] = new Point( 90 ,160 ) ;
     groundProfile[5] = new Point( 130 ,160 ) ;
     groundProfile[6] = new Point( 130 ,0 ) ;
@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
     F.addFeature(&samplers, &ground) ;
     F.addFeature(&ground, &dam) ;
 //         F.addFeature(&samplers, &dam) ;
-//     F.setSamplingFactor(&ground, 4);
+    F.setSamplingFactor(&ground, 2);
 
     F.setDeltaTime(1.);
 //     F.addFeature(&dam, &gallery0) ;
@@ -223,16 +223,16 @@ int main(int argc, char *argv[])
     F.setPartition(1);
 
     //fixed at the bottom
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, RIGHT)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, LEFT)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, BOTTOM)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, TOP)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, BACK)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
 
-    //water load
-    waterload = new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_NORMAL_STRESS, dam.getPrimitive(), Point(0,1,0) , Function("-9810 z 30 -  *")*f_negativity(Function("z 30 -")) ) ;
+//     //water load
+    waterload = new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_NORMAL_STRESS, dam.getPrimitive(), Point(0,1,0) , Function("9810 30 z -  *")*f_negativity(Function("z 30 -")) ) ;
     F.addBoundaryCondition(waterload) ;
-    
+//     
     //selfweight
     F.addBoundaryCondition(new GlobalBoundaryCondition( SET_VOLUMIC_STRESS_ZETA, -23544 ) );
     

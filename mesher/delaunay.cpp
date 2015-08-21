@@ -2771,7 +2771,7 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
     return to_add ;
 }
 
-std::vector<std::pair<Point, double> > monteCarloGaussPoints(int nPoints, DelaunayTriangle *t)
+std::vector<std::pair<Point, double> > monteCarloGaussPoints(int nPoints, DelaunayTriangle *t, double fact  =1)
 {
         std::vector<std::pair<Point, double> > gp_alternative ;
         TriElement father(LINEAR) ;
@@ -2790,7 +2790,7 @@ std::vector<std::pair<Point, double> > monteCarloGaussPoints(int nPoints, Delaun
         }
 
         for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
-            gp_alternative[i].second = 2.*t->area()/gp_alternative.size() ;
+            gp_alternative[i].second = fact*t->area()/gp_alternative.size() ;
         
         return gp_alternative ;
 }
@@ -2897,7 +2897,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 return *getCachedGaussPoints() ;
             }
 
-
+            const Geometry * enrs = enrichmentSource[0] ;
             VirtualMachine vm ;
             std::vector<Point *> to_add = getIntegrationHints();
             std::vector<Point *> pointsToCleanup = to_add;
@@ -2905,7 +2905,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             std::vector<DelaunayTriangle *> tri ;
 
             DelaunayTree * dt = new DelaunayTree(to_add[0], to_add[1], to_add[2]) ;
-            TriElement f(LINEAR) ;
+            TriElement f(QUADRATIC) ;
             if(to_add.size() > 4)
                 std::random_shuffle(to_add.begin()+3, to_add.end()) ;
 
@@ -2914,41 +2914,67 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 dt->insert(to_add[i]) ;
             }
 
-            dt->setElementOrder(LINEAR); 
+            dt->setElementOrder(QUADRATIC); 
             dt->refresh(&f);
             tri = dt->getTriangles() ;
                     
-            double jac = area()*2. ;
+//             double jac = area() ;
+            
+            double in = 0 ;
+            double out = 0 ;
+            
+            Function gx = getXTransform() ;
+            Function gy = getYTransform() ;
             
             for(size_t i = 0 ; i < tri.size() ; i++)
             {
+                
                 Function x = tri[i]->getXTransform() ;
                 Function y = tri[i]->getYTransform() ;
                
-                GaussPointArray gp_temp(monteCarloGaussPoints(64, tri[i])) ;
+//                 GaussPointArray gp_temp(monteCarloGaussPoints(256, tri[i])) ;
+                
+                GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 
                 for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
                 {
                     gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first)) ;
-                    gp_temp.gaussPoints[j].second *= jac ;
+                    if(enrs->in(Point(vm.eval(gx,gp_temp.gaussPoints[j].first), vm.eval(gy,gp_temp.gaussPoints[j].first))))
+                        in += gp_temp.gaussPoints[j].second ;
+                    else
+                        out += gp_temp.gaussPoints[j].second ;
                     gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
                 }
             }
-
+            
+            if(tri.size() == 0 || getEnrichmentFunctions().size() > 3)
+                gp_alternative = monteCarloGaussPoints(256, this) ;
+            
             double fsum = 0. ;
             for(size_t i = 0 ; i < gp_alternative.size() ; i++)
                 fsum += gp_alternative[i].second ;
 
-            double originalSum = jac ;
+            double originalSum = area() ;
 //             for(auto & i : getGaussPoints().gaussPoints)
 //                 originalSum += i.second ;
 
             for(size_t i = 0 ; i < gp_alternative.size() ; i++)
                 gp_alternative[i].second *= originalSum / fsum ;
 
+//             if(in/out < .1)
+//             {
+//                 for(size_t j = 0 ; j < gp_alternative.size() ; j++)
+//                     gp_alternative[j].second *= sqrt(out/in) ;
+//             }
             
-            if(tri.size() == 0)
-                gp_alternative = monteCarloGaussPoints(1024, this) ;
+//             if(in/out < .1)
+//             {
+// //                 std::cerr << in/out << std::endl ;
+//                 for(size_t i = 0 ; i < gp_alternative.size() ; i++)
+// //                     if(enrs->in(Point(vm.eval(gx,gp_alternative[i].first), vm.eval(gy,gp_alternative[i].first))))
+//                         gp_alternative[i].second *= .5 ;
+// //                 gp_alternative = monteCarloGaussPoints(1024, this, .5) ;
+//             }
 
             delete dt ;
 

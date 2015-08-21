@@ -19,7 +19,7 @@ FiberBasedIsotropicLinearDamage::FiberBasedIsotropicLinearDamage(double f, doubl
     alt = false ;
     thresholdDamageDensity = c ;
     getState(true).resize(1, 0.);
-    residualStiffnessFraction = 1e-4 ;
+    residualStiffnessFraction = 1e-2 ;
     isNull = false ;
 }
 
@@ -84,7 +84,7 @@ void FiberBasedIsotropicLinearDamage::step( ElementState &s , double maxscore)
         for(size_t i = 0 ; i < state.size() ; i++)
         {
             if(state[i] > 1)
-                state[i] = 1. ;
+                state[i] = std::min(thresholdDamageDensity+POINT_TOLERANCE, 1.) ;
         }
         change = true ;
     }

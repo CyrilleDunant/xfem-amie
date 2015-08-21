@@ -25,7 +25,7 @@ using namespace Amie ;
 StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit, DamageModel * d) : LinearForm(rig, false, true, rig.numRows()/3+1)
 {
     if(!d)
-        dfunc = new /*NonLocal*/FiberBasedIsotropicLinearDamage() ;
+        dfunc = new FiberBasedIsotropicLinearDamage() ;
     else
         dfunc = d ;
     criterion = crit ;
@@ -42,7 +42,7 @@ StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion
 StiffnessAndFracture::StiffnessAndFracture(double E, double nu, FractureCriterion * crit, DamageModel * d, SpaceDimensionality dim, planeType pt) : LinearForm(Tensor::cauchyGreen(E, nu, true, dim, pt), false, true, dim)
 {
     if(!d)
-        dfunc = new /*NonLocal*/FiberBasedIsotropicLinearDamage() ;
+        dfunc = new FiberBasedIsotropicLinearDamage() ;
     else
         dfunc = d ;
     criterion = crit ;

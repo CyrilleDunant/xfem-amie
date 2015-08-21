@@ -43,6 +43,7 @@ size_t fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t bl
     case STRAIN_RATE_FIELD:
     case MECHANICAL_STRAIN_FIELD:
     case EFFECTIVE_STRESS_FIELD:
+    case IMPOSED_STRESS_FIELD:    
     case REAL_STRESS_FIELD:
     case NON_ENRICHED_STRAIN_FIELD:
     case NON_ENRICHED_STRAIN_RATE_FIELD:
@@ -246,9 +247,9 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
 
     int JinvSize = 3 ;
     if ( spaceDimensions() == SPACE_THREE_DIMENSIONAL && timePlanes() > 1 )
-	JinvSize = 4 ;
+        JinvSize = 4 ;
     if ( spaceDimensions() == SPACE_TWO_DIMENSIONAL && timePlanes() == 1 )
-	JinvSize = 2 ;
+        JinvSize = 2 ;
     std::valarray<Matrix> Jinv ( (bool) getState().JinvCache ? (*getState().JinvCache) : Matrix( JinvSize, JinvSize ),  getGaussPoints().gaussPoints.size()) ;
 
     if( ! getState().JinvCache )
@@ -1059,7 +1060,6 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             return ;
         }
         
-        Vector delta(0., 3) ;
 //         if(parent->getEnrichmentFunctions().size())
 //         {
 //             Vector ret2(ret) ;
@@ -1068,7 +1068,38 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
 //             delta = ret2-ret ;
 //         }
 //         
+//         Vector str(ret) ;
+//         for(size_t i = 0 ; i < 8 ; i++)
+//         {
+//             Point dt((double)rand()/RAND_MAX-.5, (double)rand()/RAND_MAX-.5,(double)rand()/RAND_MAX-.5) ;
+//             dt *= .1;
+//             ret += (( Vector ) ( parent->getBehaviour()->getTensor ( *p_+dt, parent ) * str ) - parent->getBehaviour()->getImposedStress ( *p_+dt, parent ))*.125 ;
+//         }
         ret = ( Vector ) ( parent->getBehaviour()->getTensor ( *p_, parent ) * ret ) - parent->getBehaviour()->getImposedStress ( *p_, parent ) ;
+
+        if ( cleanup )
+        {
+            delete vm ;
+        }
+        if(cleanupp)
+            delete p_ ;
+        return ;
+    }
+    case IMPOSED_STRESS_FIELD:
+    {
+        if ( parent->getBehaviour()->getTensor ( *p_, parent ).numCols() != ret.size() )
+        {
+            ret = 0 ;
+            if ( cleanup )
+            {
+                delete vm ;
+            }
+            if(cleanupp)
+                delete p_ ;
+            return ;
+        }
+
+        ret = parent->getBehaviour()->getImposedStress ( *p_, parent ) ;
 
         if ( cleanup )
         {

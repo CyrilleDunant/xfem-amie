@@ -24,6 +24,7 @@ namespace Amie
     {
     protected:
         std::vector<std::pair<ExpansiveZone *, Feature *> > zones ;
+        int iterationCounter ;
         double deltaRadius ;
         double reactedArea ;
         double aggregateArea ;

@@ -111,7 +111,6 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
     double maxStress = stress.max() ;
     double minStress = stress.min() ;
 
-//  std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
     metInTension = false ;
     metInCompression = false ;
     metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
@@ -164,47 +163,36 @@ double SpaceTimeNonLocalMohrCoulomb::grade( ElementState &s)
 double SpaceTimeNonLocalMohrCoulomb::gradeAtTime( ElementState &s, double t )
 {
 
-      if( s.getParent()->getBehaviour()->fractured() )
+    if( s.getParent()->getBehaviour()->fractured() )
         return -1 ;
 
-    std::pair<Vector, Vector> pstressStrain( getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s, t)) ;
-    Vector pstress = pstressStrain.first ;
-    Vector pstrain = pstressStrain.second ;
+    Vector pstress( getSmoothedField(PRINCIPAL_REAL_STRESS_FIELD, s, t)) ;
     double maxStress = pstress.max() ;
     double minStress = pstress.min() ;
-//     double maxStrain = pstrain.max() ;
-//     double minStrain = pstrain.min() ;
 
-//  std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
     metInTension = false ;
     metInCompression = false ;
     metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
     metInTension = std::abs( minStress / downVal ) < std::abs( maxStress / upVal ) ;
 
-//  double effectiveStiffness = stiffness ;
-//  if(s.getParent()->getBehaviour()->getDamageModel())
-//      effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
-
-    double  upStrain = upVal ;///effectiveStiffness ;
-    double  downStrain = downVal ;///effectiveStiffness ;
     std::vector<double> scores ;
     scores.push_back(-1);
-    if( maxStress >= upStrain*stiffness && maxStress > 0 )
+    if( maxStress >= upVal && maxStress > 0 )
     {
         metInTension = true;
-        scores.push_back(1. - std::abs( upStrain*stiffness / maxStress ));
+        scores.push_back(1. - std::abs( upVal / maxStress ));
     }
     else if(maxStress > 0)
-        scores.push_back(-1. + std::abs( maxStress / (upStrain*stiffness) ));
+        scores.push_back(-1. + std::abs( maxStress / upVal ));
 
-    if( minStress <= downStrain*stiffness && minStress < 0 )
+    if( minStress <= downVal && minStress < 0 )
     {
         metInCompression = true ;
-        scores.push_back(1. - std::abs( downStrain*stiffness / minStress )) ;
+        scores.push_back(1. - std::abs( downVal / minStress )) ;
     }
     else if(minStress < 0 )
     {
-        scores.push_back(-1. + std::abs( minStress / (downStrain*stiffness) )) ;
+        scores.push_back(-1. + std::abs( minStress / downVal )) ;
     }
     std::sort(scores.begin(), scores.end()) ;
 
@@ -235,7 +223,7 @@ NonLocalLinearlyDecreasingMohrCoulomb::~NonLocalLinearlyDecreasingMohrCoulomb()
 double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
 {
 
-    if( s.getParent()->getBehaviour()->fractured() )
+    if( s.getParent()->getBehaviour()->getDamageModel()->fractured() )
         return -1 ;
 
     std::pair<Vector, Vector> pstressStrain( getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s)) ;
@@ -245,75 +233,61 @@ double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
     double minStress = pstress.min() ;
     double maxStrain = pstrain.max() ;
     double minStrain = pstrain.min() ;
-
-// 	std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
+    
     metInTension = false ;
     metInCompression = false ;
     metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
     metInTension = std::abs( minStress / downVal ) < std::abs( maxStress / upVal ) ;
+    double us = upVal/stiffness ;
+    double ds = downVal/stiffness ;
+    
+    if(maxStrain < us)
+        return std::abs(stiffness*maxStrain/upVal)-1. ;
+    
+    double tfactor = std::max(1.-std::abs((maxStrain-us)/(limittstrain-us)),0.) ;
+    double cfactor = std::max(1.-std::abs((-minStrain+ds)/(-limitcstrain+ds)), 0.) ;
 
-//     double d = s.getParent()->getBehaviour()->getDamageModel()->getState().max() ;
-//     if(1.-d < POINT_TOLERANCE)
+    double  upStress = tfactor*upVal +0.01e6;
+//     if(maxStress/upStress > 2)
 //     {
-//         double c0 = std::abs(maxStress/upVal) ;
-//         double c1 = std::abs(minStress/downVal) ;
-//         return std::max(c0, c1) ;
+//         std::cout << s.getParent()->getBehaviour()->getDamageModel()->getState().max() << std::endl ;
 //     }
-// 
-//     double effMaxStress = std::max(limittstrain/(limittstrain-upVal/stiffness-1./(stiffness*(1.-d))), 0.) ;
-//     double effMinStress = std::max(std::abs(limitcstrain)/(std::abs(limitcstrain)-std::abs(downVal)/stiffness-1./(stiffness*(1.-d))), 0.) ;
-// 
-//     double c0 = std::abs(maxStress/upVal)-effMaxStress ;
-//     double c1 = std::abs(minStress/downVal)-effMinStress ;
-//     return std::max(c0, c1) ;
+    
+    if(upStress < POINT_TOLERANCE)
+    {
+        if(maxStress < 1e-3*upVal)
+            return -1 ;
+        metInTension = true;
+        metInCompression = false ;
+        return  maxStress/upVal ;
+    }
 
-    double effectiveStiffness = stiffness ;
-    if(s.getParent()->getBehaviour()->getDamageModel())
-        effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+    double  downStress = cfactor*downVal -0.01e6;
+    if(downStress > -POINT_TOLERANCE)
+    {
+       if(minStress > 1e-3*downVal)
+            return -1 ;
+        metInTension = false;
+        metInCompression = true ;
+        return  std::abs(minStress/downVal) ;
+    }
 
-    double tfactor = 1.-(maxStrain-upVal/stiffness)/(limittstrain-upVal/stiffness) ;
-// 	if(maxStrain > limittstrain)
-// 		return POINT_TOLERANCE ;
-// 	if(maxStrain <= upVal/stiffness)
-// 		tfactor = 1 ;
 
-    double cfactor = 1.-(-minStrain+downVal/stiffness)/(-limitcstrain+downVal/stiffness) ;
-// 	if(minStrain < limitcstrain)
-// 		return POINT_TOLERANCE ;
-// 	if(minStrain > downVal/stiffness)
-// 		cfactor = 1 ;
-//
-    double  upStrain = tfactor*upVal/effectiveStiffness ;
-    double  downStrain = cfactor*downVal/effectiveStiffness ;
     std::vector<double> scores ;
     scores.push_back(-1);
-    if( maxStrain >= upStrain && maxStrain > 0 )
+    if( maxStress > 0 )
     {
         metInTension = true;
-        scores.push_back(std::abs( maxStrain / upStrain )-1);
+        scores.push_back(std::abs( maxStress / upStress )-1);
     }
-    else if(maxStrain > 0 && upStrain > POINT_TOLERANCE)
-        scores.push_back(-1. + std::abs( maxStrain / upStrain ));
-    else if(maxStrain > 0)
-        return POINT_TOLERANCE ;
-
-    if( minStrain <= downStrain && minStrain < 0 )
+    else if( minStress < 0 )
     {
         metInCompression = true ;
-        scores.push_back(std::abs( minStrain / downStrain )-1) ;
+        scores.push_back(std::abs( minStress / downStress )-1) ;
     }
-    else if(minStrain < 0  && downStrain < -POINT_TOLERANCE)
-        scores.push_back(-1. + std::abs( minStrain / downStrain )) ;
-    else if(minStrain < 0)
-        return POINT_TOLERANCE ;
 
     std::sort(scores.begin(), scores.end()) ;
-// 	if (scores.back() > .99)
-// 	{
-// 		std::cout << maxStrain << "  " << limittstrain << std::endl ;
-// 		std::cout << scores.back() << std::endl ;
-// 		exit(0) ;
-// 	}
+
     return scores.back() ;
 }
 
@@ -359,51 +333,23 @@ double NonLocalExponentiallyDecreasingMohrCoulomb::grade( ElementState &s )
         effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 
     double tfactor = exp(-(maxStrain-upVal/stiffness)/(limittstrain-upVal/stiffness)) ;
-// 	if(maxStrain > limittstrain)
-// 		return POINT_TOLERANCE ;
-// 	if(tfactor < 1e-1)
-// 		tfactor = 1e-1 ;
+
     if(maxStrain <= upVal/stiffness)
         tfactor = 1 ;
 
-//     double cfactor = exp(-(-minStrain+downVal/stiffness)/(-limitcstrain+downVal/stiffness)) ;
-// 	if(minStrain < limitcstrain)
-// 		return POINT_TOLERANCE ;
-//     if(minStrain > downVal/stiffness)
-//         cfactor = 1 ;
-//
-    double  upStrain = tfactor*upVal/effectiveStiffness ;
-//     double  downStrain = cfactor*downVal/effectiveStiffness ;
+
+    double  upStress = tfactor*upVal ;
     std::vector<double> scores ;
     scores.push_back(-1);
 
-    if( maxStrain >= upStrain && maxStrain > 0 )
+    if( maxStress >= upStress && maxStress > 0 )
     {
         metInTension = true;
-        scores.push_back(1. - std::abs( upStrain / maxStrain ));
+        scores.push_back(std::abs( maxStress/upStress  )-1);
     }
-    else if(maxStrain > 0 && upStrain > POINT_TOLERANCE)
-        scores.push_back(-1. + std::abs( maxStrain / upStrain ));
-    else if(maxStrain > 0)
-        return -POINT_TOLERANCE ;
-
-// 	if( minStrain <= downStrain && minStrain < 0 )
-// 	{
-// 		metInCompression = true ;
-// 		scores.push_back(1. - std::abs( downStrain / minStrain )) ;
-// 	}
-// 	else if(minStrain < 0  && downStrain < -POINT_TOLERANCE)
-// 		scores.push_back(-1. + std::abs( minStrain / downStrain )) ;
-// 	else if(minStrain < 0)
-// 		return POINT_TOLERANCE ;
 
     std::sort(scores.begin(), scores.end()) ;
-// 	if (scores.back() > .99)
-// 	{
-// 		std::cout << maxStrain << "  " << limittstrain << std::endl ;
-// 		std::cout << scores.back() << std::endl ;
-// 		exit(0) ;
-// 	}
+
     return scores.back() ;
 }
 

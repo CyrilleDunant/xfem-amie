@@ -35,7 +35,7 @@ struct ConjugateGradient : public LinearSolver
         if(cleanup) delete P ;
     } ;
     ConjugateGradient(Assembly * a) ;
-    virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-16, const int maxit = -1, bool verbose = false)  ;
+    virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-8, const int maxit = -1, bool verbose = false)  ;
 } ;
 
 }

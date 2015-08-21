@@ -159,18 +159,18 @@ Function EnrichmentInclusion::getBlendingFunction(const std::map<const Point *, 
 
 void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
-    if(cache.empty()) // assume that this is the first step
-    {
-        DelaunayTriangle * tri = dtree->getUniqueConflictingElement(&getCenter()) ;
-        if(getRadius() < tri->getRadius())
-        {
-            std::map<double, Point> pd;
-            pd[dist(*tri->first, getCenter())] = *tri->first ;
-            pd[dist(*tri->second, getCenter())] = *tri->second ;
-            pd[dist(*tri->third, getCenter())] = *tri->third ;
-            setCenter(pd.begin()->second);
-        }
-    }
+     if(cache.empty()) // assume that this is the first step
+     {
+         DelaunayTriangle * tri = dtree->getUniqueConflictingElement(&getCenter()) ;
+         //if(getRadius() < tri->getRadius())
+         //{
+             std::map<double, Point> pd;
+             pd[dist(*tri->first, getCenter())] = *tri->first ;
+             pd[dist(*tri->second, getCenter())] = *tri->second ;
+             pd[dist(*tri->third, getCenter())] = *tri->third ;
+             setCenter(pd.begin()->second);
+         //}
+     }
     freeIds[dtree].clear();
     for(size_t i = 0 ; i < cache.size() ; i++)
     {
@@ -383,69 +383,17 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
             Point linter0 = ring[i]->inLocalCoordinates(inter[0]) ;
             Point linter1 = ring[i]->inLocalCoordinates(inter[1]) ;
 
-            Point h0 = inter[0]*.5+inter[1]*.5 ;
-            project(&h0);
-            hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
-//             h0 = inter[0]*.1+inter[1]*.9 ;
-//             project(&h0);
-//             hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
-//             h0 = inter[0]*.2+inter[1]*.8 ;
-//             project(&h0);
-//             hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
-//             h0 = inter[0]*.3+inter[1]*.7 ;
-//             project(&h0);
-//             hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
-//             h0 = inter[0]*.4+inter[1]*.6 ;
-//             project(&h0);
-//             hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
-//             h0 = inter[0]*.6+inter[1]*.4 ;
-//             project(&h0);
-//             hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
-//             h0 = inter[0]*.7+inter[1]*.3 ;
-//             project(&h0);
-//             hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
-//             h0 = inter[0]*.8+inter[1]*.2 ;
-//             project(&h0);
-//             hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
-//             h0 = inter[0]*.9+inter[1]*.1 ;
-//             project(&h0);
-//             hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
+            double n  = 10 ;
+            for(double j= 1./n ; j < .9999  ; j+=1./n)
+            {
+                Point h0 = inter[0]*j+inter[1]*(1.-j) ;
+                project(&h0);
+                hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
+            }
 
             hint.push_back(linter0) ;
             hint.push_back(linter1) ;     
-            
-//             Point l0 = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(0)) ;
-//             Point l1 = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(1)) ;
-//             Point l2 = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(2)) ;
-// 
-//             double a = ring[i]->area()*2. ;
-//             if(in(ring[i]->getBoundingPoint(0)) == in(ring[i]->getBoundingPoint(1)))
-//             {
-//                 Triangle t0(l0, linter0, linter1) ;
-//                 Triangle t1(l1, l0, linter1) ;
-//                 Triangle t2(l2, linter0, linter1) ;
-//                 hint.push_back(Point(t0.getCenter().getX(),t0.getCenter().getY(), t0.area()*a));
-//                 hint.push_back(Point(t1.getCenter().getX(),t1.getCenter().getY(), t1.area()*a));
-//                 hint.push_back(Point(t2.getCenter().getX(),t2.getCenter().getY(), t2.area()*a));
-//             }
-//             else if(in(ring[i]->getBoundingPoint(0)) == in(ring[i]->getBoundingPoint(2)))
-//             {
-//                 Triangle t0(l0, linter0, linter1) ;
-//                 Triangle t1(l0, l2, linter1) ;
-//                 Triangle t2(l1, linter0, linter1) ;
-//                 hint.push_back(Point(t0.getCenter().getX(),t0.getCenter().getY(), t0.area()*a));
-//                 hint.push_back(Point(t1.getCenter().getX(),t1.getCenter().getY(), t1.area()*a));
-//                 hint.push_back(Point(t2.getCenter().getX(),t2.getCenter().getY(), t2.area()*a));
-//             }
-//             else if(in(ring[i]->getBoundingPoint(1)) == in(ring[i]->getBoundingPoint(2)))
-//             {
-//                 Triangle t0(l1, linter0, linter1) ;
-//                 Triangle t1(l1, l2, linter1) ;
-//                 Triangle t2(l0, linter0, linter1) ;
-//                 hint.push_back(Point(t0.getCenter().getX(),t0.getCenter().getY(), t0.area()*a));
-//                 hint.push_back(Point(t1.getCenter().getX(),t1.getCenter().getY(), t1.area()*a));
-//                 hint.push_back(Point(t2.getCenter().getX(),t2.getCenter().getY(), t2.area()*a));
-//             }
+
         }
 
         Function hat ;

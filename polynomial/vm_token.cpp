@@ -664,55 +664,78 @@ HatEnrichment::HatEnrichment(const Geometry * g , const Point & p, const Segment
 
 void HatEnrichment::eval(double * a, double * b, double * c) const
 {
-    Point position ( *a, *b, 0, p.getT() ) ;
-    Triangle test(p, s.first(), s.second()) ;
-    if(!test.in(position))
+    *c = 0 ;
+    for(size_t i = 0 ; i < 1 ; i++)
     {
-        test.project(&position);
-        position.getId() = -1 ;
-    }
+//         std::cout << *c << "  "<< std::flush ;
+        Point position ( *a, *b, 0, p.getT() ) ;
 
-    if(p == position)
-    {
-       *c = 0 ;
-       return ;
-    }
-    if(s.on(position))
-    {
-       *c = 0 ;
-       return ;
-    }
-    
-    Line l(p, position-p) ;
-    Line ls(s.first(), s.second()-s.first()) ;
-    Point interseg = l.intersection(ls) ;
-    
-    std::vector<Point> intersgeo = l.intersection(g) ;
-    if(intersgeo.size() < 2)
-    {
-        *c = 0 ;
-        return ;
-    }
+        Triangle test(p, s.first(), s.second()) ;
+        if(!test.in(position))
+        {
+            test.project(&position);
+            position.getId() = -1 ;
+        }
 
-    Triangle t(p, s.first(), s.second()) ;
-    Point pmin = intersgeo[0] ;
-    
-    if(squareDist2D(t.getCircumCenter(), pmin) > squareDist2D(t.getCircumCenter(), intersgeo[1]))
-        pmin = intersgeo[1] ;
+//         if(p == position)
+//         {
+//             *c += 0 ;
+//             continue ;
+//         }
+//         if(s.on(position))
+//         {
+//             *c += 0 ;
+//             continue ;
+//         }
+        
+        Line l(p, position-p) ;
+        Line ls(s.first(), s.second()-s.first()) ;
+        Point interseg = l.intersection(ls) ;
+        
+        std::vector<Point> intersgeo = l.intersection(g) ;
+        if(intersgeo.empty())
+        {
+    //         position.print();
+    //         p.print();
+    //         s.print();
+    //         g->getCenter().print();
+    //         std::cout << g->getRadius() << std::endl ;
+    //         exit(0) ;
+            *c += 0 ;
+            continue ;
+        }
 
-    double basis = 1. ;
-    if(g->in(p) == g->in(position))
-    { 
-        double distTotPoint = dist(p, pmin);
-        double distPos = dist(position, p) ;
-        *c = basis*distPos/distTotPoint ;
-        return ;
+        Triangle t(p, s.first(), s.second()) ;
+        Point pmin = intersgeo[0] ;
+        
+        if(intersgeo.size() >1 && squareDist2D(t.getCircumCenter(), pmin) > squareDist2D(t.getCircumCenter(), intersgeo[1]))
+            pmin = intersgeo[1] ;
+
+        if(g->in(p) == g->in(position))
+        { 
+            double distTotPoint = dist(p, pmin);
+            double distPos = dist(position, p) ;
+            
+//             if(distTotPoint < 20.*default_derivation_delta)
+//                 *c += .5 ;
+            *c += std::min(distPos/distTotPoint, 1.) ;
+            if(distTotPoint < POINT_TOLERANCE)
+                *c = 0 ;
+            continue ;
+        }
+        
+        double distTotSeg = dist(interseg, pmin);   
+        double distPos = dist(position, interseg) ;
+
+//         if(distTotSeg < 20.*default_derivation_delta)
+//             *c += .5 ;
+        *c += std::min(distPos/distTotSeg, 1.) ;
+        if(distTotSeg < POINT_TOLERANCE)
+            *c = 0 ;
     }
+//      std::cout << *c << std::endl ;
+//     *c *= .125 ;
     
-    double distTotSeg = dist(interseg, pmin);   
-    double distPos = dist(position, interseg) ;
-    
-    *c = basis*distPos/distTotSeg ;
 }
 
 GeometryOperation * HatEnrichment::getCopy() const 
@@ -732,12 +755,7 @@ void HatEnrichmentDerivative::eval(double * a, double * b, double * c) const
 {
  
     Point position ( *a, *b ) ;
-/*    if(g->in(position))
-    {
-        *c = 0 ;
-        return ;
-    }*/
-    
+
     Point positionm(position) ;
     Point positionp(position) ;
     
@@ -761,7 +779,7 @@ void HatEnrichmentDerivative::eval(double * a, double * b, double * c) const
     std::vector<Point> intersgeop = lp.intersection(g) ;
     if( intersgeom.size() < 2 || intersgeop.size() < 2 )
     {
-        *c = 0 ;
+        *c = 1 ;
         return ;
     }
     

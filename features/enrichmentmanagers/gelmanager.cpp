@@ -11,6 +11,7 @@ GelManager::GelManager(FeatureTree * f) : deltaRadius(0), reactedArea(0), aggreg
 
 GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vector<Feature *> & aggregates,double reactiveFraction, double dr, double initialRadius) :deltaRadius(dr), reactedArea(0),aggregateArea(0), reactiveFraction(reactiveFraction), ftree(ftree)
 {
+    iterationCounter = 0 ;
     if(aggregates.empty())
         return ;
     double xmin = aggregates[0]->getCenter().getX()-aggregates[0]->getRadius() ;
@@ -131,7 +132,7 @@ bool GelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTre
 {
     if(dt < POINT_TOLERANCE)
         return false ;
-
+    
     Feature *current = nullptr ;
 
     if( !zones.empty() )

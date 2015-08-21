@@ -53,7 +53,7 @@ void step()
        {
            for(double y = -100 ;  y <= 100 ; y += .5)
            {
-               featureTree->get2DMesh()->getField(DISPLACEMENT_FIELD, Point(x,y),tmp) ;
+               featureTree->get2DMesh()->getField(IMPOSED_STRESS_FIELD, Point(x,y),tmp) ;
                 std::cout << tmp[0] << "  "<< std::flush ;
            }
            std::cout << std::endl ;
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
     int setup = -1 ; //atoi(argv[2]) ;
     int load  = -1 ; //atoi(argv[3]) ;
 
-    samplers.setBehaviour(new ElasticOnlyPasteBehaviour()) ;
+    samplers.setBehaviour(new ElasticOnlyPasteBehaviour(12e9*1e-4)) ;
     ExpansiveZone inc(&samplers , 15, -100, 0,                     new GelBehaviour()) ;
     Inclusion     inc0(&samplers, 15,  0  , 0) ; inc0.setBehaviour(new GelBehaviour()) ;
     Inclusion     inc1(&samplers, 15,  100, 0) ; inc1.setBehaviour(new GelBehaviour()) ;

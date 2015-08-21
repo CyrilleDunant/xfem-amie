@@ -145,8 +145,9 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     double beta = 0 ;
     double lastReset = rho ;
     int resetIncreaseCount = 0 ;
-    while((last_rho*last_rho > std::max(realeps*realeps*err0, realeps*realeps) && nit < Maxit ) || nit < 16)
+    while((sqrt(last_rho) > realeps && nit < Maxit ) || nit < 256)
     {
+//         std::cout << sqrt(last_rho) << "  " << realeps << std::endl ;
 //             if(nit < 256)
         P->precondition(r, z) ;
 //             else
@@ -184,14 +185,14 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             xmin = x ;
         }
 
-        if(nit%256 == 0)
+        if(nit%64 == 0)
         {
             assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
             #pragma omp parallel for schedule(static) if (vsize > 10000)
             for(int i = rowstart ; i < vsize ; i++)
                 r[i] *= -1 ;
         }
-        if( verbose && nit%256 == 0 )
+        if( verbose && nit%64 == 0 )
         {
             if(rho > lastReset)
                 resetIncreaseCount++ ;
@@ -230,7 +231,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
     if(verbose)
     {
-        if(nit <= Maxit && last_rho*last_rho< std::max(realeps*realeps*err0, realeps*realeps))
+        if(nit <= Maxit && sqrt(last_rho)< realeps)
             std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
         else
         {
@@ -239,6 +240,6 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         }
     }
 
-    return nit <= Maxit && last_rho*last_rho < std::max(realeps*realeps*err0, realeps*realeps);
+    return nit <= Maxit && sqrt(last_rho) < realeps;
 }
 

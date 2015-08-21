@@ -4403,6 +4403,7 @@ void FeatureTree::stepXfem()
     if ( solverConvergence )
     {
         std::vector<EnrichmentFeature *> featuresToStep ;
+	if(enrichmentManagers.empty())
         for ( size_t i = 0 ; i < tree.size() ; i++ )
         {
             if ( tree[i]->isEnrichmentFeature )
@@ -5610,7 +5611,7 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
         }
     }
 
-    size_t it = 0 ;
+    int it = 0 ;
     bool needexit = false ;
     do
     {
@@ -5642,6 +5643,7 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
         }
         else
         {
+            it-- ;
             notConvergedCounts++ ;
             if(notConvergedCounts > 8)
                 needexit = true ;
@@ -5659,11 +5661,6 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
             ret = false ;
             needexit = true ;
         }
-
-/*        std::cout << foundCheckPoint << std::endl ;
-        std::cout << enrichmentChange << std::endl ;
-        std::cout << behaviourChanged() << std::endl ;
-        std::cout << needexit << std::endl ;*/
 
     }
     while ( !needexit ) ;
