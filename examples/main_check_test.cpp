@@ -27,7 +27,7 @@
 
 using namespace Amie ;
 
-int getDelta( std::string base, std::string current, double tol )
+int getDelta( std::string base, std::string current, double tol, double ignore )
 {
 	std::fstream bstream ;
 	bstream.open( base.c_str(), std::ios::in ) ;
@@ -52,12 +52,12 @@ int getDelta( std::string base, std::string current, double tol )
 		if(!cstream.eof())
 		{
 			cstream >> cvalue ;
-			if(bvalue > POINT_TOLERANCE)
+			if(std::abs(bvalue) > ignore)
 			{
 				if(std::abs(1.-cvalue/bvalue) > tol)
 					delta++ ;
 			}
-			else if(std::abs(cvalue-bvalue) > tol)
+			else if(std::abs(cvalue-bvalue) > ignore)
 				delta++ ;
 		}
 		else
@@ -78,13 +78,20 @@ int getDelta( std::string base, std::string current, double tol )
 int main(int argc, char *argv[])
 {
 	CommandLineParser parser("Run all tests found in AMIE test base") ;
-	parser.addFlag("--zero", false, "set tolerance to 0") ;
+	parser.addFlag("--zero", false, "set tolerance and thresholds to 0") ;
 	parser.addFlag("--renew-base", false, "renew the base of results") ;
-	parser.addValue("--tolerance", 0.01, "set tolerance for evaluation of test success" ) ;
+	parser.addValue("--tolerance", 0.01, "set relative tolerance for evaluation of test success (default: 0.01)" ) ;
+	parser.addValue("--threshold", 1e-8, "set absolute threshold below which success is not evaluated (default: 1e-8)" ) ;
+	parser.addValue("--timeout", 10, "maximum time (in seconds) spent for each test; use negative values for no time limit (default: 10s)" ) ;
 	parser.parseCommandLine(argc, argv) ;
 	double tol = std::abs(parser.getValue("--tolerance")) ;
+	double thr = std::abs(parser.getValue("--threshold")) ;
+	double timeout = std::abs(parser.getValue("--timeout")) ;
 	if(parser.getFlag("--zero"))
+	{
 		tol = 0 ; 
+		thr = 0 ;
+	}
 
 	bool renew = parser.getFlag("--renew-base") ;
 	if(renew)
@@ -95,6 +102,7 @@ int main(int argc, char *argv[])
 		if(buffer.size() == 0 || buffer == "y" || buffer == "yes" || buffer == "Y" || buffer == "YES")
 		{
 			std::cout << "overriding existing results..." <<std::endl ;
+			timeout = -1 ;
 		}
 		else
 		{
@@ -134,7 +142,10 @@ int main(int argc, char *argv[])
 		gettimeofday ( &time0, nullptr );
 		std::cout << "--------------" << std::endl ;
 		std::cout << "starting test " << exec[i] << std::endl ;
-		std::string command = "./" + exec[i] ;
+		std::string command ;
+		if(timeout > 0)
+			command = "timeout "+itoa(timeout)+" ";
+		command += "./" + exec[i] ;
 		for(int j = 1 ; j < argc ; j++)
 			command += " " + std::string(argv[j]) ;
 		command += " 1>"+exec[i]+".out 2>"+exec[i]+".err" ;
@@ -145,7 +156,7 @@ int main(int argc, char *argv[])
 
 		if(!renew)
 		{
-			int delta = getDelta( "../examples/test/"+exec[i]+"_base", "../examples/test/"+exec[i]+"_current", tol) ;
+			int delta = getDelta( "../examples/test/"+exec[i]+"_base", "../examples/test/"+exec[i]+"_current", tol, thr) ;
 			if(delta == 0 && r == 0)
 				std::cout << "SUCCESS" << std::endl ;
 			else if( r == 0)

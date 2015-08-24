@@ -5216,7 +5216,6 @@ bool FeatureTree::stepElements()
     return stateConverged;
 }
 
-
 void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
 {
     if( !spaceTimeSwitched )

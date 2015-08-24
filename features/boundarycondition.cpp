@@ -589,6 +589,11 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                             a->addForceToExternalForces ( 2*b+1, -forces[1], id[idit] ) ;
                         }
                     } 
+                    else
+                    {
+                        a->addForceToExternalForces ( 0, forces[0], id[idit] ) ;
+                        a->addForceToExternalForces ( 1, forces[1], id[idit] ) ;
+                    }
                 } else {
 
                     a->addForceOn ( XI, forces[0], id[idit] ) ;
@@ -659,6 +664,11 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                             a->addForceToExternalForces ( 2*b+1, -forces[1], id[idit] ) ;
                         }
                     } 
+                    else
+                    {
+                        a->addForceToExternalForces ( 0, forces[0], id[idit] ) ;
+                        a->addForceToExternalForces ( 1, forces[1], id[idit] ) ;
+                    }
                 } else {
 
                     a->addForceOn ( XI, forces[0], id[idit] ) ;
@@ -729,6 +739,11 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                             a->addForceToExternalForces ( 2*b+1, -forces[1], id[idit] ) ;
                         }
                     } 
+                    else
+                    {
+                        a->addForceToExternalForces ( 0, forces[0], id[idit] ) ;
+                        a->addForceToExternalForces ( 1, forces[1], id[idit] ) ;
+                    }
                 } else {
 
                     a->addForceOn ( XI, forces[0], id[idit] ) ;

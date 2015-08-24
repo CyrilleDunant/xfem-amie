@@ -8,13 +8,10 @@
 #include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
 #include "../physics/physics_base.h"
-#include "../physics/kelvinvoight.h"
-#include "../physics/maxwell.h"
 #include "../physics/stiffness.h"
 #include "../physics/dual_behaviour.h"
 #include "../physics/logarithmic_creep.h"
 #include "../physics/logarithmic_creep_with_external_parameters.h"
-#include "../physics/parallel_behaviour.h"
 //#include "../physics/generalized_spacetime_viscoelasticity.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
@@ -39,6 +36,7 @@
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 #include "../utilities/itoa.h"
+#include "../utilities/parser.h"
 #include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include "../physics/fracturecriteria/maxstrain.h"
 
@@ -55,117 +53,64 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
+	CommandLineParser parser("2D viscoelastic simulation") ;
+	parser.addString("--paste-behaviour", "", "path to a *.ini file containing the behaviour of the cement paste") ;
+	parser.addString("--aggregate-behaviour", "", "path to a *.ini file containing the behaviour of the aggregates") ;
+	parser.addValue("--duration", 365, "duration of the creep simulation") ;
+	parser.addValue("--set-delta-time-increment", 0.1, "increases the time step at each step") ;
+	parser.parseCommandLine( argc, argv ) ;
+
+	std::string iniPaste = parser.getString("--paste-behaviour") ;
+	std::string iniAgg = parser.getString("--aggregate-behaviour") ;
+	double maxTime = parser.getValue("--duration") ;
+	double incr = parser.getValue("--set-delta-time-increment") ;
+
 	Sample box(nullptr, 0.08,0.08,0.,0.) ;
-	double rate = atof(argv[1]) ;
 
-	FeatureTree F(&box) ;
-	F.setSamplingNumber(24) ;
-	F.setOrder(LINEAR_TIME_LINEAR) ;
-	double time_step = 0.001 ;
-	F.setDeltaTime(time_step) ;
-	F.setMinDeltaTime(1e-9) ;
-	F.setSamplingRestriction( SAMPLE_RESTRICT_4 ) ;
+	Form * paste = new ViscoElasticOnlyPasteBehaviour() ;
+	if(iniPaste.size() > 0)
+		paste = ConfigParser::getBehaviour( iniPaste, paste, SPACE_TWO_DIMENSIONAL, true ) ;
 
-	LogarithmicCreepWithExternalParameters paste("young_modulus = 16e9, poisson_ratio = 0.3, creep_modulus = 30e9, creep_poisson = 0.3, creep_characteristic_time = 1.") ;
-	LogarithmicCreepWithExternalParameters aggregates("young_modulus = 60e9, poisson_ratio = 0.2") ;
-
-	Sample obox(nullptr, 0.08, 0.08, 0., 0.) ;
-	FeatureTree G(&obox) ;
-	G.setSamplingNumber(24) ;
-	G.setOrder(LINEAR_TIME_LINEAR) ;
-	G.setDeltaTime(time_step) ;
-	G.setMinDeltaTime(1e-9) ;
-	G.setSamplingRestriction( SAMPLE_RESTRICT_4 ) ;
-
-
-	Matrix C = paste.C ;
-	Matrix E = paste.E ;
-	Matrix Cagg = aggregates.C ;
-
-	std::vector<std::pair<Matrix, Matrix> > branches ;
-	for(int i = -2 ; i < 6 ; i++)
-	{
-		double tau = std::pow(10., (double) i) ;
-		std::cout << tau << "\t" << std::exp(-1./tau) << std::endl ;
-		Matrix Ei = E/(log(10)*std::exp(-1./tau)) ;
-		Matrix Zi = Ei*tau ;
-		branches.push_back(std::make_pair(Ei, Zi)) ;
-	}
-
-	Viscoelasticity * vpaste = new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, C, branches) ;
-	Viscoelasticity * vaggregates = new Viscoelasticity( PURE_ELASTICITY, Cagg, 8) ;
-
-	for(size_t i = 0 ; i < 8 ; i++)
-	{
-		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, i*2) ) ;
-		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, i*2+1) ) ;
-	}
-	for(size_t i = 0 ; i < 2 ; i++)
-	{
-		G.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, i*2) ) ;
-		G.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, i*2+1) ) ;
-	}
-
-	box.setBehaviour(&vpaste) ;
-	obox.setBehaviour(&paste) ;
-
-	std::vector<Feature *> finc = PSDGenerator::get2DConcrete( &F, vaggregates, 50, 0.01, 0.00001, new PSDBolomeA()) ; 
-	std::vector<Feature *> ginc = PSDGenerator::get2DConcrete( &G, aggregates, 50, 0.01, 0.00001, new PSDBolomeA()) ; 
-	std::vector<Geometry *> fagg ;
-	std::vector<Geometry *> gagg ;
-	for(size_t i = 0 ; i < finc.size() ; i++)
-	{
-		fagg.push_back(dynamic_cast<Geometry *>(finc[i])) ;
-		gagg.push_back(dynamic_cast<Geometry *>(ginc[i])) ;
-	}
-
-	F.step() ;
-	G.step() ;
-
-	BoundingBoxDefinedBoundaryCondition * strain = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0.004, 1) ;
-	BoundingBoxDefinedBoundaryCondition * gstrain = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0.004, 1) ;
-
-	BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, 1e6) ;
-	BoundingBoxDefinedBoundaryCondition * gstress = new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, 1e6) ;
-
-//	F.addBoundaryCondition( stress ) ;
-//	G.addBoundaryCondition( gstress ) ;
-
-	F.addBoundaryCondition(strain) ;
-	G.addBoundaryCondition(gstrain) ;
-
-	int pasteFIndex = F.get2DMesh()->generateCache( F.getFeature(0)) ;
-	int pasteGIndex = G.get2DMesh()->generateCache( G.getFeature(0)) ;
-	int aggFIndex = F.get2DMesh()->generateCache( fagg ) ;
-	int aggGIndex = G.get2DMesh()->generateCache( gagg ) ;
-
-	std::string outfile = "visco_log_rate_" ;
-	outfile.append(argv[1]) ;
-	outfile.append(".txt") ;
-	std::fstream out ;
-	out.open(outfile.c_str(), std::ios::out) ;
-	out << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << std::endl ;
-
-	double target = 0.0004 ;
-	while(F.getCurrentTime()*rate < target)
-	{
-//		if(time_step < 1.)
-			time_step = target/(rate*100) ;
-//		else
-//			time_step *= 1.001 ;
-		strain->setData( (F.getCurrentTime()+time_step*0.5)*rate ) ;
-		gstrain->setData( (G.getCurrentTime()+time_step*0.5)*rate ) ;
+	Form * aggregate = new ViscoElasticOnlyAggregateBehaviour() ;
+	if(iniAgg.size() > 0)
+		aggregate = ConfigParser::getBehaviour( iniAgg, aggregate, SPACE_TWO_DIMENSIONAL, true ) ;
 	
 
-		F.setDeltaTime( time_step ) ;
+	FeatureTree F(&box) ;
+	box.setBehaviour( paste ) ;
+
+	F.setOrder(LINEAR_TIME_LINEAR) ;
+	F.setSamplingNumber(128) ;
+	F.setDeltaTime(1) ;
+	F.setMinDeltaTime(1e-9) ;
+	F.setSamplingRestriction( 4 ) ;
+
+	std::vector<Feature *> finc = PSDGenerator::get2DConcrete( &F, aggregate, 6000, 0.008, 0.000001, new PSDBolomeA(), new InclusionGenerator(), 6000*10) ; 
+
+	parser.setFeatureTree( &F ) ;
+
+	double d = F.getDeltaTime() ;
+
+	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_XI, BOTTOM_LEFT_AFTER ) ) ;
+	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_ETA, BOTTOM_AFTER ) ) ;
+	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, 1e6 ) ) ;
+
+	while(F.getCurrentTime() < maxTime)
+	{
 		F.step() ;
-		G.setDeltaTime( time_step ) ;
-		G.step() ;
-		std::cout << F.getCurrentTime() << "\t" << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1)[1] << "\t" << G.getAverageField( STRAIN_FIELD, -1, 1.)[1] <<  "\t" << G.getAverageField(REAL_STRESS_FIELD, -1, 1)[1] << "\t" << F.get2DMesh()->getField( REAL_STRESS_FIELD, pasteFIndex, -1., 1.)[1] << "\t" << G.get2DMesh()->getField( REAL_STRESS_FIELD, pasteGIndex, -1., 1.)[1]  << std::endl ;
-		out << F.getCurrentTime() << "\t" << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1)[1] << "\t" << G.getAverageField( STRAIN_FIELD, -1, 1.)[1] <<  "\t" << G.getAverageField(REAL_STRESS_FIELD, -1, 1)[1] << "\t" << F.get2DMesh()->getField( REAL_STRESS_FIELD, pasteFIndex, -1., 1.)[1] << "\t" << G.get2DMesh()->getField( REAL_STRESS_FIELD, pasteGIndex, -1., 1.)[1]  << std::endl ;
+		Vector strain = F.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, -1, 1 ) ;
+		Vector stress = F.getAverageField( REAL_STRESS_FIELD, -1, 1 ) ;
+		std::cout << F.getCurrentTime() << "\t" ;
+		for(size_t j = 0 ; j < strain.size() ; j++)
+			std::cout << strain[j] << "\t" ;
+		for(size_t j = 0 ; j < stress.size() ; j++)
+			std::cout << stress[j] << "\t" ;
+		std::cout << std::endl ;
+
+		d += incr ;
+		F.setDeltaTime( d ) ;
+
 	}
-
-
 	return 0 ;
 }
 

@@ -5,6 +5,7 @@
 //
 
 #include "parser.h"
+#include "enumeration_translator.h"
 #include "../polynomial/vm_function_extra.h"
 #include <sys/stat.h>
 
@@ -405,6 +406,18 @@ int ConfigParser::getIndentLevel( std::string test )
     return i ;
 }
 
+Form * ConfigParser::getBehaviour( std::string filename, Form * def , SpaceDimensionality dim, bool spaceTime) 
+{
+	ConfigTreeItem * cnf = ConfigParser::readFile( filename, nullptr ) ;
+	if(cnf->hasChild("behaviour"))
+	{
+		Form * b = cnf->getChild("behaviour")->getBehaviour(dim, spaceTime) ;
+		if(b)
+			return b ;
+	}
+	return def ;
+}
+
 void ConfigParser::readData()
 {
     ConfigTreeItem * current = trunk ;
@@ -570,13 +583,52 @@ ConfigTreeItem * ConfigParser::readFile(std::string f, ConfigTreeItem * def, boo
     return ret ;
 }
 
+void CommandLineParser::setFeatureTree( FeatureTree * f ) 
+{
+    if(values["--set-sampling-restriction"] > 0)
+        f->setSamplingRestriction( values["--set-sampling-restriction"] ) ;
+    if(values["--set-delta-time"] > 0)
+        f->setDeltaTime( values["--set-delta-time"] ) ;
+    if(values["--set-min-delta-time"] > 0)
+        f->setMinDeltaTime( values["--set-min-delta-time"] ) ;
+    if(values["--set-solver-precision"] > 0)
+        f->setSolverPrecision( values["--set-solver-precision"] ) ;
+    if(values["--set-max-iterations-per-step"] > 0)
+        f->setMaxIterationsPerStep( values["--set-max-iterations-per-step"] ) ;
+    if(values["--set-sampling-number"] > 0)
+        f->setSamplingNumber( values["--set-sampling-number"] ) ;
+    if(strings["--set-order"].size() > 0)
+    {
+        bool ok = false ;
+        Order ord = Enum::getOrder(strings["--set-order"], &ok) ;
+        if(ok)
+            f->setOrder( ord ) ;
+    }
+
+}
+
 CommandLineParser::CommandLineParser(std::string d, bool c, bool f) : description(d), commandLineConfiguration(c), forceUnrecognizedFlags(f)
 {
     addFlag("--help", false, "print help") ;
     addFlag("--version", false, "print current AMIE revision") ;
     addFlag("--no-openmp", false, "disable OpenMP (equivalent to --set-num-threads 1)") ;
     addValue("--set-num-threads", -1, "set the number of threads available for OpenMP") ;
+    addValue("--set-sampling-restriction", -1, "set the number of mesh points below which small inclusions are not meshed") ;
+    addValue("--set-delta-time", -1, "set the time step") ;
+    addValue("--set-min-delta-time", -1, "set the minimum time increment between two damage steps") ;
+    addValue("--set-solver-precision", -1, "set the precision of the conjugate gradient solver") ;
+    addValue("--set-max-iterations-per-step", -1, "set the maximum number of iterations during a damage step") ;
+    addValue("--set-sampling-number", -1, "set the number of points on the edges of the sample") ;
+    addString("--set-order", "", "set the order of the finite elements") ;
 }
+
+void setFeatureTree( FeatureTree * f, int argc, char *argv[], std::string description ) 
+{
+    CommandLineParser parser(description) ;
+    parser.parseCommandLine( argc, argv ) ;
+    parser.setFeatureTree(f) ;
+}
+
 
 void CommandLineParser::parseCommandLine( int argc, char *argv[] )
 {

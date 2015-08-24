@@ -1176,7 +1176,7 @@ int main(int argc, char *argv[])
 	F.setOrder(LINEAR) ;
 //	F.setMaxIterationsPerStep(4000) ;
 	
-	
+
 	std::string hop = "rag_triangle_out_" ;
 	hop.append(std::string(argv[1])) ;
 	std::fstream out ;

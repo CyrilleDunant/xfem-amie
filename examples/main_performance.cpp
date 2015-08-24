@@ -32,9 +32,6 @@ int main( int argc, char *argv[] )
     parser.addFlag("--pores", false, "use empty pores instead of aggregates") ;
     parser.addFlag("--no-export", false, "disable export of the triangles" ) ;
     parser.addFlag("--mesh-only", false, "stop simulation after meshing" ) ;
-    parser.addValue("--sampling-number", 1600, "number of sampling points on the boundaries of the domain (default: 1600)" ) ;
-    parser.addValue("--max-iterations", 1000, "maximum number of iterations of the damage algorithm (default: 1000)" ) ;
-    parser.addValue("--solver-precision", -1, "set the precision of the solver" ) ;
     parser.addString("--export-file", std::string(), "name of the file to export the triangles (auto-generated if not specified)" ) ;
     parser.parseCommandLine(argc, argv) ;
 
@@ -43,9 +40,6 @@ int main( int argc, char *argv[] )
     bool pores = parser.getFlag("--pores") ;
     bool exp = !parser.getFlag("--no-export") ;
     bool bc = !parser.getFlag("--mesh-only") ;
-    int sampling = parser.getValue("--sampling-number") ;
-    int iterations = parser.getValue("--max-iterations") ;
-    double epsilon = parser.getValue("--solver-precision") ;
     std::string file = parser.getString("--export-file") ;
     if(file.size() == 0 && exp)
     {
@@ -93,11 +87,9 @@ int main( int argc, char *argv[] )
     box.setBehaviour( paste ) ;
 
     FeatureTree F(&box) ;
-    F.setSamplingNumber( sampling ) ;
-    F.setSolverPrecision( epsilon ) ;
-    F.setMaxIterationsPerStep( iterations ) ;
     F.setSamplingRestriction( 8 ) ;
     F.setDeltaTime( 0.01 ) ;
+    parser.setFeatureTree( &F ) ;
     
     PSDGenerator::get2DConcrete(&F, agg, 10000, 0.012, 0.00005, new PSDBolomeA(), nullptr , 1e8  ) ;
 

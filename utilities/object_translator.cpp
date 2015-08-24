@@ -1,31 +1,31 @@
-/* this is an auto-generated file created on 20/7/2015 at 15:14  */
+/* this is an auto-generated file created on 21/7/2015 at 14:22  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
-#include "../physics/material_laws/material_laws.h"
-#include "../physics/material_laws/temperature_material_laws.h"
-#include "../physics/material_laws/mechanical_material_laws.h"
 #include "../physics/material_laws/humidity_material_laws.h"
-#include "../physics/void_form.h"
+#include "../physics/material_laws/material_laws.h"
+#include "../physics/material_laws/mechanical_material_laws.h"
+#include "../physics/material_laws/temperature_material_laws.h"
 #include "../physics/stiffness.h"
-#include "../physics/stiffness_with_imposed_deformation.h"
-#include "../physics/logarithmic_creep_with_external_parameters.h"
 #include "../physics/stiffness_and_fracture.h"
+#include "../physics/void_form.h"
+#include "../physics/stiffness_with_imposed_deformation.h"
 #include "../physics/stiffness_with_imposed_stress.h"
+#include "../physics/logarithmic_creep_with_external_parameters.h"
 #include "../physics/damagemodels/isotropiclineardamage.h"
 #include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
-#include "../physics/fracturecriteria/mcft.h"
-#include "../physics/fracturecriteria/maxstrain.h"
-#include "../physics/fracturecriteria/confinedmohrcoulombwithstrain.h"
+#include "../physics/fracturecriteria/boundedvonmises.h"
 #include "../physics/fracturecriteria/vonmises.h"
-#include "../physics/fracturecriteria/confinedvonmises.h"
+#include "../physics/fracturecriteria/confinedmohrcoulomb.h"
+#include "../physics/fracturecriteria/confinedmohrcoulombwithstrain.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
+#include "../physics/fracturecriteria/confinedvonmises.h"
+#include "../physics/fracturecriteria/spacetimeflowrule.h"
+#include "../physics/fracturecriteria/limitstrains.h"
+#include "../physics/fracturecriteria/maxstrain.h"
+#include "../physics/fracturecriteria/mcft.h"
 #include "../physics/fracturecriteria/mazars.h"
 #include "../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
-#include "../physics/fracturecriteria/boundedvonmises.h"
-#include "../physics/fracturecriteria/spacetimeflowrule.h"
-#include "../physics/fracturecriteria/confinedmohrcoulomb.h"
-#include "../physics/fracturecriteria/limitstrains.h"
 #include "../physics/material_laws/logcreep_accumulator.h"
 #include "../features/microstructuregenerator.h"
 #include "../utilities/granulo.h"
@@ -37,6 +37,26 @@ namespace Amie
 
     ExternalMaterialLaw * Object::getExternalMaterialLaw(std::string type, std::map<std::string, std::string> & strings, std::map<std::string, std::vector<std::string>> & stringlists, std::map<std::string, double> & values)
     {
+        // parsed from header file: ../physics/material_laws/humidity_material_laws.h
+        if( type == "HumidityDependentThermalExpansionCoefficient" ) { return new HumidityDependentThermalExpansionCoefficientMaterialLaw() ; }
+        if( type == "DryingShrinkage" )
+        { 
+            if( strings.find("parameter") == strings.end() ) { strings["parameter"] = "relative_humidity" ; } ; 
+            return new DryingShrinkageMaterialLaw(strings["parameter"]) ;
+        }
+        if( type == "CapillaryPressureDrivenDryingShrinkage" ) { return new CapillaryPressureDrivenDryingShrinkageMaterialLaw() ; }
+        if( type == "KelvinCapillaryPressure" ) { return new KelvinCapillaryPressureMaterialLaw() ; }
+        if( type == "VanGenuchtenCapillaryPressure" ) { return new VanGenuchtenCapillaryPressureMaterialLaw() ; }
+        if( type == "VanGenuchtenWaterSaturation" ) { return new VanGenuchtenWaterSaturationMaterialLaw() ; }
+        if( type == "DisjoiningPressureDrivenDryingShrinkage" ) { return new DisjoiningPressureDrivenDryingShrinkageMaterialLaw() ; }
+        if( type == "BETIsotherm" ) { return new BETIsothermMaterialLaw() ; }
+        if( type == "BiExponentialIsotherm" ) { return new BiExponentialIsothermMaterialLaw() ; }
+        if( type == "WaterVapourSaturationPressure" ) { return new WaterVapourSaturationPressureMaterialLaw() ; }
+        if( type == "BenboudjemaDryingCreep" ) { return new BenboudjemaDryingCreepMaterialLaw() ; }
+        if( type == "BazantRelativeHumidityDependentCreep" ) { return new BazantRelativeHumidityDependentCreepMaterialLaw() ; }
+        if( type == "HavlasekDryingCreep" ) { return new HavlasekDryingCreepMaterialLaw() ; }
+        if( type == "WittmannRelativeHumidityDependentCreep" ) { return new WittmannRelativeHumidityDependentCreepMaterialLaw() ; }
+   
         // parsed from header file: ../physics/material_laws/material_laws.h
         if( type == "Eval" )
         { 
@@ -80,6 +100,12 @@ namespace Amie
             return new WeibullDistributedMaterialLaw(stringlists["parameters"], strings["weibull_variable"]) ;
         }
    
+        // parsed from header file: ../physics/material_laws/mechanical_material_laws.h
+        if( type == "BulkShearConversion" ) { return new BulkShearConversionMaterialLaw() ; }
+        if( type == "AdjustStrainStressCurve" ) { return new AdjustStrainStressCurveMaterialLaw() ; }
+        if( type == "BazantLoadNonLinearCreep" ) { return new BazantLoadNonLinearCreepMaterialLaw() ; }
+        if( type == "TensionCompressionCreep" ) { return new TensionCompressionCreepMaterialLaw() ; }
+   
         // parsed from header file: ../physics/material_laws/temperature_material_laws.h
         if( type == "ThermalExpansion" ) { return new ThermalExpansionMaterialLaw() ; }
         if( type == "RadiationDependentThermalExpansionCoefficient" ) { return new RadiationDependentThermalExpansionCoefficientMaterialLaw() ; }
@@ -90,68 +116,11 @@ namespace Amie
         if( type == "Arrhenius" ) { return new ArrheniusMaterialLaw(strings["parameter"]) ; }
         if( type == "CreepArrhenius" ) { return new CreepArrheniusMaterialLaw() ; }
    
-        // parsed from header file: ../physics/material_laws/mechanical_material_laws.h
-        if( type == "BulkShearConversion" ) { return new BulkShearConversionMaterialLaw() ; }
-        if( type == "AdjustStrainStressCurve" ) { return new AdjustStrainStressCurveMaterialLaw() ; }
-        if( type == "BazantLoadNonLinearCreep" ) { return new BazantLoadNonLinearCreepMaterialLaw() ; }
-        if( type == "TensionCompressionCreep" ) { return new TensionCompressionCreepMaterialLaw() ; }
-   
-        // parsed from header file: ../physics/material_laws/humidity_material_laws.h
-        if( type == "HumidityDependentThermalExpansionCoefficient" ) { return new HumidityDependentThermalExpansionCoefficientMaterialLaw() ; }
-        if( type == "DryingShrinkage" )
-        { 
-            if( strings.find("parameter") == strings.end() ) { strings["parameter"] = "relative_humidity" ; } ; 
-            return new DryingShrinkageMaterialLaw(strings["parameter"]) ;
-        }
-        if( type == "CapillaryPressureDrivenDryingShrinkage" ) { return new CapillaryPressureDrivenDryingShrinkageMaterialLaw() ; }
-        if( type == "KelvinCapillaryPressure" ) { return new KelvinCapillaryPressureMaterialLaw() ; }
-        if( type == "VanGenuchtenCapillaryPressure" ) { return new VanGenuchtenCapillaryPressureMaterialLaw() ; }
-        if( type == "VanGenuchtenWaterSaturation" ) { return new VanGenuchtenWaterSaturationMaterialLaw() ; }
-        if( type == "DisjoiningPressureDrivenDryingShrinkage" ) { return new DisjoiningPressureDrivenDryingShrinkageMaterialLaw() ; }
-        if( type == "BETIsotherm" ) { return new BETIsothermMaterialLaw() ; }
-        if( type == "BiExponentialIsotherm" ) { return new BiExponentialIsothermMaterialLaw() ; }
-        if( type == "WaterVapourSaturationPressure" ) { return new WaterVapourSaturationPressureMaterialLaw() ; }
-        if( type == "BenboudjemaDryingCreep" ) { return new BenboudjemaDryingCreepMaterialLaw() ; }
-        if( type == "BazantRelativeHumidityDependentCreep" ) { return new BazantRelativeHumidityDependentCreepMaterialLaw() ; }
-        if( type == "HavlasekDryingCreep" ) { return new HavlasekDryingCreepMaterialLaw() ; }
-        if( type == "WittmannRelativeHumidityDependentCreep" ) { return new WittmannRelativeHumidityDependentCreepMaterialLaw() ; }
-   
         return nullptr ;
     }
 
     bool Object::isExternalMaterialLaw(std::string type)
     {
-        // parsed from header file: ../physics/material_laws/material_laws.h
-        if( type == "Eval" ) { return true ; }
-        if( type == "LinearInterpolated" ) { return true ; }
-        if( type == "TimeDerivative" ) { return true ; }
-        if( type == "TimeIntegral" ) { return true ; }
-        if( type == "Minimum" ) { return true ; }
-        if( type == "StoreMaximumValue" ) { return true ; }
-        if( type == "GetParticleOrientation" ) { return true ; }
-        if( type == "StorePreviousValue" ) { return true ; }
-        if( type == "StoreMinimumValue" ) { return true ; }
-        if( type == "Maximum" ) { return true ; }
-        if( type == "ExponentialDecay" ) { return true ; }
-        if( type == "GetField" ) { return true ; }
-        if( type == "WeibullDistributed" ) { return true ; }
-   
-        // parsed from header file: ../physics/material_laws/temperature_material_laws.h
-        if( type == "ThermalExpansion" ) { return true ; }
-        if( type == "RadiationDependentThermalExpansionCoefficient" ) { return true ; }
-        if( type == "RadiationDependentPoissonRatio" ) { return true ; }
-        if( type == "IncrementalThermalExpansion" ) { return true ; }
-        if( type == "RadiationInducedVolumetricExpansion" ) { return true ; }
-        if( type == "TemperatureDependentRadiationInducedVolumetricExpansion" ) { return true ; }
-        if( type == "Arrhenius" ) { return true ; }
-        if( type == "CreepArrhenius" ) { return true ; }
-   
-        // parsed from header file: ../physics/material_laws/mechanical_material_laws.h
-        if( type == "BulkShearConversion" ) { return true ; }
-        if( type == "AdjustStrainStressCurve" ) { return true ; }
-        if( type == "BazantLoadNonLinearCreep" ) { return true ; }
-        if( type == "TensionCompressionCreep" ) { return true ; }
-   
         // parsed from header file: ../physics/material_laws/humidity_material_laws.h
         if( type == "HumidityDependentThermalExpansionCoefficient" ) { return true ; }
         if( type == "DryingShrinkage" ) { return true ; }
@@ -168,26 +137,54 @@ namespace Amie
         if( type == "HavlasekDryingCreep" ) { return true ; }
         if( type == "WittmannRelativeHumidityDependentCreep" ) { return true ; }
    
+        // parsed from header file: ../physics/material_laws/material_laws.h
+        if( type == "Eval" ) { return true ; }
+        if( type == "LinearInterpolated" ) { return true ; }
+        if( type == "TimeDerivative" ) { return true ; }
+        if( type == "TimeIntegral" ) { return true ; }
+        if( type == "Minimum" ) { return true ; }
+        if( type == "StoreMaximumValue" ) { return true ; }
+        if( type == "GetParticleOrientation" ) { return true ; }
+        if( type == "StorePreviousValue" ) { return true ; }
+        if( type == "StoreMinimumValue" ) { return true ; }
+        if( type == "Maximum" ) { return true ; }
+        if( type == "ExponentialDecay" ) { return true ; }
+        if( type == "GetField" ) { return true ; }
+        if( type == "WeibullDistributed" ) { return true ; }
+   
+        // parsed from header file: ../physics/material_laws/mechanical_material_laws.h
+        if( type == "BulkShearConversion" ) { return true ; }
+        if( type == "AdjustStrainStressCurve" ) { return true ; }
+        if( type == "BazantLoadNonLinearCreep" ) { return true ; }
+        if( type == "TensionCompressionCreep" ) { return true ; }
+   
+        // parsed from header file: ../physics/material_laws/temperature_material_laws.h
+        if( type == "ThermalExpansion" ) { return true ; }
+        if( type == "RadiationDependentThermalExpansionCoefficient" ) { return true ; }
+        if( type == "RadiationDependentPoissonRatio" ) { return true ; }
+        if( type == "IncrementalThermalExpansion" ) { return true ; }
+        if( type == "RadiationInducedVolumetricExpansion" ) { return true ; }
+        if( type == "TemperatureDependentRadiationInducedVolumetricExpansion" ) { return true ; }
+        if( type == "Arrhenius" ) { return true ; }
+        if( type == "CreepArrhenius" ) { return true ; }
+   
         return false ;
     }
 
     void Object::resetExternalMaterialLaw(ExternalMaterialLaw * target)
     {
-        // parsed from header file: ../physics/material_laws/material_laws.h
+        // parsed from header file: ../physics/material_laws/humidity_material_laws.h
    
-        // parsed from header file: ../physics/material_laws/temperature_material_laws.h
+        // parsed from header file: ../physics/material_laws/material_laws.h
    
         // parsed from header file: ../physics/material_laws/mechanical_material_laws.h
    
-        // parsed from header file: ../physics/material_laws/humidity_material_laws.h
+        // parsed from header file: ../physics/material_laws/temperature_material_laws.h
    
     }
 
-    Form * Object::getForm(std::string type, std::map<std::string, double> & values, std::map<std::string, std::string> & strings, std::map<std::string, ExternalMaterialLawList*> & externalmateriallawlists, std::map<std::string, FractureCriterion*> & fracturecriterions, std::map<std::string, DamageModel*> & damagemodels, std::map<std::string, LogCreepAccumulator*> & logcreepaccumulators)
+    Form * Object::getForm(std::string type, std::map<std::string, double> & values, std::map<std::string, std::string> & strings, std::map<std::string, FractureCriterion*> & fracturecriterions, std::map<std::string, DamageModel*> & damagemodels, std::map<std::string, ExternalMaterialLawList*> & externalmateriallawlists, std::map<std::string, LogCreepAccumulator*> & logcreepaccumulators)
     {
-        // parsed from header file: ../physics/void_form.h
-        if( type == "VoidForm" ) { return new VoidForm() ; }
-   
         // parsed from header file: ../physics/stiffness.h
         if( type == "Stiffness" )
         { 
@@ -196,12 +193,32 @@ namespace Amie
             return new Stiffness(values["young_modulus"], values["poisson_ratio"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
         }
    
+        // parsed from header file: ../physics/stiffness_and_fracture.h
+        if( type == "StiffnessAndFracture" )
+        { 
+            if( damagemodels.find("damage_model") == damagemodels.end() ) { damagemodels["damage_model"] = nullptr ; } ; 
+            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
+            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
+            return new StiffnessAndFracture(values["young_modulus"], values["poisson_ratio"], fracturecriterions["fracture_criterion"], damagemodels["damage_model"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
+        }
+   
+        // parsed from header file: ../physics/void_form.h
+        if( type == "VoidForm" ) { return new VoidForm() ; }
+   
         // parsed from header file: ../physics/stiffness_with_imposed_deformation.h
         if( type == "StiffnessWithImposedDeformation" )
         { 
             if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
             if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
             return new StiffnessWithImposedDeformation(values["young_modulus"], values["poisson_ratio"], values["imposed_deformation"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
+        }
+   
+        // parsed from header file: ../physics/stiffness_with_imposed_stress.h
+        if( type == "StiffnessWithImposedStress" )
+        { 
+            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
+            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
+            return new StiffnessWithImposedStress(values["young_modulus"], values["poisson_ratio"], values["imposed_stress"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
         }
    
         // parsed from header file: ../physics/logarithmic_creep_with_external_parameters.h
@@ -216,62 +233,45 @@ namespace Amie
             return new LogarithmicCreepWithExternalParameters(values, externalmateriallawlists["relations"], fracturecriterions["fracture_criterion"], damagemodels["damage_model"], logcreepaccumulators["accumulator"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
         }
    
-        // parsed from header file: ../physics/stiffness_and_fracture.h
-        if( type == "StiffnessAndFracture" )
-        { 
-            if( damagemodels.find("damage_model") == damagemodels.end() ) { damagemodels["damage_model"] = nullptr ; } ; 
-            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
-            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
-            return new StiffnessAndFracture(values["young_modulus"], values["poisson_ratio"], fracturecriterions["fracture_criterion"], damagemodels["damage_model"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
-        }
-   
-        // parsed from header file: ../physics/stiffness_with_imposed_stress.h
-        if( type == "StiffnessWithImposedStress" )
-        { 
-            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
-            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
-            return new StiffnessWithImposedStress(values["young_modulus"], values["poisson_ratio"], values["imposed_stress"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
-        }
-   
         return nullptr ;
     }
 
     bool Object::isForm(std::string type)
     {
-        // parsed from header file: ../physics/void_form.h
-        if( type == "VoidForm" ) { return true ; }
-   
         // parsed from header file: ../physics/stiffness.h
         if( type == "Stiffness" ) { return true ; }
-   
-        // parsed from header file: ../physics/stiffness_with_imposed_deformation.h
-        if( type == "StiffnessWithImposedDeformation" ) { return true ; }
-   
-        // parsed from header file: ../physics/logarithmic_creep_with_external_parameters.h
-        if( type == "LogarithmicCreepWithExternalParameters" ) { return true ; }
    
         // parsed from header file: ../physics/stiffness_and_fracture.h
         if( type == "StiffnessAndFracture" ) { return true ; }
    
+        // parsed from header file: ../physics/void_form.h
+        if( type == "VoidForm" ) { return true ; }
+   
+        // parsed from header file: ../physics/stiffness_with_imposed_deformation.h
+        if( type == "StiffnessWithImposedDeformation" ) { return true ; }
+   
         // parsed from header file: ../physics/stiffness_with_imposed_stress.h
         if( type == "StiffnessWithImposedStress" ) { return true ; }
+   
+        // parsed from header file: ../physics/logarithmic_creep_with_external_parameters.h
+        if( type == "LogarithmicCreepWithExternalParameters" ) { return true ; }
    
         return false ;
     }
 
     void Object::resetForm(Form * target)
     {
-        // parsed from header file: ../physics/void_form.h
-   
         // parsed from header file: ../physics/stiffness.h
-   
-        // parsed from header file: ../physics/stiffness_with_imposed_deformation.h
-   
-        // parsed from header file: ../physics/logarithmic_creep_with_external_parameters.h
    
         // parsed from header file: ../physics/stiffness_and_fracture.h
    
+        // parsed from header file: ../physics/void_form.h
+   
+        // parsed from header file: ../physics/stiffness_with_imposed_deformation.h
+   
         // parsed from header file: ../physics/stiffness_with_imposed_stress.h
+   
+        // parsed from header file: ../physics/logarithmic_creep_with_external_parameters.h
    
     }
 
@@ -313,25 +313,18 @@ namespace Amie
 
     FractureCriterion * Object::getFractureCriterion(std::string type, std::map<std::string, double> & values, std::map<std::string, std::string> & strings)
     {
-        // parsed from header file: ../physics/fracturecriteria/mcft.h
-        if( type == "NonLocalMCFT" ) { return new NonLocalMCFT(values["compressive_strength"], values["young_modulus"], values["material_characteristic_radius"], Enum::getRedistributionType(strings["redistribution_type"])) ; }
-        if( type == "NonLocalSpaceTimeMCFT" ) { return new NonLocalSpaceTimeMCFT(values["compressive_strength"], values["young_modulus"], values["material_characteristic_radius"], Enum::getRedistributionType(strings["redistribution_type"])) ; }
-   
-        // parsed from header file: ../physics/fracturecriteria/maxstrain.h
-        if( type == "MaximumStrain" ) { return new MaximumStrain(values["tensile_strain"]) ; }
-        if( type == "SpaceTimeNonLocalMaximumStrain" ) { return new SpaceTimeNonLocalMaximumStrain(values["tensile_strain"]) ; }
-        if( type == "SpaceTimeNonLocalLinearSofteningMaximumStrain" ) { return new SpaceTimeNonLocalLinearSofteningMaximumStrain(values["tensile_strain"], values["tensile_strength"], values["tensile_ultimate_strain"]) ; }
-        if( type == "SpaceTimeNonLocalMaximumStress" ) { return new SpaceTimeNonLocalMaximumStress(values["tensile_strength"]) ; }
-   
-        // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulombwithstrain.h
-        if( type == "ConfinedMohrCoulombWithStrainLimit" ) { return new ConfinedMohrCoulombWithStrainLimit(values["tensile_strength"], values["compressive_strength"], values["tensile_strain"]) ; }
+        // parsed from header file: ../physics/fracturecriteria/boundedvonmises.h
+        if( type == "BoundedVonMises" ) { return new BoundedVonMises(values["tensile_strength"], values["maximum_damage"]) ; }
    
         // parsed from header file: ../physics/fracturecriteria/vonmises.h
         if( type == "VonMises" ) { return new VonMises(values["tensile_strength"]) ; }
         if( type == "VonMisesStrain" ) { return new VonMisesStrain(values["tensile_strain"]) ; }
    
-        // parsed from header file: ../physics/fracturecriteria/confinedvonmises.h
-        if( type == "ConfinedVonMises" ) { return new ConfinedVonMises(values["tensile_strength"], values["compressive_strength"]) ; }
+        // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulomb.h
+        if( type == "ConfinedMohrCoulomb" ) { return new ConfinedMohrCoulomb(values["tensile_strength"], values["compressive_strength"]) ; }
+   
+        // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulombwithstrain.h
+        if( type == "ConfinedMohrCoulombWithStrainLimit" ) { return new ConfinedMohrCoulombWithStrainLimit(values["tensile_strength"], values["compressive_strength"], values["tensile_strain"]) ; }
    
         // parsed from header file: ../physics/fracturecriteria/mohrcoulomb.h
         if( type == "MohrCoulomb" ) { return new MohrCoulomb(values["tensile_strength"], values["compressive_strength"]) ; }
@@ -340,6 +333,25 @@ namespace Amie
         if( type == "NonLocalLinearlyDecreasingMohrCoulomb" ) { return new NonLocalLinearlyDecreasingMohrCoulomb(values["tensile_strength"], values["compressive_strength"], values["tensile_ultimate_strain"], values["compressive_ultimate_strain"], values["young_modulus"]) ; }
         if( type == "NonLocalExponentiallyDecreasingMohrCoulomb" ) { return new NonLocalExponentiallyDecreasingMohrCoulomb(values["tensile_strength"], values["compressive_strength"], values["tensile_ultimate_strain"], values["compressive_ultimate_strain"], values["young_modulus"]) ; }
         if( type == "NonLocalInverseRootMohrCoulomb" ) { return new NonLocalInverseRootMohrCoulomb(values["tensile_strain"], values["tensile_ultimate_strain"], values["young_modulus"], values["tensile_strain_coefficient"]) ; }
+   
+        // parsed from header file: ../physics/fracturecriteria/confinedvonmises.h
+        if( type == "ConfinedVonMises" ) { return new ConfinedVonMises(values["tensile_strength"], values["compressive_strength"]) ; }
+   
+        // parsed from header file: ../physics/fracturecriteria/spacetimeflowrule.h
+        if( type == "SpaceTimeNonLocalDamageFlowRule" ) { return new SpaceTimeNonLocalDamageFlowRule(strings["file_name"]) ; }
+   
+        // parsed from header file: ../physics/fracturecriteria/limitstrains.h
+        if( type == "LimitStrains" ) { return new LimitStrains(values["tensile_strain"], values["compressive_strain"]) ; }
+   
+        // parsed from header file: ../physics/fracturecriteria/maxstrain.h
+        if( type == "MaximumStrain" ) { return new MaximumStrain(values["tensile_strain"]) ; }
+        if( type == "SpaceTimeNonLocalMaximumStrain" ) { return new SpaceTimeNonLocalMaximumStrain(values["tensile_strain"]) ; }
+        if( type == "SpaceTimeNonLocalLinearSofteningMaximumStrain" ) { return new SpaceTimeNonLocalLinearSofteningMaximumStrain(values["tensile_strain"], values["tensile_strength"], values["tensile_ultimate_strain"]) ; }
+        if( type == "SpaceTimeNonLocalMaximumStress" ) { return new SpaceTimeNonLocalMaximumStress(values["tensile_strength"]) ; }
+   
+        // parsed from header file: ../physics/fracturecriteria/mcft.h
+        if( type == "NonLocalMCFT" ) { return new NonLocalMCFT(values["compressive_strength"], values["young_modulus"], values["material_characteristic_radius"], Enum::getRedistributionType(strings["redistribution_type"])) ; }
+        if( type == "NonLocalSpaceTimeMCFT" ) { return new NonLocalSpaceTimeMCFT(values["compressive_strength"], values["young_modulus"], values["material_characteristic_radius"], Enum::getRedistributionType(strings["redistribution_type"])) ; }
    
         // parsed from header file: ../physics/fracturecriteria/mazars.h
         if( type == "NonLocalMazars" )
@@ -371,42 +383,23 @@ namespace Amie
             return new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(strings["tension_file_name"], strings["compression_file_name"], values["young_modulus"], values["strain_renormalization_factor"], values["stress_renormalization_factor"]) ;
         }
    
-        // parsed from header file: ../physics/fracturecriteria/boundedvonmises.h
-        if( type == "BoundedVonMises" ) { return new BoundedVonMises(values["tensile_strength"], values["maximum_damage"]) ; }
-   
-        // parsed from header file: ../physics/fracturecriteria/spacetimeflowrule.h
-        if( type == "SpaceTimeNonLocalDamageFlowRule" ) { return new SpaceTimeNonLocalDamageFlowRule(strings["file_name"]) ; }
-   
-        // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulomb.h
-        if( type == "ConfinedMohrCoulomb" ) { return new ConfinedMohrCoulomb(values["tensile_strength"], values["compressive_strength"]) ; }
-   
-        // parsed from header file: ../physics/fracturecriteria/limitstrains.h
-        if( type == "LimitStrains" ) { return new LimitStrains(values["tensile_strain"], values["compressive_strain"]) ; }
-   
         return nullptr ;
     }
 
     bool Object::isFractureCriterion(std::string type)
     {
-        // parsed from header file: ../physics/fracturecriteria/mcft.h
-        if( type == "NonLocalMCFT" ) { return true ; }
-        if( type == "NonLocalSpaceTimeMCFT" ) { return true ; }
-   
-        // parsed from header file: ../physics/fracturecriteria/maxstrain.h
-        if( type == "MaximumStrain" ) { return true ; }
-        if( type == "SpaceTimeNonLocalMaximumStrain" ) { return true ; }
-        if( type == "SpaceTimeNonLocalLinearSofteningMaximumStrain" ) { return true ; }
-        if( type == "SpaceTimeNonLocalMaximumStress" ) { return true ; }
-   
-        // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulombwithstrain.h
-        if( type == "ConfinedMohrCoulombWithStrainLimit" ) { return true ; }
+        // parsed from header file: ../physics/fracturecriteria/boundedvonmises.h
+        if( type == "BoundedVonMises" ) { return true ; }
    
         // parsed from header file: ../physics/fracturecriteria/vonmises.h
         if( type == "VonMises" ) { return true ; }
         if( type == "VonMisesStrain" ) { return true ; }
    
-        // parsed from header file: ../physics/fracturecriteria/confinedvonmises.h
-        if( type == "ConfinedVonMises" ) { return true ; }
+        // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulomb.h
+        if( type == "ConfinedMohrCoulomb" ) { return true ; }
+   
+        // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulombwithstrain.h
+        if( type == "ConfinedMohrCoulombWithStrainLimit" ) { return true ; }
    
         // parsed from header file: ../physics/fracturecriteria/mohrcoulomb.h
         if( type == "MohrCoulomb" ) { return true ; }
@@ -416,6 +409,25 @@ namespace Amie
         if( type == "NonLocalExponentiallyDecreasingMohrCoulomb" ) { return true ; }
         if( type == "NonLocalInverseRootMohrCoulomb" ) { return true ; }
    
+        // parsed from header file: ../physics/fracturecriteria/confinedvonmises.h
+        if( type == "ConfinedVonMises" ) { return true ; }
+   
+        // parsed from header file: ../physics/fracturecriteria/spacetimeflowrule.h
+        if( type == "SpaceTimeNonLocalDamageFlowRule" ) { return true ; }
+   
+        // parsed from header file: ../physics/fracturecriteria/limitstrains.h
+        if( type == "LimitStrains" ) { return true ; }
+   
+        // parsed from header file: ../physics/fracturecriteria/maxstrain.h
+        if( type == "MaximumStrain" ) { return true ; }
+        if( type == "SpaceTimeNonLocalMaximumStrain" ) { return true ; }
+        if( type == "SpaceTimeNonLocalLinearSofteningMaximumStrain" ) { return true ; }
+        if( type == "SpaceTimeNonLocalMaximumStress" ) { return true ; }
+   
+        // parsed from header file: ../physics/fracturecriteria/mcft.h
+        if( type == "NonLocalMCFT" ) { return true ; }
+        if( type == "NonLocalSpaceTimeMCFT" ) { return true ; }
+   
         // parsed from header file: ../physics/fracturecriteria/mazars.h
         if( type == "NonLocalMazars" ) { return true ; }
         if( type == "NonLocalSpaceTimeMazars" ) { return true ; }
@@ -424,35 +436,31 @@ namespace Amie
         if( type == "SpaceTimeNonLocalMultiLinearSofteningFractureCriterion" ) { return true ; }
         if( type == "AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion" ) { return true ; }
    
-        // parsed from header file: ../physics/fracturecriteria/boundedvonmises.h
-        if( type == "BoundedVonMises" ) { return true ; }
-   
-        // parsed from header file: ../physics/fracturecriteria/spacetimeflowrule.h
-        if( type == "SpaceTimeNonLocalDamageFlowRule" ) { return true ; }
-   
-        // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulomb.h
-        if( type == "ConfinedMohrCoulomb" ) { return true ; }
-   
-        // parsed from header file: ../physics/fracturecriteria/limitstrains.h
-        if( type == "LimitStrains" ) { return true ; }
-   
         return false ;
     }
 
     void Object::resetFractureCriterion(FractureCriterion * target, std::map<std::string, double> & values, std::map<std::string, std::string> & strings)
     {
-        // parsed from header file: ../physics/fracturecriteria/mcft.h
+        // parsed from header file: ../physics/fracturecriteria/boundedvonmises.h
+   
+        // parsed from header file: ../physics/fracturecriteria/vonmises.h
+   
+        // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulomb.h
+   
+        // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulombwithstrain.h
+   
+        // parsed from header file: ../physics/fracturecriteria/mohrcoulomb.h
+   
+        // parsed from header file: ../physics/fracturecriteria/confinedvonmises.h
+   
+        // parsed from header file: ../physics/fracturecriteria/spacetimeflowrule.h
+   
+        // parsed from header file: ../physics/fracturecriteria/limitstrains.h
    
         // parsed from header file: ../physics/fracturecriteria/maxstrain.h
         if(dynamic_cast<SpaceTimeNonLocalLinearSofteningMaximumStrain *>(target) != nullptr) { dynamic_cast<SpaceTimeNonLocalLinearSofteningMaximumStrain *>(target)->reset(values["tensile_strain"], values["tensile_strength"], values["tensile_ultimate_strain"]) ; }
    
-        // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulombwithstrain.h
-   
-        // parsed from header file: ../physics/fracturecriteria/vonmises.h
-   
-        // parsed from header file: ../physics/fracturecriteria/confinedvonmises.h
-   
-        // parsed from header file: ../physics/fracturecriteria/mohrcoulomb.h
+        // parsed from header file: ../physics/fracturecriteria/mcft.h
    
         // parsed from header file: ../physics/fracturecriteria/mazars.h
         if(dynamic_cast<NonLocalMazars *>(target) != nullptr)
@@ -471,14 +479,6 @@ namespace Amie
         }
    
         // parsed from header file: ../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h
-   
-        // parsed from header file: ../physics/fracturecriteria/boundedvonmises.h
-   
-        // parsed from header file: ../physics/fracturecriteria/spacetimeflowrule.h
-   
-        // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulomb.h
-   
-        // parsed from header file: ../physics/fracturecriteria/limitstrains.h
    
     }
 

@@ -50,6 +50,7 @@ int main( int argc, char *argv[] )
 
     F.setSamplingNumber(4) ;
     F.setDeltaTime(1) ;
+    F.setSolverPrecision(1e-16) ;
 
     std::ofstream out ;
     if(renew)

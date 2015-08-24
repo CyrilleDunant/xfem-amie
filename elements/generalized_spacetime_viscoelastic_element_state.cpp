@@ -991,6 +991,22 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         }
         return ;
     }
+    case IMPOSED_STRESS_FIELD:
+    {
+        if ( parent->getBehaviour()->getTensor ( p_, parent ).numCols() != ret.size() )
+        {
+            ret = 0 ;
+            if ( cleanup )
+                delete vm ;
+            return ;
+        }
+
+        ret = parent->getBehaviour()->getImposedStress ( p_, parent ) ;
+
+        if ( cleanup )
+            delete vm ;
+        return ;
+    }
     case GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD:
     {
 

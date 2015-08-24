@@ -445,6 +445,9 @@ target_link_libraries( pore_pressure Amie ${ALL_LINK_FLAGS})
 add_executable( visu examples/main_visu_behavior.cpp )
 target_link_libraries( visu Amie ${ALL_LINK_FLAGS})
 
+add_executable( visco examples/main_visco.cpp )
+target_link_libraries( visco Amie ${ALL_LINK_FLAGS})
+
 add_executable( tension_visco examples/main_tension_visco.cpp )
 target_link_libraries( tension_visco Amie ${ALL_LINK_FLAGS})
 
@@ -466,10 +469,16 @@ target_link_libraries( test_viscoelasticity_kv Amie ${ALL_LINK_FLAGS})
 add_executable( test_xfem examples/test/main_test_xfem.cpp )
 target_link_libraries( test_xfem Amie ${ALL_LINK_FLAGS})
 
+add_executable( test_imposed_deformation examples/test/main_test_imposed_deformation.cpp )
+target_link_libraries( test_imposed_deformation Amie ${ALL_LINK_FLAGS})
+
+add_executable( test_viscoelasticity_imposed_deformation examples/test/main_test_viscoelasticity_imposed_deformation.cpp )
+target_link_libraries( test_viscoelasticity_imposed_deformation Amie ${ALL_LINK_FLAGS})
+
 add_executable( test_stxfem examples/test/main_test_stxfem.cpp )
 target_link_libraries( test_stxfem Amie ${ALL_LINK_FLAGS})
 
 ADD_CUSTOM_TARGET(test)
-ADD_DEPENDENCIES(test check_test test_logcreep test_viscodamage_multilinearsoftening test_viscoelasticity_kv test_xfem test_stxfem)
+ADD_DEPENDENCIES(test check_test test_logcreep test_viscodamage_multilinearsoftening test_viscoelasticity_kv test_xfem test_stxfem test_imposed_deformation test_viscoelasticity_imposed_deformation)
 
 

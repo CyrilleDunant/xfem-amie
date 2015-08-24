@@ -739,6 +739,7 @@ public:
       resetcalcul = true ; 
     }
     
+
     double getCurrentTime() const {
         return now ;
     }

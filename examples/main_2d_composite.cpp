@@ -59,6 +59,9 @@ int main(int argc, char *argv[])
         allFeatures = problem->getChild("inclusions")->makeInclusionFamily( &F ) ;
     else
         allFeatures = new InclusionFamily( ) ;
+
+    parser.setFeatureTree( &F ) ;
+
     F.step() ;
 
     std::vector<unsigned int> cacheIndex ;
