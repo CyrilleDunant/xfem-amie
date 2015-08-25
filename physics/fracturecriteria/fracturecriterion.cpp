@@ -544,6 +544,7 @@ void FractureCriterion::step(ElementState &s)
     if(s.getParent()->getBehaviour()->fractured())
     {
         scoreAtState = -1 ;
+	scoreAtTimeStepEnd = -1 ;
         metAtStep = false ;
         return ;
     }

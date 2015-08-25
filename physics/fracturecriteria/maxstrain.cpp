@@ -84,17 +84,7 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
     if(gradeAfter < 0)
         return gradeAfter ;
     if(gradeBefore > -POINT_TOLERANCE)
-    {
-/*	std::pair<Vector, Vector> currentState = getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, -1 ) ;
-	double Esoft = maxstress / ( yieldstrain - upVal) ;
-	double Einst = currentState.first.max() / currentState.second.max() ; //maxstress/upVal * (1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
-
-	double epsMax = std::max(upVal, yieldstrain*Esoft/(Esoft+Einst) ) ;
-
-	std::cout << upVal << " "  << epsMax << " " << yieldstrain << "  " << currentState.second.max() << "  " << Esoft << " " << Einst << " " << s.getParent()->getBehaviour()->getDamageModel()->getState().max() << " " << gradeBefore << std::endl ;
-	exit(0) ;*/
         return 1 ;
-    }
     
     double upTime = 1 ;
     double downTime = -1 ;
@@ -134,7 +124,9 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
 double SpaceTimeNonLocalLinearSofteningMaximumStrain::gradeAtTime(ElementState &s, double t)
 {
 	if( s.getParent()->getBehaviour()->fractured() )
+	{
 		return -1 ;
+	}
 
 	std::pair<Vector, Vector> currentState = getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, t ) ;
 	double Esoft = maxstress / ( yieldstrain - upVal) ;

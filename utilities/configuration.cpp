@@ -712,12 +712,16 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime, std
           {
               ExternalMaterialLaw * test = children[i]->getExternalMaterialLaw() ;
               if(test != nullptr)
+		{
                   laws.push_back(test) ;
+		}
           }
        }
     }
     if(laws.size() > 0)
+    {
         law[ "relations" ] = &laws ;
+    }
 
 
     std::string type = getStringData() ;
@@ -730,13 +734,19 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime, std
     {
         std::string ctype = getStringData("fracture_criterion") ;
         if(Object::isFractureCriterion(ctype))
+        {
             frac[ "fracture_criterion" ] = Object::getFractureCriterion( ctype, values, strings ) ;
+            if( values.find( "material_characteristic_radius" ) != values.end() )
+                frac[ "fracture_criterion" ]->setMaterialCharacteristicRadius( values["material_characteristic_radius"] ) ;
+        }
     }
     if(hasChild("damage_model"))
     {
         std::string dtype = getStringData("damage_model") ;
         if(Object::isDamageModel(dtype))
              dam[ "damage_model" ] = Object::getDamageModel( dtype, values ) ;
+            if( values.find( "residual_stiffness_fraction" ) != values.end() )
+                dam[ "damage_model" ]->setResidualStiffnessFraction( values["residual_stiffness_fraction"] ) ;
     }
     if(hasChild("accumulator"))
     {
