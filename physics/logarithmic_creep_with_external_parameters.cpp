@@ -301,6 +301,7 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 	if(modelChange)
 		makeBlockConnectivity() ;
 
+
 }
 
 ElementState * LogarithmicCreepWithExternalParameters::createElementState( IntegrableEntity * e)
@@ -436,7 +437,9 @@ std::vector<BoundaryCondition * > LogarithmicCreepWithExternalParameters::getBou
         return ret ;
     Vector istress = C*imposed ;
     if(dfunc)
+    {
         istress = dfunc->apply(C) * imposed   ;
+    }
     if(v.size() == 3)
     {
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, static_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[0]));

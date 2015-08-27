@@ -37,7 +37,7 @@ Matrix SpaceTimeFiberBasedIsotropicLinearDamage::applyViscous(const Matrix & m, 
     if(state.max() < POINT_TOLERANCE)
         return m ;
 //     return m;
-    if(fractured())
+    if(fractured() || VirtualMachine().eval(visc,state[0])>1)
         return m*residualStiffnessFraction ;
 
 //     if(state.size() == 1)
@@ -133,7 +133,9 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double ma
 	}
     else if(!fractured() && score > 0 && (maxscore - score) < timeTolerance)
     {
-        state[state.size() -1] += fibreFraction ;//*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtTimeStepEnd() ;
+            state[state.size() -1] += std::min(fibreFraction, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtTimeStepEnd()) ;
+//	std::cout << end << "  " << next << std::endl ;
+//	std::cout << s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtTimeStepEnd() << std::endl ;
         for(size_t i = 0 ; i < state.size() ; i++)
         {
             if(state[i] > 1)

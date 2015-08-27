@@ -93,7 +93,7 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
     double gradeUp = gradeAfter ;
     double gradeTest = 0 ;
 
-    while(std::abs(upTime-downTime) > 1e-6 )
+    while(std::abs(upTime-downTime) > 1e-4 )
     {
         gradeTest = gradeAtTime(s, testTime) ;
         if(gradeTest < 0)

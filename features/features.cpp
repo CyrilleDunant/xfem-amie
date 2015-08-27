@@ -7258,7 +7258,7 @@ void FeatureTree::generateElements()
     {
         std::cerr << "\r getting mesh points... feature " << i << "/" << tree.size() << std::flush ;
 
-        if ( !tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature )
+        if ( !tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature && tree[i]->getInPoints().size() )
         {
             std::vector<Feature *> descendants = tree[i]->getDescendants() ;
             std::stable_sort ( descendants.begin(), descendants.end() ) ;
@@ -7668,7 +7668,7 @@ void FeatureTree::generateElements()
             if(feature == tree[0])
                 continue ;
 
-            if ( !feature->isEnrichmentFeature && feature->getBoundingPoints().size() && !feature->isVirtualFeature && tree[0]->intersects ( feature ) && feature->getFather() != nullptr )
+            if ( !feature->isEnrichmentFeature && feature->getBoundingPoints().size() && feature->getInPoints().size() && !feature->isVirtualFeature && tree[0]->intersects ( feature ) && feature->getFather() != nullptr )
             {
                 std::vector<Point> inter = tree[0]->intersection ( feature ) ;
                 if(inter.size() == 0)
@@ -7692,9 +7692,6 @@ void FeatureTree::generateElements()
 
                 for ( size_t k = 0 ;  k < inter.size() ; k++ )
                 {
-
-
-
                     bool indescendants = false ;
 
                     for ( size_t l = 0 ; l < descendants.size() ; l++ )
