@@ -607,6 +607,25 @@ void CommandLineParser::setFeatureTree( FeatureTree * f )
 
 }
 
+void CommandLineParser::disableFeatureTreeArguments() 
+{
+    values.erase("--set-sampling-restriction") ;
+    values.erase("--set-delta-time") ;
+    values.erase("--set-min-delta-time") ;
+    values.erase("--set-solver-precision") ;
+    values.erase("--set-max-iterations-per-step") ;
+    values.erase("--set-sampling-number") ;
+    strings.erase("--set-order") ;
+
+    help.erase("--set-sampling-restriction") ;
+    help.erase("--set-delta-time") ;
+    help.erase("--set-min-delta-time") ;
+    help.erase("--set-solver-precision") ;
+    help.erase("--set-max-iterations-per-step") ;
+    help.erase("--set-sampling-number") ;
+    help.erase("--set-order") ;
+}
+
 CommandLineParser::CommandLineParser(std::string d, bool c, bool f) : description(d), commandLineConfiguration(c), forceUnrecognizedFlags(f)
 {
     addFlag("--help", false, "print help") ;

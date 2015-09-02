@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
 	parser.addValue("--tolerance", 0.01, "set relative tolerance for evaluation of test success (default: 0.01)" ) ;
 	parser.addValue("--threshold", 1e-8, "set absolute threshold below which success is not evaluated (default: 1e-8)" ) ;
 	parser.addValue("--timeout", 10, "maximum time (in seconds) spent for each test; use negative values for no time limit (default: 10s)" ) ;
+	parser.disableFeatureTreeArguments() ;
 	parser.parseCommandLine(argc, argv) ;
 	double tol = std::abs(parser.getValue("--tolerance")) ;
 	double thr = std::abs(parser.getValue("--threshold")) ;

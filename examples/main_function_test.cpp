@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
 	parser.addFlag("--print-roots", false, "print roots of token list of the expression parser") ;
 	parser.addFlag("--print-parser", false, "print token list of the expression parser") ;
 	parser.addFlag("--rpn", false, "parse function in Reverse Polish Notation") ;
+	parser.disableFeatureTreeArguments() ;
 	
 	parser.parseCommandLine(argc, argv) ;
 	std::vector<double> x_ = range2Vector( parser.getString("--range-x") ) ;

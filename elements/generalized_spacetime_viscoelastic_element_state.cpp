@@ -292,7 +292,13 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointB
     }
     if(f == MECHANICAL_STRAIN_FIELD)
     {
+        generalizedBuffer = getCachedFieldAtGaussPointBefore( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, gp, i, vm) ;
         ret = getCachedFieldAtGaussPointBefore( STRAIN_FIELD, gp, i, vm) ;
+        for(size_t j = 1 ; j < generalizedBuffer.size() / ret.size() ; j++)
+        {
+            for(size_t n = 0 ; n < ret.size() ; n++)
+                ret[n] -= generalizedBuffer[j*ret.size()+n] ;
+        }
         if( getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces() )
             ret -= getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
         return ret ;
@@ -428,7 +434,13 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointA
     }
     if(f == MECHANICAL_STRAIN_FIELD)
     {
+        generalizedBuffer = getCachedFieldAtGaussPointAfter( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, gp, i, vm) ;
         ret = getCachedFieldAtGaussPointAfter( STRAIN_FIELD, gp, i, vm) ;
+        for(size_t j = 1 ; j < generalizedBuffer.size() / ret.size() ; j++)
+        {
+            for(size_t n = 0 ; n < ret.size() ; n++)
+                ret[n] -= generalizedBuffer[j*ret.size()+n] ;
+        }
         if( getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces() )
             ret -= getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
         return ret ;
@@ -1253,6 +1265,13 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     case MECHANICAL_STRAIN_FIELD:
     {
         getField( STRAIN_FIELD, p_, ret, true, vm ) ;
+        getField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, p_, generalizedBuffer, true, vm ) ;
+        for(size_t j = 1 ; j < generalizedBuffer.size() / ret.size() ; j++)
+        {
+            for(size_t n = 0 ; n < ret.size() ; n++)
+                ret[n] -= generalizedBuffer[j*ret.size()+n] ;
+        }
+        
         if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
             ret -= getParent()->getBehaviour()->getImposedStrain(p_) ;
         if ( cleanup )

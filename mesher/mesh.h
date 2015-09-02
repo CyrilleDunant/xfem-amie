@@ -807,7 +807,6 @@ public:
         Vector buffer ( ret ) ;
         double w = 0 ;
         for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
-
             double v = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->getState().getAverageField ( f, buffer, nullptr, dummy, t, coefs[cacheID][i] ) ;
             ret += buffer * v ;
             w +=v ;
@@ -1242,6 +1241,11 @@ public:
                 stress.resize ( tsize, 0. ) ;
                 for ( int i = 0 ; i < tsize ; i++ ) {
                         strain[i] = tmpstrain[i] ;
+                        if(f0 == MECHANICAL_STRAIN_FIELD || f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD || f1 == MECHANICAL_STRAIN_FIELD || f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD)
+                        {
+                            for(size_t j = 1 ; j < tmpstrain.size()/strain.size() ; j++)
+                                strain[i] -= tmpstrain[ j*tsize + i ] ;
+                        } 
                     }
                 for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                 {

@@ -83,8 +83,8 @@ public:
 	void printVersion() ;
 
 	void setFeatureTree( FeatureTree * f) ;
-
 	static void setFeatureTree( FeatureTree * f, int argc, char *argv[], std::string str = std::string("AMIE") ) ;
+	void disableFeatureTreeArguments() ;
 
 } ;
 
