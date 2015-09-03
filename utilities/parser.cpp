@@ -5,6 +5,7 @@
 //
 
 #include "parser.h"
+#include "font.h"
 #include "enumeration_translator.h"
 #include "../polynomial/vm_function_extra.h"
 #include <sys/stat.h>

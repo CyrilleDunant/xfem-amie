@@ -13,9 +13,11 @@
 #include "../physics/materials/paste_behaviour.h"
 #include "../utilities/writer/triangle_writer.h"
 #include "../utilities/parser.h"
+#include "../utilities/font.h"
 #include "../features/sample.h"
 
 #include <fstream>
+#include <ostream>
 #include <omp.h>
 #include <cmath>
 #include <dirent.h>
@@ -141,8 +143,8 @@ int main(int argc, char *argv[])
 	{
 		timeval time0, time1 ;
 		gettimeofday ( &time0, nullptr );
-		std::cout << "--------------" << std::endl ;
-		std::cout << "starting test " << exec[i] << std::endl ;
+//		std::cout << "--------------" << std::endl ;
+		std::cout << exec[i] << std::flush ;
 		std::string command ;
 		if(timeout > 0)
 			command = "timeout "+itoa(timeout)+" ";
@@ -153,24 +155,24 @@ int main(int argc, char *argv[])
 		int r = std::system(command.c_str()) ;
 		gettimeofday ( &time1, nullptr );
 		double dt = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
-		std::cout << "run time: " << dt/1000000 << " seconds" << std::endl ;
+		std::cout << " (" << dt/1000000 << "s)" << std::flush ;
 
 		if(!renew)
 		{
 			int delta = getDelta( "../examples/test/"+exec[i]+"_base", "../examples/test/"+exec[i]+"_current", tol, thr) ;
 			if(delta == 0 && r == 0)
-				std::cout << "SUCCESS" << std::endl ;
+				std::cout << Font(BOLD, GREEN) << " SUCCESS" << Font() << std::endl ;
 			else if( r == 0)
-				std::cout << "FAIL: " << delta << " error(s) found" << std::endl ;
+				std::cout << Font(BOLD, RED) << " FAIL " << Font() << delta << " error(s) found" << std::endl ;
 			else
-				std::cout << "FAIL (return value " << r << ")" << std::endl ;
+				std::cout << Font(BOLD, RED) << " FAIL " << Font() << "return value " << r << std::endl ;
 		}
 		else
 		{
 			if(r == 0)
-				std::cout << "SUCCESS" << std::endl ;
+				std::cout << Font(BOLD, GREEN) << " SUCCESS" << Font() << std::endl ;
 			else
-				std::cout << "FAIL (return value " << r << ")" << std::endl ;
+				std::cout << Font(BOLD, RED) << " FAIL " << Font() << "return value " << r << std::endl ;
 		}
 		
 		
