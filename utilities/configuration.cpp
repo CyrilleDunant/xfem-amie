@@ -536,9 +536,16 @@ bool ConfigTreeItem::bindInput( std::vector<std::string> & callers, std::string 
             if(start < std::string::npos && end < std::string::npos)
             {
                 std::string flag = lab.substr(start+1, end-start-1) ;
-                bool found = false ;
+                bool invert = flag[0] == '!' ;
+                if(invert) { flag = flag.substr(1) ; }
+                bool found = !invert ;
                 for(size_t f = 0 ; f < flags.size() ; f++)
-                    found |= (flags[f] == flag) ;
+                {
+                    if(invert)
+                        found |= (flags[f] != flag) ;
+                    else
+                        found |= (flags[f] == flag) ;
+                }
                 if(!found)
                 {
                     std::cout << "flag " << flag << " not activated!" << std::endl ;
