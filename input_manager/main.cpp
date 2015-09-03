@@ -18,7 +18,12 @@ int main(int argc, char *argv[])
 	pathFile.open("path_to_executable.ini", std::ios::in) ;
 	std::string path ;
 	getline( pathFile, path ) ;
+        if(path.size() == 0) { path = "./2d_composite" ; }
 	std::string command = path+" "+input.toStdString() ;
+	if(input.size() == 0)
+		return 0 ;
+        for(int i = 1 ; i < argc ; i++)
+            command += " " + std::string(argv[i]) ;
 	#ifdef _WIN32
 	std::string winCommand = command ;
 	size_t backslash = winCommand.find("/") ;
@@ -31,7 +36,6 @@ int main(int argc, char *argv[])
 	}
 	command = winCommand ;
 	#endif
-    std::cout << command << std::endl ;
 	system( command.c_str() ) ;
 	
 

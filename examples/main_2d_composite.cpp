@@ -27,13 +27,16 @@ std::vector<std::string> getFiles( std::string path, std::string end)
     DIR * dp ;
     struct dirent *dirp ;
     if((dp = opendir(path.c_str())) == NULL)
+    {
+        std::cout << "could not open directory " << path << std::endl ; 
         exit(0) ;
+    }
 
     while((dirp = readdir(dp)) != NULL)
     {
         std::string test = dirp->d_name ;
         if(test.find(end) == test.size()-end.size() && test.size() > end.size())
-            ret.push_back( test ) ;
+            ret.push_back( path+"/"+test ) ;
     }
 
     return ret ;
@@ -48,16 +51,22 @@ int main(int argc, char *argv[])
     CommandLineParser parser("Run a 2D AMIE simulation using the configuration parameters found in a *.ini file", true, true) ;
     parser.addFlag( "--print-microstructure", false , "print only the mesh and values of mechanical properties") ;
     parser.addFlag( "--print-configuration-tree", false , "print only the configuration tree after parsing") ;
+    parser.addFlag( "--browse", false , "call the explorer to find the *.ini file") ;
     parser.addString( "--directory", std::string() , "directory to read additional input and write output") ;
     parser.addArgument( "file_name", "*.ini", "relative path to *.ini file to run") ;
     parser.parseCommandLine( argc, argv ) ;
+    bool explorer = parser.getFlag("--browse") ;
     bool printMicrostructureOnly = parser.getFlag("--print-microstructure") ;
     bool printConfigTree = parser.getFlag("--print-configuration-tree") ;
     std::string file = parser.getStringArgument(0) ;
+    std::string path = parser.getString("--directory") ;
 
-    if(file == "*.ini")
+    if(file == "*.ini" && !explorer)
     {
-        std::vector<std::string> potentials = getFiles(".",".ini");
+        std::string p = "." ;
+        if(path.size() > 0)
+            p = path ;
+        std::vector<std::string> potentials = getFiles(p,".ini");
         if(potentials.size() == 0)
         {
            std::cout << "no *.ini file defined, nothing to do..." << std::endl ;
@@ -65,44 +74,62 @@ int main(int argc, char *argv[])
         }
         if(potentials.size() == 1)
         {
-           std::cout << "using file " << potentials[0] << " automatically detected in current directory" << std::endl ;
+           std::cout << "using file " << potentials[0] << " automatically detected in working directory" << std::endl ;
            file = potentials[0] ;
         }
         else
         {
-            std::cout << "found multiple files in current directory:" << std::endl ;
+            std::cout << "found multiple files in working directory:" << std::endl ;
             for(size_t i = 0 ; i < potentials.size() ; i++)
                 std::cout << i << " " << potentials[i] << std::endl ;
-            std::cout << "choose *.ini file (0-" << potentials.size()-1 << ")?" << std::flush ;
+            std::cout << "choose *.ini file (0-" << potentials.size()-1 << "; \"x\" to open explorer window)?" << std::flush ;
             std::string buffer ;
             getline( std::cin, buffer ) ;
-            bool found = false ;
-            for(size_t i = 0 ; i < potentials.size() ; i++)
+            if(buffer == "x")
             {
-                if(buffer == potentials[i])
+                explorer = true ;
+            }
+            else
+            {
+                bool found = false ;
+                for(size_t i = 0 ; i < potentials.size() ; i++)
                 {
-                    found = true ;
-                    file = buffer ;
+                    if(path+"/"+buffer == potentials[i])
+                    {
+                        found = true ;
+                        file = potentials[i] ;
+                    }
                 }
-            }
-            if(!found)
-            {
-                size_t index = atof( buffer.c_str() ) ;
-                if(index >= potentials.size() || !FunctionParserHelper::isNumeral( buffer[0] ))
+                if(!found)
                 {
-                    std::cout << "no *.ini file defined, nothing to do..." << std::endl ;
-                    exit(0) ;
-                } 
-                file = potentials[index] ;
+                    size_t index = atof( buffer.c_str() ) ;
+                    if(index >= potentials.size() || !FunctionParserHelper::isNumeral( buffer[0] ))
+                    {
+                        std::cout << "no *.ini file defined, nothing to do..." << std::endl ;
+                        exit(0) ;
+                    } 
+                    file = potentials[index] ;
+                }
+                std::cout << "using file " << file << std::endl ;
             }
-            std::cout << "using file " << file << std::endl ;
         }
-
     }
+
+    if(explorer)
+    {
+        std::string command = "../input_manager/input_manager" ;
+        for( int i = 1 ; i < argc ; i++)
+        {
+            if(std::string(argv[i]) != "--browse")
+                command += " "+std::string(argv[i]) ;
+        }
+        std::system( command.c_str() ) ;
+        return 0 ;
+    }
+
 
     ConfigTreeItem * define = parser.getConfiguration() ;
     std::map<std::string, std::string> direct = parser.getDirectConfiguration() ;
-    std::string path = parser.getString("--directory") ;
     std::vector<std::string> flags = parser.getActiveFlags() ;
 
     ConfigTreeItem * problem = ConfigParser::readFile(file, define, true, true, flags, path ) ;
