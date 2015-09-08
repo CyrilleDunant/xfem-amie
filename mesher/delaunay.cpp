@@ -2858,12 +2858,12 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
             double jac = 2.*area() ;
 
-            for(size_t i = 0 ; i < gp_alternative.size() ; i++)
-            {
-                gp_alternative[i].second *= jac ;
-                fsum += gp_alternative[i].second ;
-
-            }
+//             for(size_t i = 0 ; i < gp_alternative.size() ; i++)
+//             {
+//                 gp_alternative[i].second *= jac ;
+//                 fsum += gp_alternative[i].second ;
+// 
+//             }
 
             double originalSum = 0 ;
             for(auto & i : getGaussPoints().gaussPoints)
@@ -2888,11 +2888,11 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
             if( false )
             {
-                if(getCachedGaussPoints()->getId() == REGULAR_GRID)
+                if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
                     return *getCachedGaussPoints() ;
 
                 delete cachedGps ;
-                cachedGps = new GaussPointArray(monteCarloGaussPoints(4096, this)) ;
+                cachedGps = new GaussPointArray(monteCarloGaussPoints(512, this)) ;
                 cachedGps->getId() = REGULAR_GRID ;
                 return *getCachedGaussPoints() ;
             }
@@ -2925,46 +2925,46 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             
             Function gx = getXTransform() ;
             Function gy = getYTransform() ;
-            
             for(size_t i = 0 ; i < tri.size() ; i++)
             {
                 
                 Function x = tri[i]->getXTransform() ;
                 Function y = tri[i]->getYTransform() ;
                
-//                 GaussPointArray gp_temp(monteCarloGaussPoints(256, tri[i])) ;
+//                 GaussPointArray gp_temp(monteCarloGaussPoints(2560, tri[i])) ;
                 
                 GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 
                 for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
                 {
                     gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first)) ;
-                    if(enrs->in(Point(vm.eval(gx,gp_temp.gaussPoints[j].first), vm.eval(gy,gp_temp.gaussPoints[j].first))))
-                        in += gp_temp.gaussPoints[j].second ;
-                    else
-                        out += gp_temp.gaussPoints[j].second ;
+//                     if(enrs->in(Point(vm.eval(gx,gp_temp.gaussPoints[j].first), vm.eval(gy,gp_temp.gaussPoints[j].first))))
+//                         in += gp_temp.gaussPoints[j].second ;
+//                     else
+//                         out += gp_temp.gaussPoints[j].second ;
                     gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
                 }
             }
             
-            if(tri.size() == 0 || getEnrichmentFunctions().size() > 3)
-                gp_alternative = monteCarloGaussPoints(256, this) ;
+            
+            if(tri.size() < 3 || getEnrichmentFunctions().size() > 3)
+                gp_alternative = monteCarloGaussPoints(1024, this) ;
             
             double fsum = 0. ;
             for(size_t i = 0 ; i < gp_alternative.size() ; i++)
                 fsum += gp_alternative[i].second ;
 
-            double originalSum = area() ;
-//             for(auto & i : getGaussPoints().gaussPoints)
-//                 originalSum += i.second ;
+            double originalSum = 0 ;
+            for(auto & i : getGaussPoints().gaussPoints)
+                originalSum += i.second ;
 
             for(size_t i = 0 ; i < gp_alternative.size() ; i++)
                 gp_alternative[i].second *= originalSum / fsum ;
 
-//             if(in/out < .1)
+//             if(in/out < .1 || in/out > 10. )
 //             {
 //                 for(size_t j = 0 ; j < gp_alternative.size() ; j++)
-//                     gp_alternative[j].second *= sqrt(out/in) ;
+//                     gp_alternative[j].second *= 10. ;
 //             }
             
 //             if(in/out < .1)

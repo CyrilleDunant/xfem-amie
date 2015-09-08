@@ -2374,7 +2374,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
 
                 for ( size_t j = 0 ; j < descendants.size() ; j++ )
                 {
-                    if ( descendants[j]->getLayer() == layer && !descendants[j]->isEnrichmentFeature && descendants[j]->in ( t->getCenter() ) && descendants[j]->inMask ( t->getCenter(), 0. ) && descendants[j]->getInPoints().size() > 0)
+                    if ( descendants[j]->getLayer() == layer && !descendants[j]->isEnrichmentFeature && descendants[j]->in ( t->getCenter() ) && descendants[j]->inMask ( t->getCenter(), 0. ) &&( descendants[j]->getInPoints().size() > 0 || descendants[j]->isVirtualFeature))
                     {
                         notInChildren = false ;
                         break ;

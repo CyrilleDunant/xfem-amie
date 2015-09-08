@@ -448,7 +448,7 @@ Vector BimaterialInterface::getForcesFromAppliedStress( const Vector & data, Fun
 
 Vector BimaterialInterface::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic,  const Vector & normal)
 {
-        Vector ret(v.size(), 0.) ;
+    Vector ret(v.size(), 0.) ;
 
     if(Jinv.size() == 0)
         return ret ;

@@ -49,15 +49,15 @@ void step()
 //        featureTree->printReport();
        
        Vector tmp(2) ;
-       for(double x = -150 ;  x <= 150 ; x += .5)
-       {
-           for(double y = -100 ;  y <= 100 ; y += .5)
-           {
-               featureTree->get2DMesh()->getField(IMPOSED_STRESS_FIELD, Point(x,y),tmp) ;
-                std::cout << tmp[0] << "  "<< std::flush ;
-           }
-           std::cout << std::endl ;
-       }
+//        for(double x = -150 ;  x <= 150 ; x += .5)
+//        {
+//            for(double y = -100 ;  y <= 100 ; y += .5)
+//            {
+//                featureTree->get2DMesh()->getField(IMPOSED_STRESS_FIELD, Point(x,y),tmp) ;
+//                 std::cout << tmp[0] << "  "<< std::flush ;
+//            }
+//            std::cout << std::endl ;
+//        }
        tmp.resize(3) ;
        for(double x = -150 ;  x <= 150 ; x += .5)
        {
@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
     if(load == -1)
     {
 //         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -5e6)) ;
-//         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, -5e-6)) ;
+//         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -5e6)) ;
     }
     if(load == 2)
     {

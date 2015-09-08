@@ -539,24 +539,24 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
             std::vector<Function> shapeFunctions ;
 
-            for ( size_t j = 0 ; j < id.size() ; j++ )
-            {
+//             for ( size_t j = 0 ; j < id.size() ; j++ )
+//             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[idit] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( Function(e->getShapeFunction ( i ), 2) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( (int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)id[idit] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
                 }
 
-            }
+//             }
 
             std::vector<Variable> v ( 2 ) ;
 
@@ -602,7 +602,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
             }
 
-            return ;
+            break ;
         }
 
         case SET_VOLUMIC_STRESS_ETA:
@@ -618,14 +618,14 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[idit] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( Function(e->getShapeFunction ( i ), 2) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( (int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)id[idit] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -677,7 +677,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
             }
 
-            return ;
+            break ;
         }
 
         case SET_VOLUMIC_STRESS_XI_ETA:
@@ -689,24 +689,24 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
             std::vector<Function> shapeFunctions ;
 
-            for ( size_t j = 0 ; j < id.size() ; j++ )
-            {
+//             for ( size_t j = 0 ; j < id.size() ; j++ )
+//             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[idit] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( Function(e->getShapeFunction ( i ), 2) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( (int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)id[idit] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
                 }
 
-            }
+//             }
 
             std::vector<Variable> v ( 2 ) ;
 

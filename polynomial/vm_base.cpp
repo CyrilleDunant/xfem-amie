@@ -1092,7 +1092,7 @@ double VirtualMachine::deval(const Function &f, const Variable v_,  const double
             double h = eps*.5 ;
             volatile double temp = x+h ;
             h = temp - x ;
-				return ( eval(f, x-2.*h, y, z, t, u, v, w)/12. -2./3. * eval(f, x-h, y, z, t, u, v, w)- eval(f, x+2.*h, y, z, t, u, v, w)/12. +2./3.* eval(f, x+h, y, z, t, u, v, w) ) / h ;
+// 				return ( eval(f, x-2.*h, y, z, t, u, v, w)/12. -2./3. * eval(f, x-h, y, z, t, u, v, w)- eval(f, x+2.*h, y, z, t, u, v, w)/12. +2./3.* eval(f, x+h, y, z, t, u, v, w) ) / h ;
             return .5*( eval(f, x+h, y, z, t, u, v, w) - eval(f, x-h, y, z, t, u, v, w))/h ;
         }
         case ETA:
@@ -1100,7 +1100,7 @@ double VirtualMachine::deval(const Function &f, const Variable v_,  const double
             double h = eps*.5 ;
             volatile double temp = y+h ;
             h = temp - y ;
-				return ( eval(f, x, y-2.*h, z, t, u, v, w)/12. -2./3. * eval(f, x, y-h, z, t, u, v, w)- eval(f, x, y+2.*h, z, t, u, v, w)/12. +2./3.* eval(f, x, y+h, z, t, u, v, w) ) / h ;
+// 				return ( eval(f, x, y-2.*h, z, t, u, v, w)/12. -2./3. * eval(f, x, y-h, z, t, u, v, w)- eval(f, x, y+2.*h, z, t, u, v, w)/12. +2./3.* eval(f, x, y+h, z, t, u, v, w) ) / h ;
             return .5*( eval(f, x, y+h, z, t, u, v, w) - eval(f, x, y-h, z, t, u, v, w))/h ;
         }
         case ZETA:
@@ -1108,7 +1108,7 @@ double VirtualMachine::deval(const Function &f, const Variable v_,  const double
             double h = eps*.5 ;
             volatile double temp = z+h ;
             h = temp - z ;
-            return ( eval(f, x, y, z-2.*h, t, u, v, w)/12. -2./3. * eval(f, x, y, z-h, t, u, v, w)- eval(f, x, y, z+2.*h, t, u, v, w)/12. +2./3.* eval(f, x, y, z+h, t, u, v, w) ) / h ;
+//             return ( eval(f, x, y, z-2.*h, t, u, v, w)/12. -2./3. * eval(f, x, y, z-h, t, u, v, w)- eval(f, x, y, z+2.*h, t, u, v, w)/12. +2./3.* eval(f, x, y, z+h, t, u, v, w) ) / h ;
             return .5*( eval(f, x, y, z+h, t, u, v, w) - eval(f, x, y, z-h, t, u, v, w))/h ;
         }
         case TIME_VARIABLE :

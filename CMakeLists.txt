@@ -478,7 +478,7 @@ target_link_libraries( test_viscoelasticity_imposed_deformation Amie ${ALL_LINK_
 add_executable( test_stxfem examples/test/main_test_stxfem.cpp )
 target_link_libraries( test_stxfem Amie ${ALL_LINK_FLAGS})
 
-ADD_CUSTOM_TARGET(test)
-ADD_DEPENDENCIES(test check_test test_logcreep test_viscodamage_multilinearsoftening test_viscoelasticity_kv test_xfem test_stxfem test_imposed_deformation test_viscoelasticity_imposed_deformation)
+ADD_CUSTOM_TARGET(unitTests)
+ADD_DEPENDENCIES(unitTests check_test test_logcreep test_viscodamage_multilinearsoftening test_viscoelasticity_kv test_xfem test_stxfem test_imposed_deformation test_viscoelasticity_imposed_deformation)
 
 
