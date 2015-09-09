@@ -35,42 +35,46 @@ int getDelta( std::string base, std::string current, double tol, double ignore )
 	bstream.open( base.c_str(), std::ios::in ) ;
 	if(!bstream.good())
 	{
-		std::cout << "!!! file not found: " << base << std::endl ;
-		return 1 ;
+//		std::cout << "!!! file not found: " << base << std::endl ;
+		return -2 ;
 	}
 	std::fstream cstream ;
 	cstream.open( current.c_str(), std::ios::in ) ;
 	if(!cstream.good())
 	{
-		std::cout << "!!! file not found: " << current << std::endl ;
-		return 1 ;
+//		std::cout << "!!! file not found: " << current << std::endl ;
+		return -1 ;
 	}
 	double bvalue = 0 ;
 	double cvalue = 0 ;
+	std::string raw ;
 	int delta = 0 ;
 	while(!bstream.eof())
 	{
 		bstream >> bvalue ;
-		if(!cstream.eof())
+		cstream >> raw ;
+		if(!bstream.eof() && !cstream.eof())
 		{
-			cstream >> cvalue ;
-			if(std::abs(bvalue) > ignore)
+                        cvalue = atof(raw.c_str()) ;
+			if(std::abs(cvalue) > ignore)
 			{
 				if(std::abs(1.-cvalue/bvalue) > tol)
 					delta++ ;
 			}
 			else if(std::abs(cvalue-bvalue) > ignore)
 				delta++ ;
+			else if( raw == "nan" || raw == "-nan")
+				delta++ ;
 		}
-		else
+		else if(!bstream.eof())
 		{
 			delta++ ;
 		}
 	}
 	while(!cstream.eof())
 	{
-		cstream >> cvalue ;
 		delta++ ;
+		cstream >> raw ;
 	}
 	bstream.close() ;
 	cstream.close() ;
@@ -162,8 +166,10 @@ int main(int argc, char *argv[])
 			int delta = getDelta( "../examples/test/"+exec[i]+"_base", "../examples/test/"+exec[i]+"_current", tol, thr) ;
 			if(delta == 0 && r == 0)
 				std::cout << Font(BOLD, GREEN) << " SUCCESS" << Font() << std::endl ;
-			else if( r == 0)
+			else if( r == 0 && delta > 0)
 				std::cout << Font(BOLD, RED) << " FAIL " << Font() << delta << " error(s) found" << std::endl ;
+			else if( r == 0 && delta < 0)
+				std::cout << Font(BOLD, RED) << " FAIL " << Font() << Font(BLUE) << "file not found: " << exec[i] + (r==-1 ? "_base" : "_current") << Font() <<  std::endl ;
 			else
 				std::cout << Font(BOLD, RED) << " FAIL " << Font() << "return value " << r << std::endl ;
 		}
