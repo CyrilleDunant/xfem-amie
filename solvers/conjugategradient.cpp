@@ -145,7 +145,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     double beta = 0 ;
     double lastReset = rho ;
     int resetIncreaseCount = 0 ;
-    while((sqrt(last_rho) > realeps && nit < Maxit ) || nit < 256)
+    while((sqrt(last_rho) > realeps*err0 && nit < Maxit ) || nit < 256)
     {
 //         std::cout << sqrt(last_rho) << "  " << realeps << std::endl ;
 //             if(nit < 256)

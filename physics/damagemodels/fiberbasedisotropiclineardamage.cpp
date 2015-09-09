@@ -84,7 +84,7 @@ void FiberBasedIsotropicLinearDamage::step( ElementState &s , double maxscore)
         for(size_t i = 0 ; i < state.size() ; i++)
         {
             if(state[i] > 1)
-                state[i] = std::min(thresholdDamageDensity+POINT_TOLERANCE, 1.) ;
+                state[i] = 1 ;
         }
         change = true ;
     }

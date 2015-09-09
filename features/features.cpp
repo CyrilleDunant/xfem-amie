@@ -4484,7 +4484,7 @@ void FeatureTree::stepXfem()
 
     if ( enrichmentChange )
     {
-        residualError = 1e9 ;
+        residualError = 1e19 ;
     }
 }
 

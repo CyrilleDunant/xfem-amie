@@ -113,7 +113,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 
             if( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() ) )
             {
-                Matrix p = dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->getOriginalBehaviour()->getTensor(Point(1./3, 1./3)) ;
+                Matrix p = dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->getOriginalBehaviour()->getTensor(Point(1./3., 1./3.)) ;
                 bi = new BimaterialInterface( getPrimitive(),
                                               getBehaviour()->getCopy(),
                                               dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->getOriginalBehaviour()->getCopy() ) ;
@@ -121,8 +121,8 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
             else
             {
                 Form * selfBehaviour = getBehaviour()->getCopy() ;
-                if(ring[i]->getBehaviour()->getDamageModel())
-                    selfBehaviour->param *= 1.-ring[i]->getBehaviour()->getDamageModel()->getState().max() ;
+//                 if(ring[i]->getBehaviour()->getDamageModel())
+//                     selfBehaviour->param *= 1.-ring[i]->getBehaviour()->getDamageModel()->getState().max() ;
                 bi = new BimaterialInterface( getPrimitive(),
                                               selfBehaviour,
                                               ring[i]->getBehaviour()->getCopy() ) ;
@@ -135,10 +135,10 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
             bi->transform( ring[i] ) ;
             bi->setSource( src );
         }
-        else if(ring[i]->getBehaviour()->getDamageModel())
-        {
-            dynamic_cast<BimaterialInterface *> (ring[i]->getBehaviour())->inBehaviour->param = getBehaviour()->param*(1.-ring[i]->getBehaviour()->getDamageModel()->getState().max()) ;
-        }
+//         else if(ring[i]->getBehaviour()->getDamageModel())
+//         {
+//             dynamic_cast<BimaterialInterface *> (ring[i]->getBehaviour())->inBehaviour->param = getBehaviour()->param*(1.-ring[i]->getBehaviour()->getDamageModel()->getState().max()) ;
+//         }
         if(ring[i]->getBehaviour()->getFractureCriterion())
         {
                 ring[i]->getElementaryMatrix() ;
