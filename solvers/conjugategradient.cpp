@@ -231,7 +231,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
     if(verbose)
     {
-        if(nit <= Maxit && sqrt(last_rho)< realeps)
+        if(nit <= Maxit && sqrt(last_rho)< realeps*err0)
             std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
         else
         {
@@ -240,6 +240,6 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         }
     }
 
-    return nit <= Maxit && sqrt(last_rho) < realeps;
+    return nit <= Maxit && sqrt(last_rho) < realeps*err0;
 }
 
