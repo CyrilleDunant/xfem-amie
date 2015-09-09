@@ -22,7 +22,7 @@ using namespace Amie ;
 
 AggregateBehaviour::AggregateBehaviour(double E, double nu, double up_, double yield, double c, SpaceDimensionality dim, double var) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up_), yield(yield), c(c)
 {
-	materialRadius = 0.001 ;
+	materialRadius = 0.0005 ;
     variability = var ;
 }
 

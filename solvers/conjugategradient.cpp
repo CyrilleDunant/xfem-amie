@@ -38,15 +38,16 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         Maxit = x.size() ;
     if(x0.size() == assembly->getForces().size())
     {
-        x.resize(x0.size());
+        x.resize(assembly->getForces().size());
+        xmin.resize(assembly->getForces().size(), 0.);
         x = x0 ;
     }
     else
     {
-
-        x = 0 ;
-        for(size_t i = 0 ; i < std::min(assembly->getForces().size(), x0.size()) ; i++)
-            x[i] = x0[i] ;
+        x.resize(assembly->getForces().size(), 0.);
+        xmin.resize(assembly->getForces().size(), 0.);
+//         for(size_t i = 0 ; i < std::min(assembly->getForces().size(), x0.size()) ; i++)
+//             x[i] = x0[i] ;
     }
 // 	x = 0 ;
 
@@ -185,14 +186,14 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             xmin = x ;
         }
 
-        if(nit%64 == 0)
+        if(nit%50 == 0)
         {
             assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
             #pragma omp parallel for schedule(static) if (vsize > 10000)
             for(int i = rowstart ; i < vsize ; i++)
                 r[i] *= -1 ;
         }
-        if( verbose && nit%64 == 0 )
+        if( verbose && nit%50 == 0 )
         {
             if(rho > lastReset)
                 resetIncreaseCount++ ;
