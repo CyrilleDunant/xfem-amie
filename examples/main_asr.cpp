@@ -209,12 +209,12 @@ int main( int argc, char *argv[] )
     Sample *blocktop = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
     if(fact0 > 10)
     {
-        blocktop->setBehaviour(new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  .2, 0.) ) ;
+        blocktop->setBehaviour(new OrthotropicStiffness(fact0*1e-2, fact0, fact0*1e-2*fact0/(fact0+fact0),  .2, 0.) ) ;
         blocks.push_back(blocktop);
     }
     else
     {
-        blocktop->setBehaviour(new OrthotropicStiffness(    5e6,     5e6,     5e6* 5e6/(    5e6+    5e6),  .2, 0.) /*VoidForm()*/) ;
+        blocktop->setBehaviour(new OrthotropicStiffness(    5e7,     5e7,     5e7* 5e7/(    5e7+    5e7),  .2, 0.) /*VoidForm()*/) ;
         blocks.push_back(blocktop);
     }
     F.addFeature( &sample, blocktop );
@@ -222,12 +222,12 @@ int main( int argc, char *argv[] )
     Sample *blockbottom = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
     if(fact0 > 10)
     {
-        blockbottom->setBehaviour(new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  .2, 0.) ) ;
+        blockbottom->setBehaviour(new OrthotropicStiffness(fact0*1e-2, fact0, fact0*1e-2*fact0/(fact0+fact0),  .2, 0.) ) ;
         blocks.push_back(blockbottom);
     }
     else
     {
-        blockbottom->setBehaviour(new OrthotropicStiffness( 5e6,     5e6,     5e6* 5e6/(    5e6+    5e6),  .2, 0.) /*VoidForm()*/) ;
+        blockbottom->setBehaviour(new OrthotropicStiffness( 5e7,     5e7,     5e7* 5e7/(    5e7+    5e7),  .2, 0.) /*VoidForm()*/) ;
         blocks.push_back(blockbottom);
     }
     F.addFeature( &sample, blockbottom );
@@ -235,12 +235,12 @@ int main( int argc, char *argv[] )
     Sample *blockleft = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().getX() - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().getY() ) ;
     if(fact > 10)
     {
-        blockleft->setBehaviour(new OrthotropicStiffness(fact, fact*1e-4, fact*1e-4*fact/(fact+fact),  .2, 0.) ) ;
+        blockleft->setBehaviour(new OrthotropicStiffness(fact, fact*1e-2, fact*1e-2*fact/(fact+fact),  .2, 0.) ) ;
         blocks.push_back(blockleft);
     }
     else
     {
-        blockleft->setBehaviour(new OrthotropicStiffness(    5e6,     5e6,     5e6*    5e6/(    5e6+    5e6),  .2, 0.) /* VoidForm()*/) ;
+        blockleft->setBehaviour(new OrthotropicStiffness(    5e7,     5e7,     5e7*    5e7/(    5e7+    5e7),  .2, 0.) /* VoidForm()*/) ;
         blocks.push_back(blockleft);
     }
     F.addFeature( &sample, blockleft );
@@ -248,12 +248,12 @@ int main( int argc, char *argv[] )
     Sample *blockright = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().getY() ) ;
     if(fact > 10)
     {
-        blockright->setBehaviour(new OrthotropicStiffness(fact, fact*1e-4, fact*1e-4*fact/(fact+fact),  .2, 0.) ) ;
+        blockright->setBehaviour(new OrthotropicStiffness(fact, fact*1e-2, fact*1e-2*fact/(fact+fact),  .2, 0.) ) ;
         blocks.push_back(blockright);
     }
     else
     {
-        blockright->setBehaviour(new OrthotropicStiffness(    5e6,     5e6,     5e6*    5e6/(    5e6+    5e6),  .2, 0.)/*VoidForm()*/) ;
+        blockright->setBehaviour(new OrthotropicStiffness(    5e7,     5e7,     5e7*    5e7/(    5e7+    5e7),  .2, 0.)/*VoidForm()*/) ;
         blocks.push_back(blockright);
     }
     F.addFeature( &sample, blockright );

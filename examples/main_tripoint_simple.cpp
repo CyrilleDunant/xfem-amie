@@ -166,53 +166,17 @@ int main ( int argc, char *argv[] )
     FractureCriterion * mazar = new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 0.064, pt ) ;
     DamageModel * linear = new SpaceTimeIsotropicLinearDamage(1.0) ;
  
-    Matrix m0_steel = Tensor::cauchyGreen ( std::make_pair ( E_steel,nu_steel ), true, SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
-
     Sample sample ( nullptr, sampleLength*.5, sampleHeight+2.*plateHeight, halfSampleOffset, 0 ) ;   
-
-    Sample topsupport ( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
-
-    Sample toprightvoid ( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth ) *.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
-    toprightvoid.setBehaviour ( new VoidForm() ) ;
-
-    Sample baseright ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
-
-
-    Sample bottomcentervoid ( supportLever - platewidth*.5, plateHeight, ( supportLever - platewidth*.5 ) *.5, -sampleHeight*.5 - plateHeight*.5 ) ;
-    bottomcentervoid.setBehaviour ( new VoidForm() ) ;
-
-    Sample rightbottomvoid ( supportMidPointToEndClearance - platewidth*.5, plateHeight, sampleLength*.5 - ( supportMidPointToEndClearance - platewidth*.5 ) *.5,  -sampleHeight*.5 - plateHeight*.5 ) ;
-    rightbottomvoid.setBehaviour ( new VoidForm() ) ;
     
-    
-//     sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mcft->getCopy(), linear->getCopy() )); 
     sample.setBehaviour (new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mcft->getCopy(), linear->getCopy() )); 
-    topsupport.setBehaviour ( new Viscoelasticity ( PURE_ELASTICITY, m0_steel ) ) ;
-    baseright.setBehaviour ( new Viscoelasticity ( PURE_ELASTICITY, m0_steel ) ) ;
-    
-    //     baseright.setBehaviour ( new Stiffness ( m0_steel ) ) ;
-//     topsupport.setBehaviour ( new Stiffness ( m0_steel ) ) ;
-    //     sample.setBehaviour ( new ConcreteBehaviour ( k_elas, nu_elas, compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
-    
+
     FeatureTree F ( &sample ) ;
 
-    F.addFeature ( &sample,&baseright ) ;
-    F.addFeature ( &baseright,&bottomcentervoid );
-    F.addFeature ( &baseright,&rightbottomvoid ) ;
-    F.addFeature ( &sample, &topsupport);
-    F.addFeature ( &topsupport, &toprightvoid);
 
     Triangle fineZone ( Point ( 0.,sampleHeight*.7 ), Point ( 0.,-sampleHeight*.5 ), Point ( sampleLength*.1, -sampleHeight*.5 ) ) ;
     Triangle finerZone ( Point ( 0.,sampleHeight*.7 ), Point ( 0.,-sampleHeight*.5 ), Point ( sampleLength*.05, -sampleHeight*.5 ) ) ;
     F.addRefinementZone ( &fineZone );
     F.addRefinementZone ( &finerZone );
-
-
-
-    F.setSamplingFactor ( &bottomcentervoid, 1./3 ) ;
-    F.setSamplingFactor ( &rightbottomvoid, 1./3 ) ;
-    F.setSamplingFactor ( &bottomcentervoid, 1./3 ) ;
-    F.setSamplingFactor ( &rightbottomvoid, 1./3 ) ;
 
     F.setSamplingNumber ( samplingNumber ) ;
 
