@@ -16,6 +16,7 @@
 #include "../physics/void_form.h"
 #include "../features/sample.h"
 #include "../utilities/itoa.h"
+#include "../utilities/parser.h"
 #include "../utilities/writer/triangle_writer.h"
 #include "../physics/materials/concrete_behaviour.h"
 
@@ -131,9 +132,15 @@ int main ( int argc, char *argv[] )
 
     // Beton
 
-    double samplingNumber   = atof ( argv[1] ) ;
-    double sampleLength     = atof ( argv[2] ) ;
-    double sampleHeight     = atof ( argv[3] ) ;
+    CommandLineParser parser("Make a tri-point bending test on an homogeneous concrete sample") ;
+    parser.addArgument( "sampling_number", 16, "number of sampling points on the boundary of the sample (default 16)") ;
+    parser.addArgument("length", 3.9, "length of the sample (default 3.9)") ;
+    parser.addArgument("height", 1.2, "height of the sample (default 1.2)") ;
+    parser.parseCommandLine(argc, argv) ;
+
+    double samplingNumber   = parser.getNumeralArgument( "sampling_number") ;
+    double sampleLength     = parser.getNumeralArgument( "length") ;
+    double sampleHeight     = parser.getNumeralArgument( "height") ;
     double supportLever     = sampleLength*.5-.250 ;
     double halfSampleOffset = sampleLength*.25 ;
 
