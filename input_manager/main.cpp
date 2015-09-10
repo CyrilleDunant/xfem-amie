@@ -19,11 +19,23 @@ int main(int argc, char *argv[])
 	std::string path ;
 	getline( pathFile, path ) ;
         if(path.size() == 0) { path = "./2d_composite" ; }
-	std::string command = path+" "+input.toStdString() ;
+        std::string stdinput = input.toStdString() ;
+	std::string command = path+" "+stdinput ;
+        std::string dir = std::string() ;
+        if(stdinput.find("/") != std::string::npos)
+            dir = stdinput.substr( 0, stdinput.find_last_of("/")) ;
 	if(input.size() == 0)
 		return 0 ;
+        bool hasDir = false ;
         for(int i = 1 ; i < argc ; i++)
-            command += " " + std::string(argv[i]) ;
+        {
+            if(hasDir)
+                command += " " + dir+"/"+std::string(argv[i]) ;
+            else
+                command += " " + std::string(argv[i]) ;
+
+            hasDir = (std::string(argv[i]) == "--directory") ;   
+        }
 	#ifdef _WIN32
 	std::string winCommand = command ;
 	size_t backslash = winCommand.find("/") ;

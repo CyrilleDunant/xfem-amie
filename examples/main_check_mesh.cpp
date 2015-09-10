@@ -20,6 +20,7 @@
 #include <ostream>
 #include <omp.h>
 #include <cmath>
+#include <regex>
 #include <dirent.h>
 #include <typeinfo>
 #include <limits>
@@ -29,80 +30,21 @@
 
 using namespace Amie ;
 
-int getDelta( std::string base, std::string current, double tol, double ignore )
-{
-	std::fstream bstream ;
-	bstream.open( base.c_str(), std::ios::in ) ;
-	if(!bstream.good())
-	{
-//		std::cout << "!!! file not found: " << base << std::endl ;
-		return -2 ;
-	}
-	std::fstream cstream ;
-	cstream.open( current.c_str(), std::ios::in ) ;
-	if(!cstream.good())
-	{
-//		std::cout << "!!! file not found: " << current << std::endl ;
-		return -1 ;
-	}
-	double bvalue = 0 ;
-	double cvalue = 0 ;
-	std::string raw ;
-	int delta = 0 ;
-	while(!bstream.eof())
-	{
-		bstream >> bvalue ;
-		cstream >> raw ;
-		if(!bstream.eof() && !cstream.eof())
-		{
-                        cvalue = atof(raw.c_str()) ;
-			if(std::abs(cvalue) > ignore)
-			{
-				if(std::abs(1.-cvalue/bvalue) > tol)
-					delta++ ;
-			}
-			else if(std::abs(cvalue-bvalue) > ignore)
-				delta++ ;
-			else if( raw == "nan" || raw == "-nan")
-				delta++ ;
-		}
-		else if(!bstream.eof())
-		{
-			delta++ ;
-		}
-	}
-	while(!cstream.eof())
-	{
-		delta++ ;
-		cstream >> raw ;
-	}
-	bstream.close() ;
-	cstream.close() ;
-	return delta ;
-}
-
 int main(int argc, char *argv[])
 {
-	CommandLineParser parser("Run all tests found in AMIE test base") ;
-	parser.addFlag("--zero", false, "set tolerance and thresholds to 0") ;
+	CommandLineParser parser("Run all tests found in the mesh test database") ;
+	parser.addFlag("--viewer", false, "open viewer to compare the meshes for each test") ;
 	parser.addFlag("--renew-base", false, "renew the base of results") ;
-	parser.addValue("--tolerance", 0.01, "set relative tolerance for evaluation of test success (default: 0.01)" ) ;
-	parser.addValue("--threshold", 1e-8, "set absolute threshold below which success is not evaluated (default: 1e-8)" ) ;
 	parser.addValue("--timeout", 10, "maximum time (in seconds) spent for each test; use negative values for no time limit (default: 10s)" ) ;
+	parser.addString("--viewer-path", "viewer", "path to AMIE viewer" ) ;
 	parser.addString("--match", "*", "runs only the tests matching the required string (default: runs all tests found)" ) ;
 	parser.disableFeatureTreeArguments() ;
 	parser.parseCommandLine(argc, argv) ;
-	double tol = std::abs(parser.getValue("--tolerance")) ;
-	double thr = std::abs(parser.getValue("--threshold")) ;
 	double timeout = std::abs(parser.getValue("--timeout")) ;
-	std::string regexp = parser.getString("--match") ;
 	bool renew = parser.getFlag("--renew-base") ;
-	if(parser.getFlag("--zero"))
-	{
-		tol = 0 ; 
-		thr = 0 ;
-	}
-
+	bool compare = parser.getFlag("--viewer") ;
+	std::string viewer = parser.getString("--viewer-path") ;
+	std::string regexp = parser.getString("--match") ;
 	if(renew)
 	{
 		std::cout << "Warning: you are about to renew the base of results. Do you wish to continue? [y/n]" << std::flush ;
@@ -121,7 +63,7 @@ int main(int argc, char *argv[])
 	}
 
 
-	std::string path("../examples/test/") ;
+	std::string path("../examples/mesh/") ;
 	std::vector<std::string> exec ;
 	std::vector<std::string> files ;
 	DIR * dp ;
@@ -138,7 +80,7 @@ int main(int argc, char *argv[])
 			test.erase(test.end()-4, test.end()) ;
 			if( regexp == "*" || test.find(regexp) != std::string::npos ) 
 			{
-				files.push_back(test) ;
+				files.push_back("../examples/mesh/"+test) ;
 				test[test.find("_")] = '/' ;
 				exec.push_back(test) ;
 			}
@@ -148,7 +90,7 @@ int main(int argc, char *argv[])
 	if(!renew)
 	{
 		std::cout << "cleaning existing results..." << std::endl ;
-		std::system("rm ../examples/test/*_current") ;
+		std::system("rm ../examples/mesh/*_current") ;
 	}
 
 	for(size_t i = 0 ; i < exec.size() ; i++)
@@ -171,20 +113,23 @@ int main(int argc, char *argv[])
 
 		if(!renew)
 		{
-			int delta = getDelta( "../examples/test/"+files[i]+"_base", "../examples/test/"+files[i]+"_current", tol, thr) ;
-			if(delta == 0 && r == 0)
-				std::cout << Font(BOLD, GREEN) << " SUCCESS" << Font() << std::endl ;
-			else if( r == 0 && delta > 0)
-				std::cout << Font(BOLD, RED) << " FAIL " << Font() << delta << " error(s) found" << std::endl ;
-			else if( r == 0 && delta < 0)
-				std::cout << Font(BOLD, RED) << " FAIL " << Font() << Font(BLUE) << "file not found: " << exec[i] + (r==-1 ? "_base" : "_current") << Font() <<  std::endl ;
+			if(compare)
+			{
+				std::string viewerCommand = viewer + " "+files[i]+"_base | "+viewer+" "+files[i]+"_current" ;
+				std::cout << viewerCommand << std::endl ;
+				std::system( viewerCommand.c_str()  ) ;
+			}
+
+			if(r == 0)
+				std::cout << Font(BOLD, GREEN) << " DONE" << Font() << std::endl ;
 			else
 				std::cout << Font(BOLD, RED) << " FAIL " << Font() << "return value " << r << std::endl ;
 		}
 		else
 		{
+
 			if(r == 0)
-				std::cout << Font(BOLD, GREEN) << " SUCCESS" << Font() << std::endl ;
+				std::cout << Font(BOLD, GREEN) << " DONE" << Font() << std::endl ;
 			else
 				std::cout << Font(BOLD, RED) << " FAIL " << Font() << "return value " << r << std::endl ;
 		}

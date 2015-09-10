@@ -427,9 +427,6 @@ target_link_libraries( irradiation Amie ${ALL_LINK_FLAGS})
 add_executable(asr_visco examples/main_asr_visco.cpp )
 target_link_libraries( asr_visco Amie ${ALL_LINK_FLAGS} )
 
-add_executable(check_test examples/main_check_test.cpp )
-target_link_libraries( check_test Amie ${ALL_LINK_FLAGS} )
-
 #add_executable(from_mic examples/main_from_mic.cpp )
 #target_link_libraries( from_mic Amie ${ALL_LINK_FLAGS} )
 
@@ -457,28 +454,48 @@ target_link_libraries( tension_visco_damage Amie ${ALL_LINK_FLAGS})
 add_executable( performance examples/main_performance.cpp )
 target_link_libraries( performance Amie ${ALL_LINK_FLAGS})
 
-add_executable( test_logcreep examples/test/main_test_logcreep.cpp )
-target_link_libraries( test_logcreep Amie ${ALL_LINK_FLAGS})
+# tests
 
-add_executable( test_viscodamage_multilinearsoftening examples/test/main_test_viscodamage_multilinearsoftening.cpp )
-target_link_libraries( test_viscodamage_multilinearsoftening Amie ${ALL_LINK_FLAGS})
+add_executable(check_test examples/main_check_test.cpp )
+target_link_libraries( check_test Amie ${ALL_LINK_FLAGS} )
 
-add_executable( test_viscoelasticity_kv examples/test/main_test_viscoelasticity_kv.cpp )
-target_link_libraries( test_viscoelasticity_kv Amie ${ALL_LINK_FLAGS})
+add_executable( test/logcreep examples/test/main_test_logcreep.cpp )
+target_link_libraries( test/logcreep Amie ${ALL_LINK_FLAGS})
 
-add_executable( test_xfem examples/test/main_test_xfem.cpp )
-target_link_libraries( test_xfem Amie ${ALL_LINK_FLAGS})
+add_executable( test/viscodamage_multilinearsoftening examples/test/main_test_viscodamage_multilinearsoftening.cpp )
+target_link_libraries( test/viscodamage_multilinearsoftening Amie ${ALL_LINK_FLAGS})
 
-add_executable( test_imposed_deformation examples/test/main_test_imposed_deformation.cpp )
-target_link_libraries( test_imposed_deformation Amie ${ALL_LINK_FLAGS})
+add_executable( test/viscoelasticity_kv examples/test/main_test_viscoelasticity_kv.cpp )
+target_link_libraries( test/viscoelasticity_kv Amie ${ALL_LINK_FLAGS})
 
-add_executable( test_viscoelasticity_imposed_deformation examples/test/main_test_viscoelasticity_imposed_deformation.cpp )
-target_link_libraries( test_viscoelasticity_imposed_deformation Amie ${ALL_LINK_FLAGS})
+add_executable( test/xfem examples/test/main_test_xfem.cpp )
+target_link_libraries( test/xfem Amie ${ALL_LINK_FLAGS})
 
-add_executable( test_stxfem examples/test/main_test_stxfem.cpp )
-target_link_libraries( test_stxfem Amie ${ALL_LINK_FLAGS})
+add_executable( test/imposed_deformation examples/test/main_test_imposed_deformation.cpp )
+target_link_libraries( test/imposed_deformation Amie ${ALL_LINK_FLAGS})
+
+add_executable( test/viscoelasticity_imposed_deformation examples/test/main_test_viscoelasticity_imposed_deformation.cpp )
+target_link_libraries( test/viscoelasticity_imposed_deformation Amie ${ALL_LINK_FLAGS})
+
+add_executable( test/stxfem examples/test/main_test_stxfem.cpp )
+target_link_libraries( test/stxfem Amie ${ALL_LINK_FLAGS})
 
 ADD_CUSTOM_TARGET(unitTests)
-ADD_DEPENDENCIES(unitTests check_test test_logcreep test_viscodamage_multilinearsoftening test_viscoelasticity_kv test_xfem test_stxfem test_imposed_deformation test_viscoelasticity_imposed_deformation)
+ADD_DEPENDENCIES(unitTests check_test test/logcreep test/viscodamage_multilinearsoftening test/viscoelasticity_kv test/xfem test/stxfem test/imposed_deformation test/viscoelasticity_imposed_deformation)
 
+# mesh
+
+add_executable(check_mesh examples/main_check_mesh.cpp )
+target_link_libraries( check_mesh Amie ${ALL_LINK_FLAGS} )
+
+add_executable( mesh/circle examples/mesh/main_mesh_circle.cpp )
+target_link_libraries( mesh/circle Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/circle_sample_intersection examples/mesh/main_mesh_circle_sample_intersection.cpp )
+target_link_libraries( mesh/circle_sample_intersection Amie ${ALL_LINK_FLAGS})
+
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/test ${CMAKE_BINARY_DIR}/mesh)
+
+ADD_CUSTOM_TARGET(meshTests)
+ADD_DEPENDENCIES(meshTests check_mesh mesh/circle mesh/circle_sample_intersection)
 

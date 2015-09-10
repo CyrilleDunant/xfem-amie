@@ -811,6 +811,7 @@ public:
     /** \brief  set Sampling parameter
     */
     void setSamplingNumber ( size_t news );
+    double getSamplingNumber ( ) const { return samplingNumber ; } 
 
     /**  \brief  Postprocess the result.
      *
