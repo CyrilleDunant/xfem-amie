@@ -65,7 +65,7 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
     int nsteps = 800;
     int nstepstot = 800;
     int intermediateCount=0 ;
-    featureTree->setMaxIterationsPerStep( 200 ) ;
+    featureTree->setMaxIterationsPerStep( 20000 ) ;
 
     std::vector<Feature *> inclusionsAndBlocks =inclusions ;
     if(!blocks.empty())

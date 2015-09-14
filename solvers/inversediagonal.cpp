@@ -21,10 +21,9 @@ InverseLumpedDiagonal::InverseLumpedDiagonal(const CoordinateIndexedSparseMatrix
 
 	for(size_t i = 0 ; i < A.row_size.size()*A.stride ; i++)
 	{
-		for(size_t j = 0 ; j < 1 ; j++)
-		{
-			diagonal[i] += A[i][j] ;
-		}
+
+		diagonal[i] += A[i][0] ;
+
 		
 		for(size_t j = 1 ; j < A.row_size.size()*A.stride ; j++)
 		{
@@ -34,8 +33,10 @@ InverseLumpedDiagonal::InverseLumpedDiagonal(const CoordinateIndexedSparseMatrix
 		double v = diagonal[i] ;
 		if(std::abs(v) > std::numeric_limits<double>::epsilon())
 			diagonal[i] = 1./v ;
-		else
+		else if(v > 0)
 			diagonal[i] = 1./std::numeric_limits<double>::epsilon() ;
+        else
+            diagonal[i] = -1./std::numeric_limits<double>::epsilon() ;
 
 		
 // 		std::cout << diagonal[i] << std::endl ;

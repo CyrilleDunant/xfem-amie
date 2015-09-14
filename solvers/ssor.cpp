@@ -1,5 +1,5 @@
 //
-// C++ Implementation: inversediagonal
+// C++ Implementation: SSOR preconditinonner
 //
 // Description: 
 //
@@ -99,11 +99,13 @@ void  Ssor::precondition(const Vector &v, Vector & t)
     if(v.size() != buffer.size())
       std::cout << " ouch ! " << std::endl ;
     Vector buffer2(buffer) ;
-    Vector buffer3(buffer) ;
-    Vector buffer4(buffer) ;
+//     Vector buffer3(buffer) ;
+//     Vector buffer4(buffer) ;
     
     assign(buffer, upper*v) ;
     assign(t, lower*buffer) ; //1
+//     assign(buffer, upper*buffer2) ;
+//     assign(t, lower*buffer) ; //2
 //     assign(buffer, upper*v) ;
 //     assign(buffer2, auxiliaryLower*buffer) ;
 //     assign(buffer, auxiliaryLower*buffer2) ; //2

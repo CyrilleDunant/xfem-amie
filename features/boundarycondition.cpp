@@ -134,7 +134,7 @@ DofDefinedBoundaryCondition::DofDefinedBoundaryCondition ( LagrangeMultiplierTyp
 
 void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a, int axis = 0 )
 {
-    if ( e->getBehaviour()->type == VOID_BEHAVIOUR )
+    if ( e->getBehaviour()->type == VOID_BEHAVIOUR || e->getBehaviour()->fractured())
     {
         return ;
     }
@@ -1369,7 +1369,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
 void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a, int axis = 0 )
 {
-    if ( e->getBehaviour()->type == VOID_BEHAVIOUR )
+    if ( e->getBehaviour()->type == VOID_BEHAVIOUR || e->getBehaviour()->fractured())
     {
         return ;
     }
@@ -3028,7 +3028,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, const Function & data, Assembly * a, int axis = 0 )
 {
 
-    if ( e->getBehaviour()->type == VOID_BEHAVIOUR )
+    if ( e->getBehaviour()->type == VOID_BEHAVIOUR || e->getBehaviour()->fractured())
     {
         return ;
     }
@@ -4014,7 +4014,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
 void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, const Function & data, Assembly * a, int axis = 0 )
 {
-    if ( e->getBehaviour()->type == VOID_BEHAVIOUR )
+    if ( e->getBehaviour()->type == VOID_BEHAVIOUR || e->getBehaviour()->fractured())
     {
         return ;
     }
@@ -5884,7 +5884,8 @@ void DofDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, D
             if ( surface->getBoundingPoint ( i ).getId() == (int)id )
             {
                 id_.push_back ( surface->getBoundingPoint ( i ) );
-                apply2DBC ( surface,*gp,*Jinv, id_, condition, dataFunction*getScale(), a, axis ) ;
+                Function effective = dataFunction*getScale() ;
+                apply2DBC ( surface,*gp,*Jinv, id_, condition, effective, a, axis ) ;
                 return ;
             }
         }
@@ -5914,7 +5915,8 @@ void DofDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron
             if ( volume->getBoundingPoint ( i ).getId() == (int)id )
             {
                 id_.push_back ( volume->getBoundingPoint ( i ) );
-                apply3DBC ( volume,*gp, *Jinv, id_, condition, dataFunction*getScale(), a, axis ) ;
+                Function effective = dataFunction*getScale() ;
+                apply3DBC ( volume,*gp, *Jinv, id_, condition, effective, a, axis ) ;
                 return ;
             }
         }
@@ -6285,7 +6287,8 @@ void BoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeI
         }
         else
         {
-            apply2DBC ( cache2d[i],gp,Jinv, cache[i], condition, dataFunction*getScale(), a, axis ) ;
+            Function effective = dataFunction*getScale() ;
+            apply2DBC ( cache2d[i],gp,Jinv, cache[i], condition, effective, a, axis ) ;
         }
     }
 }
@@ -6313,7 +6316,8 @@ void BoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTr
         }
         else
         {
-            apply3DBC ( cache3d[i],gp,Jinv, cache[i], condition, dataFunction*getScale(), a, axis ) ;
+            Function effective = dataFunction*getScale() ;
+            apply3DBC ( cache3d[i],gp,Jinv, cache[i], condition, effective, a, axis ) ;
         }
     }
 }
@@ -6424,7 +6428,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
         }
         else
         {
-            apply2DBC ( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a , axis ) ;
+            Function effective = dataFunction*getScale() ;
+            apply2DBC ( id.begin()->second.second,gp,Jinv, target, condition, effective, a , axis ) ;
         }
 
 
@@ -6550,7 +6555,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
         }
         else
         {
-            apply3DBC ( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a, axis ) ;
+            Function effective = dataFunction*getScale() ;
+            apply3DBC ( id.begin()->second.second,gp,Jinv, target, condition, effective, a, axis ) ;
         }
 
 
@@ -6796,7 +6802,8 @@ void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriang
             }
             else
             {
-                apply2DBC ( i,gp, Jinv, id, condition, dataFunction*getScale(), a ) ;
+                Function effective = dataFunction*getScale() ;
+                apply2DBC ( i,gp, Jinv, id, condition, effective, a ) ;
             }
         }
     }
@@ -6855,7 +6862,8 @@ void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrah
             }
             else
             {
-                apply3DBC ( i,gp, Jinv, id, condition, dataFunction*getScale(), a ) ;
+                Function effective = dataFunction*getScale() ;
+                apply3DBC ( i,gp, Jinv, id, condition, effective, a ) ;
             }
         }
     }
@@ -6903,7 +6911,8 @@ void GlobalBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, Delau
             }
             else
             {
-                apply2DBC ( i,gp, Jinv, id, condition, dataFunction*getScale(), a ) ;
+                Function effective = dataFunction*getScale() ;
+                apply2DBC ( i,gp, Jinv, id, condition, effective, a ) ;
             }
         }
     }
@@ -7378,7 +7387,8 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTet
                 }
                 else
                 {
-                    apply3DBC ( i,gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis ) ;
+                    Function effective = dataFunction*getScale() ;
+                    apply3DBC ( i,gp,Jinv, cache.back(), condition, effective, a , axis ) ;
                 }
             }
         }
@@ -7474,7 +7484,8 @@ void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTria
                     }
                     else
                     {
-                        apply2DBC ( i,gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+                        Function effective = dataFunction*getScale() ;
+                        apply2DBC ( i,gp,Jinv, id, condition, effective, a ) ;
                     }
                 }
             }
@@ -7535,7 +7546,8 @@ void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetr
         }
         else
         {
-            apply3DBC ( i,gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+            Function effective = dataFunction*getScale() ;
+            apply3DBC ( i,gp,Jinv, id, condition, effective, a ) ;
         }
     }
 }

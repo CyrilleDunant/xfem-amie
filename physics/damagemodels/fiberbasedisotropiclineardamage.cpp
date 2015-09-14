@@ -19,7 +19,7 @@ FiberBasedIsotropicLinearDamage::FiberBasedIsotropicLinearDamage(double f, doubl
     alt = false ;
     thresholdDamageDensity = c ;
     getState(true).resize(1, 0.);
-    residualStiffnessFraction = 1e-4 ;
+    residualStiffnessFraction = 1e-8 ;
     isNull = false ;
 }
 
@@ -78,7 +78,7 @@ void FiberBasedIsotropicLinearDamage::step( ElementState &s , double maxscore)
     double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;//maxscore ;
     double maxScoreInNeighbourhood = maxscore ; //s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(s) ;
 
-    if(!fractured() && s.getParent()->getBehaviour()->getFractureCriterion()->met() && std::abs(score - maxScoreInNeighbourhood) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*maxScoreInNeighbourhood)
+    if(!fractured() && s.getParent()->getBehaviour()->getFractureCriterion()->met() && std::abs(score - maxScoreInNeighbourhood) < 1e-2 /*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*/)
     {
         state += fibreFraction ;
         for(size_t i = 0 ; i < state.size() ; i++)

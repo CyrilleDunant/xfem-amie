@@ -168,7 +168,8 @@ int main ( int argc, char *argv[] )
  
     Sample sample ( nullptr, sampleLength*.5, sampleHeight+2.*plateHeight, halfSampleOffset, 0 ) ;   
     
-    sample.setBehaviour (new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mcft->getCopy(), linear->getCopy() )); 
+//     sample.setBehaviour (new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mcft->getCopy(), linear->getCopy() )); 
+    sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mcft->getCopy(), linear->getCopy())); 
 
     FeatureTree F ( &sample ) ;
 

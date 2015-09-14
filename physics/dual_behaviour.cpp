@@ -252,8 +252,8 @@ bool BimaterialInterface::changed() const
 
 bool BimaterialInterface::fractured() const
 {
-//     if(getDamageModel())
-//         return getDamageModel()->fractured() ;
+    if(getDamageModel())
+        return getDamageModel()->fractured() ;
     return false ;
 }
 
@@ -333,16 +333,12 @@ DamageModel * BimaterialInterface::getDamageModel() const
 {
     DamageModel * inDamage = inBehaviour->getDamageModel() ;
     DamageModel * outDamage = outBehaviour->getDamageModel() ;
-    if(inDamage && !outDamage  /*&& !inBehaviour->fractured()*/)
+    if(inDamage && !outDamage )
         return inDamage ;
-//     else if (inDamage && !outDamage  && inBehaviour->fractured())
-//         return nullptr ;
     
-    if(outDamage && !inDamage /*&& !outBehaviour->fractured()*/)
+    if(outDamage && !inDamage )
         return outDamage ;
-//     else if (outDamage && !inDamage&& outBehaviour->fractured())
-//         return nullptr ;
-//     
+
     if(!inDamage && !outDamage)
         return nullptr ;
     
@@ -357,15 +353,13 @@ FractureCriterion * BimaterialInterface::getFractureCriterion() const
 {
     FractureCriterion * inCriterion = inBehaviour->getFractureCriterion() ;
     FractureCriterion * outCriterion = outBehaviour->getFractureCriterion() ;
-    if(inCriterion && !outCriterion /*&& !inBehaviour->fractured()*/)
+    if(inCriterion && !outCriterion )
         return inCriterion ;
-//     else if (inCriterion && !outCriterion  && inBehaviour->fractured())
-//         return nullptr ;
-    
-    if(outCriterion && !inCriterion /*&& !outBehaviour->fractured()*/)
+
+   
+    if(outCriterion && !inCriterion)
         return outCriterion ;
-//     else if (outCriterion && !inCriterion&& outBehaviour->fractured())
-//         return nullptr ;
+
     
     if(!inCriterion && !outCriterion)
         return nullptr ;

@@ -3247,7 +3247,7 @@ void FeatureTree::enrich()
                 dynamic_cast<EnrichmentFeature *> ( tree[i] )->enrich ( lastEnrichmentId, dtree3D ) ;
 
                 enrichmentChange = true ;
-                reuseDisplacements = false ;
+//                 reuseDisplacements = false ;
 
             }
 
@@ -3276,7 +3276,7 @@ void FeatureTree::enrich()
                 dynamic_cast<EnrichmentFeature *> ( tree[i] )->enrich ( lastEnrichmentId, dtree ) ;
 
                 enrichmentChange = true ;
-                reuseDisplacements = false ;
+//                 reuseDisplacements = false ;
 
             }
 
@@ -4403,13 +4403,15 @@ void FeatureTree::stepXfem()
     if ( solverConvergence )
     {
         std::vector<EnrichmentFeature *> featuresToStep ;
-	if(enrichmentManagers.empty())
-        for ( size_t i = 0 ; i < tree.size() ; i++ )
+        if(enrichmentManagers.empty())
         {
-            if ( tree[i]->isEnrichmentFeature )
+            for ( size_t i = 0 ; i < tree.size() ; i++ )
             {
+                if ( tree[i]->isEnrichmentFeature )
+                {
 
-                featuresToStep.push_back(dynamic_cast<EnrichmentFeature *> ( tree[i] ));
+                    featuresToStep.push_back(dynamic_cast<EnrichmentFeature *> ( tree[i] ));
+                }
             }
         }
         if ( is2D() )
@@ -4423,18 +4425,18 @@ void FeatureTree::stepXfem()
                 bool moved = featuresToStep[i]->moved() ;
                 enrichmentChange = enrichmentChange || moved;
 
-                if ( moved )
-                {
-                    reuseDisplacements = false ;
-                }
+//                 if ( moved )
+//                 {
+//                     reuseDisplacements = false ;
+//                 }
             }
             for ( size_t i = 0 ; i < enrichmentManagers.size() ; i++ )
             {
                 bool moved = enrichmentManagers[i]->step(deltaTime, &K->getForces(), dtree)  ;
-                if ( moved )
-                {
-                    reuseDisplacements = false ;
-                }
+//                 if ( moved )
+//                 {
+//                     reuseDisplacements = false ;
+//                 }
                 enrichmentChange = enrichmentChange || moved;
             }
 
@@ -4443,7 +4445,7 @@ void FeatureTree::stepXfem()
                 if ( !tree[i]->isEnrichmentFeature && tree[i]->isUpdated )
                 {
                     needMeshing = true ;
-                    reuseDisplacements = false ;
+//                     reuseDisplacements = false ;
                 }
             }
 
@@ -4457,18 +4459,18 @@ void FeatureTree::stepXfem()
                 bool moved = featuresToStep[i]->moved() ;
                 enrichmentChange = enrichmentChange || moved;
 
-                if ( moved )
-                {
-                    reuseDisplacements = false ;
-                }
+//                 if ( moved )
+//                 {
+//                     reuseDisplacements = false ;
+//                 }
             }
             for ( size_t i = 0 ; i < enrichmentManagers.size() ; i++ )
             {
                 bool moved = enrichmentManagers[i]->step(deltaTime, &K->getForces(), dtree3D) ;
-                if ( moved )
-                {
-                    reuseDisplacements = false ;
-                }
+//                 if ( moved )
+//                 {
+//                     reuseDisplacements = false ;
+//                 }
                 enrichmentChange = enrichmentChange || moved;
             }
             for ( size_t i = 0 ; i < tree.size() ; i++ )
@@ -4476,7 +4478,7 @@ void FeatureTree::stepXfem()
                 if ( !tree[i]->isEnrichmentFeature && tree[i]->isUpdated )
                 {
                     needMeshing = true ;
-                    reuseDisplacements = false ;
+//                     reuseDisplacements = false ;
                 }
             }
         }

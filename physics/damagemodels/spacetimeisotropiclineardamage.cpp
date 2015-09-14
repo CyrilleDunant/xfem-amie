@@ -157,7 +157,7 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
             else
                 upAccelerate = accelerate ;
         }
-        accelerate = downAccelerate*.5 ;
+        accelerate = downAccelerate*.1 ;
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
     }
 
