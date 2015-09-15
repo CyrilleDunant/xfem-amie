@@ -205,7 +205,7 @@ void FractureCriterion::updateCache( ElementState & s)
         Function smooth =  (smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 
         mesh2d = s.getMesh2D() ;
-        mesh2d->updateCache(cachecoreID, smooth) ;
+        mesh2d->updateCache(cachecoreID, s.getParent()->getBehaviour()->getSource(), smooth) ;
         if(s.getParent()->timePlanes() <= 1)
             mesh2d->updateCache(cacheID) ;
     }
@@ -219,7 +219,7 @@ void FractureCriterion::updateCache( ElementState & s)
         Function smooth =  (smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 
         mesh3d = s.getMesh3D() ;
-        mesh3d->updateCache(cachecoreID, smooth) ;
+        mesh3d->updateCache(cachecoreID, s.getParent()->getBehaviour()->getSource(), smooth) ;
         if(s.getParent()->timePlanes() > 1)
             mesh3d->updateCache(cacheID) ;
 

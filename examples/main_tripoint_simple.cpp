@@ -44,8 +44,7 @@ using namespace Amie ;
 // double sampleHeight = 1.2 ;
 // double supportLever = 1.7 ;//2.5 ;
 double supportMidPointToEndClearance = 0.25 ;
-double platewidth = 0.15 ;
-double plateHeight = 0.051 ;
+double platewidth = 0.005 ;
 double rebarDiametre = 0.025 ; //sqrt(506e-6);//sqrt( 4.*0.000506/M_PI ) ;
 double rebarEndCover = 0.047 ;
 
@@ -59,7 +58,7 @@ double mindelta = 1e-6 ;
 // GeometryDefinedBoundaryCondition shrinkagey ( SET_VOLUMIC_STRESS_ETA, &bcbox , -2e-3 ) ;
 // GeometryDefinedBoundaryCondition shrinkagex ( SET_VOLUMIC_STRESS_ETA, &bcbox , -2e-3 ) ;
 
-void step(FeatureTree * featureTree, double supportLever, double sampleHeight, BoundaryCondition * load )
+void step(FeatureTree * featureTree, double supportLever, double sampleHeight, BoundaryCondition * load, double loadingSpeed )
 {
 
 
@@ -78,20 +77,18 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
         {
             if ( k->getBehaviour()->type != VOID_BEHAVIOUR )
             {
-
                 volume += k->area() ;
                 for ( int p = npoints/2 ; p < npoints ; p++ )
                 {
 
-                    if (  k->getBoundingPoint ( p ).getX()  < .01 && std::abs(k->getBoundingPoint ( p ).getY()-sampleHeight*.5 - plateHeight) < 0.01)
+                    if (  k->getBoundingPoint ( p ).getX()  < .01 && std::abs(k->getBoundingPoint ( p ).getY()-sampleHeight*.5) < 0.01 )
                     {
                         deltacount++ ;
-                        Vector dummy(2) ;
+                        Vector dummy(k->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
                         k->getState().getField(DISPLACEMENT_FIELD, k->getBoundingPoint ( p ), dummy, false); 
-                        delta +=dummy[1] ;
+                        delta += dummy[1] ;
                     }
                 }
-
             }
         }
 
@@ -100,18 +97,18 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
 
 
 
-        if( v%10 == 0)
+        if( v%1 == 0)
         {
             Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD, -1, 1 ) ;
 
             std::cout << std::endl ;
-            std::cout << "average sigma11 : " << stemp[0] << std::endl ;
-            std::cout << "average sigma22 : " << stemp[1] << std::endl ;
-            std::cout << "average sigma12 : " << stemp[2] << std::endl ;
+            std::cout << "average sigma11 : " << stemp[0]/1e6 << std::endl ;
+            std::cout << "average sigma22 : " << stemp[1]/1e6 << std::endl ;
+            std::cout << "average sigma12 : " << stemp[2]/1e6 << std::endl ;
             std::cout << std::endl ;
             
             std::fstream ldfile ( "ldn_2", std::ios::out | std::ios::app)  ;
-            ldfile << 1000.* ( VirtualMachine().eval(load->getDataFunction()*load->getScale(), 0,0,0,featureTree->getInitialTime()) ) << "   " << stemp[1]/1000. << "   " << featureTree->averageDamage << "   " << delta*1000. << "   " << featureTree->get2DMesh()->begin()->getBoundingPoint(npoints-1).getT() << "   " << featureTree->get2DMesh()->begin()->getBoundingPoint(0).getT()<<"\n" ;
+            ldfile << 1000.* ( VirtualMachine().eval(load->getData()*load->getScale(), 0,0,0,featureTree->getInitialTime()) ) << "   " << stemp[1]/1e6 << "   " << featureTree->averageDamage << "   " << delta*1000. << "   " << featureTree->get2DMesh()->begin()->getBoundingPoint(npoints-1).getT() << "   " << featureTree->get2DMesh()->begin()->getBoundingPoint(0).getT()<<"\n" ;
             ldfile.close();
             
             writer.reset ( featureTree ) ;
@@ -123,6 +120,8 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
             writer.getField ( TWFT_DAMAGE ) ;
             writer.append() ;
         }
+        
+        load->setData(featureTree->getCurrentTime()*loadingSpeed);
     }
 }
 
@@ -133,15 +132,17 @@ int main ( int argc, char *argv[] )
     // Beton
 
     CommandLineParser parser("Make a tri-point bending test on an homogeneous concrete sample") ;
-    parser.addArgument( "sampling_number", 16, "number of sampling points on the boundary of the sample (default 16)") ;
-    parser.addArgument("length", 3.9, "length of the sample (default 3.9)") ;
-    parser.addArgument("height", 1.2, "height of the sample (default 1.2)") ;
+    parser.addArgument("sampling_number", 8, "number of sampling points on the boundary of the sample (default 16)") ;
+    parser.addArgument("length", .48, "length of the sample (default 3.9)") ;
+    parser.addArgument("height", .12, "height of the sample (default 1.2)") ;
+    parser.addArgument("speed", -0.144, "loading speed (default -0.144 (1 mm / 600 s))") ;
     parser.parseCommandLine(argc, argv) ;
 
     double samplingNumber   = parser.getNumeralArgument( "sampling_number") ;
     double sampleLength     = parser.getNumeralArgument( "length") ;
     double sampleHeight     = parser.getNumeralArgument( "height") ;
-    double supportLever     = sampleLength*.5-.250 ;
+    double loadingSpeed     = parser.getNumeralArgument( "speed") ;
+    double supportLever     = sampleLength*.5-.02 ;
     double halfSampleOffset = sampleLength*.25 ;
 
     double E_steel = 200e9 ;
@@ -166,7 +167,7 @@ int main ( int argc, char *argv[] )
     FractureCriterion * mazar = new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 0.064, pt ) ;
     DamageModel * linear = new SpaceTimeIsotropicLinearDamage(1.0) ;
  
-    Sample sample ( nullptr, sampleLength*.5, sampleHeight+2.*plateHeight, halfSampleOffset, 0 ) ;   
+    Sample sample ( nullptr, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;   
     
 //     sample.setBehaviour (new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mcft->getCopy(), linear->getCopy() )); 
     sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mcft->getCopy(), linear->getCopy())); 
@@ -186,23 +187,21 @@ int main ( int argc, char *argv[] )
     F.setMaxIterationsPerStep ( 1600 );
 
 
-    F.addPoint ( new Point ( supportLever, -sampleHeight*.5-plateHeight ) ) ;
+    F.addPoint ( new Point ( supportLever, -sampleHeight*.5 ) ) ;
     F.addPoint ( new Point ( platewidth, sampleHeight*.5 ) ) ;
     
-    Function loadfunc = Function("t");
-    loadfunc *= -0.00016 ; /*-5e5 ;*/
-    BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition ( SET_ALONG_ETA, TOP_AFTER, -platewidth*2., platewidth*2., -10, 10, loadfunc ) ;
+    BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition ( SET_ALONG_ETA, TOP_AFTER, -platewidth*2., platewidth*2., -10, 10, 0 ) ;
     
     F.addBoundaryCondition ( load ) ;
     load->setActive(true);
     
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT_AFTER ) ) ;
-    F.addBoundaryCondition ( new BoundingBoxNearestNodeDefinedBoundaryCondition ( FIX_ALONG_ETA, BOTTOM_AFTER, Point ( supportLever, -sampleHeight*.5-plateHeight ) ) ) ;
+    F.addBoundaryCondition ( new BoundingBoxNearestNodeDefinedBoundaryCondition ( FIX_ALONG_ETA, BOTTOM_AFTER, Point ( supportLever, -sampleHeight*.5 ) ) ) ;
     F.setOrder ( LINEAR_TIME_LINEAR ) ;
-    F.setDeltaTime(mindelta*1e3);
-    F.setMinDeltaTime(1e-9);
+    F.setDeltaTime(0.00002);
+    F.setMinDeltaTime(1e-12);
 
-    step(&F, supportLever, sampleHeight, load) ;
+    step(&F, supportLever, sampleHeight, load, loadingSpeed) ;
 
     return 0 ;
 }

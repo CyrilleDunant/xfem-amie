@@ -222,6 +222,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 
     if(disc.size() < 4)
     {
+        return ;
         DelaunayTriangle * toHomogenise = disc[0];
         for(size_t i = 0 ; i < disc.size() ; i++)
         {

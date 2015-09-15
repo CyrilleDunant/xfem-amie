@@ -133,7 +133,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
             ring[i]->setBehaviour( dtree, bi ) ;
 
             bi->transform( ring[i] ) ;
-            bi->setSource( src );
+            bi->setSource( getPrimitive() );
         }
 //         else if(ring[i]->getBehaviour()->getDamageModel())
 //         {

@@ -632,7 +632,7 @@ public:
         return position ;
     } ;
 
-    virtual void updateCache ( size_t position, Function smoothing = Function ( "1" ) ) {
+    virtual void updateCache ( size_t position, const Geometry * source = nullptr, Function smoothing = Function ( "1" ) ) {
 
     #pragma omp critical
     {
@@ -641,7 +641,11 @@ public:
         size_t iter = 0 ;
         for ( auto element = begin(position) ; element != end(position) ; element++ ) {
 
+
             coefs[position][iter].clear() ;
+            if ( source && element->getBehaviour() && element->getBehaviour()->getSource() != source) {
+                continue ;
+            }
             if(element->getOrder() >= CONSTANT_TIME_LINEAR)
             {
 

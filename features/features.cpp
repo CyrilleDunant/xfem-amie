@@ -5897,7 +5897,7 @@ Vector FeatureTree::getAverageField ( FieldType f, int grid , double t )
 {
     if ( is2D() )
     {
-        Vector ret = get2DMesh()->getField ( f, -1, t ) ;
+        Vector ret = dtree->getField ( f, -1, t ) ;
         for ( auto layer = layer2d.begin() ; layer!=layer2d.end() ; layer++ )
         {
             if(layer->second != dtree)
