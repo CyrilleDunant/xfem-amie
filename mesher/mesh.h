@@ -29,6 +29,7 @@
 #include "element_checker.h"
 #include "../elements/integrable_entity.h"
 #include "../elements/generalized_spacetime_viscoelastic_element_state.h"
+#include "../physics/dual_behaviour.h"
 
 //     inline Vector operator*(const Vector &v , const Amie::Matrix &m ) ;
 //     inline Amie::MtV operator*(const Amie::Matrix& mm, const Vector& v) ;
@@ -982,7 +983,7 @@ public:
                         continue ;
                     
                     double v = 0; 
-                    if(restrict.empty() || e != ci )
+                    if((restrict.empty() || e != ci) && !dynamic_cast<BimaterialInterface *>(ci->getBehaviour()))
                         v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
                     else if(!restrict.empty() && e == ci)
                     {

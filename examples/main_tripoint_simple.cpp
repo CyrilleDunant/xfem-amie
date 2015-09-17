@@ -60,12 +60,10 @@ double mindelta = 1e-6 ;
 
 void step(FeatureTree * featureTree, double supportLever, double sampleHeight, BoundaryCondition * load, double loadingSpeed )
 {
-
-
     for ( size_t v = 0 ;  ; v++ )
     {
 
-        featureTree->stepToCheckPoint(5, 1e-4) ;
+        featureTree->stepToCheckPoint(10, 1e-4) ;
 
         int npoints = featureTree->get2DMesh()->begin()->getBoundingPoints().size() ;
 
@@ -95,9 +93,7 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
 
         delta /= deltacount ;
 
-
-
-        if( v%1 == 0)
+        if( v%10 == 0)
         {
             Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD, -1, 1 ) ;
 
@@ -135,7 +131,7 @@ int main ( int argc, char *argv[] )
     parser.addArgument("sampling_number", 8, "number of sampling points on the boundary of the sample (default 16)") ;
     parser.addArgument("length", .48, "length of the sample (default 3.9)") ;
     parser.addArgument("height", .12, "height of the sample (default 1.2)") ;
-    parser.addArgument("speed", -0.144, "loading speed (default -0.144 (1 mm / 600 s))") ;
+    parser.addArgument("speed", -0.0144, "loading speed (default -0.144 (1 mm / 6000 s))") ;
     parser.parseCommandLine(argc, argv) ;
 
     double samplingNumber   = parser.getNumeralArgument( "sampling_number") ;
@@ -163,8 +159,8 @@ int main ( int argc, char *argv[] )
         branches.push_back(std::make_pair(K_i, Am_i)) ;
     }    
     
-    FractureCriterion * mcft = new NonLocalSpaceTimeMCFT(cstress,k_elas, 0.064,UPPER_BOUND,MIRROR_Y) ;
-    FractureCriterion * mazar = new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 0.064, pt ) ;
+    FractureCriterion * mcft = new NonLocalSpaceTimeMCFT(cstress,k_elas, 0.032,UPPER_BOUND,MIRROR_Y) ;
+    FractureCriterion * mazar = new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 0.032, pt ) ;
     DamageModel * linear = new SpaceTimeIsotropicLinearDamage(1.0) ;
  
     Sample sample ( nullptr, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;   
