@@ -85,8 +85,9 @@ int main(int argc, char *argv[])
 
 
 	// synchronize FeatureTree with command line argument
-	// this allows to set essential parameters from the command line
+	// this allows to set several parameters from the command line
 	// notably, it can be used to verify that a geometry can be meshed consistently with several sampling numbers
+	// run with "--help" to see the list of possible parameters
 	parser.setFeatureTree(&f) ;
 	
 	// initialize elements and make first step

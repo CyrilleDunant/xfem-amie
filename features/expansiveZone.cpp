@@ -128,7 +128,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
                                               ring[i]->getBehaviour()->getCopy() ) ;
             }
 
-             const Geometry * src =  ring[i]->getBehaviour()->getSource() ;
+//             const Geometry * src =  ring[i]->getBehaviour()->getSource() ;
 
             ring[i]->setBehaviour( dtree, bi ) ;
 

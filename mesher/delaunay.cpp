@@ -2856,7 +2856,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
             }
 
-            double jac = 2.*area() ;
+//            double jac = 2.*area() ;
 
 //             for(size_t i = 0 ; i < gp_alternative.size() ; i++)
 //             {
@@ -2897,7 +2897,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 return *getCachedGaussPoints() ;
             }
 
-            const Geometry * enrs = enrichmentSource[0] ;
+//            const Geometry * enrs = enrichmentSource[0] ;
             VirtualMachine vm ;
             std::vector<Point *> to_add = getIntegrationHints();
             std::vector<Point *> pointsToCleanup = to_add;
@@ -2920,8 +2920,8 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                     
 //             double jac = area() ;
             
-            double in = 0 ;
-            double out = 0 ;
+//            double in = 0 ;
+//            double out = 0 ;
             
             Function gx = getXTransform() ;
             Function gy = getYTransform() ;

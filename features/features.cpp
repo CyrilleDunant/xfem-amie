@@ -5612,7 +5612,7 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
         }
     }
 
-    int it = 0 ;
+    size_t it = 0 ;
     bool needexit = false ;
     do
     {

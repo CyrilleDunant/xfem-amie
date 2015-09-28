@@ -3282,7 +3282,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
         std::vector<std::pair<Point, double> > gp_alternative ;
         double originalSum = 0 ;
-        double fsum = 0 ;
+//        double fsum = 0 ;
         for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
             originalSum+=gp.gaussPoints[i].second ;
 

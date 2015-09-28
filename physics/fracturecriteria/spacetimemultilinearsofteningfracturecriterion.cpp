@@ -475,7 +475,7 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::gradeAt
 	double compression = -1. ;
 
 	Line direction( Point(0,0), current ) ;
-	double cas = 0 ;
+//	double cas = 0 ;
 
 	if(tensileStressStrainCurve)
 	{
@@ -506,12 +506,12 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::gradeAt
 			if( history.on( inter ) )
 			{
 				tension = std::min(1., 1.-inter.getX()/current.getX()) ;
-				cas = 1 ;
+//				cas = 1 ;
 			}
 			else
 			{
 				tension = std::max(-1., -1.+current.getX()/inter.getX()) ;
-				cas = 2 ;
+//				cas = 2 ;
 			}
 		}
                 else
@@ -520,12 +520,12 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::gradeAt
 			if( current.getY() < tensileStressStrainCurve->getPoint(0).getY() )
 			{
 				tension = std::max( -1., -1.+current.getY()/tensileStressStrainCurve->getPoint(0).getY() ) ;
-				cas = 3 ;
+//				cas = 3 ;
 			}
 			else
 			{
 				tension = std::min( 1., 1.-tensileStressStrainCurve->getPoint(0).getY()/current.getY() ) ;
-				cas = 4 ;
+//				cas = 4 ;
 			}
                 }
 	}

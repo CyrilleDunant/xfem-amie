@@ -369,7 +369,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
             }
         }
 
-/*        Function sum("0") ;
+        Function sum("0") ;
         for(size_t j = 0 ; j< ring[i]->getShapeFunctions().size() ; j++)
             sum += ring[i]->getShapeFunction(j) ;
         for(size_t j = 0 ; j< ring[i]->getEnrichmentFunctions().size() ; j++)

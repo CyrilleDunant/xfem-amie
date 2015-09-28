@@ -38,12 +38,13 @@ int main( int argc, char *argv[] )
 
     FeatureTree F(&box) ;
     ExpansiveZone * exp = new ExpansiveZone( &box, 0.02, 0,0, new StiffnessWithImposedDeformation( C*2, v ) ) ;
+//    Inclusion * iexp = new Inclusion( &box, 0.02, 0,0) ; iexp->setBehaviour(new StiffnessWithImposedDeformation( C*2, v ) ) ;
     F.addFeature(&box, exp) ;
 
-    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM ) ) ;
 
-    F.setSamplingNumber(4) ;
+    F.setSamplingNumber(8) ;
     F.setDeltaTime(1) ;
 
     std::ofstream out ;
@@ -54,12 +55,20 @@ int main( int argc, char *argv[] )
 
     F.step() ;
     Vector str = F.getAverageField( STRAIN_FIELD ) ;
-    out << F.getCurrentTime() << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << std::endl ;
+    Vector sig = F.getAverageField( REAL_STRESS_FIELD )*1e-6 ;
+    out << F.getCurrentTime() << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << "\t" << sig[0] << "\t" << sig[1] << "\t" << sig[2] << std::endl ;
 
     exp->setRadius(0.03) ;
     F.step() ;
     str = F.getAverageField( STRAIN_FIELD ) ;
-    out << F.getCurrentTime() << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << std::endl ;
+    sig = F.getAverageField( REAL_STRESS_FIELD )*1e-6 ;
+    out << F.getCurrentTime() << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << "\t" << sig[0] << "\t" << sig[1] << "\t" << sig[2] << std::endl ;
+
+    exp->setRadius(0.5) ;
+    F.step() ;
+    str = F.getAverageField( STRAIN_FIELD ) ;
+    sig = F.getAverageField( REAL_STRESS_FIELD )*1e-6 ;
+    out << F.getCurrentTime() << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << "\t" << sig[0] << "\t" << sig[1] << "\t" << sig[2] << std::endl ;
 
     return 0 ;
 }

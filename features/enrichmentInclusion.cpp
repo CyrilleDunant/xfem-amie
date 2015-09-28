@@ -220,10 +220,10 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
     updated = false ;
     std::vector<DelaunayTriangle *> & disc  = cache;
 
-    if(disc.size() < 4)
+    if(disc.size() < 2)
     {
         return ;
-        DelaunayTriangle * toHomogenise = disc[0];
+/*        DelaunayTriangle * toHomogenise = disc[0];
         for(size_t i = 0 ; i < disc.size() ; i++)
         {
             if(disc[i]->in(Circle::getCenter()))
@@ -275,7 +275,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
                 
             }
         } 
-        return ;
+        return ;*/
     }
 
     //then we select those that are cut by the circle
@@ -289,6 +289,9 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
     
     if(ring.empty())
     {
+        if(disc.size() > 1)
+            return ;
+
         DelaunayTriangle * toHomogenise = disc[0];
         for(size_t i = 0 ; i < disc.size() ; i++)
         {
@@ -307,7 +310,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
             HomogeneisedBehaviour * hom = dynamic_cast<HomogeneisedBehaviour *>(disc[i]->getBehaviour());
             if(hom)
             {
-                if(disc.size() < 4)
+                if(disc.size() < 2)
                 {
                     std::vector<Feature *> brother ;
                     if(getFather())
@@ -339,6 +342,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
         } 
         return ; 
     }
+
     //then we build a list of points to enrich
     std::set<Point *> points ;
     

@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 	parser.addFlag("--zero", false, "set tolerance and thresholds to 0") ;
 	parser.addFlag("--renew-base", false, "renew the base of results") ;
 	parser.addValue("--tolerance", 0.01, "set relative tolerance for evaluation of test success (default: 0.01)" ) ;
-	parser.addValue("--threshold", 1e-8, "set absolute threshold below which success is not evaluated (default: 1e-8)" ) ;
+	parser.addValue("--threshold", 1e-6, "set absolute threshold below which success is not evaluated (default: 1e-6)" ) ;
 	parser.addValue("--timeout", 10, "maximum time (in seconds) spent for each test; use negative values for no time limit (default: 10s)" ) ;
 	parser.addString("--match", "*", "runs only the tests matching the required string (default: runs all tests found)" ) ;
 	parser.disableFeatureTreeArguments() ;

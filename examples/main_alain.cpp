@@ -1,85 +1,112 @@
-
-
-// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2015
+//         Alain Giorla <alain.b.giorla@gmail.com>, (C) 2009-2015
 //
 // Copyright: See COPYING file that comes with this distribution
+//
+// ==== Description ====
+//
+// Template to create visual tests for the mesher
+// Parts requiring modification are marked with an arrow "=>"
+//
+// ==== Recommendations ====
+//
+// The goal of these tests is to generate a mesh with inclusions in different conditions.
+// Mechanical behaviours with imposed stresses or strains or with damage should be avoided.
+// Boundary conditions should also remain as simple as possible.
+// Stiffness behaviours with no external boundary conditions should be preferred for fast element generation and resolution.
+// Typical run time should be a few seconds.
+//
+// ==== Name conventions ====
+//
+// Make sure the name of the TriangleWriter matches the name of the *.cpp file.
+// The *.cpp file should have the following pattern: "main_mesh_*.cpp"
+// The triangle file should then be "../examples/mesh/mesh_*_base" or "../examples/mesh/mesh_*_current"
+// (with * the actual name of the test)
+//
+// ==== Integration ====
+//
+// 1. Move the *.cpp file in "trunk/examples/mesh"
+// 2. Add a new executable in "trunk/CMakeLists.txt" along the other mesh tests
+// 3. Add it to the custom target "meshTests" in "trunk/CMakeLists.txt"
+// 4. Compile
+// 5. Run with command line argument "--renew-base" to generate the base mesh
+// 6. Run "./check_mesh" and check if the triangle files are properly generated
+// 7. Add the *.cpp file and the base triangle file to the SVN repository
+// 8. Commit the changes to the SVN repository (including "trunk/CMakeLists.txt")
 //
 //
 
 #include "./main.h"
 #include "./../features/features.h"
-#include "./../features/sample.h"
-#include "./../features/growingExpansiveZone.h"
-#include "./../physics/viscoelasticity.h"
-#include "./../features/expansiveZone.h"
-#include "./../features/inclusion.h"
 #include "./../physics/stiffness.h"
-#include "./../physics/stiffness_with_imposed_deformation.h"
-#include "./../physics/viscoelasticity_and_imposed_deformation.h"
 #include "./../utilities/writer/triangle_writer.h"
-
+#include "./../features/sample.h"
+#include "./../utilities/parser.h"
 
 #include <fstream>
+#include <omp.h>
 #include <cmath>
 #include <typeinfo>
 #include <limits>
-#include <time.h>
+#include <sys/time.h>
+#define DEBUG
 
 
 using namespace Amie ;
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
-    Matrix C = Tensor::cauchyGreen( 10e9, 0.2, true, SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
-    Vector v(3) ; v=0 ;// v[0] = 0.01 ; v[1] = 0.01 ;
+	// initialize command line parser
+	// => provide short description of the problem and the expected results if necessary
+	CommandLineParser parser("Description of the current problem") ; 
 
-    Sample box(0.1,0.1,0,0) ;
-    box.setBehaviour( new Viscoelasticity(PURE_ELASTICITY, C) ) ;
-//    box.setBehaviour( new StiffnessWithImposedDeformation(C, v) ) ;
+	// command line arguments; a test should be able to run by itself without any additional command line argument
+	parser.addFlag("--renew-base", false, "renew the base of results") ;
+	parser.parseCommandLine(argc, argv) ;
+	bool renew = parser.getFlag("--renew-base") ;
 
-    FeatureTree F(&box) ;
-    F.setOrder(LINEAR_TIME_LINEAR) ;
-    Function radius(0.02) ; //radius += "t 0.002 *" ;
-    GrowingExpansiveZone * exp = new GrowingExpansiveZone( &box, radius, 0,0, new Viscoelasticity( PURE_ELASTICITY, C ), -10 ) ;
-//    ExpansiveZone * exp = new ExpansiveZone(&box, 0.02,0.,0., new StiffnessWithImposedDeformation(C*2, v)) ;
-    Inclusion * inc = new Inclusion(&box, 0.02,0.,0.) ;
-    inc->setBehaviour( new StiffnessWithImposedDeformation(C*2, v) ) ;
-    F.addFeature(&box, exp) ;
-//    F.addFeature(&box, inc) ;
-    F.setSolverPrecision( 1e-10 ) ;
+	// => define sample
+        Sample rect(nullptr, 0.04,0.04,0,0) ;
+	rect.setBehaviour(new Stiffness( 10e9, 0.2 ) ) ;
 
-    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT_AFTER ) ) ;
-    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER ) ) ;
-    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_ETA, TOP_AFTER, 0.01 ) ) ;
+	// => define features here 
 
-    F.setSamplingNumber(4) ;
-    F.setDeltaTime(1) ;
 
-/*    std::ofstream out ;
-    out.open("../examples/test/test_stxfem_base", std::ios::out) ;*/
 
-    for(size_t i = 0 ; i < 1 ; i++)
-    {
-        F.step() ;
-        Vector eps = F.getAverageField( REAL_STRESS_FIELD, -1, 1 ) ;
-        Vector str = F.getAverageField( STRAIN_FIELD, -1, 1 ) ;
-        std::cout << F.getCurrentTime() << "\t" << /*exp->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" <<*/ F.getAssembly()->getMaxDofID() << "\t" << eps[0] << "\t" << eps[1] << "\t" << eps[2] << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << std::endl ;
-    }
-        F.getAssembly()->print() ;
-    
-    TriangleWriter trg( "fields_stxfem", &F, 1) ;
-    trg.getField( TWFT_STIFFNESS ) ;
-    trg.getField( STRAIN_FIELD ) ;
-    trg.getField( REAL_STRESS_FIELD ) ;
-    trg.write() ;
 
-/*
-    for(size_t i = 0 ; i < d.size() ; i++)
-        std::cout << d[i] << std::endl ;*/
+	// initialize FeatureTree
+	// => choose default sampling number, sampling restriction, and other meshing parameters here
+	FeatureTree f(&rect) ;
+	f.setSamplingNumber(16) ;
 
-    return 0 ;
+	// => add features to FeatureTree here
+	
+
+
+
+	// synchronize FeatureTree with command line argument
+	// this allows to set essential parameters from the command line
+	parser.setFeatureTree(&f) ;
+	
+	// initialize elements and make first step
+	f.step() ;
+
+	// create result file
+	// => modify "template" with actual name of the test
+	std::string name = "../examples/mesh/mesh_template_" ;
+	if(renew)
+		name += "base" ;
+	else
+		name += "current" ;
+
+	// initialize export
+	TriangleWriter trg( name.c_str(), &f, 1. ) ;
+	trg.getField( TWFT_STIFFNESS ) ;
+	// => add additional fields if necessary
+
+	// actual export
+	trg.write() ;
+
+	return 0 ;
 }
-/*
-
-*/
 

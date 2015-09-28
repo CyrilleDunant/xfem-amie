@@ -328,9 +328,9 @@ double NonLocalExponentiallyDecreasingMohrCoulomb::grade( ElementState &s )
     metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
     metInTension = std::abs( minStress / downVal ) < std::abs( maxStress / upVal ) ;
 
-    double effectiveStiffness = stiffness ;
+/*    double effectiveStiffness = stiffness ;
     if(s.getParent()->getBehaviour()->getDamageModel())
-        effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+        effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;*/
 
     double tfactor = exp(-(maxStrain-upVal/stiffness)/(limittstrain-upVal/stiffness)) ;
 
