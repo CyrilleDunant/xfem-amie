@@ -131,7 +131,7 @@ int main ( int argc, char *argv[] )
     parser.addArgument("sampling_number", 8, "number of sampling points on the boundary of the sample (default 16)") ;
     parser.addArgument("length", .48, "length of the sample (default 3.9)") ;
     parser.addArgument("height", .12, "height of the sample (default 1.2)") ;
-    parser.addArgument("speed", -0.0144, "loading speed (default -0.144 (1 mm / 6000 s))") ;
+    parser.addArgument("speed", -0.00144, "loading speed (default -0.144 (1 mm / 60000 s))") ;
     parser.parseCommandLine(argc, argv) ;
 
     double samplingNumber   = parser.getNumeralArgument( "sampling_number") ;
@@ -166,7 +166,7 @@ int main ( int argc, char *argv[] )
     Sample sample ( nullptr, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;   
     
 //     sample.setBehaviour (new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mcft->getCopy(), linear->getCopy() )); 
-    sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mcft->getCopy(), linear->getCopy())); 
+    sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mazar->getCopy(), linear->getCopy())); 
 
     FeatureTree F ( &sample ) ;
 

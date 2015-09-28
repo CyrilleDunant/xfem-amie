@@ -244,11 +244,15 @@ std::vector<std::pair<Vector, double> > deflate(const Amie::Matrix & m) ;
 inline double parallel_inner_product(const double *  v0, const double *  v1, int size)
 {
     double result = 0 ;
-    #pragma omp parallel
+    double compensate = 0 ;
+
+    #pragma omp parallel for reduction(+:result,compensate)
+    for(int i = 0 ; i < size ; ++i)
     {
-        #pragma omp for reduction(+:result)
-        for(int i = 0 ; i < size ; ++i)
-            result = result + *(v0+i)* *(v1+i) ;
+        double y = *(v0+i)* *(v1+i)-compensate ;
+        double tot = result+y ;
+        compensate  = (tot-result)-y ;
+        result = tot  ;
     }
     return result ;
 }
@@ -261,11 +265,14 @@ inline double parallel_inner_product(const double *  v0, const double *  v1, int
 inline double parallel_inner_product_restricted(const double * __restrict__ v0, const double * __restrict__ v1, int size)
 {
     double result = 0 ;
-    #pragma omp parallel
+    double compensate = 0 ;
+    #pragma omp parallel for reduction(+:result,compensate)
+    for(int i = 0 ; i < size ; ++i)
     {
-        #pragma omp for reduction(+:result)
-        for(int i = 0 ; i < size ; ++i)
-            result = result + *(v0+i)* *(v1+i) ;
+        double y = *(v0+i)* *(v1+i)-compensate ;
+        double tot = result+y ;
+        compensate  = (tot-result)-y ;
+        result = tot  ;
     }
     return result ;
 }

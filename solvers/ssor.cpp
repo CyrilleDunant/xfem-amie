@@ -98,7 +98,7 @@ void  Ssor::precondition(const Vector &v, Vector & t)
 {
     if(v.size() != buffer.size())
       std::cout << " ouch ! " << std::endl ;
-    Vector buffer2(buffer) ;
+//     Vector buffer2(buffer) ;
 //     Vector buffer3(buffer) ;
 //     Vector buffer4(buffer) ;
     

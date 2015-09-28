@@ -538,7 +538,23 @@ double operator*(const Point & p_, const Point &p)
 //     r.vec = _mm_add_pd(_mm_mul_pd(p.vecxy, vecxy), _mm_mul_pd(p.veczt, veczt)) ;
 //     return r.val[0] + r.val[1];
 // #endif
-    return p.getX()*p_.x+p.getY()*p_.y+p.getZ()*p_.z/*+p.getT()*p_.t*/ ;
+   
+    double compensate = 0 ;
+    double sum = 0 ;
+    double toAdd = p.getX()*p_.x - compensate;
+    double tot = sum+toAdd ;
+    compensate = (tot-sum) -toAdd ;
+    sum = tot ;
+    toAdd = p.getY()*p_.y - compensate;
+    tot = sum+toAdd ;
+    compensate = (tot-sum) -toAdd ;
+    sum = tot ;
+    toAdd = p.getZ()*p_.z - compensate;
+    tot = sum+toAdd ;
+    compensate = (tot-sum) -toAdd ;
+    sum = tot ;
+
+    return sum ;
 
 }
 
@@ -5358,58 +5374,58 @@ bool isOnTheSameSide(const Point * test, const Point * witness, const Point * f0
 
 double dist(const Point & v1, const Point & v2)
 {
-#ifdef HAVE_SSE4
-    __m128d temp ;
-    vecdouble r ;
-//	temp = _mm_sub_pd(v1.veczt, v2.veczt) ;
-    temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-    r.vec = _mm_dp_pd(temp, temp, 61) ;
-//	r.vec += _mm_dp_pd(temp, temp, 62) ;
-    double z = vi.veczt.getZ() - v2.veczt.getZ() ;
-    return sqrt(r.val[0]+ r.val[1] + z*z);
-#elif defined HAVE_SSE3
-//	vecdouble rzt ;
-    vecdouble rxy ;
-// 	rzt.vec = _mm_sub_pd(v1.veczt, v2.veczt) ;
-// 	rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
-    rxy.vec = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-    rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
-    double z = vi.veczt.getZ() - v2.veczt.getZ() ;
-    return sqrt(z*z + rxy.val[0]+ rxy.val[1]);
-#else
+// #ifdef HAVE_SSE4
+//     __m128d temp ;
+//     vecdouble r ;
+// //	temp = _mm_sub_pd(v1.veczt, v2.veczt) ;
+//     temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
+//     r.vec = _mm_dp_pd(temp, temp, 61) ;
+// //	r.vec += _mm_dp_pd(temp, temp, 62) ;
+//     double z = vi.veczt.getZ() - v2.veczt.getZ() ;
+//     return sqrt(r.val[0]+ r.val[1] + z*z);
+// #elif defined HAVE_SSE3
+// //	vecdouble rzt ;
+//     vecdouble rxy ;
+// // 	rzt.vec = _mm_sub_pd(v1.veczt, v2.veczt) ;
+// // 	rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
+//     rxy.vec = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
+//     rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
+//     double z = vi.veczt.getZ() - v2.veczt.getZ() ;
+//     return sqrt(z*z + rxy.val[0]+ rxy.val[1]);
+// #else
     double x = v1.getX()-v2.getX() ;
     double y = v1.getY()-v2.getY() ;
     double z = v1.getZ()-v2.getZ() ;
 //	double t = v1.getT()-v2.getT() ;
     return sqrt(x*x+y*y+z*z) ;
-#endif
+// #endif
 }
 
 double dist(const Point * v1, const Point * v2)
 {
-#ifdef HAVE_SSE4
-    __m128d temp ;
-    vecdouble r ;
-    temp = _mm_sub_pd(v1->veczt, v2->veczt) ;
-    r.vec = _mm_dp_pd(temp, temp, 61) ;
-    temp = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
-    r.vec += _mm_dp_pd(temp, temp, 62) ;
-    return sqrt(r.val[0]+ r.val[1] );
-#elif defined HAVE_SSE3
-    vecdouble rzt ;
-    vecdouble rxy ;
-    rzt.vec = _mm_sub_pd(v1->veczt, v2->veczt) ;
-    rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
-    rxy.vec = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
-    rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
-    return sqrt(rzt.val[0]+ rzt.val[1] + rxy.val[0]+ rxy.val[1]);
-#else
+// #ifdef HAVE_SSE4
+//     __m128d temp ;
+//     vecdouble r ;
+//     temp = _mm_sub_pd(v1->veczt, v2->veczt) ;
+//     r.vec = _mm_dp_pd(temp, temp, 61) ;
+//     temp = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
+//     r.vec += _mm_dp_pd(temp, temp, 62) ;
+//     return sqrt(r.val[0]+ r.val[1] );
+// #elif defined HAVE_SSE3
+//     vecdouble rzt ;
+//     vecdouble rxy ;
+//     rzt.vec = _mm_sub_pd(v1->veczt, v2->veczt) ;
+//     rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
+//     rxy.vec = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
+//     rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
+//     return sqrt(rzt.val[0]+ rzt.val[1] + rxy.val[0]+ rxy.val[1]);
+// #else
     double x = v1->getX()-v2->getX() ;
     double y = v1->getY()-v2->getY() ;
     double z = v1->getZ()-v2->getZ() ;
-    double t = v1->getT()-v2->getT() ;
-    return sqrt(x*x+y*y+z*z+t*t) ;
-#endif
+//     double t = v1->getT()-v2->getT() ;
+    return sqrt(x*x+y*y+z*z/*+t*t*/) ;
+// #endif
 }
 
 
@@ -5448,152 +5464,152 @@ Matrix rotateToVector (Point * toRotate, const Point & toVector)
 
 double squareDist(const  Point &v1, const Point & v2)
 {
-#ifdef HAVE_SSE4
-    __m128d temp ;
-    vecdouble r ;
-    temp = _mm_sub_pd(v1.veczt, v2.veczt) ;
-    r.vec = _mm_dp_pd(temp, temp, 61) ;
-    temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-    r.vec += _mm_dp_pd(temp, temp, 62) ;
-    return r.val[0]+ r.val[1] ;
-#elif defined HAVE_SSE3
-    vecdouble rzt ;
-    vecdouble rxy ;
-    rzt.vec = _mm_sub_pd(v1.veczt, v2.veczt) ;
-    rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
-    rxy.vec = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-    rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
-    return rzt.val[0]+ rzt.val[1] + rxy.val[0]+ rxy.val[1] ;
-#else
+// #ifdef HAVE_SSE4
+//     __m128d temp ;
+//     vecdouble r ;
+//     temp = _mm_sub_pd(v1.veczt, v2.veczt) ;
+//     r.vec = _mm_dp_pd(temp, temp, 61) ;
+//     temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
+//     r.vec += _mm_dp_pd(temp, temp, 62) ;
+//     return r.val[0]+ r.val[1] ;
+// #elif defined HAVE_SSE3
+//     vecdouble rzt ;
+//     vecdouble rxy ;
+//     rzt.vec = _mm_sub_pd(v1.veczt, v2.veczt) ;
+//     rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
+//     rxy.vec = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
+//     rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
+//     return rzt.val[0]+ rzt.val[1] + rxy.val[0]+ rxy.val[1] ;
+// #else
     double x = v1.getX()-v2.getX() ;
     double y = v1.getY()-v2.getY() ;
     double z = v1.getZ()-v2.getZ() ;
-    double t = v1.getT()-v2.getT() ;
-    return x*x+y*y+z*z+t*t ;
-#endif
+//     double t = v1.getT()-v2.getT() ;
+    return x*x+y*y+z*z/*+t*t*/ ;
+// #endif
 }
 
 double squareDist(const Point *v1, const Point *v2)
 {
-#ifdef HAVE_SSE4
-    __m128d temp ;
-    vecdouble r ;
-    temp = _mm_sub_pd(v1->veczt, v2->veczt) ;
-    r.vec = _mm_dp_pd(temp, temp, 61) ;
-    temp = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
-    r.vec += _mm_dp_pd(temp, temp, 62) ;
-    return r.val[0]+ r.val[1];
-#elif defined HAVE_SSE3
-    vecdouble rzt ;
-    vecdouble rxy ;
-    rzt.vec = _mm_sub_pd(v1->veczt, v2->veczt) ;
-    rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
-    rxy.vec = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
-    rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
-    return rzt.val[0]+ rzt.val[1] + rxy.val[0]+ rxy.val[1] ;
-#else
+// #ifdef HAVE_SSE4
+//     __m128d temp ;
+//     vecdouble r ;
+//     temp = _mm_sub_pd(v1->veczt, v2->veczt) ;
+//     r.vec = _mm_dp_pd(temp, temp, 61) ;
+//     temp = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
+//     r.vec += _mm_dp_pd(temp, temp, 62) ;
+//     return r.val[0]+ r.val[1];
+// #elif defined HAVE_SSE3
+//     vecdouble rzt ;
+//     vecdouble rxy ;
+//     rzt.vec = _mm_sub_pd(v1->veczt, v2->veczt) ;
+//     rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
+//     rxy.vec = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
+//     rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
+//     return rzt.val[0]+ rzt.val[1] + rxy.val[0]+ rxy.val[1] ;
+// #else
     double x = v1->getX()-v2->getX() ;
     double y = v1->getY()-v2->getY() ;
     double z = v1->getZ()-v2->getZ() ;
-    double t = v1->getT()-v2->getT() ;
-    return x*x+y*y+z*z+t*t ;
-#endif
+//     double t = v1->getT()-v2->getT() ;
+    return x*x+y*y+z*z/*+t*t*/ ;
+// #endif
 }
 
 double squareDist2D(const  Point &v1, const Point & v2)
 {
-#ifdef HAVE_SSE4
-    __m128d temp ;
-    vecdouble r ;
-    temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-    r.vec = _mm_dp_pd(temp, temp, 61) ;
-    return r.val[0] ;
-#elif defined HAVE_SSE3
-    vecdouble rzt ;
-    rzt.vec = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-    rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
-    return rzt.val[0]+ rzt.val[1];
-#else
+// #ifdef HAVE_SSE4
+//     __m128d temp ;
+//     vecdouble r ;
+//     temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
+//     r.vec = _mm_dp_pd(temp, temp, 61) ;
+//     return r.val[0] ;
+// #elif defined HAVE_SSE3
+//     vecdouble rzt ;
+//     rzt.vec = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
+//     rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
+//     return rzt.val[0]+ rzt.val[1];
+// #else
     double x = v1.getX()-v2.getX() ;
     double y = v1.getY()-v2.getY() ;
     return x*x+y*y ;
-#endif
+// #endif
 }
 
 double squareDist2D(const Point *v1, const Point *v2)
 {
-#ifdef HAVE_SSE4
-    __m128d temp ;
-    vecdouble r ;
-    temp = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
-    r.vec = _mm_dp_pd(temp, temp, 61) ;
-    return r.val[0] ;
-#elif defined HAVE_SSE3
-    vecdouble rzt ;
-    rzt.vec = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
-    rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
-    return rzt.val[0]+ rzt.val[1] ;
-#else
+// #ifdef HAVE_SSE4
+//     __m128d temp ;
+//     vecdouble r ;
+//     temp = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
+//     r.vec = _mm_dp_pd(temp, temp, 61) ;
+//     return r.val[0] ;
+// #elif defined HAVE_SSE3
+//     vecdouble rzt ;
+//     rzt.vec = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
+//     rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
+//     return rzt.val[0]+ rzt.val[1] ;
+// #else
     double x = v1->getX()-v2->getX() ;
     double y = v1->getY()-v2->getY() ;
     return x*x+y*y ;
-#endif
+// #endif
 }
 
 double squareDist3D(const  Point &v1, const Point & v2)
 {
-#ifdef HAVE_SSE4
-    __m128d temp ;
-    vecdouble r0 ;
-    vecdouble r1 ;
-    temp = _mm_sub_pd(v1.veczt, v2.veczt) ;
-    r0.vec = _mm_dp_pd(temp, temp, 61) ;
-    temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-    r1.vec = _mm_dp_pd(temp, temp, 62) ;
-    return r0.val[0]+ r1.val[0]+r1.val[1] ;
-#elif defined HAVE_SSE3
-    vecdouble rzt ;
-    vecdouble rxy ;
-    rzt.vec = _mm_sub_pd(v1.veczt, v2.veczt) ;
-    rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
-    rxy.vec = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-    rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
-    return rzt.val[0]/*+ rzt.val[1]*/ + rxy.val[0]+ rxy.val[1] ;
-#else
+// #ifdef HAVE_SSE4
+//     __m128d temp ;
+//     vecdouble r0 ;
+//     vecdouble r1 ;
+//     temp = _mm_sub_pd(v1.veczt, v2.veczt) ;
+//     r0.vec = _mm_dp_pd(temp, temp, 61) ;
+//     temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
+//     r1.vec = _mm_dp_pd(temp, temp, 62) ;
+//     return r0.val[0]+ r1.val[0]+r1.val[1] ;
+// #elif defined HAVE_SSE3
+//     vecdouble rzt ;
+//     vecdouble rxy ;
+//     rzt.vec = _mm_sub_pd(v1.veczt, v2.veczt) ;
+//     rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
+//     rxy.vec = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
+//     rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
+//     return rzt.val[0]/*+ rzt.val[1]*/ + rxy.val[0]+ rxy.val[1] ;
+// #else
     double x = v1.getX()-v2.getX() ;
     double y = v1.getY()-v2.getY() ;
     double z = v1.getZ()-v2.getZ() ;
     return x*x+y*y+z*z ;
-#endif
+// #endif
 }
 
 
 
 double squareDist3D(const Point *v1, const Point *v2)
 {
-#ifdef HAVE_SSE4
-    __m128d temp ;
-    vecdouble r0 ;
-    vecdouble r1 ;
-    temp = _mm_sub_pd(v1->veczt, v2->veczt) ;
-    r0.vec = _mm_dp_pd(temp, temp, 61) ;
-    temp = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
-    r1.vec = _mm_dp_pd(temp, temp, 62) ;
-    return r0.val[0]+ r1.val[0]+r1.val[1] ;
-#elif defined HAVE_SSE3
-    vecdouble rzt ;
-    vecdouble rxy ;
-    rzt.vec = _mm_sub_pd(v1->veczt, v2->veczt) ;
-    rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
-    rxy.vec = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
-    rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
-    return rzt.val[0]/*+ rzt.val[1]*/ + rxy.val[0]+ rxy.val[1] ;
-#else
+// #ifdef HAVE_SSE4
+//     __m128d temp ;
+//     vecdouble r0 ;
+//     vecdouble r1 ;
+//     temp = _mm_sub_pd(v1->veczt, v2->veczt) ;
+//     r0.vec = _mm_dp_pd(temp, temp, 61) ;
+//     temp = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
+//     r1.vec = _mm_dp_pd(temp, temp, 62) ;
+//     return r0.val[0]+ r1.val[0]+r1.val[1] ;
+// #elif defined HAVE_SSE3
+//     vecdouble rzt ;
+//     vecdouble rxy ;
+//     rzt.vec = _mm_sub_pd(v1->veczt, v2->veczt) ;
+//     rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
+//     rxy.vec = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
+//     rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
+//     return rzt.val[0]/*+ rzt.val[1]*/ + rxy.val[0]+ rxy.val[1] ;
+// #else
     double x = v1->getX()-v2->getX() ;
     double y = v1->getY()-v2->getY() ;
     double z = v1->getZ()-v2->getZ() ;
     return x*x+y*y+z*z ;
-#endif
+// #endif
 }
 
 

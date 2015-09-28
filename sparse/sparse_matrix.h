@@ -222,9 +222,13 @@ public:
         {
         case 1:
         {
+            double compensate = 0 ;
             for(unsigned int j = mstart ; j < length+start ; j++)
             {
-                *dest += v[column_index[j]]*array[j*2] ;
+                double toAdd = v[column_index[j]]*array[j*2] - compensate;
+                double tot = *dest+toAdd ;
+                compensate = (tot-*dest) -tot ;
+                *dest = tot ;
             }
             return ;
         }
@@ -232,12 +236,31 @@ public:
         {
             const double * array_iterator = &array[mstart*2*2] ;
             const double * vec_iterator = v + column_index[mstart]*2 ;
+            double compensate0 = 0 ;
+            double compensate1 = 0 ;
+
             for(unsigned int j = mstart ; j < length+start ; j++ )
             {
-                *dest     += *array_iterator*(*vec_iterator);
-                *(dest+1) += *(array_iterator+1)*(*vec_iterator) ;
-                *dest     += *(array_iterator+2)*(*(vec_iterator +1)) ;
-                *(dest+1) += *(array_iterator+3)*(*(vec_iterator +1)) ;
+                double toAdd = *array_iterator*(*vec_iterator) - compensate0;
+                double tot = *dest+toAdd ;
+                compensate0 = (tot-*dest) -toAdd ;
+                *dest = tot ;
+                
+                toAdd = *(array_iterator+1)*(*vec_iterator) - compensate1;
+                tot = *(dest+1)+toAdd ;
+                compensate1 = (tot-*(dest+1)) -toAdd ;
+                *(dest+1) = tot ;
+                        
+                toAdd = *(array_iterator+2)*(*(vec_iterator +1)) - compensate0;
+                tot = *dest+toAdd ;
+                compensate0 = (tot-*dest) -toAdd ;
+                *dest = tot ;
+                
+                toAdd = *(array_iterator+3)*(*(vec_iterator +1)) - compensate1;
+                tot = *(dest+1)+toAdd ;
+                compensate1 = (tot-*(dest+1)) -toAdd ;
+                *(dest+1) = tot ;
+                
                 array_iterator+=4 ;
                 if(j+1 < column_index.size())
                     vec_iterator += column_index[j+1]*stride-column_index[j]*stride ;
@@ -249,149 +272,153 @@ public:
         {
             const double * array_iterator = &array[mstart*3*4] ;
             const double * vec_iterator = v + column_index[mstart]*3 ;
+            double compensate0 = 0 ;
+            double compensate1 = 0 ;
+            double compensate2 = 0 ;
             for(unsigned int j = mstart ; j < length+start ; j++)
             {
-                *dest     += *array_iterator     * (*vec_iterator);
-                *(dest+1) += *(array_iterator+1) * (*vec_iterator);
-                *(dest+2) += *(array_iterator+2) * (*vec_iterator);
-                *dest     += *(array_iterator+4) * (*(vec_iterator + 1)) ;
-                *(dest+1) += *(array_iterator+5) * (*(vec_iterator + 1)) ;
-                *(dest+2) += *(array_iterator+6) * (*(vec_iterator + 1)) ;
-                *dest     += *(array_iterator+8 ) * (*(vec_iterator + 2));
-                *(dest+1) += *(array_iterator+9 ) * (*(vec_iterator + 2));
-                *(dest+2) += *(array_iterator+10) * (*(vec_iterator + 2));
+                double toAdd = *array_iterator*(*vec_iterator) - compensate0;
+                double tot = *dest+toAdd ;
+                compensate0 = (tot-*dest) -tot ;
+                *dest = tot ;
+                
+                toAdd = *(array_iterator+1)*(*vec_iterator) - compensate1;
+                tot = *(dest+1)+toAdd ;
+                compensate1 = (tot-*(dest+1)) -tot ;
+                *(dest+1) = tot ;
+                
+                toAdd = *(array_iterator+2)*(*vec_iterator) - compensate2;
+                tot = *(dest+2)+toAdd ;
+                compensate2 = (tot-*(dest+2)) -tot ;
+                *(dest+2) = tot ;
+                
+                toAdd = *(array_iterator+4)*(*(vec_iterator + 1)) - compensate0;
+                tot = *dest+toAdd ;
+                compensate0 = (tot-*dest) -tot ;
+                *dest = tot ;
+                
+                toAdd = *(array_iterator+5)*(*(vec_iterator + 1)) - compensate1;
+                tot = *(dest+1)+toAdd ;
+                compensate1 = (tot-*(dest+1)) -tot ;
+                *(dest+1) = tot ;
+                
+                toAdd = *(array_iterator+6)*(*(vec_iterator + 1)) - compensate2;
+                tot = *(dest+2)+toAdd ;
+                compensate2 = (tot-*(dest+2)) -tot ;
+                *(dest+2) = tot ;
+                
+                toAdd = *(array_iterator+8)*(*(vec_iterator + 2)) - compensate0;
+                tot = *dest+toAdd ;
+                compensate0 = (tot-*dest) -tot ;
+                *dest = tot ;
+                
+                toAdd = *(array_iterator+9)*(*(vec_iterator + 2)) - compensate1;
+                tot = *(dest+1)+toAdd ;
+                compensate1 = (tot-*(dest+1)) -tot ;
+                *(dest+1) = tot ;
+                
+                toAdd = *(array_iterator+10)*(*(vec_iterator + 2)) - compensate2;
+                tot = *(dest+2)+toAdd ;
+                compensate2 = (tot-*(dest+2)) -tot ;
+                *(dest+2) = tot ;
+                
+                
                 array_iterator+=12 ;
                 if(j+1 < column_index.size())
                     vec_iterator += column_index[j+1]*stride-column_index[j]*stride ;
             }
             return ;
         }
-        case 6 :
-        {
-#ifdef HAVE_SSE3
-            const __m128d * array_iterator = (__m128d*)&array[mstart*36] ;
-            // 			#pragma omp parallel for schedule(runtime)
-            for(unsigned int j = mstart ; j < length+start ; j++)
-            {
-                __m128d vval =  _mm_set1_pd(*(v+column_index[j]*stride)) ;
-
-                _mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*array_iterator, vval))) ;
-                _mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+1), vval))) ;
-                _mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+2), vval))) ;
-
-                vval =  _mm_set1_pd(*(v+column_index[j]*stride+1)) ;
-
-                _mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+3,) vval))) ;
-                _mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+4), vval))) ;
-                _mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+5), vval))) ;
-
-                vval =  _mm_set1_pd(*(v+column_index[j]*stride+2)) ;
-
-                _mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+6), vval))) ;
-                _mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+7), vval))) ;
-                _mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+8), vval))) ;
-
-                vval =  _mm_set1_pd(*(v+column_index[j]*stride+3)) ;
-
-                _mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+9), vval))) ;
-                _mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+10), vval))) ;
-                _mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+11), vval))) ;
-
-                vval =  _mm_set1_pd(*(v+column_index[j]*stride+4)) ;
-
-                _mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+12), vval))) ;
-                _mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+13), vval))) ;
-                _mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+14), vval))) ;
-
-                vval =  _mm_set1_pd(*(v+column_index[j]*stride+5)) ;
-
-                _mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+15), vval))) ;
-                _mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+16), vval))) ;
-                _mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+17), vval))) ;
-                array_iterator +=18 ;
-            }
-#else
-            const double * array_iterator0 = &array[mstart*36] ;
-            const double * array_iterator1 = &array[mstart*36+1] ;
-            // 			#pragma omp parallel for schedule(runtime)
-            for(unsigned int j = mstart ; j < length+start ; j++)
-            {
-                double vval =  *(v+column_index[j]*6) ;
-
-                *(dest) += *array_iterator0 * vval ;
-                *(dest+1) += *array_iterator1 * vval ;
-
-                *(dest+2) += *(array_iterator0+2) * vval ;
-                *(dest+3) += *(array_iterator1+2) * vval ;
-
-                *(dest+4) += *(array_iterator0+4) * vval ;
-                *(dest+5) += *(array_iterator1+4) * vval ;
-
-                vval =  *(v+column_index[j]*6+1) ;
-
-                *(dest) += *(array_iterator0+6) * vval ;
-                *(dest+1) += *(array_iterator1+6) * vval ;
-
-                *(dest+2) += *(array_iterator0+8) * vval ;
-                *(dest+3) += *(array_iterator1+8) * vval ;
-
-                *(dest+4) += *(array_iterator0+10) * vval ;
-                *(dest+5) += *(array_iterator1+10) * vval ;
-
-                vval =  *(v+column_index[j]*6+2) ;
-
-                *(dest) += *(array_iterator0+12) * vval ;
-                *(dest+1) += *(array_iterator1+12) * vval ;
-
-                *(dest+2) += *(array_iterator0+14) * vval ;
-                *(dest+3) += *(array_iterator1+14) * vval ;
-
-                *(dest+4) += *(array_iterator0+16) * vval ;
-                *(dest+5) += *(array_iterator1+16) * vval ;
-
-                vval =  *(v+column_index[j]*6+3) ;
-
-                *(dest) += *(array_iterator0+18) * vval ;
-                *(dest+1) += *(array_iterator1+18) * vval ;
-
-                *(dest+2) += *(array_iterator0+20) * vval ;
-                *(dest+3) += *(array_iterator1+20) * vval ;
-
-                *(dest+4) += *(array_iterator0+22) * vval ;
-                *(dest+5) += *(array_iterator1+22) * vval ;
-
-                vval = *(v+column_index[j]*6+4) ;
-
-                *(dest) += *(array_iterator0+24) * vval ;
-                *(dest+1) += *(array_iterator1+24) * vval ;
-
-                *(dest+2) += *(array_iterator0+26) * vval ;
-                *(dest+3) += *(array_iterator1+26) * vval ;
-
-                *(dest+4) += *(array_iterator0+28) * vval ;
-                *(dest+5) += *(array_iterator1+28) * vval ;
-
-                vval =  *(v+column_index[j]*6+5) ;
-
-                *(dest) += *(array_iterator0+30) * vval ;
-                *(dest+1) += *(array_iterator1+30) * vval ;
-
-                *(dest+2) += *(array_iterator0+32) * vval ;
-                *(dest+3) += *(array_iterator1+32) * vval ;
-
-                *(dest+4) += *(array_iterator0+34) * vval ;
-                *(dest+5) += *(array_iterator1+34) * vval ;
-                array_iterator0 += 36 ;
-                array_iterator1 += 36 ;
-            }
-#endif
-            return ;
-        }
+//         case 6 :
+//         {
+// 
+//             const double * array_iterator0 = &array[mstart*36] ;
+//             const double * array_iterator1 = &array[mstart*36+1] ;
+//             double compensate0 = 0 ;
+//             double compensate1 = 0 ;
+//             double compensate2 = 0 ;
+//             double compensate3 = 0 ;
+//             double compensate4 = 0 ;
+//             double compensate5 = 0 ;
+//             // 			#pragma omp parallel for schedule(runtime)
+//             for(unsigned int j = mstart ; j < length+start ; j++)
+//             {
+//                 double vval =  *(v+column_index[j]*6) ;
+// 
+//                 *(dest) += *array_iterator0 * vval ;
+//                 *(dest+1) += *array_iterator1 * vval ;
+// 
+//                 *(dest+2) += *(array_iterator0+2) * vval ;
+//                 *(dest+3) += *(array_iterator1+2) * vval ;
+// 
+//                 *(dest+4) += *(array_iterator0+4) * vval ;
+//                 *(dest+5) += *(array_iterator1+4) * vval ;
+// 
+//                 vval =  *(v+column_index[j]*6+1) ;
+// 
+//                 *(dest) += *(array_iterator0+6) * vval ;
+//                 *(dest+1) += *(array_iterator1+6) * vval ;
+// 
+//                 *(dest+2) += *(array_iterator0+8) * vval ;
+//                 *(dest+3) += *(array_iterator1+8) * vval ;
+// 
+//                 *(dest+4) += *(array_iterator0+10) * vval ;
+//                 *(dest+5) += *(array_iterator1+10) * vval ;
+// 
+//                 vval =  *(v+column_index[j]*6+2) ;
+// 
+//                 *(dest) += *(array_iterator0+12) * vval ;
+//                 *(dest+1) += *(array_iterator1+12) * vval ;
+// 
+//                 *(dest+2) += *(array_iterator0+14) * vval ;
+//                 *(dest+3) += *(array_iterator1+14) * vval ;
+// 
+//                 *(dest+4) += *(array_iterator0+16) * vval ;
+//                 *(dest+5) += *(array_iterator1+16) * vval ;
+// 
+//                 vval =  *(v+column_index[j]*6+3) ;
+// 
+//                 *(dest) += *(array_iterator0+18) * vval ;
+//                 *(dest+1) += *(array_iterator1+18) * vval ;
+// 
+//                 *(dest+2) += *(array_iterator0+20) * vval ;
+//                 *(dest+3) += *(array_iterator1+20) * vval ;
+// 
+//                 *(dest+4) += *(array_iterator0+22) * vval ;
+//                 *(dest+5) += *(array_iterator1+22) * vval ;
+// 
+//                 vval = *(v+column_index[j]*6+4) ;
+// 
+//                 *(dest) += *(array_iterator0+24) * vval ;
+//                 *(dest+1) += *(array_iterator1+24) * vval ;
+// 
+//                 *(dest+2) += *(array_iterator0+26) * vval ;
+//                 *(dest+3) += *(array_iterator1+26) * vval ;
+// 
+//                 *(dest+4) += *(array_iterator0+28) * vval ;
+//                 *(dest+5) += *(array_iterator1+28) * vval ;
+// 
+//                 vval =  *(v+column_index[j]*6+5) ;
+// 
+//                 *(dest) += *(array_iterator0+30) * vval ;
+//                 *(dest+1) += *(array_iterator1+30) * vval ;
+// 
+//                 *(dest+2) += *(array_iterator0+32) * vval ;
+//                 *(dest+3) += *(array_iterator1+32) * vval ;
+// 
+//                 *(dest+4) += *(array_iterator0+34) * vval ;
+//                 *(dest+5) += *(array_iterator1+34) * vval ;
+//                 array_iterator0 += 36 ;
+//                 array_iterator1 += 36 ;
+//             }
+//             return ;
+//         }
         default:
         {
             unsigned int colLength = stride+stride%2 ;
             const double * array_iterator0 = &array[mstart*colLength*stride] ;
             const double * array_iterator1 = &array[mstart*colLength*stride+1] ;
+            Vector compensate(stride, 0.) ;
             for(unsigned int j = mstart ; j < length+start ; j++)
             {
                 for(size_t c = 0 ; c < stride ; c++)
@@ -399,8 +426,18 @@ public:
                     const double vval =  *(v+column_index[j]*stride+c) ;
                     for(size_t i = 0 ; i != colLength ; i+=2)
                     {
-                        *(dest+i) += *array_iterator0 * vval ;
-                        *(dest+i+1) += *array_iterator1 * vval ;
+                        double toAdd = *array_iterator0*vval - compensate[i];
+                        double tot = *(dest+i)+toAdd ;
+                        compensate[i] = (tot-*(dest+i)) -toAdd ;
+                        *(dest+i) = tot ;
+                        
+                        toAdd = *array_iterator1*vval - compensate[i+1];
+                        tot = *(dest+i+1)+toAdd ;
+                        compensate[i+1] = (tot-*(dest+i+1)) -toAdd ;
+                        *(dest+i+1) = tot ;
+                        
+//                         *(dest+i) += *array_iterator0 * vval ;
+//                         *(dest+i+1) += *array_iterator1 * vval ;
                         array_iterator0 += 2 ;
                         array_iterator1 += 2 ;
                     }

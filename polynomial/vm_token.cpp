@@ -672,7 +672,7 @@ void HatEnrichment::eval(double * a, double * b, double * c) const
         position.getId() = -1 ;
     }
 
-    if(p == position)
+    if(squareDist2D(p,position) < 1e-20)
     {
        *c = 0 ;
        return ;
@@ -700,19 +700,18 @@ void HatEnrichment::eval(double * a, double * b, double * c) const
     if(squareDist2D(t.getCircumCenter(), pmin) > squareDist2D(t.getCircumCenter(), intersgeo[1]))
         pmin = intersgeo[1] ;
 
-    double basis = 1. ;
     if(g->in(p) == g->in(position))
     { 
         double distTotPoint = dist(p, pmin);
         double distPos = dist(position, p) ;
-        *c = basis*distPos/distTotPoint ;
+        *c = distPos/distTotPoint ;
         return ;
     }
     
     double distTotSeg = dist(interseg, pmin);   
     double distPos = dist(position, interseg) ;
     
-    *c = basis*distPos/distTotSeg ;
+    *c = distPos/distTotSeg ;
 }
 
 GeometryOperation * HatEnrichment::getCopy() const 

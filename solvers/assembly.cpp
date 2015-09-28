@@ -701,7 +701,7 @@ void Assembly::checkZeroLines()
     {
         if(i%1000 == rowstart)
             std::cerr << "\rremoving 0-only lines... " << i << "/" << externalForces.size() << std::flush ;
-        double zeros = (getMatrix()[i][i] < POINT_TOLERANCE) ;
+        double zeros = (std::abs(getMatrix()[i][i]) < 1e-12) ;
 /*        size_t j = rowstart ;
         while(zeros && (j < externalForces.size() ))
         {
