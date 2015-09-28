@@ -418,7 +418,7 @@ public:
             unsigned int colLength = stride+stride%2 ;
             const double * array_iterator0 = &array[mstart*colLength*stride] ;
             const double * array_iterator1 = &array[mstart*colLength*stride+1] ;
-            Vector compensate(stride, 0.) ;
+            Vector compensate(0.,stride) ;
             for(unsigned int j = mstart ; j < length+start ; j++)
             {
                 for(size_t c = 0 ; c < stride ; c++)
