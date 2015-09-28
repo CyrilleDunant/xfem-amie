@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 	FeatureTree f(&rect) ;
 	f.setSamplingNumber(0) ;
         f.setDeltaTime(0.001) ;
-	
+
 	f.step() ;
 
 	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT_AFTER) ) ;
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 	{
 		disp->setData( 0.0000009 + 0.0000001*i ) ;
 		f.step() ;
-		out << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, -1,1 )[1] << "\t" << f.getAverageField( MECHANICAL_STRAIN_FIELD, -1,1 )[1] << std::endl ;
+		out << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, -1,1 )[1] << "\t" << f.getAverageField( STRAIN_FIELD, -1,1 )[1] << std::endl ;
 	}
 
 	return 0 ;
