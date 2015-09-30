@@ -926,7 +926,7 @@ public:
             double w = 0 ;
             for ( size_t i = 0 ; i < elems.size() ; i++ ) {
 
-                double v = elems[i]->getState().getAverageField ( f, buffer, nullptr, dummy, t ) ;
+                double v = elems[i]->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
                 ret += buffer * v ;
                 w +=v ;
             }

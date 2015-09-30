@@ -401,9 +401,7 @@ Matrix Tensor::orthothropicCauchyGreen(double E_1, double E_2, double G,  double
 // 			double nu_21 = b[0] ;
 
             //nu_12*nu_21 = nu*nu ;
-            double nu_21 = (nu/E_1)*sqrt(E_1*E_2) ;
-// 			double nu_12 = (nu/E_2)*sqrt(E_1*E_2) ;
-
+            double nu_21 = (nu/E_1)*(E_1+E_2)*.5 ;
             double gamma = 1./(1.-nu*nu) ;
 
             cg[0][0] = E_1*gamma ;
@@ -435,8 +433,8 @@ Matrix Tensor::orthothropicCauchyGreen(double E_1, double E_2, double G,  double
         {
             Matrix A(2,2) ;
 
-            double nu21 = (nu/E_1)*sqrt(E_1*E_2) ;
-            double nu12 = (nu/E_2)*sqrt(E_1*E_2) ;
+            double nu21 = (nu/E_1)*(E_1+E_2)*.5 ;
+            double nu12 = (nu/E_2)*(E_1+E_2)*.5 ;
             double nu23 = nu ;
             double nu32 = nu ;
             double nu13 = nu ;

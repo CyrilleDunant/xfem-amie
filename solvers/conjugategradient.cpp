@@ -177,7 +177,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
         assign(q, assembly->getMatrix()*p, rowstart, colstart) ;
         pq =  parallel_inner_product_restricted(&q[rowstart], &p[rowstart], vsize-rowstart);
-        if(std::abs(pq) < realeps*err0)
+        if(std::abs(pq) < 1e-24)
         {
             last_rho = rho ;
             pqconvergence = true ;

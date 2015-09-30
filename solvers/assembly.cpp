@@ -268,15 +268,6 @@ bool Assembly::nonLinearStep()
 
 void Assembly::setBoundaryConditions()
 {
-    externalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
-    naturalBoundaryConditionForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
-    nonLinearExternalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
-    if(addToExternalForces.size() != externalForces.size())
-    {
-        addToExternalForces.resize(externalForces.size(), 0.) ; 
-    }
-
-    
     std::valarray<int> multiplierIds(multipliers.size()) ;
     for(size_t i = 0 ; i < multiplierIds.size() ; i++)
     {
@@ -695,12 +686,14 @@ void Assembly::checkZeroLines()
     }*/
     
     double maxval = std::abs(getMatrix().array).max() ;
-    int zeros = 0 ;
+    int zerocount = 0 ;
     for(size_t i = 0 ; i < externalForces.size() ; i++)
     {
         if(i%1000 == rowstart)
             std::cerr << "\r removing 0-only lines... " << i << "/" << externalForces.size() << std::flush ;
-        bool zeros = (std::abs(getMatrix()[i][i]) < 1e-8*maxval) ;
+        
+        double v = std::abs(getMatrix()[i][i]) ;
+        bool zeros = ( v < 1e-12*maxval) ;
 /*        size_t j = rowstart ;
         while(zeros && (j < externalForces.size() ))
         {
@@ -709,17 +702,17 @@ void Assembly::checkZeroLines()
         }*/
         if(zeros)// && (j==externalForces.size()))
         {
-            zeros++ ;
-            for(size_t j = 0 ; j < externalForces.size() ; j++)
-            {
-                getMatrix()[i][j] = 0 ;
-                getMatrix()[j][i] = 0 ;
-            }
+            zerocount++ ;
+//             for(size_t j = 0 ; j < externalForces.size() ; j++)
+//             {
+//                 getMatrix()[i][j] = 0 ;
+//                 getMatrix()[j][i] = 0 ;
+//             }
             getMatrix()[i][i] = 1 ;
             externalForces[i] = 0. ;
         }
     }
-    std::cerr << "\r removing 0-only lines... " << externalForces.size() << "/" << externalForces.size() << " ( " << zeros << " ) ... done. " << std::endl ;
+    std::cerr << "\r removing 0-only lines... " << externalForces.size() << "/" << externalForces.size() << " ( " << zerocount << " ) ... done. " << std::endl ;
 }
 
 bool Assembly::make_final()
@@ -1119,8 +1112,19 @@ bool Assembly::make_final()
 
         std::cerr << " ...done" << std::endl ;
 
-        setBoundaryConditions() ;
+        //important to do in this order
+        
+            
+
+        externalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
+        naturalBoundaryConditionForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
+        nonLinearExternalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
+        if(addToExternalForces.size() != externalForces.size())
+        {
+            addToExternalForces.resize(externalForces.size(), 0.) ; 
+        }
         checkZeroLines() ;
+        setBoundaryConditions() ;
 
     }
     else
@@ -1509,8 +1513,16 @@ bool Assembly::make_final()
 
         std::cerr << " ...done" << std::endl ;
 
-        setBoundaryConditions() ;
+        //important to do in this order
+        externalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
+        naturalBoundaryConditionForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
+        nonLinearExternalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
+        if(addToExternalForces.size() != externalForces.size())
+        {
+            addToExternalForces.resize(externalForces.size(), 0.) ; 
+        }
         checkZeroLines() ;
+        setBoundaryConditions() ;
     }
 // 	std::cerr << smallestEigenValue(getMatrix()) << std::endl;
     return symmetric ;

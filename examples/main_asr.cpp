@@ -8,6 +8,7 @@
 #include "main.h"
 #include "../features/features.h"
 #include "../physics/orthotropicstiffness.h"
+#include "../physics/stiffness.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
 #include "../features/enrichmentmanagers/gelmanager.h"
@@ -214,7 +215,7 @@ int main( int argc, char *argv[] )
     }
     else
     {
-        blocktop->setBehaviour(new OrthotropicStiffness(    5e7,     5e7,     5e7* 5e7/(    5e7+    5e7),  .2, 0.) /*VoidForm()*/) ;
+        blocktop->setBehaviour(new Stiffness(    5e7,  .2) /*VoidForm()*/) ;
         blocks.push_back(blocktop);
     }
     F.addFeature( &sample, blocktop );
@@ -227,7 +228,7 @@ int main( int argc, char *argv[] )
     }
     else
     {
-        blockbottom->setBehaviour(new OrthotropicStiffness( 5e7,     5e7,     5e7* 5e7/(    5e7+    5e7),  .2, 0.) /*VoidForm()*/) ;
+        blockbottom->setBehaviour(new Stiffness( 5e7, .2) /*VoidForm()*/) ;
         blocks.push_back(blockbottom);
     }
     F.addFeature( &sample, blockbottom );
@@ -240,7 +241,7 @@ int main( int argc, char *argv[] )
     }
     else
     {
-        blockleft->setBehaviour(new OrthotropicStiffness(    5e7,     5e7,     5e7*    5e7/(    5e7+    5e7),  .2, 0.) /* VoidForm()*/) ;
+        blockleft->setBehaviour(new Stiffness( 5e7,  .2) /* VoidForm()*/) ;
         blocks.push_back(blockleft);
     }
     F.addFeature( &sample, blockleft );
@@ -253,7 +254,7 @@ int main( int argc, char *argv[] )
     }
     else
     {
-        blockright->setBehaviour(new OrthotropicStiffness(    5e7,     5e7,     5e7*    5e7/(    5e7+    5e7),  .2, 0.)/*VoidForm()*/) ;
+        blockright->setBehaviour(new Stiffness( 5e7, .2)/*VoidForm()*/) ;
         blocks.push_back(blockright);
     }
     F.addFeature( &sample, blockright );
@@ -267,7 +268,7 @@ int main( int argc, char *argv[] )
     }
     for( size_t i = 0 ; i < blocks.size() ; i++ )
     {
-        F.setSamplingFactor(blocks[i], 4.);
+        F.setSamplingFactor(blocks[i], 6.);
     }
 
 
