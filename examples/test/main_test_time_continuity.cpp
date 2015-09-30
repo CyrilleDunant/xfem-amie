@@ -7,6 +7,9 @@
 #include "../main.h"
 #include "../../features/features.h"
 #include "../../physics/viscoelasticity.h"
+#include "../../physics/viscoelasticity_and_fracture.h"
+#include "../../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
+#include "../../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include "../../physics/materials/paste_behaviour.h"
 #include "../../utilities/writer/triangle_writer.h"
 #include "../../features/sample.h"
@@ -25,40 +28,39 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
-	CommandLineParser parser("Test a generalized Kelvin-Voigt material behaviour on two elements") ;
+	CommandLineParser parser("Test the time continuity for viscoelastic materials on two elements") ;
 	parser.addFlag("--renew-base", false, "renew the base of results") ;
 	parser.parseCommandLine(argc, argv) ;
 	bool renew = parser.getFlag("--renew-base") ;
 
-        Sample rect(nullptr, 0.04,0.04,0,0) ;
+
+        Sample rect(nullptr, 0.01,0.01,0,0) ;
 	Matrix C = ElasticOnlyPasteBehaviour(10e9).param ;
-	rect.setBehaviour(new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C, C, C*25 ) ) ;
+	rect.setBehaviour(new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C, C, C*25)) ;
 
 	FeatureTree f(&rect) ;
 	f.setSamplingNumber(0) ;
-	int deltaTime = 1 ;
-        f.setDeltaTime(1) ;
-	
+        f.setDeltaTime(0.001) ;
+
 	f.step() ;
 
 	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT_AFTER) ) ;
 	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER ) ) ;
-	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -1e6 ) ) ;
+	BoundingBoxDefinedBoundaryCondition * disp = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_ETA, TOP_AFTER, 0) ;
+	f.addBoundaryCondition( disp ) ;
 
 	std::ofstream out ;
 	if(renew)
-		out.open("../examples/test/test_viscoelasticity_kv_base", std::ios::out) ;
+		out.open("../examples/test/test_time_continuity_base", std::ios::out) ;
 	else
-		out.open("../examples/test/test_viscoelasticity_kv_current", std::ios::out) ;
+		out.open("../examples/test/test_time_continuity_current", std::ios::out) ;
 
-	for(size_t i = 0 ; i < 30 ; i++)
+	for(size_t i = 0 ; i < 3 ; i++)
 	{
-                f.setDeltaTime(deltaTime++) ;
+		disp->setData( 0.00000075 + 0.00000075*i ) ;
 		f.step() ;
-		out << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, -1,1 )[1] << "\t" << f.getAverageField( STRAIN_FIELD, -1,1 )[1] << std::endl ;
+		out << f.getCurrentTime() << "\t" << f.getAverageField( STRAIN_FIELD, -1,-1 )[1] << "\t" << f.getAverageField( STRAIN_FIELD, -1,1 )[1] << std::endl ;
 	}
-
-	f.getAssembly()->print() ;
 
 	return 0 ;
 }

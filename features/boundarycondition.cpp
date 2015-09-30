@@ -3056,7 +3056,10 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
         case FIX_ALONG_XI:
             if(n > 2)
-                a->setPointAlongIndexedAxis( 0, 0, id[i].getId() ) ;
+            {
+                for(int ax = 0 ; ax < n/2 ; ax++)
+                    a->setPointAlongIndexedAxis( ax*2, 0, id[i].getId() ) ;
+            }
             else
                 a->setPointAlong ( XI, 0, id[i].getId() ) ;
             break ;
@@ -3080,7 +3083,10 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
         case FIX_ALONG_ETA:
             if(n > 2)
-                a->setPointAlongIndexedAxis( 1, 0, id[i].getId() ) ;
+            {
+                for(int ax = 0 ; ax < n/2 ; ax++)
+                    a->setPointAlongIndexedAxis( ax*2+1, 0, id[i].getId() ) ;
+            }
             else
                 a->setPointAlong ( ETA, 0, id[i].getId() ) ;
             break ;

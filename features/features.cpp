@@ -4869,7 +4869,7 @@ bool FeatureTree::stepElements()
                             }
                             else
                             {
-                                std::cerr << "time step too small: setting to " << minDeltaTime << std::endl ;
+                                std::cout << "time step too small: setting to " << minDeltaTime << std::endl ;
                                 moveFirstTimePlanes ( 0., j->second->begin(), j->second->end() ) ;
                             }
                         }
@@ -7077,6 +7077,7 @@ void FeatureTree::setDeltaTime ( double d, bool isreal )
 
 void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle,  DelaunayTreeItem >::iterator & begin,  const Mesh<DelaunayTriangle, DelaunayTreeItem >::iterator & end)
 {
+    std::cout << d << std::endl ;
     Mesh<DelaunayTriangle,  DelaunayTreeItem >::iterator i(begin) ;
     double prev = i->getBoundingPoint ( i->getBoundingPoints().size() -1 ).getT() - i->getBoundingPoint ( 0 ).getT() ;
     size_t ndof = 0 ;

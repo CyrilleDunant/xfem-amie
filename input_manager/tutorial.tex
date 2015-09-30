@@ -8,6 +8,8 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{xspace}
+\usepackage{array}
+\usepackage{enumitem}
 \usepackage{fullpage}
 
 %\input{../notations}
@@ -20,2084 +22,320 @@
 
 \maketitle
 
-This document shows how to write initiation files for \amie. These files can be used to set up variables in simulations without re-compiling the main executable. An example of initiation file usage in \amie can be found in the \verb+main_2d_composite+ example.
+This document shows how to write initiation files for \amie. 
+These files can be used to set up variables in simulations without re-compiling the main executable. 
+An example of initiation file usage in \amie can be found in the \verb+main_2d_composite+ example.
 
 \tableofcontents
 
-\section{First example}
+\eject 
 
-\verb+# first AMIE configuration file+\\
-\verb+.sample+\\
-\verb+..height = 0.1+\\
-\verb+..width = 0.1+\\
-\verb+..behaviour+\\
-\verb+...type = PASTE_BEHAVIOUR+\\
-\verb+.stepping+\\
-\verb+..time_step = 0.1+\\
-\verb+..number_of_time_steps = 1+\\
-\verb+.discretization+\\
-\verb+..sampling_number = 8+\\
-\verb+..order = LINEAR+\\
-\verb+.boundary_condition+\\
-\verb+..condition = FIX_ALONG_XI+\\
-\verb+..position = LEFT+\\
-\verb+.boundary_condition+\\
-\verb+..condition = FIX_ALONG_ETA+\\
-\verb+..position = BOTTOM+\\
-\verb+.boundary_condition+\\
-\verb+..condition = SET_STRESS_ETA+\\
-\verb+..position = TOP+\\
-\verb+..value = -1e6+\\
-\verb+.output+\\
-\verb+..file_name = output_file+\\
-\verb+..time_step+\\
-\verb+...at = ALL+\\
-\verb+..field = REAL_STRESS_FIELD+\\
-\verb+..field = STRAIN_FIELD+\\
-\verb+.export+\\
-\verb+..file_name = export_mesh_file+\\
-\verb+..time_step+\\
-\verb+...at = ALL+\\
-\verb+..field = REAL_STRESS_FIELD+\\
-\verb+..field = STRAIN_FIELD+\\
+\section{Structure of the initiation file}
 
-Here is a step-by-step explanation of the content of the file.
+Each line in the initiation file contains a variable for the \amie simulation, using the following format:\\
 
-\subsection{Comment}
+\noindent \verb+.parameter = value # comment+\\
 
-\verb+# first AMIE configuration file+\\
+\subsection{Hierarchy}
 
-Everything located on the same line after a \verb+#+ character is considered a comment and will not be accounted for in a simulation. A comment can either start a new line as in the example shown, or be inserted at the end of an existing line.
+The number of leading dots before \verb+parameter+ indicates the level of the current line.
+A \verb+parameter+ at level n+1 is attached to the \verb+parameter+ at level n placed directly above.
+In the following example, \verb+son+ (level 2) is attached to \verb+father+ (level 1) and not \verb+step_father_1+ or \verb+step_father_2+ (both level 1 items as well).\\
+
+\noindent \verb+.step_father_1+\\
+\verb+.father+\\
+\verb+..son+\\
+\verb+.step_father_2+\\
+
+The order in which items at the same level (with the same father) is not relevant.
+The previous example and the following are therefore equivalent:\\
+
+\noindent \verb+.step_father_2+\\
+\verb+.step_father_1+\\
+\verb+.father+\\
+\verb+..son+\\
+
+However, if an item with the same name is defined multiple times, only the last will be accounted for.
 
 
-\subsection{Sample definition}
 
-\verb+.sample+\\
-\verb+..height = 0.1+\\
-\verb+..width = 0.1+\\
-\verb+..behaviour+\\
-\verb+...type = PASTE_BEHAVIOUR+\\
 
-Here, we define the box in which the simulation will be carried out. The box is a rectangle of the specified height and width (centered on the point (0,0) if not specified otherwise). The mechanical behaviour of the box is a predefined behaviour corresponding to cement paste.
+\subsection{Special characters}
 
-\subsection{Time-stepping parameters}
-
-\verb+.stepping+\\
-\verb+..time_step = 0.1+\\
-\verb+..number_of_time_steps = 1+\\
-
-Here, we define the number of time steps we want to perform as well as the duration (in days) of each time step.
-
-\subsection{Mesh generation parameters}
-
-\verb+.discretization+\\
-\verb+..sampling_number = 8+\\
-\verb+..order = LINEAR+\\
-
-Here, we define the parameters used to generate the mesh and the subsequent finite element discretization. The mesh will be generated with 8 nodes on each edge of the sample, and we use linear shape functions for the finite element approximation.
-
-\subsection{Boundary conditions}
-
-\verb+.boundary_condition+\\
-\verb+..condition = FIX_ALONG_XI+\\
-\verb+..position = LEFT+\\
-\verb+.boundary_condition+\\
-\verb+..condition = FIX_ALONG_ETA+\\
-\verb+..position = BOTTOM+\\
-\verb+.boundary_condition+\\
-\verb+..condition = SET_STRESS_ETA+\\
-\verb+..position = TOP+\\
-\verb+..value = -1e6+\\
-
-Here, we define three boundary conditions. The first condition sets to zero the horizontal displacement (axis \verb+XI+) of the left edge of the sample. The second conditions sets to zero the vertical displacement (axis \verb+ETA+) of the bottom edge of the sample. The third condition imposes a stress on the upper edge of the sample. The negative value of the load indicates a compression.
-
-\subsection{Output}
-
-\verb+.output+\\
-\verb+..file_name = output_file+\\
-\verb+..time_step+\\
-\verb+...at = ALL+\\
-\verb+..field = REAL_STRESS_FIELD+\\
-\verb+..field = STRAIN_FIELD+\\
-
-Here, we define that the average real stress and average strain field values will be extracted from the simulation and written in a text file at all time steps of the simulation. This will open a file named \verb+output_file+ and write the following table:\\
-
-\noindent \verb+0.1	-5.30733	999998	-1015.52	-2.51262e-05	8.37528e-05	-1.09992e-07+\\
-
-\paragraph{}Each line corresponds to a time step of the simulation. The first column corresponds to the current instant, the three following columns are the three components of  the average stress in the sample (ordered as $\sigma_{xx}$, $\sigma_{yy}$ and $\sigma_{xy}$), and the three last columns are the three components of the average strain in the sample (ordered as $\epsilon_{xx}$, $\epsilon_{yy}$ and $\epsilon_{xy}$).
-
-Note that if \verb+output_file+ already exists, its content will be overwritten.
-
-\subsection{Export}
-
-\verb+.export+\\
-\verb+..file_name = export_mesh_file+\\
-\verb+..time_step+\\
-\verb+...at = ALL+\\
-\verb+..field = REAL_STRESS_FIELD+\\
-\verb+..field = STRAIN_FIELD+\\
-
-Here, we choose to write mesh files containing the deformed state of the sample, as well as the real stress and the strain fields, and that such files will be written at each time step of the simulation. For the present simulation, three files will be generated:\\
-
-\noindent \verb+export_mesh_file_header+\\
-\verb+export_mesh_file_1.svg+\\
-\verb+export_mesh_file_1+
-
-\paragraph{}The header file contains simply a list of all non-SVG files generated. That is:\\
-
-\noindent \verb+export_mesh_file_1+
-
-\paragraph{}The SVG file contains eight snapshots of the mesh ordered vertically: two for the displacements components, three for the stress components, and three for the strain components.
-
-The last file contains raw information for use of \textsc{amie} in-house \verb+viewer+.
-
-As for the output files, if any of these files already exist, their content will be overwritten.
-
-\subsection{Important remarks on file naming}
-
-The following remarks apply to any file name called in the configuration file (either as an input or output file):
+Several characters have specific roles that are defined later in the document, and summarized here:
 
 \begin{itemize}
-	\item Do not use white spaces in the file path. Any white space is ignored during parsing.
-	\item For Windows users, use \verb+/+ as a folder separator instead of \verb+\+. \textsc{amie} does the conversion automatically.
+	\item Empty spaces are ignored
+	\item \verb+#+ indicates a comment. It can be placed at the start of a line or later.
+Any character after it will be ignored.
+	\item \verb+=+ makes the separation between the parameter name and its value.
+In some cases, it may be preceded by an operator sign among \verb-+-, \verb+-+, \verb+*+, or \verb+/+.
+	\item \verb+@+ indicates an input file variable.
+Variables can be used to ensure that several parameters always have the same values.
+	\item \verb+--+ indicates a flag.
+Flags are specific token that can be activated with the command line and uses to ignore some sections of the initiation file.
+	\item Analytic expressions must be written between quotes \verb+"+.
 \end{itemize}
 
+\subsection{Value types}
 
-\section{Managing inclusions}
-
-\subsection{First example}
-
-\verb+# example AMIE configuration file with inclusions+\\
-\verb+.sample+\\
-\verb+..height = 0.1+\\
-\verb+..width = 0.1+\\
-\verb+..behaviour+\\
-\verb+...type = PASTE_BEHAVIOUR+\\
-\verb+.stepping+\\
-\verb+..time_step = 0.1+\\
-\verb+..number_of_time_steps = 1+\\
-\verb+.discretization+\\
-\verb+..sampling_number = 8+\\
-\verb+..order = LINEAR+\\
-\verb+.inclusions+\\
-\verb+..particle_size_distribution+\\
-\verb+...type = CONSTANT+\\
-\verb+...rmax = 0.005+\\
-\verb+...number = 100+\\
-\verb+..geometry+\\
-\verb+...type = CIRCLE+\\
-\verb+..placement+\\
-\verb+...spacing = 0.001+\\
-\verb+...tries = 1000+\\
-\verb+..behaviour+\\
-\verb+...type = AGGREGATE_BEHAVIOUR+\\
-\verb+.boundary_condition+\\
-\verb+..condition = FIX_ALONG_XI+\\
-\verb+..position = LEFT+\\
-\verb+.boundary_condition+\\
-\verb+..condition = FIX_ALONG_ETA+\\
-\verb+..position = BOTTOM+\\
-\verb+.boundary_condition+\\
-\verb+..condition = SET_STRESS_ETA+\\
-\verb+..position = TOP+\\
-\verb+..value = -1e6+\\
-\verb+.output+\\
-\verb+..file_name = output_file+\\
-\verb+..time_step+\\
-\verb+...at = ALL+\\
-\verb+..field = REAL_STRESS_FIELD+\\
-\verb+..field = STRAIN_FIELD+\\
-\verb+.export+\\
-\verb+..file_name = export_mesh_file+\\
-\verb+..time_step+\\
-\verb+...at = ALL+\\
-\verb+..field = REAL_STRESS_FIELD+\\
-\verb+..field = STRAIN_FIELD+
-
-\paragraph{}This file is essentially identical to the first, except that the following lines have been added:\\
-
-\noindent \verb+.inclusions+\\
-\verb+..particle_size_distribution+\\
-\verb+...type = CONSTANT+\\
-\verb+...rmax = 0.008+\\
-\verb+...number = 100+\\
-\verb+...fraction = 0.5+\\
-\verb+..geometry+\\
-\verb+...type = CIRCLE+\\
-\verb+..placement+\\
-\verb+...spacing = 0.001+\\
-\verb+...tries = 1000+\\
-\verb+..behaviour+\\
-\verb+...type = AGGREGATE_BEHAVIOUR+
-
-
-\paragraph{}This defines a set of circular inclusions of a radius of 8 mm each. Inclusions will be generated until either 100 of them have been created, or until they cover at least 50~\% of the surface of the sample. They will be randomly placed in the sample with at least 1 mm between each particle. The placement algorithm will try 1000 iterations; any particle not placed in the sample after these 1000 iterations will be left out and ignored. The particles are attributed a predefined mechanical behaviour which corresponds to aggregates used in concrete.
-
-\paragraph{}\textsc{amie} comes with several analytic particle size distributions. Instead of \verb+CONSTANT+, one of the following curves can be used:\\
-
-\noindent \verb+...type = BOLOME_A # upper Bolome curve (contains more fine)+\\
-\verb+...type = BOLOME_B # middle Bolome curve+\\
-\verb+...type = BOLOME_C # lower Bolome curve (contains more coarse)+\\
-\verb+...type = BOLOME_D # Bolome curve adapted for mortar+
-
-\subsection{Defining a custom particle size distribution}
-
-Custom particle size distribution can be defined in external files, and then imported in \textsc{amie}, as in the following example:\\
-
-\noindent \verb+.inclusions+\\
-\verb+..particle_size_distribution+\\
-\verb+...type = FROM_CUMULATIVE_FILE+\\
-\verb+...file_name = ../examples/data/composite/psd_example.txt+\\
-\verb+...rmax = 0.008+\\
-\verb+...number = 100+\\
-\verb+...fraction = 0.5+\\
-\verb+..geometry+\\
-\verb+...type = CIRCLE+\\
-\verb+..placement+\\
-\verb+...spacing = 0.001+\\
-\verb+...tries = 1000+\\
-\verb+..behaviour+\\
-\verb+...type = AGGREGATE_BEHAVIOUR+
-
-\paragraph{}The file \verb+../examples/data/composite/psd_example.txt+ contains a two-columns table, the second column being a set of decreasing radii, and the first column the percentage of aggregates with a radius smaller than the current radius. The particle size distribution is then linearly interpolated between these points.\\
-
-
-\noindent \verb+100.0   0.008+\\
-\verb+70.0    0.004+\\
-\verb+30.0    0.0025+\\
-\verb+10.0    0.00125+\\
-\verb+1.0     0.00075+\\
-\verb+0       0.0005+\\
-
-\subsection{Importing pre-placed inclusions}
-
-If you already have a file containing a list of inclusions with their center and radius, you can easily import the file using the following syntax:\\
-
-\noindent \verb+.inclusions+\\
-\verb+..particle_size_distribution+\\
-\verb+...type = FROM_INCLUSION_FILE+\\
-\verb+...file_name = ../examples/data/composite/inclusion_example.txt+\\
-\verb+...number = 5+\\
-\verb+...column = center_x+\\
-\verb+...column = center_y+\\
-\verb+...column = radius+\\
-\verb+..geometry+\\
-\verb+...type = CIRCLE+\\
-\verb+..behaviour+\\
-\verb+...type = AGGREGATE_BEHAVIOUR+
-
-\paragraph{}Where \verb+../examples/data/composite/inclusion_example.txt+ contains a table with three columns, the first being the \verb+x+ coordinate of the center of each inclusion, the second the \verb+y+ coordinate, and the third the radius. The order in which the columns are defined is relevant!\\
-
-\noindent \verb+0        0     0.008+\\
-\verb+0.04315 -0.017 0.007+\\
-\verb+0.025    0.027 0.006+\\
-\verb+-0.015  -0.001	0.005+\\
-\verb+-0.015   0.044 0.004+
-
-\paragraph{}Note that since the file already contains the position of the inclusions, we don't need to place them. Therefore the parent \verb+inclusions+ object does not contain a \verb+placement+ object in this specific case.
-
-\subsection{Using ellipses}
-
-Ellipses can be generated instead of circles using the \verb+geometry+ object:\\
-
-\noindent \verb+.inclusions+\\
-\verb+..particle_size_distribution+\\
-\verb+...type = CONSTANT+\\
-\verb+...rmax = 0.008+\\
-\verb+...number = 100+\\
-\verb+...fraction = 0.5+\\
-\verb+..geometry+\\
-\verb+...type = ELLIPSE+\\
-\verb+...aspect_ratio = 0.7+\\
-\verb+...orientation = 3.141592+\\
-\verb+..placement+\\
-\verb+...spacing = 0.001+\\
-\verb+...tries = 1000+\\
-\verb+..behaviour+\\
-\verb+...type = AGGREGATE_BEHAVIOUR+
-
-\paragraph{}This will generate ellipses with an aspect ratio of 0.7, and the same area as a 8mm radius circle. For each ellipse, the angle of the major axis with the horizontal axis \verb+XI+ will be randomly determined to a value between 0 and \verb+orientation+. Therefore, if \verb+orientation = 0+, all ellipses will be aligned with the horizontal axis.
-
-\paragraph{}Alternatively, ellipses can be imported from a file using the following syntax:\\
-
-\noindent \verb+.inclusions+\\
-\verb+..particle_size_distribution+\\
-\verb+...type = FROM_INCLUSION_FILE+\\
-\verb+...file_name = ../examples/data/composite/ellipsoidal_inclusion_example.txt+\\
-\verb+...number = 5+\\
-\verb+...column = center_x+\\
-\verb+...column = center_y+\\
-\verb+...column = radius_a+\\
-\verb+...column = radius_b+\\
-\verb+...column = axis_x+\\
-\verb+...column = axis_y+\\
-\verb+..geometry+\\
-\verb+...type = ELLIPSE+\\
-\verb+..behaviour+\\
-\verb+...type = AGGREGATE_BEHAVIOUR+
-
-\paragraph{}Where \verb+radius_a+ and \verb+radius_b+ are the values of the major and minor radii of the ellipses, \verb+axis_x+ and \verb+axis_y+ are coordinates of the direction of the major axis of the ellipse. Therefore, \verb+axis_x = 1+ and \verb+axis_y = 0+ define an ellipse aligned with the horizontal axis, while \verb+axis_x = 0+ and \verb+axis_y = 1+ define an ellipse aligned with the vertical axis.
-
-\subsection{Controlling the placement of inclusions}
-
-By default, the inclusions will be placed inside the sample, and so that they do not intersect the edges of the sample. However, it is possible to select a larger (or smaller) box in which to generate the inclusions. For example, this would be used to simulate microstructure from cored concrete. The following example places the inclusions in a slightly larger box:\\
-
-\noindent \verb+.inclusions+\\
-\verb+..particle_size_distribution+\\
-\verb+...type = CONSTANT+\\
-\verb+...rmax = 0.008+\\
-\verb+...number = 100+\\
-\verb+...fraction = 0.5+\\
-\verb+..geometry+\\
-\verb+...type = CIRCLE+\\
-\verb+..placement+\\
-\verb+...spacing = 0.001+\\
-\verb+...tries = 1000+\\
-\verb+...box+\\
-\verb+....width = 0.11+\\
-\verb+....height = 0.11+\\
-\verb+..behaviour+\\
-\verb+...type = AGGREGATE_BEHAVIOUR+
-
-\paragraph{}The relative position of the placement box with the sample can also be adjusted by defining its center. The following example will move the placing box to the right side of the sample, leaving the left side empty.\\
-
-\noindent \verb+...box+\\
-\verb+....width = 1+\\
-\verb+....height = 1+\\
-\verb+....center+\\
-\verb+.....x = 0.5+\\
-\verb+.....y = 0+
-
-\paragraph{}Note that by default, the sample is centered on (0,0), but this can be adjusted with a similar syntax.
-
-\paragraph{}When you place the particles in a different box than the sample, the target fraction of inclusions generated corresponds to a fraction of the placement box, and not on the sample itself. Variations can occur depending on the characteristics of your particle size distribution and the relative size of the sample and the placement box.
-
-\subsection{Creating several families of inclusions}
-
-You can create within the same sample different particles, with different behaviours and different particle sizes distributions. For example, the following code will create two families of inclusions: one set of large inclusions corresponding to aggregates, and a second set of inclusions, with a smaller radius, and a void behaviour (which could for example simulate pores).\\
-
-\noindent \verb+.inclusions+\\
-\verb+..particle_size_distribution+\\
-\verb+...type = CONSTANT+\\
-\verb+...rmax = 0.008+\\
-\verb+...number = 100+\\
-\verb+...fraction = 0.4+\\
-\verb+..geometry+\\
-\verb+...type = CIRCLE+\\
-\verb+..placement+\\
-\verb+...spacing = 0.001+\\
-\verb+...tries = 1000+\\
-\verb+..behaviour+\\
-\verb+...type = AGGREGATE_BEHAVIOUR+\\
-\verb+.inclusions+\\
-\verb+..particle_size_distribution+\\
-\verb+...type = CONSTANT+\\
-\verb+...rmax = 0.001+\\
-\verb+...number = 1000+\\
-\verb+...fraction = 0.4+\\
-\verb+..geometry+\\
-\verb+...type = CIRCLE+\\
-\verb+..placement+\\
-\verb+...spacing = 0.0001+\\
-\verb+...tries = 10000+\\
-\verb+..behaviour+\\
-\verb+...type = VOID_BEHAVIOUR+
-
-\paragraph{}The inclusions from the second family are placed after the inclusions in the first family, in the remaining space of the sample. The inclusions of the two families will not overlap nor intersect. Therefore, swapping the position of the second and the first family would yield very different microstructures.
-
-\paragraph{}You can define with this method as many families of inclusions as necessary.
-
-\subsection{Creating inclusions in inclusions}
-
-You can create families of inclusions within an existing family of inclusion with the following syntax:\\
-
-\noindent \verb+.inclusions+\\
-\verb+..particle_size_distribution+\\
-\verb+...type = CONSTANT+\\
-\verb+...rmax = 0.008+\\
-\verb+...number = 100+\\
-\verb+...fraction = 0.4+\\
-\verb+..geometry+\\
-\verb+...type = CIRCLE+\\
-\verb+..placement+\\
-\verb+...spacing = 0.001+\\
-\verb+...tries = 1000+\\
-\verb+..behaviour+\\
-\verb+...type = AGGREGATE_BEHAVIOUR+\\
-\verb+..inclusions+\\
-\verb+...particle_size_distribution+\\
-\verb+....type = CONSTANT+\\
-\verb+....rmax = 0.005+\\
-\verb+....number = 1000+\\
-\verb+....fraction = 0.4+\\
-\verb+...geometry+\\
-\verb+....type = CIRCLE+\\
-\verb+...placement+\\
-\verb+....spacing = 0.0001+\\
-\verb+....tries = 10000+\\
-\verb+...behaviour+\\
-\verb+....type = VOID_BEHAVIOUR+
-
-\paragraph{}This is very similar to the previous example, except that here the pores will be placed inside the aggregates (and not outside). 
-
-\paragraph{}You can have several families of inclusions at the same level, and as many embedded families of inclusions as you wish. Structures of the following type are acceptable:\\
-
-\noindent \verb+.inclusions+\\
-\verb+# family A placed in the sample+\\
-\verb+..inclusions+\\
-\verb+# family B within family A+\\
-\verb+...inclusions+\\
-\verb+# family C within family B+\\
-\verb+...inclusions+\\
-\verb+# family D within family B+\\
-\verb+..inclusions+\\
-\verb+# family E within family A+\\
-\verb+.inclusions+\\
-\verb+# family F placed in the sample+
-
-\subsection{Creating concentric inclusions}
-
-You can create concentric inclusions inside an existing family of inclusions with the following syntax:\\
-
-\noindent \verb+.inclusions+\\
-\verb+# family A+\\
-\verb+..particle_size_distribution+\\
-\verb+...type = CONSTANT+\\
-\verb+...rmax = 0.008+\\
-\verb+...number = 100+\\
-\verb+...fraction = 0.4+\\
-\verb+..geometry+\\
-\verb+...type = CIRCLE+\\
-\verb+..placement+\\
-\verb+...spacing = 0.001+\\
-\verb+...tries = 1000+\\
-\verb+..behaviour+\\
-\verb+...type = AGGREGATE_BEHAVIOUR+\\
-\verb+..inclusions+\\
-\verb+# family B within family A+\\
-\verb+...particle_size_distribution+\\
-\verb+....type = FROM_PARENT_DISTRIBUTION+\\
-\verb+....layer_thickness = 0.001+\\
-\verb+...behaviour+\\
-\verb+....type = VOID_BEHAVIOUR+
-
-\paragraph{}This will generate one inclusion inside all the inclusions of the family A, with a difference in radius equal to \verb+layer_thickness+. Inclusions of the family A with a radius lower than \verb+layer_thickness+ will not spawn an inner inclusion.
-
-This feature can also make use of \textsc{amie} functions using \verb+layer_thickness_function+ (the \verb+x+ coordinate will be set as the radius of the parent distribution). The definition below is therefore equivalent to the definition above:\\
-
-\noindent \verb+.inclusions+\\
-\verb+# family A+\\
-\verb+..particle_size_distribution+\\
-\verb+...type = CONSTANT+\\
-\verb+...rmax = 0.008+\\
-\verb+...number = 100+\\
-\verb+...fraction = 0.4+\\
-\verb+..geometry+\\
-\verb+...type = CIRCLE+\\
-\verb+..placement+\\
-\verb+...spacing = 0.001+\\
-\verb+...tries = 1000+\\
-\verb+..behaviour+\\
-\verb+...type = AGGREGATE_BEHAVIOUR+\\
-\verb+..inclusions+\\
-\verb+# family B within family A+\\
-\verb+...particle_size_distribution+\\
-\verb+....type = FROM_PARENT_DISTRIBUTION+\\
-\verb+....layer_thickness_function = "x 0.005 -"+\\
-\verb+...behaviour+\\
-\verb+....type = VOID_BEHAVIOUR+
-
-\subsection{Placing a single inclusion}
-
-It is possible to place a single inclusions at a very specific position in the microstructure, using the \verb+UNIQUE+ keyword. Valid geometries are \verb+CIRCLE+, \verb+ELLIPSE+ and \verb+RECTANGLE+. For example, circular inclusions can be created with:
-
-\noindent \verb+.inclusions+\\
-\verb+..particle_size_distribution+\\
-\verb+...type = UNIQUE+\\
-\verb+..geometry+\\
-\verb+...type = CIRCLE+\\
-\verb+...radius = 0.1+\\
-\verb+...center+\\
-\verb+....x = 0+\\
-\verb+....y = 0+
-
-\paragraph{}Ellipses require a \verb+major_radius+ and \verb+minor_radius+, as well as a \verb+major_axis+ direction (a vector of norm 1):\\
-
-\noindent \verb+.inclusions+\\
-\verb+..particle_size_distribution+\\
-\verb+...type = UNIQUE+\\
-\verb+..geometry+\\
-\verb+...type = ELLIPSE+\\
-\verb+...major_radius = 0.1+\\
-\verb+...minor_radius = 0.05+\\
-\verb+...center+\\
-\verb+....x = 0+\\
-\verb+....y = 0+\\
-\verb+...major_axis+\\
-\verb+....x = 1+\\
-\verb+....y = 0+
-
-\paragraph{}Rectangles are defined as a \verb+sample+ object. They cannot be oriented.\\
-
-\noindent \verb+.inclusions+\\
-\verb+..particle_size_distribution+\\
-\verb+...type = UNIQUE+\\
-\verb+..geometry+\\
-\verb+...type = RECTANGLE+\\
-\verb+...center+\\
-\verb+....x = 0+\\
-\verb+....y = 0+\\
-\verb+...height = 0.1+\\
-\verb+...width = 0.05+
-
-
-\subsection{Combining the different techniques}
-
-All of the previous features can be combined one with another to generate arbitrarily complex microstructures. However, be mindful of the following:
+Values can have different types:
 
 \begin{itemize}
-	\item Inclusions imported from a pre-generated file (with \verb+FROM_INCLUSION_FILE+) will be placed even if they overlap or intersect with existing inclusions. However, inclusions placed after the imported family will check overlap and intersection with the pre-generated family.
-	\item Concentric inclusions are not meant to be used with ellipses.
-	\item When placing inclusions in a box different than the sample, the \verb+fraction+ parameter corresponds to a fraction of the placement box, not the sample.
+	\item Number (using \verb+e+ to express powers of 10, as in \verb+1.5e6+ for $1.5 \times 10^6$
+	\item Character strings (case-sensitive, spaces are ignored)
+	\item Analytic function (defined between quotes \verb+"+)
+	\item Input variable (character string starting with an \verb+@+)
 \end{itemize}
 
-\section{Adapting the mesh parameters}
+Parameters may have no value at all, in which case the sign \verb+=+ must not be present on the line.
 
-The mesh is mostly controlled by the \verb+sampling_number+ in the \verb+discretization+ object, yet further refinement can be achieved.
+\subsubsection*{Paths and file names}
 
-\subsection{Avoid the meshing of the smallest inclusions}
+Several items can be defined using additional files.
+These files are always defined using the path relative to the folder from which \amie was called.
+Folder separators are always \verb+"/"+ even in a Windows environment.
+As spaces are ignored, files or folders must not include spaces in their name.
 
-Sometimes, meshing the smallest inclusions can yield meshes with elongated elements. This can be avoided by not meshing these inclusions, using the \verb+sampling_restiction+ parameter. This example will not mesh inclusions with less than 4 points along their boundary. Acceptable values are 4, 8 and 16.\\
+\subsubsection*{Units}
+
+S.I. units are generally used, except for times which are expressed in days.
+Notably, stresses are in Pascal.
+
+\subsection{First-level items}
+
+The initiation file must contain a certain number of items to be ran successfully.
+These items are described in more details in the following sections.
+Required first-level items are:\\
+
+\begin{itemize}[label=]
+	\item \verb+.boundary_conditions+ defines the external mechanical boundary conditions.
+	\item \verb+.discretization+ defines the parameters for the finite element mesh.
+	\item \verb+.sample+ defines the geometry and mechanical behaviour of the sample.
+	\item \verb+.stepping+ defines the time steps for the simulation.\\
+\end{itemize}
+
+Optional first-level items are:\\
+
+\begin{itemize}[label=]
+	\item \verb+.define+ defines special input variables.
+	\item \verb+.export+ defines which fields are extracted in a mesh file.
+	\item \verb+.inclusions+ defines the geometry and mechanical behaviour of the inclusions.
+	\item \verb+.output+ defines which fields are extracted in a table file.
+\end{itemize}
+
+\eject
+
+\section{Numerical parameters}
+
+This section defines how to write \verb+.discretization+ and \verb+.stepping+ items.
+
+\subsection{Spatial discretization}
+
+The \verb+.discretization+ item defines a certain number of parameters that control the mesh density and element type.
+It has the following structure:\\
 
 \noindent \verb+.discretization+\\
-\verb+..sampling_number = 8+\\
+\verb+..sampling_number = 4+\\
 \verb+..order = LINEAR+\\
-\verb+..sampling_restriction = SAMPLE_RESTRICT_4+
+\verb+..sampling_restriction = 0+\\
+\verb+..refinement_zone+\\
 
-\subsection{Changing the mesh density in specific inclusions}
+These parameters are described below:
 
-It is possible to modify the mesh density in whole families of inclusions by adding a \verb+sampling_factor+ in the definition of the \verb+inclusions+. The following example multiplies by two the mesh density in all inclusions defined here.\\
+\begin{itemize}[label=]
+	\item \verb+..order+ (string) defines the order of the finite element approximation.
+The string must be a valid finite element order.
+\verb+LINEAR_TIME_LINEAR+ is required for visco-elastic analysis.
+	\item \verb+..refinement_zone+ describes a section of the mesh in which the mesh density is increased. 
+Multiple \verb+refinement_zone+ items can be defined at the same level. 
+Each \verb+refinement_zone+ is a rectangle defined by its height, width and center as a \verb+sample+ item (without mechanical behaviour).
+	\item \verb+..sampling_number+ (number) indicates the number of mesh nodes along one side of the sample.
+	\item \verb+..sampling_restriction+ (number) is a threshold so that inclusions with less mesh points than the restriction are ignored.
+This parameter essentially removes the smallest inclusions from the simulation.
+It is optional (default value of 0: all inclusions are accounted for).
+\end{itemize}
 
-\noindent \verb+.inclusions+\\
-\verb+# family A of inclusions+
-\verb+..particle_size_distribution+\\
-\verb+...type = CONSTANT+\\
-\verb+...rmax = 0.008+\\
-\verb+...number = 100+\\
-\verb+...fraction = 0.5+\\
-\verb+..geometry+\\
-\verb+...type = CIRCLE+\\
-\verb+..placement+\\
-\verb+...spacing = 0.001+\\
-\verb+...tries = 1000+\\
-\verb+..behaviour+\\
-\verb+...type = AGGREGATE_BEHAVIOUR+\\
-\verb+..sampling_factor = 2+
+\subsection{Time and damage stepping}
 
-\paragraph{} \verb+sampling_factor+ is defined only for the current \verb+inclusions+ family. Inclusions from other families still use the non-modified mesh density, including the families of inclusions embedded in the current family.
+The \verb+.stepping+ item defines a certain number of parameters required for the time-stepping as well as the damage algorithm.
 
-\paragraph{} It is possible to modify the mesh density only for the inclusions which intersects the edges of the sample by using \verb+intersection_sampling_factor+. The following example will multiply by 3 the mesh density in the inclusions intersecting the edges of the samples, and by 2 the mesh density of the other inclusions.\\
+\subsubsection*{Damage stepping}
 
-\noindent \verb+.inclusions+\\
-\verb+# family A of inclusions+
-\verb+..particle_size_distribution+\\
-\verb+...type = CONSTANT+\\
-\verb+...rmax = 0.008+\\
-\verb+...number = 100+\\
-\verb+...fraction = 0.5+\\
-\verb+..geometry+\\
-\verb+...type = CIRCLE+\\
-\verb+..placement+\\
-\verb+...spacing = 0.001+\\
-\verb+...tries = 1000+\\
-\verb+..behaviour+\\
-\verb+...type = AGGREGATE_BEHAVIOUR+\\
-\verb+..sampling_factor = 2+\\
-\verb+..intersection_sampling_factor = 3+
-
-\subsection{Changing the mesh density in the matrix}
-
-The mesh density can be changed inside the matrix (that is, outised of any inclusion) by adding a \verb+sampling_factor+ to the main \verb+sample+ of the simulation:\\
-
-\noindent \verb+.sample+\\
-\verb+..height = 0.1+\\
-\verb+..width = 0.1+\\
-\verb+..behaviour+\\
-\verb+...type = PASTE_BEHAVIOUR+\\
-\verb+..sampling_factor = 2+
-
-%\subsection{Refining locally the mesh}
-
-%The mesh can be locally refined in \verb+refinement_zone+ defined in \verb+discretization+. Any number of refinement zones can be defined. Overlapping zones will dramatically increase the mesh density in these regions. The following example defines four refinement zones located on the corners of the sample:\\
-
-%\noindent \verb+.discretization+\\
-%\verb+..sampling_number = 8+\\
-%\verb+..order = LINEAR+\\
-%\verb+..refinement_zone+\\
-%\verb+...height = 0.01+\\
-%\verb+...width = 0.01+\\
-%\verb+...center+\\
-%\verb+....x = 0.05+\\
-%\verb+....y = 0.05+\\
-%\verb+..refinement_zone+\\
-%\verb+...height = 0.01+\\
-%\verb+...width = 0.01+\\
-%\verb+...center+\\
-%\verb+....x = 0.05+\\
-%\verb+....y = -0.05+\\
-%\verb+..refinement_zone+\\
-%\verb+...height = 0.01+\\
-%\verb+...width = 0.01+\\
-%\verb+...center+\\
-%\verb+....x = -0.05+\\
-%\verb+....y = -0.05+\\
-%\verb+..refinement_zone+\\
-%\verb+...height = 0.01+\\
-%\verb+...width = 0.01+\\
-%\verb+...center+\\
-%\verb+....x = -0.05+\\
-%\verb+....y = 0.05+\\
-
-\section{Defining a time step}
-
-The easiest way to manage the time stepping is to use a constant time step (or a logarithmic-constant time step). However, two other methods are also available.
-
-\subsection{Importing a list of time steps from a file}
-
-It is possible to read a text file containing a list of instants at which the simulation will be carried out using the following syntax:\\
+Three parameters control the damage stepping.
+They are all optional (default values are assumed if not defined).\\
 
 \noindent \verb+.stepping+\\
-\verb+..list_of_time_steps = ../examples/data/composite/time_steps.txt # name of the file containing the data+
+\verb+..solver_precision = 1e-8+\\
+\verb+..maximum_iterations_per_step = 256+\\
+\verb+..minimum_time_step = 1e-9+\\
 
-\paragraph{} The series of instants must be strictly increasing; no time step must be equal to 0 (or lower). The first instant must be equal to 0.
+These parameters are described below:
 
-\paragraph{} The file name must not contain a comma (\verb+,+), otherwise the second method is used.
+\begin{itemize}[label=]
+	\item \verb+..maximum_iterations_per_step+ (number) defines the maximum number of internal iterations of the damage algorithm.
+If the damage algorithm has not converged after that amount of steps, the results will be extracted according to the \verb+export+ and \verb+output+ first-level items and the current time step will be repeated.
+	\item \verb+..minimum_time_step+ (number) defines the smallest amount of time lapsed between two damage increments.
+This value is relative to the length of the current time step, so it must be lower than 1.
+Values lower than 0.001 are recommended.
+	\item \verb+..solver_precision+ (number) indicates the tolerance for the finite element resolution.
+\end{itemize}
 
+\subsubsection*{Time stepping}
 
-\subsection{Defining a list of time steps}
-
-Instead of calling a file, it is possible to directly define the list of instants in the input file:
+\paragraph{Option A - Fixed time step:} This method allows to set a fixed time step for the entire simulation.\\
 
 \noindent \verb+.stepping+\\
-\verb+..list_of_time_steps = 0,1,3 # list of instants separated by commas+
+\verb+..time_step = 1+\\
+\verb+..number_of_time_steps = 1+\\
+\verb+..logarithmic = FALSE+\\
+\verb+..first_time_step = 0.1+\\
 
-\paragraph{} The series of instants must be strictly increasing; no time step must be equal to 0 (or lower). The first instant must be equal to 0. The instants must be separated by commas (\verb+,+).
+The required parameters are:
 
-\subsection{Using a function of time}
+\begin{itemize}[label=]
+	\item \verb+..time_step+ (number) defines the interval between two instants of the simulation.
+It must be strictly positive.
+	\item \verb+..number_of_time_steps+ (number) defines the number of time steps to perform.
+It must be strictly positive.
+\end{itemize}
 
-It is possible to define each time step as a function of the current time and the previous time step:\\
+The optionals parameters are:
+
+\begin{itemize}[label=]
+	\item \verb+..first_time_step+ (number) defines the first time step of the simulation if the time step is defined as \verb+logarithmic+.
+It must be strictly positive.
+	\item \verb+..logarithmic+ (boolean).
+If this is \verb+TRUE+, then the time steps are spaced regularly in the logarithmic(10) of time, using \verb+time_step+ as the interval in the logarithmic scale.
+\verb+first_time_step+ is then used to define the value of the first instant of the simulation.
+\end{itemize}
+
+\paragraph{Option B - From an external file:} This method reads the time steps from an external file.\\
 
 \noindent \verb+.stepping+\\
-\verb+..time_step = 0.1+\\
-\verb+..number_of_time_steps = 10+\\
-\verb#..next_time_step = "t 0.1 * x +"#
+\verb+..list_of_time_steps = path_to_file+\\
 
-\paragraph{} When declaring such function, use \verb+x+ as the previous time step, and \verb+t+ as previous instant. The example above constructs the following series of $(t_n, \Delta t_n)$:
+The required parameter is:
 
-\begin{eqnarray}
-	\Delta t_0 & = & 0.1 \\
-	t_0 & = & 0  \\
-	\Delta t_{n+1} & = & \Delta t_n + 0.1\ t_n \\
-	t_{n+1} & = & t_n + \Delta t_{n+1}
-\end{eqnarray}
-
-\section{Defining boundary conditions}
-
-Boundary conditions can either be applied along an edge of the sample (\verb+LEFT+, \verb+RIGHT+, \verb+BOTTOM+ and \verb+TOP+) or on a corner of the sample (\verb+BOTTOM_LEFT+, \verb+BOTTOM_RIGHT+, \verb+TOP_LEFT+ and \verb+TOP_RIGHT+).
-
-\subsection{Boundary conditions in displacements}
-
-A displacement can be applied using the following syntax:\\
-
-\noindent \verb+.boundary_condition+\\
-\verb+..condition = SET_ALONG_ETA+\\
-\verb+..position = TOP+\\
-\verb+..value = 0.001+
-
-\paragraph{}Note that the condition \verb+FIX_ALONG_XI+ (respectively \verb+ETA+) is equivalent to \verb+SET_ALONG_XI+ (respectively \verb+ETA+) associated with the \verb+value+ 0.
-
-\subsection{Boundary conditions in stress}
-
-A stress can be applied using the following syntax:\\
-
-\noindent \verb+.boundary_condition+\\
-\verb+..condition = SET_STRESS_ETA+\\
-\verb+..position = TOP+\\
-\verb+..value = 1e6+
-
-\paragraph{}Stress boundary conditions should not be used on corners, but should be defined along an edge of a sample only.
-
-\subsection{Boundary conditions in force}
-
-A force can be applied using the following syntax:\\
-
-\noindent \verb+.boundary_condition+\\
-\verb+..condition = SET_FORCE_ETA+\\
-\verb+..position = TOP+\\
-\verb+..value = 1e6+
-
-\paragraph{}Force boundary conditions should be used on single points (like corners) rather than on surfaces.
-
-\subsection{Multiple boundary conditions at the same location}
-
-In general, boundary conditions in stress/force and in displacements should not be mixed on the same location (either edge or corner). Also, boundary conditions in stress/force stack, while boundary conditions in displacement on the same axis (\verb+XI+ or \verb+ETA+) do not: only the latest defined is applied.
-
-\subsection{Time-dependent boundary conditions}
-
-There are three ways to define a time-dependent boundary condition. The easiest way is to define a rate. The following example will apply a loading rate of 0.1~MPa per day:\\
-
-\noindent \verb+.boundary_condition+\\
-\verb+..condition = SET_STRESS_ETA+\\
-\verb+..position = TOP+\\
-\verb+..time_evolution+\\
-\verb+...rate = 1e5+
-
-\paragraph{}One can also define a function of time \verb+t+. The previous example can be rewritten as follow:\\
-
-\noindent \verb+.boundary_condition+\\
-\verb+..condition = SET_STRESS_ETA+\\
-\verb+..position = TOP+\\
-\verb+..time_evolution+\\
-\verb+...function = "1e5 t *"+
-
-\paragraph{}Also, it is possible to import a file containing the values of the boundary condition at different instants:\\
-
-\noindent \verb+.boundary_condition+\\
-\verb+..condition = SET_STRESS_ETA+\\
-\verb+..position = TOP+\\
-\verb+..time_evolution+\\
-\verb+...file_name = ../example/data/composite/time_dependent_load.txt+
-
-\paragraph{}The file must contain two columns, the first being the time, the second the values of the boundary condition. The instants need not be equal to the time steps defined for the simulation. However, be aware that the value of the boundary condition is linearly interpolated between the instants defined in \verb+../example/data/composite/time_dependent_load.txt+. The first of the following examples defines a loading ramp, while the second defines a loading step:\\
-
-\noindent \verb+0       0+\\
-\verb+1       1e6+\\
-\verb+2       1e6+\\
-
-\noindent \verb+0       0+\\
-\verb+0.99999 0+\\
-\verb+1       1e6+\\
-\verb+2       1e6+\\
-
-\paragraph{}Instead of a file, it is also possible to directly input the values of the boundary condition in the initiation file:\\
-
-\noindent \verb+.boundary_condition+\\
-\verb+..condition = SET_STRESS_ETA+\\
-\verb+..position = TOP+\\
-\verb+..time_evolution+\\
-\verb+...instants = 0,1,2 # list of instants separated by commas+\\
-\verb+...values = 0,1e6,1e6 # list of values separated by commas+
-
-
-
-
-
-\subsection{Applying a boundary condition on a section of an edge}
-
-It is possible to limit the area on which the boundary condition is applied by using the \verb+restriction+ keyword. The following example applies a stress on the \verb+TOP+ of the sample, only on the points located in $x \in \left[0.4,0.5\right],\ y \in \left[0.4,0.5\right]$:\\
-
-\noindent \verb+.boundary_condition+\\
-\verb+..condition = SET_STRESS_ETA+\\
-\verb+..position = TOP+\\
-\verb+..restriction+\\
-\verb+...top_right+\\
-\verb+....x = 0.5+\\
-\verb+....y = 0.5+\\
-\verb+...bottom_left+\\
-\verb+....x = 0.4+\\
-\verb+....y = 0.4+
-
-\paragraph{} The \verb+position+ and the box defined by \verb+bottom_left+/\verb+top_right+ must intersect (or overlap), otherwise the boundary condition will not be applied.
-
-\subsection{Applying a boundary condition on a specific point}
-
-It is possible to apply the boundary condition at a specific point. The point at which the condition will be applied is the closest point on the edge \verb+position+ from the specified \verb+point+.
-
-\noindent \verb+.boundary_condition+\\
-\verb+..condition = SET_FORCE_ETA+\\
-\verb+..position = TOP+\\
-\verb+..point+\\
-\verb+...x = 0.5+\\
-\verb+...y = 0.5+
-
-\paragraph{} This will not work with stress boundary conditions.
-
-
-
-\section{Extracting the average stress and strain over certain families of inclusions}
-
-For each family of inclusion it is possible to extract in the \verb+output+ the average stress, strain (or other values) for these inclusions only. Tpo do so, the following syntax is used:\\
-
-\verb+.output+\\
-\verb+..file_name = output_file+\\
-\verb+..time_step+\\
-\verb+...at = ALL+\\
-\verb+..field = REAL_STRESS_FIELD+\\
-\verb+..field = STRAIN_FIELD+\\
-\verb+..inclusions+\\
-\verb+...index = 0+\\
-\verb+...field = REAL_STRESS_FIELD+\\
-\verb+...field = STRAIN_FIELD+\\
-\verb+..inclusions+\\
-\verb+...index = 1+\\
-\verb+...field = REAL_STRESS_FIELD+\\
-\verb+...field = STRAIN_FIELD+
-
-\paragraph{} Any number of \verb+inclusions+ objects can be defined (up to the actual number of inclusion families + 1). The index 0 denotes the matrix. Higher indexes indicate the corresponding family of inclusions, ranked in the order in which they are generated (that is, they are ranked in the order in which they appear in the script file).
-
-
-
-\section{Defining behaviours}
-
-\subsection{Using a pre-defined behaviour}
-
-A set of predefined behaviours exist in \textsc{amie} to represent common materials found in concrete. These can be used by choosing the appropriate type. The existing materials are listed below:\\
-
-\noindent \verb+..type = VOID_BEHAVIOUR+\\
-\verb+..type = PASTE_BEHAVIOUR+\\
-\verb+..type = AGGREGATE_BEHAVIOUR+\\
-\verb+..type = ASR_GEL_BEHAVIOUR+\\
-\verb+..type = CONCRETE_BEHAVIOUR+\\
-\verb+..type = STEEL_BEHAVIOUR+\\
-\verb+..type = REBAR_BEHAVIOUR+
-
-\paragraph{}For each of these, it is possible to ignore the default values for some (or all) of the parameters (\verb+young_modulus+, \verb+poisson_ratio+, etc) by declaring it again. The list of parameters for each behaviour is listed below with their default values:\\
-
-\noindent \verb+.behaviour+\\
-\verb+..type = VOID_BEHAVIOUR+\\
-
-\noindent \verb+.behaviour+\\
-\verb+..type = PASTE_BEHAVIOUR+\\
-\verb+..young_modulus = 12e9+\\
-\verb+..poisson_ratio = 0.3+\\
-\verb+..short_term_creep_modulus = 0.3 # defined as a fraction of the elastic modulus+\\
-\verb+..long_term_creep_modulus = 0.37 # defined as a fraction of the elastic modulus+\\
-\verb+..tensile_strain_limit = 0.0003+\\
-\verb+..damage = TRUE+
-
-\paragraph{} The creep properties of the cement paste are ignored if the simulation is not in space-time finite elements (see Using space-time finite elements). The boolean \verb+damage+ can be set to \verb+FALSE+ to run elastic (or visco-elastic) simulations.\\
-
-\noindent \verb+.behaviour+\\
-\verb+..type = AGGREGATE_BEHAVIOUR+\\
-\verb+..young_modulus = 59e9+\\
-\verb+..poisson_ratio = 0.3+\\
-\verb+..tensile_strain_limit = 0.0012+\\
-\verb+..damage = TRUE+\\
-
-\noindent \verb+.behaviour+\\
-\verb+..type = ASR_GEL_BEHAVIOUR+\\
-\verb+..young_modulus = 22e9+\\
-\verb+..poisson_ratio = 0.18+\\
-\verb+..imposed_deformation = 0.22+\\
-
-\noindent \verb+.behaviour+\\
-\verb+..type = CONCRETE_BEHAVIOUR+\\
-\verb+..young_modulus = 37e9+\\
-\verb+..poisson_ratio = 0.3+\\
-\verb+..compressive_strength = -37e6+\\
-
-\noindent \verb+.behaviour+\\
-\verb+..type = STEEL_BEHAVIOUR+\\
-\verb+..young_modulus = 210e9+\\
-\verb+..poisson_ratio = 0.3+\\
-\verb+..tensile_strength = 276e6+\\
-
-\noindent \verb+.behaviour+\\
-\verb+..type = REBAR_BEHAVIOUR+\\
-\verb+..young_modulus = 59e9+\\
-\verb+..poisson_ratio = 0.3+\\
-\verb+..tensile_strength = 57000+
-
-\subsection{Defining an elastic behaviour}
-
-A purely elastic behaviour can be defined as in the following example:\\
-
-\noindent \verb+.behaviour+\\
-\verb+..type = ELASTICITY+\\
-\verb+..young_modulus = 10e9+\\
-\verb+..poisson_ratio = 0.3+
-
-\paragraph{} Alternatively, you can define the material from the bulk and shear moduli. The material defined below is the same as the one defined above:\\
-
-\noindent \verb+.behaviour+\\
-\verb+..type = ELASTICITY+\\
-\verb+..bulk_modulus = 8.3333e9+\\
-\verb+..poisson_ratio = 3.8461e9+
-
-\paragraph{} However, you cannot mix both definition, and you must define the two selected parameters.
-
-You can add an imposed deformation with the following syntax:\\
-
-\noindent \verb+.behaviour+\\
-\verb+..type = ELASTICITY_AND_IMPOSED_DEFORMATION+\\
-\verb+..young_modulus = 10e9+\\
-\verb+..poisson_ratio = 0.3+\\
-\verb+..imposed_deformation = 0.0001+
-
-\subsection{Defining an elastic-and-damage behaviour}
-
-To use a damaging behaviour, two additional parameters must be set: the first one is a \verb+fracture_criterion+ which defines the failure surface of the material, possibly including its post-peak behaviour. The second one is a \verb+damage_model+ which defines how damage is resolved by \textsc{amie}. This can be achieved as in the following example:\\
-
-\noindent \verb+.behaviour+\\
-\verb+..type = ELASTICITY_AND_FRACTURE+\\
-\verb+..young_modulus = 10e9+\\
-\verb+..poisson_ratio = 0.3+\\
-\verb+..fracture_criterion+\\
-\verb+...type = VON_MISES+\\
-\verb+...limit_tensile_stress = 1e6+\\
-\verb+..damage_model+\\
-\verb+...type = ISOTROPIC_LINEAR_DAMAGE+
-
-\subsection{Defining a fracture criterion}
-
-Several types of fracture criteria are available in \textsc{amie}. The two mostly used are a Mohr-Coulomb and a Von Mises criteria. The Mohr-Coulomb criterion can furthermore be completed with different descending branches. Example definitions of these criteria are listed below:\\
-
-\noindent \verb+..fracture_criterion+\\
-\verb+...type = MOHR_COULOMB+\\
-\verb+...limit_tensile_strain = 0.001+\\
-\verb+...limit_compressive_strain = -0.01+\\
-
-\noindent \verb+..fracture_criterion+\\
-\verb+...type = LINEAR_SOFTENING_MOHR_COULOMB+\\
-\verb+...limit_tensile_strain = 0.001 # defines when the damage process starts+\\
-\verb+...maximum_tensile_strain = 0.002 # defines when the damage process ends+\\
-\verb+...limit_compressive_strain = -0.01+\\
-\verb+...maximum_compressive_strain = -0.02+\\
-
-\noindent \verb+..fracture_criterion+\\
-\verb+...type = EXPONENTIAL_SOFTENING_MOHR_COULOMB+\\
-\verb+...limit_tensile_strain = 0.001 # defines when the damage process starts+\\
-\verb+...maximum_tensile_strain = 0.002 # defines when the damage process ends+\\
-\verb+...limit_compressive_strain = -0.01+\\
-\verb+...maximum_compressive_strain = -0.02+\\
-
-\noindent \verb+..fracture_criterion+\\
-\verb+...type = VON_MISES+\\
-\verb+...limit_tensile_stress = 1e6+
-
-\paragraph{} In all cases, the damage follows a non-local definition. The radius of the damage band can be controlled with the parameter \verb+material_characteristic_radius+ as in the following example:\\
-
-\noindent \verb+..fracture_criterion+\\
-\verb+...type = VON_MISES+\\
-\verb+...limit_tensile_stress = 1e6+\\
-\verb+...material_characteristic_radius = 0.001+\\
-
-\subsection{Using the Modified Compression Field Theory}
-
-The Modified Compressive Field Theory is a specific fracture criterion for reinforced concrete. For this criterion, you need to define the list of rebars present in the material, with the location and diameter of each:\\
-
-\noindent \verb+..fracture_criterion+\\
-\verb+...type = MCFT+\\
-\verb+...limit_compressive_strain = -0.001+\\
-\verb+...rebar+\\
-\verb+....location = 0.001+\\
-\verb+....diameter = 0.0001+\\
-\verb+...rebar+\\
-\verb+....location = 0.005+\\
-\verb+....diameter = 0.0001+
-
-\paragraph{} As many rebars as required may be defined (including zero).
-
-\subsection{Defining a damage model}
-
-Two types of damage models can be used. \verb+ISOTROPIC_LINEAR_DAMAGE+ is the default model, and searches for the exact series in which the elements are damaged, and the corresponding damage increment. That is, at each iteration of the damage algorithm a bisection is carried out to find the exact damage increment to apply.
-
-\verb+ISOTROPIC_INCREMENTAL_\textit{LINEAR_}DAMAGE+ is a similar algorithm, except that it will apply a fixed amount of damage at each iteration. The amount can be fixed using the \verb+damage_increment+ variable:\\
-
-\noindent \verb+..damage_model+\\
-\verb+...type = ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE+\\
-\verb+...damage_increment = 0.01+
-
-\paragraph{} For both damage models, it is possible to define a threshold of damage above which the material will be considered as entirely broken. In the following example, any element which reaches a damage value of 0.6 or higher will be considered as broken and removed from the simulation.\\
-
-\noindent \verb+..damage_model+\\
-\verb+...type = ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE+\\
-\verb+...damage_increment = 0.01+\\
-\verb+...maximum_damage = 0.6+
-
-
-\section{Using space-time finite elements}
-
-Space-time finite elements are used for visco-elastic analysis of materials def. Several concepts must be defined first before going into the details of the input parameters.
-
-\subsection{Additional viscoelastic variables}
-
-Space-time finite elements use more unknown than standard finite elements. Indeed, for each dashpot placed in series in the model a new set of viscoelastic displacements is required. For example, the Maxwell model requires one set of additional variables, while a Burger's model requires two.
-
-\subsection{Indexed axis}
-
-For each set of viscoelastic variables two unknowns (in two dimensions, three for three-dimensional simulations) are necessary: the viscoelastic displacement along the \verb+XI+ axis and the viscoelastic displacement along the \verb+ETA+ axis.
-
-To generalize to an arbitrary number of additional variables, the concept of indexed axis is introduced. One axis is defined for each unknown, and each axis is attributed a positive integer (its index). The two first axes (index 0 and 1) correspond respectively to the displacement along the \verb+XI+ and \verb+ETA+ axis. Then, each pair of axes corresponds to one pair of viscoelastic displacement. Even indexes correspond to displacements along the \verb+XI+ axis, while odd indexes correspond to displacements along the \verb+ETA+ index.
-
-For example, the correlation between the index of the axes and the displacement of a Burger material is as follow:
-
-\begin{table}[h!]
-\begin{center}
-\begin{tabular}{cl}
-\hline
-Index & Definition \\
-\hline
-0 & Total displacement along the \verb+XI+ axis \\
-1 & Total displacement along the \verb+ETA+ axis \\
-2 & Internal displacement of the Maxwell dashpot along the \verb+XI+ axis \\
-3 & Internal displacement of the Maxwell dashpot along the \verb+ETA+ axis \\
-4 & Internal displacement of the Kelvin-Voigt unit along the \verb+XI+ axis \\
-5 & Internal displacement of the Kelvin-Voigt unit along the \verb+ETA+ axis \\
-\hline
-\end{tabular}
-\end{center}
-\end{table}
-
-\subsection{Boundary conditions}
-
-For all boundary conditions, the \verb+position+ of the boundary condition must be complemented with \verb+_AFTER+. \verb+TOP+ must thus be replaced with \verb+TOP_AFTER+, \verb+LEFT+ with \verb+LEFT_AFTER+, etc.
-
-Boundary conditions in stress and in force can be used as previously defined.
-
-Boundary conditions in displacement must use the \verb+condition+ \verb+SET_ALONG_INDEXED_AXIS+ complemented with the index of the \verb+axis+. Therefore, to set the vertical displacement (which is the axis indexed with 1) equal to 0 on the bottom of the sample one must use:\\
-
-\noindent \verb+.boundary_condition+\\
-\verb+..condition = SET_ALONG_INDEXED_AXIS+\\
-\verb+..position = BOTTOM_AFTER+\\
-\verb+..value = 0+\\
-\verb+..axis = 1+
-
-\paragraph{} These two rules must be followed when defining displacement boundary conditions in space-time finite elements:
-
-\begin{itemize}
-	\item If you set the horizontal (respectively vertical) displacement to 0, you must also set all displacements along the even (respectively odd) indexed axes to 0.
-	\item If you set the horizontal (respectively vertical) displacement to a value different than 0, you must leave free the displacements along the other even (respectively odd) indexed axes (that is, no boundary condition related to these axes).
+\begin{itemize}[label=]
+	\item \verb+..list_of_time_steps+ (string) defines the path to the file containing the list of instants at which the simulation is carried out.
+The file must only contain a single column of numbers, starting with 0 and sorted by increasing value.
 \end{itemize}
 
-\subsection{Behaviours and additional sets of variables}
+If both options A and B are defined, option B will be activated.
 
-As stated above, each behaviour comes with its own set of additional viscoelastic variables. However, when mixing different behaviours, then you mus make sure that all behaviours have the same number of additional viscoelastic variables. This can be achieved by setting the \verb+additional_viscoelastic_variable+ to the proper number when necessary.
+\eject
 
-For example, if the matrix is a Burger material (2 sets of viscoelastic variables) and the inclusions an elastic material (no additional set of viscoelastic variables), then the behaviour of the inclusions must be completed with the two missing sets of viscoelastic variables:\\
+\section{Sample}
+
+The sample is a rectangle defined by its width, height, center and mechanical behaviour.\\
 
 \noindent \verb+.sample+\\
-\verb+# sample description here...+\\
+\verb+..height = 1+\\
+\verb+..width = 1+\\
+\verb+..center+\\
+\verb+...x = 0+\\
+\verb+...y = 0+\\
 \verb+..behaviour+\\
-\verb+...type = BURGER+\\
-\verb+# sample behaviour description here...+\\
-\verb+.inclusions+\\
-\verb+# inclusions description here...+\\
-\verb+..behaviour+\\
-\verb+...type = ELASTICITY+\\
-\verb+...additional_viscoelastic_variables = 2+\\
-\verb+# inclusions behaviour description here...+
 
-\paragraph{} If the inclusions are a Maxwell material (one set of viscoelastic variables), then one set is missing and must be declared:\\
+All parameters except the behaviour are optional.
 
-\noindent \verb+.sample+\\
-\verb+# sample description here...+\\
-\verb+..behaviour+\\
-\verb+...type = BURGER+\\
-\verb+# sample behaviour description here...+\\
-\verb+.inclusions+\\
-\verb+# inclusions description here...+\\
-\verb+..behaviour+\\
-\verb+...type = MAXWELL+\\
-\verb+...additional_viscoelastic_variables = 1+\\
-\verb+# inclusions behaviour description here...+
-
-\subsection{Using the predefined material behaviours}
-
-The predefined \verb+PASTE_BEHAVIOUR+, \verb+AGGREGATE_BEHAVIOUR+ and \verb+ASR_GEL_BEHAVIOUR+ have each two sets of viscoelastic variables (this cannot be changed, as they are meant to be used together). 
-
-The other predefined behaviours (except the \verb+VOID_BEHAVIOUR+) are not meant to be used with space-time finite elements. The various \verb+ELASTICITY+ behaviour can be used in space-time finite elements, provided the number of \verb+additional_viscoelastic_variables+ is correctly set.
-
-\subsection{Defining a viscoelastic material}
-
-Different types of viscoelastic materials are available in \textsc{amie}. Their definition is summarized here.
-
-\verb+VISCOSITY+, \verb+KELVIN_VOIGT+ and \verb+MAXWELL+ are the three simplest viscoelastic behaviours. They require three parameters: a \verb+young_modulus+, a \verb+poisson_ratio+, and a \verb+characteristic_time+ (in day). The \verb+young_modulus+/ \verb+poisson_ratio+ pair can be replaced with the \verb+bulk_modulus+/\verb+shear_modulus+ pair. They have no set of viscoelastic variables, except for the \verb+MAXWELL+ model which requires one. Example of a \verb+KELVIN_VOIGT+ material is given here:\\
-
-\noindent \verb+..behaviour+\\
-\verb+...type = KELVIN_VOIGT+\\
-\verb+...young_modulus = 10e9+\\
-\verb+...poisson_ratio = 0.3+\\
-\verb+...characteristic_time = 10+
-
-\paragraph{} The Burger material corresponds to a Maxwell unit placed in series with a Kelvin-Voigt unit. It requires two sets of viscoelastic variables, and is defined as follow:\\
-
-\noindent \verb+..behaviour+\\
-\verb+...type = BURGER+\\
-\verb+...maxwell+\\
-\verb+....young_modulus = 50e9+\\
-\verb+....poisson_ratio = 0.3+\\
-\verb+....characteristic_time = 100+\\
-\verb+...kelvin_voigt+\\
-\verb+....young_modulus = 10e9+\\
-\verb+....poisson_ratio = 0.3+\\
-\verb+....characteristic_time = 10+
-
-\paragraph{} Kelvin-Voigt and Maxwell chains with arbitrary numbers of units can be defined with the \verb+GENERALIZED_KELVIN_VOIGT+ and \verb+GENERALIZED_MAXWELL+ behaviours. These requires as many sets of viscoelastic variables as the number of \verb+branch+ in the chain. The \verb+first_branch+ variable defines the first elastic spring in the chain. An example of generalized Kelvin-Voigt chain with three branches can be found here:\\
-
-\noindent \verb+..behaviour+\\
-\verb+...type = GENERALIZED_KELVIN_VOIGT+\\
-\verb+...first_branch+\\
-\verb+....young_modulus = 10e9+\\
-\verb+....poisson_ratio = 0.3+\\
-\verb+...branch+\\
-\verb+....young_modulus = 0.1e9+\\
-\verb+....poisson_ratio = 0.3+\\
-\verb+....characteristic_time = 10+\\
-\verb+...branch+\\
-\verb+....young_modulus = 5e9+\\
-\verb+....poisson_ratio = 0.3+\\
-\verb+....characteristic_time = 100+\\
-\verb+...branch+\\
-\verb+....young_modulus = 10e9+\\
-\verb+....poisson_ratio = 0.3+\\
-\verb+....characteristic_time = 1000+
-
-\subsection{Fracture criterion in space-time finite elements}
-
-Space-time finite elements use a different set of fracture criterion. Only the four following criteria are available.
-
-\verb+MAXIMUM_TENSILE_STRAIN+ defines a purely brittle material in which failure occurs when the strain reaches the specified \verb+limit_tensile_strain+.\\
-
-\noindent \verb+.fracture_criterion+\\
-\verb+..type = MAXIMUM_TENSILE_STRAIN+\\
-\verb+..limit_tensile_strain = 0.001+
-
-\paragraph{} \verb+LINEAR_SOFTENING_MAXIMUM_TENSILE_STRAIN+ defines a material with a linear descending branch in the strain-stress diagram. \verb+limit_tensile_strain+ and \verb+limit_tensile_stress+ indicate the position of the peak, while \verb+maximum_tensile_strain+ indicates the ultimate strain at failure.\\
-
-\noindent \verb+.fracture_criterion+\\
-\verb+..type = LINEAR_SOFTENING_MAXIMUM_TENSILE_STRAIN+\\
-\verb+..limit_tensile_strain = 0.001+\\
-\verb+..limit_tensile_stress = 1e6+\\
-\verb+..maximum_tensile_strain = 0.002+
-
-\paragraph{} \verb+MAXIMUM_TENSILE_STRESS+ defines a pseudo-plastic material in which failure occurs when the stress reaches the specified \verb+limit_tensile_stress+.\\
-
-\noindent \verb+.fracture_criterion+\\
-\verb+..type = MAXIMUM_TENSILE_STRESS+\\
-\verb+..limit_tensile_stress = 1e6+
-
-\paragraph{} \verb+ELLIPSOIDAL_SOFTENING_MAXIMUM_TENSILE_STRESS+ defines a material which shifts from a \verb+MAXIMUM_TENSILE_STRAIN+ material with a fast loading rate, towards a \verb+MAXIMUM_TENSILE_STRESS+ material with a slow loading rate. The \verb+instantaneous_modulus+ (which corresponds to the apparent modulus of the material with an infinitely fast loading rate) and the \verb+relaxed_modulus+ (apparent modulus with an infinitely slow loading rate) are required as well. The \verb+instantaneous_modulus+ must be strictly higher than the \verb+relaxed_modulus+.\\
-
-\noindent \verb+.fracture_criterion+\\
-\verb+..type = ELLIPSOIDAL_SOFTENING_MAXIMUM_TENSILE_STRESS+\\
-\verb+..limit_tensile_strain = 0.001+\\
-\verb+..limit_tensile_stress = 1e6+\\
-\verb+..instantaneous_modulus = 10e9+\\
-\verb+..relaxed_modulus = 1e9+\\
-
-\paragraph{} As for any fracture criteria, these criteria can also have a \verb+material_characteristic_radius+ defined.
-
-\subsection{Damage model in space-time finite elements}
-
-Only the \verb+ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE+ damage model is available in space-time finite elements. It has an additional parameter, \verb+time_tolerance+, which indicates with which accuracy the instant at which damage occurs is captured. A small time tolerance indicates a high accuracy. The default value is set to \verb+1e-9+.\\
-
-\noindent \verb+..damage_model+\\
-\verb+...type = ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE+\\
-\verb+...damage_increment = 0.01+\\
-\verb+...time_tolerance = 1e-9+
-
-\section{The generalized logarithmic creep behaviour}
-
-This specific behaviour defines a visco-elastic material with imposed deformation. It uses space-time finite elements, so the guidelines of the previous section applies.
-
-\subsection{Basic behaviour}
-
-The behaviour consists in possibly four parts:
-
-\begin{itemize}
-	\item An elastic behaviour.
-	\item A non-linear visco-elastic behaviour which corresponds to a logarithmic creep curve.
-	\item An imposed deformation (for example, thermal expansion, drying shrinkage, etc).
-	\item A damage behaviour (defined as a pair of a fracture criterion and damage model).
+\begin{itemize}[label=]
+	\item \verb+..height+ (number) defines the vertical dimension of the sample.
+	\item \verb+..width+ (number) defines the horizontal dimension of the sample.
+	\item \verb+..center+ (point) defines the x and y coordinates of the center of the sample.
+	\item \verb+..behaviour+ defines the mechanical behaviour of the sample (see appropriate section).
 \end{itemize}
 
-All parts (except the elastic behaviour) are optional, which allows this behaviour to cover a wide range of materials.
+\eject
 
-\subsection{Internal parameters}
+\section{Boundary conditions}
 
-The behaviour relies on a certain number of internal parameters, which might represent for example physical fields (like temperature, relative humidity), material constants (modulus, thermal expansion coefficients, etc), or temporary mathematical variables for ease of calculation. These parameters might be changed dynamically during the simulation (see below).
+The \verb+boundary_conditions+ item contains a list of \verb+boundary_condition+ sub-items:\\
 
-The parameters are declared with their default values in a \verb+parameters+ object as follow:\\
+\noindent \verb+.boundary_conditions+\\
+\verb+..boundary_condition+\\
+\verb+# description of the first BC+\\
+\verb+..boundary_condition+\\
+\verb+# description of the second BC+\\
+\verb+..boundary_condition+\\
+\verb+# etc+\\
 
-\noindent \verb+.behaviour+\\
-\verb+..type = LOGARITHMIC_CREEP+\\
-\verb+..parameters+\\
-\verb+...young_modulus = 10e9+\\
-\verb+...poisson_ratio = 0.3+\\
-\verb+...temperature = 293+\\
-\verb+...thermal_expansion_coefficient = 10e-6+
+There is no limit to the number of sub-items in the list.
 
-\paragraph{} All \verb+LOGARITHMIC_CREEP+ materials must have the following parameters:\\
+\subsection{Common boundary condition parameters}
 
-\noindent \verb+young_modulus+\\
-\verb+poisson_ratio+
+All boundary condition sub-items must have the following parameters:\\
 
-\paragraph{} Or alternatively:\\
+\noindent \verb+..boundary_condition+\\
+\verb+...condition = FIX_ALONG_XI+\\
+\verb+...position = TOP+\\
+\verb+...value = 0+\\
 
-\noindent \verb+bulk_modulus+\\
-\verb+shear_modulus+
+In which:
 
-\paragraph{} In order to use the logarithmic creep law itself, the material must have the following parameters:\\
-
-\noindent \verb+creep_modulus+\\
-\verb+creep_poisson+\\
-\verb+creep_characteristic_time+
-
-\paragraph{} Or alternatively:\\
-
-\noindent \verb+creep_bulk+\\
-\verb+creep_shear+\\
-\verb+creep_characteristic_time+
-
-\paragraph{} In order to use an imposed deformation, the material ,must have the following parameter:\\
-
-\noindent \verb+imposed_deformation+
-
-\paragraph{} In order to use a damage and creep behaviour, one can either define explicitly a \verb+fracture_criterion+ and \verb+damage_model+ as follow (in which case \textsc{amie} will be unable to change the fracture properties as a function of the internal parameters), or use the method described below.\\
-
-\noindent \verb+.behaviour+\\
-\verb+..type = LOGARITHMIC_CREEP+\\
-\verb+..parameters+\\
-\verb+# definition of the material parameters+\\
-\verb+..fracture_criterion+\\
-\verb+# definition of the fracture criterion+\\
-\verb+..damage_model+\\
-\verb+# definition of the damage model+
-
-\subsection{Embedded fracture criterion for the logarithmic creep behaviour}
-
-There are two options available:
-
-\begin{itemize}
-	\item Import strain-stress curves from a text file
-	\item Declare the strain-stress curve
-	\item Explicitly declare the maximum stress and strain in the input file
+\begin{itemize}[label=]
+	\item \verb+...condition+ (string) defines the type of boundary condition, either in displacements (with \verb+SET_ALONG_XI+) or in stress (with \verb+SET_STRESS_XI+).
+Displacements can be also fixed to 0 with \verb+FIX_ALONG_XI+.
+\verb+XI+ denotes the horizontal direction, and can be replaced with \verb+ETA+ foir the vertical direction.
+	\item \verb+...position+ (string) is the edge or corner of the sample on which the boundary condition is applied.
+Edges are \verb+LEFT+, \verb+RIGHT+, \verb+BOTTOM+ and \verb+TOP+.
+Corners are combination of one vertical and horizontal edge, starting with the vertical direction, as in \verb+BOTTOM_RIGHT+.
+For visco-elastic analysis, the position must also be completed with \verb+_AFTER+ (such as \verb+TOP_AFTER+).
+	\item \verb+...value+ (number) the value of the imposed displacement or stress.
+Fixed displacements (such as \verb+FIX_ALONG_XI+) do not need a value.
 \end{itemize}
 
-The two methods cannot be combined. If both are defined, then the import will be used, and the other parameters will not be accounted for.
+Without additional parameters, the boundary condition is applied to the entire edge (or corner), and the value is constant.
 
-\subsubsection{Import strain-stress curves}
+\subsection{Spatial restriction}
 
-\noindent \verb+.behaviour+\\
-\verb+..type = LOGARITHMIC_CREEP+\\
-\verb+..parameters+\\
-\verb+...tension_file_name = /path/to/the/stress/strain/curve/in/tension+\\
-\verb+...compression_file_name = /path/to/the/stress/strain/curve/in/compression+\\
-\verb+...material_characteristic_radius = # value+\\
-\verb+...strain_renormalization_factor = # optional, default value = 1e4+\\
-\verb+...stress_renormalization_factor = # optional, default value = 1e-6+\\
-\verb+...damage_increment = # value+\\
-\verb+...maximum_damage = # value+\\
-\verb+...time_tolerance = # optional, default value = 1e-9+
+It is possible to apply the boundary condition on a section of an edge or a specific point instead of the entire edge.
+Both options are incompatible: the segment restriction has priority over the point restriction.
 
-\paragraph{} The behaviour can be defined in tension, compression, or both. If \verb+tension_file_name+ (alternatively \verb+compression_file_name+) is not defined, then the material will not fail in tension (or in compression). If none of them are defined, then \textsc{amie} will try to use the other method described below.
+\paragraph{Option A - Segment restriction:} this option defines a rectangular box.
+The boundary condition will be applied on points located on the edge defined by \verb+position+ and located within the box.
+The definition follows:\\
 
-\paragraph{} The text files must contain a table with the strain (first column) and stress (second column), in SI units. The file for tension must contain only positive (or zero) values, and the file for compression must contain only negative (or zero) values. Furthermore, it is preferable for the strain to be strictly increasing in the table.
+\noindent \verb+..boundary_condition+\\
+\verb+...restriction+\\
+\verb+....top_right+\\
+\verb+.....x = 1+\\
+\verb+.....y = 1+\\
+\verb+....bottom_left+\\
+\verb+.....x = -1+\\
+\verb+.....y = -1+\\
 
-\paragraph{}For each element, \textsc{amie} will create the following variables, which can then be acted upon using material laws (see below):\\
+Where \verb+bottom_left+ and \verb+top_right+ define the coordinates of the points located on the bottom-left and top-right corners of the restriction box.
 
-\noindent \verb+tensile_strength+\\
-\verb+tensile_strain+\\
-\verb+tensile_ultimate_strength+\\
-\verb+tensile_ultimate_strain+\\
-\verb+compressive_strength+\\
-\verb+compressive_strain+\\
-\verb+compressive_ultimate_strength+\\
-\verb+compressive_ultimate_strain+
+\paragraph{Option B - Point restriction:} the boundary condition will be applied on the nearest node from the specified position and located on the edge defined by \verb+position+.
+This is defined with:\\
 
-\subsubsection{Declare a stress-strain curve}
+\noindent \verb+..boundary_condition+\\
+\verb+...point+\\
+\verb+....x = 0+\\
+\verb+....y = 0+\\
 
-\noindent \verb+.behaviour+\\
-\verb+..type = LOGARITHMIC_CREEP+\\
-\verb+..parameters+\\
-\verb+...strain_stress_curve+\\
-\verb+....tension+\\
-\verb+.....strain = 0.0001,0.0002 # values of the strain separated by commas (must be positive)+\\
-\verb+.....stress = 1e6,0 # values of the stress separated by commas (must be positive)+\\
-\verb+....compression+\\
-\verb+.....strain = -0.0001,-0.0002 # values of the strain separated by commas (must be negative)+\\
-\verb+.....stress = -1e6,0 # values of the stress separated by commas (must be negative)+\\
-\verb+...material_characteristic_radius = # value+\\
-\verb+...strain_renormalization_factor = # optional, default value = 1e4+\\
-\verb+...stress_renormalization_factor = # optional, default value = 1e-6+\\
-\verb+...damage_increment = # value+\\
-\verb+...maximum_damage = # value+\\
-\verb+...time_tolerance = # optional, default value = 1e-9+
+\subsection{Time evolution}
 
-\paragraph{} The behaviour can be defined in tension, compression, or both. If \verb+tension+ (alternatively \verb+compression+) is not defined, then the material will not fail in tension (or in compression). If none of them are defined, then \textsc{amie} will try to use the other method described below.
+It is possible to define a specific evolution of the value of a boundary condition, either using a constant rate or by defining the time evolution in an external file.
+Both options are incompatible: the rate-definition has priority over the external file.
 
-\paragraph{}For each element, \textsc{amie} will create the following variables, which can then be acted upon using material laws (see below):\\
+\paragraph{Option A - Rate:} the value of the boundary condition will be evaluated at each time step of the simulation as the rate multiplied by the current instant.
+It is defined by:\\
 
-\noindent \verb+tensile_strength+\\
-\verb+tensile_strain+\\
-\verb+tensile_ultimate_strength+\\
-\verb+tensile_ultimate_strain+\\
-\verb+compressive_strength+\\
-\verb+compressive_strain+\\
-\verb+compressive_ultimate_strength+\\
-\verb+compressive_ultimate_strain+
+\noindent \verb+..boundary_condition+\\
+\verb+...rate = 1+\\
 
-\subsubsection{Declare the maximum stress and strain}
+\paragraph{Option B - Time-evolution:} the value of the boundary condition will be evaluated at each time step of the simulation using an external file as input.
+It is defined by:\\
 
-\noindent \verb+.behaviour+\\
-\verb+..type = LOGARITHMIC_CREEP+\\
-\verb+..parameters+\\
-\verb+...tensile_strength = # stress at the peak+\\
-\verb+...tensile_ultimate_strength = # stress at the end of the damage process+\\
-\verb+...tensile_ultimate_strain = # strain at the end of the damage process+\\
-\verb+...compressive_strength = # stress at the peak+\\
-\verb+...compressive_ultimate_strength = # stress at the end of the damage process+\\
-\verb+...compressive_ultimate_strain = # strain at the end of the damage process+\\
-\verb+...material_characteristic_radius = # value+\\
-\verb+...strain_renormalization_factor = # optional, default value = 1e4+\\
-\verb+...stress_renormalization_factor = # optional, default value = 1e-6+\\
-\verb+...damage_increment = # value+\\
-\verb+...maximum_damage = # value+\\
-\verb+...time_tolerance = # optional, default value = 1e-9+
+\noindent \verb+..boundary_condition+\\
+\verb+...interpolation = path_to_file+\\
 
-\paragraph{}The behaviour can be defined in tension, in compression, or both. If no \verb+tensile strength+ (alternatively \verb+compressive_strength+) is found, then the material will not fail in tension (or in compression). If none of them are defined (and no stress-strain curve files are defined), then the material will not fail.
-
-\paragraph{}The behaviour will be assumed linear between the peak and the ultimate value.
-
-\paragraph{}Tensile strength and strain must be positive, compressive strength and strain must be negative.
-
-\paragraph{}\verb+tensile_strength+ (alternatively \verb+compressive_strength+) can be replaced with \verb+tensile_strain+ (or \verb+compressive_strain+), the strain at the peak. The \verb+tensile_strength+ will then be derived from the \verb+young_modulus+ of the material.
-
-\paragraph{}The ultimate values are not required. If they are not defined, then the material will only fail when its stress reaches the prescribed strength.
-
-\paragraph{}\verb+tensile_ultimate_strength+ can be replaced with \verb+tensile_strength_decrease_factor+, a scalar between 0 and 1. It is then calculated from the \verb+tensile_strength+ using:
-
-\begin{equation}
-	\verb+tensile_ultimate_strength+ = \verb+tensile_strength+ \times ( 1 - \verb+tensile_strength_decrease_factor+)
-\end{equation} 
-
-\paragraph{}\verb+tensile_ultimate_strain+ can be replaced with \verb+tensile_strain_increase_factor+, a scalar higher than 1. It is then calculated from the \verb+tensile_strain+ using:
-
-\begin{equation}
-	\verb+tensile_ultimate_strain+ = \verb+tensile_strain+ \times \verb+tensile_strain_increase_factor+
-\end{equation} 
-
-\paragraph{}The same manipulation can be made for the \verb+compressive_ultimate_strength+ and \verb+compressive_ultimate_strain+.
-
-\subsubsection{Common parameters}
-
-The \verb+strain_renormalization_factor+ and \verb+stress_renormalization_factor+ are introduced to increase the numerical precision of the damage algorithm. They should be chosen so that the quantities \\ \verb+tensile_strain+$\times$\verb+strain_renormalization_factor+ and \verb+tensile_strength+$\times$\verb+stress_renormalization_factor+ are approximately on the same order of magnitude. The default values should be valid in most cases.
-
-\paragraph{} The \verb+material_characteristic_radius+ is the characteristic length for the non-local averaging of the strain and depends on the materialś underlying microstructure.
-
-\paragraph{} The \verb+damage_increment+ controls how much damage is applied at each step of the algorithm (the value should be between 0 and 1, and at least lower than 0.1), while the \verb+time_tolerance+ controls how many elements can be damaged at each step of the algorithm (the smaller \verb+time_tolerance+, the less elements are damaged at each step). The default \verb+time_tolerance+ should be valid in most cases.
-
-\paragraph{}\verb+maximum_damage+ controls how much damage an element can sustain before failing completely. 
-
-\paragraph{}Note that none of these parameters can be changed during the simulation.
-
-\subsection{Material laws}
-
-The internal parameters defined above are constants, unless appropriate material laws are defined to act upon them. These laws can be used to set variables to a certain value, or to perform specific operations on these variables. Any number of material law can be defined, using the following syntax:\\
-
-\noindent \verb+.behaviour+\\
-\verb+..type = LOGARITHMIC_CREEP+\\
-\verb+..parameters+\\
-\verb+# definition of the material parameters+\\
-\verb+..material_law+\\
-\verb+# definition of first material law+\\
-\verb+..material_law+\\
-\verb+# definition of second material law+\\
-\verb+..material_law+\\
-\verb+# definition of third material law, etc+
-
-\paragraph{} When doing a time step, \textsc{amie} will first apply all the material laws defined, change the mechanical properties of the element accordingly, and then compute the results at that time step.
-
-The material laws will be applied in the order in which they are declared. Therefore, if the material uses a \verb+THERMAL_EXPANSION+ material law without any temperature defined first, no thermal deformation will be occur.
-
-\subsection{Predefined material laws}
-
-In this section, a few common material laws are defined for ease of use. Their definition include the list of internal \verb+parameters+ required for their proper use.
-
-\subsubsection{Arrhenius law}
-
-\noindent \verb+..material_law+\\
-\verb+...type = ARRHENIUS+\\
-\verb+...parameter_affected = $parameter+\\
-\verb+...reference_temperature = 293+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+temperature+\\
-\verb+$parameter+\\
-\verb+$parameter_activation_energy+
-
-\paragraph{}Applies:
-
-\begin{equation}
-	x = x\ e^{E_a \left[ 1/T - 1/T_0 \right]}
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	x & : & \verb+$parameter+ \notag \\
-	E_a & : & \verb+$parameter_activation_energy+\notag  \\
-	T & : & \verb+temperature+ \notag \\
-	T_0 & : & \verb+reference_temperature+ \notag 
-\end{eqnarray}
-
-\subsubsection{Arrhenius law for creep}
-
-\noindent \verb+..material_law+\\
-\verb+...type = CREEP_ARRHENIUS+\\
-\verb+...reference_temperature = 293+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+temperature+\\
-\verb+creep_characteristic_time+\\
-\verb+creep_activation_energy+
-
-\paragraph{}Applies:
-
-\begin{eqnarray}
-	\eta & = & \eta\ e^{E_c \left[ 1/T - 1/T_0 \right]} \\
-\end{eqnarray}
-
-With:
-
-\begin{eqnarray}
-	\eta & : & \verb+creep_characteristic_time+ \notag \\
-	E_c & : & \verb+creep_activation_energy+\notag  \\
-	T & : & \verb+temperature+ \notag \\
-	T_0 & : & \verb+reference_temperature+ \notag 
-\end{eqnarray}
-
-\subsubsection{Drying shrinkage}
-
-\noindent \verb+..material_law+\\
-\verb+...type = DRYING_SHRINKAGE+\\
-\verb+...reference_relative_humidity = 1.+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+imposed_deformation+\\
-\verb+relative_humidity+\\
-\verb+drying_shrinkage_coefficient+
-
-\paragraph{}Applies:
-
-\begin{equation}
-	\alpha = \left\{ \begin{array}{cl} 0 & \text{if } h > h_0 \\ \alpha - k_s ( h - h_0 ) & \text{otherwise} \end{array} \right.
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	\alpha & : & \verb+imposed_deformation+ \notag \\
-	k_s & : & \verb+drying_shrinkage_coefficient+\notag  \\
-	h & : & \verb+relative_humidity+ \notag \\
-	h_0 & : & \verb+reference_relative_humidity+ \notag 
-\end{eqnarray}
-
-\subsubsection{Non-linear creep}
-
-\noindent \verb+..material_law+\\
-\verb+...type = LOAD_NONLINEAR_CREEP+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+relative_humidity+\\
-\verb+creep_modulus+\\
-\verb+revoverable_modulus+\\
-\verb+tensile_strength+\\
-\verb+compressive_strength+
-
-\paragraph{}Applies:
-
-\begin{eqnarray}
-	C_v & = & C_v\ \frac{1-f^{10}}{1+f^2} \\
-	C_r & = & C_r\ \frac{1-f^{10}}{1+f^2}
-\end{eqnarray}
-
-With:
-
-\begin{eqnarray}
-	C_v & : & \verb+creep_modulus+ \notag \\
-	C_r & : & \verb+recoverable_modulus+ \notag \\
-	f & : & \text{stress/strength ratio} \notag  \\
-\end{eqnarray}
-
-
-\subsubsection{Radiation-induced volumetric expansion}
-
-\noindent \verb+..material_law+\\
-\verb+...type = RADIATION_INDUCED_VOLUMETRIC_EXPANSION+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+imposed_deformation+\\
-\verb+neutron_fluence+\\
-\verb+neutron_fluence_correction+\\
-\verb+radiation_expansion_delay+\\
-\verb+maximum_radiation_expansion+\\
-
-\paragraph{}Applies:
-
-\begin{equation}
-	\alpha = \alpha + \kappa\ \epsilon_{max} \frac{e^{\delta N}-1}{\epsilon_{max}+\kappa\ e^{\delta N}}
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	\alpha & : & \verb+imposed_deformation+ \notag \\
-	\kappa & : & \verb+radiation_expansion_delay+\notag  \\
-	\epsilon_{max} & : & \verb+maximum_radiation_expansion+ \notag \\
-	\delta & : & \verb+neutron_fluence_correction+ \notag \\
-	N & : & \verb+neutron_fluence+ \notag 
-\end{eqnarray}
-
-\subsubsection{Relative humidity effect on creep}
-
-\noindent \verb+..material_law+\\
-\verb+...type = CREEP_HUMIDITY+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+relative_humidity+\\
-\verb+creep_modulus+\\
-\verb+revoverable_modulus+\\
-\verb+creep_humidity_coefficient+
-
-\paragraph{}Applies:
-
-\begin{eqnarray}
-	C_v & = & C_v\ \left(k_h\ (1-h) + e^{k_h\ (1-h)} \right) \\
-	C_r & = & C_r\ \left(k_h\ (1-h) + e^{k_h\ (1-h)} \right) 
-\end{eqnarray}
-
-With:
-
-\begin{eqnarray}
-	C_v & : & \verb+creep_modulus+ \notag \\
-	C_r & : & \verb+recoverable_modulus+ \notag \\
-	k_h & : & \verb+creep_humidity_coefficient+\notag  \\
-	h & : & \verb+relative_humidity+ \notag 
-\end{eqnarray}
-
-\subsubsection{Thermal expansion}
-
-\noindent \verb+..material_law+\\
-\verb+...type = THERMAL_EXPANSION+\\
-\verb+...reference_temperature = 293+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+imposed_deformation+\\
-\verb+temperature+\\
-\verb+thermal_expansion_coefficient+
-
-\paragraph{}Applies:
-
-\begin{equation}
-	\alpha = \alpha + k_T ( T - T_0 )
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	\alpha & : & \verb+imposed_deformation+ \notag \\
-	k_T & : & \verb+thermal_expansion_coefficient+\notag  \\
-	T & : & \verb+temperature+ \notag \\
-	T_0 & : & \verb+reference_temperature+ \notag 
-\end{eqnarray}
-
-
-\subsection{Generic material laws}
-
-In this section, generic material laws are described. These laws can be used to formulate various material behaviours.
-
-
-\subsubsection{Extract strain or stress field values}
-
-\noindent \verb+..material_law+\\
-\verb+...type = GET_FIELD+\\
-\verb+...field = STRAIN_FIELD+
-
-\paragraph{}This law is a utility function to access the values of the common field (displacement, strain, stress, etc). The example above will generate three variables (in two dimensions) \verb+strain_field_0+, \verb+strain_field_1+ and \verb+strain_field_2+ containing the three components of the strain field in the element.
-
-
-\subsubsection{As a function of a single variable}
-
-\noindent \verb+..material_law+\\
-\verb+...type = SIMPLE_DEPENDENT+\\
-\verb+...input_parameter = $input+\\
-\verb+...output_parameter = $output+\\
-\verb+...function = # declare function of x here+\\
-\verb+...additive = FALSE+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+$input+\\
-\verb+$output+
-
-\paragraph{}Applies:
-
-\begin{equation}
-	\mathcal{Y} = \left\{ \begin{array}{cl} f(\mathcal{X}) & \text{if }\verb+additive+ = \verb+FALSE+  \\ \mathcal{Y}+f(\mathcal{X}) & \text{otherwise} \end{array} \right.
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	\mathcal{X} & : & \verb+$input+ \notag \\
-	\mathcal{Y} & : & \verb+$ouput+\notag  
-\end{eqnarray}
-
-\subsubsection{As a function of space and time}
-
-\noindent \verb+..material_law+\\
-\verb+...type = SPACE_TIME_DEPENDENT+\\
-\verb+...output_parameter = $output+\\
-\verb+...function = # declare function of x,y,z,t here+\\
-\verb+...additive = FALSE+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+$output+
-
-\paragraph{}Applies:
-
-\begin{equation}
-	\mathcal{Y} = \left\{ \begin{array}{cl} f(x,y,z,t) & \text{if }\verb+additive+ = \verb+FALSE+  \\ \mathcal{Y} +f(x,y,z,t) & \text{otherwise} \end{array} \right.
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	\mathcal{Y} & : & \verb+$output+ \notag
-\end{eqnarray}
-
-\subsubsection{As a function of multiple variables}
-
-\noindent \verb+..material_law+\\
-\verb+...type = VARIABLE_DEPENDENT+\\
-\verb+...output_parameter = $output+\\
-\verb+...x = $input_x+\\
-\verb+...y = $input_y+\\
-\verb+...z = $input_z+\\
-\verb+...t = $input_t+\\
-\verb+...u = $input_u+\\
-\verb+...v = $input_v+\\
-\verb+...w = $input_w+\\
-\verb+...function = # declare function of x,y,z,t,u,v,w here+\\
-\verb+...additive = FALSE+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+$output+\\
-\verb+$input_x+\\
-\verb+$input_y+\\
-\verb+$input_z+\\
-\verb+$input_t+\\
-\verb+$input_u+\\
-\verb+$input_v+\\
-\verb+$input_w+
-
-\paragraph{}Applies:
-
-\begin{equation}
-	\mathcal{Y} = \left\{ \begin{array}{cl} f(x,y,z,t,u,v,w) & \text{if }\verb+additive+ = \verb+FALSE+  \\ \mathcal{Y} +f(x,y,z,t,u,v,w) & \text{otherwise} \end{array} \right.
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	\mathcal{Y} & : & \verb+$output+ \notag \\
-	x & : & \verb+input_x+ \notag \\
-	y & : & \verb+input_y+ \notag \\
-	z & : & \verb+input_z+ \notag \\
-	t & : & \verb+input_t+ \notag \\
-	u & : & \verb+input_u+ \notag \\
-	v & : & \verb+input_v+ \notag \\
-	w & : & \verb+input_w+ \notag 
-\end{eqnarray}
-
-It is not necessary to define all variables $(x,z,y,t,u,v,w)$. Only those used in \verb+f+ are required. Note that if \verb+f+ is a function of $x$, $y$, $z$ or $t$, and the respective \verb+input_x+, \verb+input_y+, \verb+input_z+ or \verb+input_t+ is not declared, then the function uses the actual space-time coordinates of the element.
-
-\subsubsection{As a linear interpolation of another variable}
-
-\noindent \verb+..material_law+\\
-\verb+...type = LINEAR_INTERPOLATED+\\
-\verb+...input_parameter = $input+\\
-\verb+...output_parameter = $output+\\
-\verb+...file_name = # path to the file containing the interpolation data+
-
-\paragraph{}Or:\\
-
-\noindent \verb+..material_law+\\
-\verb+...type = LINEAR_INTERPOLATED+\\
-\verb+...input_parameter = $input+\\
-\verb+...output_parameter = $output+\\
-\verb+...input_values = 0,1,2 # values of the input parameter separated by commas+\\
-\verb+...output_values = 0,1,2 # values of the output parameter separated by commas+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+$input+\\
-\verb+$output+
-
-\paragraph{}Applies:
-
-\begin{equation}
-	\mathcal{Y} = linear\_interpolation(\mathcal{X})
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	\mathcal{X} & : & \verb+$input+ \notag \\
-	\mathcal{Y} & : & \verb+$ouput+\notag  
-\end{eqnarray}
-
-The interpolation file must contain two columns, the first being the values of \verb+$input+ and the second the corresponding values of \verb+$param+.
-
-\subsubsection{Maximum}
-
-\noindent \verb+..material_law+\\
-\verb+...type = MAXIMUM+\\
-\verb+...output_parameter = $output+\\
-\verb+...input_parameter = $input_x+\\
-\verb+...input_parameter = $input_y+\\
-\verb+...input_parameter = $input_z+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+$output+\\
-\verb+$input_x+\\
-\verb+$input_y+\\
-\verb+$input_z+
-
-\paragraph{}Applies:
-
-\begin{equation}
-	\mathcal{Y} = \mathrm{max}( x,y,z,... )
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	\mathcal{Y} & : & \verb+$output+ \notag \\
-	x & : & \verb+$input_x+ \notag \\
-	y & : & \verb+$input_y+ \notag \\
-	z & : & \verb+$input_z+ \notag 
-\end{eqnarray}
-
-This law can accept any number of \verb+input_parameter+ (at least one).
-
-\subsubsection{Minimum}
-
-\noindent \verb+..material_law+\\
-\verb+...type = MINIMUM+\\
-\verb+...output_parameter = $output+\\
-\verb+...input_parameter = $input_x+\\
-\verb+...input_parameter = $input_y+\\
-\verb+...input_parameter = $input_z+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+$output+\\
-\verb+$input_x+\\
-\verb+$input_y+\\
-\verb+$input_z+
-
-\paragraph{}Applies:
-
-\begin{equation}
-	\mathcal{Y} = \mathrm{min}( x,y,z,... )
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	\mathcal{Y} & : & \verb+$output+ \notag \\
-	x & : & \verb+$input_x+ \notag \\
-	y & : & \verb+$input_y+ \notag \\
-	z & : & \verb+$input_z+ \notag 
-\end{eqnarray}
-
-This law can accept any number of \verb+input_parameter+ (at least one).
-
-
-\subsubsection{Time derivative}
-
-\noindent \verb+..material_law+\\
-\verb+...type = TIME_DERIVATIVE+\\
-\verb+...input_parameter = $input+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+$input+\\
-\verb+$input_rate+
-
-\paragraph{}Applies:
-
-\begin{equation}
-	\mathcal{Y} = \frac{\partial \mathcal{X}}{\partial t}
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	\mathcal{X} & : & \verb+$input+ \notag \\
-	\mathcal{Y} & : & \verb+$input_rate+ \notag
-\end{eqnarray}
-
-\subsubsection{Time integral}
-
-\noindent \verb+..material_law+\\
-\verb+...type = TIME_INTEGRAL+\\
-\verb+...input_parameter = $input+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+$input+\\
-\verb+$input_integral+
-
-\paragraph{}Applies:
-
-\begin{equation}
-	\mathcal{Y} = \int\limits \mathcal{X} \mathrm{d}t
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	\mathcal{X} & : & \verb+$input+ \notag \\
-	\mathcal{Y} & : & \verb+$input_integral+ \notag
-\end{eqnarray}
-
-\subsubsection{Weibull-distributed variable}
-
-\noindent \verb+..material_law+\\
-\verb+...type = WEIBULL+\\
-\verb+...parameter = $input_x+\\
-\verb+...parameter = $input_y+\\
-\verb+...parameter = $input_z+\\
-\verb+...scale_parameter = # optional, default value is 1, must be positive+\\
-\verb+...shape_parameter = # optional, default value is 5, must be positive+\\
-\verb+...variability = # optional, default value is 0.2, must be less than 1+\\
-\verb+...weibull_variable_name = # optional, default name is "weibull_variable"+\\
-
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+$input_x+\\
-\verb+$input_y+\\
-\verb+$input_z+
-
-\paragraph{}Applies:
-
-\begin{eqnarray}
-	w & = & \text{Weibull}(\lambda, k) \\
-	x & = & x \times ( 1 - v + v \times w ) \\
-	y & = & y \times ( 1 - v + v \times w ) \\
-	z & = & z \times ( 1 - v + v \times w ) \\
-\end{eqnarray}
-
-With:
-
-\begin{eqnarray}
-	w & : & \verb+weibull_variable+ \notag \\
-	\lambda & : & \verb+scale_parameter+ \notag\\
-	k & : & \verb+shape_parameter+ \notag\\
-	v & : & \verb+variability+ \notag\\
-	x & : & \verb+$input_x+ \notag \\
-	y & : & \verb+$input_y+ \notag \\
-	z & : & \verb+$input_z+ \notag \\
-\end{eqnarray}
-
-This law can accept any number of \verb+parameter+ (at least one).
-
-The weibull variable will be computed during the first simulation for each element. Once calculated, it does not change during the simulation.
-
-
-
-
-\subsection{Example}
-
-The following example can be used to simulate the serpentine aggregates used in Elleuch's irradiation experiments.\\
-
-\noindent \verb+.behaviour+\\
-\verb+..type = LOGARITHMIC_CREEP+\\
-\verb+# define material parameters+\\
-\verb+..parameters+\\
-\verb+...young_modulus = 130e9+\\
-\verb+...poisson_ratio = 0.2+\\
-\verb+...imposed_deformation = 0+\\
-\verb+...temperature = 293+\\
-\verb+...neutron_fluence = 0+\\
-\verb+...thermal_expansion_coefficient = 7.5e-6+\\
-\verb+...radiation_expansion_delay = 84.268+\\
-\verb+...maximum_radiation_expansion = 0.0972+\\
-\verb+...neutron_fluence_correction = 0.0099+\\
-\verb+# damage parameters, purely brittle material in tension+\\
-\verb+...tensile_strain = 0.00039+\\
-\verb+...tensile_ultimate_strength = 0+\\
-\verb+...tensile_ultimate_strain = 0.00039+\\
-\verb+...material_characteristic_radius = 0.001+\\
-\verb+...damage_increment = 0.01+\\
-\verb+...maximum_damage = 0.999+\\
-\verb+...time_tolerance = 1e-9+
-\verb+# define temperature as function of time+\\
-\verb+..material_law+\\
-\verb+...type = LINEAR_INTERPOLATED+\\
-\verb+...input_parameter = t+\\
-\verb+...output_parameter = temperature+\\
-\verb+...file_name = ../examples/data/elleuch/temperature_history_g1+\\
-\verb+# define neutron fluence as function of time+\\
-\verb+..material_law+\\
-\verb+...type = LINEAR_INTERPOLATED+\\
-\verb+...input_parameter = t+\\
-\verb+...output_parameter = neutron_fluence+\\
-\verb+...file_name = ../examples/data/elleuch/fluence_history_g1+\\
-\verb+# apply thermal expansion+\\
-\verb+..material_law+\\
-\verb+...type = THERMAL_EXPANSION+\\
-\verb+...reference_temperature = 293+\\
-\verb+# apply radiation-induced expansion+\\
-\verb+..material_law+\\
-\verb+...type = RADIATION_INDUCED_VOLUMETRIC_EXPANSION+\\
-\verb+# apply radiation-induced loss of stiffness+\\
-\verb+..material_law+\\
-\verb+...type = LINEAR_INTERPOLATED+\\
-\verb+...input_parameter = neutron_fluence+\\
-\verb+...output_parameter = young_modulus+\\
-\verb+...file_name = ../examples/data/elleuch/aggregate_damage+\\
-
-\section{Using templates}
-
-Templates are a way to use the same general setup with variations. It is an effective way to do parametric studies, or to simulate set of experiments in which only a few parameters change.
-
-Templates use two files: a \verb+source+ which contains the main parameters of the simulation, as well an \verb+specification+ file which changes a few parameters of the simulation.
-
-\subsection{Source file}
-
-The \verb+source+ file is a \verb+*.ini+ file as described above. In addition, you can define named variables using the \verb+.define+ structure. Named variables are composed by a string starting with the character \verb+@+. Later during the file, you can set any element to the value of the named variable. For example, the following file defines a variable named \verb+@paste_young_modulus+ (which has a default value of 12 GPa), and attributes the value of the variable \verb+@paste_young_modulus+ to the elastic modulus of the sample:\\
-
-\noindent \verb+.define+\\
-\verb+..@paste_young_modulus = 12e9+\\
-\verb+.sample+\\
-\verb+..height = 0.1+\\
-\verb+..width = 0.1+\\
-\verb+..behaviour+\\
-\verb+...type = ELASTICITY+\\
-\verb+...young_modulus = @paste_young_modulus+
-
-\paragraph{} You can define as many named variables as required. Named variables are unique: if two share the same name, then the second will be ignored. If you do not define a named variable, then the program stops. Named variables can either be numbers or strings. 
-
-\paragraph{} The \verb+source+ file should be able to run with \textsc{amie} without any change.
-
-\subsection{Specification file}
-
-The \verb+specification+ file is a \verb+*.ini+ file which contains only the path to the \verb+source+ file and a set of named variables definition. By calling the \verb+specification+ file, the associated \verb+source+ file will be run, except that all named variables in the \verb+source+ file will be given the values attributed in the \verb+specification+ file. An example of \verb+specification+ file would be:\\
-
-\noindent \verb+.template+\\
-\verb+..source = path/to/the/source/file.ini+\\
-\verb+..define+\\
-\verb+...@paste_young_modulus = 20e9+
-
-\subsection{Command line arguments}
-
-Instead of a \verb+specification+ file it is possible to set the named variables directly from the command line arguments. The following syntax is equivalent to the previous \verb+specification+ file:\\
-
-\verb+./2d_composite path/to/the/source/file.ini @paste_young_modulus 20e9+
-
-\paragraph{} There should be a space between the name of the variable and its value (and no other characters). Any named variable without a corresponding value will be ignored.
-
-%You can call a template with the following syntax:\\
-
-%\noindent \verb+.template+\\
-%\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
-%\verb+..replace+\\
-%\verb+...sample.behaviour.young_modulus = 20e9+
-
-%\paragraph{} This example will import all information from \verb+../examples/data/composite/test_2d_composite.ini+ and replace the value of the \verb+young_modulus+ of the sample by $20 \times 10^{9}$.
-
-%\paragraph{} When using a template, any information not stored under \verb+.template+ will be ignored! Therefore, it is best to verify that the \verb+..source+ file contains all necessary information for \amie to run.
-
-%\paragraph{} \textsc{amie} will first load the template, then perform the following operations, and finally run the simulation with the modified script.
-
-%\begin{enumerate}
-%	\item Remove unnecessary source components.
-%	\item Replace source components by new ones.
-%	\item Attach new components to the source components.
-%	\item Add new components to the source.
-%\end{enumerate}
-
-%The source components are defined by their full path. In the previous example, \verb+sample.behaviour.young_modulus+ points to the following element in the \verb+source+ file:\\
-
-%\noindent \verb+.sample+\\
-%\verb+..behaviour+\\
-%\verb+...young_modulus = # original value+
-
-%\paragraph{} The example below is entirely different from the example above:\\
-
-%\noindent \verb+.template+\\
-%\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
-%\verb+..replace+\\
-%\verb+...sample+\\
-%\verb+....behaviour+\\
-%\verb+.....young_modulus = 20e9+
-
-%\paragraph{} Indeed, the second example will replace the entire \verb+.sample+ section of the original \verb+source+ file with the indicated section. Information about the dimensions of the sample and the mechanical behaviour will be lost. The first example only replaces the \verb+young_modulus+ value.
-
-%\subsection{Remove components}
-
-%\noindent \verb+.template+\\
-%\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
-%\verb+..remove+\\
-%\verb+...inclusions.inclusions+\\
-%\verb+...export+
-
-%\paragraph{} Any element placed under the \verb+remove+ keyword will be removed from the tree. In case of multiple definitions, all elements with the same path will be removed. Therefore, the example above removes all second-level inclusions, as well as the mesh export definition.
-
-%\subsection{Replace components}
-
-%Components with an associated numeric or string value can be simply replaced as shown above. Any arbitrary number of components can be replaced:\\
-
-%\noindent \verb+.template+\\
-%\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
-%\verb+..replace+\\
-%\verb+...sample.behaviour.young_modulus = 20e9+\\
-%\verb+...inclusions.behaviour.young_modulus = 70e9+
-
-%\paragraph{} If the targeted component does not exists, nothing will happen (the component will not be created!)
-
-%\paragraph{} Entire blocks can be replaced as in the following example:\\
-
-%\noindent \verb+.template+\\
-%\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
-%\verb+..replace+\\
-%\verb+...sample.behaviour+\\
-%\verb+....type = PASTE_BEHAVIOUR+
-
-
-
-%\subsection{Attach components}
-
-%\subsection{Add components}
-
-\section{Future features}
-
-The following features might be implemented/corrected at some point in the future.
-
-\begin{itemize}
-	\item The first SVG output file seems to have more fields than required. This is a bug.
-	\item Possibility to refine locally the mesh.
-	\item Possibility to not use the SVG output.
-\end{itemize}
-
-
-
+The file must contain two columns of numbers, the time in the first column, and the corresponding value in the second.
+The series of instants must be strictly increasing, but it does not need to correspond to the actual time steps used in the simulation.
+\amie will perform a linear interpolation to get the value of the boundary condition at each time step of the simulation.
 
 
 

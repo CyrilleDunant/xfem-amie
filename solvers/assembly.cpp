@@ -641,6 +641,7 @@ void Assembly::setBoundaryConditions()
     element2d.clear() ;
     element3d.clear() ;
 
+
 // 	std::cerr << " ...done." << std::endl ;
 
 }
