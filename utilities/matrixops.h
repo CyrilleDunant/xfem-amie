@@ -462,6 +462,7 @@ inline void matrix_matrix_matrix_multiply_and_add(const Amie::Matrix &m0, const 
     if(&m0 == &ret || &m1 == &ret || &m2 == &ret)
     {
         Amie::Matrix r(ret.numRows(), ret.numCols()) ;
+        Amie::Matrix c(ret.numRows(), ret.numCols()) ;
         for(size_t i = 0 ; i < m0.numRows() ; i++)
         {
             for(size_t j = 0 ; j < m1.numCols() ; j++)
@@ -470,13 +471,20 @@ inline void matrix_matrix_matrix_multiply_and_add(const Amie::Matrix &m0, const 
                 const Amie::Cslice_iter<double>& cj = m1.column(j) ;
                 double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
                 for(size_t k = 0 ; k < m2.numCols() ; k++)
-                    r[i][k] += r_ij*m2[j][k]*f ;
+                {
+                    double y = r_ij*m2[j][k]*f-c[i][k] ;
+                    double t = r[i][k]+y ;
+                    c[i][k] = (t-r[i][k])-y ;
+                    r[i][k] = t ;
+//                     r[i][k] += r_ij*m2[j][k]*f ;
+                }
             }
         }
         ret = r ;
         return ;
     }
 
+    Amie::Matrix c(ret.numRows(), ret.numCols()) ;
     for(size_t i = 0 ; i < m0.numRows() ; i++)
     {
         for(size_t j = 0 ; j < m1.numCols() ; j++)
@@ -485,7 +493,13 @@ inline void matrix_matrix_matrix_multiply_and_add(const Amie::Matrix &m0, const 
             const Amie::Cslice_iter<double>& cj = m1.column(j) ;
             double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
             for(size_t k = 0 ; k < m2.numCols() ; k++)
-                ret[i][k] += r_ij*m2[j][k]*f ;
+            {
+                double y = r_ij*m2[j][k]*f -c[i][k];
+                double t = ret[i][k]+y ;
+                c[i][k] = (t-ret[i][k])-y ;
+                ret[i][k] = t ;
+//                 ret[i][k] += r_ij*m2[j][k]*f ;
+            }
         }
     }
 }

@@ -28,14 +28,31 @@ EnrichmentInclusion::~EnrichmentInclusion() {}
 
 bool EnrichmentInclusion::enrichmentTarget(DelaunayTriangle * t)
 {
+    
+//     double inFraction = 0 ;
+//     
+//     for(size_t i = 0 ; i < 10240 ;  i++)
+//     {
+//         double c0 = (double)rand()/RAND_MAX ;
+//         double c1 = (double)rand()/RAND_MAX ;
+//         double c2 = (double)rand()/RAND_MAX ;
+//         double r = c0+c1+c2 ;
+//         c0 /= r ;
+//         c1 /= r ;
+//         c2 /= r ;
+//         Point test = *t->first*c0+*t->second*c1+*t->third*c2 ;
+//         if(getPrimitive()->in(test))
+//             inFraction += 1./10240 ;
+//     }
+//     return inFraction > 0.001 && inFraction < 0.999 ;
+    
     bool in0 = in(*t->first)   ;
     bool in1 = in(*t->second)  ;
     bool in2 = in(*t->third)   ;
     
     if(!t->intersects(getPrimitive()))
         return false ;
-//     if(t->intersection(getPrimitive()).size() != 2)
-//         return false ;
+
     if((in0 && in1 && !in2) ||
        (in0 && !in1 && in2) || 
        (!in0 && in1 && in2) ||
@@ -385,7 +402,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
             Point linter0 = ring[i]->inLocalCoordinates(inter[0]) ;
             Point linter1 = ring[i]->inLocalCoordinates(inter[1]) ;
 
-            double n  = 3 ;
+            double n  = 2 ;
             for(double j= 1./n ; j < .9999  ; j+=1./n)
             {
                 Point h0 = inter[0]*j+inter[1]*(1.-j) ;
@@ -451,28 +468,32 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
                 
                 
                 
-                
-//                 for(double j = 0 ; j < 1 ; j+=0.001)
+//                 if(i == 9)
 //                 {
-//                     for(double k = 0 ; k < 1 ; k+=0.001)
+//                 for(double j = 0 ; j < 1+1e-6 ; j+=0.01)
+//                 {
+//                     for(double k = 0 ; k < 1+1e-6 ; k+=0.01)
 //                     {
-//                         if(j+k <= 1 && j >= 0 && k >= 0)
+//                         if(j+k <= 1+1e-6 && j >= -1e-6 && k >= -1e-6)
 //                             std::cout << VirtualMachine().deval(f,XI,  j,k) << "  " << std::flush ;
 //                         else
 //                             std::cout << 0 << "  " << std::flush ;
 //                     }
 //                     std::cout << std::endl ;
 //                 }
-//                 for(double j = 0 ; j < 1 ; j+=0.001)
+//                 for(double j = 0 ; j < 1+1e-6 ; j+=0.01)
 //                 {
-//                     for(double k = 0 ; k < 1 ; k+=0.001)
+//                     for(double k = 0 ; k < 1+1e-6 ; k+=0.01)
 //                     {
-//                         if(j+k <= 1 && j >= 0 && k >= 0)
+//                         if(j+k <= 1+1e-6 && j >= -1e-6 && k >= -1e-6)
 //                             std::cout << VirtualMachine().deval(f,ETA,  j,k) << "  " << std::flush ;
 //                         else
 //                             std::cout << 0 << "  " << std::flush ;
 //                     }
 //                     std::cout << std::endl ;
+//                 }
+// 
+//                 exit(0) ;
 //                 }
 //                 for(double j = 0 ; j < 1 ; j+=0.05)
 //                 {
@@ -490,7 +511,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
                 
             }
         }
-//         exit(0) ;
+        
         
     }
 //      exit(0) ;

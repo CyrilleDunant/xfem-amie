@@ -2954,12 +2954,12 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             for(size_t i = 0 ; i < gp_alternative.size() ; i++)
                 fsum += gp_alternative[i].second ;
 
-            double originalSum = 0 ;
-            for(auto & i : getGaussPoints().gaussPoints)
-                originalSum += i.second ;
+            double originalSum = area() ;
+//             for(auto & i : getGaussPoints().gaussPoints)
+//                 originalSum += i.second ;
 
             for(size_t i = 0 ; i < gp_alternative.size() ; i++)
-                gp_alternative[i].second *= originalSum / fsum ;
+                gp_alternative[i].second *= 0.98*originalSum / fsum ;
 
 //             if(in/out < .1 || in/out > 10. )
 //             {

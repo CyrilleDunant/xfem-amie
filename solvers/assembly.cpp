@@ -456,12 +456,10 @@ void Assembly::setBoundaryConditions()
                                 if((columnBlockIndex*stride+n) == id)
                                 {
                                     *(blockstart+(stride+stride%2)*n+m) = 1 ;
-//                                     getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] = 1 ;
                                 }
                                 else
                                 {
                                     *(blockstart+(stride+stride%2)*n+m) = 0 ;
-//                                     getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] = 0 ;
                                 }
                             }
                         }
@@ -696,12 +694,13 @@ void Assembly::checkZeroLines()
         }
     }*/
     
-    
+    double maxval = std::abs(getMatrix().array).max() ;
+    int zeros = 0 ;
     for(size_t i = 0 ; i < externalForces.size() ; i++)
     {
         if(i%1000 == rowstart)
-            std::cerr << "\rremoving 0-only lines... " << i << "/" << externalForces.size() << std::flush ;
-        double zeros = (std::abs(getMatrix()[i][i]) < 1e-12) ;
+            std::cerr << "\r removing 0-only lines... " << i << "/" << externalForces.size() << std::flush ;
+        bool zeros = (std::abs(getMatrix()[i][i]) < 1e-8*maxval) ;
 /*        size_t j = rowstart ;
         while(zeros && (j < externalForces.size() ))
         {
@@ -710,11 +709,17 @@ void Assembly::checkZeroLines()
         }*/
         if(zeros)// && (j==externalForces.size()))
         {
+            zeros++ ;
+            for(size_t j = 0 ; j < externalForces.size() ; j++)
+            {
+                getMatrix()[i][j] = 0 ;
+                getMatrix()[j][i] = 0 ;
+            }
             getMatrix()[i][i] = 1 ;
             externalForces[i] = 0. ;
         }
     }
-    std::cerr << "done. " << std::endl ;
+    std::cerr << "\r removing 0-only lines... " << externalForces.size() << "/" << externalForces.size() << " ( " << zeros << " ) ... done. " << std::endl ;
 }
 
 bool Assembly::make_final()
@@ -978,21 +983,29 @@ bool Assembly::make_final()
             {
                 ids[j] *= ndof ;
             }
-            
+            Vector c(0., coordinateIndexedMatrix->array.size()) ;
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
                 double * array_iterator = getMatrix()[ids[j]].getPointer(ids[j]) ;
+                double * c_iterator = &c[0]+(array_iterator-&coordinateIndexedMatrix->array[0]) ;
                 //data is arranged column-major, with 2-aligned columns
                 
                 for(size_t m = 0 ; m < ndof ; m++)
                 {
                     for(size_t n = 0 ; n < ndof ; n++)
                     {
-                        *array_iterator += scales[i] * element2d[i]->getCachedElementaryMatrix()[j][j][n][m] ;
+                        double y = scales[i] * element2d[i]->getCachedElementaryMatrix()[j][j][n][m] - *c_iterator ;
+                        double t = *array_iterator + y ;
+                        *c_iterator = (t-*array_iterator)-y ;
+                        *array_iterator = t ;
                         array_iterator++ ;
+                        c_iterator++ ;
                     }
                     if(ndof%2 != 0)
+                    {
                         array_iterator++ ;
+                        c_iterator++ ;
+                    }
                 }
 
                 for(size_t k = j+1 ; k < ids.size() ; k++)
@@ -1004,19 +1017,31 @@ bool Assembly::make_final()
                     {
                         double * array_iterator0 = getMatrix()[ids[j]].getPointer(ids[k]) ;
                         double * array_iterator1 = getMatrix()[ids[k]].getPointer(ids[j]) ;
+                        double * c_iterator0 = &c[0]+(array_iterator0-&coordinateIndexedMatrix->array[0]) ;
+                        double * c_iterator1 = &c[0]+(array_iterator1-&coordinateIndexedMatrix->array[0]) ;
                         for(size_t m = 0 ; m < ndof ; m++)
                         {
                             for(size_t n = 0 ; n < ndof ; n++)
                             {
-                                *array_iterator0 += scales[i] * element2d[i]->getCachedElementaryMatrix()[j][k][n][m] ;
-                                *array_iterator1 += scales[i] * element2d[i]->getCachedElementaryMatrix()[k][j][n][m] ;
+                                double y0 = scales[i] * element2d[i]->getCachedElementaryMatrix()[j][k][n][m] - *c_iterator0 ;
+                                double y1 = scales[i] * element2d[i]->getCachedElementaryMatrix()[k][j][n][m] - *c_iterator1 ;
+                                double t0 = *array_iterator0 + y0 ;
+                                double t1 = *array_iterator1 + y1 ;
+                                *c_iterator0 = (t0-*array_iterator0)-y0 ;
+                                *c_iterator1 = (t1-*array_iterator1)-y1 ;
+                                *array_iterator0 = t0 ;
+                                *array_iterator1 = t1 ;
                                 array_iterator0++ ; 
                                 array_iterator1++ ;
+                                c_iterator0++ ;
+                                c_iterator1++ ;
                             }
                             if(ndof%2 != 0)
                             {
                                 array_iterator0++ ; 
                                 array_iterator1++ ;
+                                c_iterator0++ ;
+                                c_iterator1++ ;
                             }
                         }
                     }
@@ -1031,15 +1056,23 @@ bool Assembly::make_final()
                 {
 
                     double * array_iterator = getMatrix()[ids[j]].getPointer(ids[j]) ;
+                    double * c_iterator = &c[0]+(array_iterator-&coordinateIndexedMatrix->array[0]) ;
                     for(size_t m = 0 ; m < ndof ; m++)
                     {
                         for(size_t n = 0 ; n < ndof ; n++)
                         {
-                            *array_iterator += scales[i] * element2d[i]->getCachedViscousElementaryMatrix()[j][j][n][m] ;
+                            double y = scales[i] * element2d[i]->getCachedViscousElementaryMatrix()[j][j][n][m] - *c_iterator ;
+                            double t = *array_iterator + y ;
+                            *c_iterator = (t-*array_iterator)-y ;
+                            *array_iterator = t ;
                             array_iterator++ ;
+                            c_iterator++ ;
                         }
                         if(ndof%2 != 0)
+                        {
                             array_iterator++ ;
+                            c_iterator++ ;
+                        }
                     }
 
                     for(size_t k = j+1 ; k < ids.size() ; k++)
@@ -1051,19 +1084,31 @@ bool Assembly::make_final()
                         {
                             double * array_iterator0 = getMatrix()[ids[j]].getPointer(ids[k]) ;
                             double * array_iterator1 = getMatrix()[ids[k]].getPointer(ids[j]) ;
+                            double * c_iterator0 = &c[0]+(array_iterator0-&coordinateIndexedMatrix->array[0]) ;
+                            double * c_iterator1 = &c[0]+(array_iterator1-&coordinateIndexedMatrix->array[0]) ;
                             for(size_t m = 0 ; m < ndof ; m++)
                             {
                                 for(size_t n = 0 ; n < ndof ; n++)
                                 {
-                                    *array_iterator0 += scales[i] * element2d[i]->getCachedViscousElementaryMatrix()[j][k][n][m] ;
-                                    *array_iterator1 += scales[i] * element2d[i]->getCachedViscousElementaryMatrix()[k][j][n][m] ;
+                                    double y0 = scales[i] * element2d[i]->getCachedViscousElementaryMatrix()[j][k][n][m] - *c_iterator0 ;
+                                    double y1 = scales[i] * element2d[i]->getCachedViscousElementaryMatrix()[k][j][n][m] - *c_iterator1 ;
+                                    double t0 = *array_iterator0 + y0 ;
+                                    double t1 = *array_iterator1 + y1 ;
+                                    *c_iterator0 = (t0-*array_iterator0)-y0 ;
+                                    *c_iterator1 = (t1-*array_iterator1)-y1 ;
+                                    *array_iterator0 = t0 ;
+                                    *array_iterator1 = t1 ;
                                     array_iterator0++ ; 
                                     array_iterator1++ ;
+                                    c_iterator0++ ;
+                                    c_iterator1++ ;
                                 }
                                 if(ndof%2 != 0)
                                 {
                                     array_iterator0++ ; 
                                     array_iterator1++ ;
+                                    c_iterator0++ ;
+                                    c_iterator1++ ;
                                 }
                             }
                         }
@@ -1328,23 +1373,29 @@ bool Assembly::make_final()
             {
                 ids[j] *= ndof ;
             }
-            
+            Vector c(0., coordinateIndexedMatrix->array.size()) ;
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
-
-                
                 double * array_iterator = getMatrix()[ids[j]].getPointer(ids[j]) ;
+                double * c_iterator = &c[0]+(array_iterator-&coordinateIndexedMatrix->array[0]) ;
                 //data is arranged column-major, with 2-aligned columns
                 
                 for(size_t m = 0 ; m < ndof ; m++)
                 {
                     for(size_t n = 0 ; n < ndof ; n++)
                     {
-                        *array_iterator += scales[i] * element3d[i]->getCachedElementaryMatrix()[j][j][n][m] ;
+                        double y = scales[i] * element3d[i]->getCachedElementaryMatrix()[j][j][n][m] - *c_iterator ;
+                        double t = *array_iterator + y ;
+                        *c_iterator = (t-*array_iterator)-y ;
+                        *array_iterator = t ;
                         array_iterator++ ;
+                        c_iterator++ ;
                     }
                     if(ndof%2 != 0)
+                    {
                         array_iterator++ ;
+                        c_iterator++ ;
+                    }
                 }
 
                 for(size_t k = j+1 ; k < ids.size() ; k++)
@@ -1356,19 +1407,31 @@ bool Assembly::make_final()
                     {
                         double * array_iterator0 = getMatrix()[ids[j]].getPointer(ids[k]) ;
                         double * array_iterator1 = getMatrix()[ids[k]].getPointer(ids[j]) ;
+                        double * c_iterator0 = &c[0]+(array_iterator0-&coordinateIndexedMatrix->array[0]) ;
+                        double * c_iterator1 = &c[0]+(array_iterator1-&coordinateIndexedMatrix->array[0]) ;
                         for(size_t m = 0 ; m < ndof ; m++)
                         {
                             for(size_t n = 0 ; n < ndof ; n++)
                             {
-                                *array_iterator0 += scales[i] * element3d[i]->getCachedElementaryMatrix()[j][k][n][m] ;
-                                *array_iterator1 += scales[i] * element3d[i]->getCachedElementaryMatrix()[k][j][n][m] ;
+                                double y0 = scales[i] * element3d[i]->getCachedElementaryMatrix()[j][k][n][m] - *c_iterator0 ;
+                                double y1 = scales[i] * element3d[i]->getCachedElementaryMatrix()[k][j][n][m] - *c_iterator1 ;
+                                double t0 = *array_iterator0 + y0 ;
+                                double t1 = *array_iterator1 + y1 ;
+                                *c_iterator0 = (t0-*array_iterator0)-y0 ;
+                                *c_iterator1 = (t1-*array_iterator1)-y1 ;
+                                *array_iterator0 = t0 ;
+                                *array_iterator1 = t1 ;
                                 array_iterator0++ ; 
                                 array_iterator1++ ;
+                                c_iterator0++ ;
+                                c_iterator1++ ;
                             }
                             if(ndof%2 != 0)
                             {
                                 array_iterator0++ ; 
                                 array_iterator1++ ;
+                                c_iterator0++ ;
+                                c_iterator1++ ;
                             }
                         }
                     }
@@ -1383,15 +1446,23 @@ bool Assembly::make_final()
                 {
 
                     double * array_iterator = getMatrix()[ids[j]].getPointer(ids[j]) ;
+                    double * c_iterator = &c[0]+(array_iterator-&coordinateIndexedMatrix->array[0]) ;
                     for(size_t m = 0 ; m < ndof ; m++)
                     {
                         for(size_t n = 0 ; n < ndof ; n++)
                         {
-                            *array_iterator += scales[i] * element3d[i]->getCachedViscousElementaryMatrix()[j][j][n][m] ;
+                            double y = scales[i] * element3d[i]->getCachedViscousElementaryMatrix()[j][j][n][m] - *c_iterator ;
+                            double t = *array_iterator + y ;
+                            *c_iterator = (t-*array_iterator)-y ;
+                            *array_iterator = t ;
                             array_iterator++ ;
+                            c_iterator++ ;
                         }
                         if(ndof%2 != 0)
+                        {
                             array_iterator++ ;
+                            c_iterator++ ;
+                        }
                     }
 
                     for(size_t k = j+1 ; k < ids.size() ; k++)
@@ -1403,19 +1474,31 @@ bool Assembly::make_final()
                         {
                             double * array_iterator0 = getMatrix()[ids[j]].getPointer(ids[k]) ;
                             double * array_iterator1 = getMatrix()[ids[k]].getPointer(ids[j]) ;
+                            double * c_iterator0 = &c[0]+(array_iterator0-&coordinateIndexedMatrix->array[0]) ;
+                            double * c_iterator1 = &c[0]+(array_iterator1-&coordinateIndexedMatrix->array[0]) ;
                             for(size_t m = 0 ; m < ndof ; m++)
                             {
                                 for(size_t n = 0 ; n < ndof ; n++)
                                 {
-                                    *array_iterator0 += scales[i] * element3d[i]->getCachedViscousElementaryMatrix()[j][k][n][m] ;
-                                    *array_iterator1 += scales[i] * element3d[i]->getCachedViscousElementaryMatrix()[k][j][n][m] ;
+                                    double y0 = scales[i] * element3d[i]->getCachedViscousElementaryMatrix()[j][k][n][m] - *c_iterator0 ;
+                                    double y1 = scales[i] * element3d[i]->getCachedViscousElementaryMatrix()[k][j][n][m] - *c_iterator1 ;
+                                    double t0 = *array_iterator0 + y0 ;
+                                    double t1 = *array_iterator1 + y1 ;
+                                    *c_iterator0 = (t0-*array_iterator0)-y0 ;
+                                    *c_iterator1 = (t1-*array_iterator1)-y1 ;
+                                    *array_iterator0 = t0 ;
+                                    *array_iterator1 = t1 ;
                                     array_iterator0++ ; 
                                     array_iterator1++ ;
+                                    c_iterator0++ ;
+                                    c_iterator1++ ;
                                 }
                                 if(ndof%2 != 0)
                                 {
                                     array_iterator0++ ; 
                                     array_iterator1++ ;
+                                    c_iterator0++ ;
+                                    c_iterator1++ ;
                                 }
                             }
                         }

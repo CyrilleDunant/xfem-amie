@@ -84,9 +84,9 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     {
         cleanup = true ;
 //      P = new InCompleteCholesky(A) ;
-        if(err0 < 1e-4)   
-            P = new Ssor(assembly->getMatrix(), 1.5) ;
-        else
+//         if(err0 < 1e-4)   
+//             P = new Ssor(assembly->getMatrix(), 1.5) ;
+//         else
             P = new InverseDiagonal(assembly->getMatrix()) ;
 //      P = new InverseDiagonalSquared(assembly->getMatrix()) ;
 //      P = new Inverse2x2Diagonal(assembly->getMatrix()) ;

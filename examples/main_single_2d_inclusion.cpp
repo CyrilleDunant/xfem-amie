@@ -59,9 +59,9 @@ void step()
 //            std::cout << std::endl ;
 //        }
        tmp.resize(3) ;
-       for(double x = -150 ;  x <= 150 ; x += .5)
+       for(double x = -150 ;  x <= 150 ; x += .25)
        {
-           for(double y = -100 ;  y <= 100 ; y += .5)
+           for(double y = -100 ;  y <= 100 ; y += .25)
            {
                featureTree->get2DMesh()->getField(REAL_STRESS_FIELD, Point(x,y),tmp) ;
                 std::cout << tmp[0] << "  "<< std::flush ;

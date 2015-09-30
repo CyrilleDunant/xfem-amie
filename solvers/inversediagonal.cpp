@@ -31,10 +31,10 @@ InverseLumpedDiagonal::InverseLumpedDiagonal(const CoordinateIndexedSparseMatrix
 		}
 		
 		double v = diagonal[i] ;
-		if(std::abs(v) > 1e-6)
+// 		if(std::abs(v) > 1e-6)
 			diagonal[i] = 1./v ;
-		else /*if(v > 0)*/
-			diagonal[i] = 1. ;
+// 		else /*if(v > 0)*/
+// 			diagonal[i] = 1. ;
 //         else
 //             diagonal[i] = -1./std::numeric_limits<double>::epsilon() ;
 

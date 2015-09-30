@@ -43,8 +43,8 @@ const size_t HEAP_SIZE = 32768 ;
 */
 struct Memory
 {
-	double stack[HEAP_SIZE];
-	double heap[HEAP_SIZE] ;
+	long double stack[HEAP_SIZE];
+	long double heap[HEAP_SIZE] ;
 
 	/** \brief Constructor. Initialises stack and heap to 0.
 	 * 
@@ -59,13 +59,13 @@ struct Memory
 struct Context
 {
 	Memory memory; 
-	double x ; 
-	double y ; 
-	double z ;
-	double t ; 
-	double u ; 
-	double v ; 
-	double w ;
+	long double x ; 
+	long double y ; 
+	long double z ;
+	long double t ; 
+	long double u ; 
+	long double v ; 
+	long double w ;
 
 	/** \brief Constructor, initialises the argument values
 	 * 
@@ -234,7 +234,7 @@ class GeometryOperation
 public:
 	GeometryOperation() ;
     virtual ~GeometryOperation() {} ;
-	virtual void eval(double * a, double * b, double * c) const = 0;
+	virtual void eval(long double * a, long double * b, long double * c) const = 0;
 	virtual GeometryOperation * getCopy() const = 0;
 	virtual int adressOffset() const = 0 ;
 } ;
@@ -247,7 +247,7 @@ class PositionOperation : public GeometryOperation
 public:
 	PositionOperation(const Segment & s_ ) ;
 	PositionOperation(const std::vector<Segment> & s_ ) ;
-	virtual void eval(double * a, double * b, double * c) const;
+	virtual void eval(long double * a, long double * b, long double * c) const;
   virtual GeometryOperation * getCopy() const ;
 	virtual int adressOffset() const;
 } ;
@@ -259,7 +259,7 @@ class LineDistanceOperation : public GeometryOperation
 public:
 	LineDistanceOperation(const Line & l_ ) ;
 	
-	virtual void eval(double * a, double * b, double * c) const;
+	virtual void eval(long double * a, long double * b, long double * c) const;
 	
 	virtual GeometryOperation * getCopy() const ;
 	
@@ -275,7 +275,7 @@ class InHomogeneousProjectionOperation : public GeometryOperation
 public:
 	//by convention, the first point of each segment is assumed to be on the geometry
 	InHomogeneousProjectionOperation(Geometry * inGeo, const std::vector<Segment> & inProjector, const std::vector<Segment> &outProjector) ;
-	virtual void eval(double * a, double * b, double * c) const ;
+	virtual void eval(long double * a, long double * b, long double * c) const ;
 
 	virtual GeometryOperation * getCopy() const ;
 	
@@ -289,7 +289,7 @@ class DomainOperation : public GeometryOperation
 	const Geometry* geo ;
 public:
 	DomainOperation(const Geometry * g ) ;
-	virtual void eval(double * a, double * b, double * c) const;
+	virtual void eval(long double * a, long double * b, long double * c) const;
 	virtual GeometryOperation * getCopy() const ;
 	
 	virtual int adressOffset() const;
@@ -303,7 +303,7 @@ class DomainBinaryOperation : public GeometryOperation
 public:
 	DomainBinaryOperation(const Geometry * g ) ;
 	
-	virtual void eval(double * a, double * b, double * c) const;
+	virtual void eval(long double * a, long double * b, long double * c) const;
 	
 	virtual GeometryOperation * getCopy() const ;
 	
@@ -318,7 +318,7 @@ class PointDistanceBinaryOperation : public GeometryOperation
 	double y0 ;
 public:
 	PointDistanceBinaryOperation(const Point & p ) ;
-	virtual void eval(double * a, double * b, double * c) const;
+	virtual void eval(long double * a, long double * b, long double * c) const;
 	
 	virtual GeometryOperation * getCopy() const ;
 	
@@ -334,7 +334,7 @@ class PointDistanceTrinaryOperation : public GeometryOperation
 public:
 	PointDistanceTrinaryOperation(const Point & p ) ;
 	
-	virtual void eval(double * a, double * b, double * c) const;
+	virtual void eval(long double * a, long double * b, long double * c) const;
 	
 	virtual GeometryOperation * getCopy() const ;
 	
@@ -350,7 +350,7 @@ class RotationBinaryOperation : public GeometryOperation
 public:
 	RotationBinaryOperation(double a ) ;
 	
-	virtual void eval(double * a, double * b, double * c) const;
+	virtual void eval(long double * a, long double * b, long double * c) const;
 	virtual GeometryOperation * getCopy() const ;
 	virtual int adressOffset() const;
 } ;
@@ -363,7 +363,7 @@ class AngleBinaryOperation : public GeometryOperation
 	Point pivot ;
 public:
 	AngleBinaryOperation(double a, const Point & p ) ;
-	virtual void eval(double * a, double * b, double * c) const;
+	virtual void eval(long double * a, long double * b, long double * c) const;
 	
 	virtual GeometryOperation * getCopy() const ;
 	
@@ -377,7 +377,7 @@ class PointSquareDistanceBinaryOperation : public GeometryOperation
 	Point base ;
 public:
 	PointSquareDistanceBinaryOperation(const Point & p ) ;
-	virtual void eval(double * a, double * b, double * c) const;
+	virtual void eval(long double * a, long double * b, long double * c) const;
 	
 	virtual GeometryOperation * getCopy() const ;
 	
@@ -392,7 +392,7 @@ class LineOfSightOperation : public GeometryOperation
 public:
 	LineOfSightOperation(const Point & p,  const Geometry * o) ;
 	
-	virtual void eval(double * a, double * b, double * c) const;
+	virtual void eval(long double * a, long double * b, long double * c) const;
 	
 	virtual GeometryOperation * getCopy() const ;
 	
@@ -406,7 +406,7 @@ class ProjectionOperation3D : public GeometryOperation
 public:
 	ProjectionOperation3D(Segment s_ ) ;
 	
-	virtual void eval(double * a, double * b, double * c) const;
+	virtual void eval(long double * a, long double * b, long double * c) const;
 	virtual GeometryOperation * getCopy() const ;
 	virtual int adressOffset() const;
 } ;
@@ -418,7 +418,7 @@ class ProjectionOperation2D : public GeometryOperation
 public:
 	ProjectionOperation2D(Segment s_ ) ;
 	
-	virtual void eval(double * a, double * b, double * c) const;
+	virtual void eval(long double * a, long double * b, long double * c) const;
 	virtual GeometryOperation * getCopy() const ;
 	
 	virtual int adressOffset() const;
@@ -431,7 +431,7 @@ class ProjectionBinaryOperation : public GeometryOperation
 public:
 	ProjectionBinaryOperation(const Geometry * s_ ) ;
 	
-	virtual void eval(double * a, double * b, double * c) const;
+	virtual void eval(long double * a, long double * b, long double * c) const;
 	
 	virtual GeometryOperation * getCopy() const ;
 	
@@ -447,7 +447,7 @@ class HatEnrichment : public GeometryOperation
 public:
     HatEnrichment(const Geometry * g , const Point & p, const Segment & s) ;
     
-    virtual void eval(double * a, double * b, double * c) const;
+    virtual void eval(long double * a, long double * b, long double * c) const;
     
     virtual GeometryOperation * getCopy() const ;
     
@@ -463,7 +463,7 @@ class HatEnrichmentAlt : public GeometryOperation
 public:
     HatEnrichmentAlt(const Geometry * g , const Point & head,  const Point & p0, const Point & p1) ;
     
-    virtual void eval(double * a, double * b, double * c) const;
+    virtual void eval(long double * a, long double * b, long double * c) const;
     
     virtual GeometryOperation * getCopy() const ;
     
@@ -479,7 +479,7 @@ class HatEnrichmentDerivative : public GeometryOperation
 public:
     HatEnrichmentDerivative(const Geometry * g , const Point & p, const Segment & s, Variable v) ;
     
-    virtual void eval(double * a, double * b, double * c) const;
+    virtual void eval(long double * a, long double * b, long double * c) const;
     
     virtual GeometryOperation * getCopy() const ;
     
@@ -494,7 +494,7 @@ class HatEnrichment3D : public GeometryOperation
 public:
     HatEnrichment3D(const Geometry * g , const Point & p, const TriPoint & s) ;
     
-    virtual void eval(double * a, double * b, double * c) const;
+    virtual void eval(long double * a, long double * b, long double * c) const;
     
     virtual GeometryOperation * getCopy() const ;
     

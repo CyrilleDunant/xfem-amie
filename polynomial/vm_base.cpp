@@ -1089,35 +1089,51 @@ double VirtualMachine::deval(const Function &f, const Variable v_,  const double
         }
         case XI :
         {
-            double h = eps*.5 ;
-            volatile double temp = x+h ;
+            long double h = eps ;
+            volatile long double temp = x+h ;
             h = temp - x ;
-// 				return ( eval(f, x-2.*h, y, z, t, u, v, w)/12. -2./3. * eval(f, x-h, y, z, t, u, v, w)- eval(f, x+2.*h, y, z, t, u, v, w)/12. +2./3.* eval(f, x+h, y, z, t, u, v, w) ) / h ;
-            return .5*( eval(f, x+h, y, z, t, u, v, w) - eval(f, x-h, y, z, t, u, v, w))/h ;
+				return ( eval(f, x-2.*h, y, z, t, u, v, w)/12. -2./3. * eval(f, x-h, y, z, t, u, v, w)- eval(f, x+2.*h, y, z, t, u, v, w)/12. +2./3.* eval(f, x+h, y, z, t, u, v, w) ) / h ;
+//             double  fx = eval(f, x, y, z, t, u, v, w) ;
+//             double  fx_p = eval(f, x+eps, y, z, t, u, v, w) ;
+//             double  fx_2p = eval(f, x+2.*eps, y, z, t, u, v, w) ;
+//             double  fx_m = eval(f, x-eps, y, z, t, u, v, w) ;
+//             double  fx_2m = eval(f, x-2.*eps, y, z, t, u, v, w) ;
+//             double fx_pl = 0.25*fx+0.5*fx_p+0.25*fx_2p ;
+//             double fx_ml = 0.25*fx+0.5*fx_m+0.25*fx_2m ;
+//             double d = .5*( fx_pl - fx_ml)/eps ;
+//             return d/*d>0?std::min(d,1.):std::max(d, -1.)*/ ;
         }
         case ETA:
         {
-            double h = eps*.5 ;
+            double h = eps ;
             volatile double temp = y+h ;
             h = temp - y ;
-// 				return ( eval(f, x, y-2.*h, z, t, u, v, w)/12. -2./3. * eval(f, x, y-h, z, t, u, v, w)- eval(f, x, y+2.*h, z, t, u, v, w)/12. +2./3.* eval(f, x, y+h, z, t, u, v, w) ) / h ;
-            return .5*( eval(f, x, y+h, z, t, u, v, w) - eval(f, x, y-h, z, t, u, v, w))/h ;
+				return ( eval(f, x, y-2.*h, z, t, u, v, w)/12. -2./3. * eval(f, x, y-h, z, t, u, v, w)- eval(f, x, y+2.*h, z, t, u, v, w)/12. +2./3.* eval(f, x, y+h, z, t, u, v, w) ) / h ;
+//             double  fx = eval(f, x, y, z, t, u, v, w) ;
+//             double  fx_p = eval(f, x, y+eps, z, t, u, v, w) ;
+//             double  fx_2p = eval(f, x, y+2.*eps, z, t, u, v, w) ;
+//             double  fx_m = eval(f, x, y-eps, z, t, u, v, w) ;
+//             double  fx_2m = eval(f, x, y-2.*eps, z, t, u, v, w) ;
+//             double fx_pl = 0.25*fx+0.5*fx_p+0.25*fx_2p ;
+//             double fx_ml = 0.25*fx+0.5*fx_m+0.25*fx_2m ;
+//             double d = .5*( fx_pl - fx_ml)/eps ;
+//             return d/*d>0?std::min(d,1.):std::max(d, -1.)*/ ;
         }
         case ZETA:
         {
-            double h = eps*.5 ;
-            volatile double temp = z+h ;
-            h = temp - z ;
+//             double h = eps*.5 ;
+//             volatile double temp = z+h ;
+//             h = temp - z ;
 //             return ( eval(f, x, y, z-2.*h, t, u, v, w)/12. -2./3. * eval(f, x, y, z-h, t, u, v, w)- eval(f, x, y, z+2.*h, t, u, v, w)/12. +2./3.* eval(f, x, y, z+h, t, u, v, w) ) / h ;
-            return .5*( eval(f, x, y, z+h, t, u, v, w) - eval(f, x, y, z-h, t, u, v, w))/h ;
+            return .5*( eval(f, x, y, z+eps, t, u, v, w) - eval(f, x, y, z-eps, t, u, v, w))/eps ;
         }
         case TIME_VARIABLE :
         {
-            double h = eps ;
-            volatile double temp = t+h ;
-            h = temp - t ;
+//             double h = eps ;
+//             volatile double temp = t+h ;
+//             h = temp - t ;
 //             return ( eval(f, x, y, z, t-2.*h, u, v, w)/12. -2./3. * eval(f, x, y, z, t-h, u, v, w)- eval(f, x, y, z, t+2.*h, u, v, w)/12. +2./3.* eval(f, x, y, z, t+h, u, v, w) ) / h ;
-            return .5*(eval(f, x, y, z, t+h, u, v, w) - eval(f, x, y, z, t-h, u, v, w))/(h) ;
+            return .5*(eval(f, x, y, z, t+eps, u, v, w) - eval(f, x, y, z, t-eps, u, v, w))/eps ;
         }
         case U_VARIABLE:
         {

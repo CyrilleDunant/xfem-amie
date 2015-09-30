@@ -18,7 +18,7 @@
 using namespace Amie ;
 
 
-void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c ) const
+void InHomogeneousProjectionOperation::eval ( long double * a, long double * b, long double * c ) const
 {
     double res = 0;
     Point test ( *a, *b ) ;
@@ -261,7 +261,7 @@ PositionOperation::PositionOperation ( const std::vector<Segment> & s_ )
     Point vector= s_[0].normal ( Point ( -1000, -1000 ) );
     w= ( s_[0].midPoint() +vector*10. ) ;
 }
-void PositionOperation::eval ( double * a, double * b, double * c ) const
+void PositionOperation::eval ( long double * a, long double * b, long double * c ) const
 {
     Point test ( *a,*b ) ;
     int intersections = 0 ;
@@ -293,7 +293,7 @@ LineDistanceOperation::LineDistanceOperation ( const Line & l_ ) : l ( l_ )
 {
 }
 
-void LineDistanceOperation::eval ( double * a, double * b, double * c ) const
+void LineDistanceOperation::eval ( long double * a, long double * b, long double * c ) const
 {
 
     Point test ( *a, *b ) ;
@@ -315,7 +315,7 @@ InHomogeneousProjectionOperation::InHomogeneousProjectionOperation ( Geometry * 
 {
 }
 
-void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c ) const ;
+void InHomogeneousProjectionOperation::eval ( long double * a, long double * b, long double * c ) const ;
 
 GeometryOperation * InHomogeneousProjectionOperation::getCopy() const
 {
@@ -333,7 +333,7 @@ DomainOperation::DomainOperation ( const Geometry * g )
     geo = g ;
 }
 
-void DomainOperation::eval ( double * a, double * b, double * c ) const
+void DomainOperation::eval ( long double * a, long double * b, long double * c ) const
 {
     Point p ( *a,*b,*c ) ;
     if ( geo->in ( p ) )
@@ -362,7 +362,7 @@ DomainBinaryOperation::DomainBinaryOperation ( const Geometry * g ) : geo ( g )
 {
 }
 
-void DomainBinaryOperation::eval ( double * a, double * b, double * c ) const
+void DomainBinaryOperation::eval ( long double * a, long double * b, long double * c ) const
 {
 
     Point p ( *a, *b ) ;
@@ -390,7 +390,7 @@ PointDistanceBinaryOperation::PointDistanceBinaryOperation ( const Point & p ) :
 {
 }
 
-void PointDistanceBinaryOperation::eval ( double * a, double * b, double * c ) const
+void PointDistanceBinaryOperation::eval ( long double * a, long double * b, long double * c ) const
 {
     double x = *a-x0 ;
     double y = *b-y0 ;
@@ -413,7 +413,7 @@ PointDistanceTrinaryOperation::PointDistanceTrinaryOperation ( const Point & p )
 {
 }
 
-void PointDistanceTrinaryOperation::eval ( double * a, double * b, double * c ) const
+void PointDistanceTrinaryOperation::eval ( long double * a, long double * b, long double * c ) const
 {
     double x = *a-x0 ;
     double y = *b-y0 ;
@@ -436,7 +436,7 @@ RotationBinaryOperation::RotationBinaryOperation ( double a ) : cangle ( cos ( a
 {
 }
 
-void RotationBinaryOperation::eval ( double * a, double * b, double * c ) const
+void RotationBinaryOperation::eval ( long double * a, long double * b, long double * c ) const
 {
 
     double x = *a ;
@@ -459,7 +459,7 @@ AngleBinaryOperation::AngleBinaryOperation ( double a, const Point & p ) :cangle
 {
 }
 
-void AngleBinaryOperation::eval ( double * a, double * b, double * c ) const
+void AngleBinaryOperation::eval ( long double * a, long double * b, long double * c ) const
 {
 
     double x = *a ;
@@ -485,7 +485,7 @@ PointSquareDistanceBinaryOperation::PointSquareDistanceBinaryOperation ( const P
     base = p ;
 }
 
-void PointSquareDistanceBinaryOperation::eval ( double * a, double * b, double * c ) const
+void PointSquareDistanceBinaryOperation::eval ( long double * a, long double * b, long double * c ) const
 {
 
     Point p ( *a, *b ) ;
@@ -510,7 +510,7 @@ LineOfSightOperation::LineOfSightOperation ( const Point & p,  const Geometry * 
 {
 }
 
-void LineOfSightOperation::eval ( double * a, double * b, double * c ) const
+void LineOfSightOperation::eval ( long double * a, long double * b, long double * c ) const
 {
 
     Point p ( *a, *b ) ;
@@ -535,7 +535,7 @@ ProjectionOperation3D::ProjectionOperation3D ( Segment s_ ) : s ( s_ )
 {
 }
 
-void ProjectionOperation3D::eval ( double * a, double * b, double * c ) const
+void ProjectionOperation3D::eval ( long double * a, long double * b, long double * c ) const
 {
 
     *c = dist ( Point ( *a, *b, *c ), s.project ( Point ( *a, *b, *c ) ) ) ;
@@ -556,7 +556,7 @@ ProjectionOperation2D::ProjectionOperation2D ( Segment s_ ) : s ( s_ )
 {
 }
 
-void ProjectionOperation2D::eval ( double * a, double * b, double * c ) const
+void ProjectionOperation2D::eval ( long double * a, long double * b, long double * c ) const
 {
 
     *c = dist ( Point ( *a, *b ), s.project ( Point ( *a, *b ) ) ) ;
@@ -577,7 +577,7 @@ ProjectionBinaryOperation::ProjectionBinaryOperation ( const Geometry * s_ ) :  
 {
 }
 
-void ProjectionBinaryOperation::eval ( double * a, double * b, double * c ) const
+void ProjectionBinaryOperation::eval ( long double * a, long double * b, long double * c ) const
 {
     Point p ( *a, *b ) ;
     Point p_ ( p ) ;
@@ -601,7 +601,7 @@ int ProjectionBinaryOperation::adressOffset() const
 
 HatEnrichmentAlt::HatEnrichmentAlt(const Geometry * g , const Point & head, const Point & p0, const Point & p1) : g(g), head(head),  p0(p0), p1(p1) { }
 
-void HatEnrichmentAlt::eval(double * a, double * b, double * c) const
+void HatEnrichmentAlt::eval(long double * a, long double * b, long double * c) const
 {
     Point position ( *a, *b ) ;
     
@@ -662,26 +662,43 @@ HatEnrichment::HatEnrichment(const Geometry * g , const Point & p, const Segment
 {
 }
 
-void HatEnrichment::eval(double * a, double * b, double * c) const
+void HatEnrichment::eval(long double * a, long double * b, long double * c) const
 {
     Point position ( *a, *b, 0, p.getT() ) ;
     Triangle test(p, s.first(), s.second()) ;
     if(!test.in(position))
     {
-        test.project(&position);
-        position.getId() = -1 ;
+//         Point pcopy(position) ;
+//         test.project(&pcopy); 
+        
+        Point toCenter = test.getCenter()-position ;
+        toCenter /= toCenter.norm() ;
+        while(!test.in(position))
+        {
+             position += toCenter*.5*default_derivation_delta ;
+        }
+//         position.print();
+//         test.print();
+//        
+//         test.project(&position); 
+//         position.print();
+// //         exit(0) ;
+//         position.getId() = -1 ;
+
     }
 
-    if(squareDist2D(p,position) < 1e-20)
-    {
-       *c = 0 ;
-       return ;
-    }
-    if(s.on(position))
-    {
-       *c = 0 ;
-       return ;
-    }
+    
+   
+//     if(squareDist2D(p,position) < 0.01*test.getRadius())
+//     {
+//        *c = 0 ;
+//        return ;
+//     }
+//     if(s.on(position))
+//     {
+//        *c = 0 ;
+//        return ;
+//     }
     
     Line l(p, position-p) ;
     Line ls(s.first(), s.second()-s.first()) ;
@@ -694,24 +711,27 @@ void HatEnrichment::eval(double * a, double * b, double * c) const
         return ;
     }
 
-    Triangle t(p, s.first(), s.second()) ;
+//     Triangle t(p, s.first(), s.second()) ;
     Point pmin = intersgeo[0] ;
     
-    if(squareDist2D(t.getCircumCenter(), pmin) > squareDist2D(t.getCircumCenter(), intersgeo[1]))
+    if(squareDist2D(test.getCenter(), pmin) > squareDist2D(test.getCenter(), intersgeo[1]))
         pmin = intersgeo[1] ;
 
+    double distTotPoint = sqrt(squareDist2D(p, pmin));
+    double distTotSeg = sqrt(squareDist2D(interseg, pmin)); 
+    double distTot = distTotPoint+distTotSeg ;
+    double renorm = 1. ;//std::min(distTotPoint,distTotSeg)/distTot ;
+    
     if(g->in(p) == g->in(position))
     { 
-        double distTotPoint = dist(p, pmin);
-        double distPos = dist(position, p) ;
-        *c = distPos/distTotPoint ;
+        double distPos = sqrt(squareDist2D(position, p)) ;
+        *c = std::min(std::max(distPos/distTotPoint,0.), 1.)*renorm ;
+
         return ;
     }
     
-    double distTotSeg = dist(interseg, pmin);   
-    double distPos = dist(position, interseg) ;
-    
-    *c = distPos/distTotSeg ;
+    double distPos = sqrt(squareDist2D(position, interseg)) ;
+    *c = std::min(std::max(distPos/distTotSeg,0.), 1.)*renorm ;
 }
 
 GeometryOperation * HatEnrichment::getCopy() const 
@@ -727,86 +747,87 @@ int HatEnrichment::adressOffset() const
 
 HatEnrichmentDerivative::HatEnrichmentDerivative(const Geometry * g , const Point & p, const Segment & s, Variable v): g(g), p(p), s(s), v(v) { }
 
-void HatEnrichmentDerivative::eval(double * a, double * b, double * c) const
+void HatEnrichmentDerivative::eval(long double * a, long double * b, long double * c) const
 {
  
-    Point position ( *a, *b ) ;
-/*    if(g->in(position))
-    {
-        *c = 0 ;
-        return ;
-    }*/
     
-    Point positionm(position) ;
-    Point positionp(position) ;
-    
-    double d = default_derivation_delta/std::min(g->getRadius(), 0.5*dist(s.midPoint(), p)) ;
-    if(v == XI)
-    {
-        positionm.getX() -= d ;
-        positionp.getX() += d ;
-    }
-    else if(v == ETA)
-    {
-        positionm.getY() -= d ;
-        positionp.getY() += d ;
-    }
-
-    Line lm(p, positionm-p) ;
-    Line lp(p, positionp-p) ;    
-    Line ls(s.first(), s.second()-s.first()) ;
-    
-    std::vector<Point> intersgeom = lm.intersection(g) ;
-    std::vector<Point> intersgeop = lp.intersection(g) ;
-    if( intersgeom.size() < 2 || intersgeop.size() < 2 )
-    {
-        *c = 0 ;
-        return ;
-    }
-    
-    Point intersegm = lm.intersection(ls) ;
-    Point intersegp = lp.intersection(ls) ;
-
-    Point pminm = intersgeom[0] ;
-    Point pminp = intersgeop[0] ;
-    
-    Triangle t(p, s.first(), s.second()) ;
-    
-    if( squareDist2D(t.getCircumCenter(), pminm) > squareDist2D(t.getCircumCenter(), intersgeom[1]) )
-        pminm = intersgeom[1] ;
-    if( squareDist2D(t.getCircumCenter(), pminp) > squareDist2D(t.getCircumCenter(), intersgeop[1]) )
-        pminp = intersgeop[1] ;
-    
-    double basis = dist((intersegm+intersegp)*.5, p) ;
-
-    if(g->in(p) == g->in(position))
-    {        
-        double distTotmPoint = dist(p, pminm);
-//         if(distTotmPoint < default_derivation_delta)
-//         {
-//             *c = 0 ;
-//             return ;
-//         }
-        
-        double distTotpPoint = dist(p, pminp);
-        double distPosm = dist(positionm, p) ;
-        double distPosp = dist(positionp, p) ;  
-        *c = basis*0.5*(distPosp/distTotpPoint-distPosm/distTotmPoint)/d ;
-
-        return ;
-    }
-    
-    double distTotmSeg = dist(intersegm, pminm);
-//     if(distTotmSeg < default_derivation_delta)
+//     Point position ( *a, *b ) ;
+// /*    if(g->in(position))
+//     {
+//         *c = 0 ;
+//         return ;
+//     }*/
+//     
+//     Point positionm(position) ;
+//     Point positionp(position) ;
+//     
+//     double d = default_derivation_delta/std::min(g->getRadius(), 0.5*dist(s.midPoint(), p)) ;
+//     if(v == XI)
+//     {
+//         positionm.getX() -= d ;
+//         positionp.getX() += d ;
+//     }
+//     else if(v == ETA)
+//     {
+//         positionm.getY() -= d ;
+//         positionp.getY() += d ;
+//     }
+// 
+//     Line lm(p, positionm-p) ;
+//     Line lp(p, positionp-p) ;    
+//     Line ls(s.first(), s.second()-s.first()) ;
+//     
+//     std::vector<Point> intersgeom = lm.intersection(g) ;
+//     std::vector<Point> intersgeop = lp.intersection(g) ;
+//     if( intersgeom.size() < 2 || intersgeop.size() < 2 )
 //     {
 //         *c = 0 ;
 //         return ;
 //     }
-    double distTotpSeg = dist(intersegp, pminp);                   
-    double distPosm = dist(positionm, intersegm) ;
-    double distPosp = dist(positionp, intersegp) ;
-    *c = basis*0.5*(distPosp/distTotpSeg-distPosm/distTotmSeg)/d ;
-    
+//     
+//     Point intersegm = lm.intersection(ls) ;
+//     Point intersegp = lp.intersection(ls) ;
+// 
+//     Point pminm = intersgeom[0] ;
+//     Point pminp = intersgeop[0] ;
+//     
+//     Triangle t(p, s.first(), s.second()) ;
+//     
+//     if( squareDist2D(t.getCircumCenter(), pminm) > squareDist2D(t.getCircumCenter(), intersgeom[1]) )
+//         pminm = intersgeom[1] ;
+//     if( squareDist2D(t.getCircumCenter(), pminp) > squareDist2D(t.getCircumCenter(), intersgeop[1]) )
+//         pminp = intersgeop[1] ;
+//     
+//     double basis = dist((intersegm+intersegp)*.5, p) ;
+// 
+//     if(g->in(p) == g->in(position))
+//     {        
+//         double distTotmPoint = dist(p, pminm);
+// //         if(distTotmPoint < default_derivation_delta)
+// //         {
+// //             *c = 0 ;
+// //             return ;
+// //         }
+//         
+//         double distTotpPoint = dist(p, pminp);
+//         double distPosm = dist(positionm, p) ;
+//         double distPosp = dist(positionp, p) ;  
+//         *c = basis*0.5*(distPosp/distTotpPoint-distPosm/distTotmPoint)/d ;
+// 
+//         return ;
+//     }
+//     
+//     double distTotmSeg = dist(intersegm, pminm);
+// //     if(distTotmSeg < default_derivation_delta)
+// //     {
+// //         *c = 0 ;
+// //         return ;
+// //     }
+//     double distTotpSeg = dist(intersegp, pminp);                   
+//     double distPosm = dist(positionm, intersegm) ;
+//     double distPosp = dist(positionp, intersegp) ;
+//     *c = basis*0.5*(distPosp/distTotpSeg-distPosm/distTotmSeg)/d ;
+//     
 }
 
 GeometryOperation * HatEnrichmentDerivative::getCopy() const 
@@ -823,7 +844,7 @@ int HatEnrichmentDerivative::adressOffset() const
 
 HatEnrichment3D::HatEnrichment3D(const Geometry * g , const Point & p, const TriPoint & s) :g(g), p(p), s(s) {}
 
-void HatEnrichment3D::eval(double * a, double * b, double * c) const
+void HatEnrichment3D::eval(long double * a, long double * b, long double * c) const
 {
 //     std::cout << *a << "  " << *b << "  " << *c << std::endl ;
     Point position ( *a, *b, *c ) ;

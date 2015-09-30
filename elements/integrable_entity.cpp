@@ -524,7 +524,7 @@ bool isEffectiveStressField ( FieldType f )
 
 Vector toPrincipal ( const Vector & stressOrStrain, CompositionType t )
 {
-    if (t ==   SINGLE_OFF_DIAGONAL_VALUES)
+    if (false && t ==   SINGLE_OFF_DIAGONAL_VALUES)
     {
         Vector ret ( 0., 2+ ( stressOrStrain.size() == 6 ) ) ;
         if ( ret.size() == 2 )
