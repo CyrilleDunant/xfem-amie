@@ -263,7 +263,7 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 
     if(Jinv.size() == 0)
         return ret ;
-     
+    
     VirtualMachine vm ;
     Vector x = vm.eval(xtransform,gp) ;
     Vector y = vm.eval(ytransform,gp) ;

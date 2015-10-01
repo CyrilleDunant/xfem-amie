@@ -963,7 +963,7 @@ bool Assembly::make_final()
             max = coordinateIndexedMatrix->accumulated_row_size.size() ;
         }
         
-        
+        Vector c(0., coordinateIndexedMatrix->array.size()) ;
         for(size_t i = 0 ; i < element2d.size() ; i++)
         {
             if(!element2d[i]->getBehaviour())
@@ -977,7 +977,7 @@ bool Assembly::make_final()
             {
                 ids[j] *= ndof ;
             }
-            Vector c(0., coordinateIndexedMatrix->array.size()) ;
+            
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
                 double * array_iterator = getMatrix()[ids[j]].getPointer(ids[j]) ;
@@ -1365,6 +1365,7 @@ bool Assembly::make_final()
             max = coordinateIndexedMatrix->accumulated_row_size.size() ;
         }
 
+        Vector c(0., coordinateIndexedMatrix->array.size()) ;
         for(size_t i = 0 ; i < element3d.size() ; i++)
         {
             if(!element3d[i]->getBehaviour())
@@ -1378,7 +1379,7 @@ bool Assembly::make_final()
             {
                 ids[j] *= ndof ;
             }
-            Vector c(0., coordinateIndexedMatrix->array.size()) ;
+            
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
                 double * array_iterator = getMatrix()[ids[j]].getPointer(ids[j]) ;
@@ -1524,6 +1525,7 @@ bool Assembly::make_final()
         }
         checkZeroLines() ;
         setBoundaryConditions() ;
+
     }
 // 	std::cerr << smallestEigenValue(getMatrix()) << std::endl;
     return symmetric ;

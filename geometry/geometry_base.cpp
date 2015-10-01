@@ -2137,26 +2137,26 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 
             //first quadratic equation
             double a = 1. ;
-            double b = 1. - 2.*R*R ;
-            double c = R*R*R*R - r*r ;
+            double b = (1. - M_SQRT2 *R)*(1.+M_SQRT2*R ) ;
+            double c = (R-r)*(R + r) ;
 
             double delta = b*b - 4.*a*c ;
 
             if(delta < 0)
                 return ret ;
 
-            double y_squared_0 = (-b + sqrt(delta))/(2.*a) ;
+            double y = sqrt((-b + sqrt(delta))/(2.*a)) ;
             if(delta == 0)
             {
-                if(y_squared_0 < 0)
+                if(y < 0)
                     return ret ;
 
 
 
-                if((r*r-y_squared_0) >= 0)
+                if(((r-y)*(r+y)) >= 0)
                 {
-                    double y = sqrt(y_squared_0) ;
-                    double x = sqrt(r*r-y_squared_0) ;
+                    
+                    double x = sqrt((r-y)*(r+y)) ;
                     Point A(x,y) ;
                     if(std::abs(squareDist(A, getCenter()) -r*r) < POINT_TOLERANCE*POINT_TOLERANCE &&
                             std::abs(squareDist(A, g->getCenter()) -R*R) < POINT_TOLERANCE*POINT_TOLERANCE
@@ -2187,14 +2187,13 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
                 return ret ;
             }
 
-            double y_squared_1 = (-b - sqrt(delta))/(2.*a) ;
+            y = sqrt((-b - sqrt(delta))/(2.*a)) ;
 
-            if(y_squared_0 >= 0)
+            if(y >= 0)
             {
-                if((r*r-y_squared_0) >= 0)
+                if(((r-y)*(r+y)) >= 0)
                 {
-                    double x = sqrt(r*r-y_squared_0) ;
-                    double y = sqrt(y_squared_0) ;
+                    double x = sqrt((r-y)*(r+y)) ;
 
                     Point A(x,y) ;
                     if(std::abs(squareDist(A, getCenter()) -r*r) < POINT_TOLERANCE*POINT_TOLERANCE &&
@@ -2221,13 +2220,12 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
                         ret.push_back(D) ;
                 }
             }
-            if(y_squared_1 >= 0)
+            if(y >= 0)
             {
-                if((r*r-y_squared_1) >= 0)
+                if(((r-y)*(r+y)) >= 0)
                 {
 
-                    double x = sqrt(r*r-y_squared_1) ;
-                    double y = sqrt(y_squared_1) ;
+                    double x = sqrt((r-y)*(r+y)) ;
 
                     Point A(x,y) ;
                     if(std::abs(squareDist(A, getCenter()) -r*r) < POINT_TOLERANCE &&
@@ -2446,7 +2444,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
             if (dc < POINT_TOLERANCE)
                 return ret ;
 
-            double cosAngleInSelf = ((r0*r0+dc*dc-r1*r1)/(2.*r0*dc)) ;
+            double cosAngleInSelf = ((r0*r0+(dc-r1)*(dc+r1))/(2.*r0*dc)) ;
 
             double d = cosAngleInSelf*r0/*0.5*getRadius() +0.5*g->getRadius() - dc*/;
 

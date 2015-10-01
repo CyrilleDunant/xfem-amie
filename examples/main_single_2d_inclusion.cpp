@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 
 
     F.addFeature(&samplers, &inc) ;
-	F.addFeature(&samplers, &inc0) ;
+    F.addFeature(&samplers, &inc0) ;
     F.addFeature(&samplers, &inc1) ;
     F.setSamplingNumber(atof(argv[1])) ;
     

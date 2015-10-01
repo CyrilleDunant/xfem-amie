@@ -444,6 +444,8 @@ class HatEnrichment : public GeometryOperation
     const Geometry * g ;
     Point  p ;
     Segment s ;
+protected:
+    double compute(double a, double b) const;
 public:
     HatEnrichment(const Geometry * g , const Point & p, const Segment & s) ;
     
