@@ -2424,7 +2424,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case VON_MISES_REAL_STRESS_FIELD:
     {
-        if ( parent->getOrder() == LINEAR )
+        if ( parent->getOrder() == LINEAR_TIME_LINEAR )
         {
             if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
             {
@@ -2432,8 +2432,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 {
                     vm = new VirtualMachine() ;
                 }
-                Point c ( 1./3., 1./3. ) ;
-                this->getField ( PRINCIPAL_REAL_STRESS_FIELD, c, principalBuffer, true,vm ) ;
+                this->getField ( PRINCIPAL_REAL_STRESS_FIELD, p_, principalBuffer, true,vm ) ;
                 ret[0] = sqrt ( ( ( principalBuffer[0] - principalBuffer[1] ) * ( principalBuffer[0] - principalBuffer[1] ) + principalBuffer[0] * principalBuffer[0] + principalBuffer[1] * principalBuffer[1] ) / 2. ) ;
                 if ( cleanup )
                 {

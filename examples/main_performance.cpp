@@ -32,6 +32,7 @@ int main( int argc, char *argv[] )
     parser.addFlag("--pores", false, "use empty pores instead of aggregates") ;
     parser.addFlag("--no-export", false, "disable export of the triangles" ) ;
     parser.addFlag("--mesh-only", false, "stop simulation after meshing" ) ;
+    parser.addValue("--inclusions", 10000, "number of aggregates (default 10,000)" ) ;
     parser.addString("--export-file", std::string(), "name of the file to export the triangles (auto-generated if not specified)" ) ;
     parser.parseCommandLine(argc, argv) ;
 
@@ -40,6 +41,7 @@ int main( int argc, char *argv[] )
     bool pores = parser.getFlag("--pores") ;
     bool exp = !parser.getFlag("--no-export") ;
     bool bc = !parser.getFlag("--mesh-only") ;
+    int inc = parser.getValue("--inclusions") ;
     std::string file = parser.getString("--export-file") ;
     if(file.size() == 0 && exp)
     {
@@ -90,8 +92,9 @@ int main( int argc, char *argv[] )
     F.setSamplingRestriction( 8 ) ;
     F.setDeltaTime( 0.01 ) ;
     parser.setFeatureTree( &F ) ;
-    
-    PSDGenerator::get2DConcrete(&F, agg, 10000, 0.012, 0.00005, new PSDBolomeA(), nullptr , 1e8  ) ;
+
+    if(inc > 0)   
+        PSDGenerator::get2DConcrete(&F, agg, inc, 0.012, 0.00005, new PSDBolomeA(), nullptr , 1e8  ) ;
 
     if(!viscous)
     {
