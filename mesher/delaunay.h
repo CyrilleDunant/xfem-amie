@@ -131,10 +131,9 @@ class DelaunayTriangle final: public TriElement, public DelaunayTreeItem
     friend class DelaunayTree ;
     Vector cachedForces;
     std::vector<Point * > getIntegrationHints() const ;
-protected:
-    DelaunayTriangle * getNeighbourhood(size_t i) const ;
+    
 public:
-
+    
     GEO_DERIVED_OBJECT(Triangle) ;
 
     DelaunayTriangle( Mesh<DelaunayTriangle, DelaunayTreeItem> *tree, DelaunayTreeItem * father,   Point *p0,   Point *p1,   Point *p2,  Point * c) ;
@@ -179,7 +178,7 @@ public:
 
     void addNeighbourhood(DelaunayTriangle * t) ;
     void removeNeighbourhood(DelaunayTriangle *) ;
-
+    DelaunayTriangle * getNeighbourhood(size_t i) const ;
     virtual bool isConflicting(const Geometry * g) const ;
 
     virtual Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh() const {
