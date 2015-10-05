@@ -346,195 +346,195 @@ public:
                 double vval =  *(v+column_index[j]*6) ;
 
                 double toAdd = *array_iterator0*vval - compensate0;
-                double tot = *dest+toAdd ;
-                compensate0 = (tot-*dest) -tot ;
-                *dest = tot ;
+                double tot =       *dest+toAdd ;
+                compensate0 = (tot-*dest) -toAdd ;
+                                   *dest = tot ;
                 
                 toAdd = *array_iterator1*vval - compensate1;
-                tot = *(dest+1)+toAdd ;
-                compensate1 = (tot-*(dest+1)) -tot ;
-                *(dest+1) = tot ;
+                tot =              *(dest+1)+toAdd ;
+                compensate1 = (tot-*(dest+1)) -toAdd ;
+                                   *(dest+1) = tot ;
 
                 toAdd = *(array_iterator0+2)*vval - compensate2;
-                tot = *(dest+2)+toAdd ;
-                compensate2 = (tot-*(dest+2)) -tot ;
-                *(dest+2) = tot ;
+                tot =              *(dest+2)+toAdd ;
+                compensate2 = (tot-*(dest+2)) -toAdd ;
+                                   *(dest+2) = tot ;
                 
                 toAdd = *(array_iterator1+2)*vval - compensate3;
-                tot = *(dest+3)+toAdd ;
-                compensate3 = (tot-*(dest+3)) -tot ;
-                *(dest+3) = tot ;
+                tot =              *(dest+3)+toAdd ;
+                compensate3 = (tot-*(dest+3)) -toAdd ;
+                                   *(dest+3) = tot ;
 
                 toAdd = *(array_iterator0+4)*vval - compensate4;
-                tot = *(dest+4)+toAdd ;
-                compensate4 = (tot-*(dest+4)) -tot ;
-                *(dest+4) = tot ;
+                tot =              *(dest+4)+toAdd ;
+                compensate4 = (tot-*(dest+4)) -toAdd ;
+                                   *(dest+4) = tot ;
                 
                 toAdd = *(array_iterator1+4)*vval - compensate5;
-                tot = *(dest+5)+toAdd ;
-                compensate5 = (tot-*(dest+5)) -tot ;
-                *(dest+5) = tot ;
-
+                tot =              *(dest+5)+toAdd ;
+                compensate5 = (tot-*(dest+5)) -toAdd ;
+                                   *(dest+5) = tot ;
+                                   
                 vval =  *(v+column_index[j]*6+1) ;
 
                 toAdd = *(array_iterator0+6)*vval - compensate0;
-                tot = *(dest)+toAdd ;
-                compensate0 = (tot-*(dest)) -tot ;
-                *(dest) = tot ;
+                tot =              *dest+toAdd ;
+                compensate0 = (tot-*dest) -toAdd ;
+                                   *dest = tot ;
                 
                 toAdd = *(array_iterator1+6)*vval - compensate1;
-                tot = *(dest+1)+toAdd ;
-                compensate1 = (tot-*(dest+1)) -tot ;
-                *(dest+1) = tot ;
+                tot =              *(dest+1)+toAdd ;
+                compensate1 = (tot-*(dest+1)) -toAdd ;
+                                   *(dest+1) = tot ;
 
                 toAdd = *(array_iterator0+8)*vval - compensate2;
-                tot = *(dest+2)+toAdd ;
-                compensate2 = (tot-*(dest+2)) -tot ;
-                *(dest+2) = tot ;
+                tot =              *(dest+2)+toAdd ;
+                compensate2 = (tot-*(dest+2)) -toAdd ;
+                                   *(dest+2) = tot ;
                 
                 toAdd = *(array_iterator1+8)*vval - compensate3;
-                tot = *(dest+3)+toAdd ;
-                compensate3 = (tot-*(dest+3)) -tot ;
-                *(dest+3) = tot ;
+                tot =              *(dest+3)+toAdd ;
+                compensate3 = (tot-*(dest+3)) -toAdd ;
+                                   *(dest+3) = tot ;
 
                 toAdd = *(array_iterator0+10)*vval - compensate4;
-                tot = *(dest+4)+toAdd ;
-                compensate4 = (tot-*(dest+4)) -tot ;
-                *(dest+4) = tot ;
+                tot =              *(dest+4)+toAdd ;
+                compensate4 = (tot-*(dest+4)) -toAdd ;
+                                   *(dest+4) = tot ;
                 
                 toAdd = *(array_iterator1+10)*vval - compensate5;
-                tot = *(dest+5)+toAdd ;
-                compensate5 = (tot-*(dest+5)) -tot ;
-                *(dest+5) = tot ;
+                tot =              *(dest+5)+toAdd ;
+                compensate5 = (tot-*(dest+5)) -toAdd ;
+                                   *(dest+5) = tot ;
 
                 vval =  *(v+column_index[j]*6+2) ;
 
                 toAdd = *(array_iterator0+12)*vval - compensate0;
-                tot = *(dest)+toAdd ;
-                compensate0 = (tot-*(dest)) -tot ;
-                *(dest) = tot ;
+                tot =              *dest+toAdd ;
+                compensate0 = (tot-*dest) -toAdd ;
+                                   *dest = tot ;
                 
                 toAdd = *(array_iterator1+12)*vval - compensate1;
-                tot = *(dest+1)+toAdd ;
-                compensate1 = (tot-*(dest+1)) -tot ;
-                *(dest+1) = tot ;
+                tot =              *(dest+1)+toAdd ;
+                compensate1 = (tot-*(dest+1)) -toAdd ;
+                                   *(dest+1) = tot ;
 
                 toAdd = *(array_iterator0+14)*vval - compensate2;
-                tot = *(dest+2)+toAdd ;
-                compensate2 = (tot-*(dest+2)) -tot ;
-                *(dest+2) = tot ;
+                tot =              *(dest+2)+toAdd ;
+                compensate2 = (tot-*(dest+2)) -toAdd ;
+                                   *(dest+2) = tot ;
                 
                 toAdd = *(array_iterator1+14)*vval - compensate3;
-                tot = *(dest+3)+toAdd ;
-                compensate3 = (tot-*(dest+3)) -tot ;
-                *(dest+3) = tot ;
+                tot =              *(dest+3)+toAdd ;
+                compensate3 = (tot-*(dest+3)) -toAdd ;
+                                   *(dest+3) = tot ;
 
                 toAdd = *(array_iterator0+16)*vval - compensate4;
-                tot = *(dest+4)+toAdd ;
-                compensate4 = (tot-*(dest+4)) -tot ;
-                *(dest+4) = tot ;
+                tot =              *(dest+4)+toAdd ;
+                compensate4 = (tot-*(dest+4)) -toAdd ;
+                                   *(dest+4) = tot ;
                 
                 toAdd = *(array_iterator1+16)*vval - compensate5;
-                tot = *(dest+5)+toAdd ;
-                compensate5 = (tot-*(dest+5)) -tot ;
-                *(dest+5) = tot ;
+                tot =              *(dest+5)+toAdd ;
+                compensate5 = (tot-*(dest+5)) -toAdd ;
+                                   *(dest+5) = tot ;
 
                 vval =  *(v+column_index[j]*6+3) ;
 
                 toAdd = *(array_iterator0+18)*vval - compensate0;
-                tot = *(dest)+toAdd ;
-                compensate0 = (tot-*(dest)) -tot ;
-                *(dest) = tot ;
+                tot =              *dest+toAdd ;
+                compensate0 = (tot-*dest) -toAdd ;
+                                   *dest = tot ;
                 
                 toAdd = *(array_iterator1+18)*vval - compensate1;
-                tot = *(dest+1)+toAdd ;
-                compensate1 = (tot-*(dest+1)) -tot ;
-                *(dest+1) = tot ;
+                tot =              *(dest+1)+toAdd ;
+                compensate1 = (tot-*(dest+1)) -toAdd ;
+                                   *(dest+1) = tot ;
 
                 toAdd = *(array_iterator0+20)*vval - compensate2;
-                tot = *(dest+2)+toAdd ;
-                compensate2 = (tot-*(dest+2)) -tot ;
-                *(dest+2) = tot ;
+                tot =              *(dest+2)+toAdd ;
+                compensate2 = (tot-*(dest+2)) -toAdd ;
+                                   *(dest+2) = tot ;
                 
                 toAdd = *(array_iterator1+20)*vval - compensate3;
-                tot = *(dest+3)+toAdd ;
-                compensate3 = (tot-*(dest+3)) -tot ;
-                *(dest+3) = tot ;
+                tot =              *(dest+3)+toAdd ;
+                compensate3 = (tot-*(dest+3)) -toAdd ;
+                                   *(dest+3) = tot ;
 
                 toAdd = *(array_iterator0+22)*vval - compensate4;
-                tot = *(dest+4)+toAdd ;
-                compensate4 = (tot-*(dest+4)) -tot ;
-                *(dest+4) = tot ;
+                tot =              *(dest+4)+toAdd ;
+                compensate4 = (tot-*(dest+4)) -toAdd ;
+                                   *(dest+4) = tot ;
                 
                 toAdd = *(array_iterator1+22)*vval - compensate5;
-                tot = *(dest+5)+toAdd ;
-                compensate5 = (tot-*(dest+5)) -tot ;
-                *(dest+5) = tot ;
+                tot =              *(dest+5)+toAdd ;
+                compensate5 = (tot-*(dest+5)) -toAdd ;
+                                   *(dest+5) = tot ;
                 
                 vval = *(v+column_index[j]*6+4) ;
 
                 toAdd = *(array_iterator0+24)*vval - compensate0;
-                tot = *(dest)+toAdd ;
-                compensate0 = (tot-*(dest)) -tot ;
-                *(dest) = tot ;
+                tot =              *dest+toAdd ;
+                compensate0 = (tot-*dest) -toAdd ;
+                                   *dest = tot ;
                 
                 toAdd = *(array_iterator1+24)*vval - compensate1;
-                tot = *(dest+1)+toAdd ;
-                compensate1 = (tot-*(dest+1)) -tot ;
-                *(dest+1) = tot ;
+                tot =              *(dest+1)+toAdd ;
+                compensate1 = (tot-*(dest+1)) -toAdd ;
+                                   *(dest+1) = tot ;
 
                 toAdd = *(array_iterator0+26)*vval - compensate2;
-                tot = *(dest+2)+toAdd ;
-                compensate2 = (tot-*(dest+2)) -tot ;
-                *(dest+2) = tot ;
+                tot =              *(dest+2)+toAdd ;
+                compensate2 = (tot-*(dest+2)) -toAdd ;
+                                   *(dest+2) = tot ;
                 
                 toAdd = *(array_iterator1+26)*vval - compensate3;
-                tot = *(dest+3)+toAdd ;
-                compensate3 = (tot-*(dest+3)) -tot ;
-                *(dest+3) = tot ;
+                tot =              *(dest+3)+toAdd ;
+                compensate3 = (tot-*(dest+3)) -toAdd ;
+                                   *(dest+3) = tot ;
 
                 toAdd = *(array_iterator0+28)*vval - compensate4;
-                tot = *(dest+4)+toAdd ;
-                compensate4 = (tot-*(dest+4)) -tot ;
-                *(dest+4) = tot ;
+                tot =              *(dest+4)+toAdd ;
+                compensate4 = (tot-*(dest+4)) -toAdd ;
+                                   *(dest+4) = tot ;
                 
                 toAdd = *(array_iterator1+28)*vval - compensate5;
-                tot = *(dest+5)+toAdd ;
-                compensate5 = (tot-*(dest+5)) -tot ;
-                *(dest+5) = tot ;
+                tot =              *(dest+5)+toAdd ;
+                compensate5 = (tot-*(dest+5)) -toAdd ;
+                                   *(dest+5) = tot ;
                 
 
                 vval =  *(v+column_index[j]*6+5) ;
 
                 toAdd = *(array_iterator0+30)*vval - compensate0;
-                tot = *(dest)+toAdd ;
-                compensate0 = (tot-*(dest)) -tot ;
-                *(dest) = tot ;
+                tot =              *dest+toAdd ;
+                compensate0 = (tot-*dest) -toAdd ;
+                                   *dest = tot ;
                 
                 toAdd = *(array_iterator1+30)*vval - compensate1;
-                tot = *(dest+1)+toAdd ;
-                compensate1 = (tot-*(dest+1)) -tot ;
-                *(dest+1) = tot ;
+                tot =              *(dest+1)+toAdd ;
+                compensate1 = (tot-*(dest+1)) -toAdd ;
+                                   *(dest+1) = tot ;
 
                 toAdd = *(array_iterator0+32)*vval - compensate2;
-                tot = *(dest+2)+toAdd ;
-                compensate2 = (tot-*(dest+2)) -tot ;
-                *(dest+2) = tot ;
+                tot =              *(dest+2)+toAdd ;
+                compensate2 = (tot-*(dest+2)) -toAdd ;
+                                   *(dest+2) = tot ;
                 
                 toAdd = *(array_iterator1+32)*vval - compensate3;
-                tot = *(dest+3)+toAdd ;
-                compensate3 = (tot-*(dest+3)) -tot ;
-                *(dest+3) = tot ;
+                tot =              *(dest+3)+toAdd ;
+                compensate3 = (tot-*(dest+3)) -toAdd ;
+                                   *(dest+3) = tot ;
 
                 toAdd = *(array_iterator0+34)*vval - compensate4;
-                tot = *(dest+4)+toAdd ;
-                compensate4 = (tot-*(dest+4)) -tot ;
-                *(dest+4) = tot ;
+                tot =              *(dest+4)+toAdd ;
+                compensate4 = (tot-*(dest+4)) -toAdd ;
+                                   *(dest+4) = tot ;
                 
                 toAdd = *(array_iterator1+34)*vval - compensate5;
-                tot = *(dest+5)+toAdd ;
-                compensate5 = (tot-*(dest+5)) -tot ;
-                *(dest+5) = tot ;
+                tot =              *(dest+5)+toAdd ;
+                compensate5 = (tot-*(dest+5)) -toAdd ;
+                                   *(dest+5) = tot ;
 
                 array_iterator0 += 36 ;
                 array_iterator1 += 36 ;
