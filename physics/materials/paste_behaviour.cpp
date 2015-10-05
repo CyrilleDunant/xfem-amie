@@ -84,7 +84,7 @@ Form * ShortTermViscoElasticOnlyPasteBehaviour::getCopy() const
     return new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C0, C1, E1) ;
 }
 
-ViscoDamagePasteBehaviour::ViscoDamagePasteBehaviour(double E, double nu, double e1, double e2 , double up_, double r, SpaceDimensionality dim, double var) : PasteBehaviour(E, nu, up_,0.,0., dim, var), e_1(e1), e_2(e2), freeblocks(0), ctype(STRAIN_CRITERION)
+ViscoDamagePasteBehaviour::ViscoDamagePasteBehaviour(double E, double nu, double e1, double e2 , double up_, double r, SpaceDimensionality dim, double var) : PasteBehaviour(E, nu, up_,0.,0., dim, var), e_1(e1), e_2(e2), freeblocks(0), ctype(STRESS_CRITERION)
 {
     materialRadius = r ;
     stressFraction = 1. ;

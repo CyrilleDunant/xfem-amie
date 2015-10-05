@@ -13,9 +13,12 @@ $> ./check_test
 
 This program will run all tests in the test database and compare
 the results with results obtained with an earlier version of AMIE.
+Success is indicated in green and failure in red. Skipped tests are
+in blue (tests will get skipped if they account for features that
+are not ready yet).
 
 The comparison has a certain tolerance to account for the machine
-percision. Tolerance is set relative to the base value and is set
+precision. Tolerance is set relative to the base value and is set
 by default to 0.01. Use the following option to modify the 
 tolerance (for example to 0.001):
 
@@ -52,6 +55,38 @@ $> ./check_test --no-openmp
 For further options, see the help:
 
 $> ./check_test --help
+
+
+
+
+==== FOR DEVELOPERS ONLY ====
+
+An example of test.cpp can be found in "examples/data/templates". The
+template file contains the necessary information to add a new test in
+the database.
+
+When a feature get corrected, it might be useful to re-compute the 
+results which are used as a comparison for the tests. This can be 
+achieved using the --renew-base command line option. Please only do so
+when you are sure the new results are accurate.
+
+$> test/mytest --renew-base
+
+This can be done as a batch using check_test, including with a restriction
+to certain tests:
+
+$> ./check_test --renew-base
+$> ./check_test --renew-base --match pattern
+
+If you create a test for a feature which is not ready for deployment, 
+you can force the test to be skipped by running with the following 
+option. Doing so will disabling the test for all users, so please use
+this option with care!
+
+$> ./check_test --disable test
+
+
+
 
 
 

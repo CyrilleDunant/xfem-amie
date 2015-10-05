@@ -131,6 +131,7 @@ int main( int argc, char *argv[] )
         trg.getField( REAL_STRESS_FIELD ) ;
         trg.getField( SCALAR_DAMAGE_FIELD ) ;
         trg.getField( TWFT_STIFFNESS ) ;
+        trg.getField( TWFT_CRITERION ) ;
         trg.write() ;
     }
 

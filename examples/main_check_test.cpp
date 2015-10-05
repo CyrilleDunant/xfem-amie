@@ -81,6 +81,16 @@ int getDelta( std::string base, std::string current, double tol, double ignore )
 	return delta ;
 }
 
+bool isDeprecated( std::string test )
+{
+	std::string base = "../examples/test/"+test+"_base" ;
+	std::fstream in ;
+	in.open(base.c_str(), std::ios::in ) ;
+	std::string buffer ;
+	in >> buffer ;
+	return buffer == "deprecated";
+}
+
 int main(int argc, char *argv[])
 {
 	CommandLineParser parser("Run all tests found in AMIE test base") ;
@@ -90,17 +100,42 @@ int main(int argc, char *argv[])
 	parser.addValue("--threshold", 1e-6, "set absolute threshold below which success is not evaluated (default: 1e-6)" ) ;
 	parser.addValue("--timeout", 10, "maximum time (in seconds) spent for each test; use negative values for no time limit (default: 10s)" ) ;
 	parser.addString("--match", "*", "runs only the tests matching the required string (default: runs all tests found)" ) ;
+	parser.addString("--disable", "", "forces a specific test to be skipped for all users (developers only!)" ) ;
 	parser.disableFeatureTreeArguments() ;
 	parser.parseCommandLine(argc, argv) ;
 	double tol = std::abs(parser.getValue("--tolerance")) ;
 	double thr = std::abs(parser.getValue("--threshold")) ;
 	double timeout = std::abs(parser.getValue("--timeout")) ;
 	std::string regexp = parser.getString("--match") ;
+	std::string skip = parser.getString("--disable") ;
 	bool renew = parser.getFlag("--renew-base") ;
 	if(parser.getFlag("--zero"))
 	{
 		tol = 0 ; 
 		thr = 0 ;
+	}
+
+	if(skip.size() > 0)
+	{
+		std::cout << "Warning: you are about to disble the test " << skip << std::endl ;
+		std::cout << "This will affect all users. Do you wish to continue? [y/n]" << std::flush ;
+		std::string buffer ;
+		getline( std::cin, buffer ) ;
+		if(buffer.size() == 0 || buffer == "y" || buffer == "yes" || buffer == "Y" || buffer == "YES")
+		{
+			std::cout << Font(BOLD, RED) << "disabling test " << skip << Font() << std::endl ;
+			std::string base = "../examples/test/test_"+skip+"_base" ;
+			std::fstream out ;
+			out.open(base.c_str(), std::ios::out ) ;
+			out << "deprecated" ;
+			out.close() ;
+			return 0 ;
+		}
+		else
+		{
+			std::cout << "cancelled by user. Exiting now." <<std::endl ;
+			exit(0) ;
+		}
 	}
 
 	if(renew)
@@ -110,7 +145,7 @@ int main(int argc, char *argv[])
 		getline( std::cin, buffer ) ;
 		if(buffer.size() == 0 || buffer == "y" || buffer == "yes" || buffer == "Y" || buffer == "YES")
 		{
-			std::cout << "overriding existing results..." <<std::endl ;
+			std::cout << Font(BOLD, RED) << "overriding existing results..." << Font() << std::endl ;
 			timeout = -1 ;
 		}
 		else
@@ -153,6 +188,12 @@ int main(int argc, char *argv[])
 
 	for(size_t i = 0 ; i < exec.size() ; i++)
 	{
+		if(isDeprecated(files[i]))
+		{
+			std::cout << exec[i] << Font(BOLD, BLUE) << " skipped" << Font() <<  std::endl ;
+			continue ;
+		}
+
 		timeval time0, time1 ;
 		gettimeofday ( &time0, nullptr );
 //		std::cout << "--------------" << std::endl ;
