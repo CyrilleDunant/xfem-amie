@@ -1,0 +1,59 @@
+AMIE comes with a series of unit tests to check that several 
+features  are correctly implemented in the current version.
+
+To compile the tests (from the build directory):
+
+$> make unitTests
+
+The tests are built in the "test" folder in the build directory. 
+They can be run one by one or with the program "check_test" (from
+the build directory): 
+
+$> ./check_test
+
+This program will run all tests in the test database and compare
+the results with results obtained with an earlier version of AMIE.
+
+The comparison has a certain tolerance to account for the machine
+percision. Tolerance is set relative to the base value and is set
+by default to 0.01. Use the following option to modify the 
+tolerance (for example to 0.001):
+
+$> ./check_test --tolerance 0.001
+
+The comparison also ignores numbers that are too close to 0. The 
+default threshold is 1e-6 but can be overriden with the following
+option (for example to 1e-8):
+
+$> ./check_test --threshold 1e-8
+
+Each test is killed after 10 seconds. The duration can be modified
+using the following option (for example 5 seconds). Choosing "0" 
+will let each test run without time limit.
+
+$> ./check_test --timeout 5
+
+It is possible to run only a subset of the tests which name matches 
+a certain string pattern. By default, all tests are run. If the 
+following option is used, only the tests containing "pattern" in 
+their name will be run.
+
+$> ./check_test --match pattern
+
+The tests can be ran with different OpenMP options, by setting the 
+number of threads used in each test (8 in the following example), 
+or disabling OpenMP alltogether. Note that the tests will always be 
+run in a sequential order, even if OpenMP is set with a high number 
+of threads.
+
+$> ./check_test --set-num-threads 8
+$> ./check_test --no-openmp
+
+For further options, see the help:
+
+$> ./check_test --help
+
+
+
+
+
