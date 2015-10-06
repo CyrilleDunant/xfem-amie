@@ -305,7 +305,6 @@ void VoxelPoreFilter::read(const char * filename)
 					  )
 						bbb = false ;
 
-// 				std::cout << aaa << aab << aba << abb << baa << bab << bba << bbb << std::endl ;
 
 				std::vector<Point *> corner ;
 				if(aaa)

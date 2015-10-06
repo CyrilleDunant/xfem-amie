@@ -114,7 +114,6 @@ GaussPointArray  GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaus
 
 double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine * vm, int dummy , double t, std::vector<double> weights )
 {
-//     std::cout << "plouf" << std::endl ;
     #pragma omp critical
     while(true) {
 //         usleep(1) ;
@@ -180,7 +179,6 @@ double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType
 
         if(!cached)
         {
-//             std::cout << "pliff" << std::endl ;
             getField ( f, p_, tmp, true, vm, dummy ) ;
             
         }
@@ -1292,7 +1290,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case GENERALIZED_VISCOELASTIC_STRAIN_FIELD:
     {
-//        std::cout << p_.getT() << " " ;
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
 
@@ -1348,12 +1345,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 y_eta = dy[ i * realdof + 1 ] ;
                 ret[i*3+0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;//+ x_tau * Jinv[0][2];
                 ret[i*3+1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;//+ y_tau * Jinv[1][2] ;
-                ret[i*3+2] = 0.5 * ( ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( y_xi ) * (*JinvCache)[0][0] + ( y_eta ) * (*JinvCache)[0][1] );//+ x_tau * Jinv[1][2]  + y_tau * Jinv[0][2]);
-/*                ret[i*3+0] = x_xi ;
-                ret[i*3+1] = y_eta ;
-                ret[i*3+2] = 0 ;
-
-                std::cout << x_xi << "/" << x_eta << "\t" ;*/
+                ret[i*3+2] = 0.5 * ( ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( y_xi ) * (*JinvCache)[0][0] + ( y_eta ) * (*JinvCache)[0][1] );
 
             }
 

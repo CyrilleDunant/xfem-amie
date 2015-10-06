@@ -68,18 +68,12 @@ void EnrichmentRing::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 
 void EnrichmentRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
-// 	counter++ ;
 	if(updated)
 		update(dtree) ;
 	updated = false ;
 
 	
 	const std::vector<DelaunayTriangle *> & disc  = cache;
-// 	if(disc.size() < 6)
-// 	{
-// 		std::cout << "cowardly discarding" << std::endl ;
-// 		return ;
-// 	}
 
 	std::valarray<Function> shapefunc = TriElement(LINEAR).getShapeFunctions() ;
 	

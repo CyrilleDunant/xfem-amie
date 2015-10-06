@@ -1187,7 +1187,6 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
             FieldType ft = Enum::getFieldType( fields[i]->getStringData(), &isFieldType ) ;
             if(isFieldType)
             {
-//				std::cout << fields[i]->getStringData() << std::endl ;
                 Vector f = F->getAverageField( ft, -1, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
                 for(size_t j = 0 ; j < f.size() ; j++)
                 {
@@ -1276,12 +1275,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
                         out << f[j] << "\t" ;
                     }
                 }
-                else
-                {
-//                    double f = F->getAverageFieldOnBoundary( pos, ffields[i]->getStringData(), -1, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
-//                    std::cout << f << "\t" ;
-//                    out << f << "\t" ;
-                }
+
             }
             delete p ;
 
@@ -1312,12 +1306,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
                                 out << f[j] << "\t" ;
                             }
                         }
-                        else
-                        {
-//                    double f = F->getAverageFieldOnBoundary( pos, ffields[i]->getStringData(), -1, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
-//                    std::cout << f << "\t" ;
-//                    out << f << "\t" ;
-                        }
+
                     }
                     delete p ;
                 }

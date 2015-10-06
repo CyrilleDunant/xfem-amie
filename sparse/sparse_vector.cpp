@@ -37,7 +37,6 @@ double SparseVector::operator [](size_t i) const
 
 double & SparseVector::operator [](const size_t i)
 {
-// 	std::cout << i << "  " << start << std::endl;
     zero = 0 ;
     unsigned int * __start__       = &idx[start] ;
     unsigned int * __end__         = &idx[start+length] ;

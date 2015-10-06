@@ -5722,7 +5722,6 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
     {
         setDeltaTime ( realDeltaTime, false ) ;
     }
-//     std::cout << totit << std::endl ;
     std::cerr << totit << "/" << maxitPerStep << "." << std::flush ;
     damageConverged = solverConverged() && !behaviourChanged() /*stateConverged*/ && ret && ( totit < maxitPerStep ) ;
 
@@ -7582,18 +7581,6 @@ void FeatureTree::generateElements()
                     coOccuringFeatures.push_back ( dynamic_cast<const Feature *> ( coOccuringFeaturestmp[k] ) ) ;
                 }
 
-                /*                if(tree[i]->getGeometryType() == ELLIPSE)
-                		{
-                			for(size_t j = 0 ; j < coOccuringFeatures.size() ; j++ )
-                			{
-                				if(coOccuringFeatures[j]->getGeometryType() != ELLIPSE)
-                				{
-                					std::cout << i << " " << j << " " << std::string( tree[i]->intersects(coOccuringFeatures[j]) ? "yes" : "no" ) << " " << tree[i]->intersection(coOccuringFeatures[j]).size() << std::endl ;
-                				}
-                			}
-                		}*/
-
-
                 for ( size_t j  = 0 ; j < coOccuringFeatures.size() ; j++ )
                 {
                     if ( !coOccuringFeatures[j]->isEnrichmentFeature
@@ -7624,7 +7611,6 @@ void FeatureTree::generateElements()
                                     inter.push_back( tree[i]->getBoundingPoint(k) ) ;
                             }
                         }
-//			std::cout << i << " NOPE " << tree[i]->getGeometryType()  << " "<< coOccuringFeatures[j]->getGeometryType() << " " << inter.size() << " " << tree[i]->getBoundingPoints().size() << std::endl ;
                         if(inter.size() < 3)
                         {
                             continue ;

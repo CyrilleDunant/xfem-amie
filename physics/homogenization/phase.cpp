@@ -96,8 +96,7 @@ Phase::Phase( Feature *f , DelaunayTriangle * tri)
 				count += (int) tri->in(overlap.getInPoint(i)) ;
 			volume *= count ;
 			volume /= overlap.getBoundingPoints().size() + overlap.getInPoints().size() ;
-// 			std::cout << volume << "/" << tri->area() << std::endl ;
-// 			std::cout << count << "/" << overlap.getBoundingPoints().size() + overlap.getInPoints().size() << std::endl  ;
+
 			
 		}
 		

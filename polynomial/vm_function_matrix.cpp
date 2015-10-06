@@ -286,10 +286,6 @@ FunctionMatrix inverse3x3FunctionMatrix(const FunctionMatrix m)
     FunctionMatrix m_(m) ;
     std::vector< Matrix > swap ;
 
-// 	std::cout << m[0][0] << "   " << m[0][1] << "   " << m[0][2] << std::endl ;
-// 	std::cout << m[1][0] << "   " << m[1][1] << "   " << m[1][2] << std::endl ;
-// 	std::cout << m[2][0] << "   " << m[2][1] << "   " << m[2][2] << std::endl ;
-
     while(m_[0][0].byteCode.size() == 0 || m_[1][1].byteCode.size() == 0 || m_[2][2].byteCode.size() == 0)
     {
 

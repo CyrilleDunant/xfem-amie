@@ -511,7 +511,6 @@ inline void matrix_multiply_and_assign(const Amie::Matrix &m0, const Amie::Matri
 inline void matrix_multiply_and_add(const Amie::Matrix &m0, const Amie::Matrix &m1,  Amie::Matrix &ret)
 {
     assert(m0.numCols() == m1.numRows()) ;
-// 	std::cout << ret.numRows() << ", " << ret.numCols() << ", " << m0.numRows() << ", " <<m0.numCols() << ", " << m1.numRows() << ", "  <<m1.numCols() << std::endl ;
     if(&m0 == &ret || &m1 == &ret)
     {
         Amie::Matrix r(ret.numRows(), ret.numCols()) ;

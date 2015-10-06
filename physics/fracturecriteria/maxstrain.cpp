@@ -167,7 +167,6 @@ double SpaceTimeNonLocalMaximumStress::grade(ElementState &s)
 	if(maxStressAfter > maxstress)
 	{
 		metInTension = true ;
- //       std::cout << maxStressBefore << " " << maxStressAfter << std::endl ;
 		scoreAtTimeStepEnd = 1.-std::abs(maxstress/maxStressAfter) ;
 		return std::min(1., 1. - (maxstress - maxStressBefore) / (maxStressAfter - maxStressBefore)) ;
 	}
@@ -242,7 +241,6 @@ double SpaceTimeNonLocalEllipsoidalMixedCriterion::grade(ElementState &s)
 		if(maxStrainAfter > upVal)
 		{
 			metInTension = true ;
-// 			std::cout << upVal << "\t" << maxStrainAfter  << "\t" << maxStrainBefore << std::endl ;
 			double score = 1. - (upVal - maxStrainBefore) / (maxStrainAfter - maxStrainBefore) ;
 			if(score > 1)
 			{

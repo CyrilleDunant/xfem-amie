@@ -524,7 +524,7 @@ bool isEffectiveStressField ( FieldType f )
 
 Vector toPrincipal ( const Vector & stressOrStrain, CompositionType t )
 {
-    if (false && t ==   SINGLE_OFF_DIAGONAL_VALUES)
+    if (t ==   SINGLE_OFF_DIAGONAL_VALUES)
     {
         Vector ret ( 0., 2+ ( stressOrStrain.size() == 6 ) ) ;
         if ( ret.size() == 2 )
@@ -1060,21 +1060,6 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             return ;
         }
         
-//         if(parent->getEnrichmentFunctions().size())
-//         {
-//             Vector ret2(ret) ;
-//             getField ( NON_ENRICHED_STRAIN_FIELD, *p_, ret2, true, vm ) ;
-// //             std::cout << (ret[0]-ret2[0])/ret[0] << "  " << (ret[1]-ret2[1])/ret[1] << "  " << (ret[2]-ret2[2])/ret[2] << "  " << std::endl ;
-//             delta = ret2-ret ;
-//         }
-//         
-//         Vector str(ret) ;
-//         for(size_t i = 0 ; i < 8 ; i++)
-//         {
-//             Point dt((double)rand()/RAND_MAX-.5, (double)rand()/RAND_MAX-.5,(double)rand()/RAND_MAX-.5) ;
-//             dt *= .1;
-//             ret += (( Vector ) ( parent->getBehaviour()->getTensor ( *p_+dt, parent ) * str ) - parent->getBehaviour()->getImposedStress ( *p_+dt, parent ))*.125 ;
-//         }
         ret = ( Vector ) ( parent->getBehaviour()->getTensor ( *p_, parent ) * ret ) - parent->getBehaviour()->getImposedStress ( *p_, parent ) ;
 
         if ( cleanup )
@@ -3461,15 +3446,13 @@ Vector Form::getForcesFromAppliedStress ( const Vector & data, Function & shape,
         ret[2] += ( data[2]*normal[2]+data[4]*normal[0]+data[5]*normal[1] ) ;
 
     }
-//     VirtualMachine().print(shape);
-//     std::cout << ret[0] << "  " << ret[1] << "  " << ret[2] << "  "<< gp.gaussPoints[0].first.getX() << "  "<<  gp.gaussPoints[1].first.getX() << "  "<< gp.gaussPoints[2].first.getX() << "  "<<   gp.gaussPoints[3].first.getX() << "  "<<  VirtualMachine().ieval ( shape, gp ) << std::endl ;
+
     return ret * VirtualMachine().ieval ( shape, gp ) ;
 }
 
 Vector Form::getForcesFromAppliedStress ( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic , const Vector& normal )
 {
     VirtualMachine vm ;
-
     size_t n = e->getBoundingPoints().size() ;
     Vector field ( 0., n*externaldofs ) ;
     for ( size_t i = 0 ; i < n ; i++ )

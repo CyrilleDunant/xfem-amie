@@ -82,7 +82,6 @@ std::pair<Vector, Vector> AnisotropicLinearDamage::computeDamageIncrement(Elemen
 
     factor /= ret ;
     return std::make_pair(state,state+ret*factor.min()) ;
-// 	std::cout << getState().sum() << std::flush ;
 }
 
 void AnisotropicLinearDamage::computeDelta(ElementState & s)
@@ -169,15 +168,6 @@ bool AnisotropicLinearDamage::fractured() const
     if (fraction < 0)
         return false ;
 
-// 	if(inTension)
-// 		if(std::min(getState()[2], std::min(getState()[1],getState()[3])) >= secondaryThresholdDamageDensity)
-// 			return true ;
-//
-// 	if(inCompression)
-// 		if(getState()[0] >= thresholdDamageDensity)
-// 			return true ;
-
-// 	std::cout << std::max(tensionDamage, compressionDamage) <<  " " << thresholdDamageDensity/**fraction*/ << std::endl ;
     return getState().min() >= thresholdDamageDensity ;
 }
 

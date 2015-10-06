@@ -84,7 +84,6 @@ void LinearDamage::computeDelta(ElementState & s)
 
 Matrix LinearDamage::apply(const Matrix & m, const Point & p , const IntegrableEntity * e , int g) const
 {
-// 	std::cout << damageDensityIncrement<< "   "<< tensionDamage << "  " << compressionDamage << std::endl ;
 	
 	if(fractured())
 		return m*0.;
@@ -108,7 +107,6 @@ bool LinearDamage::fractured() const
 	if (fraction < 0)
 		return false ;
 	
-// 	std::cout << std::max(tensionDamage, compressionDamage) <<  " " << thresholdDamageDensity/**fraction*/ << std::endl ;
 		if(inCompression)
 			return getState()[0] >= thresholdDamageDensity ;
 		if(inTension)

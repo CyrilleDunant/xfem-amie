@@ -293,42 +293,12 @@ bool operator==(const Point & p_, const Point &p)
 
     return true ;
 
-//     return dist(p, *this) < POINT_TOLERANCE ;
-// 	Point mid = (p+ *this)*.5 ;
-// 	double d =  std::max(p.norm(), norm()) ;
-// 	if(d < POINT_TOLERANCE)
-// 		return true ;
-// 	return dist((p-mid)/d, (*this-mid)/d) <= POINT_TOLERANCE ;
-
-// 	double delta = POINT_TOLERANCE ;
-// 	Point a(p) ; a.getX() += delta ; a.getY() += delta ; a.getZ() += delta ;
-// 	Point b(p) ; b.getX() += delta ; b.getY() += delta; b.getZ() -= delta ;
-// 	Point c(p) ; c.getX() += delta ; c.getY() -= delta; c.getZ() += delta ;
-// 	Point d(p) ; d.getX() += delta ; d.getY() -= delta; d.getZ() -= delta ;
-// 	Point e(p) ; e.getX() -= delta ; e.getY() += delta; e.getZ() += delta ;
-// 	Point f(p) ; f.getX() -= delta ; f.getY() += delta; f.getZ() -= delta ;
-// 	Point g(p) ; g.getX() -= delta ; g.getY() -= delta; g.getZ() += delta ;
-// 	Point h(p) ; h.getX() -= delta ; h.getY() -= delta; h.getZ() -= delta ;
-//
-// 	return squareDist( &p, this) < POINT_TOLERANCE*POINT_TOLERANCE
-// 		|| squareDist( &a, this) < POINT_TOLERANCE*POINT_TOLERANCE
-// 		|| squareDist( &b, this) < POINT_TOLERANCE*POINT_TOLERANCE
-// 		|| squareDist( &c, this) < POINT_TOLERANCE*POINT_TOLERANCE
-// 		|| squareDist( &d, this) < POINT_TOLERANCE*POINT_TOLERANCE
-// 		|| squareDist( &e, this) < POINT_TOLERANCE*POINT_TOLERANCE
-// 		|| squareDist( &f, this) < POINT_TOLERANCE*POINT_TOLERANCE
-// 		|| squareDist( &g, this) < POINT_TOLERANCE*POINT_TOLERANCE
-// 		|| squareDist( &h, this) < POINT_TOLERANCE*POINT_TOLERANCE ;
 }
 
 bool operator!=(const Point & p_ ,const Point & p)
 {
     return !(p_ == p) ;
-//     double pnorm = p.norm() ;
-//     double tnorm = norm() ;
-//     if(pnorm <= 4.*POINT_TOLERANCE && tnorm <= 4.*POINT_TOLERANCE)
-//         return false ;
-//     return dist(p, *this) >= 4.*POINT_TOLERANCE ;
+
 }
 
 Point operator-(const Point & p_, const Point &p)
@@ -528,17 +498,7 @@ Point operator*( const double p,const Point & p_)
 
 double operator*(const Point & p_, const Point &p)
 {
-// #ifdef HAVE_SSE4
-//     vecdouble r ;
-//     r.vec = _mm_dp_pd(p.vecxy, p_.vecxy, 61) ;
-//     r.vec += _mm_dp_pd(p.veczt, p_.veczt, 62) ;
-//     return r.val[0] + r.val[1];
-// #elif defined HAVE_SSE3
-//     vecdouble r ;
-//     r.vec = _mm_add_pd(_mm_mul_pd(p.vecxy, vecxy), _mm_mul_pd(p.veczt, veczt)) ;
-//     return r.val[0] + r.val[1];
-// #endif
-   
+
     double compensate = 0 ;
     double sum = 0 ;
     double toAdd = p.getX()*p_.x - compensate;
@@ -563,33 +523,10 @@ double operator*(const Point & p_, const Vector &p)
     double ret = p_.x*p[0] + p_.y*p[1] ;
     if(p.size() > 2)
         ret+=p_.z*p[2] ;
-//     if(p.size() > 3)
-//         ret+=p_.t*p[3] ;
+
     return ret ;
 }
 
-
-// Point Point::operator^(const Point &p) const
-// {
-// 	Point ret ;
-//
-// 	ret.getX() = y*p.getZ() - z*p.getY() ; //fma(y,p.getZ(),  -z*p.getY()) ;
-// 	ret.getY() = z*p.getX() - x*p.getZ() ;//fma(z,p.getX() , -x*p.getZ()) ;
-// 	ret.getZ() = x*p.getY() - y*p.getX() ; //fma(x,p.getY() , -y*p.getX()) ;
-//
-// 	ret.getId() = std::max(id, p.getId()) ;
-// 	return ret ;
-// }
-
-// Point Point::operator^(const Vector &p) const
-// {
-// 	Point ret ;
-// 	ret.getX() = y*p[2] - z*p[1] ;
-// 	ret.getY() = z*p[0] - x*p[2] ;
-// 	ret.getZ() = x*p[1] - y*p[0] ;
-// 	ret.setId( id);
-// 	return ret ;
-// }
 
 PtP operator^(const Point & p_, const Point &p)
 {
@@ -646,7 +583,6 @@ void transform(Geometry * g, GeometricTransformationType transformation, const P
     case SCALE:
         if( p.getX() < POINT_TOLERANCE || p.getY() < POINT_TOLERANCE || ( g->spaceDimensions() == SPACE_THREE_DIMENSIONAL && p.getZ() < POINT_TOLERANCE) )
         {
-//            std::cout << "try to scale geometry with factor = 0 ... do nothing instead" << std::endl ;
             return ;
         }
         if(g->getGeometryType() == CIRCLE)
@@ -2424,10 +2360,8 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
             std::vector<Point>intersection = segs[i].intersection(g) ;
             for(size_t j = 0 ; j < intersection.size() ; j++)
             {
-//					intersection[j].print() ;
                 ret.push_back(intersection[j]) ;
             }
-//				ret.insert(ret.end(), intersection.begin(), intersection.end()) ;
         }
         return ret ;
 
@@ -3385,7 +3319,6 @@ Line::Line()
 
 bool Line::intersects(const Line &l) const
 {
-//    std::cout << v.getX() * l.vector().getY() - v.getY() * l.vector().getX() << std::endl ;
     return (std::abs(v.getX() * l.vector().getY() - v.getY() * l.vector().getX()) > POINT_TOLERANCE) ;
 }
 

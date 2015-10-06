@@ -149,11 +149,9 @@ void SpaceTimeRateBasedIsotropicLinearDamage::step( ElementState &s , double max
             else
                 upState = state[0] ;
             state[0] = (downState+upState)*0.5 ;
-//            std::cout << state[0] << "\t" << scoreMaxOnTimeStep << std::endl ;
         }
 
-//	state[0] = nextState ;
-//        accelerate = downAccelerate*.5 ;*/
+
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
         change = true ;
         }
@@ -161,40 +159,6 @@ void SpaceTimeRateBasedIsotropicLinearDamage::step( ElementState &s , double max
     }
     else if(!fractured() && score > maxscore-timetol)
     {
-//	std::cout << dynamic_cast<DelaunayTriangle *>(s.getParent())->index << " " << s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime( s, -1) << std::endl ;
-//	std::cout << dynamic_cast<DelaunayTriangle *>(s.getParent())->index << " " << s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime( s, 1.-2.*score) << std::endl ;
-        
-	
-
-/*        double originalState = state[0] ;
-        accelerate = 0 ;
-        double downDamage = originalState ;
-        double upDamage = 1 ;
-
-        while(upDamage-downDamage > 1e-6)
-        {
-            state[0] = (downDamage+upDamage)*.5 ;
-            double scoreAtEnd = s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime( s, 1 ) ;
-            if(scoreAtEnd > 0)
-                downDamage = state[0] ;
-            else
-                upDamage = state[0] ;
-        }
-        double maxDamage = (downDamage+upDamage)*.5 ; 
-        
-        upDamage = maxDamage ;
-        downDamage = originalState ;
-        double damageInitiationTime = 1. - score*2. ;
-        while(upDamage-downDamage > 1e-6)
-        {
-            state[0] = (downDamage+upDamage)*.5 ;
-            double scoreAtEnd = s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime( s, damageInitiationTime+timetol ) ;
-            if(scoreAtEnd > 0)
-                downDamage = state[0] ;
-            else
-                upDamage = state[0] ;
-        }
-        state[0] = upDamage ;*/
 
         double downAccelerate = 0 ;
         double upAccelerate =  1-state[0] ; //(state[0]-originalState)/(timetol/score) ;
@@ -222,10 +186,8 @@ void SpaceTimeRateBasedIsotropicLinearDamage::step( ElementState &s , double max
             else
                 upState = state[0] ;
             state[0] = (downState+upState)*0.5 ;
-//            std::cout << state[0] << "\t" << scoreMaxOnTimeStep << std::endl ;
         }
 
-//        accelerate = downAccelerate*.5 ;*/
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
         change = true ;
     }
@@ -236,14 +198,6 @@ void SpaceTimeRateBasedIsotropicLinearDamage::step( ElementState &s , double max
 	state[0] = nextState ;
     }
 
-/*	std::cout << dynamic_cast<DelaunayTriangle *>(s.getParent())->index << " " << s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime( s, -1) << std::endl ;
-	std::cout << dynamic_cast<DelaunayTriangle *>(s.getParent())->index << " " << s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime( s, -0.5) << std::endl ;
-	std::cout << dynamic_cast<DelaunayTriangle *>(s.getParent())->index << " " << s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime( s, 0) << std::endl ;
-	std::cout << dynamic_cast<DelaunayTriangle *>(s.getParent())->index << " " << s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime( s, 0.5) << std::endl ;
-	std::cout << dynamic_cast<DelaunayTriangle *>(s.getParent())->index << " " <<  s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime( s, 1.) << std::endl ;*/
-
-    
-//    state[0] = nextState ;
 
 }
 

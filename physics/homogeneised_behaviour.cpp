@@ -42,8 +42,6 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTriangl
 
     GeneralizedSelfConsistentComposite composite( mesh->get2DMesh()->getConflictingElements ( self->getPrimitive() ) ) ;
     equivalent = composite.getBehaviour() ;
-    /* 	Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
-     	std::cout << alpha[0] << std::endl ;*/
 
     v.push_back( XI );
     v.push_back( ETA );
@@ -61,19 +59,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, Dela
 
     VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
     equivalent = composite.getBehaviour() ;
-    /*	equivalent = composite.inclusions[0].getBehaviour() ;
-    	equivalent->getTensor(Point(0,0)).print() ;*/
 
-// 	if(original->getFractureCriterion())
-// 	{
-// 	    FractureCriterion * frac = original->getFractureCriterion() ;
-// 	    Matrix C = equivalent->getTensor(Point(1./3,1./3,1./3)) ;
-// 	    Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
-// 	    equivalent = new StiffnessWithImposedDeformationAndFracture(C,alpha,frac->getCopy()) ;
-// 	}
-// 	Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
-// 	Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
-//	std::cout << alpha[0] << std::endl ;
 
     v.push_back( XI );
     v.push_back( ETA );

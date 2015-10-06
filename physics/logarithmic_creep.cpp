@@ -228,9 +228,7 @@ void LogarithmicCreepWithImposedDeformationAndFracture::step(double timestep, El
     if(maxscore > 0)
     {
         reducedTimeStep = currentState.getNodalDeltaTime() * (1. - maxscore) ;
-//	std::cout << maxscore << " " << imposed[0] << " " << prevImposed[0] << std::endl ;
         prevImposed += (imposed-prevImposed)*(1.-maxscore) ;
-//	std::cout << " " << prevImposed[0] << std::endl ;
     }
     else
     {

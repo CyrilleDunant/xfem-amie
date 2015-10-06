@@ -1406,7 +1406,6 @@ void Circle::sampleBoundingSurface(size_t num_points)
     {
         double randa= 0;//((2.*(double)rand()/(RAND_MAX+1.0))-1.)*0.15*(M_PI/num_points) ;
         boundingPoints[i] = new Point(getRadius()*cos((double)i*angle) + getCenter().getX(), getRadius()*sin((double)i*angle+randa) + getCenter().getY());
-// 		std::cout << "x = " << boundingPoints[i]->getX()() << ", y = " << boundingPoints[i]->getY() << std::endl ;
     }
 }
 
@@ -1534,7 +1533,6 @@ void LayeredCircle::sampleSurface(size_t num_points)
             newRadii.push_back(samplingRadiuses[0]*.5) ;
             newRadii.push_back(samplingRadiuses[0]) ;
             to_add = true ;
-// 			std::cout << "a-added " << samplingRadiuses[0]*.5  << std::endl ;
         }
         for(size_t i = 1 ; i < samplingRadiuses.size() ; i++)
         {
@@ -1543,15 +1541,10 @@ void LayeredCircle::sampleSurface(size_t num_points)
             {
                 newRadii.push_back(samplingRadiuses[i-1]*.5+samplingRadiuses[i]*.5) ;
                 to_add = true ;
-// 				std::cout << "b-added " << samplingRadiuses[i-1]*.5+samplingRadiuses[i]*.5  << std::endl ;
             }
         }
         std::sort(newRadii.begin() , newRadii.end()) ;
-// 		for(size_t i = 0 ; i < newRadii.size() ; i++)
-// 		{
-// 			std::cout << newRadii[i] << "  "<< std::flush ;
-// 		}
-// 		std::cout <<  std::endl ;
+
         samplingRadiuses = newRadii ;
     }
 
@@ -1876,7 +1869,6 @@ void Ellipse::project(Point * p) const
         }
 
         double found = (tmin+tmax)/2. ;
-//		std::cout << found << "\t" ;
 
         p->getX() = getPointOnEllipse(found).getX() ;
         p->getY() = getPointOnEllipse(found).getY() ;
@@ -1926,7 +1918,6 @@ std::vector<Point> Ellipse::getSamplingBoundingPoints(size_t num_points) const
             n_iter++ ;
         }
 
-//		std::cout << thisangle << "-" ;
         if(thisangle < 2.*M_PI)
             ret.push_back(thispoint) ;
         else
@@ -2376,7 +2367,6 @@ std::vector<Polygon> Polygon::getInscribedPolygons( double delta ) const
            vertex.push_back( (realvertex[i]+realvertex[i_next])*0.5 ) ;
 	}
     }
-//    std::cout << vertex.size() << "/" << realvertex.size() << " original vertex kept"  << std::endl ;
 
     std::vector<Segment> segments ;
     for(size_t i = 0 ; i < vertex.size() ; i++)
@@ -2455,7 +2445,6 @@ std::vector<Polygon> Polygon::getInscribedPolygons( double delta ) const
 
        segments.push_back( Segment( first, second ) ) ;
     }
-//    std::cout << "first-segments: " << segments.size() << std::endl ;
 
     if(segments.size() < 3 && vertex.size() > 2)
     {
@@ -2527,7 +2516,6 @@ std::vector<Polygon> Polygon::getInscribedPolygons( double delta ) const
         nodes[found_first_index].second.push_back(found_second_index) ;
         nodes[found_second_index].second.push_back(found_first_index) ;
     }
-//    std::cout << "second-nodes: " << nodes.size() << std::endl ;
 
     // third, merge points too close
     std::valarray<bool> done( nodes.size() ) ;
@@ -2576,7 +2564,6 @@ std::vector<Polygon> Polygon::getInscribedPolygons( double delta ) const
     }
     int keptNodes = 0 ;
     for(size_t i = 0 ; i < kept.size() ; i++) { keptNodes += (int) kept[i] ; }
-//    std::cout << "third-nodes: " << keptNodes << std::endl ;
 
     // fourth, recreate tentative segments
     segments.clear() ;
@@ -2598,7 +2585,6 @@ std::vector<Polygon> Polygon::getInscribedPolygons( double delta ) const
         }
         done[i] = true ;
     }
-//    std::cout << "fourth-segments: " << segments.size() << std::endl ;
 
     // fifth, remove points too close to other edge 
     for(size_t i = 0 ; i < segments.size() ; i++)
@@ -2652,7 +2638,6 @@ std::vector<Polygon> Polygon::getInscribedPolygons( double delta ) const
             }
         }
     }
-//    std::cout << "fifth-segments: " << segments.size() << std::endl ;
 
     // last: reconstruct ordered polygons
     done.resize(segments.size()) ;
@@ -2705,7 +2690,6 @@ std::vector<Polygon> Polygon::getInscribedPolygons( double delta ) const
         if(pts.size() > 2)
         {
             std::valarray<Point> nextPoly( pts.size() - (int) close ) ;
-//            std::cout << "sixth-polygon: " << pts.size()-(int) close << std::endl ;
             for(size_t k = 0 ; k < pts.size()-(int) close ; k++)
                 nextPoly[k] = pts[k] ;
             nextPolygons.push_back( Polygon(nextPoly) ) ;
@@ -2718,7 +2702,6 @@ std::vector<Polygon> Polygon::getInscribedPolygons( double delta ) const
 
 void Polygon::sampleSurface(size_t num_points)
 {
-//    std::cout << "sampling polygon " << num_points << std::endl ;
     for(size_t i = 0 ; i < boundingPoints.size() ; i++)
         delete boundingPoints[i] ;
     for(size_t i = 0 ; i < inPoints.size() ; i++)
@@ -2730,7 +2713,6 @@ void Polygon::sampleSurface(size_t num_points)
     if( getPerimeter()/(originalPoints.size()*std::sqrt(area())) > 1.5 )
         factor = 2 ; 
     sampleBoundingSurface( num_points*3*factor );
-//    std::cout << num_points << " " << (size_t) real_num << " " << originalPoints.size() << " " << getBoundingPoints().size() << std::endl ;
 
     std::vector<Polygon> clusters ;
     clusters.push_back( Polygon(originalPoints) ) ;

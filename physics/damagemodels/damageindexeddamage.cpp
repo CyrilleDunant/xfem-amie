@@ -34,7 +34,6 @@ std::pair<Vector, Vector> IndexedLinearDamage::computeDamageIncrement(ElementSta
 		double vtot = 0 ;
 		double remnantEnergy = e->getDeltaEnergyAtState() ;
 		double originalEnergy = remnantEnergy ;
-// 		std::cout << "originalEnergy : " << originalEnergy << "  "<< std::flush ;
 		std::vector<DelaunayTriangle *> totry ;
 		for(size_t i = 0 ; i < e->getCache().size() ; i++)
 		{
@@ -70,8 +69,7 @@ std::pair<Vector, Vector> IndexedLinearDamage::computeDamageIncrement(ElementSta
 			maxdd *=.01 ;
 			if(totry[mindeddindex] == s.getParent())
 			{
-// 				if(std::abs(maxdd) > 1e-7)
-// 					std::cout << maxdd << std::endl ;
+
 				ret[0] += maxdd ;
 				return std::make_pair(state,ret);
 			}
@@ -108,7 +106,6 @@ std::pair<Vector, Vector> IndexedLinearDamage::computeDamageIncrement(ElementSta
 		else
 			ret[0] += delta_d ;
 		
-		std::cout << delta_d << std::endl ;
 		return std::make_pair(state,ret) ;
 
 }
@@ -156,8 +153,7 @@ void IndexedLinearDamage::computeDelta(ElementState & s)
 		maxdd *=.01 ;
 		if(totry[mindeddindex] == s.getParent())
 		{
-			// 				if(std::abs(maxdd) > 1e-7)
-			// 					std::cout << maxdd << std::endl ;
+
 			ret[0] += maxdd ;
 			delta = (ret-state).max() ;
 			return ;

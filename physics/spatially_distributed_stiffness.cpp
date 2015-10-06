@@ -75,6 +75,5 @@ Form * SpatiallyDistributedStiffness::getCopy() const
 
 void SpatiallyDistributedStiffness::setDistance(double d)
 {
-//  std::cout << d << std::endl ;
     distance = d;
 }

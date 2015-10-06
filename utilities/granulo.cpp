@@ -74,11 +74,6 @@ std::vector<Inclusion *> PSDGenerator::get2DInclusions(double rmax, double mass,
     std::sort(radii.begin(), radii.end()) ;
     std::reverse(radii.begin(), radii.end());
 
-// 	if(!radii.empty())
-// 	{
-// 		std::cout << "rmin = " << radii[radii.size()-1] << "\t" << "rmax = " << radii[0] << std::endl ;
-// 		std::cout << radii.size() << " particles generated, covering a surface of " << mass-remainingMass << std::endl ;
-// 	}
     std::vector<Inclusion *> incs ;
     if(radii.size() == 0)
     {
@@ -112,13 +107,9 @@ std::vector<Inclusion3D *> PSDGenerator::get3DInclusions(double rmax, double mas
         remainingFraction = remainingMass / mass ;
         diameter = psd->getNext3DDiameter(diameter, remainingFraction, rmax*2.) ;
     }
-// 	crit.print(diameter*0.5, remainingFraction, radii.size()) ;
 
     std::sort(radii.begin(), radii.end()) ;
     std::reverse(radii.begin(), radii.end());
-
-// 	std::cout << "rmin = " << radii[radii.size()-1] << "\t" << "rmax = " << radii[0] << std::endl ;
-// 	std::cout << radii.size() << " particles generated, filling a volume of " << mass-remainingMass << std::endl ;
 
     std::vector<Inclusion3D *> incs ;
     for(size_t i = 0 ; i < radii.size() ; i++)
@@ -828,8 +819,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > PSDGenerator::get2DExpansi
     }
 
     std::cerr << ret.size() << " zones placed on reactive aggregate area of " << aggregateArea << std::endl ;
-// 	std::cout << "initial Reacted Area = " << M_PI *radius *radius *ret.size() << " in " << ret.size() << " zones" << std::endl ;
-// 	std::cout << "Reactive aggregate Area = " << aggregateArea << std::endl ;
+
     return ret ;
 
 }
@@ -902,8 +892,7 @@ std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion *> > PSDGe
     }
 
     std::cerr << ret.size() << " zones placed on reactive aggregate area of " << aggregateArea << std::endl ;
-// 	std::cout << "initial Reacted Area = " << M_PI *radius *radius *ret.size() << " in " << ret.size() << " zones" << std::endl ;
-// 	std::cout << "Reactive aggregate Area = " << aggregateArea << std::endl ;
+
     return ret ;
 
 }
@@ -914,10 +903,7 @@ double PSDBolomeA::getNext2DDiameter(double diameter, double fraction, double dm
     double b = -(4.*fraction+1.) ;
     double delta = 8.*fraction + 1. ;
     return std::max(15.e-5,(- b - std::sqrt(delta))/2.*dmax/**2./M_PI*/) ;
-//  	double b = 1.+fraction/.25 ;
-// 	if((b - std::sqrt(b*b-fraction*fraction/(0.25*0.25)))*0.5 > 1)
-// 	    std::cout << "aggregate larger than dmax!" << std::endl ;
-//  	return std::max( 15e-5,dmax*(b - std::sqrt(b*b-fraction*fraction/(0.25*0.25)))*0.5) ;
+
 }
 
 double PSDBolomeA::getNext3DDiameter(double diameter, double fraction, double dmax)

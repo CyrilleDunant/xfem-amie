@@ -282,15 +282,11 @@ void RotatingCrack::step(ElementState & s, double maxscore)
                 currentAngle -= M_PI*.5 ;
             if(currentAngle < 0)
                 currentAngle += M_PI*.5 ;
-//             if(firstTension)
             stiff->setAngle ( currentAngle ) ; 
-//                 std::cout << std::min(std::abs(currentAngle-M_PI*.5), std::abs(currentAngle)) << std::endl ;
             change = true ;
             if(iterationcount > iterationNumber/2)
             {
-//                 if(firstTension)
-//                     stiff->setAngle ( currentAngle ) ;
-//                 std::cout << "converged angle = " << currentAngle << std::endl ;
+
                 initialAngle = currentAngle ;
                 alternate = false ;
                 alternateCheckpoint = true ;
@@ -314,14 +310,8 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement ( ElementState
     if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionMet ( 0 ) )
     {
         firstMet = true ;
-//         if ( firstTension )
-//         {
-//             range[1] = getState() [1] ;
-//         }
-//         else
-//         {
+
             range[0] = getState() [0] ;
-//         }
 
     }
     else

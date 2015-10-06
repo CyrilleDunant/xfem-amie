@@ -110,28 +110,8 @@ bool Voxel::coOccur(const Geometry * inc) const
     {
         const Tetrahedron * t = dynamic_cast<const Tetrahedron *>(inc) ;
         size_t n = t->getBoundingPoints().size() ;
-        /*		t->getBoundingPoint(0).print() ;
-        		t->getBoundingPoint(1).print() ;
-        		t->getBoundingPoint(2).print() ;
-        		t->getBoundingPoint(3).print() ;
-        		tlf.print() ;
-        		trf.print() ;
-        		blf.print() ;
-        		brf.print() ;
-        		tlb.print() ;
-        		trb.print() ;
-        		blb.print() ;
-        		brb.print() ;
-        		std::cout << std::endl ;*/
-        return /*inc->in(tlf)
-		|| inc->in(trf)
-		|| inc->in(brf)
-		|| inc->in(blf)
-		|| inc->in(tlb)
-		|| inc->in(trb)
-		|| inc->in(brb)
-		|| inc->in(blb)
-		||*/ in(inc->getCenter())
+     
+        return  in(inc->getCenter())
             || in(t->getBoundingPoint(0))
             || in(t->getBoundingPoint(n/4))
             || in(t->getBoundingPoint(n*2/4))
@@ -147,7 +127,7 @@ bool Voxel::coOccur(const Geometry * inc) const
            || inc->in(trb)
            || inc->in(brb)
            || inc->in(blb)
-           || /*Hexahedron(tlf.getX()-brb.getX(), tlf.getY()-brb.getY(), tlf.getZ()-brb.getZ(), (tlf.getX()+brb.getX())*.5, (tlf.getY()+brb.getY())*.5, (tlf.getZ()+brb.getZ())*.5).intersects(inc) ||*/ in(inc->getCenter()) ;
+           ||  in(inc->getCenter()) ;
 }
 
 void Voxel::remove(const Geometry * inc)
@@ -1052,7 +1032,6 @@ void Grid::forceAdd(const Geometry * inc)
     double endY =  startY+2.*inc->getRadius();
     int endJ = std::min(endY/psize + 2, (double)lengthY);
 
-//	std::cout << "grid force add: " << psize << "\" << startI << "," << endI << "\t" << startJ << "," << endJ << std::endl ;
 
     bool done = false ;
     for(int i = startI ; i < endI ; i++)

@@ -77,7 +77,6 @@ void TimeDependentEnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTre
         cache[i]->enrichmentUpdated = true ;
 
     }
-// 	std::cout << "update !!!! " << cache.size() << std::endl ;
 
     if(cache.empty())
         std::cout << "cache empty !" << std::endl ;
@@ -275,166 +274,14 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
                 f.setPoint(&ring[i]->getBoundingPoint(j)) ;
                 f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
 
-//                 f.setNumberOfDerivatives(2);
-//                 Function fdx = (father.getShapeFunction(j).d(XI) *hat + father.getShapeFunction(j)*hatdx) ;
-//                 Function fdy = (father.getShapeFunction(j).d(ETA)*hat + father.getShapeFunction(j)*hatdy) ;
-//                 f.setDerivative(XI , fdx);
-//                 f.setDerivative(ETA, fdy);
-    
                 ring[i]->setEnrichment( f, getPrimitive()) ;
                 
-                
-                
-                
-//                 for(double j = 0 ; j < 1 ; j+=0.001)
-//                 {
-//                     for(double k = 0 ; k < 1 ; k+=0.001)
-//                     {
-//                         if(j+k <= 1 && j >= 0 && k >= 0)
-//                             std::cout << VirtualMachine().deval(f,XI,  j,k) << "  " << std::flush ;
-//                         else
-//                             std::cout << 0 << "  " << std::flush ;
-//                     }
-//                     std::cout << std::endl ;
-//                 }
-//                 for(double j = 0 ; j < 1 ; j+=0.001)
-//                 {
-//                     for(double k = 0 ; k < 1 ; k+=0.001)
-//                     {
-//                         if(j+k <= 1 && j >= 0 && k >= 0)
-//                             std::cout << VirtualMachine().deval(f,ETA,  j,k) << "  " << std::flush ;
-//                         else
-//                             std::cout << 0 << "  " << std::flush ;
-//                     }
-//                     std::cout << std::endl ;
-//                 }
-//                 for(double j = 0 ; j < 1 ; j+=0.05)
-//                 {
-//                     for(double k =  0 ; k < 1 ; k+=0.05)
-//                     {
-//                         if(j+k <= 1 && j >= 0 && k >= 0)
-//                             std::cout << VirtualMachine().eval(f, j,k) << "  " << std::flush ;
-//                         else
-//                             std::cout << 0 << "  " << std::flush ;
-//                     }
-//                     std::cout << std::endl ;
-//                 }
-                
-                
-                
+ 
             }
         }
 //         exit(0) ;
         
     }
-//      exit(0) ;
-
-        //we build the enrichment function, first, we get the transforms from the triangle
-        //this function returns the distance to the centre
-/*        Function x("x") ;
-        Function y("y") ;
-
-        Function position = f_sqrt((x-getCenter().getX())*(x-getCenter().getX()) +
-                                   (y-getCenter().getY())*(y-getCenter().getY())) ;
-
-
-        Function hat = Function("1")-f_abs(position-getRadiusFunction())/getRadiusFunction(); //radiusAtTime( ring[i]->getBoundingPoint(0) )-f_abs(position-radiusAtTime( ring[i]->getBoundingPoint(0) ))^2;
-        Function dx = ring[i]->getXTransform() ;
-        Function dy = ring[i]->getYTransform() ;
-        Function dt = ring[i]->getTTransform() ;
-        hat.setVariableTransform( XI, dx );
-        hat.setVariableTransform( ETA, dy );
-        hat.setVariableTransform( TIME_VARIABLE, dt );
-
-
-        hat.setNumberOfDerivatives(0);
-
-        Point p_((double) rand()/RAND_MAX,(double) rand()/RAND_MAX,0,(double) rand()/RAND_MAX) ; 
-        for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
-        {
-            std::pair<DelaunayTriangle *, Point *> that(ring[i], &ring[i]->getBoundingPoint(j) ) ;
-            if(enriched.find(that) == enriched.end())
-            {
-                enriched.insert(that) ;
-                Point p = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)) ;
-
-                Function f =  ring[i]->getShapeFunction(j)*(hat - VirtualMachine().eval(hat, p.getX(), p.getY(),p.getZ(),p.getT())) ;
-
-                f.setIntegrationHint(hint) ;
-                f.setPoint(&ring[i]->getBoundingPoint(j)) ;
-                f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
-
-
-                ring[i]->setEnrichment( f, getPrimitive()) ;
-            }
-        }
-
-        Function sum("0") ;
-        for(size_t j = 0 ; j< ring[i]->getShapeFunctions().size() ; j++)
-            sum += ring[i]->getShapeFunction(j) ;
-        for(size_t j = 0 ; j< ring[i]->getEnrichmentFunctions().size() ; j++)
-            sum += ring[i]->getEnrichmentFunction(j) ;
-        for(size_t j = 0 ; j< ring[i]->getShapeFunctions().size() ; j++)
-            ring[i]->getShapeFunction(j) /= sum ;
-        for(size_t j = 0 ; j< ring[i]->getEnrichmentFunctions().size() ; j++)
-            ring[i]->getEnrichmentFunction(j) /= sum ;
-
-//		ring[i]->enrichmentUpdated = true ;
-
-        hint.clear();
-        hint.push_back(Point(1./3., 1./3.,0,0));
-        std::vector<DelaunayTriangle *> neighbourhood = dtree->getNeighbourhood(ring[i]) ;
-        for(auto & t : neighbourhood)
-        {
-            enrichedElem.insert(t) ;
-            if(std::binary_search(ring.begin(), ring.end(), t) )
-                continue ;
-
-            Function blend = getTimeDependentBlendingFunction(dofId, t) ;
-
-            if(!t->enrichmentUpdated)
-                t->clearEnrichment( getPrimitive()) ;
-
-//			t->enrichmentUpdated = true ;
-            bool hinted = false ;
-            Function position = f_sqrt((x-getCenter().getX())*(x-getCenter().getX()) +
-                                       (y-getCenter().getY())*(y-getCenter().getY())) ;
-            Function hat= Function("1")-f_abs(position-getRadiusFunction())/getRadiusFunction(); //radiusAtTime(t->getBoundingPoint(0))-f_abs(position-radiusAtTime(t->getBoundingPoint(0)))^2;
-            Function dx = t->getXTransform() ;
-            Function dy = t->getYTransform() ;
-            Function dt = t->getTTransform() ;
-            hat.setVariableTransform(XI, dx);
-            hat.setVariableTransform(ETA, dy);
-            hat.setVariableTransform(TIME_VARIABLE, dt);
-// 			hat.makeVariableTransformDerivative() ;
-            hat.setNumberOfDerivatives(0);
-
-// 			Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius()) ;
-
-            for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)
-            {
-                std::pair<DelaunayTriangle *, Point *> that(t, &t->getBoundingPoint(k) ) ;
-                if(enriched.find(that) == enriched.end())
-                {
-                    if(dofId.find(&t->getBoundingPoint(k)) != dofId.end() )
-                    {
-                        enriched.insert(that) ;
-                        Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-                        Function f =  t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.getX(), p.getY(),p.getZ(),p.getT())) ;
-                        if(!hinted)
-                        {
-                            f.setIntegrationHint(hint) ;
-                            hinted = true ;
-                        }
-                        f.setPoint(&t->getBoundingPoint(k)) ;
-                        f.setDofID(dofId[&t->getBoundingPoint(k)]) ;
-                        t->setEnrichment(f, getPrimitive()) ;
-                    }
-                }
-            }
-        }
-    }*/
-
 
     for(size_t i = 0 ; i < disc.size() ; i++)
     {
@@ -520,7 +367,6 @@ void TimeDependentHomogenisingInclusion::update(Mesh<DelaunayTriangle, DelaunayT
             homogeneised[cache[i]] = cache[i]->getBehaviour()->getCopy() ;
         }
     }
-// 	std::cout << "update !!!! " << cache.size() << std::endl ;
 
     if(cache.empty())
         std::cout << "cache empty !" << std::endl ;
@@ -598,7 +444,6 @@ void TimeDependentHomogenisingInclusion::enrich(size_t & lastId, Mesh<DelaunayTr
         }
     }
 
-//	std::cout << disc.size() << "\t" << inside.size() << "\t" << ring.size() << std::endl ;
 
     if(inside.size() == 0 && ring.size() == 0)
     {
@@ -656,7 +501,6 @@ void TimeDependentHomogenisingInclusion::enrich(size_t & lastId, Mesh<DelaunayTr
 //		(homogeneised[ring[i]]->param).print() ;
         Point c = ring[i]->getCenter() ;
         c.getT() = A.getT() ;
-//		std::cout << (int) dynamic_cast<Viscoelasticity *>(homogeneised[ring[i]])->model ;
         double factor = ((double) areIn/(double)k) * imposed->param[0][0]/realStiff[0][0] ;
         Vector alpha = (imposed->getImposedStrain(ring[i]->getCenter())) * factor;
         ring[i]->setBehaviour(dtree, new ViscoelasticityAndImposedDeformation(PURE_ELASTICITY,realStiff, alpha, b-1)) ;

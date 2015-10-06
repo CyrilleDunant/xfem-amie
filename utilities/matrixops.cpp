@@ -116,7 +116,6 @@ inline void matrix_multiply_and_assign(const Matrix &m0, const Matrix &m1,  Matr
     }
 
 
-// 		std::cout << ret.numRows() << ", " << ret.numCols() << ", " << m0.numRows() << ", " <<m0.numCols() << ", " << m1.numRows() << ", "  <<m1.numCols() << std::endl ;
     for(size_t i = 0 ; i < m0.numRows() ; i++)
     {
         const Cslice_iter<double>& ri = m0[i] ;
@@ -876,7 +875,6 @@ double det(const Matrix &s)
                 ret= fma(sig*s[i][j],det(mat), ret) ;
             }
         }
-//			std::cout << ret << std::endl ;
         return ret ;
 
     }
@@ -897,7 +895,6 @@ double det(const Matrix &s)
                 ret= fma(sig*s[i][j],det(mat), ret) ;
             }
         }
-        //			std::cout << ret << std::endl ;
         return ret ;
     }
     default:

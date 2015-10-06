@@ -105,6 +105,11 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 
     for( size_t i = 0 ; i < ring.size() ; i++ )
     {
+	//for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
+	//{
+	//	if(!dynamic_cast<BimaterialInterface *>(ring[i]->getNeighbourhood(j)->getBehaviour()) &&ring[i]->getNeighbourhood(j)->getBehaviour()->getDamageModel() )
+	//		ring[i]->getNeighbourhood(j)->getBehaviour()->getDamageModel()->setResidualStiffnessFraction(.3) ;
+	//}
 
         if( bimateralInterfaced.find( ring[i] ) == bimateralInterfaced.end() )
         {            
@@ -128,12 +133,12 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
                                               ring[i]->getBehaviour()->getCopy() ) ;
             }
 
-//             const Geometry * src =  ring[i]->getBehaviour()->getSource() ;
+            const Geometry * src =  ring[i]->getBehaviour()->getSource() ;
 
             ring[i]->setBehaviour( dtree, bi ) ;
 
             bi->transform( ring[i] ) ;
-            bi->setSource( getPrimitive() );
+            bi->setSource( src );
         }
 //         else if(ring[i]->getBehaviour()->getDamageModel())
 //         {

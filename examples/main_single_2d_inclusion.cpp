@@ -63,7 +63,7 @@ void step()
        {
            for(double y = -100 ;  y <= 100 ; y += .25)
            {
-               featureTree->get2DMesh()->getField(REAL_STRESS_FIELD, Point(x,y),tmp) ;
+               featureTree->get2DMesh()->getField(STRAIN_FIELD, Point(x,y),tmp) ;
                 std::cout << tmp[0] << "  "<< std::flush ;
            }
            std::cout << std::endl ;
@@ -109,10 +109,10 @@ int main(int argc, char *argv[])
     int setup = -1 ; //atoi(argv[2]) ;
     int load  = -1 ; //atoi(argv[3]) ;
 
-    samplers.setBehaviour(new ElasticOnlyPasteBehaviour(12e9*1e-4)) ;
-    ExpansiveZone inc(&samplers , 15, -100, 0,                     new GelBehaviour()) ;
-    Inclusion     inc0(&samplers, 15,  0  , 0) ; inc0.setBehaviour(new GelBehaviour()) ;
-    Inclusion     inc1(&samplers, 15,  100, 0) ; inc1.setBehaviour(new GelBehaviour()) ;
+    samplers.setBehaviour(new ElasticOnlyPasteBehaviour(12e9*1e-2)) ;
+    ExpansiveZone inc(&samplers , 15, -100, 0,                     new ElasticOnlyAggregateBehaviour()) ;
+    Inclusion     inc0(&samplers, 15,  0  , 0) ; inc0.setBehaviour(new ElasticOnlyAggregateBehaviour()) ;
+    Inclusion     inc1(&samplers, 15,  100, 0) ; inc1.setBehaviour(new ElasticOnlyAggregateBehaviour()) ;
     inc1.isVirtualFeature = true ;
 //     std::valarray<Point *> pts(5) ;
     
@@ -246,8 +246,8 @@ int main(int argc, char *argv[])
 
     if(load == -1)
     {
-//         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -5e6)) ;
-//         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -5e6)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -5e6)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -5e6)) ;
     }
     if(load == 2)
     {
@@ -287,8 +287,8 @@ int main(int argc, char *argv[])
 
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
+//     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT)) ;
+//     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
     F.setOrder(LINEAR) ;
 //     F.setPartition(64);
 

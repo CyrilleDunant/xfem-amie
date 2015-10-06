@@ -116,7 +116,6 @@ void PointParser3D::readData()
             this->PeriodicIds.push_back(indexPeriodic-1) ;
 
 #ifdef DEBUG
-//   			std::cout << "index : " << index << ", x : "<< p->getX() << ", y : " << p->getY() << ", z : " << p->getZ() << std::endl ;
             std::cout << "index : " << index << " indexPeriodic: " << indexPeriodic << ", x : "<< p->getX() << ", y : " << p->getY() << ", z : " << p->getZ() << std::endl ;
 #endif
         }
@@ -442,7 +441,6 @@ void ConfigParser::readData()
             if(comment != std::string::npos)
             {
                 line = line.substr(0, comment-1) ;
-//				std::cout << line << std::endl ;
             }
 
             size_t found = line.find(" ") ;
@@ -488,9 +486,7 @@ void ConfigParser::readData()
             }
             if(sep == std::string::npos)
             {
-//				std::cout << line.substr(level) << std::endl ;
                 new ConfigTreeItem( current , line.substr(level) ) ;
-//				current->printTree() ;
             }
             else
             {

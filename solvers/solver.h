@@ -34,7 +34,7 @@ public:
     Assembly * assembly ;
     virtual ~Solver();
 
-    virtual bool solve(const Vector &x0 = Vector(0), Preconditionner * precond = nullptr, const double eps = 1e-9, const int maxit = -1, bool verbose = false)  = 0 ;
+    virtual bool solve(const Vector &x0 = Vector(0), Preconditionner * precond = nullptr, const double eps = 1e-6, const int maxit = -1, bool verbose = false)  = 0 ;
 
 };
 
@@ -48,7 +48,7 @@ struct LinearSolver : public Solver
     virtual ~LinearSolver() { } ;
 
     LinearSolver(Assembly * ssembly) ;
-    virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-16, const int maxit = -1, bool verbose = false)  = 0 ;
+    virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-6, const int maxit = -1, bool verbose = false)  = 0 ;
 };
 
 /**   \brief Generic interface for non-linear solvers

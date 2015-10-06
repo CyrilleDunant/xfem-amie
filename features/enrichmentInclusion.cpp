@@ -402,7 +402,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
             Point linter0 = ring[i]->inLocalCoordinates(inter[0]) ;
             Point linter1 = ring[i]->inLocalCoordinates(inter[1]) ;
 
-            double n  = 2 ;
+            double n  = 3 ;
             for(double j= 1./n ; j < .9999  ; j+=1./n)
             {
                 Point h0 = inter[0]*j+inter[1]*(1.-j) ;
@@ -424,20 +424,14 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
         if(in(ring[i]->getBoundingPoint(0*factor)) == in(ring[i]->getBoundingPoint(1*factor)))
         {
             hat   = Function(getPrimitive(), ring[i]->getBoundingPoint(2*factor), Segment(ring[i]->getBoundingPoint(0*factor),ring[i]->getBoundingPoint(1*factor)), ring[i]) ;
-//            hatdx = Function(getPrimitive(), ring[i]->getBoundingPoint(2*factor), Segment(ring[i]->getBoundingPoint(0*factor),ring[i]->getBoundingPoint(1*factor)), ring[i], XI) ;
-//            hatdy = Function(getPrimitive(), ring[i]->getBoundingPoint(2*factor), Segment(ring[i]->getBoundingPoint(0*factor),ring[i]->getBoundingPoint(1*factor)), ring[i], ETA) ;
         }
         else if(in(ring[i]->getBoundingPoint(0*factor)) == in(ring[i]->getBoundingPoint(2*factor)))
         {
             hat   = Function(getPrimitive(), ring[i]->getBoundingPoint(1*factor), Segment(ring[i]->getBoundingPoint(2*factor),ring[i]->getBoundingPoint(0*factor)), ring[i]) ;
-//            hatdx = Function(getPrimitive(), ring[i]->getBoundingPoint(1*factor), Segment(ring[i]->getBoundingPoint(2*factor),ring[i]->getBoundingPoint(0*factor)), ring[i], XI) ;
-//            hatdy = Function(getPrimitive(), ring[i]->getBoundingPoint(1*factor), Segment(ring[i]->getBoundingPoint(2*factor),ring[i]->getBoundingPoint(0*factor)), ring[i], ETA) ;
         }
         else 
         {
             hat   = Function(getPrimitive(), ring[i]->getBoundingPoint(0*factor), Segment(ring[i]->getBoundingPoint(1*factor),ring[i]->getBoundingPoint(2*factor)), ring[i]) ;
-//            hatdx = Function(getPrimitive(), ring[i]->getBoundingPoint(0*factor), Segment(ring[i]->getBoundingPoint(1*factor),ring[i]->getBoundingPoint(2*factor)), ring[i], XI) ;
-//            hatdy = Function(getPrimitive(), ring[i]->getBoundingPoint(0*factor), Segment(ring[i]->getBoundingPoint(1*factor),ring[i]->getBoundingPoint(2*factor)), ring[i], ETA) ;
         }
          
         for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j+= factor)
@@ -448,7 +442,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
             {
                 enriched.insert(that) ;
 
-                Function f = father.getShapeFunction(j)*hat ;
+                Function f = father.getShapeFunction(j/factor)*hat ;
 
                 if(!hinted)
                 {
@@ -458,63 +452,13 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
                 f.setPoint(&ring[i]->getBoundingPoint(j)) ;
                 f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
 
-//                 f.setNumberOfDerivatives(2);
-//                 Function fdx = (father.getShapeFunction(j).d(XI) *hat + father.getShapeFunction(j)*hatdx) ;
-//                 Function fdy = (father.getShapeFunction(j).d(ETA)*hat + father.getShapeFunction(j)*hatdy) ;
-//                 f.setDerivative(XI , fdx);
-//                 f.setDerivative(ETA, fdy);
-    
                 ring[i]->setEnrichment( f, getPrimitive()) ;
-                
-                
-                
-//                 if(i == 9)
-//                 {
-//                 for(double j = 0 ; j < 1+1e-6 ; j+=0.01)
-//                 {
-//                     for(double k = 0 ; k < 1+1e-6 ; k+=0.01)
-//                     {
-//                         if(j+k <= 1+1e-6 && j >= -1e-6 && k >= -1e-6)
-//                             std::cout << VirtualMachine().deval(f,XI,  j,k) << "  " << std::flush ;
-//                         else
-//                             std::cout << 0 << "  " << std::flush ;
-//                     }
-//                     std::cout << std::endl ;
-//                 }
-//                 for(double j = 0 ; j < 1+1e-6 ; j+=0.01)
-//                 {
-//                     for(double k = 0 ; k < 1+1e-6 ; k+=0.01)
-//                     {
-//                         if(j+k <= 1+1e-6 && j >= -1e-6 && k >= -1e-6)
-//                             std::cout << VirtualMachine().deval(f,ETA,  j,k) << "  " << std::flush ;
-//                         else
-//                             std::cout << 0 << "  " << std::flush ;
-//                     }
-//                     std::cout << std::endl ;
-//                 }
-// 
-//                 exit(0) ;
-//                 }
-//                 for(double j = 0 ; j < 1 ; j+=0.05)
-//                 {
-//                     for(double k =  0 ; k < 1 ; k+=0.05)
-//                     {
-//                         if(j+k <= 1 && j >= 0 && k >= 0)
-//                             std::cout << VirtualMachine().eval(f, j,k) << "  " << std::flush ;
-//                         else
-//                             std::cout << 0 << "  " << std::flush ;
-//                     }
-//                     std::cout << std::endl ;
-//                 }
-                
-                
-                
+
             }
         }
         
         
     }
-//      exit(0) ;
 
     for(size_t i = 0 ; i < disc.size() ; i++)
     {

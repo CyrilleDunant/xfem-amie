@@ -53,7 +53,6 @@ double DruckerPrager::grade(ElementState &s)
 // 		{
 // 			(kappa_p <= kappa_0 )?factor = ((kappa_p)*(kappa_p)-3.*(kappa_p)*kappa_0+3.*kappa_0*kappa_0)*(kappa_p)/(kappa_0*kappa_0*kappa_0):factor = 1. ;
 // 		}
-// // 		std::cout << kappa_p << " , " << kappa_0 << " :: " << std::flush ;
 // 
 // 		factor = std::min(factor, factor*cap) ;
 		dfactor = 1.-ps->getDamage() ;
@@ -75,44 +74,10 @@ double DruckerPrager::grade(ElementState &s)
 		maxStrain = maxStress/pseudomodulus ;
 	}
 
-// 	if(maxStress > upthreshold && maxStress > POINT_TOLERANCE)
-// 	{
-// // 		std::cout << factor << ", "<< maxStress<< std::endl ;
-// 		metInTension = true ;
-// 		metInCompression = false ;
-// 		inTension = true ;
-// 		return 1. - std::abs(upthreshold/maxStress) ;
-// 	}
-// 	else if(maxStress >= 0 && std::abs(upthreshold) > POINT_TOLERANCE)
-// 	{
-// 		metInTension = false ;
-// 		metInCompression = false ;
-// 		inTension = true ;
-// 		return -1.+ std::abs(maxStress/upthreshold) ;
-// 	}
-// 	else if(maxStress < downthreshold && maxStress < -POINT_TOLERANCE)
-// 	{
-// 		metInTension = false ;
-// 		metInCompression = true ;
-// 		inTension = false ;
-// 		return 1. - std::abs(downthreshold/maxStress) ;
-// 	}
-// 	else if(std::abs(downthreshold) > POINT_TOLERANCE)
-// 	{
-// 		metInTension = false ;
-// 		metInCompression = false ;
-// 		inTension = false ;
-// 		return -1.+std::abs( maxStress/downthreshold) ;
-// 	}
-
-// 	std::cout << factor << ", "<< dfactor << ", "<< maxStress<< std::endl ;
-
-	
 	double effectiveUp = upthreshold*factor*dfactor ;
 	double effectiveDown = downthreshold*factor*dfactor ;
 	if(maxStress > effectiveUp && maxStrain > POINT_TOLERANCE)
 	{
-// 		std::cout << factor << ", "<< maxStress<< std::endl ;
 		metInTension = true ;
 		metInCompression = false ;
 		inTension = true ;

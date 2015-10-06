@@ -1286,11 +1286,8 @@ struct Enum
     }
     static std::string frombool(bool value)
     {
-        switch(value)
-        {
-            case false: return "false" ;
-            case true: return "true" ;
-        }
+        if(value)
+            return "true" ;
         return "false" ;
     }
    

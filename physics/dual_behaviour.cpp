@@ -176,7 +176,6 @@ void BimaterialInterface::applyViscous(const Function & p_i, const Function & p_
     Vector y = vm->eval(ytransform,gp) ;
     Vector z = vm->eval(ztransform,gp) ;
     Vector t = vm->eval(ttransform,gp) ;
-//	std::cout << sqrt(x[0]*x[0] + y[0]*y[0]) << "," << t[0] << " || " ;
     std::valarray<bool> inIn(false, x.size()) ;
     int inCount = 0;
     for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
@@ -193,7 +192,6 @@ void BimaterialInterface::applyViscous(const Function & p_i, const Function & p_
         }
 
     }
-//		std::cout << t[0] << "\t" << inCount << "\t" << gp.gaussPoints.size() << std::endl ;
 
     if(allin)
     {
@@ -202,7 +200,6 @@ void BimaterialInterface::applyViscous(const Function & p_i, const Function & p_
     }
     else if(allout)
     {
-//		std::cout << "all aout !" << std::endl ;
         outBehaviour->applyViscous(p_i, p_j, gp, Jinv,ret,vm) ;
         return ;
     }
@@ -294,6 +291,7 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 
     int outIterator = 0;
     int inIterator = 0 ;
+
     for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
     {
         if(inIn[i])
@@ -309,7 +307,14 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
             outIterator++ ;
         }
     }
-
+    
+//     double sratio = inBehaviour->param[0][0]/outBehaviour->param[0][0] ;
+//     for(size_t i = 0 ; i < gpIn.gaussPoints.size() ; i++)
+//          gpIn.gaussPoints[i].second *= sratio ; ;
+//     
+//     for(size_t i = 0 ; i < gpOut.gaussPoints.size() ; i++)
+//          gpOut.gaussPoints[i].second *= 1./sratio ;
+    
     std::vector<BoundaryCondition * > temp = inBehaviour->getBoundaryConditions(s,id, p_i, gpIn, inMatrixArray) ;
 
     ret.insert(ret.end(), temp.begin(), temp.end()) ;
@@ -331,6 +336,7 @@ void BimaterialInterface::step(double timestep, ElementState & currentState, dou
 
 DamageModel * BimaterialInterface::getDamageModel() const
 {
+//    return nullptr ;
     DamageModel * inDamage = inBehaviour->getDamageModel() ;
     DamageModel * outDamage = outBehaviour->getDamageModel() ;
     if(inDamage && !outDamage )
@@ -351,6 +357,7 @@ DamageModel * BimaterialInterface::getDamageModel() const
 
 FractureCriterion * BimaterialInterface::getFractureCriterion() const
 {
+ //   return nullptr ;
     FractureCriterion * inCriterion = inBehaviour->getFractureCriterion() ;
     FractureCriterion * outCriterion = outBehaviour->getFractureCriterion() ;
     if(inCriterion && !outCriterion )
@@ -374,6 +381,7 @@ FractureCriterion * BimaterialInterface::getFractureCriterion() const
 
 Vector BimaterialInterface::getForcesFromAppliedStress( const Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic, const Vector & normal)
 {
+
     Vector ret(v.size(), 0.) ;
 
     if(Jinv.size() == 0)
@@ -394,7 +402,6 @@ Vector BimaterialInterface::getForcesFromAppliedStress( const Vector & data, Fun
             inCount++ ;
         }
     }
-
     if(inCount == 0)
         return outBehaviour->getForcesFromAppliedStress(data, shape, gp, Jinv, v, isVolumic, normal) ;
     if(inCount == gp.gaussPoints.size())
@@ -409,22 +416,30 @@ Vector BimaterialInterface::getForcesFromAppliedStress( const Vector & data, Fun
 
     int outIterator = 0;
     int inIterator = 0 ;
-
+    double outWeight = 0 ;
+    double inWeight = 0 ;
     for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
     {
         if(inIn[i])
         {
             inMatrixArray[inIterator] = Jinv[i] ;
             gpIn.gaussPoints[inIterator] = gp.gaussPoints[i] ;
+            inWeight+=gp.gaussPoints[i].second ;
             inIterator++ ;
         }
         else
         {
             outMatrixArray[outIterator] = Jinv[i] ;
             gpOut.gaussPoints[outIterator] = gp.gaussPoints[i] ;
+            outWeight+=gp.gaussPoints[i].second ;
             outIterator++ ;
         }
     }
+    for(size_t i = 0 ; i < gpIn.gaussPoints.size() ; i++)
+         gpIn.gaussPoints[i].second *= inWeight/(inWeight+outWeight) ;
+    
+    for(size_t i = 0 ; i < gpOut.gaussPoints.size() ; i++)
+         gpOut.gaussPoints[i].second *= outWeight/(inWeight+outWeight) ;
     
     return inBehaviour->getForcesFromAppliedStress(data, shape, gpIn, inMatrixArray, v, isVolumic, normal) + 
            outBehaviour->getForcesFromAppliedStress(data, shape, gpOut, outMatrixArray, v, isVolumic, normal);
@@ -442,6 +457,7 @@ Vector BimaterialInterface::getForcesFromAppliedStress( const Vector & data, Fun
 
 Vector BimaterialInterface::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic,  const Vector & normal)
 {
+
     Vector ret(v.size(), 0.) ;
 
     if(Jinv.size() == 0)
@@ -456,12 +472,14 @@ Vector BimaterialInterface::getForcesFromAppliedStress( const Function & data, s
     size_t inCount = 0;
     for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
     {
+        
         if(inGeometry->in(Point(x[i],y[i],z[i],t[i])))
         {
             inIn[i] = true ;
             inCount++ ;
         }
     }
+    
 
     if(inCount == 0)
         return outBehaviour->getForcesFromAppliedStress( data, index, externaldofs, shape, e, gp, Jinv, v, isVolumic, normal) ;
@@ -477,22 +495,31 @@ Vector BimaterialInterface::getForcesFromAppliedStress( const Function & data, s
 
     int outIterator = 0;
     int inIterator = 0 ;
-
+    double outWeight = 0 ;
+    double inWeight = 0 ;
     for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
     {
         if(inIn[i])
         {
             inMatrixArray[inIterator] = Jinv[i] ;
             gpIn.gaussPoints[inIterator] = gp.gaussPoints[i] ;
+            inWeight+=gp.gaussPoints[i].second ;
             inIterator++ ;
         }
         else
         {
             outMatrixArray[outIterator] = Jinv[i] ;
             gpOut.gaussPoints[outIterator] = gp.gaussPoints[i] ;
+            outWeight+=gp.gaussPoints[i].second ;
             outIterator++ ;
         }
     }
+    
+    for(size_t i = 0 ; i < gpIn.gaussPoints.size() ; i++)
+         gpIn.gaussPoints[i].second *= inWeight/(inWeight+outWeight) ;
+    
+    for(size_t i = 0 ; i < gpOut.gaussPoints.size() ; i++)
+         gpOut.gaussPoints[i].second *= outWeight/(inWeight+outWeight) ;
     
     return inBehaviour->getForcesFromAppliedStress( data, index, externaldofs, shape, e, gpIn, inMatrixArray, v, isVolumic, normal) + 
            outBehaviour->getForcesFromAppliedStress( data, index, externaldofs, shape, e,  gpOut, outMatrixArray, v, isVolumic, normal);

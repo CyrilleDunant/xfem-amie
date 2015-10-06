@@ -2120,7 +2120,6 @@ void Function::setVariableTransform( const Variable v, Function & f, bool replac
         size_t last = adress_t.size()-1 ;
         for(size_t i = 0 ; i < byteCode.size() ; i++)
         {
-//			std::cout << adress_a[i*4] << "\t" << adress_a[i*4+1] << "\t" << adress_a[i*4+2] << "\t" << adress_a[i*4+3] << "\n" ;
             if(adress_a[ i*4 ] == (size_t) v+1)
                 adress_a[ i*4 ] = adress_t[last] ;
             if(adress_a[ i*4 +1 ] == (size_t) v+1)
@@ -2153,7 +2152,6 @@ void Function::makeVariableTransformDerivative()
                 delete derivative ;
                 derivative = nullptr ;
                 e_diff = false ;
-//				std::cout << "no replacement derivative - out" << std::endl ;
                 return ;
             }
         }

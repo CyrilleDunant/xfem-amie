@@ -656,7 +656,6 @@ void VoxelGLDrawer::setField(int f){
 }
 
 bool VoxelGLDrawer::isInRange(int i) const {
-// 	std::cout << "m_segmentDown = " << m_segmentDown << "  m_segmentUp = " << m_segmentUp << " val = " << (int)(*valuesAtPoint)[m_currentField][i] << std::endl ;
 	if(m_segmentDown == 0 && m_segmentUp == 255)
 		return true ;
 	

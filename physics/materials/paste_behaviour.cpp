@@ -22,7 +22,7 @@ using namespace Amie ;
 
 PasteBehaviour::PasteBehaviour(double E, double nu, double up, double yield, double c, SpaceDimensionality dim, double var) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up), yield(yield), c(c)
 {
-    materialRadius = 0.00035 ;
+    materialRadius = 0.0005 ;
     variability= var ;
 }
 
@@ -121,7 +121,6 @@ Form * ViscoDamagePasteBehaviour::getCopy() const
         break ;
     case MIXED_CRITERION:
         double k = 1. + C0[0][0]/C1[0][0] + C0[0][0]/C2[0][0] ;
-//			std::cout << k << std::endl ;
         copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*stressFraction, param[0][0], param[0][0]/k), dampaste, 0, freeblocks) ;
         break ;
     }
@@ -162,7 +161,6 @@ Form * ShortTermViscoDamagePasteBehaviour::getCopy() const
         break ;
     case MIXED_CRITERION:
         double k = 1. + C0[0][0]/C1[0][0];
-//			std::cout << k << std::endl ;
         copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, C1, E1, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*stressFraction, param[0][0], param[0][0]/k), dampaste, 0, freeblocks) ;
         break ;
     }
@@ -212,18 +210,12 @@ Form * PseudoBurgerViscoDamagePasteBehaviour::getCopy() const
 
     double weib = RandomNumber().weibull(1,5) ;
     double factor = 1. - variability + variability*weib ;
-//	std::cout << factor << std::endl ;
 
     Matrix C0 = param*factor ;
     Matrix C1 = C0*e_1 ;
     Matrix C2 = C0*0.1 ;
     Matrix E1 = C1*2. ;
     Matrix E2 = C2*t_2 ;
-// 	C0[2][2] *= .9 ;
-// 	C1[2][2] *= .9 ;
-// 	C2[2][2] *= .9 ;
-// 	E1[2][2] *= .9 ;
-// 	E2[2][2] *= .9 ;
 
     std::vector<std::pair<Matrix, Matrix> > branches ;
     branches.push_back(std::make_pair(C1,E1));
@@ -243,7 +235,6 @@ Form * PseudoBurgerViscoDamagePasteBehaviour::getCopy() const
         break ;
     case MIXED_CRITERION:
         double k = 1. + C0[0][0]/C1[0][0] + C0[0][0]/C2[0][0] ;
-//			std::cout << k << std::endl ;
         copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*stressFraction, param[0][0], param[0][0]/k), dampaste, 0, freeblocks) ;
         break ;
     }

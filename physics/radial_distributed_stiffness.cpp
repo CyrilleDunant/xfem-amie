@@ -34,11 +34,8 @@ RadialDistributedStiffness::~RadialDistributedStiffness() { }
 
 void RadialDistributedStiffness::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
-// std::cout << "a--" << std::endl ;
-// Jinv[0].print() ;
-// std::cout << "--b" << std::endl ;
+
     vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v, ret) ;
-// 	ret.print() ;
 }
 
 bool RadialDistributedStiffness::fractured() const

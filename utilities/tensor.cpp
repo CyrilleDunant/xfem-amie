@@ -206,7 +206,7 @@ Matrix Tensor::cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimen
             cg[1][2] = 0 ;
             cg[2][0] = 0 ;
             cg[2][1] = 0 ;
-            cg[2][2] = (1.-nu)*.5 ;
+            cg[2][2] = (1.-nu) ;
             cg *= E/(1.-nu*nu) ;
         }
         else
@@ -219,7 +219,7 @@ Matrix Tensor::cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimen
             cg[1][2] = 0 ;
             cg[2][0] = 0 ;
             cg[2][1] = 0 ;
-            cg[2][2] = (1-2.*nu)*.5  ;
+            cg[2][2] = (1-2.*nu)  ;
             cg *= E/((1.+nu)*(1.-2.*nu)) ;
         }
         return cg ;

@@ -42,7 +42,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     if(maxit != -1)
         Maxit = maxit ;
     else
-        Maxit = x.size() ;
+        Maxit = assembly->getForces().size()*4 ;
     if(x0.size() == assembly->getForces().size())
     {
         x.resize(assembly->getForces().size());
@@ -129,7 +129,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     for(int i = rowstart ; i < vsize ; i++)
         r[i] *= -1 ;
 
-    err0 = sqrt( std::abs(parallel_inner_product(&r[rowstart], &z[rowstart], vsize-rowstart))) ;
+    err0 = std::max(1., sqrt( std::abs(parallel_inner_product(&r[rowstart], &z[rowstart], vsize-rowstart)))) ;
     if(verbose)
         std::cerr << 0 << "\t" << sqrt(err0) << std::endl  ;
     if(err0 < errmin)
@@ -154,13 +154,13 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     {
 //         if(nit < 16)
 //             err0 = std::max(sqrt(last_rho), err0) ;
-        if(nit%64 == 0)
+        if(nit%512 == 0)
         {
-//             assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
-//             #pragma omp parallel for schedule(static) if (vsize > 10000)
-//             for(int i = rowstart ; i < vsize ; i++)
-//                 r[i] *= -1 ;
-//             
+             assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
+             #pragma omp parallel for schedule(static) if (vsize > 10000)
+             for(int i = rowstart ; i < vsize ; i++)
+                 r[i] *= -1 ;
+            rcompensate= 0 ;  
             std::cerr << resetIncreaseCount << "\t" << sqrt(last_rho) << std::endl  ;
         }
 
@@ -177,7 +177,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
         assign(q, assembly->getMatrix()*p, rowstart, colstart) ;
         pq =  parallel_inner_product_restricted(&q[rowstart], &p[rowstart], vsize-rowstart);
-        if(std::abs(pq) < 1e-24)
+        if(std::abs(pq) < realeps*realeps*.25)
         {
             last_rho = rho ;
             pqconvergence = true ;
@@ -208,7 +208,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         }
 
 
-        if( verbose && nit%50 == 0 )
+        if( verbose && nit%128 == 0 )
         {
             if(rho > lastReset)
                 resetIncreaseCount++ ;
@@ -227,6 +227,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
                 for(int i = rowstart ; i < vsize ; i++)
                     r[i] *= -1 ;
                 resetIncreaseCount = 0 ;
+		rcompensate = 0 ;
+		xcompensate= 0 ;
             }
         }
 

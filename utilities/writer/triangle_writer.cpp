@@ -281,8 +281,7 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
             {
                 for( int i = 0 ; i < nTriangles[0] ; i++ )
                 {
-// 					std::cout << m << "  " << l << "  " << j << "  " << i << "  " << std::endl ;
-// 					std::cout << values.size() << "  " << values[m].size() << "  " << values[m][l].size() << "  " << values[m][l][j].size()  << "  " << std::endl ;
+
                     for(int p = 0 ; p < counter ; p++)
                     {
                         maxval.back() = std::max(values[p][l][j][i], maxval.back()) ;
@@ -800,7 +799,6 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
                     size_t id2 = i->getBoundingPoint( factor * 1 + time_offset ).getId() ;
                     size_t id3 = i->getBoundingPoint( factor * 2 + time_offset ).getId() ;
 
-// 					std::cout << triangles[i]->index << "   "<< id1 << "   "<< id2 << "   " << id3 << "   " << x[id1  ] << std::endl ;
                     ret[2][iterator] = x[id1  ] ;
                     ret[1][iterator] = x[id2  ] ;
                     ret[0][iterator++] = x[id3 ] ;

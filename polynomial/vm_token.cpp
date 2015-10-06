@@ -719,19 +719,18 @@ void HatEnrichment::eval(long double * a, long double * b, long double * c) cons
 
     double distTotPoint = sqrt(squareDist2D(p, pmin));
     double distTotSeg = sqrt(squareDist2D(interseg, pmin)); 
-    double distTot = distTotPoint+distTotSeg ;
-    double renorm = 1. ;//std::min(distTotPoint,distTotSeg)/distTot ;
+    double renorm = 1 ; //std::max(distTotPoint,distTotSeg) ;
     
     if(g->in(p) == g->in(position))
     { 
         double distPos = sqrt(squareDist2D(position, p)) ;
-        *c = std::min(std::max(distPos/distTotPoint,0.), 1.)*renorm ;
+        *c = std::min(distPos/distTotPoint, 1.)*renorm ;
 
         return ;
     }
     
     double distPos = sqrt(squareDist2D(position, interseg)) ;
-    *c = std::min(std::max(distPos/distTotSeg,0.), 1.)*renorm ;
+    *c = std::min(distPos/distTotSeg, 1.)*renorm ;
 }
 
 GeometryOperation * HatEnrichment::getCopy() const 
@@ -846,7 +845,6 @@ HatEnrichment3D::HatEnrichment3D(const Geometry * g , const Point & p, const Tri
 
 void HatEnrichment3D::eval(long double * a, long double * b, long double * c) const
 {
-//     std::cout << *a << "  " << *b << "  " << *c << std::endl ;
     Point position ( *a, *b, *c ) ;
     Line l(p, p-position) ;
     Tetrahedron t (p, s.first(), s.second(), s.third()) ;
@@ -861,20 +859,11 @@ void HatEnrichment3D::eval(long double * a, long double * b, long double * c) co
        *c = 0 ;
        return ;
     }
-//     if(s.on(position))
-//     {
-//        *c = 0 ;
-//        return ;
-//     }
-    
+
     std::vector<Point> interseg = l.intersection(s) ;
     if(interseg.empty())
     {
-//        s.first().print();
-//        s.second().print();
-//        s.third().print();
-//        p.print();
-//        position.print();
+
        *a = 0 ;
        return ;
     }

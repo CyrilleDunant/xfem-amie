@@ -108,22 +108,11 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
     {
         idxFourth++ ;
     }
-// 	std::cout << "\n" << std::endl ;
-// 	t->inLocalCoordinates(t->getBoundingPoint(idxFirst)).print();
-// 	t->inLocalCoordinates(t->getBoundingPoint(idxSecond)).print();
-// 	t->inLocalCoordinates(t->getBoundingPoint(idxThird)).print();
-// 	t->inLocalCoordinates(t->getBoundingPoint(idxFourth)).print();
-// 	std::cout << "\n" << std::endl ;
-// 	father.getBoundingPoint(0).print();
-// 	father.getBoundingPoint(1).print();
-// 	father.getBoundingPoint(2).print();
-// 	father.getBoundingPoint(3).print();
 
     size_t a = 0 ;
     size_t b = 1 ;
     size_t c = 2 ;
     size_t d = 3 ;
-// 	exit(0) ;
 
     if(dofIds.find(&t->getBoundingPoint(idxFirst)) != dofIds.end() &&
             dofIds.find(&t->getBoundingPoint(idxSecond)) == dofIds.end() &&

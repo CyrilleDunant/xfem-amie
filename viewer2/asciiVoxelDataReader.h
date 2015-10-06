@@ -29,7 +29,6 @@ public:
 			for(size_t j = 0 ; j < numberOfFields ; j++)
 			{
 				streamAsc >> (int&)((*d)[j])[i] ;
-// 				std::cout << i << " -> "<< (int)((*d)[j][i]) << std::endl ;
 			}
 		}
 		std::cout << "\r reading ... (%) 100        " << std::endl ;

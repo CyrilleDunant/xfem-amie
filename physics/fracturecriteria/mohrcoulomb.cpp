@@ -41,7 +41,6 @@ double MohrCoulomb::grade( ElementState &s )
     double maxStress = pstress.max() ;
     double minStress = pstress.min() ;
 
-// 	std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
     metInTension = false ;
     metInCompression = false ;
     metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
@@ -248,11 +247,7 @@ double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
     double cfactor = std::max(1.-std::abs((-minStrain+ds)/(-limitcstrain+ds)), 0.) ;
 
     double  upStress = tfactor*upVal +0.01e6;
-//     if(maxStress/upStress > 2)
-//     {
-//         std::cout << s.getParent()->getBehaviour()->getDamageModel()->getState().max() << std::endl ;
-//     }
-    
+
     if(upStress < POINT_TOLERANCE)
     {
         if(maxStress < 1e-3*upVal)
@@ -321,16 +316,11 @@ double NonLocalExponentiallyDecreasingMohrCoulomb::grade( ElementState &s )
     double maxStress = pstress.max() ;
     double minStress = pstress.min() ;
     double maxStrain = pstrain.max() ;
-//     double minStrain = pstrain.min() ;
 
-// 	std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
     metInTension = false ;
     metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
     metInTension = std::abs( minStress / downVal ) < std::abs( maxStress / upVal ) ;
 
-/*    double effectiveStiffness = stiffness ;
-    if(s.getParent()->getBehaviour()->getDamageModel())
-        effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;*/
 
     double tfactor = exp(-(maxStrain-upVal/stiffness)/(limittstrain-upVal/stiffness)) ;
 
@@ -387,7 +377,6 @@ double NonLocalInverseRootMohrCoulomb::grade( ElementState &s )
     double maxStrain = pstrain.max() ;
 //     double minStrain = pstrain.min() ;
 
-// 	std::cout << maxStress << ", " << maxStrain << std::endl ;
     metInTension = false ;
     metInTension = std::abs( maxStrain / limitstrain ) > 1. ;
 

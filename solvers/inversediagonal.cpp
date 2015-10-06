@@ -31,7 +31,7 @@ InverseLumpedDiagonal::InverseLumpedDiagonal(const CoordinateIndexedSparseMatrix
 		}
 		
 		double v = diagonal[i] ;
-// 		if(std::abs(v) > 1e-6)
+		if(std::abs(v) > 1e-6)
 			diagonal[i] = 1./v ;
 // 		else /*if(v > 0)*/
 // 			diagonal[i] = 1. ;
@@ -39,7 +39,6 @@ InverseLumpedDiagonal::InverseLumpedDiagonal(const CoordinateIndexedSparseMatrix
 //             diagonal[i] = -1./std::numeric_limits<double>::epsilon() ;
 
 		
-// 		std::cout << diagonal[i] << std::endl ;
 	}
 }
 
@@ -73,8 +72,7 @@ void  InverseDiagonal::precondition(const Vector &v, Vector & t)
 InverseDiagonalSquared::InverseDiagonalSquared(const CoordinateIndexedSparseMatrix &A)
 {
 	diagonal = new Vector(A.inverseDiagonalSquared()) ;
-// 	double fac = std::abs(*diagonal).max()/std::abs(*diagonal).min();
-// 	std::cout << "pseudo-C = " << fac << std::endl ;
+
 }
 
 void InverseDiagonalSquared::precondition(const Vector &v, Vector & t) 

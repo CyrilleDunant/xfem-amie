@@ -59,7 +59,6 @@ void DamageModel::step( ElementState &s , double maxscore)
 
     std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , max) ;
     double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;//maxscore ;
-//     std::cout << "#" << score << std::endl ;
     if( !s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
     {
         s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
@@ -71,12 +70,9 @@ void DamageModel::step( ElementState &s , double maxscore)
         alternate = true ;
         return ;
     }
-//     std::cout << "#!" << score << std::endl ;
-    
+
     std::pair<Vector, Vector> damageIncrement = computeDamageIncrement( s ) ;
     
-//     std::cout << "#! " << s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() << "  "<< !alternate <<  "  "<<alternating << "  "<< !alternating << "  " << converged << "  " <<std::endl ;
-
     if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() || (alternateCheckpoint && alternating) ) // initiate iteration
     {
 
@@ -109,8 +105,7 @@ void DamageModel::step( ElementState &s , double maxscore)
     }
     else if( !converged )
     {
-//         std::cout << upState[0] << "  " << upState[1] << "  " << upState[2] << "  " << upState[3] << "  " << std::endl ;
-//         std::cout << "#!" << score << "   "<< states.size() << std::endl ;
+
         double globalAngleShift = s.getParent()->getBehaviour()->getFractureCriterion()->maxAngleShiftInNeighbourhood ;
         int globalMode = s.getParent()->getBehaviour()->getFractureCriterion()->maxModeInNeighbourhood ;
         change = true ;
@@ -211,7 +206,6 @@ void DamageModel::step( ElementState &s , double maxscore)
             if(ctype == DISSIPATIVE)
             {
                 getState( true ) = downState + ( upState - downState ) * trialRatio;
-//                 std::cout << "converged damage = " << getState(true).max() << std::endl ;
                 for(size_t i = 0 ; i <  state.size() ; i++)
                 {
                     if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE)

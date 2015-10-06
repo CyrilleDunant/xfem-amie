@@ -91,8 +91,8 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
     {
         aggregateArea += i.first->area() ;
         count += i.second ;
-//      std::cout << aggregateArea << "  " << count << std::endl ;
     }
+    deltaRadius *= .05 ;
 }
 
 GelManager::GelManager( FeatureTree * f, InclusionFamily * inc, int gel, double rf, double dr)  : deltaRadius(dr), reactedArea(0), aggregateArea(0), reactiveFraction(rf), ftree(f)
@@ -148,7 +148,6 @@ bool GelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTre
     {
         zones[z].first->setRadius( zones[z].first->getRadius() + deltaRadius ) ;
 
-//         std::cout << zones[z].first->getRadius() + deltaRadius << std::endl ;
         if( zones[z].second == current )
         {
             currentArea += zones[z].first->area() ;
@@ -279,9 +278,7 @@ bool SpaceTimeGelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, De
     for( size_t z = 0 ; z < stzones.size() ; z++ )
     {
         tests.push_back( stzones[z].first->circleAtTime( Point(0,0,0, ftree->getCurrentTime() ) ) ) ;
-//        zones[z].first->setRadius( zones[z].first->getRadius() + deltaRadius ) ;
 
-//         std::cout << zones[z].first->getRadius() + deltaRadius << std::endl ;
         if( stzones[z].second == current )
         {
             currentArea += tests[z].area() ;

@@ -82,9 +82,7 @@ struct ObjectConstructor
 				{
 					defaultValues[ arg ] = command[i+1] ;
 				}
-//				std::cout << command[i] ;
-//				std::cout << command[i+1] ;
-//				std::cout << command[i+2] ;
+
 				if(command[i+2] == "//" || command[i+1] == "//")
 				{
 					size_t j = i+(command[i+2] == "//" ? 3 : 2) ;

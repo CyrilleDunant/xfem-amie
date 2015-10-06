@@ -631,13 +631,8 @@ double LeastSquaresApproximation::optimize()
         for(size_t i = 0 ; i < parameters.size() ; i++)
             newp[i+consts.size()] = parameters[i] ;
 
-// 		std::cout << "---" << std::endl ;
-// 		for(size_t i = 0 ; i <  newp.size() ; i++)
-// 			std::cout << newp[i] << std::endl ;
         newp = newp*(*Q) ;
-// 		for(size_t i = 0 ; i <  newp.size() ; i++)
-// 			std::cout << newp[i] << std::endl ;
-// 		std::cout << "---" << std::endl ;
+
         parameters.resize(newp.size());
         parameters = newp;
         linearModel.resize(A->numRows(), A->numCols()) ;
