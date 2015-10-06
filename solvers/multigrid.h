@@ -61,7 +61,7 @@ namespace Amie
 
 		};
 		
-		virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 5e-8, const int maxit = -1, bool verbose = true)
+		virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = default_solver_precision, const int maxit = -1, bool verbose = true)
 		{
 			
 			if(mesh1.empty())

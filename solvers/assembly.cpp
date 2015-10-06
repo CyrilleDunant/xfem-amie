@@ -80,7 +80,7 @@ Assembly::Assembly()
     boundaryMatrix = nullptr ;
     ndof = 1 ;
     dim = SPACE_THREE_DIMENSIONAL ;
-    epsilon = 1e-6 ;
+    epsilon = default_solver_precision ;
 // 	multiplier_offset = 2 ;//bookmark...chk if =3
 }
 
@@ -2153,7 +2153,7 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
         gettimeofday(&time0, nullptr);
 
         BiConjugateGradientStabilized cg(this) ;
-        ret = cg.solve(displacements, nullptr,1e-22, -1, true) ;
+        ret = cg.solve(displacements, nullptr,epsilon, -1, true) ;
 
         gettimeofday(&time1, nullptr);
         double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
@@ -2171,7 +2171,7 @@ bool Assembly::mgsolve(LinearSolver * mg, Vector x0, Preconditionner *pg, int Ma
     std::cerr << "symmetrical problem" << std::endl ;
     timeval time0, time1 ;
     gettimeofday(&time0, nullptr);
-    bool ret = mg->solve(x0, pg, 1e-8, -1, true) ;
+    bool ret = mg->solve(x0, pg, default_solver_precision, -1, true) ;
     gettimeofday(&time1, nullptr);
     double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
     std::cerr << "Time to solve (s) " << delta/1e6 << std::endl ;
@@ -2185,7 +2185,7 @@ bool Assembly::cgnpsolve(const Vector b, size_t maxit)
 {
     NullPreconditionner np ;
     ConjugateGradient cg(this) ;
-    bool ret = cg.solve(b, &np, 1e-15, -1) ;
+    bool ret = cg.solve(b, &np, default_solver_precision, -1) ;
     displacements.resize(cg.x.size()) ;
     displacements = cg.x ;
     return ret ;

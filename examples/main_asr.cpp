@@ -63,8 +63,9 @@ GelManager * gelManager ;
 
 void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
 {
-    int nsteps = 1800;
-    int nstepstot = 1800;
+    int nsteps = 1600;
+    int nstepstot = 1600;
+
     int intermediateCount=0 ;
     featureTree->setMaxIterationsPerStep( 800 ) ;
 
@@ -150,8 +151,8 @@ int main( int argc, char *argv[] )
     FeatureTree F( &sample ) ;
     featureTree = &F ;
 
-    double itzSize = 0.00002 ;
-    int inclusionNumber = 1 ;
+    double itzSize = 0.00002;
+    int inclusionNumber = 1 ;3000 ;
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
 

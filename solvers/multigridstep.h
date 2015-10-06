@@ -95,7 +95,7 @@ struct MultiGridStep : public Preconditionner
 			//V iteration
 			subsolver->assembly->getForces() = -v1;
 			subsolver->x = 0 ;
-			subsolver->solve(subsolver->x, nullptr, 1e-9, -1, false) ;
+			subsolver->solve(subsolver->x, nullptr, default_solver_precision, -1, false) ;
 			subsolver->nit = 0 ;
 			
 			//extend

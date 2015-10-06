@@ -11,6 +11,7 @@ namespace Amie
 {
 
 const double default_derivation_delta= 1e-6 ;
+const double default_solver_precision= 1e-10 ;
 
 /** \brief Possible variables. 
  * This is used as an index for arrays of powers, or as an argument to certain constructors. 

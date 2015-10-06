@@ -11,6 +11,7 @@
 #include "../features/pore.h"
 #include "../features/sample3d.h"
 #include "../features/inclusion3d.h"
+#include "../features/expansiveZone3d.h"
 #include "../utilities/granulo.h"
 #include "../physics/stiffness.h"
 #include <sys/time.h>
@@ -154,14 +155,14 @@ double getLength(BenchmarkMicrostructure micro)
 int main(int argc, char *argv[])
 {
     gettimeofday(&t0, NULL) ;
-    std::cout << "usage: benchmark <microstructure> <phenomenon> <order> <scale> <properties> <sampling>" << std::endl ;
-    std::cout << "all fields are required" << std::endl ;
-    std::cout << "<microstructure>\tstring among <XS1, S1, S2024, S3200, O1>" << std::endl ;
-    std::cout << "<phenomenon>\t\tstring among <diffusion, elasticity>" << std::endl ;
-    std::cout << "<order>\t\t\tinteger : order of the elements (1 for linear, 2 for quadratic)" << std::endl ;
-    std::cout << "<scale>\t\t\tdouble : scale factor" << std::endl ;
-    std::cout << "<properties>\t\tdouble : value of the Young's Modulus or Diffusion coefficient of the inclusion(s)" << std::endl ;
-    std::cout << "<sampling>\t\tinteger : number of points at the surface of the REV" << std::endl ;
+    std::cerr << "usage: benchmark <microstructure> <phenomenon> <order> <scale> <properties> <sampling>" << std::endl ;
+    std::cerr << "all fields are required" << std::endl ;
+    std::cerr << "<microstructure>\tstring among <XS1, S1, S2024, S3200, O1>" << std::endl ;
+    std::cerr << "<phenomenon>\t\tstring among <diffusion, elasticity>" << std::endl ;
+    std::cerr << "<order>\t\t\tinteger : order of the elements (1 for linear, 2 for quadratic)" << std::endl ;
+    std::cerr << "<scale>\t\t\tdouble : scale factor" << std::endl ;
+    std::cerr << "<properties>\t\tdouble : value of the Young's Modulus or Diffusion coefficient of the inclusion(s)" << std::endl ;
+    std::cerr << "<sampling>\t\tinteger : number of points at the surface of the REV" << std::endl ;
 
 //    if(argc != 7)
 //        return 1 ;
@@ -190,128 +191,49 @@ int main(int argc, char *argv[])
     Matrix m1(6,6) ;
     switch(pheno)
     {
-    case DIFFUSION:
-    {
-        Matrix d0(3,3) ;
-        double lambda = 1 ;
-        d0[0][0] = lambda ;
-        d0[1][1] = lambda ;
-        d0[2][2] = lambda ;
-        sample.setBehaviour(new Laplacian(d0)) ;
+        case DIFFUSION:
+        {
+            Matrix d0(3,3) ;
+            double lambda = 1 ;
+            d0[0][0] = lambda ;
+            d0[1][1] = lambda ;
+            d0[2][2] = lambda ;
+            sample.setBehaviour(new Laplacian(d0)) ;
 
-        Matrix d1(3,3) ;
-        lambda = prop ;
-        d1[0][0] = lambda ;
-        d1[1][1] = lambda ;
-        d1[2][2] = lambda ;
-        behaviour = new Laplacian(d1) ;
-        break ;
-    }
-    case ELASTICITY:
-    {
+            Matrix d1(3,3) ;
+            lambda = prop ;
+            d1[0][0] = lambda ;
+            d1[1][1] = lambda ;
+            d1[2][2] = lambda ;
+            behaviour = new Laplacian(d1) ;
+            break ;
+        }
+        case ELASTICITY:
+        {
 
-        double nu = 0.2 ;
-        double E = 1. ;
-        Matrix m0(6,6) ;
-        m0[0][0] = 1. - nu ;
-        m0[0][1] = nu ;
-        m0[0][2] = nu ;
-        m0[1][0] = nu ;
-        m0[1][1] = 1. - nu ;
-        m0[1][2] = nu ;
-        m0[2][0] = nu ;
-        m0[2][1] = nu ;
-        m0[2][2] = 1. - nu ;
-        m0[3][3] = 0.5 - nu ;
-        m0[4][4] = 0.5 - nu ;
-        m0[5][5] = 0.5 - nu ;
-        m0 *= E/((1.+nu)*(1.-2.*nu)) ;
-        sample.setBehaviour(new Stiffness(m0)) ;
+            double nu = 0.2 ;
+            double E = 1. ;
+            sample.setBehaviour(new Stiffness(Tensor::cauchyGreen(E, nu, true,  SPACE_THREE_DIMENSIONAL ))) ;
 
-        m1 = m0 * prop ;
-//        m1.print() ;
-        E = prop ;
-        std::cout << prop << std::endl ;
-        m1[0][0] = 1. - nu ;
-        m1[0][1] = nu ;
-        m1[0][2] = nu ;
-        m1[1][0] = nu ;
-        m1[1][1] = 1. - nu ;
-        m1[1][2] = nu ;
-        m1[2][0] = nu ;
-        m1[2][1] = nu ;
-        m1[2][2] = 1. - nu ;
-        m1[3][3] = 0.5 - nu ;
-        m1[4][4] = 0.5 - nu ;
-        m1[5][5] = 0.5 - nu ;
-        m1 *= E/((1.+nu)*(1.-2.*nu)) ;
-        Vector alpha(6) ;
-        alpha[0] = 0.1 ;
-        alpha[1] = 0.1 ;
-        alpha[2] = 0.1 ;
-        behaviour = new StiffnessWithImposedDeformation(m1,alpha) ;
-        break ;
-    }
+//             std::cout << prop << std::endl ;
+
+            Vector alpha(0., 6) ;
+            behaviour = new StiffnessWithImposedDeformation(Tensor::cauchyGreen(10., .2, true,  SPACE_THREE_DIMENSIONAL ),alpha) ;
+            break ;
+        }
     }
 
     std::string str_micro = "S1" ;
 //    if(micro != O1)
 //    {
-    std::vector<Inclusion3D * > inclusions ;
+    std::vector<Feature * > inclusions ;
 //        if(micro == S1)
 //        {*/
-    inclusions.push_back(new Inclusion3D(0.0623*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ())) ;
-    inclusions[0]->setBehaviour(behaviour) ;
+//     inclusions.push_back(new Inclusion3D(0.0623*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ())) ;
+    Vector str(0., 6) ;
+    inclusions.push_back(new ExpansiveZone3D(&sample , 0.0623*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ(),Tensor::cauchyGreen(10., .2, true,  SPACE_THREE_DIMENSIONAL ), str )) ;
+//     inclusions[0]->setBehaviour(behaviour) ;
     F.addFeature(&sample, inclusions[0]) ;
-    /*            std::cout << inclusions[0]->volume() << std::endl ;
-                std::cout << sample.volume() << std::endl ;
-                std::cout << inclusions[0]->volume()/sample.volume() << std::endl ;
-            }
-            else if(micro == XS1)
-            {
-                Vector a(6) ; a = 0 ;
-                featureTree->addFeature(&sample, new ExpansiveZone3D(&sample, 0.623*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ(), m1, a));
-            }
-            else
-            {
-                str_micro = "S2024" ;
-                 int n = 2024 ;
-                std::string file = "sphere_2024.getT()xt" ;
-                 std::vector<std::string> columns ;
-                 columns.push_back("center_x") ;
-                 columns.push_back("center_y") ;
-                 columns.push_back("center_z") ;
-                 columns.push_back("radius") ;
-                if(micro == S3200)
-                {
-                    str_micro = "S3200" ;
-                    n = 3200 ;
-                    file = "sphere_3200.getT()xt" ;
-                    columns.clear() ;
-                     columns.push_back("radius") ;
-                     columns.push_back("center_x") ;
-                     columns.push_back("center_y") ;
-                     columns.push_back("center_z") ;
-                }
-                GranuloFromFile spheres(file, columns) ;
-                inclusions = spheres.getInclusion3D(n, scale) ;
-                for(size_t i = 0 ; i < inclusions.size() ; i++)
-                {
-                    inclusions[i]->setBehaviour(behaviour) ;
-                    F.addFeature(&sample, inclusions[i]) ;
-                }
-            }
-
-        }
-        else
-        {
-            str_micro = "O1" ;
-            OctahedralInclusion* oct = new OctahedralInclusion(nullptr, 0.4182554*std::sqrt(2.)*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ()) ;
-            oct->setBehaviour(behaviour) ;
-            std::cout << oct->volume() << std::endl ;
-            std::cout << sample.volume() << std::endl ;
-            F.addFeature(&sample, oct) ;
-        }*/
 
     F.setSamplingNumber(sampling) ;
     F.setMaxIterationsPerStep(2);
@@ -326,66 +248,11 @@ int main(int argc, char *argv[])
     Function pos("x") ;
     Function grad = pos*1./(length*scale) ;
 
-//    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT, 0)) ;
-    /*    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, TOP, grad)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, BOTTOM, grad)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, BACK, grad)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, FRONT, grad)) ;*/
-    /*    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_FRONT)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_FRONT)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP_LEFT_BACK)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP_LEFT_BACK)) ;*/
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ZETA, FRONT, 1.)) ;
+
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, 1.)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, 1.)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
-//    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
-//    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
-//    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
-    /*    if(pheno == ELASTICITY)
-        {
-            F.step() ;
-            tets= F.getElements3D() ;
-            for(size_t i = 0 ; i < F.get3DMesh()->begin().size() ; i++)
-            {
-                if(tets[i]->getBehaviour()->param[0][0] > 1.)
-                {
-                    GaussPointArray gp = tets[i]->getGaussPoints() ;
-                    std::valarray<Matrix> Jinv( Matrix(), tets[i]->getGaussPoints().gaussPoints.size() ) ;
-
-                    for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-                    {
-                            tets[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-                    }
-                    for(size_t j = 0 ; j < tets[i]->getBoundingPoints().size() ; j++)
-                    {
-                        if(abs(tets[i]->getBoundingPoint(j).getX() - length*scale) < POINT_TOLERANCE)
-                        {
-                            F.addBoundaryCondition(new DofDefinedBoundaryCondition(SET_STRESS_XI,tets[i],gp,Jinv, tets[i]->getBoundingPoint(j).getId(), 1.e-5)) ;
-                        }
-                    }
-                }
-            }
-//           F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, TOP, grad)) ;
-//           F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, BOTTOM, grad)) ;
-//           F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, BACK, grad)) ;
-//           F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, FRONT, grad)) ;        
-//        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, 1.e-5)) ;
-//        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT, 1.)) ;
-//        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-//        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
-            F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
-            F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
-        }
-        else
-        {
-            F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_FLUX_XI, RIGHT, 1.)) ;
-        }*/
 
     F.step() ;
 
@@ -473,7 +340,7 @@ int main(int argc, char *argv[])
         std::cout << "average gradient33 : " << average_gradient[2]/total_volume << std::endl ;
 
 
-        std::string filebench("benchmark.getT()xt") ;
+        std::string filebench("benchmark.txt") ;
         std::fstream out ;
         out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
         out << "DIFFUSION\t" << str_micro << "\t" << "D_inc = " << prop << "\t" ;
@@ -594,7 +461,7 @@ int main(int argc, char *argv[])
 
 //         double delta = t1.tv_sec*1000000 - t0.tv_sec*1000000 + t1.tv_usec - t0.tv_usec ;
 
-        std::string filebench("benchmark.getT()xt") ;
+        std::string filebench("benchmark.txt") ;
         /*        std::fstream out ;
                 out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
                 out << "ELASTICITY\t" << str_micro ;
@@ -611,11 +478,32 @@ int main(int argc, char *argv[])
                 vw.getField(featureTree, VWFT_STIFFNESS) ;
                 vw.write();*/
 
-        VoxelWriter vw0("simulation_out_stress", 100) ;
+        Vector tmp(6) ;
+       for(double x = 0 ;  x <= size ; x += size*.005)
+       {
+           for(double y = 0 ;  y <= size ; y += size*.005)
+           {
+               featureTree->get3DMesh()->getField(STRAIN_FIELD, Point(x,y,halfSize),tmp) ;
+                std::cout <<  tmp[0]<< "  "<< std::flush ;
+           }
+           std::cout << std::endl ;
+       }
+       for(double x = 0 ;  x <= size ; x += size*.005)
+       {
+           for(double y = 0 ;  y <= size ; y += size*.005)
+           { 
+               featureTree->get3DMesh()->getField(REAL_STRESS_FIELD, Point(x,y,halfSize),tmp) ;
+                std::cout << tmp[0]<< "  "<< std::flush ;
+           }
+           std::cout << std::endl ;
+       }
+        
+        
+        VoxelWriter vw0("simulation_out_stress", 50) ;
         vw0.getField(featureTree, VWFT_STRESS) ;
         vw0.write();
 
-        VoxelWriter vw1("simulation_out_strain", 100) ;
+        VoxelWriter vw1("simulation_out_strain", 50) ;
         vw1.getField(featureTree, VWFT_STRAIN) ;
         vw1.write();
 
