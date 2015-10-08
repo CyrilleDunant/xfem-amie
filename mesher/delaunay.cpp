@@ -2884,7 +2884,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
         else
         {
 
-            if( true )
+            if( false )
             {
                 if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
                     return *getCachedGaussPoints() ;
@@ -2895,7 +2895,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 return *getCachedGaussPoints() ;
             }
 
-           const Geometry * enrs = enrichmentSource[0] ;
             VirtualMachine vm ;
             std::vector<Point *> to_add = getIntegrationHints();
             std::vector<Point *> pointsToCleanup = to_add;
@@ -2916,7 +2915,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             dt->refresh(&f);
             tri = dt->getTriangles() ;
                     
-//             double jac = area() ;
             
            double in = 0 ;
            double out = 0 ;
@@ -2928,18 +2926,12 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 
                 Function x = tri[i]->getXTransform() ;
                 Function y = tri[i]->getYTransform() ;
-               
-//                 GaussPointArray gp_temp(monteCarloGaussPoints(2560, tri[i])) ;
-                
+                               
                 GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 
                 for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
                 {
                     gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first)) ;
-//                     if(enrs->in(Point(vm.eval(gx,gp_temp.gaussPoints[j].first), vm.eval(gy,gp_temp.gaussPoints[j].first))))
-//                         in += gp_temp.gaussPoints[j].second ;
-//                     else
-//                         out += gp_temp.gaussPoints[j].second ;
                     gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
                 }
             }
@@ -2957,26 +2949,10 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 fsum += gp_alternative[i].second ;
 
             double originalSum = area() ;
-//             for(auto & i : getGaussPoints().gaussPoints)
-//                 originalSum += i.second ;
 
             for(size_t i = 0 ; i < gp_alternative.size() ; i++)
                 gp_alternative[i].second *= originalSum / fsum ;
 
-//             if(in/out < .1 || in/out > 10. )
-//             {
-//                 for(size_t j = 0 ; j < gp_alternative.size() ; j++)
-//                     gp_alternative[j].second *= 10. ;
-//             }
-            
-//             if(in/out < .1)
-//             {
-// //                 std::cerr << in/out << std::endl ;
-//                 for(size_t i = 0 ; i < gp_alternative.size() ; i++)
-// //                     if(enrs->in(Point(vm.eval(gx,gp_alternative[i].first), vm.eval(gy,gp_alternative[i].first))))
-//                         gp_alternative[i].second *= .5 ;
-// //                 gp_alternative = monteCarloGaussPoints(1024, this, .5) ;
-//             }
 
             delete dt ;
 

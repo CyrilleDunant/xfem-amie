@@ -112,7 +112,7 @@ GaussPointArray  GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaus
     return gp ;
 }
 
-double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine * vm, int dummy , double t, std::vector<double> weights )
+double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine * vm, int dummy , double t, const std::vector<double> & weights )
 {
     #pragma omp critical
     while(true) {
@@ -152,15 +152,19 @@ double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType
     {
         vm = new VirtualMachine() ;
     }
+    
+    bool weighted = true ;
     if ( weights.size() != gp.gaussPoints.size() )
     {
-        weights.resize ( gp.gaussPoints.size(), 1. );
+        weighted = false ; ;
     }
     Vector tmp ( 0., ret.size() ) ;
     for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
     {
         Point p_ = gp.gaussPoints[i].first ;
-        double w = gp.gaussPoints[i].second*weights[i] ;
+        double w = gp.gaussPoints[i].second ;
+        if(weighted)
+            w *= weights[i] ;
         bool cached = false ;
 
         if(dummy < 0 && (f == GENERALIZED_VISCOELASTIC_STRAIN_FIELD || f == GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD || f == STRAIN_FIELD || f == PRINCIPAL_STRAIN_FIELD || f == STRAIN_RATE_FIELD || f == REAL_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD || f == EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == MECHANICAL_STRAIN_FIELD || f == PRINCIPAL_MECHANICAL_STRAIN_FIELD) )
@@ -924,7 +928,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields ( F
     }
 }
 
-double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType f1, FieldType f2, Vector & r1, Vector & r2, VirtualMachine * vm , int dummy , double t , std::vector<double> weights)
+double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType f1, FieldType f2, Vector & r1, Vector & r2, VirtualMachine * vm , int dummy , double t , const std::vector<double> & weights)
 {
     bool cleanup = !vm ;
     if ( !vm )
