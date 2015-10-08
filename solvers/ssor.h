@@ -26,13 +26,17 @@ struct Ssor  : public Preconditionner
     CoordinateIndexedSparseMatrix lower ;
     CoordinateIndexedSparseMatrix auxiliaryUpper ;
     CoordinateIndexedSparseMatrix auxiliaryLower ;
+
+    
     Vector buffer ;
     double omega ;
     double omega_prev ;
     double previous_r ;
+    int rowstart ;
+    int colstart ;
     bool converged = false ;
     virtual ~Ssor() { }
-    Ssor(const CoordinateIndexedSparseMatrix &A, double omega) ;
+    Ssor(const CoordinateIndexedSparseMatrix &A, double omega, int rowstart = 0 , int colstart = 0) ;
     virtual void precondition(const Vector &v,Vector &)  ;
 } ;
 

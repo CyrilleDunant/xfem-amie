@@ -68,14 +68,14 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
      int vsize = r.size() ;
      //smooth the initial guess
-    Ssor ssor (assembly->getMatrix(), 1.5) ;
+    Ssor ssor (assembly->getMatrix(), 1.5, rowstart, colstart) ;
     
-/*    for(size_t i = 0 ; i < 10 ; i++)
+    for(size_t i = 0 ; i < 10 ; i++)
     {
         assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
         ssor.precondition(r,r);
         x = x - r ;
-    }*/
+    }
     assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
     r*=-1 ;
    
@@ -258,12 +258,12 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
     std::cerr << "mflops: "<< nit*((2.+2./256.)*assembly->getMatrix().array.size()+(4+1./256.)*p.size())/delta << std::endl ;
 
-/*    for(size_t i = 0 ; i < 10 ; i++)
+    for(size_t i = 0 ; i < 10 ; i++)
     {
         assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
         ssor.precondition(r,r);
         x = x - r ;
-    }*/
+    }
     
     assign(r,assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
     double err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
