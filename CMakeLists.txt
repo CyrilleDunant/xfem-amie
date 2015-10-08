@@ -454,6 +454,9 @@ target_link_libraries( tension_visco_damage Amie ${ALL_LINK_FLAGS})
 add_executable( performance examples/main_performance.cpp )
 target_link_libraries( performance Amie ${ALL_LINK_FLAGS})
 
+add_executable(get_fields_from_trg examples/main_get_fields_from_trg.cpp )
+target_link_libraries( get_fields_from_trg Amie ${ALL_LINK_FLAGS} )
+
 # tests
 
 add_executable(check_test examples/main_check_test.cpp )
