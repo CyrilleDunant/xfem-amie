@@ -18,7 +18,7 @@
 using namespace Amie ;
 
 
-void InHomogeneousProjectionOperation::eval ( long double * a, long double * b, long double * c ) const
+void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c ) const
 {
     double res = 0;
     Point test ( *a, *b ) ;
@@ -261,7 +261,7 @@ PositionOperation::PositionOperation ( const std::vector<Segment> & s_ )
     Point vector= s_[0].normal ( Point ( -1000, -1000 ) );
     w= ( s_[0].midPoint() +vector*10. ) ;
 }
-void PositionOperation::eval ( long double * a, long double * b, long double * c ) const
+void PositionOperation::eval ( double * a, double * b, double * c ) const
 {
     Point test ( *a,*b ) ;
     int intersections = 0 ;
@@ -293,7 +293,7 @@ LineDistanceOperation::LineDistanceOperation ( const Line & l_ ) : l ( l_ )
 {
 }
 
-void LineDistanceOperation::eval ( long double * a, long double * b, long double * c ) const
+void LineDistanceOperation::eval ( double * a, double * b, double * c ) const
 {
 
     Point test ( *a, *b ) ;
@@ -315,7 +315,7 @@ InHomogeneousProjectionOperation::InHomogeneousProjectionOperation ( Geometry * 
 {
 }
 
-void InHomogeneousProjectionOperation::eval ( long double * a, long double * b, long double * c ) const ;
+void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c ) const ;
 
 GeometryOperation * InHomogeneousProjectionOperation::getCopy() const
 {
@@ -333,7 +333,7 @@ DomainOperation::DomainOperation ( const Geometry * g )
     geo = g ;
 }
 
-void DomainOperation::eval ( long double * a, long double * b, long double * c ) const
+void DomainOperation::eval ( double * a, double * b, double * c ) const
 {
     Point p ( *a,*b,*c ) ;
     if ( geo->in ( p ) )
@@ -362,7 +362,7 @@ DomainBinaryOperation::DomainBinaryOperation ( const Geometry * g ) : geo ( g )
 {
 }
 
-void DomainBinaryOperation::eval ( long double * a, long double * b, long double * c ) const
+void DomainBinaryOperation::eval ( double * a, double * b, double * c ) const
 {
 
     Point p ( *a, *b ) ;
@@ -390,7 +390,7 @@ PointDistanceBinaryOperation::PointDistanceBinaryOperation ( const Point & p ) :
 {
 }
 
-void PointDistanceBinaryOperation::eval ( long double * a, long double * b, long double * c ) const
+void PointDistanceBinaryOperation::eval ( double * a, double * b, double * c ) const
 {
     double x = *a-x0 ;
     double y = *b-y0 ;
@@ -413,7 +413,7 @@ PointDistanceTrinaryOperation::PointDistanceTrinaryOperation ( const Point & p )
 {
 }
 
-void PointDistanceTrinaryOperation::eval ( long double * a, long double * b, long double * c ) const
+void PointDistanceTrinaryOperation::eval ( double * a, double * b, double * c ) const
 {
     double x = *a-x0 ;
     double y = *b-y0 ;
@@ -436,7 +436,7 @@ RotationBinaryOperation::RotationBinaryOperation ( double a ) : cangle ( cos ( a
 {
 }
 
-void RotationBinaryOperation::eval ( long double * a, long double * b, long double * c ) const
+void RotationBinaryOperation::eval ( double * a, double * b, double * c ) const
 {
 
     double x = *a ;
@@ -459,7 +459,7 @@ AngleBinaryOperation::AngleBinaryOperation ( double a, const Point & p ) :cangle
 {
 }
 
-void AngleBinaryOperation::eval ( long double * a, long double * b, long double * c ) const
+void AngleBinaryOperation::eval ( double * a, double * b, double * c ) const
 {
 
     double x = *a ;
@@ -485,7 +485,7 @@ PointSquareDistanceBinaryOperation::PointSquareDistanceBinaryOperation ( const P
     base = p ;
 }
 
-void PointSquareDistanceBinaryOperation::eval ( long double * a, long double * b, long double * c ) const
+void PointSquareDistanceBinaryOperation::eval ( double * a, double * b, double * c ) const
 {
 
     Point p ( *a, *b ) ;
@@ -510,7 +510,7 @@ LineOfSightOperation::LineOfSightOperation ( const Point & p,  const Geometry * 
 {
 }
 
-void LineOfSightOperation::eval ( long double * a, long double * b, long double * c ) const
+void LineOfSightOperation::eval ( double * a, double * b, double * c ) const
 {
 
     Point p ( *a, *b ) ;
@@ -535,7 +535,7 @@ ProjectionOperation3D::ProjectionOperation3D ( Segment s_ ) : s ( s_ )
 {
 }
 
-void ProjectionOperation3D::eval ( long double * a, long double * b, long double * c ) const
+void ProjectionOperation3D::eval ( double * a, double * b, double * c ) const
 {
 
     *c = dist ( Point ( *a, *b, *c ), s.project ( Point ( *a, *b, *c ) ) ) ;
@@ -556,7 +556,7 @@ ProjectionOperation2D::ProjectionOperation2D ( Segment s_ ) : s ( s_ )
 {
 }
 
-void ProjectionOperation2D::eval ( long double * a, long double * b, long double * c ) const
+void ProjectionOperation2D::eval ( double * a, double * b, double * c ) const
 {
 
     *c = dist ( Point ( *a, *b ), s.project ( Point ( *a, *b ) ) ) ;
@@ -577,7 +577,7 @@ ProjectionBinaryOperation::ProjectionBinaryOperation ( const Geometry * s_ ) :  
 {
 }
 
-void ProjectionBinaryOperation::eval ( long double * a, long double * b, long double * c ) const
+void ProjectionBinaryOperation::eval ( double * a, double * b, double * c ) const
 {
     Point p ( *a, *b ) ;
     Point p_ ( p ) ;
@@ -601,7 +601,7 @@ int ProjectionBinaryOperation::adressOffset() const
 
 HatEnrichmentAlt::HatEnrichmentAlt(const Geometry * g , const Point & head, const Point & p0, const Point & p1) : g(g), head(head),  p0(p0), p1(p1) { }
 
-void HatEnrichmentAlt::eval(long double * a, long double * b, long double * c) const
+void HatEnrichmentAlt::eval(double * a, double * b, double * c) const
 {
     Point position ( *a, *b ) ;
     
@@ -662,7 +662,7 @@ HatEnrichment::HatEnrichment(const Geometry * g , const Point & p, const Segment
 {
 }
 
-void HatEnrichment::eval(long double * a, long double * b, long double * c) const
+void HatEnrichment::eval(double * a, double * b, double * c) const
 {
     Point position ( *a, *b, 0, p.getT() ) ;
     Triangle test(p, s.first(), s.second()) ;
@@ -746,7 +746,7 @@ int HatEnrichment::adressOffset() const
 
 HatEnrichmentDerivative::HatEnrichmentDerivative(const Geometry * g , const Point & p, const Segment & s, Variable v): g(g), p(p), s(s), v(v) { }
 
-void HatEnrichmentDerivative::eval(long double * a, long double * b, long double * c) const
+void HatEnrichmentDerivative::eval(double * a, double * b, double * c) const
 {
  
     
@@ -843,7 +843,7 @@ int HatEnrichmentDerivative::adressOffset() const
 
 HatEnrichment3D::HatEnrichment3D(const Geometry * g , const Point & p, const TriPoint & s) :g(g), p(p), s(s) {}
 
-void HatEnrichment3D::eval(long double * a, long double * b, long double * c) const
+void HatEnrichment3D::eval(double * a, double * b, double * c) const
 {
     Point position ( *a, *b, *c ) ;
     Line l(p, p-position) ;

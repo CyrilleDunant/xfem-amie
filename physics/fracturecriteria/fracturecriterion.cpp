@@ -112,7 +112,7 @@ std::pair<Vector, Vector> FractureCriterion::getSmoothedFields( FieldType f0, Fi
 
 void FractureCriterion::updateRestriction(ElementState &s)
 {
-    if(!restrictionSource || !needRestrictionUpdate)
+    if(!restrictionSource|| !needRestrictionUpdate)
         return ;
     
     needRestrictionUpdate = false ;

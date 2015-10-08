@@ -1622,7 +1622,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         ret.resize( fieldTypeElementarySize ( f, parent->spaceDimensions(), blocks ) , 0.) ;
     else
         ret = 0 ;
-    double v = parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? parent->area() : parent->volume() ;
+    double v = (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? parent->area() : parent->volume() ;
     double total = 0 ;
     if ( weights.size() != parent->getGaussPoints().gaussPoints.size() )
     {
@@ -1634,9 +1634,9 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
     {
     case STRAIN_FIELD :
 
-        if ( strainAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
+        if ( strainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() )
         {
-            strainAtGaussPoints.resize ( (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
+            strainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() , 0. ) ;
             strainAtGaussPointsSet = false ;
         }
 
@@ -1704,9 +1704,9 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         return v;
     case MECHANICAL_STRAIN_FIELD :
 
-        if ( strainAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
+        if ( strainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
         {
-            strainAtGaussPoints.resize ( (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
+            strainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() , 0. ) ;
             strainAtGaussPointsSet = false ;
         }
 

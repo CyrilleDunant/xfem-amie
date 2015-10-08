@@ -1076,8 +1076,8 @@ double VirtualMachine::deval(const Function &f, const Variable v_,  const double
         }
         case XI :
         {
-            long double h = eps ;
-            volatile long double temp = x+h ;
+            double h = eps ;
+            volatile double temp = x+h ;
             h = temp - x ;
 				return ( eval(f, x-2.*h, y, z, t, u, v, w)/12. -2./3. * eval(f, x-h, y, z, t, u, v, w)- eval(f, x+2.*h, y, z, t, u, v, w)/12. +2./3.* eval(f, x+h, y, z, t, u, v, w) ) / h ;
 //             double  fx = eval(f, x, y, z, t, u, v, w) ;
