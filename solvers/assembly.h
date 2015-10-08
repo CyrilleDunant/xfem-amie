@@ -230,6 +230,7 @@ protected:
     std::vector<double> scales ;
     std::vector<LagrangeMultiplier> multipliers ;
     std::vector<LagrangeMultiplier> multipliersBuffer ;
+    std::vector<size_t> zeroIds ;
     size_t ndof ;
     size_t ndofmax ;
     size_t colstart ;

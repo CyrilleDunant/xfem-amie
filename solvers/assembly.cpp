@@ -654,6 +654,47 @@ void Assembly::checkZeroLines()
     }
     std::cerr << "removing 0-only lines..." << std::flush ;
     
+    if(zeroIds.size() == 0)
+    {
+        double maxval = std::abs(getMatrix().array).max() ;
+        int zerocount = 0 ;
+        for(size_t i = 0 ; i < externalForces.size() ; i++)
+        {
+            if(i%1000 == rowstart)
+                std::cerr << "\r removing 0-only lines... " << i << "/" << externalForces.size() << std::flush ;
+            
+            double v = std::abs(getMatrix()[i][i]) ;
+            bool zeros = ( v < 1e-12*maxval) ;
+/*        size_t j = rowstart ;
+        while(zeros && (j < externalForces.size() ))
+        {
+            zeros = (std::abs(getMatrix()[i][j]) < POINT_TOLERANCE) ;
+            j++ ;
+        }*/
+        if(zeros)// && (j==externalForces.size()))
+        {
+            zerocount++ ;
+            zeroIds.push_back(i) ;
+//             for(size_t j = 0 ; j < externalForces.size() ; j++)
+//             {
+//                 getMatrix()[i][j] = 0 ;
+//                 getMatrix()[j][i] = 0 ;
+//             }
+            }
+        }
+        std::cerr << "\r removing 0-only lines... " << externalForces.size() << "/" << externalForces.size() << " ( " << zerocount << " ) ... done. " << std::endl ;
+    }
+
+    if(zeroIds.size() == 0)
+        removeZeroOnlyLines = false ;
+
+    for(size_t i = 0 ; i < zeroIds.size() ; i++)
+    {
+        getMatrix()[zeroIds[i]][zeroIds[i]] = 1 ;
+        externalForces[zeroIds[i]] = 0. ;
+    }
+
+
 /*    std::valarray<bool> zeros(true, ndof) ;
     int blocksize = ndof*(ndof+ndof%2) ;
     double * array_iterator = &getMatrix().array[0] ;
@@ -686,34 +727,6 @@ void Assembly::checkZeroLines()
         }
     }*/
     
-    double maxval = std::abs(getMatrix().array).max() ;
-    int zerocount = 0 ;
-    for(size_t i = 0 ; i < externalForces.size() ; i++)
-    {
-        if(i%1000 == rowstart)
-            std::cerr << "\r removing 0-only lines... " << i << "/" << externalForces.size() << std::flush ;
-        
-        double v = std::abs(getMatrix()[i][i]) ;
-        bool zeros = ( v < 1e-12*maxval) ;
-/*        size_t j = rowstart ;
-        while(zeros && (j < externalForces.size() ))
-        {
-            zeros = (std::abs(getMatrix()[i][j]) < POINT_TOLERANCE) ;
-            j++ ;
-        }*/
-        if(zeros)// && (j==externalForces.size()))
-        {
-            zerocount++ ;
-//             for(size_t j = 0 ; j < externalForces.size() ; j++)
-//             {
-//                 getMatrix()[i][j] = 0 ;
-//                 getMatrix()[j][i] = 0 ;
-//             }
-            getMatrix()[i][i] = 1 ;
-            externalForces[i] = 0. ;
-        }
-    }
-    std::cerr << "\r removing 0-only lines... " << externalForces.size() << "/" << externalForces.size() << " ( " << zerocount << " ) ... done. " << std::endl ;
 }
 
 bool Assembly::make_final()

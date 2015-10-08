@@ -4654,7 +4654,6 @@ bool FeatureTree::stepElements()
                 }
 
 
-
 // 				std::stable_sort(elements.begin(), elements.end(), sortByScore) ;
 
                 lcounter = 0 ;
@@ -4854,7 +4853,7 @@ bool FeatureTree::stepElements()
                     std::cerr << maxScore << "]" << std::flush ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
-                        if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE )
+                        if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE  && solverConverged() )
                         {
                             std::cerr << "adjusting time step..." << std::endl ;
                             double begin = j->second->cbegin()->getBoundingPoint ( 0 ).getT() ;
@@ -4874,7 +4873,7 @@ bool FeatureTree::stepElements()
                             }
                         }
 
-                        if ( maxScore > 1.-POINT_TOLERANCE || maxScore < POINT_TOLERANCE )
+                        if ( maxScore > 1.-POINT_TOLERANCE || maxScore < POINT_TOLERANCE || !solverConverged() )
                         {
                             moveFirstTimePlanes ( 0., j->second->begin(), j->second->end() ) ;
                         }

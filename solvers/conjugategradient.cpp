@@ -70,12 +70,12 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
      //smooth the initial guess
     Ssor ssor (assembly->getMatrix(), 1.5) ;
     
-    for(size_t i = 0 ; i < 10 ; i++)
+/*    for(size_t i = 0 ; i < 10 ; i++)
     {
         assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
         ssor.precondition(r,r);
         x = x - r ;
-    }
+    }*/
     assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
     r*=-1 ;
    
@@ -141,9 +141,11 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     for(int i = rowstart ; i < vsize ; i++)
         r[i] *= -1 ;
 
+        P->precondition(r, z) ;
+
     err0 = std::max(1., sqrt( std::abs(parallel_inner_product(&r[rowstart], &z[rowstart], vsize-rowstart)))) ;
     if(verbose)
-        std::cerr << 0 << "\t" << sqrt(err0) << std::endl  ;
+        std::cerr << "first err0" << "\t" << sqrt(err0) << std::endl  ;
     if(err0 < errmin)
     {
         errmin = err0 ;
@@ -256,12 +258,12 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
     std::cerr << "mflops: "<< nit*((2.+2./256.)*assembly->getMatrix().array.size()+(4+1./256.)*p.size())/delta << std::endl ;
 
-    for(size_t i = 0 ; i < 10 ; i++)
+/*    for(size_t i = 0 ; i < 10 ; i++)
     {
         assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
         ssor.precondition(r,r);
         x = x - r ;
-    }
+    }*/
     
     assign(r,assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
     double err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
@@ -272,7 +274,6 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", last rho = " << last_rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
         else
         {
-//             x = xmin ;
             std::cerr << "\n CG " << p.size() << " did not converge after " << nit << " iterations. Error : " << err << ", last rho = " << last_rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
         }
     }
