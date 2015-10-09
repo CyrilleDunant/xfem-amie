@@ -43,7 +43,7 @@ struct MultiGridStep : public Preconditionner
 		delete subsolver ;
 	};
 	
-	MultiGridStep(MESH_T * mesh0, MESH_T * mesh1, Assembly * A0,  Assembly * A1, Vector &b) : elements0(mesh0->getElements()), elements1(mesh1->getElements()), mesh0(mesh0), mesh1(mesh1), v1(b), b(b), averageRadius(0), ivd(*A0)
+	MultiGridStep(MESH_T * mesh0, MESH_T * mesh1, Assembly * A0,  Assembly * A1, Vector &b) : elements0(mesh0->getElements()), elements1(mesh1->getElements()), mesh0(mesh0), mesh1(mesh1), v1(b), b(b), averageRadius(0), ivd(A0->getMatrix())
 	{ 
 		count = 0 ;
 		subsolver = new ConjugateGradient(A1) ;

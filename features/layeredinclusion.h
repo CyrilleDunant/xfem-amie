@@ -82,7 +82,7 @@ public:
 	virtual bool isVoid( const Point &) const {return false ;}
 
 /** \brief return the behaviour of the layer in which the argument lies*/
-	virtual Form * getBehaviour(const Point & p) ;
+	virtual Form * getBehaviour(const Point & p) const ;
 
 /** \brief set all layers behaviour to the given Behaviour*/
 	virtual void setBehaviour(Form * b) ;
@@ -119,7 +119,7 @@ public:
 	
 	virtual void print() const ;
 	
-	virtual Form * getBehaviour(const Point & p) ;
+	virtual Form * getBehaviour(const Point & p) const ;
 
 	virtual bool isVoid( const Point &) const {return false ;}
 

@@ -11,7 +11,7 @@ TrimaterialInterface::TrimaterialInterface(Geometry * in,Geometry * out, Form * 
 
 TrimaterialInterface::~TrimaterialInterface() { }
 
-void TrimaterialInterface::transform(ElementarySurface * e)
+void TrimaterialInterface::transform(const ElementarySurface * e)
 {
     xtransform = e->getXTransform() ;
     ytransform = e->getYTransform() ;

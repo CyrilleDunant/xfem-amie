@@ -155,7 +155,7 @@ public:
     virtual void step(double timestep, ElementState & currentState, double maxScore) ;
 
     virtual bool changed() const ;
-    virtual Matrix getTensor(const Point & p, IntegrableEntity * e = 0) const ;
+    virtual Matrix getTensor(const Point & p, IntegrableEntity * e = 0, int g = -1) const ;
     virtual Matrix getPreviousTensor(const Point & p) const ;
     virtual FractureCriterion * getFractureCriterion() const ;
 

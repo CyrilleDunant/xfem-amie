@@ -295,7 +295,7 @@ FunctionMatrix inverse3x3FunctionMatrix(const FunctionMatrix m)
             {
                 for(size_t j = 0 ; j < 3 ; j++)
                 {
-                    if(!m_[j][i].byteCode.size() == 0 )
+                    if(!(m_[j][i].byteCode.size() == 0) )
                     {
                         Matrix temp(swapMatrix(i,j, 3)) ;
                         swap.push_back(temp) ;

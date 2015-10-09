@@ -83,9 +83,9 @@ public:
     virtual bool hasInducedMatrix() const ;
 
     virtual void getForces( ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v)  ;
-    std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) ;
+    std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 
-    virtual void step(double timestep, ElementState & currentState) ;
+    virtual void step(double timestep, ElementState & currentState, double maxscore) ;
 
     virtual bool isActive() const ;
 } ;

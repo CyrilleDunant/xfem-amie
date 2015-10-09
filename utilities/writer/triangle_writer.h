@@ -116,7 +116,7 @@ public:
 
 protected:
 	/** \brief write the header */
-	virtual void writeHeader(int layer, bool append = true) ;
+	void writeHeader(int layer, bool append = true) ;
 
 } ;
 
@@ -145,7 +145,7 @@ public:
     void resetCounter() { counter = 0 ; }
 
 protected:
-    virtual void writeHeader(int layer, bool firstlayer, bool append = true) ;
+    void writeHeader(int layer, bool firstlayer, bool append = true) ;
     virtual void writeIndexFile() ;
 };
 

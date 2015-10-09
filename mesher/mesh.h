@@ -190,8 +190,6 @@ public:
             std::map<Point *, std::pair<ETYPE *, std::vector<double> > > projectionCache ;
             std::map<Point *, Point * > projectionPointCache ;
             std::vector<ETYPE *> selfElements = getElements() ;
-            int pointCount = 0 ;
-            size_t idCount = 0 ;
             size_t numDofs = 0 ;
             double rav = 0 ;
             double ecount  = 0;
@@ -983,7 +981,7 @@ public:
                         continue ;
                     
                     double v = 0; 
-                    if((restrict.empty() || e != ci) && !dynamic_cast<BimaterialInterface *>(ci->getBehaviour()))
+                    if(((restrict.empty() || e != ci ) && !dynamic_cast<BimaterialInterface *>(ci->getBehaviour()) )|| restrict.size() !=  coefs[cacheID][i].size())
                         v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
                     else if(!restrict.empty() && e == ci)
                     {
@@ -1036,8 +1034,8 @@ public:
                 for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                 {
                     Point p(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
-                    if(!restrict.empty())
-                        if(restrict[j])
+                    if(!restrict.empty() && restrict.size() == e->getGaussPoints().gaussPoints.size())
+                        if(restrict[j] )
                             continue ;
                     Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( p ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( p ) ) ;
                     stress.resize ( tsize, 0. ) ;
@@ -1063,7 +1061,7 @@ public:
 
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
-                        if(!restrict.empty())
+                        if(!restrict.empty() && restrict.size() == e->getGaussPoints().gaussPoints.size())
                             if(restrict[j])
                                 continue ;
                         Point p(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
@@ -1100,7 +1098,7 @@ public:
                     double sum = 0 ; 
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
-                        if(!restrict.empty())
+                        if(!restrict.empty() && restrict.size() == e->getGaussPoints().gaussPoints.size())
                             if(restrict[j])
                                 continue ;
                         Point p(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
@@ -1121,7 +1119,7 @@ public:
                 ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
                 
                 double v = 0 ;
-                if(restrict.empty() || e != ci )
+                if(restrict.empty() || e != ci || restrict.size() !=  coefs[cacheID][i].size())
                     v = ci->getState().getAverageField ( f0, buffer, &vm, dummy, t, coefs[cacheID][i] );
                 else if(!restrict.empty() && e == ci)
                 {
@@ -1184,7 +1182,7 @@ public:
                        
                         double v = 0; 
                         
-                        if(restrict.empty() || e != ci )
+                        if(restrict.empty() || e != ci || restrict.size() !=  coefs[cacheID][i].size())
                             v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
                         else if(!restrict.empty() && e == ci)
                         {
@@ -1254,7 +1252,7 @@ public:
                     }
                 for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                 {
-                    if(!restrict.empty())
+                    if(!restrict.empty()&& restrict.size() == e->getGaussPoints().gaussPoints.size())
                         if(restrict[j])
                             continue ;
                     Point p(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
@@ -1296,7 +1294,7 @@ public:
                     double sum = 0 ; 
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
-                        if(!restrict.empty())
+                        if(!restrict.empty()&& restrict.size() == e->getGaussPoints().gaussPoints.size())
                             if(restrict[j])
                                 continue ;
                         
@@ -1316,7 +1314,7 @@ public:
                     double sum = 0 ; 
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
-                        if(!restrict.empty())
+                        if(!restrict.empty()&& restrict.size() == e->getGaussPoints().gaussPoints.size())
                             if(restrict[j])
                                 continue ;
                         Point p(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
@@ -1367,7 +1365,7 @@ public:
                     double sum = 0 ; 
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
-                        if(!restrict.empty())
+                        if(!restrict.empty() && restrict.size() == e->getGaussPoints().gaussPoints.size())
                             if(restrict[j])
                                 continue ;
                         Point p(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
@@ -1388,7 +1386,7 @@ public:
                     double sum = 0 ; 
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
-                        if(!restrict.empty())
+                        if(!restrict.empty()&& restrict.size() == e->getGaussPoints().gaussPoints.size())
                             if(restrict[j])
                                 continue ;
                         Point p(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;

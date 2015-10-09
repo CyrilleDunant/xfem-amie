@@ -44,7 +44,7 @@ LinearStiffnessGradient::LinearStiffnessGradient(double E_int, double nu_int, do
 
 LinearStiffnessGradient::~LinearStiffnessGradient() { }
 
-void LinearStiffnessGradient::transform(ElementarySurface * e)
+void LinearStiffnessGradient::transform(const ElementarySurface * e)
 {
     Function l(left, e) ;
     Function r(right, e) ;

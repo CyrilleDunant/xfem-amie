@@ -150,7 +150,7 @@ void PseudoPlastic::step(double timestep, ElementState & currentState, double ma
     }
 }
 
-Matrix PseudoPlastic::getTensor(const Point & p, IntegrableEntity *) const
+Matrix PseudoPlastic::getTensor(const Point & p, IntegrableEntity *, int) const
 {
     return (param*(1.-alpha)) ;
 }

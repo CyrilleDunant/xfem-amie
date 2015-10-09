@@ -126,12 +126,12 @@ Form * ViscoelasticityAndFracture::getCopy() const
     return copy ;
 }
 
-Vector ViscoelasticityAndFracture::getForcesFromAppliedStress( const Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v)
+Vector ViscoelasticityAndFracture::getForcesFromAppliedStress( const Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic, const Vector & normal )
 {
     return VirtualMachine().ieval(GradientDot( shape ) * ( data ), gp, Jinv, v) ;
 }
 
-Vector ViscoelasticityAndFracture::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v)
+Vector ViscoelasticityAndFracture::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic , const Vector & normal)
 {
     VirtualMachine vm ;
 

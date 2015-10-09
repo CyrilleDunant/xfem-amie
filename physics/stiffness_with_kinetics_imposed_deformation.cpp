@@ -53,7 +53,7 @@ Vector StiffnessWithKineticsImposedDeformation::getImposedStrain(const Point & p
     return imposed ;
 }
 
-void StiffnessWithKineticsImposedDeformation::step(double timestep, ElementState & currentState)
+void StiffnessWithKineticsImposedDeformation::step(double timestep, ElementState & currentState, double maxscore)
 {
     double fprevious = VirtualMachine().eval(kinetics, currentState.getTime()) ;
     double fnext = VirtualMachine().eval(kinetics,currentState.getTime()+timestep) ;

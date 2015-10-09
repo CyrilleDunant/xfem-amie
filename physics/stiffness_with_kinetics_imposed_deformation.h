@@ -64,7 +64,7 @@ struct StiffnessWithKineticsImposedDeformation : public StiffnessWithImposedDefo
     virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
     /** \brief Increment the according to the function kinetics. The loading is increased by the timestep*a random value between 0 and 1 .*/
-    virtual void step(double timestep, ElementState & currentState) ;
+    virtual void step(double timestep, ElementState & currentState, double maxScore) ;
 
     std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 } ;

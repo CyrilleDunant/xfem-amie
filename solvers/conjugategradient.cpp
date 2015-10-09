@@ -21,9 +21,11 @@
 #include "eigenvalues.h"
 #include <limits>
 #include <sys/time.h>
+#ifdef HAVE_OPENMP
 #include <omp.h>
+#endif
 
-using namespace Amie ;
+namespace Amie {
 
 ConjugateGradient::ConjugateGradient( Assembly* a ) :LinearSolver(a), r(x.size()),z(x.size()),p(x.size()) ,q(x.size()), xmin(x.size()), cleanup(false), P(nullptr), nit(0) { }
 
@@ -95,20 +97,11 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     if(!precond)
     {
         cleanup = true ;
-//      P = new InCompleteCholesky(A) ;
 //         if(err0 < 1e-4)   
 //             P = new Ssor(assembly->getMatrix(), 1.5) ;
 //         else
             P = new InverseDiagonal(assembly->getMatrix()) ;
-//      P = new InverseDiagonalSquared(assembly->getMatrix()) ;
-//      P = new Inverse2x2Diagonal(assembly->getMatrix()) ;
-        //   0.1      0.2   0.3   0.4   0.5     0.6   0.7   0.8     0.9  1.0  1.1   1.2   1.3   1.4   1.5   1.6  1.9
-        //   505     16    15    16    10.6    15    14    10.6    15   14   10    11    10.3  10.2  10.6  10.7
-        
-//          P = new InverseLumpedDiagonal(assembly->getMatrix()) ;
-//      P = new TriDiagonal(A) ;
-//      P = new NullPreconditionner() ;
-//      P = new GaussSeidellStep(A) ;
+
     }
     else
     {
@@ -141,11 +134,11 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     for(int i = rowstart ; i < vsize ; i++)
         r[i] *= -1 ;
 
-        P->precondition(r, z) ;
+    P->precondition(r, z) ;
 
-    err0 = std::max(1., sqrt( std::abs(parallel_inner_product(&r[rowstart], &z[rowstart], vsize-rowstart)))) ;
+    err0 = 1. ;//std::max(1., sqrt( std::abs(parallel_inner_product(&r[rowstart], &z[rowstart], vsize-rowstart)))) ;
     if(verbose)
-        std::cerr << "first err0" << "\t" << sqrt(err0) << std::endl  ;
+        std::cerr << "-1" << "\t" << sqrt(err0) << std::endl  ;
     if(err0 < errmin)
     {
         errmin = err0 ;
@@ -281,3 +274,4 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     return (nit <= Maxit && sqrt(last_rho) < realeps*err0) || pqconvergence;
 }
 
+}

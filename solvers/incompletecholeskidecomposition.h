@@ -19,7 +19,7 @@
 namespace Amie
 {
 
-struct Assembly ;
+class Assembly ;
 struct InCompleteCholesky  : public Preconditionner
 {
     bool stable ;

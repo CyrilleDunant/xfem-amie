@@ -66,10 +66,10 @@ public:
     virtual void snap(DelaunayTree * dtree) ;
 
     /** \brief return false*/
-    virtual bool inBoundary(const Point v) const ;
+    virtual bool inBoundary(const Point & v, double d) const ;
 
     /** \brief return false*/
-    virtual bool inBoundary(const Point *v) const ;
+    virtual bool inBoundary(const Point *v, double d) const ;
 
     /** \brief return the triangles in the tree intersecting with either of the circles*/
     virtual std::vector<DelaunayTriangle *> getElements2D( FeatureTree * dt)  ;
@@ -80,7 +80,7 @@ public:
     }
 
     /** \brief return the triangles in the tree intersecting with either of the circles*/
-    std::vector<DelaunayTriangle *> getBoundingElements2D( FeatureTree * dt) ;
+    virtual std::vector<DelaunayTriangle *> getBoundingElements2D( FeatureTree * dt) const ;
 
     /** \brief do nothing*/
     virtual void setInfluenceRadius(double r) ;
@@ -130,7 +130,7 @@ public:
     }
 
     /** \brief do nothing */
-    virtual void step(double dt, std::valarray<double> *, const Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree);
+    virtual void step(double dt, std::valarray<double> *, Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree);
 
     /** \brief return true if either radii changed*/
     virtual bool moved() const ;

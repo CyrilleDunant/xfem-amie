@@ -474,10 +474,10 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 bool EnrichmentInclusion::interacts(Feature * f, double d) const {
     return false ;
 }
-bool EnrichmentInclusion::inBoundary(const Point v) const {
+bool EnrichmentInclusion::inBoundary(const Point & v, double d) const {
     return false ;
 }
-bool EnrichmentInclusion::inBoundary(const Point *v) const {
+bool EnrichmentInclusion::inBoundary(const Point *v, double d) const {
     return false ;
 }
 
@@ -513,7 +513,7 @@ std::vector<Geometry *> EnrichmentInclusion::getRefinementZones( size_t level) c
     return std::vector<Geometry *>(0) ;
 }
 
-void EnrichmentInclusion::step(double dt, std::valarray< double >*, const Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) {}
+void EnrichmentInclusion::step(double dt, std::valarray< double >*, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) {}
 
 bool EnrichmentInclusion::moved() const {
     return updated ;

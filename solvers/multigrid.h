@@ -41,7 +41,7 @@ namespace Amie
 			delete gs0 ;
 			delete subsolver ;
 		} ;
-		MultiGrid(Assembly * a, const std::vector<Assembly *> & A1, MESH_T * mesh0, const std::vector<MESH_T *> & mesh1, Vector & f) : LinearSolver(a), A1(A1), mesh0(mesh0), mesh1(mesh1), r0(0.,a->getMatrix().stride()*a->getMaxDofID()), r1(A1.back()->getMatrix().row_size.size()*A1.back()->getMatrix().stride)  
+		MultiGrid(Assembly * a, const std::vector<Assembly *> & A1, MESH_T * mesh0, const std::vector<MESH_T *> & mesh1, Vector & f) : LinearSolver(a), A1(A1), mesh0(mesh0), mesh1(mesh1), r0(0.,a->getMatrix().stride*a->getMaxDofID()), r1(A1.back()->getMatrix().row_size.size()*A1.back()->getMatrix().stride)  
 		{ 
 			coarseSolved = false ;
 			cg0 = new ConjugateGradient(a) ;

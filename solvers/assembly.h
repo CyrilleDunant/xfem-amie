@@ -29,8 +29,8 @@
 namespace Amie
 {
 
-class LinearSolver ;
-class Preconditionner ;
+struct LinearSolver ;
+struct Preconditionner ;
 
 
 typedef enum

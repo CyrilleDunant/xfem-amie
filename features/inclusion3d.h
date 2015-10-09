@@ -228,10 +228,10 @@ public:
     virtual Feature * getSource() ;
 
     /** \brief return false */
-    virtual bool inBoundary(const Point *) const ;
+    virtual bool inBoundary(const Point *, double d) const ;
 
     /** \brief return false*/
-    virtual bool inBoundary(const Point) const ;
+    virtual bool inBoundary(const Point &, double d) const ;
 
     virtual void print() const
     {

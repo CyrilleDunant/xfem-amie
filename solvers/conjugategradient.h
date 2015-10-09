@@ -17,7 +17,7 @@
 
 namespace Amie
 {
-class LinearSolver ;
+struct LinearSolver ;
 /** \brief preconditionned Conjugate Gradient for symmetric systems*/
 struct ConjugateGradient : public LinearSolver
 {

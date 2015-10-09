@@ -112,19 +112,19 @@ typedef enum : char {
 
 
 
-struct Form ;
-struct NonLinearForm ;
-struct Function ;
-struct DelaunayTriangle ;
-struct ElementarySurface ;
-struct ElementaryVolume ;
+class Form ;
+class NonLinearForm ;
+class Function ;
+class DelaunayTriangle ;
+class ElementarySurface ;
+class ElementaryVolume ;
 struct IntegrableEntity ;
-struct FractureCriterion ;
-struct DamageModel ;
-struct VirtualMachine ;
-struct BoundaryCondition ;
+class FractureCriterion ;
+class DamageModel ;
+class VirtualMachine ;
+class BoundaryCondition ;
 template<class A, class B>
-struct Mesh  ;
+class Mesh  ;
 
 
 size_t fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t blocks = 0 ) ;

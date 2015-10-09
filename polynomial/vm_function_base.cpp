@@ -1649,7 +1649,7 @@ Function::Function(const Line & l, ElementarySurface * s) : derivative(nullptr),
     initialiseAdresses();
 }
 
-Function::Function(const Point & l,  ElementarySurface * s) : derivative(nullptr),
+Function::Function(const Point & l,  const ElementarySurface * s) : derivative(nullptr),
     transforms(nullptr),
     ptID (nullptr),
     dofID(-1),
@@ -1673,7 +1673,7 @@ Function::Function(const Point & l,  ElementarySurface * s) : derivative(nullptr
     geo_op[byteCode.size()-1] = new PointDistanceBinaryOperation(l) ;
 }
 
-Function::Function(const Point & l,  ElementaryVolume * s) : derivative(nullptr),
+Function::Function(const Point & l,  const ElementaryVolume * s) : derivative(nullptr),
     transforms(nullptr),
     ptID (nullptr),
     dofID(-1),

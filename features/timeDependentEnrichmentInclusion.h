@@ -35,7 +35,7 @@ public:
 		std::cout << "I am a time-dependent enriched inclusion" << std::endl ;
 	}
 	
-	virtual void step(double dt, std::valarray<double> *,  Amie::Mesh <Amie::DelaunayTriangle, Amie::DelaunayTreeItem > * dtree);
+	virtual void step(double dt, std::valarray<double> *,  Mesh <DelaunayTriangle, DelaunayTreeItem > * dtree);
 
 	void update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 
@@ -64,7 +64,7 @@ public:
 		std::cout << "I am a time-dependent enriched inclusion" << std::endl ;
 	}
 	
-	virtual void step(double dt, std::valarray<double> *,  Amie::Mesh <Amie::DelaunayTriangle, Amie::DelaunayTreeItem > * dtree);
+	virtual void step(double dt, std::valarray<double> *,  Mesh <DelaunayTriangle, DelaunayTreeItem > * dtree);
 
 	void update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 

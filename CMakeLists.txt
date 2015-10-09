@@ -5,6 +5,10 @@ include (CheckCXXSourceCompiles)
 find_package(OpenMP)
 find_package(MPI)
 
+if (CMAKE_CXX_COMPILER MATCHES ".*clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  set(CMAKE_COMPILER_IS_CLANGXX 1)
+endif ()
+
 if( OpenMP_FOUND EQUAL 1 )
 	include(FindOpenMP)
 endif( OpenMP_FOUND EQUAL 1 )
@@ -287,7 +291,7 @@ if(DEBUG_BUILD EQUAL 0)
 endif(DEBUG_BUILD EQUAL 0)
 
 if(COMPILER_HAS_VECTORISER)
-	add_definitions(-ftree-vectorize -ftree-vectorizer-verbose=0)
+	add_definitions(-ftree-vectorize )
 endif(COMPILER_HAS_VECTORISER)
 
 if(COMPILER_HAS_LOOP_INTERCHANGE)
@@ -310,9 +314,9 @@ message (STATUS "  found OpenMP")
 # 	endif()
 endif(OPENMP_FOUND)
 
-if(CMAKE_COMPILER_IS_GNUCXX)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
 	add_definitions ( "-std=c++11" )
-endif(CMAKE_COMPILER_IS_GNUCXX)
+endif(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
 
 if(DEBUG_BUILD EQUAL 1)
 #     set(CMAKE_BUILD_TYPE Debug)

@@ -26,7 +26,6 @@ class ExpansiveZone3D final:  public EnrichmentInclusion3D
     std::set<DelaunayTetrahedron *> expansive ;
     Vector imposedDef ;
     Matrix cgTensor ;
-    Form * original ;
 
 public:
 

@@ -12,14 +12,17 @@
 //
 
 #include "parallel_delaunay.h"
+#ifdef HAVE_OPENMP
 #include <omp.h>
+#endif
 #include <limits>
 #include <algorithm>
 
 // #define DEBUG
 // #undef DEBUG
 
-using namespace Amie ;
+namespace Amie
+{
 
 bool ParallelDelaunayTree::isSame(const DelaunayTreeItem * i0, const DelaunayTreeItem * i1) const 
 {
@@ -669,7 +672,7 @@ unsigned int ParallelDelaunayTree::generateCache ()
     return position ;
 }
 
-Vector ParallelDelaunayTree::getField( FieldType f, unsigned int cacheID, int dummy, double t) 
+Vector ParallelDelaunayTree::getField( FieldType f, int cacheID, int dummy, double t) 
 {
     VirtualMachine vm ;
     size_t blocks = 0 ;
@@ -713,7 +716,7 @@ Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t)
     return ret/w ;
 }
 
-    Vector ParallelDelaunayTree::getSmoothedField (  FieldType f0, unsigned int cacheID, IntegrableEntity * e,int dummy , double t ) {
+    Vector ParallelDelaunayTree::getSmoothedField (  FieldType f0, int cacheID, IntegrableEntity * e,int dummy, double t  , const std::vector<bool> & restrict ) {
     Vector first ;
     Vector strain ;
     Vector stress ;
@@ -824,7 +827,7 @@ Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t)
     return first ;
 }
 
-std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0, FieldType f1, unsigned int cacheID, IntegrableEntity * e ,int dummy , double t ) {
+std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0, FieldType f1, int cacheID, IntegrableEntity * e ,int dummy, double t ,  const std::vector<bool> & restrict ) {
     Vector first ;
     Vector second ;
     Vector strain ;
@@ -997,4 +1000,6 @@ std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0
 
 
     return std::make_pair ( first, second ) ;
+}
+
 }

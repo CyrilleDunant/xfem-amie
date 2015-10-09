@@ -17,8 +17,11 @@
 #include "../../mesher/delaunay_3d.h"
 #include "../../solvers/assembly.h"
 #include "../../polynomial/vm_function_extra.h"
+#ifdef HAVE_OPENMP
 #include <omp.h>
-using namespace Amie ;
+#endif
+namespace Amie
+{
 
 double getSmoothingKernelSize( SmoothingFunctionType type )
 {
@@ -577,5 +580,5 @@ bool FractureCriterion::met() const
     return metAtStep ;
 }
 
-
+}
 

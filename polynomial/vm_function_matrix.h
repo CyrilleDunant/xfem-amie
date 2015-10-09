@@ -26,7 +26,7 @@ namespace Amie
 
 struct FMtFM ;
 struct FMtM ;
-struct Function ;
+class Function ;
 struct Gradient ;
 
 typedef std::valarray<Function> FunctionVector ;

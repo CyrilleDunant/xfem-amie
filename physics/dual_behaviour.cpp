@@ -16,7 +16,7 @@ BimaterialInterface::BimaterialInterface(Geometry * in, Form * inbehaviour, Form
 
 BimaterialInterface::~BimaterialInterface() { }
 
-void BimaterialInterface::transform(ElementarySurface * e)
+void BimaterialInterface::transform(const ElementarySurface * e)
 {
     xtransform = e->getXTransform() ;
     ytransform = e->getYTransform() ;
@@ -29,7 +29,7 @@ void BimaterialInterface::transform(ElementarySurface * e)
         ttransform = Function("0") ;
 }
 
-void BimaterialInterface::transform(ElementaryVolume * e)
+void BimaterialInterface::transform(const ElementaryVolume * e)
 {
     xtransform = e->getXTransform() ;
     ytransform = e->getYTransform() ;

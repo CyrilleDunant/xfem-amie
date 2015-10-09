@@ -26,7 +26,7 @@ public:
     EnrichmentBehaviour();
     ~EnrichmentBehaviour();
 
-	virtual std::vector<EnrichmentFeature *> step(double t, DelaunayTree * dt) const = 0;
+	virtual std::vector<EnrichmentFeature *> step(double t,Vector *v, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) const = 0;
 
 };
 

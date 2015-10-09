@@ -760,7 +760,7 @@ struct CoordinateIndexedSparseMatrixTimesVec
     CoordinateIndexedSparseMatrixTimesVecMinusVec operator - (const Vector & v) const ;
 
     /** \brief Produce the Vector corresponding to this operation represented by this structure.*/
-    operator const Vector() const ;
+    operator Vector() ;
 } ;
 
 /** \brief Structure contaning the elements for a (matrix+matrix) * vector + vector operation
@@ -905,7 +905,7 @@ struct CompositeSparseMatrixTimesVecMinusVecMinusVec
     CompositeSparseMatrixTimesVecMinusVecMinusVec(const CompositeSparseMatrixTimesVecMinusVec & c, const Vector & v) : co(c), ve(v) {} ;
 
     /** \brief Produce the Vector corresponding to this operation represented by this structure.*/
-    operator const Vector() const
+    operator Vector() 
     {
         Vector ret(0., ve.size()) ;
 

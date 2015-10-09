@@ -29,8 +29,8 @@ namespace Amie
 {
 
 struct GaussPointArray ;
-struct ElementarySurface ;
-struct ElementaryVolume ;
+class ElementarySurface ;
+class ElementaryVolume ;
 
 const size_t HEAP_VARIABLE_TRANSFORM_OFFSET = 4096 ;
 
@@ -179,14 +179,14 @@ public:
      * @param p Point the distance to which to compute.
      * @param s ElementarySurface defining the transform
      */
-    Function ( const Point & p, ElementarySurface * s ) ;
+    Function ( const Point & p, const ElementarySurface * s ) ;
 
     /** \brief Function returning the distance to a point, given a space transform (x, y) -> x(x, y), y(x, y) deduced from an ElementarySurface
      *
      * @param p Point the distance to which to compute.
      * @param s ElementarySurface defining the transform
      */
-    Function ( const Point & p, ElementaryVolume * s ) ;
+    Function ( const Point & p, const ElementaryVolume * s ) ;
 
     /** \brief Function computing the rotation of a point(x, y) round 0, 0, given a space transform (x, y) -> x(x, y), y(x, y) deduced from an ElementarySurface.
     * This Function is not useful as itself as when computed, it will return a double. However it can be composed with other operations.
@@ -945,8 +945,6 @@ struct Differential {
      * @param m Variable
      */
     Differential ( const Function &u, const Variable & m ) : f ( u ), v ( m ) { } ;
-
-    Differential (const Variable & m) : f("0"), v(m) { } ;
 
     /** \brief Create a structure for the lazy evaluation of the Differential * Function
      *

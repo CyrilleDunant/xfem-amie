@@ -18,7 +18,9 @@
 
 #include <fstream>
 #include <ostream>
+#ifdef HAVE_OPENMP
 #include <omp.h>
+#endif
 #include <cmath>
 #include <dirent.h>
 #include <typeinfo>
@@ -98,7 +100,7 @@ int main(int argc, char *argv[])
 	parser.addFlag("--renew-base", false, "renew the base of results") ;
 	parser.addValue("--tolerance", 0.01, "set relative tolerance for evaluation of test success (default: 0.01)" ) ;
 	parser.addValue("--threshold", 1e-6, "set absolute threshold below which success is not evaluated (default: 1e-6)" ) ;
-	parser.addValue("--timeout", 10, "maximum time (in seconds) spent for each test; use negative values for no time limit (default: 10s)" ) ;
+	parser.addValue("--timeout", 200, "maximum time (in seconds) spent for each test; use negative values for no time limit (default: 200s)" ) ;
 	parser.addString("--match", "*", "runs only the tests matching the required string (default: runs all tests found)" ) ;
 	parser.addString("--disable", "", "forces a specific test to be skipped for all users (developers only!)" ) ;
 	parser.disableFeatureTreeArguments() ;

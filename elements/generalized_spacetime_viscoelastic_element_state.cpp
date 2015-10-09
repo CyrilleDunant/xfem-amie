@@ -5,9 +5,11 @@
 #include "../mesher/delaunay.h"
 #include "../utilities/random.h"
 #include "../features/inclusion.h"
+#ifdef HAVE_OPENMP
 #include <omp.h>
+#endif
 
-using namespace Amie ;
+namespace Amie {
 
 GeneralizedSpaceTimeViscoElasticElementState::GeneralizedSpaceTimeViscoElasticElementState ( IntegrableEntity * e, int blocks ) : ElementState ( e )
 {
@@ -3055,3 +3057,4 @@ void GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::synchron
     }
 }
 
+}

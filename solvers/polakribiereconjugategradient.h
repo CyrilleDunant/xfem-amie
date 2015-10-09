@@ -20,7 +20,7 @@
 namespace Amie
 {
 
-struct Assembly ;
+class Assembly ;
 
 /** \brief Non-linear solver for symmetric systems*/
 struct ConjugateGradientWithSecant : public NonLinearSolver

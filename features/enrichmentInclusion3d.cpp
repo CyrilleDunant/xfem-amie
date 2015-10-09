@@ -377,7 +377,7 @@ bool EnrichmentInclusion3D::interacts(Feature * f, double d) const {
     return false ;
 }
 
-bool EnrichmentInclusion3D::inBoundary(const Point & v) const {
+bool EnrichmentInclusion3D::inBoundary(const Point & v, double d) const {
     return false ;
 }
 
@@ -386,7 +386,7 @@ std::vector<DelaunayTetrahedron *> EnrichmentInclusion3D::getElements3D( Feature
     return dt->get3DMesh()->getConflictingElements(getPrimitive()) ;
 }
 
-std::vector<DelaunayTetrahedron *> EnrichmentInclusion3D::getBoundingElements3D( FeatureTree * dt)
+std::vector<DelaunayTetrahedron *> EnrichmentInclusion3D::getBoundingElements3D( FeatureTree * dt) const 
 {
     //first we get All the triangles affected
     std::vector<DelaunayTetrahedron *> disc = dt->get3DMesh()->getConflictingElements(getPrimitive()) ;
@@ -410,7 +410,7 @@ std::vector<Geometry *> EnrichmentInclusion3D::getRefinementZones( size_t level)
     return std::vector<Geometry *>(0) ;
 }
 
-void EnrichmentInclusion3D::step(double dt, std::valarray<double> *, const Mesh<Amie::DelaunayTriangle, Amie::DelaunayTreeItem> * dtree) {}
+void EnrichmentInclusion3D::step(double dt, std::valarray<double> *, Mesh<Amie::DelaunayTriangle, Amie::DelaunayTreeItem> * dtree) {}
 
 bool EnrichmentInclusion3D::moved() const {
     return updated ;

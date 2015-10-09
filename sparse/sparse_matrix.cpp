@@ -147,7 +147,7 @@ CoordinateIndexedSparseMatrixTimesVecMinusVec CoordinateIndexedSparseMatrixTimes
 }
 
 
-CoordinateIndexedSparseMatrixTimesVec::operator const Vector() const
+CoordinateIndexedSparseMatrixTimesVec::operator Vector()
 {
     Vector ret(0., ve.size()) ;
 

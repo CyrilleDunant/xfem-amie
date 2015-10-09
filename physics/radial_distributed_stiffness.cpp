@@ -77,7 +77,7 @@ RadialInclusion::RadialInclusion(double r, double x, double y) : Circle(r,x,y), 
 {
 }
 
-Form * RadialInclusion::getBehaviour( const Point & p )
+Form * RadialInclusion::getBehaviour( const Point & p ) const 
 {
     static_cast<RadialDistributedStiffness *>(behaviour)->setAngle(p.angle()) ;
     return behaviour->getCopy() ;

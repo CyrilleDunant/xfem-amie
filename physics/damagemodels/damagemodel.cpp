@@ -151,8 +151,8 @@ void DamageModel::step( ElementState &s , double maxscore)
                     currentMode * prevMode < 0
               )
             {
-                deltaRoot = (currentDelta > 0     && prevDelta ) < 0  ||
-                            (currentDelta < 0     && prevDelta ) > 0  ||
+                deltaRoot = (currentDelta > 0     && prevDelta < 0)   ||
+                            (currentDelta < 0     && prevDelta  > 0)  ||
                             (std::abs(currentDelta) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5 && 
                             std::abs(prevDelta) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5) ;
                 if(deltaRoot)

@@ -196,9 +196,9 @@ bool RegularOctahedron::in(const Point &p) const
     v -=center ;
     v*=rot ;
     v+=center ;
-    if(abs(v.getX()-center.getX()) > length)
+    if(std::abs(v.getX()-center.getX()) > length)
         return false ;
-    if(abs(v.getY()-center.getY()) > length)
+    if(std::abs(v.getY()-center.getY()) > length)
         return false ;
     Point v_(v.getX(), v.getZ()) ;
     if(!Triangle(Point(getCenter().getX()-.5*length, center.getZ()), Point(getCenter().getX()+.5*length, getCenter().getZ()), Point(getCenter().getX(), getCenter().getZ()+0.70711*length)).in(v_) && !Triangle(Point(getCenter().getX()-.5*length, getCenter().getZ()), Point(getCenter().getX()+.5*length, getCenter().getZ()), Point(getCenter().getX(), getCenter().getZ()-0.70711*length)).in(v_))
@@ -1584,7 +1584,7 @@ void Sphere::project(Point * p, double r) const
     int id = p->getId() ;
     if(squareDist3D(*p, getCenter() ) < POINT_TOLERANCE*POINT_TOLERANCE)
     {
-        p->getX() =+ r ;
+        p->getX() += r ;
         return ;
     }
 
@@ -1798,13 +1798,13 @@ LoftedPolygonPrism::LoftedPolygonPrism(const std::valarray< Point* >& points, co
     centerInXZPlane = false ;
     centerInYZPlane = false ; 
     tanAtCentre = interpolatingPointAndTangent(0.5).second ;
-    if(abs(tanAtCentre*Point(0,1,0)) > abs(tanAtCentre*Point(0,0,1)))
+    if(std::abs(tanAtCentre*Point(0,1,0)) > std::abs(tanAtCentre*Point(0,0,1)))
     {
         centerInXYPlane = false ;
         centerInXZPlane = true ;
         centerInYZPlane = false ;
         
-        if(abs(tanAtCentre*Point(1,0,0)) > abs(tanAtCentre*Point(0,1,0)))
+        if(std::abs(tanAtCentre*Point(1,0,0)) > std::abs(tanAtCentre*Point(0,1,0)))
         {
             centerInXYPlane = false ;
             centerInXZPlane = false ;

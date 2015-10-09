@@ -3473,7 +3473,7 @@ bool Line::intersects(const TriPoint &g) const
     mat[2][0] = v.getZ();
     mat[2][1] = g.point[1].getZ()-g.point[0].getZ();
     mat[2][2] = g.point[2].getZ()-g.point[0].getZ();
-    return abs(det(mat)) > POINT_TOLERANCE ;
+    return std::abs(det(mat)) > POINT_TOLERANCE ;
 
 
 }
@@ -3488,7 +3488,7 @@ std::vector<Point> Line::intersection(const TriPoint &s) const
     
     if(std::abs(b) < POINT_TOLERANCE)
     {
-        if(abs(a) > POINT_TOLERANCE)
+        if(std::abs(a) > POINT_TOLERANCE)
             return std::vector<Point>(0) ;
         
         Triangle t(s.point[0], s.point[1], s.point[2]) ;
@@ -5194,13 +5194,13 @@ Point Segment::intersection(const Segment &l) const
 {
     if (isAligned(l.first(), s, f) && isAligned(l.second(), s, f))
     {
-        if(on(l.first()) && on(l.second())) ;
+        if(on(l.first()) && on(l.second()))
             return l.midPoint() ;
         if(on(l.first()))
             return l.first() ;
         if(on(l.second()))
             return l.second() ;
-        if(l.on(f) && l.on(s)) ;
+        if(l.on(f) && l.on(s))
             return midPoint() ;
         if(l.on(f))
             return f ;

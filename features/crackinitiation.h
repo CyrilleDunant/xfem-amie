@@ -27,7 +27,7 @@ public:
     ~CrackInitiation();
 
 /** \brief return the new cracks to add*/
-	virtual std::vector<EnrichmentFeature *> step(double t, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) const;
+	virtual std::vector<EnrichmentFeature *> step(double t, Vector *, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) const;
 };
 
 }

@@ -18,7 +18,9 @@
 
 #include <fstream>
 #include <ostream>
+#ifdef HAVE_OPENMP
 #include <omp.h>
+#endif
 #include <cmath>
 #include <regex>
 #include <dirent.h>

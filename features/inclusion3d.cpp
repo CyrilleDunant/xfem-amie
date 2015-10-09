@@ -199,12 +199,12 @@ bool VirtualInclusion3D::interacts(Feature * f, double d) const 	{
 	return false ;
 }
 
-bool VirtualInclusion3D::inBoundary(const Point *) const
+bool VirtualInclusion3D::inBoundary(const Point *, double d) const
 {
 	return false ;
 }
 
-bool VirtualInclusion3D::inBoundary(const Point) const
+bool VirtualInclusion3D::inBoundary(const Point&, double d) const
 {
 	return false ;
 }

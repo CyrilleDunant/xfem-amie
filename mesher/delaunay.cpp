@@ -192,8 +192,8 @@ void Star::updateNeighbourhood()
         }
         for(size_t j = 0 ; j < (*i)->neighbour.size() ; j++)
         {
-            if((*i)->getNeighbour(j)->isAlive() && ((*i)->getNeighbour(j)->onCircumCircle(*creator) || !(*i)->getNeighbour(j)->inCircumCircle(*creator))) ;
-            items[count++] = (*i)->getNeighbour(j) ;
+            if((*i)->getNeighbour(j)->isAlive() && ((*i)->getNeighbour(j)->onCircumCircle(*creator) || !(*i)->getNeighbour(j)->inCircumCircle(*creator)))
+                items[count++] = (*i)->getNeighbour(j) ;
         }
 
     }

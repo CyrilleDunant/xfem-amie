@@ -116,15 +116,6 @@ void RandomGenerator::setStep(long s)
         step = s ;
 }
 
-double RandomGenerator::uniform()
-{
-    n *= step ;
-    n = n%max ;
-    if(n==0)
-        n = 1 ;
-    return (double) (n/max) ;
-}
-
 
 RandomDistribution::RandomDistribution()
 {

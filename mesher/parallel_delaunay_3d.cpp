@@ -12,7 +12,9 @@
 //
 
 #include "parallel_delaunay_3d.h"
+#ifdef HAVE_OPENMP
 #include <omp.h>
+#endif
 #include <limits>
 #include <algorithm>
 
@@ -804,7 +806,7 @@ Vector ParallelDelaunayTree3D::getField( FieldType f, int dummy, double t)
     return ret/w ;
 }
 
-Vector ParallelDelaunayTree3D::getSmoothedField (  FieldType f0, int cacheID, IntegrableEntity * e,int dummy , double t ) {
+Vector ParallelDelaunayTree3D::getSmoothedField ( FieldType f0, int cacheID, IntegrableEntity* e, int dummy , double t ,const std::vector<bool> & restrict ) {
     Vector first ;
     Vector strain ;
     Vector stress ;
@@ -915,7 +917,7 @@ Vector ParallelDelaunayTree3D::getSmoothedField (  FieldType f0, int cacheID, In
     return first ;
 }
 
-std::pair<Vector, Vector> ParallelDelaunayTree3D::getSmoothedFields ( FieldType f0, FieldType f1, int cacheID, IntegrableEntity * e ,int dummy, double t ) {
+std::pair<Vector, Vector> ParallelDelaunayTree3D::getSmoothedFields ( FieldType f0, FieldType f1, int cacheID, IntegrableEntity* e, int dummy , double t  ,const std::vector<bool> & restrict ) {
     Vector first ;
     Vector second ;
     Vector strain ;

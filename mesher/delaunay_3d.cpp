@@ -12,7 +12,9 @@
 //
 
 #include "delaunay_3d.h"
+#ifdef HAVE_OPENMP
 #include <omp.h>
+#endif
 #include <limits>
 
 // #define DEBUG
@@ -116,9 +118,8 @@ void Star3D::updateNeighbourhood()
 
         for( size_t j = 0 ; j < ( *i )->neighbour.size() ; j++ )
         {
-            if( !( *i )->getNeighbour( j )->dead && ( !( *i )->getNeighbour( j )->inCircumSphere( *creator ) || ( *i )->getNeighbour( j )->onCircumSphere( *creator ) ) ) ;
-
-            items[count++] = ( *i )->getNeighbour( j ) ;
+            if( !( *i )->getNeighbour( j )->dead && ( !( *i )->getNeighbour( j )->inCircumSphere( *creator ) || ( *i )->getNeighbour( j )->onCircumSphere( *creator ) ) ) 
+                items[count++] = ( *i )->getNeighbour( j ) ;
         }
 
     }

@@ -13,7 +13,7 @@ namespace Amie
 {
 class voxelfilter ;
 
-class StructuredMesh final: public Mesh<DelaunayTriangle, DelaunayTreeItem>
+class StructuredMesh: public Mesh<DelaunayTriangle, DelaunayTreeItem>
 {
 protected:
     std::vector< Point *> points ;

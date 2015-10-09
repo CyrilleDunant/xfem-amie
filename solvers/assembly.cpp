@@ -648,6 +648,7 @@ void Assembly::setBoundaryConditions()
 
 void Assembly::checkZeroLines()
 {
+    return ;
     if(!removeZeroOnlyLines)
     {
         return ;

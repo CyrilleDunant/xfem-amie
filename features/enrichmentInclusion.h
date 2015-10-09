@@ -51,10 +51,10 @@ public:
     virtual bool interacts(Feature * f, double d) const ;
 
     /** \brief return false*/
-    virtual bool inBoundary(const Point v) const ;
+    virtual bool inBoundary(const Point&  v, double d) const ;
 
     /** \brief return false*/
-    virtual bool inBoundary(const Point *v) const ;
+    virtual bool inBoundary(const Point *v, double d) const ;
 
     /** \brief return the list of elements cut by the feature*/
     virtual std::vector<DelaunayTriangle *> getElements2D( FeatureTree * dt)  ;
@@ -114,7 +114,7 @@ public:
     }
 
     /** \brief do nothing*/
-    virtual void step(double dt, std::valarray<double> *, const  Mesh <DelaunayTriangle, DelaunayTreeItem > * dtree);
+    virtual void step(double dt, std::valarray<double> *, Mesh <DelaunayTriangle, DelaunayTreeItem > * dtree);
 
     /** \brief return true if the radius has changed*/
     virtual bool moved() const ;

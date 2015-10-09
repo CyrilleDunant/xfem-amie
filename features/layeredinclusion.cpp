@@ -115,7 +115,7 @@ bool LayeredInclusion::interacts(Feature * f, double d) const
 }
 
 
-Form * LayeredInclusion::getBehaviour(const Point & p)
+Form * LayeredInclusion::getBehaviour(const Point & p) const
 {	
 	double pRadius = dist(p, getCenter()) ;
 	
@@ -234,7 +234,7 @@ std::vector<DelaunayTetrahedron *> VirtualLayer::getElements3D( FeatureTree* dt)
 	return std::vector<DelaunayTetrahedron *>(0)  ;
 }
 
-Form * VirtualLayer::getBehaviour(const Point & p)
+Form * VirtualLayer::getBehaviour(const Point & p) const
 {
 	return source->getBehaviour(p) ;
 }

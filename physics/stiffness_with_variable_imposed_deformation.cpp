@@ -44,7 +44,7 @@ Form * StiffnessWithVariableImposedDeformation::getCopy() const
     return copy ;
 }
 
-void StiffnessWithVariableImposedDeformation::step(double timestep, ElementState & currentState)
+void StiffnessWithVariableImposedDeformation::step(double timestep, ElementState & currentState, double maxscore) 
 {
     double uniformRand = (double)rand()/(double)RAND_MAX ;
     imposed[0] += timestep*uniformRand ;

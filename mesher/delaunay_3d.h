@@ -342,7 +342,7 @@ class DelaunayTree3D final: public Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>
     friend class FeatureTree ;
     friend class ParallelDelaunayTree3D ;
     friend class Geometry ;
-    friend class IntegrableEntity ;
+    friend struct IntegrableEntity ;
 
 protected:
     double internalScale ;

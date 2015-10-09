@@ -14,7 +14,9 @@
 #include "../../utilities/itoa.h"
 
 #include <fstream>
+#ifdef HAVE_OPENMP
 #include <omp.h>
+#endif
 #include <cmath>
 #include <typeinfo>
 #include <limits>

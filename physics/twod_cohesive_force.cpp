@@ -54,7 +54,7 @@ bool TwoDCohesiveForces::hasInducedMatrix() const
 }
 
 
-void TwoDCohesiveForces::getForces( ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) 
+void TwoDCohesiveForces::getForces( ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f)
 {
 
 
@@ -101,7 +101,7 @@ void TwoDCohesiveForces::getForces( ElementState & s, const Function & p_i, cons
 
 }
 
-std::vector<BoundaryCondition * > TwoDCohesiveForces::getBoundaryConditions( const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) 
+std::vector<BoundaryCondition * > TwoDCohesiveForces::getBoundaryConditions( const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
 
 
@@ -161,7 +161,7 @@ std::vector<BoundaryCondition * > TwoDCohesiveForces::getBoundaryConditions( con
     return ret ;
 }
 
-void TwoDCohesiveForces::step(double timestep, ElementState & s)
+void TwoDCohesiveForces::step(double timestep, ElementState & s, double maxscore)
 {
 // 		this->state = currentState ;
 

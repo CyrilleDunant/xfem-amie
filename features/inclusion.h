@@ -268,7 +268,7 @@ public:
 	ITZFeature(Feature *father, std::vector<Inclusion *> & g, double l, double a = 0., double b = 1.) ;
 
 	virtual void print() {} ;
-	virtual Form * getBehaviour( const Point & p ) ;
+	virtual Form * getBehaviour( const Point & p ) const ;
 	virtual Feature * getSource() {return sources[0] ; } ;
 	virtual const Feature * getSource() const {return sources[0] ; } ;
 	virtual bool in( const Point &) const ;

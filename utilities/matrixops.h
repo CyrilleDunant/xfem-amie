@@ -16,7 +16,9 @@
 #include "sliceiters.h"
 #include <vector>
 #include <numeric>
+#ifdef HAVE_OPENMP
 #include <omp.h>
+#endif
 
 
 #include <assert.h>
@@ -288,7 +290,7 @@ struct MtV
     MtV(const Matrix &mm, const Vector &vv) : m(mm), v(vv) { }
 
     /** \brief cast operator, compute the operation*/
-    operator const Vector();
+    operator  Vector() const;
 } ;
 
 /** \brief Structure used for Matrix-Matrix-Matrix multiplication, minimising the use of temporares*/

@@ -317,18 +317,18 @@ void EnrichmentRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTre
 bool EnrichmentRing::interacts(Feature * f, double d) const { return false ;}
 void EnrichmentRing::snap(DelaunayTree * dtree) {}
 	
-bool EnrichmentRing::inBoundary(const Point v) const {return false ; }
-bool EnrichmentRing::inBoundary(const Point *v) const { return false ;}
+bool EnrichmentRing::inBoundary(const Point & v, double d) const {return false ; }
+bool EnrichmentRing::inBoundary(const Point *v, double d) const { return false ;}
 	
 std::vector<DelaunayTriangle *> EnrichmentRing::getElements2D( FeatureTree * dt) 
 { 
 	return dt->get2DMesh()->getConflictingElements(getPrimitive()) ;
 }
 	
-std::vector<DelaunayTriangle *> EnrichmentRing::getBoundingElements2D( FeatureTree * dt)
+std::vector<DelaunayTriangle *> EnrichmentRing::getBoundingElements2D( FeatureTree * dt) const 
 {
 	//first we get All the triangles affected
-	std::vector<DelaunayTriangle *> disc = dt->get2DMesh()->getConflictingElements(static_cast<Circle *>(this)) ;
+	std::vector<DelaunayTriangle *> disc = dt->get2DMesh()->getConflictingElements(getPrimitive()) ;
 	
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTriangle *> ring ;
@@ -349,7 +349,7 @@ std::vector<Geometry *> EnrichmentRing::getRefinementZones( size_t level) const
 	return std::vector<Geometry *>(0) ;
 }
 	
-void EnrichmentRing::step(double dt, std::valarray<double> *, const Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) {}
+void EnrichmentRing::step(double dt, std::valarray<double> *, Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) {}
 	
 bool EnrichmentRing::moved() const { return updated ;}
 

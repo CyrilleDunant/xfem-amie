@@ -410,6 +410,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 {
     Matrix deltaParam = getTensor( Point(0,0,0,-1) ) - getTensor( Point(0,0,0,1) ) ;
     Matrix endParam = getTensor( Point(0,0,0,1. ) ) ;
+    Function f ;
     if( endParam.array().max() > POINT_TOLERANCE && (std::abs(deltaParam.array().max()) > POINT_TOLERANCE || std::abs(deltaParam.array().min()) > POINT_TOLERANCE ) )
     {
         Matrix tmpRet(ret.numRows()/blocks, ret.numCols()/blocks) ;
@@ -417,7 +418,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
         std::vector<Matrix> dmat(Jinv.size(), Matrix( tensors[0].numCols(), tensors[0].numRows() ) ) ;
         std::vector<std::pair<Matrix, Matrix> > paramt( Jinv.size(), std::make_pair( param, param*0 ) ) ; 
         getTensorDotAtGaussPoints( gp, Jinv, paramt, true ) ;
-
+        
         for(size_t i = 0 ; i < connectivity.size() ; i++)
         {
             tmpRet = 0 ;
@@ -426,7 +427,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
                 getBlockInMatrix( paramt[g].first, connectivity[i].xplus[0], connectivity[i].yplus[0], mat[g] ) ;
                 getBlockInMatrix( paramt[g].second, connectivity[i].xplus[0], connectivity[i].yplus[0], dmat[g] ) ;
             }
-            vm->ieval( Differential(TIME_VARIABLE)[ Gradient(p_i) * mat * Gradient(p_j, true) ], dmat, gp, Jinv,v, tmpRet) ;
+            vm->ieval( Differential(f,TIME_VARIABLE)[ Gradient(p_i) * mat * Gradient(p_j, true) ], dmat, gp, Jinv,v, tmpRet) ;
             for(size_t j = 0 ; j < connectivity[i].xplus.size() ; j++)
                 placeMatrixInBlock( tmpRet, connectivity[i].xplus[j], connectivity[i].yplus[j], ret ) ;
             for(size_t j = 0 ; j < connectivity[i].xminus.size() ; j++)
@@ -444,7 +445,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
         {
             tmpRet = 0 ;
             getBlockInMatrix(realParam, connectivity[i].xplus[0], connectivity[i].yplus[0], tmpParam) ;
-            vm->ieval( Differential(TIME_VARIABLE)[ Gradient(p_i) * tmpParam * Gradient(p_j, true) ],  gp, Jinv,v, tmpRet) ;
+            vm->ieval( Differential(f, TIME_VARIABLE)[ Gradient(p_i) * tmpParam * Gradient(p_j, true) ],  gp, Jinv,v, tmpRet) ;
             for(size_t j = 0 ; j < connectivity[i].xplus.size() ; j++)
                 placeMatrixInBlock( tmpRet, connectivity[i].xplus[j], connectivity[i].yplus[j], ret ) ;
             for(size_t j = 0 ; j < connectivity[i].xminus.size() ; j++)
@@ -457,6 +458,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
     Matrix deltaParam = getViscousTensor( Point(0,0,0,-1) ) - getViscousTensor( Point(0,0,0,1) ) ;
+    Function f ;
     if( std::abs(deltaParam.array().max()) > POINT_TOLERANCE || std::abs(deltaParam.array().min()) > POINT_TOLERANCE )
     {
         Matrix tmpRet(ret.numRows()/blocks, ret.numCols()/blocks) ;
@@ -473,7 +475,7 @@ void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, c
                 getBlockInMatrix( paramt[g].first, connectivityViscous[i].xplus[0], connectivityViscous[i].yplus[0], mat[g] ) ;
                 getBlockInMatrix( paramt[g].second, connectivityViscous[i].xplus[0], connectivityViscous[i].yplus[0], dmat[g] ) ;
             }
-            vm->ieval( Differential(TIME_VARIABLE)[ Gradient(p_i) * mat * GradientDot(p_j, true) ], dmat, gp, Jinv,v, tmpRet) ;
+            vm->ieval( Differential(f, TIME_VARIABLE)[ Gradient(p_i) * mat * GradientDot(p_j, true) ], dmat, gp, Jinv,v, tmpRet) ;
             for(size_t j = 0 ; j < connectivityViscous[i].xplus.size() ; j++)
                 placeMatrixInBlock( tmpRet, connectivityViscous[i].xplus[j], connectivityViscous[i].yplus[j], ret ) ;
             for(size_t j = 0 ; j < connectivityViscous[i].xminus.size() ; j++)
@@ -491,7 +493,7 @@ void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, c
         {
             tmpRet = 0 ;
             getBlockInMatrix(realeta, connectivityViscous[i].xplus[0], connectivityViscous[i].yplus[0], tmpEta) ;
-            vm->ieval( Differential(TIME_VARIABLE)[ Gradient(p_i) * tmpEta * GradientDot(p_j, true) ],  gp, Jinv,v, tmpRet) ;
+            vm->ieval( Differential(f, TIME_VARIABLE)[ Gradient(p_i) * tmpEta * GradientDot(p_j, true) ],  gp, Jinv,v, tmpRet) ;
             for(size_t j = 0 ; j < connectivityViscous[i].xplus.size() ; j++)
                 placeMatrixInBlock( tmpRet, connectivityViscous[i].xplus[j], connectivityViscous[i].yplus[j], ret ) ;
             for(size_t j = 0 ; j < connectivityViscous[i].xminus.size() ; j++)

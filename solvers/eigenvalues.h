@@ -9,7 +9,7 @@
 
 namespace Amie
 {
-    struct Assembly ;
+    class Assembly ;
 /** \brief Utility. Return largest EigenValue of the argument*/
   double largestEigenValue( Amie::Assembly* a, bool sym = false ) ;
 

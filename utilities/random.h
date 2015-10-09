@@ -48,7 +48,7 @@ public:
     /**
     * \brief reset the seed according to an arbitrary number
     */
-    virtual void reset(int seed) {
+    virtual void reset(long seed) {
         exit(0) ;
         std::srand(seed) ;
     } ;
@@ -174,7 +174,6 @@ public:
 
     virtual void reset() ;
     virtual void reset(long seed) ;
-    virtual double uniform() ;
 
     long getMax() {
         return max ;

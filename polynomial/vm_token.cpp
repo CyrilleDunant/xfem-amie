@@ -26,7 +26,6 @@ void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c
     inGeo->project ( &gProj );
     if ( inGeo->in ( test ) )
     {
-        double totaldist ;
         std::vector<double> weight ;
         std::vector<Point> projs ;
         for ( size_t i = 0 ; i < inProjector.size() ; i++ )
@@ -37,12 +36,10 @@ void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c
 
             projs.push_back ( proj );
             double d = dist ( proj, test ) ;
-            totaldist += d ;
             weight.push_back ( d );
         }
         projs.push_back ( gProj );
         double d = dist ( gProj, test ) ;
-        totaldist += d ;
         weight.push_back ( d );
 
         double maxn = 0 ;
@@ -78,7 +75,6 @@ void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c
     }
     else
     {
-        double totaldist ;
         std::vector<double> weight ;
         std::vector<Point> projs ;
         for ( size_t i = 0 ; i < outProjector.size() ; i++ )
@@ -87,12 +83,10 @@ void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c
             Point proj = l.projection ( test ) ;
             projs.push_back ( proj );
             double d = dist ( proj, test ) ;
-            totaldist += d ;
             weight.push_back ( d );
         }
         projs.push_back ( gProj );
         double d = dist ( gProj, test ) ;
-        totaldist += d ;
         weight.push_back ( d );
 
         double maxn = 0 ;
@@ -314,8 +308,6 @@ int LineDistanceOperation::adressOffset() const
 InHomogeneousProjectionOperation::InHomogeneousProjectionOperation ( Geometry * inGeo, const std::vector<Segment> & inProjector, const std::vector<Segment> &outProjector ) : inGeo ( inGeo ), inProjector ( inProjector ), outProjector ( outProjector )
 {
 }
-
-void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c ) const ;
 
 GeometryOperation * InHomogeneousProjectionOperation::getCopy() const
 {

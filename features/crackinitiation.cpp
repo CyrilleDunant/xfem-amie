@@ -23,11 +23,11 @@ CrackInitiation::~CrackInitiation()
 {
 }
 
-std::vector<EnrichmentFeature *> CrackInitiation::step(double delta,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) const
+std::vector<EnrichmentFeature *> CrackInitiation::step(double delta,Vector * v , Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) const
 {
 	std::vector<EnrichmentFeature *> ret ;
 	
-	std::vector<DelaunayTriangle *> brokenTriangles ;
+	std::vector< DelaunayTriangle *> brokenTriangles ;
 	for(auto i = dt->begin() ; i != dt->end() ;i++)
 	{
 		if(i->getBehaviour()->fractured())

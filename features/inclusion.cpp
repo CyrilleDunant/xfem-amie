@@ -349,7 +349,7 @@ bool ITZFeature::in(const Point & p) const
 
 }
 
-Form * ITZFeature::getBehaviour( const Point & p)
+Form * ITZFeature::getBehaviour( const Point & p) const
 {
 	double d = -1 ;
 	for(size_t i = 0 ; i < sources.size() ; i++)

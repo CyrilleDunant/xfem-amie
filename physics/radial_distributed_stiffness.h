@@ -66,7 +66,7 @@ public:
     RadialInclusion(double r, Point c) ;
     RadialInclusion(double r, double x, double y) ;
 
-    virtual Form * getBehaviour( const Point & p ) ;
+    virtual Form * getBehaviour( const Point & p ) const;
 } ;
 
 }

@@ -8,7 +8,9 @@
 #include "matrixops.h"
 #include <limits>
 #include <iomanip>
+#ifdef HAVE_OPENMP
 #include <omp.h>
+#endif
 
 namespace Amie {
 
@@ -478,7 +480,7 @@ Matrix MtM::operator *(const double & d) const
 }
 
 
-MtV::operator const Vector()
+MtV::operator  Vector() const
 {
     return matrix_vector_multiply(m,v) ;
 }

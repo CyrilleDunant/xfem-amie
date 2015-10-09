@@ -40,7 +40,7 @@ RadialStiffnessGradient::~RadialStiffnessGradient()
 	delete criterion ;
 }
 
-void RadialStiffnessGradient::transform(ElementarySurface * e)
+void RadialStiffnessGradient::transform(const ElementarySurface * e)
 {
 	Function x = e->getXTransform() ;
 	Function y = e->getYTransform() ;

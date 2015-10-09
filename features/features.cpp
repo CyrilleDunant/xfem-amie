@@ -3118,7 +3118,7 @@ void FeatureTree::updateElementBehaviours()
 {
     if(structuredMesh)
         return ;
-    double n_void ;
+    double n_void(0) ;
 
     if ( is2D() )
     {
@@ -5234,7 +5234,7 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
     {
         sampled = false ;
         meshed = false ;
-        behaviourSet = behaviourSet ;
+        behaviourSet = false ;
         behaviourUpdated = false;
         stitched = false ;
         renumbered = false ;

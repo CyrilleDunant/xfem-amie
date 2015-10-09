@@ -2211,11 +2211,6 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
                 {
 
-                    if ( !&e->getBoundingPoint ( k ) )
-                    {
-                        continue ;
-                    }
-
                     DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
 
                     if ( (int)id[j] == e->getBoundingPoint ( k ).getId() && (
@@ -2329,11 +2324,6 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
                 {
-
-                    if ( !&e->getBoundingPoint ( k ) )
-                    {
-                        continue ;
-                    }
 
                     DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
 
@@ -2449,11 +2439,6 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
                 {
 
-                    if ( !&e->getBoundingPoint ( k ) )
-                    {
-                        continue ;
-                    }
-
                     DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
 
                     if ( (int)id[j] == e->getBoundingPoint ( k ).getId() && (
@@ -2567,11 +2552,6 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
                 {
-
-                    if ( !&e->getBoundingPoint ( k ) )
-                    {
-                        continue ;
-                    }
 
                     DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
 
@@ -2687,11 +2667,6 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
                 {
-
-                    if ( !&e->getBoundingPoint ( k ) )
-                    {
-                        continue ;
-                    }
 
                     DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
 
@@ -4788,11 +4763,6 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
                 {
 
-                    if ( !&e->getBoundingPoint ( k ) )
-                    {
-                        continue ;
-                    }
-
                     DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
 
                     if ( (int)id[j].getId() == e->getBoundingPoint ( k ).getId() && (
@@ -4904,11 +4874,6 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
                 {
-
-                    if ( !&e->getBoundingPoint ( k ) )
-                    {
-                        continue ;
-                    }
 
                     DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
 
@@ -5022,11 +4987,6 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
                 {
 
-                    if ( !&e->getBoundingPoint ( k ) )
-                    {
-                        continue ;
-                    }
-
                     DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
 
                     if ( (int)id[j].getId() == e->getBoundingPoint ( k ).getId() && (
@@ -5138,11 +5098,6 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
                 {
-
-                    if ( !&e->getBoundingPoint ( k ) )
-                    {
-                        continue ;
-                    }
 
                     DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
 

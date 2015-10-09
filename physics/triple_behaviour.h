@@ -40,7 +40,7 @@ public:
      * @param x x transformation
      * @param y y transformation
      */
-    virtual void transform(ElementarySurface *) ;
+    virtual void transform(const ElementarySurface *) ;
 
     /** \brief return the linear factor of the behaviour corresponding to the position given
      *

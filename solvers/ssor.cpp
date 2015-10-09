@@ -18,7 +18,7 @@
 using namespace Amie ;
 
 
-Ssor::Ssor(const CoordinateIndexedSparseMatrix &A, double omegai, int rowstart , int colstart ) : upper(A), lower(A), auxiliaryUpper(A), auxiliaryLower(A), buffer(A.inverseDiagonal()), omega(omega), omega_prev(0), previous_r(0), rowstart(rowstart), colstart(colstart)
+Ssor::Ssor(const CoordinateIndexedSparseMatrix &A, double omega, int rowstart , int colstart ) : upper(A), lower(A), auxiliaryUpper(A), auxiliaryLower(A), buffer(A.inverseDiagonal()), omega(omega), omega_prev(0), previous_r(0), rowstart(rowstart), colstart(colstart)
 {
      
     //first, update the sparseness patterns
