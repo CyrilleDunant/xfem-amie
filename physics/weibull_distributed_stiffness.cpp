@@ -20,7 +20,6 @@
 #include "fracturecriteria/confinedmohrcoulombwithstrain.h"
 #include "fracturecriteria/maxstrain.h"
 #include "fracturecriteria/ruptureenergy.h"
-#include "../utilities/random.h"
 
 using namespace Amie ;
 
@@ -49,7 +48,9 @@ bool WeibullDistributedStiffness::fractured() const
 
 Form * WeibullDistributedStiffness::getCopy() const
 {
-    double weib = RandomNumber().weibull(1,5) ;
+    std::default_random_engine generator;
+    std::weibull_distribution< double > distribution(1, 5);
+    double weib = distribution(generator) ;
     double factor = 1 - variability + variability*weib ;
     StiffnessAndFracture * copy = new StiffnessAndFracture(
         Tensor::cauchyGreen(std::make_pair(E,nu), true,dim)*factor,

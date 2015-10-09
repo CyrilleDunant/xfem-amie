@@ -16,7 +16,6 @@
 #include "../fracturecriteria/maxstrain.h"
 #include "../fracturecriteria/creeprupture.h"
 #include "../damagemodels/spacetimefiberbasedisotropiclineardamage.h"
-#include "../../utilities/random.h"
 
 using namespace Amie ;
 
@@ -28,7 +27,9 @@ AggregateBehaviour::AggregateBehaviour(double E, double nu, double up_, double y
 
 Form * AggregateBehaviour::getCopy() const 
 {
-	double weib = RandomNumber().weibull(1,5) ;
+        std::default_random_engine generator;
+        std::weibull_distribution< double > distribution(1, 5);
+        double weib = distribution(generator) ;
 	double factor = 1. - variability + variability*weib ;
 //	return new Stiffness(param*factor) ;
 //     StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalLinearlyDecreasingMohrCoulomb(up*factor,-8000.*up*factor, 3.*factor*up/E, -factor*24000.*up/E,E), new FiberBasedIsotropicLinearDamage(0.1,0.95)) ;
@@ -45,7 +46,9 @@ ElasticOnlyAggregateBehaviour::ElasticOnlyAggregateBehaviour(double E, double nu
 
 Form * ElasticOnlyAggregateBehaviour::getCopy() const 
 {
-	double weib = RandomNumber().weibull(1,5) ;
+        std::default_random_engine generator;
+        std::weibull_distribution< double > distribution(1, 5);
+        double weib = distribution(generator) ;
 	double factor = 1. - variability + variability*weib ;
 	Stiffness * copy =  new Stiffness(param*factor) ;
 
@@ -60,7 +63,9 @@ ViscoElasticOnlyAggregateBehaviour::ViscoElasticOnlyAggregateBehaviour(double E,
 
 Form * ViscoElasticOnlyAggregateBehaviour::getCopy() const 
 {
-	double weib = RandomNumber().weibull(1,5) ;
+        std::default_random_engine generator;
+        std::weibull_distribution< double > distribution(1, 5);
+        double weib = distribution(generator) ;
 	double factor = 1. - variability + variability*weib ;
 	return new Viscoelasticity( PURE_ELASTICITY, param*factor, 2+freeblocks )  ;
 
@@ -73,7 +78,9 @@ ViscoDamageAggregateBehaviour::ViscoDamageAggregateBehaviour(double E, double nu
 
 Form * ViscoDamageAggregateBehaviour::getCopy() const 
 {
-	double weib = RandomNumber().weibull(1,5) ;
+        std::default_random_engine generator;
+        std::weibull_distribution< double > distribution(1, 5);
+        double weib = distribution(generator) ;
 	double factor = 1. - variability + variability*weib ;
 	ViscoelasticityAndFracture * copy = new ViscoelasticityAndFracture( PURE_ELASTICITY, param*factor, new SpaceTimeNonLocalMaximumStrain(up), new IsotropicLinearDamage(), 2+freeblocks )  ;
 	copy->getFractureCriterion()->setScoreTolerance(1e-4) ;

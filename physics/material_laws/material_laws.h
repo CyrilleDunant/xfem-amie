@@ -14,7 +14,6 @@
 
 #include "../../elements/generalized_spacetime_viscoelastic_element_state.h"
 #include "../../features/features.h"
-#include "../../utilities/random.h"
 
 namespace Amie
 {

@@ -13,7 +13,6 @@
 
 #include "stiffness_with_diffusion_deformation_and_fracture.h"
 #include "../features/boundarycondition.h"
-#include "../utilities/random.h"
 
 using namespace Amie ;
 
@@ -168,7 +167,9 @@ bool StiffnessWithDiffusionDeformationAndFracture::fractured() const
 
 Form * StiffnessWithDiffusionDeformationAndFracture::getCopy() const
 {
-    double weib = RandomNumber().weibull(1,5) ;
+    std::default_random_engine generator;
+    std::weibull_distribution< double > distribution(1, 5);
+    double weib = distribution(generator) ;
     double factor = 1 - .1 + .1*weib ;
 
     StiffnessWithDiffusionDeformationAndFracture * copy = new StiffnessWithDiffusionDeformationAndFracture(param*factor, imposed, criterion->getCopy()) ;

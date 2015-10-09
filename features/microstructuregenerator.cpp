@@ -137,146 +137,7 @@ namespace Amie
 
 
 
-	InclusionConverter::InclusionConverter(GeometryType type, RandomDistribution * a, RandomDistribution * ar, RandomDistribution * o) 
-	{
-		geom = type ;
-		area = a ;
-		aspectRatio = ar ;
-		orientation = o ;
-	}
-
-	void InclusionConverter::setArea(RandomDistribution * a) 
-	{
-		area = a ;	
-	}
-
-	void InclusionConverter::setAspectRatio(RandomDistribution * ar) 
-	{
-		aspectRatio = ar ;
-	}
-
-	void InclusionConverter::setOrientation(RandomDistribution * o) 
-	{
-		orientation = o ;
-	}
-
-	void InclusionConverter::setArea(double a) 
-	{
-		area = new ConstantDistribution(a) ;
-	}
-
-	void InclusionConverter::setAspectRatio(double ar)
-	{
-		aspectRatio = new ConstantDistribution(ar) ;
-	}
-
-	void InclusionConverter::setOrientation(double o)
-	{
-		orientation = new ConstantDistribution(o) ;
-	}
-
-	Feature * InclusionConverter::convert(Inclusion * inc) const 
-	{
-		double newr, ar, a, b, o, ax, ay, bx, by, cx, cy ;
-		Point center, A, B, C, D ;
-			switch (geom) 
-			{
-				case CIRCLE:
-					newr = inc->getRadius()*std::sqrt(area->draw()) ;
-					return new Inclusion(inc->getFather(), newr, inc->getCenter()) ;
-					
-				case ELLIPSE:
-					newr = inc->getRadius()*std::sqrt(area->draw()) ;
-					
-					ar = aspectRatio->draw() ;
-					if(ar > 1)
-					{
-						a = newr*std::sqrt(ar) ;
-						b = newr/std::sqrt(ar) ;
-					}
-					else
-					{
-						a = newr/std::sqrt(ar) ;
-						b = newr*std::sqrt(ar) ;
-					}
-					
-					o = orientation->draw() ;
-					ax = a*std::cos(o) ;
-					ay = a*std::sin(o) ;
-					bx = b*std::sin(o) ;
-					by = -b*std::cos(o) ;
-
-					return new EllipsoidalInclusion(inc->getFather(), inc->getCenter(), Point(ax,ay), Point(bx,by)) ;
-					
-				case TRIANGLE:
-					newr = inc->getRadius()*std::sqrt(2.*area->draw()*M_PI) ;
-					
-					ar = aspectRatio->draw() ;
-					ar *= 2*0.577350269 ;
-					a = newr*std::sqrt(ar) ;
-					b = newr/std::sqrt(ar) ;
-					
-					o = orientation->draw() ;
-					bx = a*std::cos(o) ;
-					by = a*std::sin(o) ;
-					cx = b*std::sin(o) ;
-					cy = -b*std::cos(o) ;
-					
-					A = Point(0,0) ;
-					B = Point(bx,by) ;
-					C = Point(cx,cy) ;
-					D = (A+B)/2 ;
-					D += C ;
-					
-					center = (A+B+D)*0.3333333333333 ;
-					center -= inc->getCenter() ;
-					
-					return new TriangularInclusion(inc->getFather(), A-center, B-center, D-center) ;
-					
-				case RECTANGLE:
-					newr = inc->getRadius()*std::sqrt(area->draw()*M_PI) ;
-					
-					ar = aspectRatio->draw() ;
-					a = newr*std::sqrt(ar) ;
-					b = newr/std::sqrt(ar) ;
-					
-					o = orientation->draw() ;
-					bx = a*std::cos(o) ;
-					by = a*std::sin(o) ;
-					cx = b*std::sin(o) ;
-					cy = -b*std::cos(o) ;
-					
-					A = Point(0,0) ;
-					B = Point(bx,by) ;
-					C = Point(cx,cy) ;
-					D = B+C ;
-					
-					center = (A+B+C+D)*0.25 ;
-					center -= inc->getCenter() ;
-					
-					return new RectangularInclusion(inc->getFather(), A-center, C-center, D-center, B-center) ;
-					
-				case SPHERE:
-					newr = inc->getRadius()*std::sqrt(area->draw()) ;
-					return new Inclusion3D(inc->getFather(), newr, inc->getCenter()) ;
-		                default:
-                    std::cout << "geometry type unsupported for inclusion translation" << std::endl ;
-                    return nullptr ;  
-					
-			}
-			
-	}
-
-std::vector<Feature *> InclusionConverter::convert(std::vector<Inclusion *> inc) const 
-{
-		std::vector<Feature *> ret ;
-		for(size_t i = 0 ; i < inc.size() ; i++)
-			ret.push_back(this->convert(inc[i])) ;
-		return ret ;
-}
-
-
-std::vector<Feature *> InclusionGenerator::convert(std::vector<Inclusion *> inc) const 
+std::vector<Feature *> InclusionGenerator::convert(std::vector<Inclusion *> inc)  
 {
 	std::vector<Feature *> ret ;
 	for(size_t i = 0 ; i < inc.size() ; i++)
@@ -284,12 +145,10 @@ std::vector<Feature *> InclusionGenerator::convert(std::vector<Inclusion *> inc)
 	return ret ;
 }
 
-Feature * EllipsoidalInclusionGenerator::convert(Inclusion * inc) const 
+Feature * EllipsoidalInclusionGenerator::convert(Inclusion * inc)  
 {
 	double r = inc->getRadius() ;
-
-	RandomNumber rng ;
-	double aspect = shape + rng.uniform(-shapeVariability, shapeVariability) ;
+	double aspect = shape(rng) ;
 	if(aspect < 0.1)
 		aspect = 0.1 ;
 	if(aspect > 1-POINT_TOLERANCE)
@@ -301,25 +160,24 @@ Feature * EllipsoidalInclusionGenerator::convert(Inclusion * inc) const
 	double a = r/std::sqrt(aspect) ;
 	double b = r*std::sqrt(aspect) ;
 
-	double phase = orientation + rng.uniform( -orientationVariability, orientationVariability) ;
+	double phase = orientation(rng) ;
 	EllipsoidalInclusion * ret = new EllipsoidalInclusion(inc->getFather(), inc->getCenter(), Point(a*cos( phase ), a*sin(phase)), Point( b*(-sin(phase)), b*cos(phase)) ) ;
 	ret->setBehaviour( inc->getBehaviour()) ;
 	return ret ;
 }
 
-Feature * RectangularInclusionGenerator::convert(Inclusion * inc) const 
+Feature * RectangularInclusionGenerator::convert(Inclusion * inc)  
 {
 	double r = inc->getRadius() ;
 
-	RandomNumber rng ;
-	double aspect = shape + rng.uniform(-shapeVariability, shapeVariability) ;
+	double aspect = shape(rng) ;
 	if(aspect < 0.1)
 		aspect = 0.1 ;
 
 	double a = r/std::sqrt(aspect) ;
 	double b = r*std::sqrt(aspect) ;
 
-	double direction = orientation + rng.uniform( -orientationVariability, orientationVariability) ;
+	double direction = orientation(rng) ;
 
 	Point A( 0,0 ) ;
 	Point B( a*cos(direction), a*sin(direction) ) ;
@@ -334,22 +192,21 @@ Feature * RectangularInclusionGenerator::convert(Inclusion * inc) const
 	return ret ;
 }
 
-Feature * XFEMInclusionGenerator::convert(Inclusion * inc) const 
+Feature * XFEMInclusionGenerator::convert(Inclusion * inc)  
 {
 	return new ExpansiveZone( inc->getFather(), inc->getRadius(), inc->getCenter().getX(), inc->getCenter().getY(), inc->getBehaviour() ) ;
 }
 
-Feature * SpaceTimeXFEMInclusionGenerator::convert(Inclusion * inc) const 
+Feature * SpaceTimeXFEMInclusionGenerator::convert(Inclusion * inc)  
 {
 	Function r( inc->getRadius() ) ;
 	return new GrowingExpansiveZone( inc->getFather(), r, inc->getCenter().getX(), inc->getCenter().getY() ) ;
 }
 
-PolygonalSample * PolygonalInclusionGenerator::generatePolygon(double radius) const
+PolygonalSample * PolygonalInclusionGenerator::generatePolygon(double radius) 
 {
-	RandomNumber rng ;
-	size_t npoints = std::max(3., vertex + round(rng.uniform( -vertexVariability, vertexVariability ))) ;
-	double phase = orientation + rng.uniform( -orientationVariability, orientationVariability ) ;
+	size_t npoints = vertex(rng) ;
+	double phase = orientation(rng) ;
 	std::valarray< Point *> points ; points.resize( npoints) ;
 	for(size_t i = 0 ; i < npoints ; i++)
 	{
@@ -360,7 +217,7 @@ PolygonalSample * PolygonalInclusionGenerator::generatePolygon(double radius) co
 	return new PolygonalSample( nullptr, points ) ;
 }
 
-Feature * PolygonalInclusionGenerator::convert( Inclusion * inc) const 
+Feature * PolygonalInclusionGenerator::convert( Inclusion * inc)  
 {
 	PolygonalSample * ret = this->generatePolygon( inc->getRadius() ) ;
 	double area = ret->area() ;
@@ -370,7 +227,7 @@ Feature * PolygonalInclusionGenerator::convert( Inclusion * inc) const
 	if(forceOrientation)
 	{
 		Point p = ret->getOrientation() ;
-		double phase = p.angle() - orientation+RandomNumber().uniform( -orientationVariability, orientationVariability )  ;
+		double phase = p.angle() - orientation(rng)  ;
 		if(std::abs(phase) > POINT_TOLERANCE)
 			transform(  dynamic_cast<Polygon *>(ret), ROTATE, Point( 0,0, phase ) ) ;
 	}
@@ -386,6 +243,7 @@ VoronoiPolygonalInclusionGenerator::VoronoiPolygonalInclusionGenerator( double b
 	std::vector<VoronoiGrain> morphology ;
 	morphology.push_back( VoronoiGrain( nullptr, minDist, 1., 1.) ) ;
 	source = PSDGenerator::get2DSourceVoronoiPolygons(&rect, morphology, seed, minDist)[0] ;
+        index = std::uniform_int_distribution< size_t >(0,source.size()-1) ;
 	if(source.size() == 0)
 	{
 		std::cout << "no polygons available after Voronoi tesselation, exiting now" << std::endl ;
@@ -393,10 +251,9 @@ VoronoiPolygonalInclusionGenerator::VoronoiPolygonalInclusionGenerator( double b
 	}
 }
 
-PolygonalSample * VoronoiPolygonalInclusionGenerator::generatePolygon(double radius) const
+PolygonalSample * VoronoiPolygonalInclusionGenerator::generatePolygon(double radius) 
 {
-	RandomNumber rng ;
-	size_t i = round(rng.uniform( source.size() )) ;
+	size_t i = index( rng ) ;
 	std::valarray<Point> opts = source[i]->getOriginalPoints() ;
 	std::valarray<Point *> pts( opts.size() ) ;
 	for(size_t j = 0 ; j < opts.size() ; j++)
@@ -406,18 +263,17 @@ PolygonalSample * VoronoiPolygonalInclusionGenerator::generatePolygon(double rad
 	return ret ;
 }
 
-PolygonalSample * GravelPolygonalInclusionGenerator::generatePolygon(double radius) const
+PolygonalSample * GravelPolygonalInclusionGenerator::generatePolygon(double radius) 
 {
-	RandomNumber rng ;
-	size_t npoints = std::max(3., vertex + round(rng.uniform( -vertexVariability, vertexVariability ))) ;
-	double phase = orientation + rng.uniform( -orientationVariability, orientationVariability ) ;
+	size_t npoints = vertex(rng) ;
+	double phase = orientation( rng ) ;
 	std::valarray< Point *> points ; points.resize( npoints) ;
 	Vector A ; A.resize(m) ; A = 0. ;
 	Vector alpha ; alpha.resize(m) ; alpha = 0. ;
 	for(size_t i = 0 ; i < m ; i++)
 	{
 		A[i] = radius*exp(-p*log(i+1)-b) ;
-		alpha[i] = rng.uniform(0, 2.*M_PI) ;
+		alpha[i] = phi(rng) ;
 	}
 	for(size_t i = 0 ; i < npoints ; i++)
 	{
@@ -431,49 +287,45 @@ PolygonalSample * GravelPolygonalInclusionGenerator::generatePolygon(double radi
 	return new PolygonalSample( nullptr, points ) ;
 }
 
-PolygonalSample * CrushedPolygonalInclusionGenerator::generatePolygon(double radius) const
+PolygonalSample * CrushedPolygonalInclusionGenerator::generatePolygon(double radius) 
 {
-	RandomNumber rng ;
-	size_t npoints = std::max(3., vertex + round(rng.uniform( -vertexVariability, vertexVariability ))) ;
-	double phase = orientation + rng.uniform( -orientationVariability, orientationVariability ) ;
+	size_t npoints = vertex(rng) ;
+	double phase = orientation(rng) ;
 	std::valarray< Point *> points ;points.resize( npoints) ;
 	std::vector<double> theta ;
 	for(size_t i = 0 ; i < npoints ; i++)
-		theta.push_back( rng.uniform(0, 2.*M_PI) ) ;
+		theta.push_back( phi(rng) ) ;
 	std::sort( theta.begin(), theta.end() ) ;
-	double deltar = radius*(1.-shape)/(1.+shape) ;
 	for(size_t i = 0 ; i < npoints ; i++)
 	{
-		double r = radius  + rng.uniform(-1.,1.) * deltar ;
+		double r = radius  * (1.+shape(rng)) ;
 		points[i] = new Point( r*cos(theta[i]+phase), r*sin(theta[i]+phase) ) ;
 	}
 
 	return new PolygonalSample( nullptr, points ) ;
 }
 
-PolygonalSample * CrushedSubtendedPolygonalInclusionGenerator::generatePolygon(double radius) const
+PolygonalSample * CrushedSubtendedPolygonalInclusionGenerator::generatePolygon(double radius) 
 {
-	RandomNumber rng ;
-	size_t npoints = std::max(3., vertex + round(rng.uniform( -vertexVariability, vertexVariability ))) ;
-	double phase = orientation + rng.uniform( -orientationVariability, orientationVariability ) ;
+	size_t npoints = vertex(rng) ;
+	double phase = orientation(rng) ;
 	std::valarray< Point *> points ;points.resize( npoints) ;
 	std::vector<double> phi ;
 	double beta = 2.*M_PI/(double) npoints ;
 	double sumphi = 0. ;
 	for(size_t i = 0 ; i < npoints ; i++)
 	{
-		phi.push_back( beta + rng.uniform(-1.,1.) * delta * beta ) ;
+		phi.push_back( beta * ( 1.+ delta(rng) ) ) ;
 		sumphi += phi[i] ;
 	}
 	for(size_t i = 0 ; i < phi.size() ; i++)
 	{
 		phi[i] *= 2.*M_PI/sumphi ;
 	}
-	double deltar = radius*(1.-shape)/(1.+shape) ;
 	double theta = phase ;
 	for(size_t i = 0 ; i < npoints ; i++)
 	{
-		double r = radius  + rng.uniform(-1.,1.) * deltar ;
+		double r = radius * (1.+shape(rng)) ;
 		points[i] = new Point( r*cos(theta), r*sin(theta) ) ;
 		theta += phi[i] ;
 	}

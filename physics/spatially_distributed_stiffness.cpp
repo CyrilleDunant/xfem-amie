@@ -18,7 +18,6 @@
 #include "fracturecriteria/vonmises.h"
 #include "stiffness.h"
 #include "stiffness_and_fracture.h"
-#include "../utilities/random.h"
 
 
 using namespace Amie ;
@@ -50,7 +49,9 @@ bool SpatiallyDistributedStiffness::fractured() const
 
 Form * SpatiallyDistributedStiffness::getCopy() const
 {
-    double weib = RandomNumber().weibull(1,5) ;
+    std::default_random_engine generator;
+    std::weibull_distribution< double > distribution(1, 5);
+    double weib = distribution(generator) ;
     double factor = 1 - variability + variability*weib ;
     Matrix newTensor(param*factor) ;
     Matrix por(pore*factor) ;

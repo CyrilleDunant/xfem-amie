@@ -7,7 +7,6 @@
 //
 
 #include "placement.h"
-#include "random.h"
 #include "../geometry/geometry_base.h"
 
 
@@ -71,17 +70,17 @@ void projectOnEdge( Feature * feat, const std::vector<Geometry *> & base, bool v
     }
 }
 
-void transform2D( Feature * inc, RandomDistribution & xDistribution, RandomDistribution & yDistribution, RandomDistribution & rDistribution)
+void transform2D( Feature * inc, double x, double y, double r)
 {
-    Point c( xDistribution.draw(), yDistribution.draw() ) ;
-    Point theta( 0,0, rDistribution.draw() ) ;
+    Point c( x,y ) ;
+    Point theta( 0,0, r ) ;
     inc->setCenter( c ) ;
     transform(inc, ROTATE, theta) ;
 }
 
-void transform3D( Feature * inc, RandomDistribution & xDistribution, RandomDistribution & yDistribution,  RandomDistribution & zDistribution)
+void transform3D( Feature * inc, double x, double y, double z)
 {
-    Point c( xDistribution.draw(), yDistribution.draw() , zDistribution.draw() ) ;
+    Point c( x,y,z ) ;
     inc->setCenter( c ) ;
 }
 
@@ -91,9 +90,10 @@ std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Featur
     int tries = 0 ;
 
     std::vector<Point> boundingBox = box->getBoundingBox() ;
-    UniformDistribution xDistribution( boundingBox[0].getX(), boundingBox[2].getX() ) ;
-    UniformDistribution yDistribution( boundingBox[0].getY(), boundingBox[2].getY() ) ;
-    UniformDistribution rDistribution( -orientation, orientation ) ;
+    std::default_random_engine generator ;
+    std::uniform_real_distribution< double > xDistribution( boundingBox[0].getX(), boundingBox[2].getX() ) ;
+    std::uniform_real_distribution< double > yDistribution( boundingBox[0].getY(), boundingBox[2].getY() ) ;
+    std::uniform_real_distribution< double > rDistribution( -orientation, orientation ) ;
     Grid grid(boundingBox[2].getX()-boundingBox[0].getX(), boundingBox[0].getY()-boundingBox[2].getY(), 10, box->getCenter()) ;
 
     for(int i = 0 ; i < placedAggregates ; i++)
@@ -114,12 +114,12 @@ std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Featur
             transform(inclusions[i], SCALE, s) ;
         }
 
-        transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);
+        transform2D( inclusions[i], xDistribution(generator), yDistribution(generator), rDistribution(generator));
         std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
         while((!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) || (intersections(inclusions[i], exclusionZones))) && tries < triesMax)
         {
             tries++ ;
-            transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);
+            transform2D( inclusions[i], xDistribution(generator), yDistribution(generator), rDistribution(generator));
             bbox = inclusions[i]->getBoundingBox() ;
         }
 
@@ -127,12 +127,12 @@ std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Featur
         {
             tries++ ;
 
-            transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);
+            transform2D( inclusions[i], xDistribution(generator), yDistribution(generator), rDistribution(generator));
             std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
             while((!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3]))|| (intersections(inclusions[i], exclusionZones))) && tries < triesMax )
             {
                 tries++ ;
-                transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);
+                transform2D( inclusions[i], xDistribution(generator), yDistribution(generator), rDistribution(generator));
                 bbox = inclusions[i]->getBoundingBox() ;
             }
 
@@ -201,9 +201,10 @@ std::vector<Feature *> Amie::placement3D(const Geometry* box, std::vector<Featur
             max_z = boundingBox[j].getZ() ;
         }
     }
-    UniformDistribution xDistribution( min_x, max_x ) ;
-    UniformDistribution yDistribution( min_y, max_y ) ;
-    UniformDistribution zDistribution( min_z, max_z ) ;
+    std::default_random_engine generator ;
+    std::uniform_real_distribution< double > xDistribution( min_x, max_x ) ;
+    std::uniform_real_distribution< double > yDistribution( min_y, max_y ) ;
+    std::uniform_real_distribution< double > zDistribution( min_z, max_z ) ;
     Grid3D grid(max_x- min_x, max_y- min_y, max_z- min_z, 50, box->getCenter()) ;
 
     for(int i = 0 ; i < placedAggregates ; i++)
@@ -224,23 +225,23 @@ std::vector<Feature *> Amie::placement3D(const Geometry* box, std::vector<Featur
             transform(inclusions[i],SCALE, s) ;
         }
 
-        transform3D( inclusions[i], xDistribution, yDistribution, zDistribution);
+        transform3D( inclusions[i], xDistribution(generator), yDistribution(generator), zDistribution(generator));
 
         while((box->intersects(inclusions[i]) || intersections(inclusions[i], exclusionZones)) && tries < triesMax)
         {
             tries++ ;
-            transform3D( inclusions[i], xDistribution, yDistribution, zDistribution);
+            transform3D( inclusions[i], xDistribution(generator), yDistribution(generator), zDistribution(generator));
         }
 
         while(!grid.add(inclusions[i]) && tries < triesMax)
         {
             tries++ ;
 
-            transform3D( inclusions[i], xDistribution, yDistribution, zDistribution);
+            transform3D( inclusions[i], xDistribution(generator), yDistribution(generator), zDistribution(generator));
             while((box->intersects(inclusions[i])|| intersections(inclusions[i], exclusionZones)) && tries < triesMax )
             {
                 tries++ ;
-                transform3D( inclusions[i], xDistribution, yDistribution, zDistribution);
+                transform3D( inclusions[i], xDistribution(generator), yDistribution(generator), zDistribution(generator));
             }
 
         }
@@ -276,9 +277,10 @@ std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::v
     int tries = 0 ;
 
     std::vector<Point> boundingBox = box->getBoundingBox() ;
-    UniformDistribution xDistribution( boundingBox[0].getX(), boundingBox[2].getX() ) ;
-    UniformDistribution yDistribution( boundingBox[0].getY(), boundingBox[2].getY() ) ;
-    UniformDistribution rDistribution( -orientation, orientation ) ;
+    std::default_random_engine generator ;
+    std::uniform_real_distribution< double > xDistribution( boundingBox[0].getX(), boundingBox[2].getX() ) ;
+    std::uniform_real_distribution< double > yDistribution( boundingBox[0].getY(), boundingBox[2].getY() ) ;
+    std::uniform_real_distribution< double > rDistribution( -orientation, orientation ) ;
     Grid grid(boundingBox[2].getX()-boundingBox[0].getX(), boundingBox[0].getY()-boundingBox[2].getY(), 10, box->getCenter()) ;
 
     for(int i = 0 ; i < placedAggregates ; i++)
@@ -300,12 +302,12 @@ std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::v
             transform(inclusions[i], SCALE, s) ;
         }
 
-        transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);
+        transform2D( inclusions[i], xDistribution(generator), yDistribution(generator), rDistribution(generator));
         std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
         while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) || !isInside(inclusions[i], base) || (intersections(inclusions[i], exclusionZones) && tries < triesMax))
         {
             tries++ ;
-            transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);
+            transform2D( inclusions[i], xDistribution(generator), yDistribution(generator), rDistribution(generator));
             bbox = inclusions[i]->getBoundingBox() ;
         }
 
@@ -313,12 +315,12 @@ std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::v
         {
             tries++ ;
 
-            transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);
+            transform2D( inclusions[i], xDistribution(generator), yDistribution(generator), rDistribution(generator));
             std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
             while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3]))  || !isInside(inclusions[i], base) || (intersections(inclusions[i], exclusionZones) && tries < triesMax))
             {
                 tries++ ;
-                transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);
+                transform2D( inclusions[i], xDistribution(generator), yDistribution(generator), rDistribution(generator));
                 bbox = inclusions[i]->getBoundingBox() ;
             }
 
@@ -350,9 +352,10 @@ std::vector<Feature *> Amie::placement2DOnEdge(const Geometry* box, std::vector<
     int tries = 0 ;
 
     std::vector<Point> boundingBox = box->getBoundingBox() ;
-    UniformDistribution xDistribution( boundingBox[0].getX(), boundingBox[2].getX() ) ;
-    UniformDistribution yDistribution( boundingBox[0].getY(), boundingBox[2].getY() ) ;
-    UniformDistribution rDistribution( -orientation, orientation ) ;
+    std::default_random_engine generator ;
+    std::uniform_real_distribution< double > xDistribution( boundingBox[0].getX(), boundingBox[2].getX() ) ;
+    std::uniform_real_distribution< double > yDistribution( boundingBox[0].getY(), boundingBox[2].getY() ) ;
+    std::uniform_real_distribution< double > rDistribution( -orientation, orientation ) ;
     Grid grid(boundingBox[2].getX()-boundingBox[0].getX(), boundingBox[0].getY()-boundingBox[2].getY(), 10, box->getCenter()) ;
 
     for(int i = 0 ; i < placedAggregates ; i++)
@@ -374,13 +377,13 @@ std::vector<Feature *> Amie::placement2DOnEdge(const Geometry* box, std::vector<
             transform(inclusions[i], SCALE, s) ;
         }
 
-        transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);
+        transform2D( inclusions[i], xDistribution(generator), yDistribution(generator), rDistribution(generator));
         projectOnEdge( inclusions[i], base, vertex) ;
         std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
         while((!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3]))) && tries < triesMax)
         {
             tries++ ;
-            transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);
+            transform2D( inclusions[i], xDistribution(generator), yDistribution(generator), rDistribution(generator));
             projectOnEdge( inclusions[i], base, vertex) ;
             bbox = inclusions[i]->getBoundingBox() ;
         }
@@ -389,13 +392,13 @@ std::vector<Feature *> Amie::placement2DOnEdge(const Geometry* box, std::vector<
         {
             tries++ ;
 
-            transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);
+            transform2D( inclusions[i], xDistribution(generator), yDistribution(generator), rDistribution(generator));
             projectOnEdge( inclusions[i], base, vertex) ;
             std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
             while((!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3]))) && tries < triesMax)
             {
                 tries++ ;
-                transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);
+                transform2D( inclusions[i], xDistribution(generator), yDistribution(generator), rDistribution(generator));
                 projectOnEdge( inclusions[i], base, vertex) ;
                 bbox = inclusions[i]->getBoundingBox() ;
             }

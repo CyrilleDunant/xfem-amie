@@ -17,11 +17,11 @@
 #include "../features/expansiveZone.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
-#include "../utilities/random.h"
 #include "../utilities/writer/triangle_writer.h"
 
 #include <fstream>
 #include <cmath>
+#include <random>
 #include <typeinfo>
 #include <limits>
 #include <time.h> 
@@ -580,18 +580,20 @@ void step(GeometryType ref, int samplingNumber)
 
 std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vector<Inclusion * > & incs , FeatureTree & F)
 {
-	RandomNumber gen ;
+	double radius = 0.0000005 ;
+	std::default_random_engine generator ;
+	double w = sample.width()*0.5-radius*1000. ;
+	double h = sample.width()*0.5-radius*1000. ;
+	std::uniform_real_distribution< double > xpos(-w,w) ;
+	std::uniform_real_distribution< double > ypos(-h,h) ;
   	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
-	double radius = 0.0000005 ;
 	
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
 	for(int i = 0 ; i < n ; i++)
 	{
-		double w = sample.width()*0.5-radius*1000. ;
-		double h = sample.width()*0.5-radius*1000. ;
-		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
+		Point pos( xpos(generator), ypos(generator) ) ;
 		pos += sample.getCenter() ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
@@ -643,76 +645,23 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	return ret ;	
 }
 
-void generatePoresHomogeneously(int n, int max, std::vector<Inclusion * > & incs , Sample & b, FeatureTree & F)
-{
-	RandomNumber gen ;
-	double radius = 0.0005 ;
-	VoidForm * v = new VoidForm() ;
-	
-	std::vector<Inclusion *> poresToPlace ;
-	
-	for(int i = 0 ; i < n ; i++)
-	{
-		double w = sample.width()*0.5 ;
-		double h = sample.height()*0.5 ;
-		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
-		pos += sample.getCenter() ;
-		bool alone  = true ;
-		for(size_t j = 0 ; j< poresToPlace.size() ; j++)
-		{
-			if (squareDist(pos, poresToPlace[j]->Circle::getCenter()) < (radius*radius*100))
-			{
-				alone = false ;
-				break ;
-			}
-		}
-		if (alone)
-			poresToPlace.push_back(new Inclusion(nullptr, radius, pos.getX(), pos.getY())) ;
-	}
-
-
-	int count = 0 ;
-	for(size_t i = 0 ; i < poresToPlace.size() ; i++)
-	{
-		bool in = false ;
-		for(size_t j = 0 ; j < incs.size() ; j++)
-		{
-			Circle circle(incs[j]->getRadius() + radius*3, incs[j]->getCenter()) ;
-			if(circle.in(poresToPlace[i]->getCenter()))
-			{
-				in = true ;
-				break ;
-			}
-		}
-		if(!in)
-		{
-			poresToPlace[i]->setBehaviour(v) ;
-			F.addFeature(&b, poresToPlace[i]) ;
-		} 
-
-
-		if(count == max)
-			return ;
-	}
-
-
-	
-}
 
 std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vector<EllipsoidalInclusion * > & incs , FeatureTree & F)
 {
-	RandomNumber gen ;
+	std::default_random_engine generator ;
+	double radius = 0.0000005 ;
+	double w = sample.width()*0.5-radius*1000. ;
+	double h = sample.width()*0.5-radius*1000. ;
+	std::uniform_real_distribution< double > xpos(-w,w) ;
+	std::uniform_real_distribution< double > ypos(-h,h) ;
 	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
-	double radius = 0.0000005 ;
 	
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
 	for(int i = 0 ; i < n ; i++)
 	{
-		double w = sample.width()*0.5-radius*1000 ;
-		double h = sample.width()*0.5-radius*1000 ;
-		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
+		Point pos( xpos(generator), ypos(generator) ) ;
 		pos += sample.getCenter() ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
@@ -766,18 +715,20 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 
 std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vector<TriangularInclusion * > & incs , FeatureTree & F)
 {
-	RandomNumber gen ;
+	std::default_random_engine generator ;
+	double radius = 0.0000005 ;
+	double w = sample.width()*0.5-radius*1000. ;
+	double h = sample.width()*0.5-radius*1000. ;
+	std::uniform_real_distribution< double > xpos(-w,w) ;
+	std::uniform_real_distribution< double > ypos(-h,h) ;
 	std::vector<Zone> ret ;
 	return ret ;
 	aggregateArea = 0 ;
-	double radius = 0.0000005 ;
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
 	for(int i = 0 ; i < n ; i++)
 	{
-		double w = sample.width()*0.5-radius*1000 ;
-		double h = sample.width()*0.5-radius*1000 ;
-		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
+		Point pos( xpos(generator), ypos(generator) ) ;
 		pos += sample.getCenter() ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
@@ -833,18 +784,20 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 
 std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vector<RectangularInclusion * > & incs , FeatureTree & F)
 {
-	RandomNumber gen ;
+	std::default_random_engine generator ;
+	double radius = 0.0000005 ;
+	double w = sample.width()*0.5-radius*1000. ;
+	double h = sample.width()*0.5-radius*1000. ;
+	std::uniform_real_distribution< double > xpos(-w,w) ;
+	std::uniform_real_distribution< double > ypos(-h,h) ;
 	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
-	double radius = 0.0000005 ;
 	
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
 	for(int i = 0 ; i < n ; i++)
 	{
-		double w = sample.width()*0.5-radius*60 ;
-		double h = sample.width()*0.5-radius*60 ;
-		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
+		Point pos(xpos(generator),ypos(generator)) ;
 		pos += sample.getCenter() ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
@@ -1064,13 +1017,14 @@ bool tintersects(std::vector<EllipsoidalInclusion *> ellinc, int index, Sample *
 
 bool rotateUntilNoIntersection(std::vector<TriangularInclusion *> & triinc, int index, Sample * box)
 {
+	std::default_random_engine generator ;
+	std::uniform_real_distribution<double> alpha(0.001*M_PI, 0.01*M_PI) ;
 	if(tintersects(triinc, index, box))
 	{
 		int i = 0 ;
 		while(i < 150)
 		{
-			double alpha = UniformDistribution(0.001*M_PI,0.01*M_PI).draw() ;
-			triinc[index] = rotate(triinc[index],alpha) ;
+			triinc[index] = rotate(triinc[index],alpha(generator)) ;
 			if(!tintersects(triinc, index, box))
 			{
 				return true ;
@@ -1085,13 +1039,14 @@ bool rotateUntilNoIntersection(std::vector<TriangularInclusion *> & triinc, int 
 
 bool rotateUntilNoIntersection(std::vector<RectangularInclusion *> & recinc, int index, Sample * box)
 {
+	std::default_random_engine generator ;
+	std::uniform_real_distribution<double> alpha(0.15*M_PI, 0.95*M_PI) ;
 	if(tintersects(recinc, index, box))
 	{
 		int i = 0 ;
 		while(i < 500)
 		{
-			double alpha = UniformDistribution(0.15*M_PI,0.95*M_PI).draw() ;
-			recinc[index] = rotate(recinc[index],alpha) ;
+			recinc[index] = rotate(recinc[index],alpha(generator)) ;
 			if(!tintersects(recinc, index, box))
 			{
 				return true ;
@@ -1106,13 +1061,14 @@ bool rotateUntilNoIntersection(std::vector<RectangularInclusion *> & recinc, int
 
 bool rotateUntilNoIntersection(std::vector<EllipsoidalInclusion *> & ellinc, int index, Sample * box)
 {
+	std::default_random_engine generator ;
+	std::uniform_real_distribution<double> alpha(0.15*M_PI, 0.95*M_PI) ;
 	if(tintersects(ellinc, index, box))
 	{
 		int i = 0 ;
 		while(i < 50)
 		{
-			double alpha = UniformDistribution(0.15*M_PI,0.95*M_PI).draw() ;
-			ellinc[index] = rotate(ellinc[index],alpha) ;
+			ellinc[index] = rotate(ellinc[index],alpha(generator)) ;
 			if(!tintersects(ellinc, index, box))
 			{
 				return true ;

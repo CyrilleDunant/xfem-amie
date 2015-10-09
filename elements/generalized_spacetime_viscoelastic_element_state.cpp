@@ -3,7 +3,6 @@
 #include "../physics/dual_behaviour.h"
 #include "../physics/damagemodels/damagemodel.h"
 #include "../mesher/delaunay.h"
-#include "../utilities/random.h"
 #include "../features/inclusion.h"
 #ifdef HAVE_OPENMP
 #include <omp.h>

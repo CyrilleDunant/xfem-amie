@@ -5,13 +5,9 @@
 //
 
 #include "./main.h"
-#include "./../features/features.h"
-#include "./../features/sample.h"
-#include "./../physics/logarithmic_creep_with_external_parameters.h"
-#include "./../physics/materials/aggregate_behaviour.h"
-#include "./../utilities/granulo.h"
 #include "./../utilities/parser.h"
-#include "./../utilities/writer/triangle_writer.h"
+#include "./../utilities/itoa.h"
+#include "./../utilities/enumeration_translator.h"
 
 
 #include <fstream>
@@ -24,86 +20,278 @@
 
 using namespace Amie ;
 
-int main( int argc, char *argv[] )
+struct TrgHeader
 {
-    CommandLineParser parser("Make a tensile test on a concrete microstructure with a small notch") ;
-    parser.addFlag("--mesh-only", false, "stop simulation after meshing" ) ;
-    parser.addValue("--inclusions", 1000, "number of aggregates (default 1,000)" ) ;
-    parser.addValue("--notch",0.01,"size of the notch (default 0.01)") ;
-    parser.addValue("--seed",1,"start of the random number sequence (default 1)") ;
-    parser.addValue("--stress",0,"applied stress") ;
-    parser.addValue("--strain-rate",0.0001,"applied strain rate") ;
-    parser.parseCommandLine(argc, argv) ;
+    size_t vertex ;
+    size_t n_trg ;
+    size_t n_fields ;
+    bool ok ;
 
-    bool bc = !parser.getFlag("--mesh-only") ;
-    int inc = parser.getValue("--inclusions") ;
-    int seed = parser.getValue("--seed") ;
-    double length = parser.getValue("--notch") ;
-    double stress = parser.getValue("--stress") ;
-    double rate = parser.getValue("--strain-rate") ;
-    std::string file = "tension_notch_trg" ;
+    TrgHeader( size_t v = 3, size_t t = 0, size_t f = 2) : vertex(v), n_trg(t), n_fields(f), ok(false) { } ; 
 
-    Form * paste = new LogarithmicCreepWithExternalParameters("young_modulus = 12e9, poisson_ratio = 0.2, creep_modulus = 40e9, creep_characteristic_time = 1") ;
-    Form * agg = new LogarithmicCreepWithExternalParameters("young_modulus = 60e9, poisson_ratio = 0.2") ;
-    
-    Sample box(0.1,0.1,0,0) ;
-    box.setBehaviour( paste ) ;
-
-    Sample notch(length, length*0.2, -0.05+length*0.5, 0) ;
-    notch.setBehaviour(new VoidForm()) ;
-    std::vector<Geometry *> geom ; geom.push_back( dynamic_cast<Rectangle *>(&notch) ) ;
-
-    FeatureTree F(&box) ;
-    F.setSamplingNumber(256) ;
-    F.setOrder(LINEAR_TIME_LINEAR) ;
-    F.setSamplingRestriction( 8 ) ;
-    F.setDeltaTime( 0.01 ) ;
-    F.setSolverPrecision( 1e-6) ;
-    parser.setFeatureTree( &F ) ;
-
-    F.addFeature( &box, &notch ) ;
-    F.setSamplingFactor( &notch, 1.5 ) ;
-    PSDGenerator::get2DConcrete(&F, agg, inc, 0.012, 0.00005, new PSDBolomeA(), nullptr , 1e8, 0.8, nullptr, geom, seed ) ;
-
-    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT_AFTER ) ) ;
-    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER ) ) ;
-    BoundingBoxDefinedBoundaryCondition * strainBC = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_ETA, TOP_AFTER, 0 ) ;
-    if(bc)
+    bool fits(TrgHeader trg) 
     {
-        if(stress > POINT_TOLERANCE)
-             F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, stress ) ) ;
-        else
-             F.addBoundaryCondition(strainBC) ;
+        return vertex == trg.vertex && n_trg == trg.n_trg && n_fields == trg.n_fields ;
+    }
+} ;
+
+TrgHeader getValues( std::string file, std::vector<Vector> & val, TrgHeader trg = TrgHeader() ) 
+{
+    std::fstream reader ;
+    reader.open(file.c_str(), std::ios::in) ;
+    TrgHeader ret ;
+    if(!reader.is_open())
+    {
+        std::cout << "cannot open file " << file << ", ignored" << std::endl ;
+        return ret ;
     }
 
-    F.step() ;
-    Vector epsilon = F.getAverageField( STRAIN_FIELD, -1, 1. ) ;
-    Vector sigma = F.getAverageField( REAL_STRESS_FIELD, -1, 1. ) ;
-    Vector dmg = F.getAverageField( SCALAR_DAMAGE_FIELD , -1, 1. ) ;
+    std::cout << "parsing trg file " << file << std::flush ;
+    std::string buffer ;
+    size_t vertex = 0 ;
+    size_t n_trg = 0 ;
+    size_t n_fields = 0 ;
+    reader >> buffer ; // TRIANGLES
+    reader >> n_trg ;
+    reader >> vertex ;
+    reader >> n_fields ;
 
-    std::cout << F.getCurrentTime() << "\t" << epsilon[0] << "\t" << epsilon[1] << "\t" << epsilon[2] << "\t" << sigma[0] << "\t" << sigma[1] << "\t" << sigma[2] << "\t" << dmg[0] << std::endl ;
+    ret.vertex = vertex ;
+    ret.n_trg = n_trg ;
+    ret.n_fields = n_fields ;
 
-    TriangleWriter trg( file.c_str() , &F, 1.) ;
-    trg.getField( STRAIN_FIELD ) ;
-    trg.getField( REAL_STRESS_FIELD ) ;
-    trg.getField( SCALAR_DAMAGE_FIELD ) ;
-    trg.getField( TWFT_STIFFNESS ) ;
-    trg.getField( TWFT_CRITERION ) ;
-    trg.write() ;
-
-    if(bc)
+    if( trg.ok )
     {
-        for(size_t i = 0 ; i < 100 ; i++)
+        if(! ret.fits(trg) )
         {
-            strainBC->setData( rate*0.01*i ) ;
-
-            F.step() ;
-            epsilon = F.getAverageField( STRAIN_FIELD, -1, 1. ) ;
-            sigma = F.getAverageField( REAL_STRESS_FIELD, -1, 1. ) ;
-            dmg = F.getAverageField( SCALAR_DAMAGE_FIELD , -1, 1. ) ;
-
-            std::cout << F.getCurrentTime() << "\t" << epsilon[0] << "\t" << epsilon[1] << "\t" << epsilon[2] << "\t" << sigma[0] << "\t" << sigma[1] << "\t" << sigma[2] << "\t" << dmg[0] << std::endl ;
+            std::cout << std::endl ;
+            std::cout << "incorrect header for file " << file << ", ignored" << std::endl ;
+            return ret ;
         }
+    }
+
+
+    size_t line =  vertex*(n_fields+2) ;
+    double tmp = 0 ;
+    for(size_t i = 0 ; i < n_trg ; i++)
+    {
+        if(val.size() < i+1)
+            val.push_back(Vector( line )) ;
+        for(size_t j = 0 ; j < line ; j++)
+        {
+            reader >> tmp ;
+            val[i][j] = tmp ;
+        }
+    }
+    std::cout << "\rparsing trg file " << file << " ... done" << std::endl ;
+    ret.ok = true ;
+    return ret ;
+}
+
+std::vector< std::pair< size_t, size_t > > makeIndex(  BoundingBoxPosition position, std::vector<Vector> & val, size_t vertex, double tol)
+{
+    std::vector< std::pair< size_t, size_t > > index ;
+    std::cout << "building index cache for position " << Enum::fromBoundingBoxPosition(position) << std::flush ;
+    switch(position)
+    {
+        case TOP:
+        {
+            double maxy = val[0][1] ;
+            for(size_t i = 0 ; i < val.size() ; i++)
+            {
+                for(size_t j = 0 ; j < vertex ; j++)
+                    maxy = std::max( maxy, val[i][2*j+1] ) ;
+            }
+            for(size_t i = 0 ; i < val.size() ; i++)
+            {
+                for(size_t j = 0 ; j < vertex ; j++)
+                {
+                    if(val[i][2*j+1] > maxy-tol)
+                        index.push_back(std::make_pair(i,j)) ;
+                }
+            }
+            break ;
+        }
+        case BOTTOM:
+        {
+            double miny = val[0][1] ;
+            for(size_t i = 0 ; i < val.size() ; i++)
+            {
+                for(size_t j = 0 ; j < vertex ; j++)
+                    miny = std::min( miny, val[i][2*j+1] ) ;
+            }
+            for(size_t i = 0 ; i < val.size() ; i++)
+            {
+                for(size_t j = 0 ; j < vertex ; j++)
+                {
+                    if(val[i][2*j+1] < miny+tol)
+                        index.push_back(std::make_pair(i,j)) ;
+                }
+            }
+            break ;
+        }
+        case RIGHT:
+        {
+            double maxx = val[0][0] ;
+            for(size_t i = 0 ; i < val.size() ; i++)
+            {
+                for(size_t j = 0 ; j < vertex ; j++)
+                    maxx = std::max( maxx, val[i][2*j] ) ;
+            }
+            for(size_t i = 0 ; i < val.size() ; i++)
+            {
+                for(size_t j = 0 ; j < vertex ; j++)
+                {
+                    if(val[i][2*j] > maxx-tol)
+                        index.push_back(std::make_pair(i,j)) ;
+                }
+            }
+            break ;
+        }
+        case LEFT:
+        {
+            double minx = val[0][0] ;
+            for(size_t i = 0 ; i < val.size() ; i++)
+            {
+                for(size_t j = 0 ; j < vertex ; j++)
+                    minx = std::min( minx, val[i][2*j] ) ;
+            }
+            for(size_t i = 0 ; i < val.size() ; i++)
+            {
+                for(size_t j = 0 ; j < vertex ; j++)
+                {
+                    if(val[i][2*j] < minx+tol)
+                        index.push_back(std::make_pair(i,j)) ;
+                }
+            }
+            break ;
+        }
+        default:
+            index.clear() ;
+    }
+    std::cout << "\rbuilding index cache for position " << Enum::fromBoundingBoxPosition(position) << "... done" << std::endl ;
+    return index ;
+}
+
+double getMinMaxValue( std::vector<Vector> & values, std::vector< std::pair< size_t, size_t > > & index, size_t field, bool min, size_t vertex )
+{
+    double ret = 0 ;
+    for(size_t i = 0 ; i < index.size() ; i++)
+    {
+        double v = values[ index[i].first] [(2+field)*vertex + index[i].second] ;
+        if( i == 0 || (v > ret && !min) ||  (v < ret && min))
+            ret = v ;
+    }
+    return ret ;
+}
+
+std::vector<std::string> findFiles( std::string base, size_t max = 100 )
+{
+    std::vector<std::string> ret ;
+    std::fstream stream ;
+    if(base.find("%i") == std::string::npos)
+    {
+        stream.open( base.c_str(), std::ios::in ) ;
+        if(stream.is_open())
+            ret.push_back(base) ;
+        stream.close() ;
+        return ret ;
+    }
+
+    std::string before = base.substr( 0, base.find("%i") ) ;
+    for(size_t i = 0 ; i < max+1 ; i++)
+    {
+        std::string test = before + itoa(i) ;
+        stream.open( test.c_str(), std::ios::in ) ;
+        if(stream.is_open())
+            ret.push_back(test) ;
+        stream.close() ;
+    }
+    std::cout << ret.size() << " files found matching pattern " << base << std::endl ;    
+
+    return ret ;
+}
+
+
+int main( int argc, char *argv[] )
+{
+    CommandLineParser parser("Reads an AMIE trg file and obtains maximum values on a certain boundary") ;
+    parser.addArgument("file_name","file","relative path to the trg file to read (use %i for multiple files)") ;
+    parser.addValue("--tolerance",0.00001,"spatial tolerance on the edge-detection") ;
+    parser.addValue("--steps",100,"maximum number of trg files read") ;
+    parser.addValue("--x",0,"index of the field in the horizontal direction (default 0: displacements along XI)") ;
+    parser.addValue("--y",1,"index of the field in the horizontal direction (default 1: displacements along ETA)") ;
+    parser.addString("--out","","file in which the results are stored (results are printed in the console if no file is defined)") ;
+    parser.disableFeatureTreeArguments() ;
+    parser.parseCommandLine(argc, argv) ;
+
+    std::string file = parser.getStringArgument("file_name") ;
+    std::string out = parser.getString("--out") ;
+    double tol = parser.getValue("--tolerance") ;
+    size_t x = parser.getValue("--x") ;
+    size_t y = parser.getValue("--y") ;
+    size_t steps = parser.getValue("--steps") ;
+
+    std::vector<std::string> files = findFiles( file, steps) ;
+    if(files.size() == 0)
+    {
+        std::cout << "no files found, exiting now..." << std::endl ;
+        return 0 ;
+    }
+
+    Matrix ret( files.size(), 8 ) ;
+
+    std::vector<Vector> values ;
+    TrgHeader head = getValues( files[0], values ) ;
+    if( x+3 > head.n_fields || y+3 > head.n_fields)
+    {
+        std::cout << "fields not found, exiting now..." << std::endl ;
+        return 0 ;
+    }
+
+    std::vector< std::pair< size_t, size_t > > bottom = makeIndex( BOTTOM, values, head.vertex, tol ) ;
+    std::vector< std::pair< size_t, size_t > > top = makeIndex( TOP, values, head.vertex, tol ) ;
+    std::vector< std::pair< size_t, size_t > > left = makeIndex( LEFT, values, head.vertex, tol ) ;
+    std::vector< std::pair< size_t, size_t > > right = makeIndex( RIGHT, values, head.vertex, tol ) ;
+    ret[0][0] = getMinMaxValue( values, bottom, y, true, head.vertex )  ;
+    ret[0][1] = getMinMaxValue( values, bottom, y, false, head.vertex )  ;
+    ret[0][2] = getMinMaxValue( values, top, y, true, head.vertex )  ;
+    ret[0][3] = getMinMaxValue( values, top, y, false, head.vertex )  ;
+    ret[0][4] = getMinMaxValue( values, left, x, true, head.vertex )  ;
+    ret[0][5] = getMinMaxValue( values, left, x, false, head.vertex )  ;
+    ret[0][6] = getMinMaxValue( values, right, x, true, head.vertex )  ;
+    ret[0][7] = getMinMaxValue( values, right, x, false, head.vertex )  ;
+
+    for(size_t i = 1 ; i < files.size() ; i++)
+    {
+        TrgHeader next = getValues( files[i], values, head ) ;
+        if(next.ok)
+        {
+            ret[i][0] = getMinMaxValue( values, bottom, y, true, head.vertex )  ;
+            ret[i][1] = getMinMaxValue( values, bottom, y, false, head.vertex )  ;
+            ret[i][2] = getMinMaxValue( values, top, y, true, head.vertex )  ;
+            ret[i][3] = getMinMaxValue( values, top, y, false, head.vertex )  ;
+            ret[i][4] = getMinMaxValue( values, left, x, true, head.vertex )  ;
+            ret[i][5] = getMinMaxValue( values, left, x, false, head.vertex )  ;
+            ret[i][6] = getMinMaxValue( values, right, x, true, head.vertex )  ;
+            ret[i][7] = getMinMaxValue( values, right, x, false, head.vertex )  ;
+        }
+    }
+
+    if(out.size() == 0)
+        ret.print() ;
+    else
+    {
+        std::fstream stream ;
+        stream.open(out.c_str(), std::ios::out) ;
+        for(size_t i = 0 ; i < ret.numRows() ; i++)
+        {
+            for(size_t j = 0 ; j < ret.numCols() ; j++)
+                stream << ret[i][j] << "\t" ;
+            stream << std::endl ;
+        }
+        stream.close() ;
+        std::cout << "results exported in " << out << std::endl ;
     }
 
 

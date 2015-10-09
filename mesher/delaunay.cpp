@@ -16,7 +16,6 @@
 #include "../features/crack.h"
 #include "../physics/dual_behaviour.h"
 #include "../features/inclusion.h"
-#include "../utilities/random.h"
 
 #define DEBUG
 #undef DEBUG

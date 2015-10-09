@@ -734,7 +734,9 @@ void WeibullDistributedMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElastic
         double var = s.get( variability, defaultValues ) ;
         double sh = s.get( shape, defaultValues ) ;
         double sc = s.get( scale, defaultValues ) ;
-        s.set(weib, std::max(0., 1. - var + var*RandomNumber().weibull(sc,sh)) ) ;
+        std::default_random_engine generator;
+        std::weibull_distribution< double > distribution(sh, sc);
+        s.set(weib, std::max(0., 1. - var + var*distribution(generator)) ) ;
     }
     double w = s.get(weib, defaultValues) ;
     for(size_t i = 0 ; i < affected.size() ; i++)
@@ -746,7 +748,9 @@ std::pair<std::string, double> WeibullDistributedMaterialLaw::getWeibullVariable
         double var = defaultValues[variability.c_str()] ;
         double sh = defaultValues[shape.c_str()] ;
         double sc = defaultValues[scale.c_str()] ;
-	return std::make_pair( weib, std::max(0., 1. - var + var*RandomNumber().weibull(sc,sh)) ) ;
+        std::default_random_engine generator;
+        std::weibull_distribution< double > distribution(sh, sc);
+	return std::make_pair( weib, std::max(0., 1. - var + var*distribution(generator)) ) ;
 }
 
 }

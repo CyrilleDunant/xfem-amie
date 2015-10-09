@@ -8,7 +8,6 @@
 #include "ch_behaviour.h"
 #include "../stiffness_and_fracture.h"
 #include "../fracturecriteria/mohrcoulomb.h"
-#include "../../utilities/random.h"
 
 using namespace Amie ;
 

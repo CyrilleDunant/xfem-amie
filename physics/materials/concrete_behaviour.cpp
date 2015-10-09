@@ -10,7 +10,6 @@
 #include "../stiffness.h"
 #include "../fracturecriteria/mohrcoulomb.h"
 #include "../fracturecriteria/mcft.h"
-#include "../../utilities/random.h"
 #include "../damagemodels/rotatingcrack.h"
 
 using namespace Amie ;
@@ -24,9 +23,11 @@ ConcreteBehaviour::ConcreteBehaviour(double E, double nu, double compressive, pl
 Form * ConcreteBehaviour::getCopy() const 
 {
 // 	return new Stiffness(param) ;
-	double weib = RandomNumber().weibull(1,5) ;
+        std::default_random_engine generator;
+        std::weibull_distribution< double > distribution(1, 5);
+        double weib = distribution(generator) ;
 	double factor = 1. - variability + variability*weib ;
-	weib = RandomNumber().weibull(1,5) ;
+//	weib = distribution(generator) ;
 // 	double upFactor = factor ; //1 -.7+.7*weib ; 
 	NonLocalMCFT * fcrit = new NonLocalMCFT(down*factor,E*factor, materialRadius,rtype, mirroring , dx, dy, dz) ;
 	fcrit->rebarLocationsAndDiameters = rebarLocationsAndDiameters ;

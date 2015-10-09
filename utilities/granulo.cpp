@@ -15,7 +15,6 @@
 #include <vector>
 #include <cstring>
 #include "granulo.h"
-#include "random.h"
 #include <iostream>  // I/O 
 #include <fstream>   // file I/O
 #include "placement.h"
@@ -757,7 +756,11 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > PSDGenerator::get2DExpansi
 {
     Feature * box = F->getFeature(0) ;
     Sample * sample = dynamic_cast<Sample *>(box) ;
-    RandomNumber gen ;
+    double w = sample->width()*0.5-radius*60 ;
+    double h = sample->height()*0.5-radius*60 ;
+    std::default_random_engine gen ;
+    std::uniform_real_distribution< double > distributionx(-w,w) ;
+    std::uniform_real_distribution< double > distributiony(-h,h) ;
     std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
     double aggregateArea = 0 ;
 
@@ -765,9 +768,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > PSDGenerator::get2DExpansi
 
     for(size_t i = 0 ; i < n ; i++)
     {
-        double w = sample->width()*0.5-radius*60 ;
-        double h = sample->height()*0.5-radius*60 ;
-        Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
+        Point pos( distributionx(gen), distributiony(gen) ) ;
         pos += sample->getCenter() ;
         bool alone  = true ;
         for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
@@ -828,7 +829,11 @@ std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion *> > PSDGe
 {
     Feature * box = F->getFeature(0) ;
     Sample * sample = dynamic_cast<Sample *>(box) ;
-    RandomNumber gen ;
+    double w = sample->width()*0.5 - 2*rmax ;
+    double h = sample->height()*0.5 - 2*rmax ;
+    std::default_random_engine gen ;
+    std::uniform_real_distribution< double > distributionx(-w,w) ;
+    std::uniform_real_distribution< double > distributiony(-h,h) ;
     std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion *> > ret ;
     double aggregateArea = 0 ;
 
@@ -836,9 +841,7 @@ std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion *> > PSDGe
 
     for(size_t i = 0 ; i < n ; i++)
     {
-        double w = sample->width()*0.5 - 2*rmax ;
-        double h = sample->height()*0.5 - 2*rmax ;
-        Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
+        Point pos( distributionx(gen), distributiony(gen) ) ;
         pos += sample->getCenter() ;
         bool alone  = true ;
         for(size_t j = 0 ; j< zonesToPlace.size() ; j++)

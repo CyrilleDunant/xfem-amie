@@ -538,11 +538,11 @@ bool ConfigTreeItem::bindInput( std::vector<std::string> & callers, std::string 
                 std::string flag = lab.substr(start+1, end-start-1) ;
                 bool invert = flag[0] == '!' ;
                 if(invert) { flag = flag.substr(1) ; }
-                bool found = !invert ;
+                bool found = invert ;
                 for(size_t f = 0 ; f < flags.size() ; f++)
                 {
                     if(invert)
-                        found |= (flags[f] != flag) ;
+                        found &= (flags[f] != flag) ;
                     else
                         found |= (flags[f] == flag) ;
                 }

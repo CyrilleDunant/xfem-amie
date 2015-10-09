@@ -8,7 +8,6 @@
 #include "rebar_behaviour.h"
 #include "../stiffness_and_fracture.h"
 #include "../fracturecriteria/mohrcoulomb.h"
-#include "../../utilities/random.h"
 
 using namespace Amie ;
 
@@ -19,7 +18,9 @@ RebarBehaviour::RebarBehaviour(double E, double nu, double tensile, SpaceDimensi
 
 Form * RebarBehaviour::getCopy() const 
 {
-	double weib = RandomNumber().weibull(1,5) ;
+        std::default_random_engine generator;
+        std::weibull_distribution< double > distribution(1, 5);
+        double weib = distribution(generator) ;
 	double factor = 1 - variability + variability*weib ;
 	StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new MohrCoulomb(up*factor,down*factor)) ;
 	

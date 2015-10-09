@@ -11,7 +11,6 @@
 #include "../features/inclusion3d.h"
 #include "../features/expansiveZone3d.h"
 #include "../utilities/itoa.h"
-#include "../utilities/random.h"
 #include "../utilities/granulo.h"
 #include "../utilities/writer/voxel_writer.h"
 #include "../physics/materials/gel_behaviour.h"
@@ -24,6 +23,7 @@
 #include <typeinfo>
 #include <limits>
 #include <time.h>
+#include <random>
 
 
 using namespace Amie ;
@@ -311,13 +311,16 @@ std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > generateExpansiveZones
 	std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > ret ;
 	aggregateArea = 0 ;
 	std::vector<ExpansiveZone3D *> zonesToPlace ;
-	RandomNumber rnd ;
+	std::default_random_engine generator ;
+	std::uniform_real_distribution< double > xpos( sample.getXSize()*0.01, sample.getXSize()*0.99 ) ;
+	std::uniform_real_distribution< double > ypos( sample.getYSize()*0.01, sample.getYSize()*0.99 ) ;
+	std::uniform_real_distribution< double > zpos( sample.getZSize()*0.01, sample.getZSize()*0.99 ) ;
 	GelBehaviour * gel = new GelBehaviour(22e9, 0.3, 0.5, SPACE_THREE_DIMENSIONAL) ;
 	
 	srand(1);
 	for( int i = 0 ; i < n ; i++ )
 	{
-		Point pos( rnd.uniform( sample.getXSize()*0.01, sample.getXSize()*0.99), rnd.uniform( sample.getYSize()*0.01, sample.getYSize()*0.99), rnd.uniform( sample.getZSize()*0.01, sample.getZSize()*0.99) ) ;
+		Point pos( xpos(generator), ypos(generator), zpos(generator) ) ;
 		pos.print() ;
 		bool alone  = true ;
 		

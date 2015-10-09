@@ -37,7 +37,6 @@
 #include "../utilities/placement.h"
 #include "../utilities/optimizer.h"
 #include "../utilities/itoa.h"
-#include "../utilities/random.h"
 #include "../utilities/writer/triangle_writer.h"
 #include "../physics/materials/concrete_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"

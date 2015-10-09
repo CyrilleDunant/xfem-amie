@@ -2207,7 +2207,7 @@ bool Assembly::cgnpsolve(const Vector b, size_t maxit)
 
 void Assembly::printDiag() const
 {
-    for(size_t i = 0 ; i < getMatrix().row_size.size() ; i++)
+    for(size_t i = 0 ; i < externalForces.size() ; i++)
         std::cerr << getMatrix()[i][i] << std::endl ;
 }
 

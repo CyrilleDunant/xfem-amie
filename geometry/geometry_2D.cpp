@@ -5,7 +5,6 @@
 
 #include "geometry_2D.h"
 #include "../polynomial/vm_base.h"
-#include "../utilities/random.h"
 
 namespace Amie
 {
@@ -463,14 +462,15 @@ void OrientedRectangle::sampleSurface(size_t num_points)
 
     Point c = getBoundingPoint(boundingPoints.size()/4)-getBoundingPoint(0) ;
 
-    UniformDistribution uniform(-0.1/numberOfPointsAlongY,+0.1/numberOfPointsAlongY) ;
+    std::default_random_engine generator;
+    std::uniform_real_distribution< double > distribution(-0.1/numberOfPointsAlongY, 0.1/numberOfPointsAlongY);
     for(size_t i = 1 ; i < numberOfPointsAlongX ; i++)
     {
         for(size_t j = 1 ; j < numberOfPointsAlongY ; j++)
         {
             double dj = (double) j / (double) numberOfPointsAlongY ;
-            dj += uniform.draw() ;
-            double di = uniform.draw() ;
+            dj += distribution(generator) ;
+            double di = distribution(generator) ;
             Point p1(*boundingPoints[i]) ;
             Point p2(*boundingPoints[numberOfBoundingPoints-numberOfPointsAlongX-i]) ;
             p1 = p1*dj + p2*(1.-dj) + c*di ;
@@ -1984,6 +1984,8 @@ std::vector<Point> Ellipse::getSampleBoundingPointsOnArc(size_t num_points, doub
     double criteria = acos (((lastpoint - lastlastpoint) * (thispoint - lastlastpoint) / ((lastpoint - lastlastpoint).norm() * (thispoint - lastlastpoint).norm()))) ;
 
     int n_iter = 0 ;
+    std::default_random_engine generator;
+    std::uniform_real_distribution< double > distribution(-angle*0.5, angle*0.5);
 
     for (size_t i = 0 ; i< num_points + 1 ; i++)
     {
@@ -2002,7 +2004,7 @@ std::vector<Point> Ellipse::getSampleBoundingPointsOnArc(size_t num_points, doub
             criteria = acos (((lastpoint - lastlastpoint) * (thispoint - lastlastpoint) / ((lastpoint - lastlastpoint).norm() * (thispoint - lastlastpoint).norm()))) ;
             n_iter++ ;
         }
-        thispoint = getPointOnEllipse(thisangle + RandomNumber().uniform(-angle*0.05, angle*0.05)) ;
+        thispoint = getPointOnEllipse(thisangle + distribution(generator)) ;
 
         ret.push_back(thispoint) ;
 
@@ -2093,6 +2095,8 @@ void Ellipse::sampleSurface (size_t num_points)
         }
         std::vector<Point> toadd ;
         int rm = 0 ;
+        std::default_random_engine generator;
+        std::uniform_real_distribution< double > distribution(0, dist*0.1);
 
         for(size_t i = 0 ; i < newa.size() ; i+=inc)
         {
@@ -2107,7 +2111,7 @@ void Ellipse::sampleSurface (size_t num_points)
             std::vector<Point> pn = elln.getSamplingBoundingPoints(nell) ;
             for(size_t j = 0 ; j < pn.size() ; j++)
             {
-                pn[j] += Point(RandomNumber().uniform(dist*0.1), RandomNumber().uniform(dist*0.1)) ;
+                pn[j] += Point( distribution(generator), distribution(generator) ) ;
                 bool alone = in(pn[j]) ;
                 if(!alone)
                 {

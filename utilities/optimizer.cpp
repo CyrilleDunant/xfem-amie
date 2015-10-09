@@ -5,7 +5,6 @@
 //
 
 #include "optimizer.h"
-#include "random.h"
 #include "itoa.h"
 
 namespace Amie
@@ -137,6 +136,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
             newnindividuals.push_back(iter->second[1]);
             newllindividuals.push_back(iter->second[2]);
         }
+        std::default_random_engine generator;
 
         //reproduce - the rest fills the available slots and mutates
         int i = 0 ;
@@ -155,7 +155,8 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
                 {
                     double sigma = err*(namedVarsBounds[j].second-namedVarsBounds[j].first)/population*factor ;
                     sigma = std::min(sigma, (bounds[j].second-bounds[j].first)/2) ;
-                    newindividuals.back()[j] = RandomNumber().normal(newindividuals.back()[j], sigma) ; //newindividuals.back()[j]*(1.-err*population*.5) + err*population*.5*(bounds[j].second-bounds[j].first)*random()/RAND_MAX ;
+                    std::normal_distribution< double > distribution(newindividuals.back()[j], sigma) ;
+                    newindividuals.back()[j] = distribution(generator) ; //newindividuals.back()[j]*(1.-err*population*.5) + err*population*.5*(bounds[j].second-bounds[j].first)*random()/RAND_MAX ;
                     newindividuals.back()[j] = std::max(newindividuals.back()[j], bounds[j].first) ;
                     newindividuals.back()[j] = std::min(newindividuals.back()[j], bounds[j].second) ;
                 }
@@ -163,7 +164,8 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
                 {
                     double sigma = err*(namedVarsBounds[j].second-namedVarsBounds[j].first)/population*factor ;
                     sigma = std::min(sigma, (namedVarsBounds[j].second-namedVarsBounds[j].first)/2) ;
-                    newnindividuals.back()[j] = RandomNumber().normal(newnindividuals.back()[j], sigma) ;//newnindividuals.back()[j]*(1.-err*population*.5) + err*population*.5*(namedVarsBounds[j].second-namedVarsBounds[j].first)*random()/RAND_MAX ;
+                    std::normal_distribution< double > distribution(newnindividuals.back()[j], sigma) ;
+                    newnindividuals.back()[j] = distribution(generator) ; //newindividuals.back()[j]*(1.-err*population*.5) + err*population*.5*(bounds[j].second-bounds[j].first)*random()/RAND_MAX ;
                     newnindividuals.back()[j] = std::max(newnindividuals.back()[j], namedVarsBounds[j].first) ;
                     newnindividuals.back()[j] = std::min(newnindividuals.back()[j], namedVarsBounds[j].second) ;
                 }
@@ -171,7 +173,8 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
                 {
                     double sigma = err*(lowLevelbounds[j].second-lowLevelbounds[j].first)/population*factor ;
                     sigma = std::min(sigma, (lowLevelbounds[j].second-lowLevelbounds[j].first)/2) ;
-                    newllindividuals.back()[j] = RandomNumber().normal(newllindividuals.back()[j], sigma) ;//newllindividuals.back()[j]*(1.-err*population*.5) + err*population*.5*(lowLevelbounds[j].second-lowLevelbounds[j].first)*random()/RAND_MAX ;
+                    std::normal_distribution< double > distribution(newllindividuals.back()[j], sigma) ;
+                    newllindividuals.back()[j] = distribution(generator) ; //newindividuals.back()[j]*(1.-err*population*.5) + err*population*.5*(bounds[j].second-bounds[j].first)*random()/RAND_MAX ;
                     newllindividuals.back()[j] = std::max(newllindividuals.back()[j], lowLevelbounds[j].first) ;
                     newllindividuals.back()[j] = std::min(newllindividuals.back()[j], lowLevelbounds[j].second) ;
                 }
@@ -210,13 +213,15 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
         population = 10 ;
 
     std::vector< std::vector<double> > llindividuals ;
+    std::default_random_engine generator ;
+    std::uniform_real_distribution< double > uniform(0,1) ;
 
     for(int i = 0 ; i < population ; i++)
     {
         std::vector<double> newllindividual ;
         for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
         {
-            newllindividual.push_back((lowLevelbounds[j].second-lowLevelbounds[j].first)*RandomNumber().uniform() + lowLevelbounds[j].first);
+            newllindividual.push_back((lowLevelbounds[j].second-lowLevelbounds[j].first)*uniform(generator) + lowLevelbounds[j].first);
         }
         llindividuals.push_back(newllindividual);
     }
@@ -224,6 +229,8 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
     double err = eps*100 ;
     double err0 = eps*100 ;
     std::map<double, std::vector<double> > sorted ;
+    
+ 
     while (err > eps && it < maxit )
     {
         sorted.clear();
@@ -245,7 +252,7 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
                 }
 
                 for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
-                    llindividuals[i][j] = (lowLevelbounds[j].second-lowLevelbounds[j].first)*RandomNumber().uniform() + lowLevelbounds[j].first;
+                    llindividuals[i][j] = (lowLevelbounds[j].second-lowLevelbounds[j].first)*uniform(generator) + lowLevelbounds[j].first;
 
             }
         }
@@ -268,7 +275,7 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
         int i = 0 ;
         while( newllindividuals.size() != llindividuals.size())
         {
-            double test = RandomNumber().uniform() ;
+            double test = uniform(generator) ;
             if(sorted.size() && test >= (double)i/((double)sorted.size()))
             {
                 auto iter = sorted.begin() ;
@@ -280,7 +287,8 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
                 {
                     double sigma = (lowLevelbounds[j].second-lowLevelbounds[j].first)*factor/err0 ;
                     sigma = std::min(sigma, (lowLevelbounds[j].second-lowLevelbounds[j].first)*.5) ;
-                    newllindividuals.back()[j] = RandomNumber().normal(newllindividuals.back()[j], sigma) ;
+                    std::normal_distribution< double > distribution(newllindividuals.back()[j], sigma) ;
+                    newllindividuals.back()[j] = distribution(generator) ; //newindividuals.back()[j]*(1.-err*population*.5) + err*population*.5*(bounds[j].second-bounds[j].first)*random()/RAND_MAX ;
                     newllindividuals.back()[j] = std::max(newllindividuals.back()[j], lowLevelbounds[j].first) ;
                     newllindividuals.back()[j] = std::min(newllindividuals.back()[j], lowLevelbounds[j].second) ;
                 }
@@ -338,12 +346,14 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
 
     std::vector< std::vector<double> > llindividuals ;
 
+    std::default_random_engine random_generator ;
+    std::uniform_real_distribution< double > uniform(0,1) ;
     for(int i = 0 ; i < population ; i++)
     {
         std::vector<double> newllindividual ;
         for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
         {
-            newllindividual.push_back((lowLevelbounds[j].second-lowLevelbounds[j].first)*RandomNumber().uniform() + lowLevelbounds[j].first);
+            newllindividual.push_back((lowLevelbounds[j].second-lowLevelbounds[j].first)*uniform(random_generator) + lowLevelbounds[j].first);
         }
         llindividuals.push_back(newllindividual);
     }
@@ -370,7 +380,7 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
                 }
 
                 for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
-                    llindividuals[i][j] = (lowLevelbounds[j].second-lowLevelbounds[j].first)*RandomNumber().uniform() + lowLevelbounds[j].first;
+                    llindividuals[i][j] = (lowLevelbounds[j].second-lowLevelbounds[j].first)*uniform(random_generator) + lowLevelbounds[j].first;
 
             }
         }
@@ -397,7 +407,7 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
         size_t i = 0 ;
         while( newllindividuals.size() != llindividuals.size())
         {
-            double test = RandomNumber().uniform() ;
+            double test = uniform(random_generator) ;
             if(sorted.size() && test >= (double)i/((double)sorted.size()))
             {
                 auto iter = sorted.begin() ;
@@ -409,7 +419,8 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
                 {
                     double sigma = (lowLevelbounds[j].second-lowLevelbounds[j].first)*.1 ;
 // 					sigma = std::min(sigma, (lowLevelbounds[j].second-lowLevelbounds[j].first)*.5) ;
-                    newllindividuals.back()[j] = RandomNumber().normal(newllindividuals.back()[j], sigma) ;
+                    std::normal_distribution< double > distribution(newllindividuals.back()[j], sigma) ;
+                    newllindividuals.back()[j] = distribution(random_generator) ; //newindividuals.back()[j]*(1.-err*population*.5) + err*population*.5*(bounds[j].second-bounds[j].first)*random()/RAND_MAX ;
                     newllindividuals.back()[j] = std::max(newllindividuals.back()[j], lowLevelbounds[j].first) ;
                     newllindividuals.back()[j] = std::min(newllindividuals.back()[j], lowLevelbounds[j].second) ;
                 }
