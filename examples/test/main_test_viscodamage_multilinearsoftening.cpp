@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
 	FeatureTree f(&rect) ;
 	f.setSamplingNumber(0) ;
         f.setDeltaTime(0.001) ;
+        f.setMinDeltaTime(1e-9) ;
 
 	f.step() ;
 

@@ -317,6 +317,7 @@ public:
     bool goToNext ;
     double initialValue ;
     double instant ;
+    double minDeltaTime ;
     TimeContinuityBoundaryCondition(double initialValue = 0) ;
     virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
     virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;

@@ -31,6 +31,8 @@ struct ConjugateGradient : public LinearSolver
     bool cleanup ;
     Preconditionner * P ;
     size_t nit ;
+    size_t nssor = 10 ;
+
     virtual ~ConjugateGradient() {
         if(cleanup) delete P ;
     } ;

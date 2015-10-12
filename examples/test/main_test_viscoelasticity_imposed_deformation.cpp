@@ -36,12 +36,13 @@ int main(int argc, char *argv[])
         Sample rect(nullptr, 0.04,0.04,0,0) ;
 	Matrix M = Tensor::cauchyGreen(10e9, 0.2, true, SPACE_TWO_DIMENSIONAL) ;
 	Vector v(3) ; v[0]=0.001 ; v[1]=0.001 ;
-	rect.setBehaviour(new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, M, v ) ) ;
+	rect.setBehaviour(new ViscoelasticityAndImposedDeformation( GENERALIZED_KELVIN_VOIGT, M, M, M*5, v ) ) ;
 //	rect.setBehaviour(new LogarithmicCreepWithExternalParameters( "young_modulus = 10e9, poisson_ratio = 0.2, imposed_deformation = 0.001" ) ) ;
 
 	FeatureTree f(&rect) ;
 	f.setOrder(LINEAR_TIME_LINEAR) ;
 	f.setSamplingNumber(0) ;
+        f.setDeltaTime(1) ;
 	
 	f.step() ;
 
@@ -57,7 +58,15 @@ int main(int argc, char *argv[])
 	f.step() ;
 	out << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, -1,1 )[1] << "\t" << f.getAverageField( STRAIN_FIELD, -1,1 )[1] << std::endl ;
 
+	f.setDeltaTime(2) ;
+	f.step() ;
+	out << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, -1,1 )[1] << "\t" << f.getAverageField( STRAIN_FIELD, -1,1 )[1] << std::endl ;
+
 	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -1e6 ) ) ;
+	f.step() ;
+	out << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, -1,1 )[1] << "\t" << f.getAverageField( STRAIN_FIELD, -1,1 )[1] << std::endl ;
+
+	f.setDeltaTime(3) ;
 	f.step() ;
 	out << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, -1,1 )[1] << "\t" << f.getAverageField( STRAIN_FIELD, -1,1 )[1] << std::endl ;
 

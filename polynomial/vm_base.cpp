@@ -3336,6 +3336,7 @@ void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const 
         a = 0 ;
         ieval( d.second.first * d.second.second * d.second.third.dot() , gp_, Jinv, vars, a) ;
         ret += a ;
+        ret /= Jinv[0][Jinv[0].numRows()-1][Jinv[0].numRows()-1] ;
     }
     else
         ieval( d, gp_, Jinv, nullptr, vars, ret) ;
@@ -3351,6 +3352,7 @@ void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const
         a = 0 ;
         ieval( d.second.first * d.second.second * d.second.third.dot() , gp_, Jinv, vars, a) ;
         ret += a ;
+        ret /= Jinv[0][Jinv[0].numRows()-1][Jinv[0].numRows()-1] ;
     }
     else
         ieval( d, gp_, Jinv, nullptr, vars, ret) ;
@@ -3369,6 +3371,7 @@ void VirtualMachine::ieval(const DdGtMLtG & d, const std::vector<Matrix> & dmat,
         a = 0 ;
         ieval( d.second.first * dmat * d.second.third , gp_, Jinv, vars, a) ;
         ret += a ;
+        ret /= Jinv[0][Jinv[0].numRows()-1][Jinv[0].numRows()-1] ;
     }
     else
     {
@@ -3390,6 +3393,7 @@ void VirtualMachine::ieval(const DdGtMLtGD & d, const std::vector<Matrix> & dmat
         a = 0 ;
         ieval( d.second.first * dmat * d.second.third , gp_, Jinv, vars, a) ;
         ret += a ;
+        ret /= Jinv[0][Jinv[0].numRows()-1][Jinv[0].numRows()-1] ;
     }
     else
     {
@@ -4121,6 +4125,7 @@ Vector VirtualMachine::ieval(const GDtVL &f, const GaussPointArray &gp, const st
         r_ *= gp.gaussPoints[i].second ;
         ret += r_ ;
     }
+    ret /= Jinv[0][Jinv[0].numRows()-1][Jinv[0].numRows()-1] ;
 
     return ret ;
 }
@@ -4152,6 +4157,7 @@ Vector VirtualMachine::ieval(const GDtV &f, const GaussPointArray &gp, const std
         r_  = M*temp ;
         ret += r_ * gp.gaussPoints[i].second ;
     }
+    ret /= Jinv[0][Jinv[0].numRows()-1][Jinv[0].numRows()-1] ;
 
     return ret ;
 }
@@ -4311,6 +4317,12 @@ double VirtualMachine::ieval(const Differential & d, const GaussPointArray &gp, 
         {
             ret += deval(d.f, var[j], gp.gaussPoints[i].first)*Jinv[i][var_line][j]*gp.gaussPoints[i].second ;
         }
+    }
+
+    for(size_t j = 0 ; j < var.size() ; j++)
+    {
+        if(var[j] == TIME_VARIABLE)
+            ret /= Jinv[0][j][j] ;
     }
 
     return ret ;

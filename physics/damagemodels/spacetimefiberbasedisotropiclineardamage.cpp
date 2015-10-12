@@ -133,6 +133,7 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double ma
     else if(!fractured() && score > 0 && (maxscore - score) < timeTolerance)
     {
         double current = state[state.size()-1] ;
+
         if(current > 0.7)
         {
             double delta = fibreFraction ;
@@ -143,7 +144,6 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double ma
             while(std::abs(th1) > threshold*2 && th1 > -1+POINT_TOLERANCE && it < 6)
             {
                 it++ ;
-//            std::cout << threshold << " " << th1 << std::endl ;
                 delta *= 0.5 ;
                 state[state.size() -1] = std::min(1.,current+delta) ;
                 th1 = s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime(s, 1.) ;
@@ -152,7 +152,10 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double ma
         else
             state[state.size()-1] += fibreFraction ;
 
-      
+/*        double c = s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime(s, -1.) ;
+        double d = s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime(s, 1.) ;
+
+        std::cout << "<< " << a << " " << b << " " << c << " " << d << " >>" << std::endl ;*/
 
         for(size_t i = 0 ; i < state.size() ; i++)
         {

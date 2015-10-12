@@ -27,7 +27,11 @@
 
 namespace Amie {
 
-ConjugateGradient::ConjugateGradient( Assembly* a ) :LinearSolver(a), r(x.size()),z(x.size()),p(x.size()) ,q(x.size()), xmin(x.size()), cleanup(false), P(nullptr), nit(0) { }
+ConjugateGradient::ConjugateGradient( Assembly* a ) :LinearSolver(a), r(x.size()),z(x.size()),p(x.size()) ,q(x.size()), xmin(x.size()), cleanup(false), P(nullptr), nit(0) 
+{ 
+    if(assembly->getMatrix().stride > 3)
+        nssor = 0 ;
+}
 
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
@@ -72,7 +76,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
      //smooth the initial guess
     Ssor ssor (assembly->getMatrix(), 1.5, rowstart, colstart) ;
     
-    for(size_t i = 0 ; i < 10 ; i++)
+    for(size_t i = 0 ; i < nssor ; i++)
     {
         assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
         ssor.precondition(r,r);
@@ -251,7 +255,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
     std::cerr << "mflops: "<< nit*((2.+2./256.)*assembly->getMatrix().array.size()+(4+1./256.)*p.size())/delta << std::endl ;
 
-    for(size_t i = 0 ; i < 10 ; i++)
+    for(size_t i = 0 ; i < nssor ; i++)
     {
         assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
         ssor.precondition(r,r);

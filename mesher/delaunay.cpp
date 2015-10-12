@@ -2668,8 +2668,8 @@ void DelaunayTriangle::adjustElementaryMatrix(double previousTimeStep, double ne
 
     if( ! this->getBehaviour()->timeDependent() && ! this->getBehaviour()->spaceDependent() && getEnrichmentFunctions().size() == 0)
     {
-        scaleCachedElementaryMatrix( previousTimeStep / nextTimeStep) ;
-        scaleCachedViscousElementaryMatrix( (previousTimeStep / nextTimeStep) * (previousTimeStep / nextTimeStep)) ;
+//        scaleCachedElementaryMatrix( previousTimeStep / nextTimeStep) ;
+        scaleCachedViscousElementaryMatrix( /*(previousTimeStep / nextTimeStep) */ (previousTimeStep / nextTimeStep)) ;
     }
     else
     {

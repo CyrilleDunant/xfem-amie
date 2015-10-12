@@ -7013,7 +7013,18 @@ void FeatureTree::setDeltaTime ( double d, bool isreal )
     previousDeltaTime = deltaTime ;
     deltaTime = d ;
     if(isreal)
+    {
         realDeltaTime = d ;
+        
+        for(size_t i = 0 ; i < boundaryCondition.size() ; i++)
+        {
+             TimeContinuityBoundaryCondition* test = dynamic_cast<TimeContinuityBoundaryCondition* >(boundaryCondition[i]) ;
+             if(test)
+                 test->minDeltaTime = realDeltaTime*minDeltaTime ;
+        }
+
+
+    }
     if(needMeshing)
         return ;
 
