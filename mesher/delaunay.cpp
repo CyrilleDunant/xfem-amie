@@ -16,6 +16,7 @@
 #include "../features/crack.h"
 #include "../physics/dual_behaviour.h"
 #include "../features/inclusion.h"
+#include "../features/boundarycondition.h"
 
 #define DEBUG
 #undef DEBUG
@@ -2381,11 +2382,11 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
 {
     size_t dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
 
-    if(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() == dofCount)
+    if(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() != 0 && cachedElementaryMatrix[0].size() == dofCount)
     {
         return cachedElementaryMatrix ;
     }
-
+    clearBoundaryConditions() ;
 
     size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 

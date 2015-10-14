@@ -12,6 +12,7 @@
 //
 
 #include "delaunay_3d.h"
+#include "../features/boundarycondition.h"
 #ifdef HAVE_OPENMP
 #include <omp.h>
 #endif
@@ -1594,7 +1595,7 @@ void DelaunayDemiSpace::merge( DelaunayDemiSpace *p )
                 for( size_t j = 0 ; j <  neighbour.size() ; j++ )
                 {
                     if( p->getNeighbour( i )->isNeighbour( getNeighbour( j ) ) )
-                        makeNeighbours( getNeighbour( j ), p->getNeighbour( i ) ) ;
+                        makeNeighbours3d( getNeighbour( j ), p->getNeighbour( i ) ) ;
                 }
             }
 
@@ -1918,7 +1919,7 @@ void DelaunayDemiSpace::print() const
               third->getX() << ", " << third->getY() << ", " << third->getZ() << ")" << "X (" << fourth->getX() << ", " << fourth->getY() << ", " << fourth->getZ() << ") :: " << !dead  << std::endl ;
 }
 
-void makeNeighbours( DelaunayTreeItem3D *t0, DelaunayTreeItem3D *t1 )
+void makeNeighbours3d( DelaunayTreeItem3D *t0, DelaunayTreeItem3D *t1 )
 {
     if( t0 == t1 || t0->dead || t1->dead )
         return ;
@@ -1957,7 +1958,7 @@ void updateNeighbours( std::vector<DelaunayTreeItem3D *> * t )
     {
         for( size_t j = i + 1 ; j < t->size() ; j++ )
         {
-            makeNeighbours( ( *t )[i], ( *t )[j] ) ;
+            makeNeighbours3d( ( *t )[i], ( *t )[j] ) ;
         }
     }
 }
@@ -1974,16 +1975,16 @@ DelaunayRoot3D::DelaunayRoot3D( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *t
     DelaunayDemiSpace *pl2 = new DelaunayDemiSpace( t, this, p1, p2, p3, p0, nullptr );
     DelaunayDemiSpace *pl3 = new DelaunayDemiSpace( t, this, p2, p3, p0, p1, nullptr );
 
-    makeNeighbours( tet, pl0 ) ;
-    makeNeighbours( tet, pl1 ) ;
-    makeNeighbours( tet, pl2 ) ;
-    makeNeighbours( tet, pl3 ) ;
-    makeNeighbours( pl1, pl0 ) ;
-    makeNeighbours( pl2, pl1 ) ;
-    makeNeighbours( pl0, pl2 ) ;
-    makeNeighbours( pl3, pl0 ) ;
-    makeNeighbours( pl3, pl1 ) ;
-    makeNeighbours( pl3, pl2 ) ;
+    makeNeighbours3d( tet, pl0 ) ;
+    makeNeighbours3d( tet, pl1 ) ;
+    makeNeighbours3d( tet, pl2 ) ;
+    makeNeighbours3d( tet, pl3 ) ;
+    makeNeighbours3d( pl1, pl0 ) ;
+    makeNeighbours3d( pl2, pl1 ) ;
+    makeNeighbours3d( pl0, pl2 ) ;
+    makeNeighbours3d( pl3, pl0 ) ;
+    makeNeighbours3d( pl3, pl1 ) ;
+    makeNeighbours3d( pl3, pl2 ) ;
 
     addSon( tet ) ;
     addSon( pl0 ) ;
@@ -2229,7 +2230,7 @@ std::vector<DelaunayTreeItem3D *> DelaunayTree3D::addElements(std::vector<Delaun
     {
         for( auto & s : space )
         {
-            makeNeighbours( item, s );
+            makeNeighbours3d( item, s );
         }
     }
 
@@ -2644,6 +2645,8 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
     {
         return cachedElementaryMatrix ;
     }
+    
+    clearBoundaryConditions() ;
 
     size_t dofCount = getShapeFunctions().size() + getEnrichmentFunctions().size() ;
     size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;

@@ -456,6 +456,6 @@ std::pair<std::vector<DelaunayTetrahedron *>, std::vector<Point *> > quad(const 
 
 
 //! Make \a t0 and \a t1 Neighbours. Safe.
-void makeNeighbours( Amie::DelaunayTreeItem3D *t0, Amie::DelaunayTreeItem3D *t1 ) ;
+void makeNeighbours3d( Amie::DelaunayTreeItem3D *t0, Amie::DelaunayTreeItem3D *t1 ) ;
 
 #endif  //__DELAUNAY_3D_H_

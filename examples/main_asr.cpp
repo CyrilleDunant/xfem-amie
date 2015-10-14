@@ -64,7 +64,6 @@ GelManager * gelManager ;
 void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
 {
     int nsteps = 1600;
-    int nstepstot = 1600;
 
     int intermediateCount=0 ;
     featureTree->setMaxIterationsPerStep( 800 ) ;
@@ -76,7 +75,7 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
     {
         std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
         bool go_on = featureTree->step() ;
-        if(i%10 != 0)
+        if(i%5 != 0)
             continue ;
         std::string filename( "triangles" ) ;
         if( !go_on )
@@ -152,13 +151,11 @@ int main( int argc, char *argv[] )
     featureTree = &F ;
 
     double itzSize = 0.00002;
-    int inclusionNumber = 3000 ;
+    int inclusionNumber = 1 ;
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
 
     std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, new /*ElasticOnly*/AggregateBehaviour(),  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), nullptr, 100000, 0.8, &placeGeometry) ;
-
-    int nAgg = 1 ;
 
     double volume = 0 ;
 
@@ -289,7 +286,7 @@ int main( int argc, char *argv[] )
 
     gelManager = new GelManager(&F, nzones/baseGeometry.area(), feats, 0.5, 1e-5) ;
     F.addManager(gelManager) ;
-    F.setSamplingNumber( 72 ) ;
+    F.setSamplingNumber( 32 ) ;
 
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , LEFT ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , RIGHT ) ) ;

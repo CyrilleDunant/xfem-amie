@@ -243,22 +243,25 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
                     }
                 }
             }
+            
+            return ;
         }
+        boundaryConditionCache = new std::vector<BoundaryCondition *>() ;
 
-    int JinvSize = 3 ;
-    if ( spaceDimensions() == SPACE_THREE_DIMENSIONAL && timePlanes() > 1 )
-        JinvSize = 4 ;
-    if ( spaceDimensions() == SPACE_TWO_DIMENSIONAL && timePlanes() == 1 )
-        JinvSize = 2 ;
-    std::valarray<Matrix> Jinv ( (bool) getState().JinvCache ? (*getState().JinvCache) : Matrix( JinvSize, JinvSize ),  getGaussPoints().gaussPoints.size()) ;
+        int JinvSize = 3 ;
+        if ( spaceDimensions() == SPACE_THREE_DIMENSIONAL && timePlanes() > 1 )
+            JinvSize = 4 ;
+        if ( spaceDimensions() == SPACE_TWO_DIMENSIONAL && timePlanes() == 1 )
+            JinvSize = 2 ;
+        std::valarray<Matrix> Jinv ( (bool) getState().JinvCache ? (*getState().JinvCache) : Matrix( JinvSize, JinvSize ),  getGaussPoints().gaussPoints.size()) ;
 
-    if( ! getState().JinvCache )
-    {
-        for ( size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++ )
+        if( ! getState().JinvCache )
         {
-            getInverseJacobianMatrix ( getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+            for ( size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++ )
+            {
+                getInverseJacobianMatrix ( getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+            }
         }
-    }
 
 /*        std::valarray<Matrix> Jinv ;
 
@@ -290,7 +293,8 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
         }
         for ( size_t i = start ; i < getShapeFunctions().size() ; i++ )
         {
-            std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions ( getState(), getBoundingPoint ( i ).getId(),  getShapeFunction ( i ), getGaussPoints(), Jinv ) ;
+            std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions ( getState(), getBoundingPoint ( i ).getId(),  getShapeFunction ( i ), getGaussPoints(), Jinv );
+            boundaryConditionCache->insert(boundaryConditionCache->end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end()) ;
             for ( size_t j = 0 ; j < boundaryConditionCachetmp.size() ; j++ )
             {
                 if ( get2DMesh() )
@@ -300,13 +304,13 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
                 else
                 {
                     boundaryConditionCachetmp[j]->apply ( a, get3DMesh() ) ;
-                }
-                delete boundaryConditionCachetmp[j] ;
+                } 
             }
         }
         for ( size_t i = start ; i < getEnrichmentFunctions().size() ; i++ )
         {
             std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions ( getState(), getEnrichmentFunction ( i ).getDofID(),  getEnrichmentFunction ( i ), getGaussPoints(), Jinv ) ;
+            boundaryConditionCache->insert(boundaryConditionCache->end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end()) ;
             for ( size_t j = 0 ; j < boundaryConditionCachetmp.size() ; j++ )
             {
                 if ( get2DMesh() )
@@ -317,7 +321,6 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
                 {
                     boundaryConditionCachetmp[j]->apply ( a, get3DMesh() ) ;
                 }
-                delete boundaryConditionCachetmp[j] ;
             }
         }
 

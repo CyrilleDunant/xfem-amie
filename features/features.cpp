@@ -4307,7 +4307,7 @@ void FeatureTree::solve()
     VirtualMachine vm ;
     if ( dtree )
     {
-        std::cerr << "finding nodes for boundary conditions... " << std::flush ;
+        std::cerr << "updating elementary matrices and induced BCs... " << std::flush ;
         for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
         {
             for ( auto i = j->second->begin() ; i != j->second->end() ; i++ )
@@ -4320,7 +4320,7 @@ void FeatureTree::solve()
     }
     else
     {
-        std::cerr << "finding nodes for boundary conditions... " << std::flush ;
+        std::cerr << "updating elementary matrices and induced BCs... " << std::flush ;
         for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
         {
             i->getElementaryMatrix(&vm) ;

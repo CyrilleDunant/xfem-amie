@@ -19,7 +19,7 @@ FiberBasedIsotropicLinearDamage::FiberBasedIsotropicLinearDamage(double f, doubl
     alt = false ;
     thresholdDamageDensity = c ;
     getState(true).resize(1, 0.);
-    residualStiffnessFraction = 1e-2 ;
+    residualStiffnessFraction = 1e-3 ;
     isNull = false ;
 }
 
@@ -38,7 +38,7 @@ Matrix FiberBasedIsotropicLinearDamage::apply(const Matrix & m, const Point & p,
 
     if(fractured())
     {
-        return Tensor::cauchyGreen(residualStiffnessFraction, 0.001, true, m.numCols()==3?SPACE_TWO_DIMENSIONAL:SPACE_THREE_DIMENSIONAL) ;
+        return m*residualStiffnessFraction ;//Tensor::cauchyGreen(residualStiffnessFraction, 0.001, true, (m.numCols()==3)?SPACE_TWO_DIMENSIONAL:SPACE_THREE_DIMENSIONAL) ;
         
     }
 
