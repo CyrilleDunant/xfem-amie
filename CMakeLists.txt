@@ -373,9 +373,6 @@ target_link_libraries( asr_simple Amie ${ALL_LINK_FLAGS})
 add_executable(wedge examples/main_wedge_splitting.cpp )
 target_link_libraries( wedge Amie ${ALL_LINK_FLAGS})
 
-add_executable(thermal_expansion examples/main_thermalexpansion.cpp )
-target_link_libraries( thermal_expansion Amie ${ALL_LINK_FLAGS})
-
 add_executable(geometry examples/main_geometry.cpp )
 target_link_libraries( geometry Amie ${ALL_LINK_FLAGS} )
 
@@ -384,9 +381,6 @@ target_link_libraries( 2d_composite Amie ${ALL_LINK_FLAGS} )
 
 add_executable(asr_shape examples/main_asr_shape.cpp )
 target_link_libraries( asr_shape Amie ${ALL_LINK_FLAGS})
-
-add_executable(homogenization examples/main_homogenization.cpp )
-target_link_libraries( homogenization Amie ${ALL_LINK_FLAGS})
 
 add_executable(tripoint examples/main_tripoint.cpp )
 target_link_libraries( tripoint Amie ${ALL_LINK_FLAGS})
@@ -451,7 +445,7 @@ add_executable(function_test EXCLUDE_FROM_ALL examples/playground/main_function_
 target_link_libraries( function_test Amie ${ALL_LINK_FLAGS})
 
 ADD_CUSTOM_TARGET(playground)
-ADD_DEPENDENCIES(playground alain cyrille michaela get_fields_from_trg function_test)
+ADD_DEPENDENCIES(playground alain michaela get_fields_from_trg function_test)
 
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/test ${CMAKE_BINARY_DIR}/mesh)
 
