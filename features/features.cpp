@@ -3924,6 +3924,8 @@ Vector FeatureTree::setSteppingParameters ( ConfigTreeItem * config, ConfigTreeI
     Vector cinstants ( nSteps+1 ) ;
     if( config->hasChild( "solver_precision" ) )
         setSolverPrecision( config->getData ( "solver_precision", -1 ) ) ;
+    if( config->hasChild( "ssor_iterations" ) )
+        setSSORIterations( config->getData ( "ssor_iterations", 20 ) ) ;
     if ( config->hasChild ( "list_of_time_steps" ) )
     {
         if(config->getStringData("list_of_time_steps").find(',') != std::string::npos)
@@ -4360,7 +4362,8 @@ void FeatureTree::solve()
     if ( solverConvergence || reuseDisplacements )
     {
         if(epsilonA > 0)
-            K->setEpsilon(epsilonA);     
+            K->setEpsilon(epsilonA);   
+        K->setSSORIterations( nssor ) ;  
         solverConvergence = K->cgsolve ( lastx ) ;
         
 //         solverConvergence = true ;
@@ -4380,6 +4383,7 @@ void FeatureTree::solve()
 
         if(epsilonA > 0)
             K->setEpsilon(epsilonA);  
+        K->setSSORIterations( nssor ) ;  
         solverConvergence = K->cgsolve() ;
 //         solverConvergence = true ;
 
@@ -4868,7 +4872,7 @@ bool FeatureTree::stepElements()
                             }
                             else
                             {
-                                std::cout << "time step too small: setting to " << minDeltaTime << std::endl ;
+                                std::cerr << "time step too small: setting to " << minDeltaTime << std::endl ;
                                 moveFirstTimePlanes ( 0., j->second->begin(), j->second->end() ) ;
                             }
                         }

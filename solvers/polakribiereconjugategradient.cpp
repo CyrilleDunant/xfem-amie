@@ -17,7 +17,7 @@
 
 using namespace Amie ;
 
-ConjugateGradientWithSecant::ConjugateGradientWithSecant(Assembly * a) : NonLinearSolver(a) { } 
+ConjugateGradientWithSecant::ConjugateGradientWithSecant(Assembly * a, size_t n) : NonLinearSolver(a), nssor(n) { } 
 
 
 bool ConjugateGradientWithSecant::solve(const Vector &x0, Preconditionner * precond , const double eps , const int maxit , bool verbose )
@@ -40,6 +40,7 @@ bool ConjugateGradientWithSecant::solve(const Vector &x0, Preconditionner * prec
 		ConjugateGradient cg(assembly) ;
 		cg.colstart = this->colstart ;
 		cg.rowstart = this->rowstart ;
+                cg.nssor = this->nssor ;
 		bool ret =  cg.solve(x0, nullptr,eps, -1, verbose) ;
 		x.resize(cg.x.size())  ;
 		x = cg.x ;

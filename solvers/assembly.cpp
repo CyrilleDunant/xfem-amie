@@ -2127,6 +2127,7 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
             cg.colstart = colstart;
         }
 
+
         ret = cg.solve(x0, nullptr, epsilon, -1, verbose) ;
         gettimeofday(&time1, nullptr);
         double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;

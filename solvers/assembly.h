@@ -253,6 +253,7 @@ protected:
     bool make_final() ;
 
     size_t multiplier_offset ;
+    size_t nssor = 20 ;
 
     double epsilon ;
 
@@ -357,6 +358,8 @@ public:
     void setPreviousDisplacements() {
         realPrevDisplacements = displacements ;
     }
+
+    void setSSORIterations( size_t n ) { nssor = n ; }
 
     /** \brief set boundary condition. Point with ID id is fixed*/
     void fixPoint(size_t id) ;

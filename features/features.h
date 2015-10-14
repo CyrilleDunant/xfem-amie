@@ -179,6 +179,7 @@ protected:
     bool alternating ;
 
     size_t correctionSteps ;
+    size_t nssor = 20 ; 
     bool computeIntersections ;
 
     /** \brief  List of points used for the mesh.
@@ -807,6 +808,7 @@ public:
     void moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator & begin,  const Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator & end ) ;
 
     void setMaxIterationsPerStep ( size_t its ) ;
+    void setSSORIterations ( size_t n ) { nssor = n ; }
 
     /** \brief  set Sampling parameter
     */

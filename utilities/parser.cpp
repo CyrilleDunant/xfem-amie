@@ -592,6 +592,8 @@ void CommandLineParser::setFeatureTree( FeatureTree * f )
         f->setSolverPrecision( values["--set-solver-precision"] ) ;
     if(values["--set-max-iterations-per-step"] > 0)
         f->setMaxIterationsPerStep( values["--set-max-iterations-per-step"] ) ;
+    if(values["--set-ssor-iterations"] > -1)
+        f->setSSORIterations( values["--set-ssor-iterations"] ) ;
     if(values["--set-sampling-number"] > 0)
         f->setSamplingNumber( values["--set-sampling-number"] ) ;
     if(strings["--set-order"].size() > 0)
@@ -612,6 +614,7 @@ void CommandLineParser::disableFeatureTreeArguments()
     values.erase("--set-solver-precision") ;
     values.erase("--set-max-iterations-per-step") ;
     values.erase("--set-sampling-number") ;
+    values.erase("--set-ssor-iterations") ;
     strings.erase("--set-order") ;
 
     help.erase("--set-sampling-restriction") ;
@@ -620,6 +623,7 @@ void CommandLineParser::disableFeatureTreeArguments()
     help.erase("--set-solver-precision") ;
     help.erase("--set-max-iterations-per-step") ;
     help.erase("--set-sampling-number") ;
+    help.erase("--set-ssor-iterations") ;
     help.erase("--set-order") ;
 }
 
@@ -634,6 +638,7 @@ CommandLineParser::CommandLineParser(std::string d, bool c, bool f) : descriptio
     addValue("--set-min-delta-time", -1, "set the minimum time increment between two damage steps") ;
     addValue("--set-solver-precision", -1, "set the precision of the conjugate gradient solver") ;
     addValue("--set-max-iterations-per-step", -1, "set the maximum number of iterations during a damage step") ;
+    addValue("--set-ssor-iterations", -1, "set the number of SSOR iterations in the solver") ;
     addValue("--set-sampling-number", -1, "set the number of points on the edges of the sample") ;
     addString("--set-order", "", "set the order of the finite elements") ;
 }
