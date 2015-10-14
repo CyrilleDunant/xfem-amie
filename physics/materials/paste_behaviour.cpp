@@ -91,6 +91,23 @@ Form * ShortTermViscoElasticOnlyPasteBehaviour::getCopy() const
     return new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C0, C1, E1) ;
 }
 
+LogCreepPasteBehaviour::LogCreepPasteBehaviour(double E, double nu, double eta, double tau, SpaceDimensionality dim, double var) : LogarithmicCreepWithExternalParameters("young_modulus=12e9,poisson_ration=0.2,creep_modulus=40e9,creep_poisson=0.2,creep_characteristic_time=2", new RealTimeLogCreepAccumulator(), dim)
+{
+    external["young_modulus"] = E ;
+    external["poisson_ratio"] = nu ;
+    external["creep_modulus"] = eta ;
+    external["creep_poisson"] = nu ;
+    external["recoverable_modulus"] = eta ;
+    external["recoverable_poisson"] = nu ;
+    external["creep_characteristic_time"] = tau ;
+    external["weibull_variability"] = var ;
+
+    this->makeProperties( external ) ;
+
+    this->addMaterialLaw( new WeibullDistributedMaterialLaw("young_modulus", "weibull") ) ;
+}
+
+
 ViscoDamagePasteBehaviour::ViscoDamagePasteBehaviour(double E, double nu, double e1, double e2 , double up_, double r, SpaceDimensionality dim, double var) : PasteBehaviour(E, nu, up_,0.,0., dim, var), e_1(e1), e_2(e2), freeblocks(0), ctype(STRESS_CRITERION)
 {
     materialRadius = r ;

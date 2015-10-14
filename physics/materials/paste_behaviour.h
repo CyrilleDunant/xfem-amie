@@ -9,6 +9,7 @@
 #define PASTE_BEHAVIOUR_H
 
 #include "../weibull_distributed_stiffness.h"
+#include "../logarithmic_creep_with_external_parameters.h"
 #include "../../geometry/geometry_base.h"
 #include "../../features/features.h"
 
@@ -126,6 +127,11 @@ struct ViscoElasticOnlyPasteBehaviour : public PasteBehaviour
     ViscoElasticOnlyPasteBehaviour(double E = 12e9, double nu = 0.3, double e1 = 0.3, double e2 = 0.37, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
 
     virtual Form * getCopy() const ;
+} ;
+
+struct LogCreepPasteBehaviour : public LogarithmicCreepWithExternalParameters
+{
+    LogCreepPasteBehaviour(double E = 12e9, double nu = 0.3, double eta = 40e9, double tau = 2, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
 } ;
 
 struct ShortTermViscoElasticOnlyPasteBehaviour : public ViscoElasticOnlyPasteBehaviour
