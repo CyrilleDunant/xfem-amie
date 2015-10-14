@@ -4,8 +4,8 @@
 //
 //
 
-#include "../polynomial/vm_function_base.h"
-#include "../utilities/parser.h"
+#include "../../polynomial/vm_function_base.h"
+#include "../../utilities/parser.h"
 
 #include <fstream>
 #include <cmath>

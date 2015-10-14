@@ -373,20 +373,11 @@ target_link_libraries( multicrack Amie ${ALL_LINK_FLAGS})
 add_executable(steel examples/main_steel.cpp )
 target_link_libraries( steel Amie ${ALL_LINK_FLAGS})
 
-add_executable(alain examples/main_alain.cpp )
-target_link_libraries( alain Amie ${ALL_LINK_FLAGS})
-
 add_executable(elleuch examples/main_elleuch.cpp )
 target_link_libraries( elleuch Amie ${ALL_LINK_FLAGS})
 
 add_executable(asr examples/main_asr.cpp )
 target_link_libraries( asr Amie ${ALL_LINK_FLAGS})
-
-add_executable(michaela examples/main_michaela.cpp )
-target_link_libraries( michaela Amie ${ALL_LINK_FLAGS})
-
-add_executable(function_test examples/main_function_test.cpp )
-target_link_libraries( function_test Amie ${ALL_LINK_FLAGS})
 
 add_executable(asr_simple examples/main_asr_simple.cpp )
 target_link_libraries( asr_simple Amie ${ALL_LINK_FLAGS})
@@ -454,53 +445,67 @@ target_link_libraries( tension_visco Amie ${ALL_LINK_FLAGS})
 add_executable( tension_visco_damage examples/main_tension_visco_damage.cpp )
 target_link_libraries( tension_visco_damage Amie ${ALL_LINK_FLAGS})
 
-add_executable( performance examples/main_performance.cpp )
-target_link_libraries( performance Amie ${ALL_LINK_FLAGS})
+# playground
 
-add_executable(get_fields_from_trg examples/main_get_fields_from_trg.cpp )
+add_executable(alain EXCLUDE_FROM_ALL examples/playground/main_alain.cpp )
+target_link_libraries( alain Amie ${ALL_LINK_FLAGS})
+
+add_executable(michaela EXCLUDE_FROM_ALL examples/playground/main_michaela.cpp )
+target_link_libraries( michaela Amie ${ALL_LINK_FLAGS})
+
+add_executable(get_fields_from_trg EXCLUDE_FROM_ALL examples/playground/main_get_fields_from_trg.cpp )
 target_link_libraries( get_fields_from_trg Amie ${ALL_LINK_FLAGS} )
+
+add_executable(function_test EXCLUDE_FROM_ALL examples/playground/main_function_test.cpp )
+target_link_libraries( function_test Amie ${ALL_LINK_FLAGS})
+
+ADD_CUSTOM_TARGET(playground)
+ADD_DEPENDENCIES(playground alain cyrille michaela get_fields_from_trg function_test)
 
 # tests
 
-add_executable(check_test examples/main_check_test.cpp )
+add_executable(check_test EXCLUDE_FROM_ALL examples/main_check_test.cpp )
 target_link_libraries( check_test Amie ${ALL_LINK_FLAGS} )
 
-add_executable( test/logcreep examples/test/main_test_logcreep.cpp )
+add_executable( performance EXCLUDE_FROM_ALL examples/main_performance.cpp )
+target_link_libraries( performance Amie ${ALL_LINK_FLAGS})
+
+add_executable( test/logcreep EXCLUDE_FROM_ALL examples/test/main_test_logcreep.cpp )
 target_link_libraries( test/logcreep Amie ${ALL_LINK_FLAGS})
 
-add_executable( test/viscodamage_multilinearsoftening examples/test/main_test_viscodamage_multilinearsoftening.cpp )
+add_executable( test/viscodamage_multilinearsoftening EXCLUDE_FROM_ALL examples/test/main_test_viscodamage_multilinearsoftening.cpp )
 target_link_libraries( test/viscodamage_multilinearsoftening Amie ${ALL_LINK_FLAGS})
 
-add_executable( test/viscoelasticity_kv examples/test/main_test_viscoelasticity_kv.cpp )
+add_executable( test/viscoelasticity_kv EXCLUDE_FROM_ALL examples/test/main_test_viscoelasticity_kv.cpp )
 target_link_libraries( test/viscoelasticity_kv Amie ${ALL_LINK_FLAGS})
 
-add_executable( test/xfem examples/test/main_test_xfem.cpp )
+add_executable( test/xfem EXCLUDE_FROM_ALL examples/test/main_test_xfem.cpp )
 target_link_libraries( test/xfem Amie ${ALL_LINK_FLAGS})
 
-add_executable( test/imposed_deformation examples/test/main_test_imposed_deformation.cpp )
+add_executable( test/imposed_deformation EXCLUDE_FROM_ALL examples/test/main_test_imposed_deformation.cpp )
 target_link_libraries( test/imposed_deformation Amie ${ALL_LINK_FLAGS})
 
-add_executable( test/viscoelasticity_imposed_deformation examples/test/main_test_viscoelasticity_imposed_deformation.cpp )
+add_executable( test/viscoelasticity_imposed_deformation EXCLUDE_FROM_ALL examples/test/main_test_viscoelasticity_imposed_deformation.cpp )
 target_link_libraries( test/viscoelasticity_imposed_deformation Amie ${ALL_LINK_FLAGS})
 
-add_executable( test/stxfem examples/test/main_test_stxfem.cpp )
+add_executable( test/stxfem EXCLUDE_FROM_ALL examples/test/main_test_stxfem.cpp )
 target_link_libraries( test/stxfem Amie ${ALL_LINK_FLAGS})
 
-add_executable( test/time_continuity examples/test/main_test_time_continuity.cpp )
+add_executable( test/time_continuity EXCLUDE_FROM_ALL examples/test/main_test_time_continuity.cpp )
 target_link_libraries( test/time_continuity Amie ${ALL_LINK_FLAGS})
 
 ADD_CUSTOM_TARGET(unitTests)
-ADD_DEPENDENCIES(unitTests check_test test/logcreep test/viscodamage_multilinearsoftening test/viscoelasticity_kv test/xfem test/stxfem test/imposed_deformation test/viscoelasticity_imposed_deformation test/time_continuity)
+ADD_DEPENDENCIES(unitTests performance check_test test/logcreep test/viscodamage_multilinearsoftening test/viscoelasticity_kv test/xfem test/stxfem test/imposed_deformation test/viscoelasticity_imposed_deformation test/time_continuity)
 
 # mesh
 
-add_executable(check_mesh examples/main_check_mesh.cpp )
+add_executable(check_mesh EXCLUDE_FROM_ALL examples/main_check_mesh.cpp )
 target_link_libraries( check_mesh Amie ${ALL_LINK_FLAGS} )
 
-add_executable( mesh/circle examples/mesh/main_mesh_circle.cpp )
+add_executable( mesh/circle EXCLUDE_FROM_ALL examples/mesh/main_mesh_circle.cpp )
 target_link_libraries( mesh/circle Amie ${ALL_LINK_FLAGS})
 
-add_executable( mesh/circle_sample_intersection examples/mesh/main_mesh_circle_sample_intersection.cpp )
+add_executable( mesh/circle_sample_intersection EXCLUDE_FROM_ALL examples/mesh/main_mesh_circle_sample_intersection.cpp )
 target_link_libraries( mesh/circle_sample_intersection Amie ${ALL_LINK_FLAGS})
 
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/test ${CMAKE_BINARY_DIR}/mesh)

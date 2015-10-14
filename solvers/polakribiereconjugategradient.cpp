@@ -32,7 +32,6 @@ bool ConjugateGradientWithSecant::solve(const Vector &x0, Preconditionner * prec
 	Vector & b = assembly->getForces() ;
 	Vector & y = assembly->getDisplacements();
 	bool nl = assembly->nonLinearStep() ;
-
 	
 	if(!nl) 
 	{

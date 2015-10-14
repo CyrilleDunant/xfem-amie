@@ -4,10 +4,10 @@
 //
 //
 
-#include "./main.h"
-#include "./../utilities/parser.h"
-#include "./../utilities/itoa.h"
-#include "./../utilities/enumeration_translator.h"
+#include "../main.h"
+#include "../../utilities/parser.h"
+#include "../../utilities/itoa.h"
+#include "../../utilities/enumeration_translator.h"
 
 
 #include <fstream>
