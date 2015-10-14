@@ -657,7 +657,7 @@ void Assembly::checkZeroLines()
     
     if(zeroIds.size() == 0)
     {
-        double maxval = std::abs(getMatrix().array).max() ;
+//        double maxval = std::abs(getMatrix().array).max() ;
         int zerocount = 0 ;
         for(size_t i = 0 ; i < externalForces.size() ; i++)
         {
