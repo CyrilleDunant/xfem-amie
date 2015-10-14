@@ -47,14 +47,14 @@ InCompleteCholesky::InCompleteCholesky(Assembly * A_) : d(A_->getMatrix().diagon
 	}
 }
 
+
 void InCompleteCholesky::precondition(const Vector& v, Vector& t)
 {
 // 	if(stable)
 // 	{
 //		Vector y = UpperTriangular(A->getMatrix(), v).solve(Vector(0), nullptr) ;
 //		Vector ret= LowerTriangular(A->getMatrix(), y).solve(Vector(0), nullptr) ;
-	Vector v_(v) ;
-	CholeskiDecomposed sv(A, v_) ;
+	CholeskiDecomposed sv(A, v) ;
 	sv.solve(Vector(0), nullptr) ;
 	t = sv.x ;
 // 	}

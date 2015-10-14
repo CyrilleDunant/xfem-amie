@@ -648,6 +648,7 @@ void Assembly::setBoundaryConditions()
 
 void Assembly::checkZeroLines()
 {
+
     if(!removeZeroOnlyLines)
     {
         return ;
@@ -664,7 +665,7 @@ void Assembly::checkZeroLines()
                 std::cerr << "\r removing 0-only lines... " << i << "/" << externalForces.size() << std::flush ;
             
             double v = std::abs(getMatrix()[i][i]) ;
-            bool zeros = ( v < 1e-12*maxval) ;
+            bool zeros =  v < 1e-24*std::abs(externalForces[i]) ;
 /*        size_t j = rowstart ;
         while(zeros && (j < externalForces.size() ))
         {

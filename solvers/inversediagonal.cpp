@@ -22,21 +22,18 @@ InverseLumpedDiagonal::InverseLumpedDiagonal(const CoordinateIndexedSparseMatrix
 	for(size_t i = 0 ; i < A.row_size.size()*A.stride ; i++)
 	{
 
-		diagonal[i] += A[i][0] ;
-
-		
-		for(size_t j = 1 ; j < A.row_size.size()*A.stride ; j++)
+		for(size_t j = 0 ; j < A.row_size.size()*A.stride ; j++)
 		{
-			diagonal[i] += A[j][i] ;
+			diagonal[i] += A[i][j] ;
 		}
 		
 		double v = diagonal[i] ;
-		if(std::abs(v) > 1e-6)
+		if(std::abs(v) > 1e-8)
 			diagonal[i] = 1./v ;
-// 		else /*if(v > 0)*/
-// 			diagonal[i] = 1. ;
-//         else
-//             diagonal[i] = -1./std::numeric_limits<double>::epsilon() ;
+		else if(v > 0)
+			diagonal[i] = 1. ;
+        else
+            diagonal[i] = -1. ;
 
 		
 	}
@@ -99,7 +96,7 @@ Inverse2x2Diagonal::Inverse2x2Diagonal(const CoordinateIndexedSparseMatrix &A)
 		block[1][0] = A[i+1][i] ;
 		block[0][1] = A[i][i+1] ;
 		block[1][1] = A[i+1][i+1] ;
-		if(std::abs(det(block)) > std::numeric_limits<double>::epsilon())
+		if(std::abs(det(block)) > 1e-8)
 		{
 			invert2x2Matrix(block) ;
 		}
@@ -107,11 +104,11 @@ Inverse2x2Diagonal::Inverse2x2Diagonal(const CoordinateIndexedSparseMatrix &A)
 		{
 			block[0][1] = 0. ;
 			block[1][0] = 0. ;
-			if(std::abs(A[i][i]) > std::numeric_limits<double>::epsilon())
+			if(std::abs(A[i][i]) > 1e-8)
 				block[0][0] = 1./A[i][i] ;
 			else
 				block[0][0] = 1. ;
-			if(std::abs(A[i+1][i+1]) > std::numeric_limits<double>::epsilon())
+			if(std::abs(A[i+1][i+1]) > 1e-8)
 				block[1][1] = 1./A[i+1][i+1] ;
 			else
 				block[1][1] = 1. ;

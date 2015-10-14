@@ -29,8 +29,8 @@ namespace Amie {
 
 ConjugateGradient::ConjugateGradient( Assembly* a ) :LinearSolver(a), r(x.size()),z(x.size()),p(x.size()) ,q(x.size()), xmin(x.size()), cleanup(false), P(nullptr), nit(0) 
 { 
-    if(assembly->getMatrix().stride > 3)
-        nssor = 0 ;
+//     if(assembly->getMatrix().stride > 3)
+//         nssor = 0 ;
 }
 
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
@@ -48,7 +48,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     if(maxit != -1)
         Maxit = maxit ;
     else
-        Maxit = assembly->getForces().size()*4 ;
+        Maxit = assembly->getForces().size() ;
     if(x0.size() == assembly->getForces().size())
     {
         x.resize(assembly->getForces().size());
@@ -63,24 +63,41 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             x[i] = x0[i] ;
     }
 
-
     if(rowstart)
     {
         for(size_t i = 0 ; i < rowstart ; i++)
             x[i] = assembly->getForces()[i] ;
     }
 
-
-
      int vsize = r.size() ;
      //smooth the initial guess
-    Ssor ssor (assembly->getMatrix(), 1.5, rowstart, colstart) ;
+    Ssor ssor (assembly->getMatrix(), rowstart, colstart) ;
     
-    for(size_t i = 0 ; i < nssor ; i++)
+    Vector rcompensate(0., r.size()) ;
+    Vector xcompensate(0., x.size()) ;
+    
+    if(nssor > 0)
     {
-        assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
-        ssor.precondition(r,r);
-        x = x - r ;
+        double err = 2 ;
+        double perr = 0 ;
+        size_t iter = 0 ;
+        while(iter++ < nssor)
+        {
+
+            assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
+            ssor.precondition(r,r);
+            for(int i = rowstart ; i < vsize ; i++)
+            {
+                double yx =  -r[i] - xcompensate[i];
+                double xtot = x[i]+yx ;
+                xcompensate[i] = (xtot-x[i])-yx ;
+                x[i] = xtot ;
+            }
+            perr = err ;
+            err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
+            if(perr > err)
+                break ;
+        }
     }
     assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
     r*=-1 ;
@@ -88,7 +105,14 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     double err0 = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
     xmin = x ;
     errmin = err0 ;
-    
+//     if(err0 > 1e3)
+//     {
+//         xmin = 0 ;
+//         x = 0 ;
+//         errmin = 1e3 ;
+//         assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
+//         r*=-1 ;
+//     }
 
     if (err0 < realeps)
     {
@@ -104,7 +128,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 //         if(err0 < 1e-4)   
 //             P = new Ssor(assembly->getMatrix(), 1.5) ;
 //         else
-            P = new InverseDiagonal(assembly->getMatrix()) ;
+         P = new InverseDiagonal(assembly->getMatrix()) ;
+//         P = new InCompleteCholesky(assembly) ;
 
     }
     else
@@ -123,6 +148,12 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
     double last_rho = parallel_inner_product_restricted(&r[rowstart], &z[rowstart], vsize-rowstart) ;
     double pq = parallel_inner_product_restricted(&q[rowstart], &p[rowstart], vsize-rowstart);
+    if(std::abs(pq) < realeps*realeps*.25)
+    {
+        if(verbose)
+            std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err0 << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+        return true ;
+    }
     double alpha = last_rho/pq ;
 
     #pragma omp parallel for schedule(static) if (vsize > 10000)
@@ -159,8 +190,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     double lastReset = rho ;
     int resetIncreaseCount = 0 ;
     bool pqconvergence = false ;
-    Vector rcompensate(0., r.size()) ;
-    Vector xcompensate(0., x.size()) ;
+
     while((sqrt(std::abs(last_rho)) > realeps*err0 && nit < Maxit ) || nit < 100)
     {
 //         if(nit < 16)
@@ -238,8 +268,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
                 for(int i = rowstart ; i < vsize ; i++)
                     r[i] *= -1 ;
                 resetIncreaseCount = 0 ;
-		rcompensate = 0 ;
-		xcompensate= 0 ;
+                rcompensate = 0 ;
+                xcompensate= 0 ;
             }
         }
 
@@ -254,20 +284,36 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 #endif
 
     std::cerr << "mflops: "<< nit*((2.+2./256.)*assembly->getMatrix().array.size()+(4+1./256.)*p.size())/delta << std::endl ;
-
-    for(size_t i = 0 ; i < nssor ; i++)
-    {
-        assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
-        ssor.precondition(r,r);
-        x = x - r ;
-    }
     
     assign(r,assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
     double err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
 
+    xcompensate= 0 ;
+    double perr = err ;
+    if(nssor > 0)
+    {
+        while(err > realeps*err0)
+        {
+
+            assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
+            ssor.precondition(r,r);
+            for(int i = rowstart ; i < vsize ; i++)
+            {
+                double yx =  -r[i] - xcompensate[i];
+                double xtot = x[i]+yx ;
+                xcompensate[i] = (xtot-x[i])-yx ;
+                x[i] = xtot ;
+            }
+            perr = err ;
+            err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
+            if(perr > err)
+                break ;
+        }
+    }
+    
     if(verbose)
     {
-        if((nit <= Maxit && sqrt(last_rho)< realeps*err0) || pqconvergence)
+        if((nit <= Maxit && sqrt(last_rho)< realeps*err0) || pqconvergence || err < realeps*err0)
             std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", last rho = " << last_rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
         else
         {
@@ -275,7 +321,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         }
     }
 
-    return (nit <= Maxit && sqrt(last_rho) < realeps*err0) || pqconvergence;
+    return (nit <= Maxit && sqrt(last_rho) < realeps*err0) || pqconvergence || err < realeps*err0;
 }
 
 }

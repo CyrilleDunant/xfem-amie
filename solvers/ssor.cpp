@@ -18,7 +18,7 @@
 using namespace Amie ;
 
 
-Ssor::Ssor(const CoordinateIndexedSparseMatrix &A, double omega, int rowstart , int colstart ) : upper(A), lower(A), auxiliaryUpper(A), auxiliaryLower(A), buffer(A.inverseDiagonal()), omega(omega), omega_prev(0), previous_r(0), rowstart(rowstart), colstart(colstart)
+Ssor::Ssor(const CoordinateIndexedSparseMatrix &A, int rowstart , int colstart ) : upper(A), lower(A), buffer(A.inverseDiagonal()), omega(1.5), rowstart(rowstart), colstart(colstart)
 {
      
     //first, update the sparseness patterns
@@ -47,9 +47,7 @@ Ssor::Ssor(const CoordinateIndexedSparseMatrix &A, double omega, int rowstart , 
        lowerPattern.insert(std::make_pair(i,i)) ;
     }
     upper.reshape(upperPattern, stride) ;
-    auxiliaryUpper.reshape(upperPattern, stride);
     lower.reshape(lowerPattern, stride) ;
-    auxiliaryLower.reshape(lowerPattern, stride);
 
     for(size_t i = 0 ; i < A.row_size.size() ; i++)
     {
@@ -57,11 +55,11 @@ Ssor::Ssor(const CoordinateIndexedSparseMatrix &A, double omega, int rowstart , 
         for(int k = 0 ; k < stride ; k++)
         {                   
             double v = A[row * stride+k][row * stride+k] ;
-            long double diag = 1./v ;         
+            long double diag = 1./.999 ;         
             
-            if (v < std::numeric_limits<double>::epsilon())
+            if (v > 1e-8)
             {
-                diag = 1./std::numeric_limits<double>::epsilon() ;
+                diag = 1./v ;
             }
             
             for(size_t j = 0 ; j < A.row_size[i] ; j++)
@@ -74,9 +72,7 @@ Ssor::Ssor(const CoordinateIndexedSparseMatrix &A, double omega, int rowstart , 
                     {
                         long double val = -sqrt((2.-omega)*omega)*sqrt(diag)*A[row*stride+k][column*stride+l]*diag*omega;
                         upper[row*stride+k][column*stride+l] = val ;
-                        auxiliaryUpper[row*stride+k][column*stride+l] = -val ;
                         lower[column*stride+l][row*stride+k] = val ;
-                        auxiliaryLower[column*stride+l][row*stride+k] = -val ;
                         
                     }
                     else if(row*stride+k == column*stride+l)
@@ -98,25 +94,10 @@ void  Ssor::precondition(const Vector &v, Vector & t)
 {
     if(v.size() != buffer.size())
       std::cout << " ouch ! " << std::endl ;
-//     Vector buffer2(buffer) ;
-//     Vector buffer3(buffer) ;
-//     Vector buffer4(buffer) ;
-    
+
     assign(buffer, upper*v, rowstart, colstart) ;
     assign(t, lower*buffer, rowstart, colstart) ; //1
-//     assign(buffer, upper*buffer2) ;
-//     assign(t, lower*buffer) ; //2
-//     assign(buffer, upper*v) ;
-//     assign(buffer2, auxiliaryLower*buffer) ;
-//     assign(buffer, auxiliaryLower*buffer2) ; //2
-//     assign(buffer2, auxiliaryUpper*v) ;
-//     assign(buffer3, auxiliaryUpper*buffer2) ;
-//     assign(buffer2, lower*buffer3) ; //3
-//     assign(buffer3, auxiliaryUpper*v) ;
-//     assign(buffer4, auxiliaryUpper*buffer3) ;
-//     assign(buffer3, auxiliaryLower*buffer4) ;
-//     assign(buffer4, auxiliaryLower*buffer3) ;
-//     t +=buffer4+buffer2+buffer ;
+
     
 }
 
