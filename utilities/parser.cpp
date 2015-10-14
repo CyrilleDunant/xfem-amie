@@ -582,24 +582,24 @@ ConfigTreeItem * ConfigParser::readFile(std::string f, ConfigTreeItem * def, boo
 
 void CommandLineParser::setFeatureTree( FeatureTree * f ) 
 {
-    if(values["--set-sampling-restriction"] > 0)
-        f->setSamplingRestriction( values["--set-sampling-restriction"] ) ;
-    if(values["--set-delta-time"] > 0)
-        f->setDeltaTime( values["--set-delta-time"] ) ;
-    if(values["--set-min-delta-time"] > 0)
-        f->setMinDeltaTime( values["--set-min-delta-time"] ) ;
-    if(values["--set-solver-precision"] > 0)
-        f->setSolverPrecision( values["--set-solver-precision"] ) ;
-    if(values["--set-max-iterations-per-step"] > 0)
-        f->setMaxIterationsPerStep( values["--set-max-iterations-per-step"] ) ;
-    if(values["--set-ssor-iterations"] > -1)
-        f->setSSORIterations( values["--set-ssor-iterations"] ) ;
-    if(values["--set-sampling-number"] > 0)
-        f->setSamplingNumber( values["--set-sampling-number"] ) ;
-    if(strings["--set-order"].size() > 0)
+    if(values[std::string("--set-sampling-restriction")] > 0)
+        f->setSamplingRestriction( values[std::string("--set-sampling-restriction")] ) ;
+    if(values[std::string("--set-delta-time")] > 0)
+        f->setDeltaTime( values[std::string("--set-delta-time")] ) ;
+    if(values[std::string("--set-min-delta-time")] > 0)
+        f->setMinDeltaTime( values[std::string("--set-min-delta-time")] ) ;
+    if(values[std::string("--set-solver-precision")] > 0)
+        f->setSolverPrecision( values[std::string("--set-solver-precision")] ) ;
+    if(values[std::string("--set-max-iterations-per-step")] > 0)
+        f->setMaxIterationsPerStep( values[std::string("--set-max-iterations-per-step")] ) ;
+    if(values[std::string("--set-ssor-iterations")] > -1)
+        f->setSSORIterations( values[std::string("--set-ssor-iterations")] ) ;
+    if(values[std::string("--set-sampling-number")] > 0)
+        f->setSamplingNumber( values[std::string("--set-sampling-number")] ) ;
+    if(strings[std::string("--set-order")].size() > 0)
     {
         bool ok = false ;
-        Order ord = Enum::getOrder(strings["--set-order"], &ok) ;
+        Order ord = Enum::getOrder(strings[std::string("--set-order")], &ok) ;
         if(ok)
             f->setOrder( ord ) ;
     }
@@ -608,39 +608,40 @@ void CommandLineParser::setFeatureTree( FeatureTree * f )
 
 void CommandLineParser::disableFeatureTreeArguments() 
 {
-    values.erase("--set-sampling-restriction") ;
-    values.erase("--set-delta-time") ;
-    values.erase("--set-min-delta-time") ;
-    values.erase("--set-solver-precision") ;
-    values.erase("--set-max-iterations-per-step") ;
-    values.erase("--set-sampling-number") ;
-    values.erase("--set-ssor-iterations") ;
-    strings.erase("--set-order") ;
+    values.erase(std::string("--set-sampling-restriction")) ;
+    values.erase(std::string("--set-delta-time")) ;
+    values.erase(std::string("--set-min-delta-time")) ;
+    values.erase(std::string("--set-solver-precision")) ;
+    values.erase(std::string("--set-max-iterations-per-step")) ;
+    values.erase(std::string("--set-sampling-number")) ;
+    values.erase(std::string("--set-ssor-iterations")) ;
+    strings.erase(std::string("--set-order")) ;
 
-    help.erase("--set-sampling-restriction") ;
-    help.erase("--set-delta-time") ;
-    help.erase("--set-min-delta-time") ;
-    help.erase("--set-solver-precision") ;
-    help.erase("--set-max-iterations-per-step") ;
-    help.erase("--set-sampling-number") ;
-    help.erase("--set-ssor-iterations") ;
-    help.erase("--set-order") ;
+    help.erase(std::string("--set-sampling-restriction")) ;
+    help.erase(std::string("--set-delta-time")) ;
+    help.erase(std::string("--set-min-delta-time")) ;
+    help.erase(std::string("--set-solver-precision")) ;
+    help.erase(std::string("--set-max-iterations-per-step")) ;
+    help.erase(std::string("--set-sampling-number")) ;
+    help.erase(std::string("--set-ssor-iterations")) ;
+    help.erase(std::string("--set-order")) ;
 }
 
 CommandLineParser::CommandLineParser(std::string d, bool c, bool f) : description(d), commandLineConfiguration(c), forceUnrecognizedFlags(f)
 {
-    addFlag("--help", false, "print help") ;
-    addFlag("--version", false, "print current AMIE revision") ;
-    addFlag("--no-openmp", false, "disable OpenMP (equivalent to --set-num-threads 1)") ;
-    addValue("--set-num-threads", -1, "set the number of threads available for OpenMP") ;
-    addValue("--set-sampling-restriction", -1, "set the number of mesh points below which small inclusions are not meshed") ;
-    addValue("--set-delta-time", -1, "set the time step") ;
-    addValue("--set-min-delta-time", -1, "set the minimum time increment between two damage steps") ;
-    addValue("--set-solver-precision", -1, "set the precision of the conjugate gradient solver") ;
-    addValue("--set-max-iterations-per-step", -1, "set the maximum number of iterations during a damage step") ;
-    addValue("--set-ssor-iterations", -1, "set the number of SSOR iterations in the solver") ;
-    addValue("--set-sampling-number", -1, "set the number of points on the edges of the sample") ;
-    addString("--set-order", "", "set the order of the finite elements") ;
+    addFlag(std::string("--help"), false, std::string("print help")) ;
+    addFlag(std::string("--version"), false, std::string("print current AMIE revision")) ;
+    addFlag(std::string("--no-openmp"), false, std::string("disable OpenMP (equivalent to --set-num-threads 1)")) ;
+    addFlag(std::string("--print-status"), false, std::string("print the list of activated command line arguments before launching the simulation")) ;
+    addValue(std::string("--set-num-threads"), -1, std::string("set the number of threads available for OpenMP")) ;
+    addValue(std::string("--set-sampling-restriction"), -1, std::string("set the number of mesh points below which small inclusions are not meshed")) ;
+    addValue(std::string("--set-delta-time"), -1, std::string("set the time step")) ;
+    addValue(std::string("--set-min-delta-time"), -1, std::string("set the minimum time increment between two damage steps")) ;
+    addValue(std::string("--set-solver-precision"), -1, std::string("set the precision of the conjugate gradient solver")) ;
+    addValue(std::string("--set-max-iterations-per-step"), -1, std::string("set the maximum number of iterations during a damage step")) ;
+    addValue(std::string("--set-ssor-iterations"), -1, std::string("set the number of SSOR iterations in the solver")) ;
+    addValue(std::string("--set-sampling-number"), -1, std::string("set the number of points on the edges of the sample")) ;
+    addString(std::string("--set-order"), std::string(), std::string("set the order of the finite elements")) ;
 }
 
 void setFeatureTree( FeatureTree * f, int argc, char *argv[], std::string description ) 
@@ -680,7 +681,7 @@ void CommandLineParser::parseCommandLine( int argc, char *argv[] )
 		else if(commandLineConfiguration && test[0] == '@')
 		{
 			if(!config)
-				config = new ConfigTreeItem(nullptr, "define") ;
+				config = new ConfigTreeItem(nullptr, std::string("define")) ;
 			std::string testval = std::string(argv[i+1]) ;
 			bool isDouble = (testval.find_first_not_of("0123456789.e-") == std::string::npos ) ;
 			if(isDouble)
@@ -694,24 +695,26 @@ void CommandLineParser::parseCommandLine( int argc, char *argv[] )
 			directConfig [test.substr(1)] = std::string (argv[i+1]) ;
 			i++ ;
 		}
-		else if(forceUnrecognizedFlags && test.find("--") == 0)
+		else if(forceUnrecognizedFlags && test.find(std::string("--")) == 0)
 		{
 			flags[test] = true ;
 		}
 		i++ ;
 	}
 
-	if( getFlag("--version") )
+	if( getFlag(std::string("--version")) )
 		printVersion() ;
-	if( getFlag("--help") )
+	if( getFlag(std::string("--help")) )
 		printHelp() ;
+	if( getFlag(std::string("--print-status")) )
+		printStatus() ;
 
-        if( getFlag("--no-openmp"))
+        if( getFlag(std::string("--no-openmp")))
 		setNumThreads(1) ;
-	else if( getValue("--set-num-threads") > 0)
-		setNumThreads( getValue("--set-num-threads") ) ;
+	else if( getValue(std::string("--set-num-threads")) > 0)
+		setNumThreads( getValue(std::string("--set-num-threads") ) );
 
-	if(getFlag("--help") || getFlag("--version"))
+	if(getFlag(std::string("--help")) || getFlag(std::string("--version")))
 		exit(0) ;
 
 }
@@ -725,6 +728,8 @@ void CommandLineParser::setNumThreads( int n )
 
 void CommandLineParser::printStatus( )
 {
+	for(size_t i = 0 ; i < arguments.size() ; i++)
+		std::cout << arguments[i].name << " =  " << arguments[i].str << std::endl ;
 	for(auto f = flags.begin() ; f != flags.end() ; f++)
 		std::cout << f->first << " = " << (f->second ? "TRUE" : "FALSE") << std::endl ;
 	for(auto f = values.begin() ; f != values.end() ; f++)
