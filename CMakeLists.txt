@@ -352,29 +352,17 @@ target_link_libraries(visu_behavior Amie ${ALL_LINK_FLAGS} )
 add_executable(3d_asr  examples/main_3d_asr.cpp  )
 target_link_libraries( 3d_asr Amie  ${ALL_LINK_FLAGS})
 
-#add_executable(3d_diffusion  examples/main_3d_diffusion.cpp )
-#target_link_libraries( 3d_diffusion Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
-
 add_executable(hyd_paste examples/main_hydrating_paste.cpp )
 target_link_libraries( hyd_paste Amie ${ALL_LINK_FLAGS})
 
 add_executable(def examples/main_def.cpp )
 target_link_libraries( def Amie ${ALL_LINK_FLAGS})
 
-#add_executable(detail examples/main_detail.cpp )
-#target_link_libraries( detail Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
-
-#add_executable(kill examples/main_kill.cpp )
-#target_link_libraries( kill Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
-
 add_executable(multicrack examples/main_multicrack.cpp )
 target_link_libraries( multicrack Amie ${ALL_LINK_FLAGS})
 
 add_executable(steel examples/main_steel.cpp )
 target_link_libraries( steel Amie ${ALL_LINK_FLAGS})
-
-add_executable(elleuch examples/main_elleuch.cpp )
-target_link_libraries( elleuch Amie ${ALL_LINK_FLAGS})
 
 add_executable(asr examples/main_asr.cpp )
 target_link_libraries( asr Amie ${ALL_LINK_FLAGS})
@@ -385,9 +373,6 @@ target_link_libraries( asr_simple Amie ${ALL_LINK_FLAGS})
 add_executable(wedge examples/main_wedge_splitting.cpp )
 target_link_libraries( wedge Amie ${ALL_LINK_FLAGS})
 
-#add_executable(ellipse_test examples/main_ellipse_test.cpp )
-#target_link_libraries( ellipse_test Amie ${GLUT_LIBRARY} -lglut -lGLU${ALL_LINK_FLAGS})
-
 add_executable(thermal_expansion examples/main_thermalexpansion.cpp )
 target_link_libraries( thermal_expansion Amie ${ALL_LINK_FLAGS})
 
@@ -397,17 +382,11 @@ target_link_libraries( geometry Amie ${ALL_LINK_FLAGS} )
 add_executable(2d_composite examples/main_2d_composite.cpp )
 target_link_libraries( 2d_composite Amie ${ALL_LINK_FLAGS} )
 
-add_executable(benchmark examples/main_benchmark.cpp )
-target_link_libraries( benchmark Amie ${ALL_LINK_FLAGS} )
-
 add_executable(asr_shape examples/main_asr_shape.cpp )
 target_link_libraries( asr_shape Amie ${ALL_LINK_FLAGS})
 
 add_executable(homogenization examples/main_homogenization.cpp )
 target_link_libraries( homogenization Amie ${ALL_LINK_FLAGS})
-
-#add_executable(simple examples/main_simple.cpp )
-#target_link_libraries( simple Amie ${GLUT_LIBRARY} -lglut -lGLU${ALL_LINK_FLAGS})
 
 add_executable(tripoint examples/main_tripoint.cpp )
 target_link_libraries( tripoint Amie ${ALL_LINK_FLAGS})
@@ -427,9 +406,6 @@ target_link_libraries( asr_visco Amie ${ALL_LINK_FLAGS} )
 add_executable(tension examples/main_tension.cpp )
 target_link_libraries( tension Amie ${ALL_LINK_FLAGS})
 
-add_executable(tension_benchmark examples/main_tension_benchmark.cpp )
-target_link_libraries( tension_benchmark Amie ${ALL_LINK_FLAGS})
-
 add_executable( pore_pressure examples/main_crystal_pressure.cpp )
 target_link_libraries( pore_pressure Amie ${ALL_LINK_FLAGS})
 
@@ -444,6 +420,21 @@ target_link_libraries( tension_visco Amie ${ALL_LINK_FLAGS})
 
 add_executable( tension_visco_damage examples/main_tension_visco_damage.cpp )
 target_link_libraries( tension_visco_damage Amie ${ALL_LINK_FLAGS})
+
+# benchmarks
+
+add_executable(3d_benchmark EXCLUDE_FROM_ALL examples/main_3d_benchmark.cpp )
+target_link_libraries( 3d_benchmark Amie ${ALL_LINK_FLAGS} )
+
+add_executable(tension_benchmark EXCLUDE_FROM_ALL examples/main_tension_benchmark.cpp )
+target_link_libraries( tension_benchmark Amie ${ALL_LINK_FLAGS})
+
+add_executable( performance EXCLUDE_FROM_ALL examples/main_performance.cpp )
+target_link_libraries( performance Amie ${ALL_LINK_FLAGS})
+
+ADD_CUSTOM_TARGET(benchmark)
+ADD_DEPENDENCIES(benchmark 3d_benchmark tension_benchmark performance)
+
 
 # playground
 
@@ -462,13 +453,12 @@ target_link_libraries( function_test Amie ${ALL_LINK_FLAGS})
 ADD_CUSTOM_TARGET(playground)
 ADD_DEPENDENCIES(playground alain cyrille michaela get_fields_from_trg function_test)
 
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/test ${CMAKE_BINARY_DIR}/mesh)
+
 # tests
 
 add_executable(check_test EXCLUDE_FROM_ALL examples/main_check_test.cpp )
 target_link_libraries( check_test Amie ${ALL_LINK_FLAGS} )
-
-add_executable( performance EXCLUDE_FROM_ALL examples/main_performance.cpp )
-target_link_libraries( performance Amie ${ALL_LINK_FLAGS})
 
 add_executable( test/logcreep EXCLUDE_FROM_ALL examples/test/main_test_logcreep.cpp )
 target_link_libraries( test/logcreep Amie ${ALL_LINK_FLAGS})
@@ -495,7 +485,7 @@ add_executable( test/time_continuity EXCLUDE_FROM_ALL examples/test/main_test_ti
 target_link_libraries( test/time_continuity Amie ${ALL_LINK_FLAGS})
 
 ADD_CUSTOM_TARGET(unitTests)
-ADD_DEPENDENCIES(unitTests performance check_test test/logcreep test/viscodamage_multilinearsoftening test/viscoelasticity_kv test/xfem test/stxfem test/imposed_deformation test/viscoelasticity_imposed_deformation test/time_continuity)
+ADD_DEPENDENCIES(unitTests check_test test/logcreep test/viscodamage_multilinearsoftening test/viscoelasticity_kv test/xfem test/stxfem test/imposed_deformation test/viscoelasticity_imposed_deformation test/time_continuity)
 
 # mesh
 
@@ -507,8 +497,6 @@ target_link_libraries( mesh/circle Amie ${ALL_LINK_FLAGS})
 
 add_executable( mesh/circle_sample_intersection EXCLUDE_FROM_ALL examples/mesh/main_mesh_circle_sample_intersection.cpp )
 target_link_libraries( mesh/circle_sample_intersection Amie ${ALL_LINK_FLAGS})
-
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/test ${CMAKE_BINARY_DIR}/mesh)
 
 ADD_CUSTOM_TARGET(meshTests)
 ADD_DEPENDENCIES(meshTests check_mesh mesh/circle mesh/circle_sample_intersection)
