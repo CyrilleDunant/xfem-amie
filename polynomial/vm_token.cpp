@@ -660,15 +660,16 @@ void HatEnrichment::eval(double * a, double * b, double * c) const
     Triangle test(p, s.first(), s.second()) ;
     if(!test.in(position))
     {
-//         Point pcopy(position) ;
-//         test.project(&pcopy); 
-        
+        Point pcopy(position) ;
+        test.project(&pcopy); 
+        double di = dist(position, pcopy) ;
         Point toCenter = test.getCenter()-position ;
-        toCenter /= toCenter.norm() ;
-        while(!test.in(position))
-        {
-             position += toCenter*.5*default_derivation_delta ;
-        }
+        toCenter *= di/toCenter.norm() ;
+        
+//         while(!test.in(position))
+//         {
+             position += toCenter*(1.+default_derivation_delta) ;
+//         }
 //         position.print();
 //         test.print();
 //        

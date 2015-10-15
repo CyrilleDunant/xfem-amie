@@ -5949,12 +5949,15 @@ bool isAligned(const Point &test, const Point &f0, const Point &f1)
 //		return false ;
 
 //	Point centre ;
-    Point centre(test.getX()+f0.getX()+f1.getX(), test.getY()+f0.getY()+f1.getY(), test.getZ()+f0.getZ()+f1.getZ()) ;
-    centre *=.3333333333333333333333333 ;
-    Point f0_(f0.getX()-centre.getX(), f0.getY()-centre.getY(), f0.getZ()-centre.getZ()) ;
-    Point f1_(f1.getX()-centre.getX(), f1.getY()-centre.getY(), f1.getZ()-centre.getZ()) ;
-    Point test_(test.getX()-centre.getX(), test.getY()-centre.getY(), test.getZ()-centre.getZ()) ;
-    double scale = sqrt(4.*POINT_TOLERANCE/(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm()))) ;
+    
+    double cx = (test.getX()+f0.getX()+f1.getX())/3. ;
+    double cy = ( test.getY()+f0.getY()+f1.getY())/3.;
+    double cz = (test.getZ()+f0.getZ()+f1.getZ())/3.;
+
+    Point f0_(f0.getX()-cx, f0.getY()-cy, f0.getZ()-cz) ;
+    Point f1_(f1.getX()-cx, f1.getY()-cy, f1.getZ()-cz) ;
+    Point test_(test.getX()-cx, test.getY()-cy, test.getZ()-cz) ;
+    double scale = sqrt(4./(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm()))) ;
     f0_   *= scale ;
     f1_   *= scale ;
     test_ *= scale ;
@@ -5963,25 +5966,78 @@ bool isAligned(const Point &test, const Point &f0, const Point &f1)
 //	if (std::abs(signedAlignement(test_, f0_, f1_)) > 2.*POINT_TOLERANCE)
 //		return false ;
 
-    double na = sqrt((f0_.getX()-f1_.getX())*(f0_.getX()-f1_.getX())+(f0_.getY()-f1_.getY())*(f0_.getY()-f1_.getY())+(f0_.getZ()-f1_.getZ())*(f0_.getZ()-f1_.getZ())) ;
-    double nb = sqrt((f0_.getX()-test_.getX())*(f0_.getX()-test_.getX())+(f0_.getY()-test_.getY())*(f0_.getY()-test_.getY())+(f0_.getZ()-test_.getZ())*(f0_.getZ()-test_.getZ())) ;
-    double nc = sqrt((f1_.getX()-test_.getX())*(f1_.getX()-test_.getX())+(f1_.getY()-test_.getY())*(f1_.getY()-test_.getY())+(f1_.getZ()-test_.getZ())*(f1_.getZ()-test_.getZ())) ;
+    double f0f1x = f0_.getX()-f1_.getX() ;
+    double f0f1y = f0_.getY()-f1_.getY() ;
+    double f0f1z = f0_.getZ()-f1_.getZ() ;
+    double f0testx = f0_.getX()-test_.getX() ;
+    double f0testy = f0_.getY()-test_.getY() ;
+    double f0testz = f0_.getZ()-test_.getZ() ;
+    double f1testx = f1_.getX()-test_.getX() ;
+    double f1testy = f1_.getY()-test_.getY() ;
+    double f1testz = f1_.getZ()-test_.getZ() ;
+    double na = f0f1x*f0f1x+f0f1y*f0f1y+f0f1z*f0f1z ;
+    double nb = f0testx*f0testx+f0testy*f0testy+f0testz*f0testz ;
+    double nc = f1testx*f1testx+f1testy*f1testy+f1testz*f1testz ;
 
     if(na >= nb && na >= nc)
     {
-        Line l(f0_,Point((f1_.getX()-f0_.getX())/na,(f1_.getY()-f0_.getY())/na,(f1_.getZ()-f0_.getZ())/na)) ;
-        Sphere s(POINT_TOLERANCE, test_) ;
-        return l.intersects(&s) ;
+        na = sqrt(na) ;
+        Point v(-f0f1x/na,-f0f1y/na,-f0f1z/na) ;
+        
+        double a = v.sqNorm() ;
+        double b = (f0testx*v.getX() + f0testy*v.getY() + f0testz*v.getZ())*2. ;
+        double c = f0testx*f0testx
+                   +f0testy*f0testy
+                   +(f0testz+POINT_TOLERANCE)*(f0testz-POINT_TOLERANCE) ;
+        return b*b - 4.*a*c >= 0;
+        
+        
     }
     if(nb >= na && nb >= nc)
     {
-        Line l(f0_,Point((test_.getX()-f0_.getX())/nb,(test_.getY()-f0_.getY())/nb,(test_.getZ()-f0_.getZ())/nb)) ;
-        Sphere s(POINT_TOLERANCE, f1_) ;
-        return l.intersects(&s) ;
+        nb = sqrt(nb) ;
+        Point v(-f0testx/nb,-f0testy/nb,-f0testz/nb) ;
+        double a = v.sqNorm() ;
+        double b = (f0f1x*v.getX() + f0f1y*v.getY() + f0f1z*v.getZ())*2. ;
+        double c = f0f1x*f0f1x
+                   +f0f1y*f0f1y
+                   +(f0f1z+POINT_TOLERANCE)*(f0f1z-POINT_TOLERANCE) ;
+        return b*b - 4.*a*c >= 0;
     }
-    Line l(f1_,Point((test_.getX()-f1_.getX())/nc,(test_.getY()-f1_.getY())/nc,(test_.getZ()-f1_.getZ())/nc)) ;
-    Sphere s(POINT_TOLERANCE, f0_) ;
-    return l.intersects(&s) ;
+    nc = sqrt(nc) ;
+    Point v(-f1testx/nc,-f1testy/nc,-f1testz/nc) ;
+    double a = v.sqNorm() ;
+    double b = (-f0f1x*v.getX() - f0f1y*v.getY() -f0f1z*v.getZ())*2. ;
+    double c = f0f1x*f0f1x
+                +f0f1y*f0f1y
+                -(POINT_TOLERANCE-f0f1z)*(f0f1z+POINT_TOLERANCE) ;
+    return b*b - 4.*a*c >= 0;
+
+//         Line l(f0_,Point((f1_.getX()-f0_.getX())/na,(f1_.getY()-f0_.getY())/na,(f1_.getZ()-f0_.getZ())/na)) ;
+//         Sphere s(POINT_TOLERANCE, test_) ;
+//         
+//                 double a = v.sqNorm() ;
+//         double b = ((p.getX()-g->getCenter().getX())*v.getX() + (p.getY()-g->getCenter().getY())*v.getY() + (p.getZ()-g->getCenter().getZ())*v.getZ())*2. ;
+//         double c = (p.getX()-g->getCenter().getX())*(p.getX()-g->getCenter().getX())
+//                    +(p.getY()-g->getCenter().getY())*(p.getY()-g->getCenter().getY())
+//                    +(p.getZ()-g->getCenter().getZ())*(p.getZ()-g->getCenter().getZ())
+//                    -g->getRadius()*g->getRadius() ;
+//         double delta = b*b - 4.*a*c ;
+// 
+//         return delta >= 0 ;
+//         
+//         return l.intersects(&s) ;
+//     }
+//     if(nb >= na && nb >= nc)
+//     {
+//         Line l(f0_,Point((test_.getX()-f0_.getX())/nb,(test_.getY()-f0_.getY())/nb,(test_.getZ()-f0_.getZ())/nb)) ;
+//         Sphere s(POINT_TOLERANCE, f1_) ;
+//         return l.intersects(&s) ;
+//     }
+//     Line l(f1_,Point((test_.getX()-f1_.getX())/nc,(test_.getY()-f1_.getY())/nc,(test_.getZ()-f1_.getZ())/nc)) ;
+//     Sphere s(POINT_TOLERANCE, f0_) ;
+//     return l.intersects(&s) ;
+
 }
 
 bool isAligned(const Point *test, const Point *f0, const Point *f1)

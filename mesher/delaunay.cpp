@@ -2937,12 +2937,12 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             }
             
             
-            if(tri.size() < 3 || getEnrichmentFunctions().size() > 3 || in < 1e-4 || out < 1e-4)
-            {
-                gp_alternative = monteCarloGaussPoints(1024, this) ;
-                in = 1. ;
-                out = 1. ;
-            }
+//             if(tri.size() < 3 || getEnrichmentFunctions().size() > 3 || in < 1e-4 || out < 1e-4)
+//             {
+//                 gp_alternative = monteCarloGaussPoints(1024, this) ;
+//                 in = 1. ;
+//                 out = 1. ;
+//             }
             
             double fsum = 0. ;
             for(size_t i = 0 ; i < gp_alternative.size() ; i++)

@@ -120,6 +120,14 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err0 << ", last rho = " << 0 << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
         return true ;
     }
+    
+    if(err0 > 1e2)
+    {
+        x = 0 ;
+        assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
+        r*=-1 ;
+    }
+    
     //*************************************
 
     if(!precond)
@@ -173,7 +181,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
     err0 = std::max(1., sqrt( std::abs(parallel_inner_product(&r[rowstart], &z[rowstart], vsize-rowstart)))) ;
     if(verbose)
-        std::cerr << "-1" << "\t" << sqrt(err0) << std::endl  ;
+        std::cerr << "s" << "\t" << sqrt(err0) << std::endl  ;
     if(err0 < errmin)
     {
         errmin = err0 ;
