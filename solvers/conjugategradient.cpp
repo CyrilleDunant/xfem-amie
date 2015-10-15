@@ -81,7 +81,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         double err = 2 ;
         double perr = 0 ;
         size_t iter = 0 ;
-        while(iter++ < nssor)
+        while(iter++ < nssor && err > realeps)
         {
 
             assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
@@ -117,7 +117,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     if (err0 < realeps)
     {
         if(verbose)
-            std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err0 << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+            std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err0 << ", last rho = " << 0 << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
         return true ;
     }
     //*************************************
@@ -151,7 +151,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     if(std::abs(pq) < realeps*realeps*.25)
     {
         if(verbose)
-            std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err0 << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+            std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err0 << ", last rho = " << last_rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
         return true ;
     }
     double alpha = last_rho/pq ;
@@ -171,7 +171,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
     P->precondition(r, z) ;
 
-    err0 = 1. ;//std::max(1., sqrt( std::abs(parallel_inner_product(&r[rowstart], &z[rowstart], vsize-rowstart)))) ;
+    err0 = std::max(1., sqrt( std::abs(parallel_inner_product(&r[rowstart], &z[rowstart], vsize-rowstart)))) ;
     if(verbose)
         std::cerr << "-1" << "\t" << sqrt(err0) << std::endl  ;
     if(err0 < errmin)
@@ -189,9 +189,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     double beta = 0 ;
     double lastReset = rho ;
     int resetIncreaseCount = 0 ;
-    bool pqconvergence = false ;
 
-    while((sqrt(std::abs(last_rho)) > realeps*err0 && nit < Maxit ) || nit < 100)
+    while((sqrt(std::abs(last_rho)) > realeps*err0 && nit < Maxit ))
     {
 //         if(nit < 16)
 //             err0 = std::max(sqrt(last_rho), err0) ;
@@ -221,7 +220,6 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         if(std::abs(pq) < realeps*realeps*.25)
         {
             last_rho = rho ;
-            pqconvergence = true ;
             break ;
         }
         alpha = rho/pq;
@@ -294,7 +292,6 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     {
         while(err > realeps*err0)
         {
-
             assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
             ssor.precondition(r,r);
             for(int i = rowstart ; i < vsize ; i++)
@@ -306,14 +303,14 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             }
             perr = err ;
             err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
-            if(perr > err)
+            if(perr > err*2.)
                 break ;
         }
     }
     
     if(verbose)
     {
-        if((nit <= Maxit && sqrt(last_rho)< realeps*err0) || pqconvergence || err < realeps*err0)
+        if(err < realeps*err0)
             std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", last rho = " << last_rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
         else
         {
@@ -321,7 +318,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         }
     }
 
-    return (nit <= Maxit && sqrt(last_rho) < realeps*err0) || pqconvergence || err < realeps*err0;
+    return err < realeps*err0;
 }
 
 }
