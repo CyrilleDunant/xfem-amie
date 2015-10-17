@@ -5982,7 +5982,7 @@ bool isAligned(const Point &test, const Point &f0, const Point &f1)
     if(na >= nb && na >= nc)
     {
         na = sqrt(na) ;
-        Point v(-f0f1x/na,-f0f1y/na,-f0f1z/na) ;
+        Point v(f0f1x/na,f0f1y/na,f0f1z/na) ;
         
         double a = v.sqNorm() ;
         double b = (f0testx*v.getX() + f0testy*v.getY() + f0testz*v.getZ())*2. ;
@@ -5996,7 +5996,7 @@ bool isAligned(const Point &test, const Point &f0, const Point &f1)
     if(nb >= na && nb >= nc)
     {
         nb = sqrt(nb) ;
-        Point v(-f0testx/nb,-f0testy/nb,-f0testz/nb) ;
+        Point v(f0testx/nb,f0testy/nb,f0testz/nb) ;
         double a = v.sqNorm() ;
         double b = (f0f1x*v.getX() + f0f1y*v.getY() + f0f1z*v.getZ())*2. ;
         double c = f0f1x*f0f1x
@@ -6005,12 +6005,12 @@ bool isAligned(const Point &test, const Point &f0, const Point &f1)
         return b*b - 4.*a*c >= 0;
     }
     nc = sqrt(nc) ;
-    Point v(-f1testx/nc,-f1testy/nc,-f1testz/nc) ;
+    Point v(f1testx/nc,f1testy/nc,f1testz/nc) ;
     double a = v.sqNorm() ;
-    double b = (-f0f1x*v.getX() - f0f1y*v.getY() -f0f1z*v.getZ())*2. ;
+    double b = (f0f1x*v.getX() + f0f1y*v.getY() + f0f1z*v.getZ())*2. ;
     double c = f0f1x*f0f1x
                 +f0f1y*f0f1y
-                -(POINT_TOLERANCE-f0f1z)*(f0f1z+POINT_TOLERANCE) ;
+                +(f0f1z-POINT_TOLERANCE)*(f0f1z+POINT_TOLERANCE) ;
     return b*b - 4.*a*c >= 0;
 
 //         Line l(f0_,Point((f1_.getX()-f0_.getX())/na,(f1_.getY()-f0_.getY())/na,(f1_.getZ()-f0_.getZ())/na)) ;
