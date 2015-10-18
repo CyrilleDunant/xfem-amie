@@ -55,9 +55,9 @@ Ssor::Ssor(const CoordinateIndexedSparseMatrix &A, int rowstart , int colstart )
         for(int k = 0 ; k < stride ; k++)
         {                   
             double v = A[row * stride+k][row * stride+k] ;
-            long double diag = 1./.999 ;         
+            long double diag = 0 ;         
             
-            if (v > 1e-8)
+            if (v > 1e-12)
             {
                 diag = 1./v ;
             }

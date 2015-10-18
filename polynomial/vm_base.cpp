@@ -57,12 +57,6 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
             else if (f.byteCode[i] ==  TOKEN_OPERATION_POWER)
             {
                 REG_C = std::pow(REG_A,REG_B) ;
-/*                double val = REG_A ;
-                int pow = REG_B-1 ;
-                REG_C = val ;
-                for(int j = 0 ; j < pow ; ++j)
-                    REG_C *= val;*/
-
             }
             else if (f.byteCode[i] ==  TOKEN_OPERATION_INPLACE_TIMES)
             {
@@ -78,10 +72,13 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
             }
             else if (f.byteCode[i] ==  TOKEN_OPERATION_DIVIDES)
             {
-                if(std::abs(REG_B) > 1e-14)
-                    REG_C = REG_A/REG_B ;
-                else
-                    REG_C = REG_A*1e14 ;
+                REG_C = REG_A/REG_B ;
+//                 if(std::abs(REG_B) > 1e-14)
+//                     REG_C = REG_A/REG_B ;
+//                 else if(REG_B > 0)
+//                     REG_C = REG_A*1e14 ;
+//                 else
+//                     REG_C = -REG_A*1e14 ;
             }
             else if (f.byteCode[i] ==  TOKEN_OPERATION_INPLACE_MINUS)
             {
@@ -89,10 +86,13 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
             }
             else
             {
-                if(std::abs(REG_B) > 1e-14)
-                    REG_A /= REG_B ;
-                else
-                    REG_A *= 1e14 ;
+                REG_A /= REG_B ;
+//                 if(std::abs(REG_B) > 1e-14)
+//                     REG_A /= REG_B ;
+//                 else if(REG_B > 0)
+//                     REG_A *= 1e14 ;
+//                 else
+//                     REG_A *= -1e14 ;
             }
             continue ;
         }
@@ -113,91 +113,87 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 
         switch(f.byteCode[i])
         {
-        case TOKEN_OPERATION_GEO_OPERATION:
-        {
-//             std::cerr <<"--"<< std::endl ;
-//             std::cerr << REG_A << "  " << REG_B << "  " << REG_C << std::endl ;
-            f.geo_op[i]->eval(&REG_A, &REG_B, &REG_C) ;
-//             std::cerr << REG_A << "  " << REG_B << "  " << REG_C << "  " << f.adress_a[i*4+2] << std::endl ;
-//              std::cerr <<"--"<< std::endl ;
-            break ;
-        }
-        case TOKEN_OPERATION_COS:
-        {
-            REG_C = cos(REG_A) ;
-            break ;
-        }
-        case TOKEN_OPERATION_ABS:
-        {
-            REG_C = std::abs(REG_A) ;
-            break ;
-        }
-        case TOKEN_OPERATION_TAN:
-        {
-            REG_C = tan(REG_A) ;
-            break ;
-        }
-        case TOKEN_OPERATION_SIN:
-        {
-            REG_C = sin(REG_A) ;
-            break ;
-        }
-        case TOKEN_OPERATION_EXP:
-        {
-            REG_C = exp(REG_A) ;
-            break ;
-        }
-        case TOKEN_OPERATION_SIGN:
-        {
-            REG_C = sign(REG_A) ;
-            break ;
-        }
-        case TOKEN_OPERATION_POSITIVITY:
-        {
-            double s0 = sign(REG_A) ;
-            s0 >= 0 ? REG_C = 1 : REG_C = 0 ;
-            break ;
-        }
-        case TOKEN_OPERATION_NEGATIVITY:
-        {
-            double s0 = sign(REG_A) ;
-            s0 <= 0 ? REG_C = 1 : REG_C = 0 ;
-            break ;
-        }
-        case TOKEN_OPERATION_LOG:
-        {
-            REG_C = log(REG_A) ;
-            break ;
-        }
-        case TOKEN_OPERATION_COSH:
-        {
-            REG_C = cosh(REG_A) ;
-            break ;
-        }
-        case TOKEN_OPERATION_SINH:
-        {
-            REG_C = sinh(REG_A) ;
-            break ;
-        }
-        case TOKEN_OPERATION_TANH:
-        {
-            REG_C = tanh(REG_A) ;
-            break ;
-        }
-        case TOKEN_OPERATION_SQRT:
-        {
-            REG_C = sqrt(REG_A) ;
-            break ;
-        }
-        case TOKEN_OPERATION_ATAN2:
-        {
-            REG_C = atan2(REG_B, REG_A) ;
-            break ;
-        }
-        default:
-        {
-            break ;
-        }
+            case TOKEN_OPERATION_GEO_OPERATION:
+            {
+                f.geo_op[i]->eval(&REG_A, &REG_B, &REG_C) ;
+                break ;
+            }
+            case TOKEN_OPERATION_COS:
+            {
+                REG_C = cos(REG_A) ;
+                break ;
+            }
+            case TOKEN_OPERATION_ABS:
+            {
+                REG_C = std::abs(REG_A) ;
+                break ;
+            }
+            case TOKEN_OPERATION_TAN:
+            {
+                REG_C = tan(REG_A) ;
+                break ;
+            }
+            case TOKEN_OPERATION_SIN:
+            {
+                REG_C = sin(REG_A) ;
+                break ;
+            }
+            case TOKEN_OPERATION_EXP:
+            {
+                REG_C = exp(REG_A) ;
+                break ;
+            }
+            case TOKEN_OPERATION_SIGN:
+            {
+                REG_C = sign(REG_A) ;
+                break ;
+            }
+            case TOKEN_OPERATION_POSITIVITY:
+            {
+                double s0 = sign(REG_A) ;
+                s0 >= 0 ? REG_C = 1 : REG_C = 0 ;
+                break ;
+            }
+            case TOKEN_OPERATION_NEGATIVITY:
+            {
+                double s0 = sign(REG_A) ;
+                s0 <= 0 ? REG_C = 1 : REG_C = 0 ;
+                break ;
+            }
+            case TOKEN_OPERATION_LOG:
+            {
+                REG_C = log(REG_A) ;
+                break ;
+            }
+            case TOKEN_OPERATION_COSH:
+            {
+                REG_C = cosh(REG_A) ;
+                break ;
+            }
+            case TOKEN_OPERATION_SINH:
+            {
+                REG_C = sinh(REG_A) ;
+                break ;
+            }
+            case TOKEN_OPERATION_TANH:
+            {
+                REG_C = tanh(REG_A) ;
+                break ;
+            }
+            case TOKEN_OPERATION_SQRT:
+            {
+                REG_C = sqrt(REG_A) ;
+                break ;
+            }
+            case TOKEN_OPERATION_ATAN2:
+            {
+                REG_C = atan2(REG_B, REG_A) ;
+                break ;
+            }
+            default:
+            {
+                break ;
+            }
         }
 
     }

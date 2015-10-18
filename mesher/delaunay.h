@@ -342,6 +342,7 @@ class DelaunayTree final: public Mesh<DelaunayTriangle, DelaunayTreeItem>
     friend class DelaunayTriangle ;
 
 protected:
+    bool falseTopology = false ;
     bool neighbourhood ;
     size_t global_counter ;
     std::vector<Point * > additionalPoints ;

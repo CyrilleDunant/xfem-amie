@@ -220,12 +220,10 @@ Vector CoordinateIndexedSparseMatrix::inverseDiagonal() const
     for(size_t i = 0 ; i < row_size.size()*stride ; i++)
     {
         double v = (*this)[i][i] ;
-        if(std::abs(v) > 1e-8)
+        if(std::abs(v) > 1e-12)
             ret[i] = 1./v ;
-        else if(v > 0)
-            ret[i] = .999 ;
-        else
-           ret[i] = -.999 ; 
+        else 
+            ret[i] = 0 ;
 
     }
 

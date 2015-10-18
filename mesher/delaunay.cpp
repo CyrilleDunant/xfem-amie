@@ -1,3 +1,4 @@
+
 // C++ Implementation: delaunay
 //
 // Description:
@@ -2123,6 +2124,11 @@ std::vector<DelaunayTreeItem *> DelaunayTree::addElements(std::vector<DelaunayTr
 
     for(size_t j = 0 ; j< ret.size() ; j++)
     {
+        if(!ret[j]->isPlane && ret[j]->isAlive())
+        {
+            if(ret[j]->neighbour.size() != 3)
+                falseTopology = true ;
+        }
         if(ret[j]->isAlive() && ret[j]->isPlane )
         {
             weGotPlanes = true ;
@@ -2168,6 +2174,8 @@ std::vector<DelaunayTreeItem *> DelaunayTree::addElements(std::vector<DelaunayTr
 
 void DelaunayTree::insert(Point *p)
 {
+    if(falseTopology)
+        return ;
     neighbourhood = false ;
     std::vector<DelaunayTreeItem *> cons = this->conflicts(p) ;
     if(cons.empty())
@@ -2890,7 +2898,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                     return *getCachedGaussPoints() ;
 
                 delete cachedGps ;
-                cachedGps = new GaussPointArray(monteCarloGaussPoints(2048, this)) ;
+                cachedGps = new GaussPointArray(monteCarloGaussPoints(64, this)) ;
                 cachedGps->getId() = REGULAR_GRID ;
                 return *getCachedGaussPoints() ;
             }
@@ -2914,13 +2922,10 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             dt->setElementOrder(QUADRATIC); 
             dt->refresh(&f);
             tri = dt->getTriangles() ;
-                    
-            
-           double in = 0 ;
-           double out = 0 ;
-            
+
             Function gx = getXTransform() ;
             Function gy = getYTransform() ;
+            double parentArea = 0 ;
             for(size_t i = 0 ; i < tri.size() ; i++)
             {
                 
@@ -2933,25 +2938,22 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 {
                     gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first)) ;
                     gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
+                    parentArea += gp_temp.gaussPoints[j].second ;
                 }
             }
             
-            
-//             if(tri.size() < 3 || getEnrichmentFunctions().size() > 3 || in < 1e-4 || out < 1e-4)
-//             {
-//                 gp_alternative = monteCarloGaussPoints(1024, this) ;
-//                 in = 1. ;
-//                 out = 1. ;
-//             }
-            
-            double fsum = 0. ;
-            for(size_t i = 0 ; i < gp_alternative.size() ; i++)
-                fsum += gp_alternative[i].second ;
+            if(tri.empty() || std::abs(parentArea - 0.5) <  1e-3)
+            {
+                delete cachedGps ;
+                cachedGps = new GaussPointArray(monteCarloGaussPoints(128, this)) ;
+                cachedGps->getId() = REGULAR_GRID ;
+                return *getCachedGaussPoints() ;
+            }
 
             double originalSum = area() ;
 
             for(size_t i = 0 ; i < gp_alternative.size() ; i++)
-                gp_alternative[i].second *= originalSum / fsum ;
+                gp_alternative[i].second *= originalSum / parentArea ;
 
 
             delete dt ;

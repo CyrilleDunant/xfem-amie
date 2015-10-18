@@ -4372,10 +4372,10 @@ void FeatureTree::solve()
         double perror = residualError ;
         residualError = sqrt ( parallel_inner_product ( &r[0], &r[0], r.size() ) ) ;
 
-        if ( perror > residualError || solverConvergence )
-        {
+//         if ( perror > residualError || solverConvergence )
+//         {
             reuseDisplacements = true;
-        }
+//         }
     }
     else
     {
@@ -4392,10 +4392,10 @@ void FeatureTree::solve()
         double perror = residualError ;
         residualError = sqrt ( parallel_inner_product ( &r[0], &r[0], r.size() ) ) ;
 
-        if ( perror > residualError || solverConvergence )
-        {
+//         if ( perror > residualError || solverConvergence )
+//         {
             reuseDisplacements = true;
-        }
+//         }
     }
 
 }
@@ -5649,9 +5649,12 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
         {
             it-- ;
             notConvergedCounts++ ;
-            if(notConvergedCounts > 8)
+            if(notConvergedCounts > 16)
+            {
                 needexit = true ;
-            std::cout << "+" << std::flush ;
+                std::cout << "+" << std::flush ;
+            }
+            std::cout << ":" << std::flush ;
         }
 
         if ( enrichmentChange || needMeshing )

@@ -13,7 +13,7 @@
 
 namespace Amie {
 
-Solver::Solver(Assembly * a) : colstart(0), rowstart(0), x(0., a->getMaxDofID()*a->getMatrix().stride), assembly(a)
+Solver::Solver(Assembly * a) : colstart(0), rowstart(0), x(0., a->getForces().size()), assembly(a)
 {
 }
 

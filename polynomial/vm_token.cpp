@@ -662,13 +662,12 @@ void HatEnrichment::eval(double * a, double * b, double * c) const
     {
         Point pcopy(position) ;
         test.project(&pcopy); 
-        double di = dist(position, pcopy) ;
-        Point toCenter = test.getCenter()-position ;
-        toCenter *= di/toCenter.norm() ;
+        Point toCenter = test.getCenter()-pcopy ;
+        toCenter /= toCenter.norm() ;
         
 //         while(!test.in(position))
 //         {
-             position += toCenter*(1.+default_derivation_delta) ;
+             position = pcopy+toCenter*default_derivation_delta ;
 //         }
 //         position.print();
 //         test.print();
