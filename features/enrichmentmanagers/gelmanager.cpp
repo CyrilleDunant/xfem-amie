@@ -146,8 +146,8 @@ bool GelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTre
 
     for( size_t z = 0 ; z < zones.size() ; z++ )
     {
-        if( zones[z].first->intersects( zones[z].second))
-            continue ;
+//         if( zones[z].first->intersects( zones[z].second))
+//             continue ;
         
         zones[z].first->setRadius( zones[z].first->getRadius() + deltaRadius ) ;
 
