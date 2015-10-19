@@ -253,7 +253,7 @@ protected:
     bool make_final() ;
 
     size_t multiplier_offset ;
-    size_t nssor = 20 ;
+    size_t nssor = 64 ;
 
     double epsilon ;
 

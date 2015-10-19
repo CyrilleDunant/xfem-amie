@@ -85,7 +85,6 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
     previousDeltaTime = 0 ;
     minDeltaTime = 0.001 ;
     epsilonA = -1 ;
-    reuseDisplacements = false ;
     foundCheckPoint = true ;
     averageDamage = 0 ;
     behaviourSet =false ;
@@ -206,7 +205,6 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     previousDeltaTime = 0 ;
     minDeltaTime = 0.001 ;
     epsilonA = -1 ;
-    reuseDisplacements = false ;
     foundCheckPoint = true ;
     averageDamage = 0 ;
     maxScore = -1 ;
@@ -3247,7 +3245,6 @@ void FeatureTree::enrich()
                 dynamic_cast<EnrichmentFeature *> ( tree[i] )->enrich ( lastEnrichmentId, dtree3D ) ;
 
                 enrichmentChange = true ;
-//                 reuseDisplacements = false ;
 
             }
 
@@ -3276,7 +3273,6 @@ void FeatureTree::enrich()
                 dynamic_cast<EnrichmentFeature *> ( tree[i] )->enrich ( lastEnrichmentId, dtree ) ;
 
                 enrichmentChange = true ;
-//                 reuseDisplacements = false ;
 
             }
 
@@ -4359,44 +4355,15 @@ void FeatureTree::solve()
     delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
     std::cerr << "\rApplying boundary conditions... " << boundaryCondition.size() << "/" << boundaryCondition.size() << "...done  Time (s) " << delta / 1e6 << std::endl  ;
 
-    if ( solverConvergence || reuseDisplacements )
-    {
-        if(epsilonA > 0)
-            K->setEpsilon(epsilonA);   
-        K->setSSORIterations( nssor ) ;  
-        solverConvergence = K->cgsolve ( lastx ) ;
-        
-//         solverConvergence = true ;
-        
-        Vector r = K->getMatrix() * K->getDisplacements() - K->getForces() ;
-        double perror = residualError ;
-        residualError = sqrt ( parallel_inner_product ( &r[0], &r[0], r.size() ) ) ;
+    if(epsilonA > 0)
+        K->setEpsilon(epsilonA);   
+    K->setSSORIterations( nssor ) ;  
+    solverConvergence = K->cgsolve ( lastx ) ;
+    
+    Vector r = K->getMatrix() * K->getDisplacements() - K->getForces() ;
+    double perror = residualError ;
+    residualError = sqrt ( parallel_inner_product ( &r[0], &r[0], r.size() ) ) ;
 
-//         if ( perror > residualError || solverConvergence )
-//         {
-            reuseDisplacements = true;
-//         }
-    }
-    else
-    {
-        lastx = 0 ;
-
-        if(epsilonA > 0)
-            K->setEpsilon(epsilonA);  
-        K->setSSORIterations( nssor ) ;  
-        solverConvergence = K->cgsolve() ;
-//         solverConvergence = true ;
-
-// 		dtree->project(coarseTrees[3], K->getDisplacements(), coarseAssemblies[3]->getDisplacements(), false) ;
-        Vector r = K->getMatrix() * K->getDisplacements() - K->getForces() ;
-        double perror = residualError ;
-        residualError = sqrt ( parallel_inner_product ( &r[0], &r[0], r.size() ) ) ;
-
-//         if ( perror > residualError || solverConvergence )
-//         {
-            reuseDisplacements = true;
-//         }
-    }
 
 }
 
@@ -4429,18 +4396,10 @@ void FeatureTree::stepXfem()
                 bool moved = featuresToStep[i]->moved() ;
                 enrichmentChange = enrichmentChange || moved;
 
-//                 if ( moved )
-//                 {
-//                     reuseDisplacements = false ;
-//                 }
             }
             for ( size_t i = 0 ; i < enrichmentManagers.size() ; i++ )
             {
                 bool moved = enrichmentManagers[i]->step(deltaTime, &K->getForces(), dtree)  ;
-//                 if ( moved )
-//                 {
-//                     reuseDisplacements = false ;
-//                 }
                 enrichmentChange = enrichmentChange || moved;
             }
 
@@ -4449,7 +4408,6 @@ void FeatureTree::stepXfem()
                 if ( !tree[i]->isEnrichmentFeature && tree[i]->isUpdated )
                 {
                     needMeshing = true ;
-//                     reuseDisplacements = false ;
                 }
             }
 
@@ -4463,18 +4421,11 @@ void FeatureTree::stepXfem()
                 bool moved = featuresToStep[i]->moved() ;
                 enrichmentChange = enrichmentChange || moved;
 
-//                 if ( moved )
-//                 {
-//                     reuseDisplacements = false ;
-//                 }
             }
             for ( size_t i = 0 ; i < enrichmentManagers.size() ; i++ )
             {
                 bool moved = enrichmentManagers[i]->step(deltaTime, &K->getForces(), dtree3D) ;
-//                 if ( moved )
-//                 {
-//                     reuseDisplacements = false ;
-//                 }
+
                 enrichmentChange = enrichmentChange || moved;
             }
             for ( size_t i = 0 ; i < tree.size() ; i++ )
@@ -4482,7 +4433,6 @@ void FeatureTree::stepXfem()
                 if ( !tree[i]->isEnrichmentFeature && tree[i]->isUpdated )
                 {
                     needMeshing = true ;
-//                     reuseDisplacements = false ;
                 }
             }
         }

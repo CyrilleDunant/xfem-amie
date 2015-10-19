@@ -164,7 +164,6 @@ protected:
 
     bool renumbered ;
     bool needMeshing ;
-    bool reuseDisplacements ;
     bool behaviourChange ;
     bool behaviourSet ;
     bool solverConvergence ;
@@ -179,7 +178,7 @@ protected:
     bool alternating ;
 
     size_t correctionSteps ;
-    size_t nssor = 20 ; 
+    size_t nssor = 64 ; 
     bool computeIntersections ;
 
     /** \brief  List of points used for the mesh.

@@ -151,7 +151,7 @@ int main( int argc, char *argv[] )
     featureTree = &F ;
 
     double itzSize = 0.00002;
-    int inclusionNumber = 1 ; 3000 ;
+    int inclusionNumber = 3000 ;
 
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
@@ -287,7 +287,7 @@ int main( int argc, char *argv[] )
 
     gelManager = new GelManager(&F, nzones/baseGeometry.area(), feats, 0.5, 1e-5) ;
     F.addManager(gelManager) ;
-    F.setSamplingNumber( 32 ) ;
+    F.setSamplingNumber( 72 ) ;
 
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , LEFT ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , RIGHT ) ) ;
