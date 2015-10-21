@@ -60,11 +60,11 @@ int main( int argc, char *argv[] )
 
     F.step() ;
     Vector str = F.getAverageField( STRAIN_FIELD, -1, 1 ) ;
-    out << F.getCurrentTime() << "\t" << exp->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << std::endl ;
+    out << F.getCurrentTime() << "\t" << exp->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0]*1e3 << "\t" << str[1]*1e3 << "\t" << str[2]*1e3 << std::endl ;
 
     F.step() ;
     str = F.getAverageField( STRAIN_FIELD, -1, 1 ) ;
-    out << F.getCurrentTime() << "\t" << exp->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << std::endl ;
+    out << F.getCurrentTime() << "\t" << exp->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0]*1e3 << "\t" << str[1]*1e3 << "\t" << str[2]*1e3 << std::endl ;
 
     return 0 ;
 }

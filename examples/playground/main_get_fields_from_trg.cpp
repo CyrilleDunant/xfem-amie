@@ -4,13 +4,14 @@
 //
 //
 
-#include "../main.h"
 #include "../../utilities/parser.h"
 #include "../../utilities/itoa.h"
+#include "../../utilities/matrixops.h"
 #include "../../utilities/enumeration_translator.h"
 
 
 #include <fstream>
+#include <iostream>
 #include <cmath>
 #include <typeinfo>
 #include <limits>

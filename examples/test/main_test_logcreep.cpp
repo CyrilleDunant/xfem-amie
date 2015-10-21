@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 	{
                 f.setDeltaTime(deltaTime++) ;
 		f.step() ;
-		out << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, -1,1 )[1] << "\t" << f.getAverageField( STRAIN_FIELD, -1,1 )[1] << std::endl ;
+		out << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, -1,1 )[1]/1e6 << "\t" << f.getAverageField( STRAIN_FIELD, -1,1 )[1]*1e3 << std::endl ;
 	}
 
 	return 0 ;
