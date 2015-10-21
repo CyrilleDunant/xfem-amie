@@ -253,7 +253,7 @@ protected:
     bool make_final() ;
 
     size_t multiplier_offset ;
-    size_t nssor = 64 ;
+    size_t nssor = 32 ;
 
     double epsilon ;
 
@@ -310,7 +310,7 @@ public:
     bool solve(Vector x, size_t maxit = 1000, const bool verbose = false) ;
 
     /** \brief Solve linear system using Preconditionned Conjugate Gradient (linear/non linear/biconjugate is automatically selected)*/
-    bool cgsolve(Vector x0 = Vector(0), int maxit = -1, bool verbose = true) ;
+    bool cgsolve(int maxit = -1, bool verbose = true) ;
 
     void setEpsilon(double e) {
         epsilon = e ;

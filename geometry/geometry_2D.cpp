@@ -701,7 +701,7 @@ double Triangle::computeArea()
 void Triangle::project(Point * p) const
 {
     Segment s(getCenter(), *p) ;
-    if(dist(*p, getCircumCenter()) < POINT_TOLERANCE)
+    if(squareDist2D(*p, getCircumCenter()) < POINT_TOLERANCE*POINT_TOLERANCE)
         return ;
 
     Segment s0(getBoundingPoint(0), getBoundingPoint(getBoundingPoints().size()/(3*timePlanes()))) ;
@@ -752,6 +752,8 @@ void Triangle::project(Point * p) const
 bool Triangle::in(const Point &p) const
 {
 
+    if(!inCircumCircle(p))
+        return false ;
 // 	p.print() ;
 // 	bool isAPoint = false ;
 // 	for (int i = 0; i <  getBoundingPoints().size(); i++)
@@ -801,7 +803,7 @@ bool Triangle::in(const Point &p) const
 // 		bool isAPoint = false ;
     for (size_t i = 0; i <  getBoundingPoints().size(); i++)
     {
-        if(p == getBoundingPoint(i) || squareDist2D( p, getBoundingPoint(i))  < POINT_TOLERANCE*POINT_TOLERANCE)
+        if(p == getBoundingPoint(i))
         {
             return true ;
         }

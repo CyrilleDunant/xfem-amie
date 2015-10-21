@@ -178,7 +178,7 @@ protected:
     bool alternating ;
 
     size_t correctionSteps ;
-    size_t nssor = 64 ; 
+    size_t nssor = 32 ; 
     bool computeIntersections ;
 
     /** \brief  List of points used for the mesh.

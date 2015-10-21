@@ -3895,9 +3895,7 @@ Point Line::projection(const Point &m ) const
         return m ;
 
     Point n0 = v^(m-p) ;
-    n0 /= n0.norm() ;
     Point n = v^n0 ;
-    n /= n.norm() ;
     Line line(m, n) ;
 
     return line.intersection(*this) ;

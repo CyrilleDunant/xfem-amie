@@ -4291,8 +4291,6 @@ void FeatureTree::elasticStep()
 
 void FeatureTree::solve()
 {
-    Vector lastx ( K->getDisplacements() ) ;
-
     if ( enrichmentChange || needMeshing )
     {
         K->clear() ;
@@ -4358,10 +4356,9 @@ void FeatureTree::solve()
     if(epsilonA > 0)
         K->setEpsilon(epsilonA);   
     K->setSSORIterations( nssor ) ;  
-    solverConvergence = K->cgsolve ( lastx ) ;
+    solverConvergence = K->cgsolve ( ) ;
     
     Vector r = K->getMatrix() * K->getDisplacements() - K->getForces() ;
-    double perror = residualError ;
     residualError = sqrt ( parallel_inner_product ( &r[0], &r[0], r.size() ) ) ;
 
 
@@ -4588,24 +4585,26 @@ bool FeatureTree::stepElements()
                         {
                             for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                             {
-                                #pragma omp task firstprivate(i)
+                                #pragma omp task firstprivate(i), shared(maxScoreInit)
                                 {
                                     if ( i.getPosition() % 200 == 0 )
                                         std::cerr << "\r checking for fractures (1)... " << i.getPosition() << "/" << i.size() << std::flush ;
                                     if ( i->getBehaviour()->getFractureCriterion() )
                                     {
                                         i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
-                                        #pragma omp flush(maxScoreInit)
-                                        double tmpmax = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit ) ;
-                                        #pragma omp atomic write
-                                        maxScoreInit = tmpmax ;
+
+                                        #pragma omp critical
+                                        {
+                                            maxScoreInit = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit ) ;
+                                        }
                                     }
                                 }
                             }
-                            std::cerr << ". Maxscore = " << maxScoreInit <<" ...done. " << std::endl ;
+                            
                         }
                     }
                 }
+                std::cerr << ". Maxscore = " << maxScoreInit <<" ...done. " << std::endl ;
 
 
 // 				std::stable_sort(elements.begin(), elements.end(), sortByScore) ;
@@ -5599,7 +5598,7 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
         {
             it-- ;
             notConvergedCounts++ ;
-            if(notConvergedCounts > 16)
+            if(notConvergedCounts > 128)
             {
                 needexit = true ;
                 std::cout << "+" << std::flush ;

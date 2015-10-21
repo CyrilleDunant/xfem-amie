@@ -454,6 +454,8 @@ public:
      * @return all the living triangles resulting from the triangulation.
      */
     std::vector<DelaunayTriangle *> getTriangles(bool buildNeighbourhood = true) ;
+    
+    void buildNeighbourhoods() ;
 
     void addSharedNodes(size_t nodes_per_side, size_t time_planes = 1, double timestep = 2, const TriElement * father = nullptr) ;
     void addSharedNodes(DelaunayTree * dt) ;

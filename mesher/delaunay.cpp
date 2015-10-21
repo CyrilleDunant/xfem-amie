@@ -2227,7 +2227,7 @@ std::vector<DelaunayTreeItem *> DelaunayTree::conflicts( const Point *p)
 
 std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g)
 {
-    getTriangles(true) ;
+    buildNeighbourhoods() ;
     std::vector<DelaunayTreeItem *> cons = conflicts(&g->getCenter()) ;
     DelaunayTriangle * origin = nullptr ;
     for(size_t i = 0 ; i < cons.size() ; i++)
@@ -2269,45 +2269,39 @@ std::vector<DelaunayDemiPlane *> * DelaunayTree::getConvexHull()
     return ret ;
 }
 
-std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourhood)
+void DelaunayTree::buildNeighbourhoods()
 {
-    std::vector<DelaunayTriangle *> ret ;
-    for(size_t i = 0 ; i < tree.size() ; i++)
-    {
-        if(tree[i]->isTriangle && !tree[i]->isDeadTriangle)
-        {
-            ret.push_back((DelaunayTriangle *)(tree[i])) ;
-        }
-    }
-    
     std::valarray<bool> visited(false, size()) ;
 
-    if(!neighbourhood && buildNeighbourhood)
+    if(!neighbourhood)
     {
         neighbourhood = true ;
-// 		std::cerr << "\r building neighbourhood... element 0/" << ret.size() << std::flush ;
-        for( size_t i = 0 ; i < ret.size() ; i++)
+//      std::cerr << "\r building neighbourhood... element 0/" << ret.size() << std::flush ;
+        for( size_t i = 0 ; i < tree.size() ; i++)
         {
-            ret[i]->neighbourhood.resize(0) ;
+            if(tree[i]->isTriangle && tree[i]->isAlive())
+                static_cast<DelaunayTriangle *>(tree[i])->neighbourhood.resize(0) ;
         }
 
 
 
-        for( size_t i = 0 ; i < ret.size() ; i++)
+        for( size_t i = 0 ; i < tree.size() ; i++)
         {
-// 			if(i%100 == 0)
-// 				std::cerr << "\r building neighbourhood... element " << i <<"/" << ret.size() << std::flush ;
+            if(!tree[i]->isTriangle || !tree[i]->isAlive())
+                continue ;
+//          if(i%100 == 0)
+//              std::cerr << "\r building neighbourhood... element " << i <<"/" << ret.size() << std::flush ;
 
             std::vector<DelaunayTriangle *> tocheck ;
             std::vector<DelaunayTriangle *> toclean ;
-            for(size_t j = 0 ; j < ret[i]->neighbour.size() ; j++)
+            for(size_t j = 0 ; j < tree[i]->neighbour.size() ; j++)
             {
-                if(ret[i]->getNeighbour(j)->isTriangle && !visited[ret[i]->neighbour[j]])
+                if(tree[i]->getNeighbour(j)->isTriangle && !visited[tree[i]->neighbour[j]])
                 {
-                    tocheck.push_back(static_cast<DelaunayTriangle *>(ret[i]->getNeighbour(j)));
-                    visited[ret[i]->neighbour[j]] = true ;
+                    tocheck.push_back(static_cast<DelaunayTriangle *>(tree[i]->getNeighbour(j)));
+                    visited[tree[i]->neighbour[j]] = true ;
                     toclean.push_back(*tocheck.rbegin()) ;
-                    ret[i]->addNeighbourhood(*tocheck.rbegin()) ;
+                    static_cast<DelaunayTriangle *>(tree[i])->addNeighbourhood(*tocheck.rbegin()) ;
                 }
             }
 
@@ -2321,14 +2315,14 @@ std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourho
                         if(
                             tocheck[k]->getNeighbour(j)->isTriangle
                             && !visited[tocheck[k]->neighbour[j]]
-                            && tocheck[k]->getNeighbour(j) != ret[i]
-                            && static_cast<DelaunayTriangle *>(tocheck[k]->getNeighbour(j))->isInNeighbourhood(ret[i])
+                            && tocheck[k]->getNeighbour(j) != tree[i]
+                            && static_cast<DelaunayTriangle *>(tocheck[k]->getNeighbour(j))->isInNeighbourhood(static_cast<DelaunayTriangle *>(tree[i]))
                         )
                         {
                             tocheck_temp.push_back(static_cast<DelaunayTriangle *>(tocheck[k]->getNeighbour(j)));
                             visited[tocheck[k]->neighbour[j]] = true ;
                             toclean.push_back(*tocheck_temp.rbegin()) ;
-                            ret[i]->addNeighbourhood(*tocheck_temp.rbegin()) ;
+                            static_cast<DelaunayTriangle *>(tree[i])->addNeighbourhood(*tocheck_temp.rbegin()) ;
                         }
                     }
                 }
@@ -2341,9 +2335,22 @@ std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourho
             }
 
         }
-
-        neighbourhood = true ;
     }
+}
+
+
+std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourhood)
+{
+    std::vector<DelaunayTriangle *> ret ;
+    for(size_t i = 0 ; i < tree.size() ; i++)
+    {
+        if(tree[i]->isTriangle && !tree[i]->isDeadTriangle)
+        {
+            ret.push_back((DelaunayTriangle *)(tree[i])) ;
+        }
+    }
+    buildNeighbourhoods() ;
+    
 
     return ret ;
 }
@@ -2942,10 +2949,10 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 }
             }
             
-            if(tri.empty() || std::abs(parentArea - 0.5) <  1e-3)
+            if(tri.empty() || std::abs(parentArea - 0.5) <  1e-4)
             {
                 delete cachedGps ;
-                cachedGps = new GaussPointArray(monteCarloGaussPoints(128, this)) ;
+                cachedGps = new GaussPointArray(monteCarloGaussPoints(256, this)) ;
                 cachedGps->getId() = REGULAR_GRID ;
                 return *getCachedGaussPoints() ;
             }

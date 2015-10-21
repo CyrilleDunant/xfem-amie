@@ -14,6 +14,7 @@
 #define CONJUGATE_GRADIENT_H
 
 #include "solver.h"
+#include "ssor.h"
 
 namespace Amie
 {
@@ -31,13 +32,15 @@ struct ConjugateGradient : public LinearSolver
     bool cleanup ;
     Preconditionner * P ;
     size_t nit ;
-    size_t nssor = 64 ;
+    size_t nssor = 32 ;
 
     virtual ~ConjugateGradient() {
         if(cleanup) delete P ;
     } ;
     ConjugateGradient(Assembly * a) ;
     virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = default_solver_precision, const int maxit = -1, bool verbose = false)  ;
+    
+//     double ssorSmooth(Ssor * ssor, Vector * xcompensate, size_t maxIt, double epsilon) ;
 } ;
 
 }

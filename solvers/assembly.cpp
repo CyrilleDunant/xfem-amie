@@ -2109,7 +2109,7 @@ bool Assembly::solve(Vector x0, size_t maxit, const bool verbose)
     return ret ;
 }
 
-bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
+bool Assembly::cgsolve(int maxit, bool verbose)
 {
     bool ret = true ;
 
@@ -2128,12 +2128,13 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
         }
 
 
-        ret = cg.solve(x0, nullptr, epsilon, -1, verbose) ;
+        ret = cg.solve(displacements, nullptr, epsilon, -1, verbose) ;
         gettimeofday(&time1, nullptr);
         double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
         std::cerr << "Time to solve (s) " << delta/1e6 << std::endl ;
 
-        displacements.resize(cg.x.size()) ;
+        if(cg.x.size() != displacements.size())
+            displacements.resize(cg.x.size()) ;
         displacements = cg.x ;
 
         for(size_t i = 0 ; i < multipliersBuffer.size() ; i++)
