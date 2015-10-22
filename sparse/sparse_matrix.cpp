@@ -512,7 +512,7 @@ void assign(Vector & ret, const CoordinateIndexedSparseMatrixTimesVecMinusVec & 
 #else
         int nthreads = 1 ;
 #endif
-        int chunksize = std::max((end-rowstart)/(2*nthreads) - ((end-rowstart)/(2*nthreads))%stride, stride);
+        int chunksize = std::max((end-rowstart)/nthreads - ((end-rowstart)/nthreads)%stride, stride);
         int localEnd = 0 ;
         int t = 0 ;
         #pragma omp single
@@ -546,32 +546,33 @@ void assign(Vector & ret, const CoordinateIndexedSparseMatrixTimesVec & c, const
         ret[i] = 0;
 
     #pragma omp parallel
-    {
+    {        
+        #pragma omp single
+        {
 #ifdef HAVE_OMP
         int nthreads = omp_get_num_threads() ;
 #else
         int nthreads = 1 ;
 #endif
 
-        int chunksize = std::max((end-rowstart)/(2*nthreads) - ((end-rowstart)/(2*nthreads))%stride, stride);
+        int chunksize = std::max((end-rowstart)/nthreads - ((end-rowstart)/nthreads)%stride, stride);
         int localEnd = 0 ;
         int t = 0 ;
-        #pragma omp single
+
+        while (localEnd < end)
         {
-            while (localEnd < end)
+            int localStart = std::min(rowstart+t*chunksize,end)  ;
+            localEnd = std::min(localStart+chunksize,end) ;
+            t++ ;
+            #pragma omp task firstprivate(localStart,localEnd)
             {
-                int localStart = std::min(rowstart+t*chunksize,end)  ;
-                localEnd = std::min(localStart+chunksize,end) ;
-                t++ ;
-                #pragma omp task firstprivate(localStart,localEnd)
+                for (int i = localStart ; i < localEnd; i+=stride)
                 {
-                    for (int i = localStart ; i < localEnd; i+=stride)
-                    {
-                        c.sm.inner_product(&ve[0], &ret[0] + i, rowstart, colstart, i) ;
-                    }
+                    c.sm.inner_product(&ve[0], &ret[0] + i, rowstart, colstart, i) ;
                 }
-                localStart = localEnd ;
             }
+            localStart = localEnd ;
+        }
         }
     }
 }
