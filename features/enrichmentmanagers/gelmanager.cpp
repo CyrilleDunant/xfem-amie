@@ -92,7 +92,7 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
         aggregateArea += i.first->area() ;
         count += i.second ;
     }
-    deltaRadius *= .05 ;
+//     deltaRadius *= 10. ; .05 ;
 }
 
 GelManager::GelManager( FeatureTree * f, InclusionFamily * inc, int gel, double rf, double dr)  : deltaRadius(dr), reactedArea(0), aggregateArea(0), reactiveFraction(rf), ftree(f)

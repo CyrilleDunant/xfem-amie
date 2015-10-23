@@ -555,7 +555,7 @@ void assign(Vector & ret, const CoordinateIndexedSparseMatrixTimesVec & c, const
         int nthreads = 1 ;
 #endif
 
-        int chunksize = std::max((end-rowstart)/nthreads - ((end-rowstart)/nthreads)%stride, stride);
+        int chunksize = std::max(4*(end-rowstart)/nthreads - (4*(end-rowstart)/nthreads)%stride, stride);
         int localEnd = 0 ;
         int t = 0 ;
 
