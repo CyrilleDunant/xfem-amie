@@ -546,33 +546,34 @@ void assign(Vector & ret, const CoordinateIndexedSparseMatrixTimesVec & c, const
         ret[i] = 0;
 
     #pragma omp parallel
-    {        
+    { 
+       #ifdef HAVE_OMP
+            int nthreads = omp_get_num_threads() ;
+        #else
+            int nthreads = 1 ;
+        #endif
+
         #pragma omp single
         {
-#ifdef HAVE_OMP
-        int nthreads = omp_get_num_threads() ;
-#else
-        int nthreads = 1 ;
-#endif
 
-        int chunksize = std::max(4*(end-rowstart)/nthreads - (4*(end-rowstart)/nthreads)%stride, stride);
-        int localEnd = 0 ;
-        int t = 0 ;
+            int chunksize = std::max((end-rowstart)/(nthreads*4) - ((end-rowstart)/(nthreads*4))%stride, stride);
+            int localEnd = 0 ;
+            int t = 0 ;
 
-        while (localEnd < end)
-        {
-            int localStart = std::min(rowstart+t*chunksize,end)  ;
-            localEnd = std::min(localStart+chunksize,end) ;
-            t++ ;
-            #pragma omp task firstprivate(localStart,localEnd)
+            while (localEnd < end)
             {
-                for (int i = localStart ; i < localEnd; i+=stride)
+                int localStart = std::min(rowstart+t*chunksize,end)  ;
+                localEnd = std::min(localStart+chunksize,end) ;
+                t++ ;
+                #pragma omp task firstprivate(localStart,localEnd)
                 {
-                    c.sm.inner_product(&ve[0], &ret[0] + i, rowstart, colstart, i) ;
+                    for (int i = localStart ; i < localEnd; i+=stride)
+                    {
+                        c.sm.inner_product(&ve[0], &ret[0] + i, rowstart, colstart, i) ;
+                    }
                 }
+                localStart = localEnd ;
             }
-            localStart = localEnd ;
-        }
         }
     }
 }
