@@ -2948,8 +2948,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                     parentArea += gp_temp.gaussPoints[j].second ;
                 }
             }
-            
-            if(tri.empty() || std::abs(parentArea - 0.5) <  1e-4)
+            if(tri.empty() || std::abs(parentArea - 0.5) >  1e-4)
             {
                 if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
                     return *getCachedGaussPoints() ;
