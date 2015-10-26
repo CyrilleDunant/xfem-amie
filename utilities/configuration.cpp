@@ -578,7 +578,7 @@ bool ConfigTreeItem::bindInput( std::vector<std::string> & callers, std::string 
             }
 
             std::vector<std::string> nextcallers = callers ;
-            callers.push_back( nextfile ) ;
+            nextcallers.push_back( nextfile ) ;
             ConfigTreeItem * nextitems = ConfigParser::readFile( nextfile , nullptr, false ) ;
             if(dir.size() > 0)
                 nextitems->definePath( dir ) ;
