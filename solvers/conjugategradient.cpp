@@ -356,7 +356,6 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         if(err < sqrt(realeps*err0))
         {
             std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", last rho = " << last_rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
-
             return true ;
         }
 

@@ -104,7 +104,12 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
             std::cout << std::endl ;
             
             std::fstream ldfile ( "ldn_2", std::ios::out | std::ios::app)  ;
-            ldfile << 1000.* ( VirtualMachine().eval(load->getData()*load->getScale(), 0,0,0,featureTree->getInitialTime()) ) << "   " << stemp[1]/1e6 << "   " << featureTree->averageDamage << "   " << delta*1000. << "   " << featureTree->get2DMesh()->begin()->getBoundingPoint(npoints-1).getT() << "   " << featureTree->get2DMesh()->begin()->getBoundingPoint(0).getT()<<"\n" ;
+            ldfile << 1000.* ( VirtualMachine().eval(load->getData()*load->getScale(), 0,0,0,featureTree->getInitialTime()) ) << "   " 
+                   << stemp[1]/1e6 << "   " 
+                   << featureTree->averageDamage << "   " 
+                   << delta*1000. << "   " 
+                   << featureTree->get2DMesh()->begin()->getBoundingPoint(npoints-1).getT() << "   " 
+                   << featureTree->get2DMesh()->begin()->getBoundingPoint(0).getT()<<"\n" ;
             ldfile.close();
             
             writer.reset ( featureTree ) ;

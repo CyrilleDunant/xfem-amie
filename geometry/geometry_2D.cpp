@@ -674,78 +674,54 @@ double Triangle::area() const
 
 double Triangle::computeArea() 
 {
-//  const DelaunayTriangle * tri = dynamic_cast<const DelaunayTriangle *>(this) ;
-//  if(tri)
-//  {
-//      Segment s0(*(tri->first), *(tri->second)) ;
-//      Segment s1(*(tri->first), *(tri->third)) ;
-//      return 0.5*std::abs((s0.vector()^s1.vector()).getZ()) ;
-//  }
 
-//  assert(this->boundingPoints.size() == 3) ;
     int pointsInTimePlane = this->boundingPoints.size()/timePlanes() ;
-//  if(getBoundingPoint(0).getT() != 0)
-//  {
-//      pointsInTimePlane = 0 ;
-//      double init = getBoundingPoint(0).getT() ;
-//      int counter = 0 ;
-//      while(std::abs(getBoundingPoint(counter++).getT()-init) < POINT_TOLERANCE)
-//          pointsInTimePlane++ ;
-//  }
 
     return 0.5*std::abs((getBoundingPoint(0).getX()- getBoundingPoint(pointsInTimePlane/3).getX())*(getBoundingPoint(0).getY()- getBoundingPoint(2*pointsInTimePlane/3).getY()) - (getBoundingPoint(0)- getBoundingPoint(pointsInTimePlane/3)).getY()*(getBoundingPoint(0).getX()- getBoundingPoint(2*pointsInTimePlane/3).getX())) ;
-    
-//     return(^(getBoundingPoint(0)- getBoundingPoint(2*pointsInTimePlane/3))).getZ()) ;
+
 }
 
 void Triangle::project(Point * p) const
 {
-    Segment s(getCenter(), *p) ;
-    if(squareDist2D(*p, getCircumCenter()) < POINT_TOLERANCE*POINT_TOLERANCE)
+    //find closest vertex
+    std::map<double, Point> vert ;
+    vert[squareDist2D(*p, getBoundingPoint(0))] =  getBoundingPoint(0) ;
+    vert[squareDist2D(*p, getBoundingPoint(getBoundingPoints().size()/(3*timePlanes())))] =  getBoundingPoint(getBoundingPoints().size()/(3*timePlanes())) ;
+    vert[squareDist2D(*p, getBoundingPoint(2*getBoundingPoints().size()/(3*timePlanes())))] =  getBoundingPoint(2*getBoundingPoints().size()/(3*timePlanes())) ;
+    if(vert.begin()->second == getBoundingPoint(0) )
+    {
+        Segment s0(getBoundingPoint(0), getBoundingPoint(getBoundingPoints().size()/(3*timePlanes()))) ;
+        Segment s2( getBoundingPoint(2*getBoundingPoints().size()/(3*timePlanes())), getBoundingPoint(0)) ;
+        std::map<double, Point> proj ;
+        Point p0 = s0.project(*p) ;
+        Point p2 = s2.project(*p) ;
+        proj[squareDist2D(p0, *p)] = p0 ;
+        proj[squareDist2D(p2, *p)] = p2 ;
+        *p = proj.begin()->second ;
         return ;
-
-    Segment s0(getBoundingPoint(0), getBoundingPoint(getBoundingPoints().size()/(3*timePlanes()))) ;
+    }
+    else if(vert.begin()->second == getBoundingPoint(getBoundingPoints().size()/(3*timePlanes())))
+    {
+        Segment s0(getBoundingPoint(0), getBoundingPoint(getBoundingPoints().size()/(3*timePlanes()))) ;
+        Segment s1(getBoundingPoint(getBoundingPoints().size()/(3*timePlanes())), getBoundingPoint(2*getBoundingPoints().size()/(3*timePlanes()))) ;
+        std::map<double, Point> proj ;
+        Point p0 = s0.project(*p) ;
+        Point p1 = s1.project(*p) ;
+        proj[squareDist2D(p0, *p)] = p0 ;
+        proj[squareDist2D(p1, *p)] = p1 ;
+        *p = proj.begin()->second ;
+        return ;
+    }
+    
     Segment s1(getBoundingPoint(getBoundingPoints().size()/(3*timePlanes())), getBoundingPoint(2*getBoundingPoints().size()/(3*timePlanes()))) ;
     Segment s2( getBoundingPoint(2*getBoundingPoints().size()/(3*timePlanes())), getBoundingPoint(0)) ;
     std::map<double, Point> proj ;
-    Point p0 = s0.project(*p) ;
     Point p1 = s1.project(*p) ;
     Point p2 = s2.project(*p) ;
-    proj[dist(p0, *p)] = p0 ;
-    proj[dist(p1, *p)] = p1 ;
-    proj[dist(p2, *p)] = p2 ;
+    proj[squareDist2D(p1, *p)] = p1 ;
+    proj[squareDist2D(p2, *p)] = p2 ;
     *p = proj.begin()->second ;
     return ;
-
-//
-// 	for(size_t i = 0 ; i < pts.size() ; i++)
-// 	{
-// 		Segment seg(pts[i], pts[(i+1)%pts.size()]) ;
-// 		if(s.intersects(seg))
-// 		{
-// 			Point t = s.intersection(seg);
-// 			p->getX() = t.getX() ;
-// 			p->getY() = t.getY() ;
-// 			return ;
-// 		}
-// 	}
-//
-// 	double r = getRadius() ;
-// 	Point reach = (*p - getCenter()) ;
-// 	Point trans = getCenter() + reach * (2.*r/reach.norm()) ;
-// 	Segment sec(getCenter(), trans) ;
-//
-// 	for(size_t i = 0 ; i < pts.size() ; i++)
-// 	{
-// 		Segment seg(pts[i], pts[(i+1)%pts.size()]) ;
-// 		if(sec.intersects(seg))
-// 		{
-// 			Point t = sec.intersection(seg);
-// 			p->getX() = t.getX() ;
-// 			p->getY() = t.getY() ;
-// 			return ;
-// 		}
-// 	}
 
 }
 
@@ -754,53 +730,7 @@ bool Triangle::in(const Point &p) const
 
     if(!inCircumCircle(p))
         return false ;
-// 	p.print() ;
-// 	bool isAPoint = false ;
-// 	for (int i = 0; i <  getBoundingPoints().size(); i++)
-// 	{
-// 		if(squareDist2D( p, getBoundingPoint(i))  < POINT_TOLERANCE*POINT_TOLERANCE)
-// 		{
-// 			return true ;
-// 		}
-// 	}
-//
-// 	Point proj(p) ; project(&proj) ;
-// 	bool isOnSurface = squareDist2D(p, proj) < POINT_TOLERANCE*POINT_TOLERANCE ;
-// 	if(isOnSurface)
-// 		return true ;
-//
-// 	Segment s(p, getCenter()) ;
-//
-//
-// 				bool ret = false ;
-// 			std::vector<Point> pts ;
-// 			std::multimap<double, Point> pt ;
-// 			for(size_t i = 0 ; i < getBoundingPoints().size() ;  i++)
-// 			{
-// 				pt.insert(std::make_pair(
-// 				std::abs(
-// 				squareDist2D(getCircumCenter(), getBoundingPoint(i))-getRadius()*getRadius()), getBoundingPoint(i)));
-// 			}
-// 			std::multimap<double, Point>::const_iterator ptend = pt.begin() ;
-// 			ptend++ ; ptend++ ; ptend++ ;
-//
-// 			for(std::multimap<double, Point>::const_iterator i = pt.begin() ; i != ptend ; ++i )
-// 				pts.push_back(i->second);
-//
-// 			if(s.on(pts[0]) || s.on(pts[1]) || s.on(pts[2]))
-// 				return true ;
-//
-// 			Segment sa(pts[0],pts[1]) ;
-// 			Segment sb(pts[1],pts[2]) ;
-// 			Segment sc(pts[2],pts[0]) ;
-//
-//
-// 			return !sa.intersects(*this) || sb.intersects(*this) || sc.intersects(*this) ;
-//
-//
-// 	return !s.intersects(this) || isAPoint || isOnSurface;
-//
-// 		bool isAPoint = false ;
+
     for (size_t i = 0; i <  getBoundingPoints().size(); i++)
     {
         if(p == getBoundingPoint(i))
@@ -809,20 +739,7 @@ bool Triangle::in(const Point &p) const
         }
     }
 
-    Point proj(p) ;
-    project(&proj) ;
-    bool isOnSurface = squareDist2D(p, proj) < POINT_TOLERANCE*POINT_TOLERANCE ;
-    if(isOnSurface)
-        return true ;
-
-
-    proj = p ;
-    proj.getT() = getBoundingPoint(0).getT() ;
-
-    Point c = getCenter() ;
-    c.getT() = proj.getT() ;
-
-    Segment s(proj, c) ;
+    Segment s(p, getCenter()) ;
 
     size_t npts = getBoundingPoints().size()/timePlanes() ;
 
@@ -830,10 +747,16 @@ bool Triangle::in(const Point &p) const
         return false ;
 
     Segment sa(getBoundingPoint(0),getBoundingPoint(npts/3)) ;
+    if(sa.intersects(s))
+        return false ;
     Segment sb(getBoundingPoint(npts/3),getBoundingPoint(npts*2/3)) ;
+    if(sb.intersects(s))
+        return false ;
     Segment sc(getBoundingPoint(npts*2/3),getBoundingPoint(0)) ;
-
-    return !(sa.intersects(s) || sb.intersects(s) || sc.intersects(s)) ;
+    if(sc.intersects(s))
+        return false ;
+    
+    return true ;
 
 }
 

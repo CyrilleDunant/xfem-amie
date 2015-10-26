@@ -512,7 +512,7 @@ void assign(Vector & ret, const CoordinateIndexedSparseMatrixTimesVecMinusVec & 
 #else
         int nthreads = 1 ;
 #endif
-        int chunksize = std::max((end-rowstart)/nthreads - ((end-rowstart)/nthreads)%stride, stride);
+        int chunksize = std::max((end-rowstart)/(nthreads*128) - ((end-rowstart)/(nthreads*128))%stride, stride);
         int localEnd = 0 ;
         int t = 0 ;
         #pragma omp single
@@ -556,7 +556,7 @@ void assign(Vector & ret, const CoordinateIndexedSparseMatrixTimesVec & c, const
         #pragma omp single
         {
 
-            int chunksize = std::max((end-rowstart)/(nthreads*4) - ((end-rowstart)/(nthreads*4))%stride, stride);
+            int chunksize = std::max((end-rowstart)/(nthreads*128) - ((end-rowstart)/(nthreads*128))%stride, stride);
             int localEnd = 0 ;
             int t = 0 ;
 

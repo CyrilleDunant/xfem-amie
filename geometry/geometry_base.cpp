@@ -1320,24 +1320,45 @@ bool Geometry::intersects(const Geometry *g) const
     case TRIANGLE :
     {
         int numpoints = getBoundingPoints().size() ;
-        Segment s0(getBoundingPoint(0), getBoundingPoint(numpoints/3)) ;
-        Segment s1(getBoundingPoint(numpoints/3), getBoundingPoint(2*numpoints/3)) ;
-        Segment s2(getBoundingPoint(0),getBoundingPoint(2*numpoints/3)) ;
+
 
         if(g->getGeometryType() == TRIANGLE)
         {
             int gnumpoints = g->getBoundingPoints().size() ;
+            Segment s0(getBoundingPoint(0), getBoundingPoint(numpoints/3)) ;
             Segment t0(g->getBoundingPoint(0), g->getBoundingPoint(gnumpoints/3)) ;
+            if(s0.intersects(t0))
+                return true ;
             Segment t1(g->getBoundingPoint(gnumpoints/3), g->getBoundingPoint(2*gnumpoints/3)) ;
+            if(s0.intersects(t1))
+                return true ;
             Segment t2(g->getBoundingPoint(0), g->getBoundingPoint(2*gnumpoints/3)) ;
+            if(s0.intersects(t2))
+                return true ;
+            
+            Segment s1(getBoundingPoint(numpoints/3), getBoundingPoint(2*numpoints/3)) ;
+            if(s1.intersects(t0) || s1.intersects(t1) ||s1.intersects(t2))
+                return true ;
+            
+            Segment s2(getBoundingPoint(0),getBoundingPoint(2*numpoints/3)) ;
+             if(s2.intersects(t0) || s2.intersects(t1) ||s2.intersects(t2))
+                return true ;
+            
+            return false ;
 
-            return s0.intersects(t0) || s0.intersects(t1) || s0.intersects(t2)
-                   || s1.intersects(t0) || s1.intersects(t1) || s1.intersects(t2)
-                   || s2.intersects(t0) || s2.intersects(t1) || s2.intersects(t2) ;
+        }        
+        
+        Segment s0(getBoundingPoint(0), getBoundingPoint(numpoints/3)) ;
+        if(s0.intersects(g))
+            return true ;
+        Segment s1(getBoundingPoint(numpoints/3), getBoundingPoint(2*numpoints/3)) ;
+        if(s1.intersects(g))
+            return true ;
+        Segment s2(getBoundingPoint(0),getBoundingPoint(2*numpoints/3)) ;
+        if(s2.intersects(g))
+            return true ;
 
-        }
-
-        return s0.intersects(g) || s1.intersects(g)  || s2.intersects(g) ;
+        return false ;
     }
     case RECTANGLE:
     {
@@ -1420,12 +1441,7 @@ bool Geometry::intersects(const Geometry *g) const
 
         if(g->getGeometryType() == TRIANGLE)
         {
-            segs.push_back(Segment(g->getBoundingPoint(0),
-                                   g->getBoundingPoint(g->getBoundingPoints().size()/3))) ;
-            segs.push_back(Segment(g->getBoundingPoint(g->getBoundingPoints().size()/3),
-                                   g->getBoundingPoint(2*g->getBoundingPoints().size()/3))) ;
-            segs.push_back(Segment(g->getBoundingPoint(0),
-                                   g->getBoundingPoint(2*g->getBoundingPoints().size()/3))) ;
+            return g->intersects(this) ;
         }
         if(g->getGeometryType() == RECTANGLE)
         {

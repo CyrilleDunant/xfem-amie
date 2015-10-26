@@ -179,14 +179,15 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
      if(cache.empty()) // assume that this is the first step
      {
          DelaunayTriangle * tri = dtree->getUniqueConflictingElement(&getCenter()) ;
-         //if(getRadius() < tri->getRadius())
-         //{
+         
+         if(tri)
+         {
              std::map<double, Point> pd;
-             pd[dist(*tri->first, getCenter())] = *tri->first ;
-             pd[dist(*tri->second, getCenter())] = *tri->second ;
-             pd[dist(*tri->third, getCenter())] = *tri->third ;
+             pd[squareDist2D(*tri->first, getCenter())] = *tri->first ;
+             pd[squareDist2D(*tri->second, getCenter())] = *tri->second ;
+             pd[squareDist2D(*tri->third, getCenter())] = *tri->third ;
              setCenter(pd.begin()->second);
-         //}
+         }
      }
     freeIds[dtree].clear();
     for(size_t i = 0 ; i < cache.size() ; i++)
