@@ -2501,6 +2501,76 @@ std::vector<DelaunayDemiSpace *>  DelaunayTree3D::getConvexHull()
     return ret ;
 }
 
+void DelaunayTree3D::buildNeighbourhoods()
+{
+    std::valarray<bool> visited(false, size()) ;
+
+    if(!neighbourhood)
+    {
+        neighbourhood = true ;
+//      std::cerr << "\r building neighbourhood... element 0/" << ret.size() << std::flush ;
+        for( size_t i = 0 ; i < tree.size() ; i++)
+        {
+            if(tree[i]->isTetrahedron && !tree[i]->dead)
+                static_cast<DelaunayTetrahedron *>(tree[i])->neighbourhood.resize(0) ;
+        }
+
+
+
+        for( size_t i = 0 ; i < tree.size() ; i++)
+        {
+            if(!tree[i]->isTetrahedron || tree[i]->dead)
+                continue ;
+//          if(i%100 == 0)
+//              std::cerr << "\r building neighbourhood... element " << i <<"/" << ret.size() << std::flush ;
+
+            std::vector<DelaunayTetrahedron *> tocheck ;
+            std::vector<DelaunayTetrahedron *> toclean ;
+            for(size_t j = 0 ; j < tree[i]->neighbour.size() ; j++)
+            {
+                if(tree[i]->getNeighbour(j)->isTetrahedron && !visited[tree[i]->neighbour[j]])
+                {
+                    tocheck.push_back(static_cast<DelaunayTetrahedron *>(tree[i]->getNeighbour(j)));
+                    visited[tree[i]->neighbour[j]] = true ;
+                    toclean.push_back(*tocheck.rbegin()) ;
+                    static_cast<DelaunayTetrahedron *>(tree[i])->addNeighbourhood(*tocheck.rbegin()) ;
+                }
+            }
+
+            while(!tocheck.empty())
+            {
+                std::vector<DelaunayTetrahedron *> tocheck_temp ;
+                for(size_t k = 0 ; k < tocheck.size() ; k++)
+                {
+                    for(size_t j = 0 ; j < tocheck[k]->neighbour.size() ; j++)
+                    {
+                        if(
+                            tocheck[k]->getNeighbour(j)->isTetrahedron
+                            && !visited[tocheck[k]->neighbour[j]]
+                            && tocheck[k]->getNeighbour(j) != tree[i]
+                            && static_cast<DelaunayTetrahedron *>(tocheck[k]->getNeighbour(j))->numberOfCommonVertices(tree[i])
+                        )
+                        {
+                            tocheck_temp.push_back(static_cast<DelaunayTetrahedron *>(tocheck[k]->getNeighbour(j)));
+                            visited[tocheck[k]->neighbour[j]] = true ;
+                            toclean.push_back(*tocheck_temp.rbegin()) ;
+                            static_cast<DelaunayTetrahedron *>(tree[i])->addNeighbourhood(*tocheck_temp.rbegin()) ;
+                        }
+                    }
+                }
+
+                tocheck = tocheck_temp ;
+            }
+            for(size_t j = 0 ; j < toclean.size() ; j++)
+            {
+                visited[toclean[j]->index] = false ;
+            }
+
+        }
+    }
+
+}
+
 std::vector<DelaunayTetrahedron *>  DelaunayTree3D::getTetrahedrons( bool buildNeighbourhood ) 
 {
     std::vector<DelaunayTetrahedron *> ret;
@@ -2513,81 +2583,6 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree3D::getTetrahedrons( bool buildN
         }
     }
 
-    if( !neighbourhood && buildNeighbourhood )
-    {
-        neighbourhood = true ;
-        std::cerr << "\r building neighbourhood... element 0/" << ret.size() << std::flush ;
-
-        for( auto & item : ret  )
-        {
-            item->neighbourhood.resize( 0 ) ;
-        }
-
-
-
-        for( auto & item : ret )
-        {
-// 			if( (&item-(DelaunayTetrahedron **)(ret.begin())) % 10000 == 0 )
-// 				std::cerr << "\r building neighbourhood... element " << item-(DelaunayTetrahedron **)ret.begin() << "/" << ret.size() << std::flush ;
-
-            std::vector<DelaunayTetrahedron *> tocheck ;
-            std::vector<DelaunayTetrahedron *> toclean ;
-
-            for( size_t j = 0 ; j < item->neighbour.size() ; j++ )
-            {
-                if( item->getNeighbour( j )->isTetrahedron && ! visited[item->neighbour[j]] )
-                {
-                    tocheck.push_back( static_cast<DelaunayTetrahedron *>( item->getNeighbour( j ) ) );
-                    visited[item->neighbour[j]] = true ;
-                    toclean.push_back( tocheck.back() ) ;
-                    item->addNeighbourhood( tocheck.back() ) ;
-                }
-            }
-
-            for( auto & check : tocheck )
-            {
-                if( check->numberOfCommonVertices( item ) > 0 )
-                    item->addNeighbourhood( check ) ;
-            }
-
-            while( !tocheck.empty() )
-            {
-                std::vector<DelaunayTetrahedron *> tocheck_temp ;
-
-                for( auto & itemTocheck : tocheck )
-                {
-                    for( size_t j = 0 ; j < itemTocheck->neighbour.size() ; j++ )
-                    {
-                        if(
-                            itemTocheck->getNeighbour( j )->isTetrahedron
-                            && !itemTocheck->getNeighbour( j )->dead
-                            && !visited[itemTocheck->neighbour[j]]
-                            && itemTocheck->getNeighbour( j ) != item
-                            && static_cast<DelaunayTetrahedron *>( itemTocheck->getNeighbour( j ) )->numberOfCommonVertices( item ) > 0
-                        )
-                        {
-                            tocheck_temp.push_back( static_cast<DelaunayTetrahedron *>( itemTocheck->getNeighbour( j ) ) );
-                            visited[itemTocheck->neighbour[j]] = true ;
-                            toclean.push_back( tocheck_temp.back() ) ;
-                            item->addNeighbourhood( tocheck_temp.back() ) ;
-                        }
-                    }
-                }
-                
-
-                tocheck = tocheck_temp ;
-            }
-            
-            for( auto & itemToClean : toclean )
-            {
-                 visited[itemToClean->index] = false ;
-            }
-
-        }
-
-        std::cerr << "\r building neighbourhood... element " << ret.size() << "/" << ret.size() << " ...done" << std::endl ;
-        neighbourhood = true ;
-    }
 
     return ret ;
 }

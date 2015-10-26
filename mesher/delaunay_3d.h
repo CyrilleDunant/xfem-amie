@@ -444,7 +444,7 @@ public:
     size_t numPoints() const;
 
     void purge() ;
-
+    void buildNeighbourhoods() ;
     void print() const;
 
 } ;
