@@ -2582,6 +2582,7 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree3D::getTetrahedrons( bool buildN
             ret.push_back( ( DelaunayTetrahedron * )( item ) ) ;
         }
     }
+    buildNeighbourhoods();
 
 
     return ret ;
