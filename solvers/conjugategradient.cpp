@@ -90,7 +90,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     }   
     
     double realeps = std::max(1e-12, eps) ;
-    size_t Maxit = (maxit != -1) ? maxit : assembly->getForces().size()*50 ;
+    size_t Maxit = (maxit != -1) ? maxit : assembly->getForces().size()/4 ;
     
     if(x0.size() == assembly->getForces().size())
     {
@@ -296,15 +296,15 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
                 lastReset = rho ;
 
-                if(resetIncreaseCount > maxIncreaseReset)
-                {
-                    x = (xmin+x)*0.5 ;
-                    assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
-                    r *= -1 ;
-                    resetIncreaseCount = 0 ;
-                    rcompensate = 0 ;
-                    xcompensate= 0 ;
-                }
+//                 if(resetIncreaseCount > maxIncreaseReset)
+//                 {
+//                     x = (xmin+x)*0.5 ;
+//                     assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
+//                     r *= -1 ;
+//                     resetIncreaseCount = 0 ;
+//                     rcompensate = 0 ;
+//                     xcompensate= 0 ;
+//                 }
             }
             if(sqrt(rho) > 1./realeps && nit > Maxit/10)
             {
@@ -322,6 +322,9 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     #endif
 
         std::cerr << "mflops: "<< 1e-6*nit*((2.+2./256.)*assembly->getMatrix().array.size()+(4+1./256.)*p.size())/delta << std::endl ;
+        
+        if(nit >= Maxit)
+            x = xmin ;
         
         assign(r,assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
         double err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
