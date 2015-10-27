@@ -2120,6 +2120,7 @@ bool Assembly::cgsolve(int maxit, bool verbose)
     {
 
         ConjugateGradientWithSecant cg(this) ;
+        cg.nssor = nssor ;
         if(rowstart > 0 || colstart > 0)
         {
 

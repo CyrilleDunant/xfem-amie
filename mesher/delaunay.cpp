@@ -2917,7 +2917,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             std::vector<DelaunayTriangle *> tri ;
 
             DelaunayTree * dt = new DelaunayTree(to_add[0], to_add[1], to_add[2]) ;
-            TriElement f(QUADRATIC) ;
+            TriElement f(LINEAR) ;
             if(to_add.size() > 4)
                 std::random_shuffle(to_add.begin()+3, to_add.end()) ;
 
@@ -2926,7 +2926,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 dt->insert(to_add[i]) ;
             }
 
-            dt->setElementOrder(QUADRATIC); 
+            dt->setElementOrder(LINEAR); 
             dt->refresh(&f);
             tri = dt->getTriangles() ;
 
@@ -2939,7 +2939,8 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 Function x = tri[i]->getXTransform() ;
                 Function y = tri[i]->getYTransform() ;
                                
-                GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
+//                 GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
+                 GaussPointArray gp_temp = monteCarloGaussPoints(32, tri[i]) ;
 
                 for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
                 {
