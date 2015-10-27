@@ -90,7 +90,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     }   
     
     double realeps = std::max(1e-12, eps) ;
-    size_t Maxit = (maxit != -1) ? maxit : assembly->getForces().size()/4 ;
+    size_t Maxit = (maxit != -1) ? maxit : assembly->getForces().size()*4 ;
     
     if(x0.size() == assembly->getForces().size())
     {
