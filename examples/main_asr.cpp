@@ -75,8 +75,8 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
     {
         std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
         bool go_on = featureTree->step() ;
-        if(i%5 != 0)
-            continue ;
+//         if(i%5 != 0)
+//             continue ;
         std::string filename( "triangles" ) ;
         if( !go_on )
         {
@@ -151,7 +151,7 @@ int main( int argc, char *argv[] )
     featureTree = &F ;
 
     double itzSize = 0.00002;
-    int inclusionNumber = 3000 ;
+    int inclusionNumber =  3000 ; 1 ;
 
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;

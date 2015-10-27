@@ -68,7 +68,7 @@ double ConjugateGradient::ssorSmooth(Ssor * ssor, Vector * xcompensate, size_t m
 
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
-    nssor = 64 ;
+//     nssor = 64 ;
     size_t attempts = 0 ;
     
     if(std::abs(assembly->getForces()).max() < eps)
@@ -90,7 +90,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     }   
     
     double realeps = std::max(1e-12, eps) ;
-    size_t Maxit = (maxit != -1) ? maxit : assembly->getForces().size() ;
+    size_t Maxit = (maxit != -1) ? maxit : assembly->getForces().size()/4 ;
     
     if(x0.size() == assembly->getForces().size())
     {
@@ -113,7 +113,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     Vector rcompensate(0., r.size()) ;
     Vector xcompensate(0., x.size()) ; 
     
-    for( ; attempts < 8 ; attempts++)
+    for( ; attempts < 32 ; attempts++)
     {
         rcompensate = 0 ;
         xcompensate = 0 ;

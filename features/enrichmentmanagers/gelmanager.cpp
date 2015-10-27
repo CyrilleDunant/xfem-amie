@@ -48,7 +48,7 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
 
         for( size_t j = 0 ; j < zonesToPlace.size() ; j++ )
         {
-            if( dist( pos, zonesToPlace[j]->Circle::getCenter() ) < deltaRadius*100. )
+            if( dist( pos, zonesToPlace[j]->Circle::getCenter() ) < deltaRadius*400. )
             {
                 alone = false ;
                 break ;
@@ -69,7 +69,7 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
 
         for( size_t j = 0 ; j < aggregates.size() ; j++ )
         {
-            if( dist( zonesToPlace[i]->getCenter(), aggregates[j]->getCenter() ) < aggregates[j]->getRadius() - deltaRadius*100. && baseGeometry.in( zonesToPlace[i]->getCenter() ) )
+            if( dist( zonesToPlace[i]->getCenter(), aggregates[j]->getCenter() ) < aggregates[j]->getRadius() - deltaRadius*4 && baseGeometry.in( zonesToPlace[i]->getCenter() ) )
             {
                 zonesPerIncs[aggregates[j]]++ ; ;
                 ftree->addFeature( aggregates[j], zonesToPlace[i] ) ;
@@ -92,7 +92,7 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
         aggregateArea += i.first->area() ;
         count += i.second ;
     }
-//     deltaRadius *= 10. ; .05 ;
+//     deltaRadius *= 5. ; .05 ;
 }
 
 GelManager::GelManager( FeatureTree * f, InclusionFamily * inc, int gel, double rf, double dr)  : deltaRadius(dr), reactedArea(0), aggregateArea(0), reactiveFraction(rf), ftree(f)
