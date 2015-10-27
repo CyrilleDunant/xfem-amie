@@ -2948,13 +2948,13 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                     parentArea += gp_temp.gaussPoints[j].second ;
                 }
             }
-            if(tri.empty() || std::abs(parentArea - 0.5) >  1e-4)
+            if(tri.empty() || std::abs(parentArea - 0.5) >  1e-5)
             {
                 if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
                     return *getCachedGaussPoints() ;
                 
                 delete cachedGps ;
-                cachedGps = new GaussPointArray(monteCarloGaussPoints(256, this)) ;
+                cachedGps = new GaussPointArray(monteCarloGaussPoints(512, this)) ;
                 cachedGps->getId() = REGULAR_GRID ;
                 return *getCachedGaussPoints() ;
             }
