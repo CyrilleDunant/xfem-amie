@@ -90,7 +90,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     }   
     
     double realeps = std::max(1e-12, eps) ;
-    size_t Maxit = (maxit != -1) ? maxit : assembly->getForces().size()*4 ;
+    size_t Maxit = (maxit != -1) ? maxit : assembly->getForces().size()*16 ;
     
     if(x0.size() == assembly->getForces().size())
     {
@@ -112,12 +112,13 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     Ssor ssor (assembly->getMatrix(), rowstart, colstart) ;
     Vector rcompensate(0., r.size()) ;
     Vector xcompensate(0., x.size()) ; 
-    
-    for( ; attempts < 32 ; attempts++)
+    nit = 0 ;
+    for( ; nit < Maxit ; )
     {
+        int localnit = 0 ;
         rcompensate = 0 ;
         xcompensate = 0 ;
-        nit = 0 ;
+        
         
         //smooth the initial guess
         if(nssor > 0)
@@ -153,7 +154,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         errmin = err0 ;
         
         //try an alternative start
-        if(attempts == 0 && err0 > 1e12)
+        if(nit == 0 && err0 > 1e12)
         {
             x = 0 ;
             xcompensate = 0 ;
@@ -227,8 +228,6 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             x[i] = xtot ;
         }
 
-        err0 = 1 ;
-
     #ifdef HAVE_OMP
         double t0 = omp_get_wtime() ;
     #else
@@ -236,18 +235,10 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     #endif
         double rho = 0 ;
         double beta = 0 ;
-        double lastReset = rho ;
-        int resetIncreaseCount = 0 ;
 
-        while(((sqrt(std::abs(last_rho)) > realeps*err0*4. && nit < Maxit ) || (sqrt(std::abs(last_rho)) > sqrt(realeps*err0) && nit > Maxit )) && nit < Maxit*2)
+        while(((sqrt(std::abs(last_rho)) > realeps*4. && localnit < 256 ) || (sqrt(std::abs(last_rho)) > sqrt(realeps) && localnit > 256 )) && localnit < 256*2)
         {
-            if(nit && nit%1024 == 0)
-            {
-                assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
-                r *= -1 ;
-                rcompensate= 0 ;  
-                std::cerr << resetIncreaseCount << "\t" << sqrt(last_rho) << std::endl  ;
-            }
+            localnit++ ;
 
             P->precondition(r, z) ;
 
@@ -281,35 +272,10 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
                 x[i] = xtot ;
             }
 
-            if(nit%1024 == 0 )
+            if(sqrt(std::abs(rho)) < errmin )
             {
-                if( sqrt(rho) < errmin )
-                {
-                    errmin = sqrt(rho) ;
-                    xmin = x ;
-                }
-                
-                if(rho > lastReset)
-                    resetIncreaseCount++ ;
-                else
-                    resetIncreaseCount = 0 ;
-
-                lastReset = rho ;
-
-//                 if(resetIncreaseCount > maxIncreaseReset)
-//                 {
-//                     x = (xmin+x)*0.5 ;
-//                     assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
-//                     r *= -1 ;
-//                     resetIncreaseCount = 0 ;
-//                     rcompensate = 0 ;
-//                     xcompensate= 0 ;
-//                 }
-            }
-            if(sqrt(rho) > 1./realeps && nit > Maxit/10)
-            {
-                x = xmin ;
-                break ;
+                errmin = sqrt(std::abs(rho)) ;
+                xmin = x ;
             }
 
             last_rho = rho ;
@@ -321,11 +287,9 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         double delta = 1 ;
     #endif
 
-        std::cerr << "mflops: "<< 1e-6*nit*((2.+2./256.)*assembly->getMatrix().array.size()+(4+1./256.)*p.size())/delta << std::endl ;
+        std::cerr << "mflops: "<< 1e-6*nit*(2.*assembly->getMatrix().array.size()+4.*p.size())/delta << std::endl ;
         
-        if(nit >= Maxit)
-            x = xmin ;
-        
+        x = xmin ;
         assign(r,assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
         double err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
 
@@ -334,10 +298,9 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         {
             size_t iters = 0 ;
             double minerr = err*2. ;
-            while( err > realeps*err0 && iters++ < assembly->getForces().size() )
+            while( err > realeps && iters++ < assembly->getForces().size() )
             {
                 assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
-//                 P->precondition(r,r);
                 ssor.precondition(r,r);
                 for(int i = rowstart ; i < vsize ; i++)
                 {
@@ -353,10 +316,14 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
                     std::cerr << "m" << "\t" << err << std::endl  ;
                 if( minerr > err*.99 )
                     break ;
+                else
+                    xmin = x ;
             }
+            
+            x = xmin ;
         }
         
-        if(err < sqrt(realeps*err0))
+        if(err < sqrt(realeps))
         {
             std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", last rho = " << last_rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
             return true ;
