@@ -113,13 +113,14 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     Vector rcompensate(0., r.size()) ;
     Vector xcompensate(0., x.size()) ; 
     nit = 0 ;
+        
     for( ; nit < Maxit ; )
     {
         size_t localnit = 0 ;
         rcompensate = 0 ;
         xcompensate = 0 ;
         
-        
+
         //smooth the initial guess
         if(nssor > 0)
         {
@@ -134,7 +135,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
                 err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
                 if(err > perr)
                     break ;
-                ssor.precondition(r,r);
+                P->precondition(r,r);
                 for(int i = rowstart ; i < vsize ; i++)
                 {
                     double yx =  -r[i] - xcompensate[i];
@@ -156,7 +157,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         //try an alternative start
         if(nit == 0 && err0 > 1e12)
         {
-            x = 0 ;
+            if(nssor > 0)
+                x = 0 ;
             xcompensate = 0 ;
             if(nssor > 0)
             {
@@ -171,7 +173,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
                     err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
                     if(perr > err*.99)
                         break ;
-                    ssor.precondition(r,r);
+                    P->precondition(r,r);
                     for(int i = rowstart ; i < vsize ; i++)
                     {
                         double yx =  -r[i] - xcompensate[i];
@@ -196,7 +198,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
             return true ;
         }
-        std::cerr << "p" << "\t" << err0 << std::endl  ;
+        std::cerr << "p\t" << err0 << std::endl  ;
 
         
         z = r ;
@@ -236,7 +238,13 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         double rho = 0 ;
         double beta = 0 ;
 
-        while(sqrt(std::abs(last_rho)) > realeps && localnit < std::max(assembly->getForces().size()/16, (size_t)256) )
+        double localeps = realeps ;
+        size_t reduxit = 0 ;
+	while(sqrt(std::abs(last_rho)) < localeps && nit > 0 && reduxit < 4)
+            localeps *= 0.1 ;
+
+
+        while(sqrt(std::abs(last_rho)) > localeps && localnit < std::max(assembly->getForces().size()/16, (size_t)256))
         {
             localnit++ ;
 
@@ -289,7 +297,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             errmin = sqrt(std::abs(rho)) ;
             xmin = x ;
         }
-        
+
         if(nssor > 0)
         {
             size_t iters = 0 ;
@@ -317,13 +325,16 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             }
             
             x = xmin ;
+
         }
+
         
-        if(err < sqrt(realeps))
+        if(err < sqrt(realeps) || (reduxit == 4 && localnit == 0))
         {
             std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", last rho = " << last_rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
             return true ;
         }
+
 
     }
     
