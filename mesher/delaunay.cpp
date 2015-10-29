@@ -2965,7 +2965,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             for(size_t i = 0 ; i < gp_alternative.size() ; i++)
                 gp_alternative[i].second *= originalSum / parentArea ;
 
-
             delete dt ;
 
             if(numberOfRefinements)

@@ -68,7 +68,7 @@ double ConjugateGradient::ssorSmooth(Ssor * ssor, Vector * xcompensate, size_t m
 
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
-//     nssor = 64 ;
+//     nssor = 0 ;
     size_t attempts = 0 ;
     
     if(std::abs(assembly->getForces()).max() < eps)
@@ -150,7 +150,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     
         double err0 = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
         xmin = x ;
-        errmin = err0 ;
+        if(nit == 0)
+            errmin = err0 ;
         
         //try an alternative start
         if(nit == 0 && err0 > 1e12)
@@ -235,12 +236,11 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         double rho = 0 ;
         double beta = 0 ;
 
-        while(((sqrt(std::abs(last_rho)) > realeps*4. && localnit < assembly->getForces().size()/16 ) || (sqrt(std::abs(last_rho)) > sqrt(realeps) && localnit > assembly->getForces().size()/8 )) && localnit < assembly->getForces().size()/8)
+        while(sqrt(std::abs(last_rho)) > realeps && localnit < std::max(assembly->getForces().size()/16, (size_t)256) )
         {
             localnit++ ;
 
             P->precondition(r, z) ;
-
             rho = parallel_inner_product_restricted(&r[rowstart], &z[rowstart], vsize-rowstart) ;
 
             beta = rho/last_rho ;
@@ -271,12 +271,6 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
                 x[i] = xtot ;
             }
 
-            if(sqrt(std::abs(rho)) < errmin )
-            {
-                errmin = sqrt(std::abs(rho)) ;
-                xmin = x ;
-            }
-
             last_rho = rho ;
             nit++ ;
         }
@@ -287,12 +281,15 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     #endif
 
         std::cerr << "mflops: "<< 1e-6*nit*(2.*assembly->getMatrix().array.size()+4.*p.size())/delta << std::endl ;
-        
-        x = xmin ;
+
         assign(r,assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
         double err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
-
-        xcompensate= 0 ;
+        if(err < errmin )
+        {
+            errmin = sqrt(std::abs(rho)) ;
+            xmin = x ;
+        }
+        
         if(nssor > 0)
         {
             size_t iters = 0 ;
