@@ -427,7 +427,11 @@ add_executable( performance EXCLUDE_FROM_ALL examples/main_performance.cpp )
 target_link_libraries( performance Amie ${ALL_LINK_FLAGS})
 
 ADD_CUSTOM_TARGET(benchmark)
-ADD_DEPENDENCIES(benchmark 3d_benchmark tension_benchmark performance)
+ADD_DEPENDENCIES(benchmark 
+3d_benchmark 
+tension_benchmark 
+performance
+)
 
 
 # playground
@@ -445,7 +449,12 @@ add_executable(function_test EXCLUDE_FROM_ALL examples/playground/main_function_
 target_link_libraries( function_test Amie ${ALL_LINK_FLAGS})
 
 ADD_CUSTOM_TARGET(playground)
-ADD_DEPENDENCIES(playground alain michaela get_fields_from_trg function_test)
+ADD_DEPENDENCIES(playground 
+alain 
+michaela 
+get_fields_from_trg 
+function_test
+)
 
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/test ${CMAKE_BINARY_DIR}/mesh)
 
@@ -482,7 +491,18 @@ add_executable( test/time_continuity EXCLUDE_FROM_ALL examples/test/main_test_ti
 target_link_libraries( test/time_continuity Amie ${ALL_LINK_FLAGS})
 
 ADD_CUSTOM_TARGET(unitTests)
-ADD_DEPENDENCIES(unitTests check_test test/logcreep test/logcreep_imposed_deformation test/viscodamage_multilinearsoftening test/viscoelasticity_kv test/xfem test/stxfem test/imposed_deformation test/viscoelasticity_imposed_deformation test/time_continuity)
+ADD_DEPENDENCIES(unitTests 
+check_test 
+test/imposed_deformation 
+test/logcreep 
+test/logcreep_imposed_deformation 
+test/stxfem 
+test/time_continuity
+test/viscodamage_multilinearsoftening 
+test/viscoelasticity_imposed_deformation 
+test/viscoelasticity_kv 
+test/xfem 
+)
 
 # mesh
 
@@ -492,9 +512,53 @@ target_link_libraries( check_mesh Amie ${ALL_LINK_FLAGS} )
 add_executable( mesh/circle EXCLUDE_FROM_ALL examples/mesh/main_mesh_circle.cpp )
 target_link_libraries( mesh/circle Amie ${ALL_LINK_FLAGS})
 
+add_executable( mesh/layered_circles EXCLUDE_FROM_ALL examples/mesh/main_mesh_layered_circles.cpp )
+target_link_libraries( mesh/layered_circles Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/circle_circle_intersection EXCLUDE_FROM_ALL examples/mesh/main_mesh_circle_circle_intersection.cpp )
+target_link_libraries( mesh/circle_circle_intersection Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/circle_circle_mask EXCLUDE_FROM_ALL examples/mesh/main_mesh_circle_circle_mask.cpp )
+target_link_libraries( mesh/circle_circle_mask Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/circle_ellipse_intersection EXCLUDE_FROM_ALL examples/mesh/main_mesh_circle_ellipse_intersection.cpp )
+target_link_libraries( mesh/circle_ellipse_intersection Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/circle_ellipse_mask EXCLUDE_FROM_ALL examples/mesh/main_mesh_circle_ellipse_mask.cpp )
+target_link_libraries( mesh/circle_ellipse_mask Amie ${ALL_LINK_FLAGS})
+
 add_executable( mesh/circle_sample_intersection EXCLUDE_FROM_ALL examples/mesh/main_mesh_circle_sample_intersection.cpp )
 target_link_libraries( mesh/circle_sample_intersection Amie ${ALL_LINK_FLAGS})
 
+add_executable( mesh/ellipse EXCLUDE_FROM_ALL examples/mesh/main_mesh_ellipse.cpp )
+target_link_libraries( mesh/ellipse Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/ellipse_ellipse_intersection EXCLUDE_FROM_ALL examples/mesh/main_mesh_ellipse_ellipse_intersection.cpp )
+target_link_libraries( mesh/ellipse_ellipse_intersection Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/ellipse_ellipse_mask EXCLUDE_FROM_ALL examples/mesh/main_mesh_ellipse_ellipse_mask.cpp )
+target_link_libraries( mesh/ellipse_ellipse_mask Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/ellipse_sample_intersection EXCLUDE_FROM_ALL examples/mesh/main_mesh_ellipse_sample_intersection.cpp )
+target_link_libraries( mesh/ellipse_sample_intersection Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/polygon_regular EXCLUDE_FROM_ALL examples/mesh/main_mesh_polygon_regular.cpp )
+target_link_libraries( mesh/polygon_regular Amie ${ALL_LINK_FLAGS})
+
 ADD_CUSTOM_TARGET(meshTests)
-ADD_DEPENDENCIES(meshTests check_mesh mesh/circle mesh/circle_sample_intersection)
+ADD_DEPENDENCIES(meshTests 
+check_mesh 
+mesh/circle 
+mesh/layered_circles 
+mesh/circle_circle_intersection 
+mesh/circle_circle_mask 
+mesh/circle_ellipse_intersection 
+mesh/circle_ellipse_mask
+mesh/circle_sample_intersection 
+mesh/ellipse 
+mesh/ellipse_ellipse_intersection 
+mesh/ellipse_ellipse_mask 
+mesh/ellipse_sample_intersection
+mesh/polygon_regular
+)
 
