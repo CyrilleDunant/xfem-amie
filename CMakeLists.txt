@@ -554,6 +554,12 @@ target_link_libraries( mesh/ellipse_ellipse_mask Amie ${ALL_LINK_FLAGS})
 add_executable( mesh/ellipse_sample_intersection EXCLUDE_FROM_ALL examples/mesh/main_mesh_ellipse_sample_intersection.cpp )
 target_link_libraries( mesh/ellipse_sample_intersection Amie ${ALL_LINK_FLAGS})
 
+add_executable( mesh/polycrystal EXCLUDE_FROM_ALL examples/mesh/main_mesh_polycrystal.cpp )
+target_link_libraries( mesh/polycrystal Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/polycrystal_itz EXCLUDE_FROM_ALL examples/mesh/main_mesh_polycrystal_itz.cpp )
+target_link_libraries( mesh/polycrystal_itz Amie ${ALL_LINK_FLAGS})
+
 add_executable( mesh/polygon_regular EXCLUDE_FROM_ALL examples/mesh/main_mesh_polygon_regular.cpp )
 target_link_libraries( mesh/polygon_regular Amie ${ALL_LINK_FLAGS})
 
@@ -593,6 +599,8 @@ mesh/ellipse_ellipse_intersection
 mesh/ellipse_ellipse_mask 
 mesh/ellipse_sample_intersection
 mesh/layered_circles 
+mesh/polycrystal
+mesh/polycrystal_itz
 mesh/polygon_convex
 mesh/polygon_polygon_edge
 mesh/polygon_polygon_intersection

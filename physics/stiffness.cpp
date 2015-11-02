@@ -59,6 +59,15 @@ Form * Stiffness::getCopy() const
     return copy ;
 }
 
+Form * WeibullDistributedElasticStiffness::getCopy() const
+{
+    std::default_random_engine generator;
+    std::weibull_distribution< double > distribution(1, 5);
+    double weib = distribution(generator) ;
+    double factor = 1 - variability + variability*weib ;
+    return new Stiffness( param*factor ) ;
+}
+
 DerivedStiffness::DerivedStiffness(const Matrix & rig) : LinearForm(Matrix(), false, false, rig.numRows()/3+1), rig(rig)
 {
     v.push_back(XI);

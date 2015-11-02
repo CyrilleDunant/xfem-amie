@@ -40,7 +40,7 @@ Form * PasteBehaviour::getCopy() const
 
 ElasticOnlyPasteBehaviour::ElasticOnlyPasteBehaviour(double E, double nu, SpaceDimensionality dim, double var) : PasteBehaviour(E,nu,0.,0.,0.,dim, var)
 {
-    variability = 0.2 ;
+
 }
 
 Form * ElasticOnlyPasteBehaviour::getCopy() const

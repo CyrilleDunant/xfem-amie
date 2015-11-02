@@ -62,6 +62,16 @@ struct Stiffness : public LinearForm
 
 } ;
 
+struct WeibullDistributedElasticStiffness : public Stiffness 
+{
+    double variability ;
+    WeibullDistributedElasticStiffness(const Matrix & rig, double v) : Stiffness(rig), variability(v) { }
+    WeibullDistributedElasticStiffness(double E, double nu, double v, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS) : Stiffness(E, nu, dim, pt), variability(v) { } 
+
+    virtual Form * getCopy() const ;
+
+} ;
+
 
 /** \brief A linear Elastic Law
 * The field param is the Cauchy-Green Strain Tensor
