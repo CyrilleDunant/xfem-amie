@@ -141,7 +141,12 @@ std::vector<Feature *> InclusionGenerator::convert(std::vector<Inclusion *> inc)
 {
 	std::vector<Feature *> ret ;
 	for(size_t i = 0 ; i < inc.size() ; i++)
+	{
 		ret.push_back( this->convert( inc[i] ) ) ;
+		if(i%100 == 0)
+			std::cerr << "\rsetting up inclusion geometry: feature " << i << "/" << inc.size() << std::flush ;
+	}
+	std::cerr << "\rsetting up inclusion geometry: feature " << inc.size() << "/" << inc.size() << std::endl ;
 	return ret ;
 }
 

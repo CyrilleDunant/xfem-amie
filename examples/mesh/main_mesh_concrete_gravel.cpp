@@ -29,29 +29,25 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
-	CommandLineParser parser("Builds a sample with a single regular polygonal inclusion in the center of the sample") ;
+	CommandLineParser parser("Builds a sample with a concrete-like microstructure with polygonal gravel aggregates") ;
 	parser.addFlag("--renew-base", false, "renew the base of results") ;
+	parser.addValue("--inclusions", 1000, "number of inclusions (default: 1000)") ;
 	parser.parseCommandLine(argc, argv) ;
 	bool renew = parser.getFlag("--renew-base") ;
 
-        Sample rect(nullptr, 0.04,0.04,0,0) ;
+        Sample rect(nullptr, 0.1,0.1,0,0) ;
 	rect.setBehaviour(new Stiffness( 10e9, 0.2 ) ) ;
         
-	std::valarray<Point *> vertex(7) ;
-	for(size_t i = 0 ; i < vertex.size() ; i++)
-		vertex[i] = new Point( 0.015*cos(0.1+2.*M_PI*i/vertex.size()), 0.015*sin(0.1+2.*M_PI*i/vertex.size()) ) ;
-	PolygonalSample inc(&rect, vertex) ;
-	inc.setBehaviour(new Stiffness(20e9, 0.2) ) ;
-
 	FeatureTree f(&rect) ;
-	f.addFeature(&rect, &inc) ;
-	f.setSamplingNumber(16) ;
+	PSDGenerator::get2DConcrete( &f, new Stiffness(20e9, 0.2), parser.getValue("--inclusions"), 0.008, 0.00001, new PSDBolomeA(), new GravelPolygonalInclusionGenerator(0.9, 1.9, 2, 10, 0, M_PI, 2), 100000, 0.7, nullptr, std::vector<Geometry *>(), 1) ;
+	f.setSamplingNumber( 128 ) ;
+	f.setSamplingRestriction(8) ;
 	
 	parser.setFeatureTree(&f) ;
 	
 	f.step() ;
 
-	std::string name = "../examples/mesh/mesh_polygon_regular_" ;
+	std::string name = "../examples/mesh/mesh_concrete_gravel_" ;
 	if(renew)
 		name += "base" ;
 	else

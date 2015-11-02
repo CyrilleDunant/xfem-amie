@@ -4853,7 +4853,9 @@ bool Segment::intersects(const Segment & l) const
     }
 
     if(l.on(f) || l.on(s) || on(l.first()) || on(l.second()))
+    {
         return true ;
+    }
 
     Matrix m(2,2) ;
     Vector v(2) ;
@@ -4879,6 +4881,8 @@ bool Segment::intersects(const Segment & l) const
 
     v[0] = -l.first().getX() + f.getX() ;
     v[1] = -l.first().getY() + f.getY() ;
+
+    Matrix M = m ;
 
     invert2x2Matrix(m) ;
 
@@ -4919,10 +4923,16 @@ bool Segment::on(const Point &p) const
     double ds = dist(s, p) ;
     double df = dist(f, p) ;
 
-    if(ds < 2.*POINT_TOLERANCE || df < 2.*POINT_TOLERANCE)
+    if(ds < 2.*POINT_TOLERANCE || df < 2.*POINT_TOLERANCE || std::abs(ds + df - dist(f, s)) < 2.*POINT_TOLERANCE)
         return true ;
+
+    return false ;
+
     if(!isAligned(p, f, s))
+    {
         return false ;
+    }
+
 
     return std::abs(ds + df - dist(f, s)) < 2.*POINT_TOLERANCE ;
 

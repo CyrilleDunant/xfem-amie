@@ -35,12 +35,14 @@ using namespace Amie ;
 int main(int argc, char *argv[])
 {
 	CommandLineParser parser("Run all tests found in the mesh test database") ;
+	parser.disableFeatureTreeArguments() ;
 	parser.addFlag("--viewer", false, "open viewer to compare the meshes for each test") ;
 	parser.addFlag("--renew-base", false, "renew the base of results") ;
 	parser.addValue("--timeout", 10, "maximum time (in seconds) spent for each test; use negative values for no time limit (default: 10s)" ) ;
 	parser.addString("--viewer-path", "viewer", "path to AMIE viewer" ) ;
 	parser.addString("--match", "*", "runs only the tests matching the required string (default: runs all tests found)" ) ;
-	parser.disableFeatureTreeArguments() ;
+	parser.addValue("--set-sampling-number", 16, "set the number of points on the edge of the sample" ) ;
+	parser.addValue("--set-sampling-restriction", 0, "set the number of mesh points below which small inclusions are not meshed" ) ;
 	parser.parseCommandLine(argc, argv) ;
 	double timeout = std::abs(parser.getValue("--timeout")) ;
 	bool renew = parser.getFlag("--renew-base") ;
@@ -54,7 +56,7 @@ int main(int argc, char *argv[])
 		getline( std::cin, buffer ) ;
 		if(buffer.size() == 0 || buffer == "y" || buffer == "yes" || buffer == "Y" || buffer == "YES")
 		{
-			std::cout << "overriding existing results..." <<std::endl ;
+			std::cout << Font( BOLD, RED ) << "overriding existing results..." << Font() << std::endl ;
 			timeout = -1 ;
 		}
 		else

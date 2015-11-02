@@ -530,6 +530,18 @@ target_link_libraries( mesh/circle_ellipse_mask Amie ${ALL_LINK_FLAGS})
 add_executable( mesh/circle_sample_intersection EXCLUDE_FROM_ALL examples/mesh/main_mesh_circle_sample_intersection.cpp )
 target_link_libraries( mesh/circle_sample_intersection Amie ${ALL_LINK_FLAGS})
 
+add_executable( mesh/concrete_circle EXCLUDE_FROM_ALL examples/mesh/main_mesh_concrete_circle.cpp )
+target_link_libraries( mesh/concrete_circle Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/concrete_crushed EXCLUDE_FROM_ALL examples/mesh/main_mesh_concrete_crushed.cpp )
+target_link_libraries( mesh/concrete_crushed Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/concrete_ellipse EXCLUDE_FROM_ALL examples/mesh/main_mesh_concrete_ellipse.cpp )
+target_link_libraries( mesh/concrete_ellipse Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/concrete_gravel EXCLUDE_FROM_ALL examples/mesh/main_mesh_concrete_gravel.cpp )
+target_link_libraries( mesh/concrete_gravel Amie ${ALL_LINK_FLAGS})
+
 add_executable( mesh/ellipse EXCLUDE_FROM_ALL examples/mesh/main_mesh_ellipse.cpp )
 target_link_libraries( mesh/ellipse Amie ${ALL_LINK_FLAGS})
 
@@ -545,20 +557,48 @@ target_link_libraries( mesh/ellipse_sample_intersection Amie ${ALL_LINK_FLAGS})
 add_executable( mesh/polygon_regular EXCLUDE_FROM_ALL examples/mesh/main_mesh_polygon_regular.cpp )
 target_link_libraries( mesh/polygon_regular Amie ${ALL_LINK_FLAGS})
 
+add_executable( mesh/polygon_convex EXCLUDE_FROM_ALL examples/mesh/main_mesh_polygon_convex.cpp )
+target_link_libraries( mesh/polygon_convex Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/polygon_polygon_edge EXCLUDE_FROM_ALL examples/mesh/main_mesh_polygon_polygon_edge.cpp )
+target_link_libraries( mesh/polygon_polygon_edge Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/polygon_polygon_intersection EXCLUDE_FROM_ALL examples/mesh/main_mesh_polygon_polygon_intersection.cpp )
+target_link_libraries( mesh/polygon_polygon_intersection Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/polygon_polygon_mask EXCLUDE_FROM_ALL examples/mesh/main_mesh_polygon_polygon_mask.cpp )
+target_link_libraries( mesh/polygon_polygon_mask Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/polygon_sample_edge EXCLUDE_FROM_ALL examples/mesh/main_mesh_polygon_sample_edge.cpp )
+target_link_libraries( mesh/polygon_sample_edge Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/polygon_sample_intersection EXCLUDE_FROM_ALL examples/mesh/main_mesh_polygon_sample_intersection.cpp )
+target_link_libraries( mesh/polygon_sample_intersection Amie ${ALL_LINK_FLAGS})
+
 ADD_CUSTOM_TARGET(meshTests)
 ADD_DEPENDENCIES(meshTests 
 check_mesh 
 mesh/circle 
-mesh/layered_circles 
 mesh/circle_circle_intersection 
 mesh/circle_circle_mask 
 mesh/circle_ellipse_intersection 
 mesh/circle_ellipse_mask
 mesh/circle_sample_intersection 
+mesh/concrete_circle
+mesh/concrete_crushed
+mesh/concrete_ellipse
+mesh/concrete_gravel
 mesh/ellipse 
 mesh/ellipse_ellipse_intersection 
 mesh/ellipse_ellipse_mask 
 mesh/ellipse_sample_intersection
+mesh/layered_circles 
+mesh/polygon_convex
+mesh/polygon_polygon_edge
+mesh/polygon_polygon_intersection
+mesh/polygon_polygon_mask
 mesh/polygon_regular
+mesh/polygon_sample_edge
+mesh/polygon_sample_intersection
 )
 
