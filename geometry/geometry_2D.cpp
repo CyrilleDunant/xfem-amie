@@ -357,52 +357,52 @@ bool OrientedRectangle::in(const Point &p) const
     return in ;
 
 }
-std::vector<Point> OrientedRectangle::getSamplingBoundingPoints(size_t num_points) const
+std::vector<Point> OrientedRectangle::getSamplingBoundingPoints(double linearDensity) const
 {
     std::vector<Point> ret ;
-    num_points = num_points + num_points%4 ;
 
     Point  v0(*boundingPoints[0]) ;
-    Point  v1(*boundingPoints[1]) ;
-    Point  v2(*boundingPoints[2]) ;
-    Point  v3(*boundingPoints[3]) ;
+    Point  v1(*boundingPoints[boundingPoints.size()/4]) ;
+    Point  v2(*boundingPoints[2*boundingPoints.size()/4]) ;
+    Point  v3(*boundingPoints[3*boundingPoints.size()/4]) ;
 
     ret.push_back(v0) ;
-
-    for(size_t i = 1 ; i < num_points/4; i++)
+    size_t num_points = round(dist(v0,v1)*linearDensity+.25) ;
+    for(size_t i = 1 ; i < num_points; i++)
     {
-        ret.push_back(v0*4.*i/num_points + v1*(1.-4.*i/num_points)) ;
+        ret.push_back(v0*i/num_points + v1*(1.-i/num_points)) ;
     }
-
+    
     ret.push_back(v1) ;
-
-    for(size_t i = num_points/4+1 ; i < 2*num_points/4 ; i++)
+    num_points = round(dist(v2,v1)*linearDensity+.25) ;
+    for(size_t i = 1 ; i < num_points; i++)
     {
-        ret.push_back(v1*4.*(i-num_points/4)/num_points + v2*(1.-4.*(i-num_points/4)/num_points)) ;
+        ret.push_back(v1*i/num_points + v2*(1.-i/num_points)) ;
     }
 
     ret.push_back(v2) ;
-
-    for(size_t i = 2*num_points/4+1 ; i < num_points ; i++)
+    num_points = round(dist(v2,v3)*linearDensity+.25) ;
+    for(size_t i = 1 ; i < num_points; i++)
     {
-        ret.push_back(v2*4.*(i-2*num_points/4)/num_points + v3*(1.-4.*(i-2*num_points/4)/num_points)) ;
+        ret.push_back(v2*i/num_points + v3*(1.-i/num_points)) ;
     }
 
     ret.push_back(v3) ;
-
-    for(size_t i = 3*num_points/4+1 ; i < num_points ; i++)
+    num_points = round(dist(v3,v0)*linearDensity+.25) ;
+    for(size_t i = 1 ; i < num_points; i++)
     {
-        ret.push_back(v3*4.*(i-3*num_points/4)/num_points + v0*(1.-4.*(i-3*num_points/4)/num_points)) ;
+        ret.push_back(v3*i/num_points + v0*(1.-i/num_points)) ;
     }
 
     return ret ;
 }
 
 
-void OrientedRectangle::sampleBoundingSurface(size_t num_points)
+void OrientedRectangle::sampleBoundingSurface(double linearDensity)
 {
-    num_points = num_points + 4 - num_points%4 ;
 
+    std::vector<Point> newPoints = getSamplingBoundingPoints(linearDensity) ;
+    
     Point * v0(boundingPoints[0]) ;
     Point * v1(boundingPoints[boundingPoints.size()/4]) ;
     Point * v2(boundingPoints[2*boundingPoints.size()/4]) ;
@@ -413,48 +413,35 @@ void OrientedRectangle::sampleBoundingSurface(size_t num_points)
         if(i != boundingPoints.size()/4 && i != 2*boundingPoints.size()/4 && i != 3*boundingPoints.size()/4)
             delete boundingPoints[i] ;
     }
-    this->boundingPoints.resize(num_points) ;
+    boundingPoints.resize(newPoints.size()) ;
 
     boundingPoints[0] = v0 ;
 
-    for(size_t i = 1 ; i < num_points/4; i++)
+    for(size_t i = 1 ; i < newPoints.size() ; i++)
     {
-        boundingPoints[i] = new Point(*v0*4.*i/num_points + *v1*(1.-4.*i/num_points)) ;
-    }
-
-    boundingPoints[num_points/4] = v1 ;
-
-    for(size_t i = num_points/4+1 ; i < 2*num_points/4 ; i++)
-    {
-        boundingPoints[i] = new Point(*v1*4.*(i-num_points/4)/num_points + *v2*(1.-4.*(i-num_points/4)/num_points)) ;
-    }
-
-    boundingPoints[2*num_points/4] = v2 ;
-
-    for(size_t i = 2*num_points/4+1 ; i < num_points ; i++)
-    {
-        boundingPoints[i] = new Point(*v2*4.*(i-2*num_points/4)/num_points + *v3*(1.-4.*(i-2*num_points/4)/num_points)) ;
-    }
-
-    boundingPoints[3*num_points/4] = v3 ;
-
-    for(size_t i = 3*num_points/4+1 ; i < num_points ; i++)
-    {
-        boundingPoints[i] = new Point(*v3*4.*(i-3*num_points/4)/num_points + *v0*(1.-4.*(i-3*num_points/4)/num_points)) ;
+        if(newPoints[i] == *v0)
+            boundingPoints[i] = v0 ;
+        else if(newPoints[i] == *v1)
+            boundingPoints[i] = v1 ;
+        else if(newPoints[i] == *v2)
+            boundingPoints[i] = v2 ;
+        else if(newPoints[i] == *v3)
+            boundingPoints[i] = v3 ;
+        else
+            boundingPoints[i] = new Point(newPoints[i]) ;
     }
 
 }
 
-void OrientedRectangle::sampleSurface(size_t num_points)
+void OrientedRectangle::sampleSurface(double linearDensity)
 {
 //	size_t n = 2*num_points ;
-    this->sampleBoundingSurface(num_points) ;
+    sampleBoundingSurface(linearDensity) ;
 
     for(size_t i = 0 ; i < inPoints.size() ; i++)
         delete inPoints[i] ;
 
     std::vector<Point> newInPoints ;
-
 
     size_t numberOfPointsAlongX = boundingPoints.size()/4 ;
     size_t numberOfPointsAlongY = boundingPoints.size()/4 ;
@@ -479,13 +466,9 @@ void OrientedRectangle::sampleSurface(size_t num_points)
         }
     }
 
-
     inPoints.resize(newInPoints.size()) ;
     for(size_t i = 0 ; i < inPoints.size() ; i++)
         inPoints[i] = new Point(newInPoints[i]) ;
-
-
-
 
 }
 
@@ -761,7 +744,7 @@ bool Triangle::in(const Point &p) const
 }
 
 
-std::vector<Point> Triangle::getSamplingBoundingPoints(size_t num_points) const
+std::vector<Point> Triangle::getSamplingBoundingPoints(double linearDensity) const
 {
     std::vector<Point> ret ;
 
@@ -772,76 +755,67 @@ std::vector<Point> Triangle::getSamplingBoundingPoints(size_t num_points) const
     Point v2 = *boundingPoints[2*n/3] ;
 
     ret.push_back(v0) ;
-
-    for(size_t i = 1 ; i < num_points/3 ; i++)
+    size_t num_points = round(linearDensity*dist(v0,v1)) ;
+    for(size_t i = 1 ; i < num_points ; i++)
     {
-        ret.push_back(v0*3.*i/num_points + v1*(1.-3.*i/num_points)) ;
+        ret.push_back(v0*i/num_points + v1*(1.-i/num_points)) ;
     }
 
     ret.push_back(v1) ;
-
-    for(size_t i = num_points/3+1 ; i < 2*num_points/3 ; i++)
+    num_points = round(linearDensity*dist(v1,v2)) ;
+    for(size_t i = 1 ; i < num_points ; i++)
     {
-        ret.push_back(v1*3.*(i-num_points/3)/num_points + v2*(1.-3.*(i-num_points/3)/num_points)) ;
+        ret.push_back(v1*i/num_points + v2*(1.-i/num_points)) ;
     }
 
     ret.push_back(v2) ;
-
-    for(size_t i = 2*num_points/3+1 ; i < num_points ; i++)
+    num_points = round(linearDensity*dist(v2,v0)) ;
+    for(size_t i = 1 ; i < num_points ; i++)
     {
-        ret.push_back(v2*3.*(i-2*num_points/3)/num_points + v0*(1.-3.*(i-2*num_points/3)/num_points)) ;
+        ret.push_back(v2*i/num_points + v0*(1.-i/num_points)) ;
     }
-
 
     return ret ;
 }
 
-void Triangle::sampleBoundingSurface(size_t num_points)
+void Triangle::sampleBoundingSurface(double linearDensity) 
 {
-    num_points -= num_points%3 ;
-    if(num_points == 0)
-        num_points = 3 ;
-    Point * v0 = &getBoundingPoint(0) ;
-    Point * v1 = &getBoundingPoint(getBoundingPoints().size()/3) ;
-    Point * v2 = &getBoundingPoint(2*getBoundingPoints().size()/3) ;
+    std::vector<Point> newPoints = getSamplingBoundingPoints(linearDensity) ;
+    
+    Point * v0(boundingPoints[0]) ;
+    Point * v1(boundingPoints[boundingPoints.size()/3]) ;
+    Point * v2(boundingPoints[2*boundingPoints.size()/3]) ;
 
-    /*	for(size_t i = 1 ; i < num_points/3 ; i++)
-    	{
-    		if(i != getBoundingPoints().size()/3 && i != 2*getBoundingPoints().size()/3)
-    			delete boundingPoints[i] ;
-    	}*/
-
-
-    getBoundingPoints().resize(num_points) ;
+    for(size_t i = 1 ; i < boundingPoints.size() ; i++)
+    {
+        if(i != boundingPoints.size()/3 && i != 2*boundingPoints.size()/3 && i != 0)
+            delete boundingPoints[i] ;
+    }
+    boundingPoints.resize(newPoints.size()) ;
 
     boundingPoints[0] = v0 ;
-
-    for(size_t i = 1 ; i < num_points/3 ; i++)
+    for(size_t i = 1 ; i < newPoints.size() ; i++)
     {
-        getBoundingPoints()[i] = new Point((*v1)*3.*i/num_points + (*v0)*(1.-3.*i/num_points)) ;
-    }
-
-    getBoundingPoints()[num_points/3] = v1 ;
-
-    for(size_t i = num_points/3+1 ; i < 2*num_points/3 ; i++)
-    {
-        getBoundingPoints()[i] = new Point((*v2)*3.*(i-num_points/3)/num_points + (*v1)*(1.-3.*(i-num_points/3)/num_points)) ;
-    }
-
-    getBoundingPoints()[2*num_points/3] = v2 ;
-
-    for(size_t i = 2*num_points/3+1 ; i < num_points ; i++)
-    {
-        getBoundingPoints()[i] = new Point((*v0)*3.*(i-2*num_points/3)/num_points + (*v2)*(1.-3.*(i-2*num_points/3)/num_points)) ;
+        if(newPoints[i] == *v0)
+            boundingPoints[i] = v0 ;
+        else if(newPoints[i] == *v1)
+            boundingPoints[i] = v1 ;
+        else if(newPoints[i] == *v2)
+            boundingPoints[i] = v2 ;
+        else
+            boundingPoints[i] = new Point(newPoints[i]) ;
     }
 
 }
 
-void Triangle::sampleSurface(size_t num_points)
+void Triangle::sampleSurface(double linearDensity)
 {
+    size_t num_points = round((dist(boundingPoints[0], boundingPoints[boundingPoints.size()/3]) + 
+                         dist(boundingPoints[boundingPoints.size()/3],boundingPoints[2*boundingPoints.size()/3]) +
+                         dist(boundingPoints[0], boundingPoints[2*boundingPoints.size()/3]) )*linearDensity) ;
     num_points += 3-num_points%3 ;
 
-    sampleBoundingSurface(num_points*3) ;
+    sampleBoundingSurface(linearDensity*3) ;
 
     std::vector<Point> newPoints ;
 
@@ -1032,10 +1006,11 @@ void Rectangle::project(Point * p) const
     *p = tries.begin()->second ;
 }
 
-std::vector<Point> Rectangle::getSamplingBoundingPoints(size_t num_points) const
+std::vector<Point> Rectangle::getSamplingBoundingPoints(double linearDensity) const
 {
     double perimeter = 2*(size_x+size_y) ;
 
+    size_t num_points = round(linearDensity*perimeter) ;
     double distanceBetweenPoints = perimeter/num_points ;
     std::vector<Point> ret ;
 
@@ -1083,10 +1058,12 @@ std::vector<Point> Rectangle::getSamplingBoundingPoints(size_t num_points) const
     return ret ;
 }
 
-void Rectangle::sampleBoundingSurface(size_t num_points)
+void Rectangle::sampleBoundingSurface(double linearDensity)
 {
     //	assert(num_points%4 == 0) ;
-    double perimeter = 2*(size_x+size_y) ;
+    double perimeter = 2.*(size_x+size_y) ;
+    linearDensity = std::max(linearDensity, 2./std::min(size_x,size_y)) ;
+    size_t num_points = round(perimeter*linearDensity) ;
 
     double distanceBetweenPointsx = std::min(perimeter/num_points, size_x) ;
     double distanceBetweenPointsy = std::min(perimeter/num_points, size_y) ;
@@ -1095,10 +1072,10 @@ void Rectangle::sampleBoundingSurface(size_t num_points)
     distanceBetweenPointsy = std::min(dx*1.5, dy) ;
     distanceBetweenPointsx = std::min(dy*1.5, dx) ;
 
-    this->numberOfPointsAlongX = static_cast<size_t>(std::ceil(size_x/distanceBetweenPointsx) + 1);
+    numberOfPointsAlongX = round(1.5*static_cast<size_t>(std::ceil(size_x/distanceBetweenPointsx) + 1));
     double distanceBetweenPointsAlongX = size_x/(this->numberOfPointsAlongX-1) ;
 
-    this->numberOfPointsAlongY = static_cast<size_t>(std::ceil(size_y/distanceBetweenPointsy) + 1);
+    numberOfPointsAlongY = round(1.5*static_cast<size_t>(std::ceil(size_y/distanceBetweenPointsy) + 1));
     double distanceBetweenPointsAlongY = size_y/(this->numberOfPointsAlongY-1) ;
 
     num_points = ((numberOfPointsAlongX)*2 + (numberOfPointsAlongY)*2 - 4) ;
@@ -1140,23 +1117,25 @@ void Rectangle::sampleBoundingSurface(size_t num_points)
             center.getX() + 0.5*size_x - i*distanceBetweenPointsAlongX +randx ,
             center.getY() + 0.5*size_y) ;
     }
+    numberOfPointsAlongY *= .666 ;
+    numberOfPointsAlongX *= .666 ;
 }
 
-void Rectangle::sampleSurface(size_t num_points)
+void Rectangle::sampleSurface(double linearDensity)
 {
 
-    if(std::max(size_x/size_y, size_y/size_x) < 10)
-    {
-        sampleBoundingSurface((size_t)round((double)num_points*2.*std::max(size_x/size_y, size_y/size_x)/(M_PI))) ;
-    }
-    else if(std::max(size_x/size_y, size_y/size_x) < 60)
-    {
-        sampleBoundingSurface((size_t)round((double)num_points*0.5*std::max(size_x/size_y, size_y/size_x)/(M_PI))) ;
-    }
-    else
-    {
-        sampleBoundingSurface((size_t)round((double)num_points*0.2*std::max(size_x/size_y, size_y/size_x)/(M_PI))) ;
-    }
+//     if(std::max(size_x/size_y, size_y/size_x) < 10)
+//     {
+        sampleBoundingSurface(linearDensity) ;
+//     }
+//     else if(std::max(size_x/size_y, size_y/size_x) < 60)
+//     {
+//         sampleBoundingSurface((size_t)round((double)num_points*0.5*std::max(size_x/size_y, size_y/size_x)/(M_PI))) ;
+//     }
+//     else
+//     {
+//         sampleBoundingSurface((size_t)round((double)num_points*0.2*std::max(size_x/size_y, size_y/size_x)/(M_PI))) ;
+//     }
 
     size_t nip = static_cast<size_t>((numberOfPointsAlongX-2)*(numberOfPointsAlongY-2)) ;
 
@@ -1275,15 +1254,15 @@ void Circle::project(Point * p) const
     
 }
 
-std::vector<Point> Circle::getSamplingBoundingPoints(size_t num_points) const
+std::vector<Point> Circle::getSamplingBoundingPoints(double linearDensity) const
 {
     std::vector<Point> ret ;
 
-    double angle = 2.*M_PI/ (num_points) ;
+    double angle = 1./ std::floor(linearDensity*getRadius()) ;
 
-    for (size_t i = 0 ; i< num_points ; i++)
+    for (double theta = 0 ; theta < 2.*M_PI ; theta += angle)
     {
-        ret.push_back(Point(getRadius()*cos((double)i*angle) + getCenter().getX(), getRadius()*sin((double)i*angle) + getCenter().getY()));
+        ret.push_back(Point(getRadius()*cos(theta) + getCenter().getX(), getRadius()*sin(theta) + getCenter().getY()));
     }
 
     return ret ;
@@ -1319,31 +1298,33 @@ std::vector<Point> Circle::getSamplingBoundingPointsOnArc(size_t num_points, con
     return ret ;
 }
 
-void Circle::sampleBoundingSurface(size_t num_points)
+void Circle::sampleBoundingSurface(double linearDensity)
 {
+    size_t num_points = round(linearDensity*2.*M_PI*getRadius()) ;
+    num_points = std::max(num_points, (size_t)8) ;
     for(size_t i = 0 ; i < boundingPoints.size() ; i++)
         delete boundingPoints[i] ;
 
     boundingPoints.resize(num_points) ;
     double angle = 2.*M_PI/ (num_points) ;
 
+    double start= 2.*M_PI*std::rand()/RAND_MAX ;
     for (size_t i = 0 ; i < num_points ; i++)
     {
-        double randa= 0;//((2.*(double)rand()/(RAND_MAX+1.0))-1.)*0.15*(M_PI/num_points) ;
-        boundingPoints[i] = new Point(getRadius()*cos((double)i*angle) + getCenter().getX(), getRadius()*sin((double)i*angle+randa) + getCenter().getY());
+        boundingPoints[i] = new Point(getRadius()*cos((double)i*(angle)) + getCenter().getX(), getRadius()*sin((double)i*(angle)) + getCenter().getY());
     }
 }
 
-void Circle::sampleSurface(size_t num_points)
+void Circle::sampleSurface(double linearDensity)
 {
+    size_t num_points = round(linearDensity*2.*M_PI*getRadius()) ;
+    
     if(!sampled)
     {
-        num_points = std::max(num_points, (size_t)6) ;
-        sampleBoundingSurface(num_points*3/2) ;
+        sampleBoundingSurface(linearDensity*2.) ;
         sampled = true ;
         size_t numberOfRings = static_cast<size_t>((double)num_points/(2. * M_PI )) ;
 
-        assert(numberOfRings >= 0) ;
         double angle = 2.*M_PI/ (num_points) ;
         double offset = 0 ;
 
@@ -1357,9 +1338,7 @@ void Circle::sampleSurface(size_t num_points)
 
             for (size_t j = 0 ; j< num_points ; ++j)
             {
-                double randa= 0 ; //((2.*(double)rand()/(RAND_MAX+1.0))-1.)*0.2*(M_PI/num_points) ;
-                double randr= 0 ; //(.2*r/(numberOfRings+1))*((double)rand()/RAND_MAX*2.-1.0) ;
-                temp.push_back(new Point((r+randr)*cos((double)(j+0.5*(i))*angle+randa+offset) + getCenter().getX(), (r+randr)*sin((double)(j+0.5*(i))*angle+randa) + getCenter().getY()));
+                temp.push_back(new Point(r*cos((double)(j+0.5*(i))*angle+offset) + getCenter().getX(), r*sin((double)(j+0.5*(i))*angle+offset) + getCenter().getY()));
             }
 
             num_points = (size_t)(/*std::max(*/(double)num_points_start*(r/getRadius())/*, (double)8)*/) ;
@@ -1377,7 +1356,6 @@ void Circle::sampleSurface(size_t num_points)
         inPoints.resize(temp.size() + 1) ;
         inPoints[0] = new Point(center) ;
         std::copy(temp.begin(), temp.end(),&inPoints[1]) ;
-
     }
 }
 
@@ -1582,7 +1560,7 @@ Point * SegmentedLine::getTail() const
     return boundingPoints[this->boundingPoints.size()-1] ;
 }
 
-std::vector<Point> SegmentedLine::getSamplingBoundingPoints(size_t num_points) const
+std::vector<Point> SegmentedLine::getSamplingBoundingPoints(double linearDensity) const
 {
     std::vector<Point> ret ;
 
@@ -1592,7 +1570,7 @@ std::vector<Point> SegmentedLine::getSamplingBoundingPoints(size_t num_points) c
     return ret ;
 }
 
-void SegmentedLine::sampleBoundingSurface(size_t num_points)
+void SegmentedLine::sampleBoundingSurface(double linearDensity)
 {
 }
 
@@ -1611,7 +1589,7 @@ void SegmentedLine::project(Point *p) const
     p->getY() = projections.begin()->second.getY() ;
 }
 
-void SegmentedLine::sampleSurface(size_t num_points)
+void SegmentedLine::sampleSurface(double linearDensity)
 {
 
 }
@@ -1656,6 +1634,9 @@ Ellipse::Ellipse(Point center, double a, double b)
     this->center = center ;
     double dir_x = (double) rand() / (double) RAND_MAX ;
     double dir_y = (double) rand() / (double) RAND_MAX ;
+//     double n = sqrt(dir_x*dir_x+dir_y*dir_y) ;
+//     dir_x /=n ;
+//     dir_y /=n ;
     double a_ = std::max(std::abs(a),std::abs(b)) ;
     double b_ = std::min(std::abs(a),std::abs(b)) ;
     this->majorAxis = Point(a_*dir_x,a_*dir_y) ;
@@ -1802,10 +1783,13 @@ void Ellipse::project(Point * p) const
 
 }
 
-std::vector<Point> Ellipse::getSamplingBoundingPoints(size_t num_points) const
+std::vector<Point> Ellipse::getSamplingBoundingPoints(double linearDensity) const
 {
     std::vector<Point> ret ;
 
+    double multiplier = 2.- getMinorRadius() / getMajorRadius();
+    double num_points = std::max(round(multiplier*getPerimeter()*linearDensity),8.) ;
+    
     double angle = 2. * M_PI / num_points ;
 
     double thisangle = angle ;
@@ -1953,15 +1937,15 @@ std::vector<Point> Ellipse::getSampleBoundingPointsOnArc(size_t num_points, doub
 
 }
 
-void Ellipse::sampleBoundingSurface (size_t num_points)
+void Ellipse::sampleBoundingSurface (double linearDensity)
 {
     if( getMinorAxis().norm() < POINT_TOLERANCE || getMajorAxis().norm() < POINT_TOLERANCE )
         return ;
 
-    if(num_points < 3)
+    if(linearDensity*getPerimeter() < 3)
         return ;
 
-    std::vector<Point> bound = getSamplingBoundingPoints(num_points) ;
+    std::vector<Point> bound = getSamplingBoundingPoints(linearDensity) ;
 
     for(size_t i = 0 ; i <getBoundingPoints().size() ; i++)
         delete boundingPoints[i];
@@ -1975,8 +1959,9 @@ void Ellipse::sampleBoundingSurface (size_t num_points)
 
 }
 
-void Ellipse::sampleSurface (size_t num_points)
+void Ellipse::sampleSurface (double linearDensity)
 {
+    size_t num_points = round(linearDensity*getPerimeter()) ;
     if( getMinorAxis().norm() < POINT_TOLERANCE || getMajorAxis().norm() < POINT_TOLERANCE )
         return ;
 
@@ -1989,10 +1974,10 @@ void Ellipse::sampleSurface (size_t num_points)
     inPoints.resize(1) ;
     inPoints[0] = new Point(center) ;
 
-    size_t n = num_points*getMajorRadius()/getMinorRadius() ;
-
-    sampleBoundingSurface(n) ;
+    sampleBoundingSurface(linearDensity) ;
     sampled = true ;
+    if(getBoundingPoints().size() < 8)
+        return ;
 
     double dist = (getBoundingPoint(0)-getBoundingPoint(1)).norm() ;
 
@@ -2226,9 +2211,9 @@ Polygon::Polygon(const std::valarray<Point> & points) : NonConvexGeometry(0), or
 
 Polygon::~Polygon() { }
 
-void Polygon::sampleBoundingSurface(size_t num_points)
+void Polygon::sampleBoundingSurface(double linearDensity)
 {
-    std::vector<Point> newPoints = getSamplingBoundingPoints(num_points) ;
+    std::vector<Point> newPoints = getSamplingBoundingPoints(linearDensity) ;
 
     boundingPoints.resize(newPoints.size());
 
@@ -2237,28 +2222,20 @@ void Polygon::sampleBoundingSurface(size_t num_points)
 
 }
 
-std::vector<Point> Polygon::getSamplingBoundingPoints(size_t num_points) const
+std::vector<Point> Polygon::getSamplingBoundingPoints(double linearDensity) const
 {
-
-    double perimeter = 0 ;
     std::vector<Point> ret ;
 
     for(size_t i = 0 ; i < originalPoints.size() ; i++ )
     {
         int inext = (i+1)%originalPoints.size() ;
-        perimeter += dist(originalPoints[i], originalPoints[inext]) ;
-    }
-
-    for(size_t i = 0 ; i < originalPoints.size() ; i++ )
-    {
-        int inext = (i+1)%originalPoints.size() ;
-        double fraction = dist(originalPoints[i], originalPoints[inext])/perimeter ;
-        int numPointsOnSegment = std::max(round(fraction*(num_points))+1, 2.) ;
+        double fraction = dist(originalPoints[i], originalPoints[inext]) ;
+        int numPointsOnSegment = std::max(round(fraction*linearDensity)+1, 3.) ;
 
 /*        if( numPointsOnSegment == 2 && dist(originalPoints[i], originalPoints[inext]) > perimeter*0.25/(num_points) )
             numPointsOnSegment++ ;*/
 
-        if(numPointsOnSegment > 2 || dist(originalPoints[i], originalPoints[inext]) > perimeter/num_points)
+        if(numPointsOnSegment > 2 || dist(originalPoints[i], originalPoints[inext]) > linearDensity)
             ret.push_back(originalPoints[i]);        
         for(int j = 1 ; j < numPointsOnSegment-1 ; j++)
         {
@@ -2629,7 +2606,7 @@ std::vector<Polygon> Polygon::getInscribedPolygons( double delta ) const
 }
 
 
-void Polygon::sampleSurface(size_t num_points)
+void Polygon::sampleSurface(double linearDensity)
 {
     for(size_t i = 0 ; i < boundingPoints.size() ; i++)
         delete boundingPoints[i] ;
@@ -2638,10 +2615,8 @@ void Polygon::sampleSurface(size_t num_points)
 
 //    num_points *= 2 ;
 //    double real_num = num_points*2. ;//std::sqrt((getRadius()*2.*M_PI/getPerimeter())) ; //*M_PI*(getRadius())/std::sqrt(area()) ;
-    size_t factor = 1 ;
-    if( getPerimeter()/(originalPoints.size()*std::sqrt(area())) > 1.5 )
-        factor = 2 ; 
-    sampleBoundingSurface( num_points*3*factor );
+
+    sampleBoundingSurface( linearDensity*1.2);
 
     std::vector<Polygon> clusters ;
     clusters.push_back( Polygon(originalPoints) ) ;

@@ -88,9 +88,9 @@ std::vector<DelaunayTetrahedron *> Inclusion3D::getElements3D( FeatureTree * dt)
 	return ret ;
 }
 
-void Inclusion3D::sample(size_t n)
+void Inclusion3D::sample(double linearDensity)
 {
-	this->Sphere::sampleSurface(n) ;
+	this->Sphere::sampleSurface(linearDensity) ;
 }
 
 OctahedralInclusion::OctahedralInclusion(Feature *father, double r, double x, double y, double z) :RegularOctahedron(r, x, y,z ), Feature(father)
@@ -161,9 +161,9 @@ std::vector<DelaunayTetrahedron *> OctahedralInclusion::getElements3D( FeatureTr
 	return ret ;
 }
 
-void OctahedralInclusion::sample(size_t n)
+void OctahedralInclusion::sample(double linearDensity)
 {
-	this->RegularOctahedron::sampleSurface(n) ;
+	this->RegularOctahedron::sampleSurface(linearDensity) ;
 }
 
 
@@ -253,6 +253,6 @@ std::vector<DelaunayTetrahedron *> VirtualInclusion3D::getElements3D( FeatureTre
 }
 
 
-void VirtualInclusion3D::sample(size_t n)
+void VirtualInclusion3D::sample(double linearDensity)
 {
 }

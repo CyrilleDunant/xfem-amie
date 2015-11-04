@@ -1697,44 +1697,29 @@ void FeatureTree::sample()
         {
             std::cerr << "2D features " << tree.size() << std::endl ;
             double total_area = tree[0]->area() ;
+            double linearDensity = samplingNumber/sqrt(tree[0]->area()) ;
 
             double correctionfactor = 1. ;
             if ( samplingFactors.find ( tree[0] ) != samplingFactors.end() )
             {
                 correctionfactor =  samplingFactors[tree[0]] ;
             }
-            tree[0]->sample ( correctionfactor * samplingNumber * 4 ) ;
+            tree[0]->sample ( linearDensity*correctionfactor ) ;
             int count = 0 ;
 
 //             #pragma omp parallel for reduction(+:count) schedule(auto)
             for ( size_t i  = 1 ; i < tree.size() ; i++ )
             {
-                double shape_factor = ( sqrt ( tree[0]->area() ) / ( 2.*M_PI * tree[0]->getRadius() ) ) / ( sqrt ( tree[i]->area() ) / ( 2.*M_PI * tree[i]->getRadius() ) );
-                if(tree[i]->getGeometryType() == POLYGON)
-                    shape_factor = 1. ;
 
                 if ( !tree[i]->isVirtualFeature )
                 {
                     tree[i]->isUpdated = false ;
                 }
 
-
-                if ( shape_factor < POINT_TOLERANCE )
-                {
-                    continue ;
-                }
-
-                size_t npoints = ( size_t ) round ( sqrt ( tree[i]->area() / ( total_area * shape_factor ) ) * samplingNumber ) ;
-                if ( npoints < 8 && npoints >= 5 )
-                {
-                    npoints = 8 ;
-                }
-// 				size_t npoints = std::max( ( size_t )round( sqrt( tree[i]->area() / ( total_area * shape_factor ) ) * samplingNumber ), (size_t) 8 ) ;
                 correctionfactor = 1. ;
                 if ( samplingFactors.find ( tree[i] ) != samplingFactors.end() )
                 {
                     correctionfactor = samplingFactors[tree[i]] ;
-                    npoints = ( size_t ) round ( correctionfactor*npoints ) ;
                 }
 
                 if ( !tree[i]->isVirtualFeature )
@@ -1743,7 +1728,7 @@ void FeatureTree::sample()
                     {
                         if ( tree[i]->intersects ( refinementZones[j] ) || refinementZones[j]->in ( tree[i]->getCenter() ) )
                         {
-                            npoints *= 2 ;
+                            correctionfactor *= 2 ;
 
                             refinedFeatures.push_back ( tree[i] );
 
@@ -1751,10 +1736,10 @@ void FeatureTree::sample()
                     }
                 }
 
-                if( npoints >= samplingRestriction && !tree[i]->isVirtualFeature)
+                if( !tree[i]->isVirtualFeature )
                 {
                     count++ ;
-                    tree[i]->sample ( npoints ) ;
+                    tree[i]->sample ( linearDensity*correctionfactor ) ;
                 }
 
                 if ( !tree[i]->isVirtualFeature )
@@ -1767,31 +1752,29 @@ void FeatureTree::sample()
         }
         else if ( is3D() )
         {
-            std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
+            double linearDensity = samplingNumber/tree[0]->volume() ;
+            
+            
+            std::cerr << "\r 3D features... sampling feature 1/" << this->tree.size() << "          " << std::flush ;
             if ( samplingFactors.find ( tree[0] ) != samplingFactors.end() )
-                tree[0]->sample ( samplingFactors[tree[0]]*samplingNumber ) ;
+                tree[0]->sample ( samplingFactors[tree[0]]*linearDensity ) ;
             else
-                tree[0]->sample ( samplingNumber ) ;
-            double total_area = tree[0]->area()  ;
-            int count = 0 ;
-            double base_shape_factor = tree[0]->area()/pow(tree[0]->volume(), .666666666) ;
+                tree[0]->sample ( linearDensity ) ;
 
-            #pragma omp parallel for reduction(+:count) schedule(runtime)
+            #pragma omp parallel for
             for ( int i  = 1 ; i < ( int ) tree.size() ; i++ )
             {
-                std::cerr << "\r 3D features... sampling feature " << count << "/" << this->tree.size() << "          " << std::flush ;
+                std::cerr << "\r 3D features... sampling feature " << i+1 << "/" << this->tree.size() << "          " << std::flush ;
 
-                double shape_factor = tree[i]->area() /pow(tree[i]->volume() , .666666666);
-                size_t npoints = ( size_t ) round ( ( 1.5 * samplingNumber * tree[i]->area() * shape_factor/base_shape_factor ) / ( total_area ) ) ;
+                double factor = 1. ;
                 if ( samplingFactors.find ( tree[i] ) != samplingFactors.end() )
                 {
-                    npoints = ( size_t ) round ( samplingFactors[tree[i]]*npoints ) ;
+                    factor = samplingFactors[tree[i]] ;
                 }
 
-                if( npoints >= samplingRestriction && !tree[i]->isVirtualFeature)
+                if( !tree[i]->isVirtualFeature)
                 {
-                    count++ ;
-                    tree[i]->sample ( npoints ) ;
+                    tree[i]->sample ( linearDensity*factor ) ;
                 }
 
 
@@ -1802,12 +1785,14 @@ void FeatureTree::sample()
 
             }
 
-            std::cerr << "\r 3D features... sampling feature " << count << "/" << this->tree.size() << " ...done" << std::endl ;
+            std::cerr << "\r 3D features... sampling feature " << tree.size() << "/" << tree.size() << " ...done" << std::endl ;
         }
+        
     }
     else
     {
 
+        double linearDensity = 4.*samplingNumber/sqrt(tree[0]->area()) ;
         for ( size_t i = 0 ; i < additionalPoints.size() ; i++ )
         {
             delete additionalPoints[i] ;
@@ -1825,7 +1810,7 @@ void FeatureTree::sample()
 
             if ( tree[0]->isUpdated )
             {
-                tree[0]->sample ( samplingNumber ) ;
+                tree[0]->sample ( linearDensity ) ;
             }
 
             #pragma omp parallel for schedule(runtime)
@@ -1845,33 +1830,27 @@ void FeatureTree::sample()
                         continue ;
                     }
 
-                    size_t npoints = std::max ( ( size_t ) round ( sqrt ( tree[i]->area() / ( total_area * shape_factor ) ) * samplingNumber ), ( size_t ) 8 ) ;
+                    double factor = 1  ;
                     if ( samplingFactors.find ( tree[i] ) != samplingFactors.end() )
                     {
-                        npoints = ( size_t ) round ( samplingFactors[tree[i]]*npoints ) ;
+                        factor = samplingFactors[tree[i]] ;
                     }
-                    if ( npoints >= samplingRestriction && !tree[i]->isVirtualFeature && npoints < samplingNumber )
+                    if ( !tree[i]->isVirtualFeature )
                     {
-                        tree[i]->sample ( npoints ) ;
+                        tree[i]->sample ( linearDensity*factor ) ;
                     }
                 }
             }
         }
         else if ( is3D() )
         {
-            std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
+            double linearDensity = 4.*samplingNumber*sqrt(tree[0]->area()) ;
+            std::cerr << "\r 3D features... sampling feature 0/" << tree.size() << "          " << std::flush ;
 
-            if ( tree[0]->isUpdated )
-            {
-                tree[0]->sample ( 2.5 * samplingNumber ) ;
-            }
-
-            double total_area = tree[0]->area()  ;
             int count = 0 ;
-            double base_shape_factor = tree[0]->area()/pow(tree[0]->volume() , .666666666);
 
             #pragma omp parallel for schedule(runtime)
-            for ( int i  = 1 ; i < ( int ) tree.size() ; i++ )
+            for ( int i  = 0 ; i < ( int ) tree.size() ; i++ )
             {
                 if ( tree[i]->isUpdated )
                 {
@@ -1883,14 +1862,14 @@ void FeatureTree::sample()
                     std::cerr << "\r 3D features... sampling feature " << count << "/" << this->tree.size() << "          " << std::flush ;
 
                     double shape_factor = tree[i]->area() / pow(tree[i]->volume(), .666666666) ;
-                    size_t npoints = ( size_t ) round ( ( 1.5 * samplingNumber * tree[i]->area() * shape_factor/base_shape_factor ) / ( total_area ) ) ;
+                    double factor = 1 ;
                     if ( samplingFactors.find ( tree[i] ) != samplingFactors.end() )
                     {
-                        npoints = ( size_t ) round ( samplingFactors[tree[i]]*npoints ) ;
+                        factor = samplingFactors[tree[i]] ;
                     }
-                    if ( npoints >= samplingRestriction && !tree[i]->isVirtualFeature )
+                    if ( !tree[i]->isVirtualFeature )
                     {
-                        tree[i]->sample ( npoints ) ;
+                        tree[i]->sample ( linearDensity*factor ) ;
                     }
 
                     count++ ;
@@ -8016,15 +7995,16 @@ void FeatureTree::generateElements()
             {
 
                 dtree3D->insert ( i->first ) ;
-
+//                 std::cout << i->first->getX() << "  " << i->first->getY() << "  " << i->first->getZ() << std::endl ;
 
                 if ( i->first->getId() == -1 )
                 {
+                    
                     toInsert.push_back ( i->first ) ;
                 }
             }
         }
-
+//         exit(0) ;
         bool correct = false ;
         int tries = correctionSteps ;
 
@@ -8082,7 +8062,7 @@ void FeatureTree::generateElements()
         std::cerr << " ...done. " << std::endl ;
 #endif
 //		dtree3D->purge() ;
-
+//         exit(0) ;
         if ( oldDtree )
         {
             setElementBehavioursFromMesh<Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>, DelaunayTetrahedron> ( oldDtree, dtree3D ) ;

@@ -28,9 +28,9 @@ virtual PointArray & getBoundingPoints()       \
 {                                                          \
 	return this->__geo_type__::getBoundingPoints() ;       \
 }                                                          \
-virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points)  const   \
+virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity)  const   \
 {                                                           \
-	return this->__geo_type__::getSamplingBoundingPoints(num_points) ; \
+	return this->__geo_type__::getSamplingBoundingPoints(linearDensity) ; \
 }                                                           \
 virtual GeometryType getGeometryType() const               \
 {                                                          \
@@ -68,13 +68,13 @@ virtual double getRadius() const                           \
 {                                                          \
 return this->__geo_type__::getRadius() ;                   \
 }                                                          \
-virtual void sampleBoundingSurface(size_t n)               \
+virtual void sampleBoundingSurface(double linearDensity)               \
 {                                                          \
-this->__geo_type__::sampleBoundingSurface(n) ;             \
+this->__geo_type__::sampleBoundingSurface(linearDensity) ;             \
 }                                                          \
-virtual void sampleSurface(size_t n)                       \
+virtual void sampleSurface(double linearDensity)                       \
 {                                                          \
-this->__geo_type__::sampleSurface(n) ;                     \
+this->__geo_type__::sampleSurface(linearDensity) ;                     \
 }                                                          \
 virtual SpaceDimensionality spaceDimensions() const        \
 {                                                          \
@@ -161,9 +161,9 @@ virtual PointArray & getBoundingPoints()       \
 {                                                          \
 	return this->LevelSet::getBoundingPoints() ;       \
 }                                                          \
-virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points)  const   \
+virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity)  const   \
 {                                                           \
-	return this->LevelSet::getSamplingBoundingPoints(num_points) ; \
+	return this->LevelSet::getSamplingBoundingPoints(linearDensity) ; \
 }                                                           \
 virtual GeometryType getGeometryType() const               \
 {                                                          \
@@ -826,13 +826,13 @@ public:
     virtual double getRadius() const = 0;
 
     /** \brief Sample the bounding surface with a given number of sampling points. the points are stored as boundingPoints*/
-    virtual void sampleBoundingSurface(size_t num_points) = 0 ;
+    virtual void sampleBoundingSurface(double linearDensity) = 0 ;
 
     /** \brief Return points sampling the bounding surface*/
-    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const = 0 ;
+    virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const = 0 ;
 
     /** \brief Sample the bounding surface and the surface of the Geometry. The points are stored as inpoints and bounding points */
-    virtual void sampleSurface(size_t num_points) = 0 ;
+    virtual void sampleSurface(double linearDensity) = 0 ;
 
     /** \brief Return true  if the argument is in the geometry*/
     virtual bool in(const Point & p)const  = 0;
@@ -1457,13 +1457,13 @@ public:
     virtual ~OrientableCircle() { } ;
 
     /** \brief Get points sampling the circle boundary*/
-    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const;
+    virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const;
 
     /** \brief Sample the circle boundary*/
-    virtual void sampleBoundingSurface(size_t num_points) ;
+    virtual void sampleBoundingSurface(double linearDensity) ;
 
     /** \brief sample the circle surface*/
-    virtual void sampleSurface(size_t num_points);
+    virtual void sampleSurface(double linearDensity);
 
     /** \brief return true if the argument lies in the circle*/
     virtual bool in(const Point & v) const ;

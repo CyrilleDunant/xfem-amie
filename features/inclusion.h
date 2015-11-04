@@ -88,7 +88,7 @@ public:
 	
 	GEO_DERIVED_OBJECT(Circle) ;
 
-	virtual void sample(size_t n) ;
+	virtual void sample(double linearDensity) ;
 	
 } ;
 
@@ -140,7 +140,7 @@ public:
 	
 	GEO_DERIVED_OBJECT(Triangle) ;
 
-	virtual void sample(size_t n) ;
+	virtual void sample(double linearDensity) ;
 	
 } ;
 
@@ -194,7 +194,7 @@ public:
 	
 	GEO_DERIVED_OBJECT(Ellipse) ;
 
-	virtual void sample(size_t n) ;
+	virtual void sample(double linearDensity) ;
 	
 } ;
 
@@ -248,7 +248,7 @@ public:
 	
 	GEO_DERIVED_OBJECT(OrientedRectangle) ;
 	
-	virtual void sample(size_t n) ;
+	virtual void sample(double linearDensity) ;
 	
 } ;
 

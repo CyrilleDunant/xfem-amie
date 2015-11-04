@@ -55,9 +55,9 @@ public:
 
     GEO_DERIVED_OBJECT(Polygon) ;
 
-    virtual void sample(size_t n)
+    virtual void sample(double linearDensity)
     {
-             this->sampleSurface(n) ;
+        sampleSurface(linearDensity) ;
 
     }
 

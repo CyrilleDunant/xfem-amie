@@ -48,16 +48,16 @@ public:
      *
      * @param num_points number of points to use for the sampling.
      */
-    virtual void sampleBoundingSurface(size_t num_points) ;
+    virtual void sampleBoundingSurface(double linearDensity) ;
 
     /** \brief Get set of points sampling the bounding surface.
      *
      * @param num_points number of points to use for the sampling.
      */
-    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
+    virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const ;
 
     /** \brief sample the volume of the tetrahedron*/
-    virtual void sampleSurface(size_t num_points);
+    virtual void sampleSurface(double linearDensity);
 
     /** \brief return in if the argument lies in the tetrahedron, as defined by its four vertices.*/
     virtual bool in(const Point &v) const ;
@@ -134,16 +134,16 @@ public:
      *
      * @param num_points number of points to use for the sampling.
      */
-    virtual void sampleBoundingSurface(size_t num_points) ;
+    virtual void sampleBoundingSurface(double linearDensity) ;
 
     /** \brief Get set of points sampling the bounding surface.
      *
      * @param num_points number of points to use for the sampling.
      */
-    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
+    virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const ;
 
     /** \brief sample the volume of the tetrahedron*/
-    virtual void sampleSurface(size_t num_points);
+    virtual void sampleSurface(double linearDensity);
 
     /** \brief return true if the argument lies in the geometry*/
     virtual bool in(const Point &v) const ;
@@ -200,16 +200,16 @@ public:
      *
      * @param num_points number of points to use for the sampling.
      */
-    virtual void sampleBoundingSurface(size_t num_points) ;
+    virtual void sampleBoundingSurface(double linearDensity) ;
 
     /** \brief Get set of points sampling the bounding surface.
      *
      * @param num_points number of points to use for the sampling.
      */
-    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
+    virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const ;
 
     /** \brief sample the volume of the tetrahedron*/
-    virtual void sampleSurface(size_t num_points);
+    virtual void sampleSurface(double linearDensity);
 
     /** \brief return true if the argument lies in the geometry*/
     virtual bool in(const Point &v) const ;
@@ -372,7 +372,7 @@ protected:
     double radius ;
     double sqradius ;
 
-    std::vector<Point> getSamplingPointsOnSphere(size_t num_points, double radius, size_t iter = 100, size_t threshold = 500) const ;
+    std::vector<Point> getSamplingPointsOnSphere(double linearDensity, double radius, size_t iter = 100, size_t threshold = 500) const ;
     virtual void project(Point * p, double r) const;
     void smooth(std::vector<Point> & points, double r, size_t iter = 100) const ;
 
@@ -396,18 +396,18 @@ public:
      *
      * @param num_points number of points to use for the sampling.
      */
-    virtual void sampleBoundingSurface(size_t num_points) ;
+    virtual void sampleBoundingSurface(double linearDensity) ;
 
     /** \brief Get set of points sampling the bounding surface.
      *
      * @param num_points number of points to use for the sampling.
      */
-    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
+    virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const ;
 
     std::vector<Point> getStandardSamplingBoundingPointsOnSphere(size_t n)	const ;
 
     /** \brief sample the volume of the sphere*/
-    virtual void sampleSurface(size_t num_points);
+    virtual void sampleSurface(double linearDensity);
 
     /** \brief return true if the argument lies in the sphere*/
     virtual bool in(const Point &v) const ;
@@ -434,7 +434,7 @@ public:
 
     virtual std::vector<Point> getBoundingBox() const ;
 
-    static void dumpSampleBoundingPoints(size_t n, size_t iter = 50) ;
+    static void dumpSampleBoundingPoints(double linearDensity, size_t iter = 50) ;
     static std::vector<Point> importStandardBoundingPoints(size_t n) ;
 
 } ;

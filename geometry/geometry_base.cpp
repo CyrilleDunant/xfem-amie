@@ -1525,7 +1525,7 @@ bool Geometry::intersects(const Geometry *g) const
 
         if(g->getGeometryType() == CIRCLE)
         {
-	    Point p(g->getCenter().getX(), g->getCenter().getY()) ;
+            Point p(g->getCenter().getX(), g->getCenter().getY()) ;
             Ellipse falseCircle(p, Point(g->getRadius(), 0.), Point(0.,g->getRadius())) ;
             return falseCircle.intersects(this) ;
         }
@@ -1548,10 +1548,10 @@ bool Geometry::intersects(const Geometry *g) const
             Point thisb(dynamic_cast<const Ellipse *>(this)->getMinorAxis().getX(), dynamic_cast<const Ellipse *>(this)->getMinorAxis().getY()) ;
 
             Ellipse gcopy(gcenter, ga, gb) ;
-            gcopy.sampleBoundingSurface(64) ;
+            gcopy.sampleBoundingSurface(64./ dynamic_cast<const Ellipse *>(g)->getPerimeter()) ;
 
             Ellipse thiscopy(thiscenter, thisa, thisb) ;
-            thiscopy.sampleBoundingSurface(64) ;
+            thiscopy.sampleBoundingSurface(64./dynamic_cast<const Ellipse *>(this)->getPerimeter()) ;
 
 		if(thiscopy.in(gcenter))
 		{
@@ -2410,7 +2410,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
             if(num_points < 3 )
                 return ret ;
 
-            C.sampleBoundingSurface(num_points) ;
+            C.sampleBoundingSurface(num_points/sqrt(g->area())) ;
             for(size_t i = 0 ;  i < num_points ; i++)
             {
                 ret.push_back(C.getBoundingPoint(i)) ;
@@ -4091,7 +4091,7 @@ bool Segment::intersects(const Geometry *g) const
 
         Ellipse ell(g->getCenter(), dynamic_cast<const Ellipse *>(g)->getMajorAxis(), dynamic_cast<const Ellipse *>(g)->getMinorAxis()) ;
 
-			ell.sampleBoundingSurface(128) ;
+		ell.sampleBoundingSurface(128.*M_PI/ell.getPerimeter()) ;
 
         for(size_t i = 0 ; i < ell.getBoundingPoints().size()-1 ; i++)
         {
@@ -5713,8 +5713,9 @@ OrientableCircle::OrientableCircle()
 }
 
 
-std::vector<Point> OrientableCircle::getSamplingBoundingPoints(size_t num_points) const
+std::vector<Point> OrientableCircle::getSamplingBoundingPoints(double linearDensity) const
 {
+    size_t num_points = round(2.*M_PI*radius*linearDensity) ;
     Vector start(3) ;
     start[0] = -normal.getY()*radius ;
     start[1] = normal.getX()*radius ;
@@ -5770,8 +5771,10 @@ std::vector<Point> OrientableCircle::getSamplingBoundingPoints(size_t num_points
     return ret ;
 }
 
-void OrientableCircle::sampleBoundingSurface(size_t num_points)
+void OrientableCircle::sampleBoundingSurface(double linearDensity)
 {
+    double length = 2.*M_PI*getRadius() ;
+    size_t num_points = round(linearDensity*length) ;
     if(num_points == 0)
         return ;
 
@@ -5826,12 +5829,13 @@ void OrientableCircle::sampleBoundingSurface(size_t num_points)
 
 }
 
-void OrientableCircle::sampleSurface(size_t num_points)
+void OrientableCircle::sampleSurface(double linearDensity)
 {
+    size_t num_points = round(2.*M_PI*getRadius()*linearDensity) ;
     if(num_points == 0)
         return ;
 
-    sampleBoundingSurface(num_points) ;
+    sampleBoundingSurface(linearDensity) ;
 
     std::vector<Point> toAdd ;
 

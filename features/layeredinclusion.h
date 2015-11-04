@@ -96,7 +96,7 @@ public:
 	
 	GEO_DERIVED_OBJECT(LayeredCircle) ;
 
-	virtual void sample(size_t n) ;
+	virtual void sample(double linearDensity) ;
 	
 } ;
 
@@ -130,7 +130,7 @@ public:
 	
 	GEO_DERIVED_OBJECT(Circle) ;
 
-	virtual void sample(size_t n) ;
+	virtual void sample(double linearDensity) ;
 	
 	
 } ;

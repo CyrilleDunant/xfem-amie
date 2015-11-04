@@ -104,11 +104,9 @@ public:
 
     /** \brief Sample the surface. Does nothing.
      *
-     * This is necessary as we need to implement the interface. Of course, for a segmented line, it makes no sense.
-     *
      * @param n
      */
-    virtual void sample(size_t n)
+    virtual void sample(double linearDensity)
     {
 
     }

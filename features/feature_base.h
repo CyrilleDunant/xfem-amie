@@ -234,7 +234,7 @@ public:
 	virtual const Point & getCenter() const = 0 ;
 	virtual double getRadius() const = 0 ;
 	virtual double area() const = 0 ;
-	virtual void sample(size_t n) = 0 ;
+	virtual void sample(double linearDensity) = 0 ;
 	
 	virtual bool isVoid( const Point &) const = 0 ;
 	
@@ -321,7 +321,7 @@ public:
 	/** \brief return true if enrichment geometry has changed*/
 	virtual bool moved() const = 0;
         
-        virtual double grade() { return -1 ;} ;
+    virtual double grade() { return -1 ;} ;
 	
 } ;
 

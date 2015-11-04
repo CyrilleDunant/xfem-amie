@@ -1577,7 +1577,7 @@ void BranchedCrack::print() const
 
 }
 
-void BranchedCrack::sample(size_t)
+void BranchedCrack::sample(double linearDensity)
 {
 	return ;
 }

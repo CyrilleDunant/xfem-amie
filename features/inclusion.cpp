@@ -74,9 +74,9 @@ Inclusion::Inclusion(Circle c) : Circle(c.getRadius(), c.getCenter()), Feature(n
 }
 
 
-void Inclusion::sample(size_t n)
+void Inclusion::sample(double linearDensity)
 {
-	this->sampleSurface(n*5/4) ;
+	this->sampleSurface(linearDensity) ;
 }
 
 
@@ -136,11 +136,11 @@ TriangularInclusion::TriangularInclusion(const Point & a, const Point & b, const
 }
 
 
-void TriangularInclusion::sample(size_t n)
+void TriangularInclusion::sample(double linearDensity)
 {
 // 	delete this->boundary ;
 // 	this->boundary = new Circle(radius + radius/(0.25*n), this->Circle::getCenter()) ;
-	this->sampleSurface(n*5/4) ;
+	this->sampleSurface(linearDensity) ;
 }
 
 std::vector<Geometry *> TriangularInclusion::getRefinementZones(size_t level) const
@@ -205,9 +205,9 @@ RectangularInclusion::RectangularInclusion(const Point & a, const Point & b, con
 }
 
 
-void RectangularInclusion::sample(size_t n)
+void RectangularInclusion::sample(double linearDensity)
 {
-	this->sampleSurface(n*3/2) ;
+	this->sampleSurface(linearDensity) ;
 }
 
 std::vector<Geometry *> RectangularInclusion::getRefinementZones(size_t level) const
@@ -305,9 +305,9 @@ std::vector<DelaunayTriangle *> EllipsoidalInclusion::getElements2D( FeatureTree
 	return ret ;
 }
 
-void EllipsoidalInclusion::sample(size_t n)
+void EllipsoidalInclusion::sample(double linearDensity)
 {
-	this->sampleSurface(n*3/2) ;
+	this->sampleSurface(linearDensity) ;
 
 }
 

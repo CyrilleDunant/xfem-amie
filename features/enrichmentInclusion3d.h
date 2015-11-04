@@ -96,7 +96,7 @@ public:
 	 * 
 	 * @param n 
 	 */
-	virtual void sample(size_t n)
+	virtual void sample(double linearDensity)
 	{
 		
 	}

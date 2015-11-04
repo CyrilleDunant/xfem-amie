@@ -88,9 +88,9 @@ LayeredInclusion::LayeredInclusion(double r, Point center) : CompositeFeature(nu
 }
 
 
-void LayeredInclusion::sample(size_t n)
+void LayeredInclusion::sample(double linearDensity)
 {
-	this->sampleSurface(n) ;
+	this->sampleSurface(linearDensity) ;
 
 }
 
@@ -239,7 +239,7 @@ Form * VirtualLayer::getBehaviour(const Point & p) const
 	return source->getBehaviour(p) ;
 }
 
-void VirtualLayer::sample(size_t n)
+void VirtualLayer::sample(double linearDensity)
 {
 
 }

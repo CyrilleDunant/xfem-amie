@@ -55,10 +55,10 @@ public:
     virtual double getRadius() const ;
 
     /** \brief sample the triangle borders*/
-    virtual void sampleBoundingSurface(size_t num_points)  ;
+    virtual void sampleBoundingSurface(double linearDensity)  ;
 
     /** \brief sample the triangle surface*/
-    virtual void sampleSurface(size_t num_points)  ;
+    virtual void sampleSurface(double linearDensity)  ;
 
     /** \brief return true if the argument is in the triangle*/
     virtual bool in(const Point & p) const ;
@@ -69,7 +69,7 @@ public:
     }
 
     /** \brief return a set of sampling points sampling the bounding surface*/
-    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
+    virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const ;
 
     /** \brief project the argument to the triangle boundary*/
     virtual void project(Point *) const ;
@@ -128,13 +128,13 @@ public:
     virtual ~Rectangle() { } ;
 
     /** \brief Sample the bounding surface with a given number of sampling points. the points are stored as boundingPoints*/
-    virtual void sampleBoundingSurface(size_t num_points) ;
+    virtual void sampleBoundingSurface(double linearDensity) ;
 
     /** \brief Sample the surface with a given number of sampling points. the points are stored as inPoints*/
-    virtual void sampleSurface(size_t num_points) ;
+    virtual void sampleSurface(double linearDensity) ;
 
     /** \brief get points sampling the bounding surface*/
-    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
+    virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const ;
 
     /** \brief return the width*/
     virtual double width() const ;
@@ -211,13 +211,13 @@ public:
     virtual double getRadius() const ;
 
     /** \brief Sample the bounding surface*/
-    virtual void sampleBoundingSurface(size_t num_points)  ;
+    virtual void sampleBoundingSurface(double linearDensity)  ;
 
     /** \brief return set of points sampling the bounding surface*/
-    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
+    virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const ;
 
     /** \brief sample the surface of the rectangle*/
-    virtual void sampleSurface(size_t num_points)  ;
+    virtual void sampleSurface(double linearDensity)  ;
 
     /** \brief return false*/
     virtual bool is1D() const ;
@@ -289,10 +289,10 @@ public:
      *
      * @param num_points points to place on the surface.
      */
-    virtual void sampleBoundingSurface(size_t num_points) ;
+    virtual void sampleBoundingSurface(double linearDensity) ;
 
     /** \brief return set of points sampling the bounding surface*/
-    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
+    virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const ;
 
     /** \brief return set of points sampling the bounding surface, given two angles (in radians)*/
     virtual std::vector<Point> getSamplingBoundingPointsOnArc(size_t num_points, const Point & start, const Point & finish, bool reverse = false) const final;
@@ -303,7 +303,7 @@ public:
      *
      * @param num_points number of points <b>on the boundary</b>.
      */
-    virtual void sampleSurface(size_t num_points);
+    virtual void sampleSurface(double linearDensity);
     virtual bool in(const Point &v) const ;
 
     /** \brief Return the circle Radius.
@@ -414,8 +414,8 @@ public:
      *
      * @param num_points number of points to use for the sampling.
      */
-    virtual void sampleBoundingSurface(size_t num_points) ;
-    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
+    virtual void sampleBoundingSurface(double linearDensity) ;
+    virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const ;
 
     /** \brief Sample The bounding surface.
      *
@@ -423,7 +423,7 @@ public:
      *
      * @param num_points number of points to use for the sampling.
      */
-    virtual void sampleSurface(size_t num_points) ;
+    virtual void sampleSurface(double linearDensity) ;
 
 
     /** \brief Is point in ?
@@ -490,11 +490,11 @@ public:
 
     virtual ~Polygon() ;
 
-    virtual void sampleBoundingSurface(size_t num_points) ;
+    virtual void sampleBoundingSurface(double linearDensity) ;
 
-    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
+    virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const ;
 
-    virtual void sampleSurface(size_t num_points) ;
+    virtual void sampleSurface(double linearDensity) ;
 
     virtual bool in(const Point & v) const ;
 
@@ -672,10 +672,10 @@ public:
      *
      * @param num_points points to place on the surface.
      */
-    virtual void sampleBoundingSurface(size_t num_points) ;
+    virtual void sampleBoundingSurface(double linearDensity) ;
 
     /** \brief return set of points sampling the bounding surface*/
-    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
+    virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const ;
 
 //	/** \brief return set of points sampling the bounding surface, given two angles (in radians)*/
 //	virtual std::vector<Point> getSamplingBoundingPointsOnArc(size_t num_points, const Point & start, const Point & finish) const ;
@@ -686,7 +686,7 @@ public:
      *
      * @param num_points number of points <b>on the boundary</b>.
      */
-    virtual void sampleSurface(size_t num_points) ;
+    virtual void sampleSurface(double linearDensity) ;
     virtual bool in(const Point &v) const ;
 
     /** \brief Calculate the area.
@@ -697,6 +697,12 @@ public:
      */
     virtual double area() const {
         return M_PI * getMajorRadius() * getMinorRadius() ;
+    } ;
+    
+    virtual double getPerimeter() const
+    {
+       double h = (getMajorRadius()-getMinorRadius())*(getMajorRadius()-getMinorRadius())/((getMajorRadius()+getMinorRadius())*(getMajorRadius()+getMinorRadius())) ;
+       return M_PI*(getMajorRadius()+getMinorRadius())*(1.+h*h/4.+h*h*h*h/64.+h*h*h*h*h*h/256.+25.*h*h*h*h*h*h*h*h/16384.)  ;
     } ;
 
     /** \brief return 0*/

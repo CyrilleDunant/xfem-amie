@@ -83,9 +83,9 @@ bool Pore::interacts(Feature * f, double d) const
 	return false ;
 }	
 
-void Pore::sample(size_t n)
+void Pore::sample(double linearDensity)
 {
-	this->Circle::sampleSurface(n) ;
+	this->Circle::sampleSurface(linearDensity) ;
 // 	this->Circle::sampleBoundingSurface(n) ;
 // 	this->inPoints->resize(1) ;
 // 	(*this->inPoints)[0] = new Point(this->center.getX(), this->center.getY()) ;
@@ -143,11 +143,11 @@ TriangularPore::TriangularPore(const Point & a, const Point & b, const Point & c
 }
 
 
-void TriangularPore::sample(size_t n)
+void TriangularPore::sample(double linearDensity)
 {
 // 	n = std::max(3*n, (size_t)32) ;
 
-	this->sampleSurface(n*1.5) ;
+	this->sampleSurface(linearDensity) ;
 }
 
 
