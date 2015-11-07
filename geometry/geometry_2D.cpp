@@ -1126,7 +1126,7 @@ void Rectangle::sampleSurface(double linearDensity)
 
 //     if(std::max(size_x/size_y, size_y/size_x) < 10)
 //     {
-        sampleBoundingSurface(linearDensity) ;
+        sampleBoundingSurface(linearDensity*2.) ;
 //     }
 //     else if(std::max(size_x/size_y, size_y/size_x) < 60)
 //     {

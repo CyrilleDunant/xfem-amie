@@ -151,7 +151,7 @@ int main( int argc, char *argv[] )
     featureTree = &F ;
 
     double itzSize = 0.00002;
-    int inclusionNumber =  3000 ; 1 ;
+    int inclusionNumber = 3000 ; 1 ;
 
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
@@ -180,7 +180,7 @@ int main( int argc, char *argv[] )
 //     voidtop->isVirtualFeature = true ;
     voidtop->setBehaviour( new VoidForm() );
     F.addFeature( &sample, voidtop );
-    F.setSamplingFactor(voidtop, 8.);
+//     F.setSamplingFactor(voidtop, 8.);
 
     Sample *voidbottom = new Sample( nullptr, restraintDepth * .5, 
                                               restraintDepth * .5, 
@@ -189,7 +189,7 @@ int main( int argc, char *argv[] )
 //     voidbottom->isVirtualFeature = true ;
     voidbottom->setBehaviour( new VoidForm() );
     F.addFeature( &sample, voidbottom );
-    F.setSamplingFactor(voidbottom, 8.);
+//     F.setSamplingFactor(voidbottom, 8.);
 
     Sample *voidleft = new Sample( nullptr, restraintDepth * .5, 
                                             restraintDepth * .5, 
@@ -198,7 +198,7 @@ int main( int argc, char *argv[] )
 //     voidleft->isVirtualFeature = true ;
     voidleft->setBehaviour( new VoidForm() );
     F.addFeature( &sample, voidleft );
-    F.setSamplingFactor(voidleft, 8.);
+//     F.setSamplingFactor(voidleft, 8.);
 
     Sample *voidright = new Sample( nullptr, restraintDepth * .5, 
                                              restraintDepth * .5, 
@@ -207,7 +207,7 @@ int main( int argc, char *argv[] )
 //     voidright->isVirtualFeature = true ;
     voidright->setBehaviour( new VoidForm() );
     F.addFeature( &sample, voidright );
-    F.setSamplingFactor(voidright, 8.);
+//     F.setSamplingFactor(voidright, 8.);
 
     //width are  1100000000 3340000000  4360000000      done: 
     //length are 1220000000 2180000000  3400000000      next: 
@@ -224,7 +224,7 @@ int main( int argc, char *argv[] )
         blocks.push_back(blocktop);
     }
     F.addFeature( &sample, blocktop );
-    F.setSamplingFactor(blocktop, 8.);
+//     F.setSamplingFactor(blocktop, 8.);
 
     Sample *blockbottom = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
     if(fact0 > 10)
@@ -238,7 +238,7 @@ int main( int argc, char *argv[] )
         blocks.push_back(blockbottom);
     }
     F.addFeature( &sample, blockbottom );
-    F.setSamplingFactor(blockbottom, 16.);
+//     F.setSamplingFactor(blockbottom, 16.);
 
     Sample *blockleft = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().getX() - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().getY() ) ;
     if(fact > 10)
@@ -252,7 +252,7 @@ int main( int argc, char *argv[] )
         blocks.push_back(blockleft);
     }
     F.addFeature( &sample, blockleft );
-    F.setSamplingFactor(blockleft, 16.);
+//     F.setSamplingFactor(blockleft, 16.);
 
     Sample *blockright = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().getY() ) ;
     if(fact > 10)
@@ -266,13 +266,13 @@ int main( int argc, char *argv[] )
         blocks.push_back(blockright);
     }
     F.addFeature( &sample, blockright );
-    F.setSamplingFactor(blockright, 8.);
+//     F.setSamplingFactor(blockright, 8.);
 
 
 
     for( size_t i = 0 ; i < feats.size() ; i++ )
     {
-        F.setSamplingFactor(feats[i], 4.);
+//         F.setSamplingFactor(feats[i], 4.);
         placed_area += feats[i]->area() ;
     }
 
@@ -296,7 +296,7 @@ int main( int argc, char *argv[] )
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , BOTTOM ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , TOP ) ) ;
 
-    F.setSamplingFactor(&sample, 2.);
+//     F.setSamplingFactor(&sample, 1.5);
     F.setOrder( LINEAR ) ;
 
     step( feats, blocks) ;

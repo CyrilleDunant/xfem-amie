@@ -48,7 +48,7 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
 
         for( size_t j = 0 ; j < zonesToPlace.size() ; j++ )
         {
-            if( dist( pos, zonesToPlace[j]->Circle::getCenter() ) < deltaRadius*400. )
+            if( dist( pos, zonesToPlace[j]->Circle::getCenter() ) < deltaRadius*200. )
             {
                 alone = false ;
                 break ;
