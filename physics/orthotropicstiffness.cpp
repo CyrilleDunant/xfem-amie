@@ -22,6 +22,16 @@ using namespace Amie ;
 
 void OrthotropicStiffness::setAngle(double angle)
 {
+    if(angle < POINT_TOLERANCE)
+    {
+        if(v.size() == 2)
+            transform = identity(3) ;
+        else
+            transform = identity(6) ;
+        transformt = transform.transpose() ;
+        transformset = true ;
+    }
+    
     if(v.size() == 2)
     {
         double c = cos(angle) ;
@@ -34,7 +44,7 @@ void OrthotropicStiffness::setAngle(double angle)
         transform[1][2] = -2.*s*c ;
         transform[2][0] = -s*c ;
         transform[2][1] = s*c ;
-        transform[2][2] =     c*c - s*s ;
+        transform[2][2] = c*c - s*s ;
         transformt = transform.transpose() ;
         transformset = true ;
     }
