@@ -32,7 +32,7 @@ struct ConjugateGradient : public LinearSolver
     bool cleanup ;
     Preconditionner * P ;
     size_t nit ;
-    size_t nssor = 32 ;
+    size_t nssor = 64 ;
 
     virtual ~ConjugateGradient() {
         if(cleanup) delete P ;

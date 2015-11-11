@@ -113,7 +113,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     Vector rcompensate(0., r.size()) ;
     Vector xcompensate(0., x.size()) ; 
     nit = 0 ;
-        
+    double perr = 1 ;
+    int multi = 1 ;
     for( ; nit < Maxit ; )
     {
         size_t localnit = 0 ;
@@ -199,8 +200,11 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             return true ;
         }
         std::cerr << "p\t" << err0 << std::endl  ;
-
-        
+        if(nit && std::abs(err0-perr) < 1e-4*std::max(err0, perr))
+            multi *=2 ;
+        else if(nit)
+            multi = 1 ;
+        perr = err0 ;
         z = r ;
         P->precondition(r,z) ;
 
@@ -244,7 +248,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             localeps *= 0.1 ;
 
 
-        while(sqrt(std::abs(last_rho)) > localeps && localnit < std::max(assembly->getForces().size()/16, (size_t)256))
+        while(sqrt(std::abs(last_rho)) > localeps && localnit < multi*std::max(assembly->getForces().size()/16, (size_t)256))
         {
             localnit++ ;
 

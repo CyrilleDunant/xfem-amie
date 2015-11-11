@@ -69,7 +69,7 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
 
         for( size_t j = 0 ; j < aggregates.size() ; j++ )
         {
-            if( dist( zonesToPlace[i]->getCenter(), aggregates[j]->getCenter() ) < aggregates[j]->getRadius() - deltaRadius*4 && baseGeometry.in( zonesToPlace[i]->getCenter() ) )
+            if( dist( zonesToPlace[i]->getCenter(), aggregates[j]->getCenter() ) < aggregates[j]->getRadius() - deltaRadius*50. && baseGeometry.in( zonesToPlace[i]->getCenter() ) )
             {
                 zonesPerIncs[aggregates[j]]++ ; ;
                 ftree->addFeature( aggregates[j], zonesToPlace[i] ) ;

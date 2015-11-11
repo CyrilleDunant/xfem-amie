@@ -1321,7 +1321,7 @@ void Circle::sampleSurface(double linearDensity)
     
     if(!sampled)
     {
-        sampleBoundingSurface(linearDensity*2.) ;
+        sampleBoundingSurface(linearDensity*2.5) ;
         sampled = true ;
         size_t numberOfRings = static_cast<size_t>((double)num_points/(2. * M_PI )) ;
 
