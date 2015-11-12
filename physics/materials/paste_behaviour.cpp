@@ -28,7 +28,7 @@ PasteBehaviour::PasteBehaviour(double E, double nu, double up, double yield, dou
 Form * PasteBehaviour::getCopy() const
 {
     std::default_random_engine generator(std::rand());
-    std::weibull_distribution< double > distribution(1, 5);
+    std::weibull_distribution< double > distribution(5, 1);
     double weib = distribution(generator) ;
     double factor = 1. - variability + variability*weib ;
 //	return new Stiffness(param*factor) ;
@@ -46,7 +46,7 @@ ElasticOnlyPasteBehaviour::ElasticOnlyPasteBehaviour(double E, double nu, SpaceD
 Form * ElasticOnlyPasteBehaviour::getCopy() const
 {
     std::default_random_engine generator(std::rand());
-    std::weibull_distribution< double > distribution(1, 5);
+    std::weibull_distribution< double > distribution(5, 1);
     double weib = distribution(generator) ;
     double factor = 1. - variability + variability*weib ;
     return new Stiffness(param*factor) ;
@@ -60,7 +60,7 @@ ViscoElasticOnlyPasteBehaviour::ViscoElasticOnlyPasteBehaviour(double E, double 
 Form * ViscoElasticOnlyPasteBehaviour::getCopy() const
 {
     std::default_random_engine generator(std::rand());
-    std::weibull_distribution< double > distribution(1, 5);
+    std::weibull_distribution< double > distribution(5, 1);
     double weib = distribution(generator) ;
     double factor = 1. - variability + variability*weib ;
 
@@ -80,7 +80,7 @@ Form * ViscoElasticOnlyPasteBehaviour::getCopy() const
 Form * ShortTermViscoElasticOnlyPasteBehaviour::getCopy() const
 {
     std::default_random_engine generator(std::rand());
-    std::weibull_distribution< double > distribution(1, 5);
+    std::weibull_distribution< double > distribution(5, 1);
     double weib = distribution(generator) ;
     double factor = 1. - variability + variability*weib ;
 
@@ -118,7 +118,7 @@ ViscoDamagePasteBehaviour::ViscoDamagePasteBehaviour(double E, double nu, double
 Form * ViscoDamagePasteBehaviour::getCopy() const
 {
     std::default_random_engine generator(std::rand());
-    std::weibull_distribution< double > distribution(1, 5);
+    std::weibull_distribution< double > distribution(5, 1);
     double weib = distribution(generator) ;
     double factor = 1. - variability + variability*weib ;
 
@@ -165,7 +165,7 @@ Form * ViscoDamagePasteBehaviour::getCopy() const
 Form * ShortTermViscoDamagePasteBehaviour::getCopy() const
 {
     std::default_random_engine generator(std::rand());
-    std::weibull_distribution< double > distribution(1, 5);
+    std::weibull_distribution< double > distribution(5, 1);
     double weib = distribution(generator) ;
     double factor = 1. - variability + variability*weib ;
 
@@ -211,7 +211,7 @@ PseudoBurgerViscoElasticOnlyPasteBehaviour::PseudoBurgerViscoElasticOnlyPasteBeh
 Form * PseudoBurgerViscoElasticOnlyPasteBehaviour::getCopy() const
 {
     std::default_random_engine generator(std::rand());
-    std::weibull_distribution< double > distribution(1, 5);
+    std::weibull_distribution< double > distribution(5, 1);
     double weib = distribution(generator) ;
     double factor = 1. - variability + variability*weib ;
 
@@ -239,7 +239,7 @@ Form * PseudoBurgerViscoDamagePasteBehaviour::getCopy() const
 {
 
     std::default_random_engine generator(std::rand());
-    std::weibull_distribution< double > distribution(1, 5);
+    std::weibull_distribution< double > distribution(5, 1);
     double weib = distribution(generator) ;
     double factor = 1. - variability + variability*weib ;
 

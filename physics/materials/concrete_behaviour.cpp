@@ -24,7 +24,7 @@ Form * ConcreteBehaviour::getCopy() const
 {
 // 	return new Stiffness(param) ;
         std::default_random_engine generator(std::rand());
-        std::weibull_distribution< double > distribution(1, 5);
+        std::weibull_distribution< double > distribution(5, 1);
         double weib = distribution(generator) ;
 	double factor = 1. - variability + variability*weib ;
 //	weib = distribution(generator) ;

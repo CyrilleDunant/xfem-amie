@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	rect.setBehaviour(new WeibullDistributedElasticStiffness(20e9, 0.2, 0.2) ) ;
 
 	FeatureTree f(&rect) ;
-	f.setSamplingNumber(32) ;
+	f.setSamplingNumber(64) ;
         f.setDeltaTime(1) ;
 	
 	f.step() ;
@@ -77,18 +77,18 @@ int main(int argc, char *argv[])
 	out << min << "\t" << max << std::endl ;
 	out << avg << "\t" << stdev << std::endl ;
 
-	Vector histogram(30) ;
+	Vector histogram(10) ;
 	for(size_t i = 0 ; i < trg.size() ; i++)
 	{
 		for(size_t j = 0 ; j < histogram.size() ; j++)
 		{
-			if( stiffness[i] < j*5e9)
+			if( stiffness[i] < 16e9+j*1e9)
 				histogram[j] += area[i] ;
 		}
 	}
 
 	for(size_t j = 0 ; j < histogram.size() ; j++)
-		out << j*5e9 << "\t" << histogram[j]/total << std::endl ;
+		out << 16e9+j*1e9 << "\t" << histogram[j]/total << std::endl ;
 
 	return 0 ;
 }

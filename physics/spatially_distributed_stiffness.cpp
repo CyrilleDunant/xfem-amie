@@ -50,7 +50,7 @@ bool SpatiallyDistributedStiffness::fractured() const
 Form * SpatiallyDistributedStiffness::getCopy() const
 {
     std::default_random_engine generator;
-    std::weibull_distribution< double > distribution(1, 5);
+    std::weibull_distribution< double > distribution(5, 1);
     double weib = distribution(generator) ;
     double factor = 1 - variability + variability*weib ;
     Matrix newTensor(param*factor) ;

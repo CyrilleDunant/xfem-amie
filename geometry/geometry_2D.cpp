@@ -1812,7 +1812,7 @@ std::vector<Point> Ellipse::getSamplingBoundingPoints(double linearDensity) cons
     ret.push_back( all[0] ) ;
     double finish = 1e9 ;
     size_t i = 0 ;
-    std::cout << all.size() << std::endl ;
+//    std::cout << all.size() << std::endl ;
     while(finish > dist*dist && i < all.size()-2)
     {
         size_t j = i+1 ;
