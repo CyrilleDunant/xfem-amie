@@ -28,6 +28,24 @@ struct NoLogCreepAccumulator : public LogCreepAccumulator
 	virtual LogCreepAccumulator * getCopy() const { return new NoLogCreepAccumulator() ; }
 } ;
 
+/*PARSE StrainConsolidation LogCreepAccumulator */
+struct StrainConsolidationLogCreepAccumulator : public LogCreepAccumulator
+{
+	double currentStrain = 0 ;
+	double currentMaxwellStrain = 0 ;
+	double fakeSpring = 0 ;
+	double k = 0 ;
+	double tau = 0 ;
+
+	StrainConsolidationLogCreepAccumulator() : LogCreepAccumulator() { } ;
+        virtual ~StrainConsolidationLogCreepAccumulator() { } ;
+	virtual LogCreepAccumulator * getCopy() const { return new StrainConsolidationLogCreepAccumulator() ; }
+	virtual void preProcess( double timeStep, ElementState & currentState ) ;
+	virtual double getKelvinVoigtSpringReduction() const ;
+	virtual double getKelvinVoigtDashpotReduction() const ;
+} ;
+
+
 /*PARSE RealTime LogCreepAccumulator
 	@value[viscous_flow] 0 // initial value of the viscous strain
 */
@@ -35,9 +53,9 @@ struct RealTimeLogCreepAccumulator : public LogCreepAccumulator
 {
 	double t ;
 	double tau ;
-	double fakeSpring ;
-        double flow = 0. ;
-	RealTimeLogCreepAccumulator(double f = 0.) : LogCreepAccumulator(), t(0.), tau(1.), fakeSpring(f) { } ;
+	double fakeSpring = 0.;
+        double flow ;
+	RealTimeLogCreepAccumulator(double f = 0.) : LogCreepAccumulator(), t(0.), tau(1.), flow(f) { } ;
 	virtual void preProcess( double timeStep, ElementState & currentState ) ;
 	virtual double getKelvinVoigtSpringReduction() const ;
 	virtual double getKelvinVoigtDashpotReduction() const ;

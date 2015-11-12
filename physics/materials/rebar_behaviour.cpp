@@ -18,7 +18,7 @@ RebarBehaviour::RebarBehaviour(double E, double nu, double tensile, SpaceDimensi
 
 Form * RebarBehaviour::getCopy() const 
 {
-        std::default_random_engine generator;
+        std::default_random_engine generator(std::rand());
         std::weibull_distribution< double > distribution(1, 5);
         double weib = distribution(generator) ;
 	double factor = 1 - variability + variability*weib ;

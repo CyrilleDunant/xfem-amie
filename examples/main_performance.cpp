@@ -89,7 +89,7 @@ int main( int argc, char *argv[] )
     box.setBehaviour( paste ) ;
 
     FeatureTree F(&box) ;
-    F.setSamplingRestriction( 8 ) ;
+    F.setSamplingRestriction( 0.002 ) ;
     F.setDeltaTime( 0.01 ) ;
     parser.setFeatureTree( &F ) ;
 

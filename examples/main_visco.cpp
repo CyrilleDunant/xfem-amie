@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 	F.setSamplingNumber(128) ;
 	F.setDeltaTime(1) ;
 	F.setMinDeltaTime(1e-9) ;
-	F.setSamplingRestriction( 4 ) ;
+	F.setSamplingRestriction( 0.0005 ) ;
 
 	std::vector<Feature *> finc = PSDGenerator::get2DConcrete( &F, aggregate, 6000, 0.008, 0.000001, new PSDBolomeA(), new InclusionGenerator(), 6000*10) ; 
 

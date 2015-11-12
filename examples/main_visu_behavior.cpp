@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     F.setOrder(LINEAR) ;
     //F.setOrder(LINEAR_TIME_LINEAR) ;
 //    F.setMinDeltaTime(1e-9) /*Gere l'endommagement'*/;
-    F.setSamplingRestriction( 4 ) ;
+    F.setSamplingRestriction( 0.01 ) ;
 
     std::valarray<Point *> pts(5) ;
     pts[0] = new Point(-80, 50) ;

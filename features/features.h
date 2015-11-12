@@ -114,7 +114,7 @@ protected:
 
     std::set<long unsigned int> changedDofs ;
     std::vector<Vector> reportValues ; 
-    size_t samplingRestriction ;
+    double samplingRestriction ;
 
     std::vector<std::vector<double>> cachedVolumes ;
     std::vector<Point *> extraPoints ;
@@ -388,7 +388,7 @@ public:
         return layer2d.size() ;
     }
 
-    void setSamplingRestriction ( size_t sr ) {
+    void setSamplingRestriction ( double sr ) {
         samplingRestriction = sr ;
     }
 

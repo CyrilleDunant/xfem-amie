@@ -23,7 +23,7 @@ ConcreteBehaviour::ConcreteBehaviour(double E, double nu, double compressive, pl
 Form * ConcreteBehaviour::getCopy() const 
 {
 // 	return new Stiffness(param) ;
-        std::default_random_engine generator;
+        std::default_random_engine generator(std::rand());
         std::weibull_distribution< double > distribution(1, 5);
         double weib = distribution(generator) ;
 	double factor = 1. - variability + variability*weib ;

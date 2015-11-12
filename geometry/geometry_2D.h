@@ -531,6 +531,8 @@ protected:
 
     Point majorAxis ;
     Point minorAxis ;
+    double perimeter = -1 ;
+
     virtual void computeCenter() ;
 
 public:
@@ -701,8 +703,7 @@ public:
     
     virtual double getPerimeter() const
     {
-       double h = (getMajorRadius()-getMinorRadius())*(getMajorRadius()-getMinorRadius())/((getMajorRadius()+getMinorRadius())*(getMajorRadius()+getMinorRadius())) ;
-       return M_PI*(getMajorRadius()+getMinorRadius())*(1.+h*h/4.+h*h*h*h/64.+h*h*h*h*h*h/256.+25.*h*h*h*h*h*h*h*h/16384.)  ;
+        return perimeter ;
     } ;
 
     /** \brief return 0*/

@@ -14,6 +14,55 @@ void LogCreepAccumulator::preProcess( double timeStep, ElementState & currentSta
     error.push_back( error[error.size() -1] + 1./( timeStep * log(1.+currentState.getNodalCentralTime() ) ) ) ;
 }
 
+void StrainConsolidationLogCreepAccumulator::preProcess( double timeStep, ElementState & currentState )
+{
+    LogCreepAccumulator::preProcess(timeStep, currentState) ;
+
+    tau = dynamic_cast<LogarithmicCreep *>(currentState.getParent()->getBehaviour())->tau ;
+    if(k == 0)
+        k = dynamic_cast<LogarithmicCreep *>(currentState.getParent()->getBehaviour())->E[0][0]/dynamic_cast<LogarithmicCreep *>(currentState.getParent()->getBehaviour())->C[0][0] ;
+
+    if(currentState.getDisplacements().size() == 0)
+    {
+        return ;
+    }
+
+    Vector pstr((2+(currentState.getParent()->spaceDimensions()==SPACE_THREE_DIMENSIONAL))) ;
+    pstr = 0 ;
+    dynamic_cast<GeneralizedSpaceTimeViscoElasticElementState &>(currentState).getAverageField( PRINCIPAL_MECHANICAL_STRAIN_FIELD, pstr, nullptr, -1, 1 ) ;
+    if(std::abs(pstr.min()) > std::abs(pstr.max()))
+        currentStrain = pstr.min() ;
+    else
+        currentStrain = pstr.max() ;
+
+    Vector gstr(pstr.size()*3) ;
+    gstr = 0 ;
+    dynamic_cast<GeneralizedSpaceTimeViscoElasticElementState &>(currentState).getAverageField( GENERALIZED_VISCOELASTIC_PRINCIPAL_STRAIN_FIELD, gstr, nullptr, -1, 1 ) ;
+    for(size_t i = 0 ; i < pstr.size() ; i++)
+        pstr[i] = gstr[ pstr.size()+i ] ;
+    
+    if(std::abs(pstr.min()) > std::abs(pstr.max()))
+        currentMaxwellStrain = pstr.min() ;
+    else
+        currentMaxwellStrain = pstr.max() ;
+
+}
+
+double StrainConsolidationLogCreepAccumulator::getKelvinVoigtSpringReduction() const
+{
+//	double x = 1.+t/tau ;
+    return fakeSpring ;//*x ;//1./(1.+std::log(x)) ;
+}
+
+double StrainConsolidationLogCreepAccumulator::getKelvinVoigtDashpotReduction() const
+{
+    if(std::abs(currentStrain) < POINT_TOLERANCE)
+        return (1.-fakeSpring)/(tau*(1.+fakeSpring)) ;
+    if(currentMaxwellStrain/currentStrain < POINT_TOLERANCE)
+        return (1.-fakeSpring)/(tau*(1.+fakeSpring)) ;
+    return (1.-fakeSpring)*(std::exp(currentMaxwellStrain/(k*currentStrain)))/(tau*(1.+fakeSpring)) ;
+}
+
 void RealTimeLogCreepAccumulator::preProcess( double timeStep, ElementState & currentState )
 {
     LogCreepAccumulator::preProcess(timeStep, currentState) ;

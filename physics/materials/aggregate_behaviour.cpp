@@ -27,7 +27,7 @@ AggregateBehaviour::AggregateBehaviour(double E, double nu, double up_, double y
 
 Form * AggregateBehaviour::getCopy() const 
 {
-        std::default_random_engine generator;
+        std::default_random_engine generator(std::rand());
         std::weibull_distribution< double > distribution(1, 5);
         double weib = distribution(generator) ;
 	double factor = 1. - variability + variability*weib ;
@@ -46,7 +46,7 @@ ElasticOnlyAggregateBehaviour::ElasticOnlyAggregateBehaviour(double E, double nu
 
 Form * ElasticOnlyAggregateBehaviour::getCopy() const 
 {
-        std::default_random_engine generator;
+        std::default_random_engine generator(std::rand());
         std::weibull_distribution< double > distribution(1, 5);
         double weib = distribution(generator) ;
 	double factor = 1. - variability + variability*weib ;
@@ -63,7 +63,7 @@ ViscoElasticOnlyAggregateBehaviour::ViscoElasticOnlyAggregateBehaviour(double E,
 
 Form * ViscoElasticOnlyAggregateBehaviour::getCopy() const 
 {
-        std::default_random_engine generator;
+        std::default_random_engine generator(std::rand());
         std::weibull_distribution< double > distribution(1, 5);
         double weib = distribution(generator) ;
 	double factor = 1. - variability + variability*weib ;
@@ -78,7 +78,7 @@ ViscoDamageAggregateBehaviour::ViscoDamageAggregateBehaviour(double E, double nu
 
 Form * ViscoDamageAggregateBehaviour::getCopy() const 
 {
-        std::default_random_engine generator;
+        std::default_random_engine generator(std::rand());
         std::weibull_distribution< double > distribution(1, 5);
         double weib = distribution(generator) ;
 	double factor = 1. - variability + variability*weib ;

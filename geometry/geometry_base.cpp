@@ -1533,14 +1533,34 @@ bool Geometry::intersects(const Geometry *g) const
         if(g->getGeometryType() == ELLIPSE)
         {
             if(dist(g->getCenter(),getCenter()) > (getRadius()+g->getRadius())+POINT_TOLERANCE)
-	    {
                 return false ;
-	    }
 
             if(dist(g->getCenter(), getCenter()) < dynamic_cast<const Ellipse *>(this)->getMinorRadius() || dist(g->getCenter(), getCenter()) < dynamic_cast<const Ellipse *>(g)->getMinorRadius())
                 return true ;
 
-            Point gcenter(g->getCenter().getX(), g->getCenter().getY()) ;
+            if(g->in(getCenter()) || this->in(g->getCenter()))
+                return true ;
+
+            double theta = 0 ;
+            double dtheta = 2.*M_PI/64 ;
+            double dprevprev = -1 ;
+            double dprev = -1 ;
+            double d = -1 ;
+            Function f = dynamic_cast<const Ellipse *>(this)->getEllipseFormFunction() ;
+            VirtualMachine vm ;
+            while(theta < 2.*M_PI)
+            {
+                Point p = dynamic_cast<const Ellipse *>(g)->getPointOnEllipse(theta) ;
+                if(this->in(p))
+                    return true ;
+//                if((dprevprev > 0 && dprev > 0) && d > dprev && dprevprev > dprev )
+//                    return false ;
+                theta += dtheta ;
+            }
+
+            return false ;
+
+/*            Point gcenter(g->getCenter().getX(), g->getCenter().getY()) ;
             Point thiscenter(getCenter().getX(), getCenter().getY()) ;
             Point ga(dynamic_cast<const Ellipse *>(g)->getMajorAxis().getX(), dynamic_cast<const Ellipse *>(g)->getMajorAxis().getY()) ;
             Point gb(dynamic_cast<const Ellipse *>(g)->getMinorAxis().getX(), dynamic_cast<const Ellipse *>(g)->getMinorAxis().getY()) ;
@@ -1576,7 +1596,7 @@ bool Geometry::intersects(const Geometry *g) const
             }
 
 
-            return false ;
+            return false ;*/
 
         }
 
@@ -3588,8 +3608,21 @@ bool Line::intersects(const Geometry *g) const
     }
     case ELLIPSE:
     {
+        double a = dynamic_cast<const Ellipse*>(g)->getMajorRadius() ;
+        double b = dynamic_cast<const Ellipse*>(g)->getMinorRadius() ;
+
+        Point o = dynamic_cast<const Ellipse*>(g)->toLocalCoordinates( p ) ;
+        Point dir = dynamic_cast<const Ellipse*>(g)->toLocalCoordinates( p+v )-o ;
+        if(std::abs(dir.getX()) < POINT_TOLERANCE)
+             return (std::abs(o.getX()) < a+POINT_TOLERANCE) ;
+        double m = dir.getY()/dir.getX() ;
+        double c = o.getY()-m*o.getX() ;
+        return a*a*m*m+b*b-c*c > 0 ;
+
+
+
         // see Geometry->intersects() [same method as ellipse-ellipse intersection]
-        Point onEllipse(g->getCenter()) ;
+/*        Point onEllipse(g->getCenter()) ;
         Point onLine = this->projection(onEllipse) ;
         if(dynamic_cast<const Ellipse*>(g)->in(onLine))
             return true ;
@@ -3606,7 +3639,7 @@ bool Line::intersects(const Geometry *g) const
             nnn++ ;
         }
 
-        return (onLine-onEllipse).norm() < POINT_TOLERANCE*100. ;
+        return (onLine-onEllipse).norm() < POINT_TOLERANCE*100. ;*/
     }
     case TRIANGLE:
     {
@@ -3741,10 +3774,48 @@ std::vector<Point> Line::intersection(const Geometry * g) const
     case ELLIPSE:
     {
         std::vector<Point> ret ;
-        if(!this->intersects(g))
-            return ret ;
 
-        // get first point by iterative projections
+        double a = dynamic_cast<const Ellipse*>(g)->getMajorRadius() ;
+        double b = dynamic_cast<const Ellipse*>(g)->getMinorRadius() ;
+        Point A = dynamic_cast<const Ellipse*>(g)->getMajorAxis()/a ;
+        Point B = dynamic_cast<const Ellipse*>(g)->getMinorAxis()/b ;
+
+        Point o = dynamic_cast<const Ellipse*>(g)->toLocalCoordinates( p ) ;
+        Point dir = dynamic_cast<const Ellipse*>(g)->toLocalCoordinates( p+v )-o ;
+        if(std::abs(dir.getX()) < POINT_TOLERANCE)
+        {
+             if (std::abs(o.getX()) < a+POINT_TOLERANCE) 
+             {
+                 double x1 = o.getX() ;
+                 double y1 = std::sqrt(b*b*(1.-(x1*x1)/(a*a))) ;
+                 double y2 = std::sqrt(b*b*(1.-(x1*x1)/(a*a))) ;
+                 ret.push_back( g->getCenter() + A*x1 + B*y1 ) ;
+                 if(std::abs(y1-y2) < POINT_TOLERANCE)
+                     ret.push_back( g->getCenter() + A*x1 + B*y2 ) ;
+             }
+             return ret ;
+        }
+        double m = dir.getY()/dir.getX() ;
+        double c = o.getY()-m*o.getX() ;
+ 
+        double delta = a*a*m*m+b*b-c*c ;
+        if(delta < 0)
+            return ret ;
+        double gamma = a*a*m*m+b*b ;
+
+        double x1 = -a*a*m*c+a*b*std::sqrt(delta)/gamma ;
+        double x2 = -a*a*m*c-a*b*std::sqrt(delta)/gamma ;
+        double y1 = b*b*c+a*b*m*std::sqrt(delta)/gamma ;
+        double y2 = b*b*c-a*b*m*std::sqrt(delta)/gamma ;
+
+        ret.push_back( g->getCenter() + A*x1 + B*y1 ) ;
+        if(std::abs(x1-x2) < POINT_TOLERANCE)
+            ret.push_back( g->getCenter() + A*x2 + B*y2 ) ;
+
+        return ret ;
+
+
+/*        // get first point by iterative projections
         Point onEllipse(g->getCenter()) ;
         Point onLine = this->projection(onEllipse) ;
         Point onEllipse2(onEllipse) ;
@@ -3813,7 +3884,7 @@ std::vector<Point> Line::intersection(const Geometry * g) const
         }
 
         ret.push_back(onEllipse) ;
-        return ret ;
+        return ret ;*/
 
     }
     case TRIANGLE:
@@ -4083,11 +4154,9 @@ bool Segment::intersects(const Geometry *g) const
     }
     case ELLIPSE:
     {
-/*	Point pfirst = dynamic_cast<const Ellipse *>(g)->toLocalCoordinates(f) ;
-	Point psecond = dynamic_cast<const Ellipse *>(g)->toLocalCoordinates(s) ;
-	Segment inLocalCoordinates(pfirst, psecond) ;
+/*	Segment inLocalCoordinates(pfirst, psecond) ;
 	Circle c(0.,0.,1.) ;
-	return inLocalCoordinates.intersects(&c) ;*/
+	return inLocalCoordinates.intersects(&c) ;
 
         Ellipse ell(g->getCenter(), dynamic_cast<const Ellipse *>(g)->getMajorAxis(), dynamic_cast<const Ellipse *>(g)->getMinorAxis()) ;
 
@@ -4100,7 +4169,7 @@ bool Segment::intersects(const Geometry *g) const
                 return true ;
         }
         Segment test(ell.getBoundingPoint(ell.getBoundingPoints().size()-1), ell.getBoundingPoint(0)) ;
-        return this->intersects(test) ;
+        return this->intersects(test) ;*/
 
 
         Line l(f,s-f) ;
@@ -4540,11 +4609,19 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
     case ELLIPSE:
     {
         std::vector<Point> ret ;
+        Line l(f, s-f) ;
+        std::vector<Point> inter = l.intersection(g) ;
+        for(size_t i = 0 ; i < inter.size() ; i++)
+        {
+            if(this->on(inter[i]))
+                ret.push_back(inter[i]) ;
+        }
+        return ret ;
 //			Ellipse ell(g->getCenter(), dynamic_cast<const Ellipse *>(g)->getMajorAxis(), dynamic_cast<const Ellipse *>(g)->getMinorAxis()) ;
 
 //			ell.sampleBoundingSurface(128) ;
 
-        for(size_t i = 0 ; i < g->getBoundingPoints().size()-1 ; i++)
+/*        for(size_t i = 0 ; i < g->getBoundingPoints().size()-1 ; i++)
         {
             Segment test(g->getBoundingPoint(i), g->getBoundingPoint(i+1)) ;
             if(this->intersects(test))
@@ -4557,7 +4634,7 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
         {
             ret.push_back(this->intersection(test)) ;
         }
-        return ret ;
+        return ret ;*/
 //			Segment test(ell.getBoundingPoint(ell.getBoundingPoints().size()-1), ell.getBoundingPoint(0)) ;
 //			return this->intersects(test) ;
 

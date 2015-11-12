@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 3/8/2015 at 10:1  */
+/* this is an auto-generated file created on 12/10/2015 at 10:15  */
 
 #ifndef __ENUMERATION_TRANSLATOR_H__
 #define __ENUMERATION_TRANSLATOR_H__
@@ -1286,8 +1286,11 @@ struct Enum
     }
     static std::string frombool(bool value)
     {
-        if(value)
-            return "true" ;
+        switch(value)
+        {
+            case false: return "false" ;
+            case true: return "true" ;
+        }
         return "false" ;
     }
    

@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
 	parser.addValue("--timeout", 10, "maximum time (in seconds) spent for each test; use negative values for no time limit (default: 10s)" ) ;
 	parser.addString("--viewer-path", "viewer", "path to AMIE viewer" ) ;
 	parser.addString("--match", "*", "runs only the tests matching the required string (default: runs all tests found)" ) ;
+	parser.addString("--test", "*", "runs a single test with required string" ) ;
 	parser.addValue("--set-sampling-number", 16, "set the number of points on the edge of the sample" ) ;
 	parser.addValue("--set-sampling-restriction", 0, "set the number of mesh points below which small inclusions are not meshed" ) ;
 	parser.parseCommandLine(argc, argv) ;
@@ -49,6 +50,7 @@ int main(int argc, char *argv[])
 	bool compare = parser.getFlag("--viewer") ;
 	std::string viewer = parser.getString("--viewer-path") ;
 	std::string regexp = parser.getString("--match") ;
+	std::string exact = parser.getString("--test") ;
 	if(renew)
 	{
 		std::cout << "Warning: you are about to renew the base of results. Do you wish to continue? [y/n]" << std::flush ;
@@ -82,7 +84,18 @@ int main(int argc, char *argv[])
 		{
 			test.erase(test.begin(), test.begin()+5) ;
 			test.erase(test.end()-4, test.end()) ;
-			if( regexp == "*" || test.find(regexp) != std::string::npos ) 
+			if(exact != std::string("*"))
+			{
+				std::string base = test ;
+				base.erase(base.begin(), base.begin()+5) ;
+				if( base == exact )
+				{
+					files.push_back("../examples/mesh/"+test) ;
+					test[test.find("_")] = '/' ;
+					exec.push_back(test) ;
+				}
+			}
+			else if( regexp == "*" || test.find(regexp) != std::string::npos ) 
 			{
 				files.push_back("../examples/mesh/"+test) ;
 				test[test.find("_")] = '/' ;

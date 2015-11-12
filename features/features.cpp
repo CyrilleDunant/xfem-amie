@@ -1736,7 +1736,7 @@ void FeatureTree::sample()
                     }
                 }
 
-                if( !tree[i]->isVirtualFeature )
+                if( !tree[i]->isVirtualFeature && tree[i]->getRadius() > samplingRestriction)
                 {
                     count++ ;
                     tree[i]->sample ( linearDensity*correctionfactor ) ;
@@ -1772,7 +1772,7 @@ void FeatureTree::sample()
                     factor = samplingFactors[tree[i]] ;
                 }
 
-                if( !tree[i]->isVirtualFeature)
+                if( !tree[i]->isVirtualFeature && tree[i]->getRadius() > samplingRestriction)
                 {
                     tree[i]->sample ( linearDensity*factor ) ;
                 }
@@ -3863,7 +3863,7 @@ void FeatureTree::setDiscretizationParameters ( ConfigTreeItem * config, ConfigT
     }
     double sampling = config->getData ( "sampling_number", def->getData ( "sampling_number" ) ) ;
     std::string order = config->getStringData ( "order", def->getStringData ( "order" ) ) ;
-    int restriction = config->getData ( "sampling_restriction", def->getData ( "sampling_restriction" ) ) ;
+    double restriction = config->getData ( "sampling_restriction", def->getData ( "sampling_restriction" ) ) ;
     setSamplingNumber ( sampling ) ;
     setOrder ( Enum::getOrder ( order ) ) ;
     setSamplingRestriction ( restriction ) ;

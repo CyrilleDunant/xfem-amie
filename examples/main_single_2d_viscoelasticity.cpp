@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     F.setSamplingNumber(atof(argv[1])) ;
     F.setOrder(LINEAR_TIME_LINEAR) ;
 //    F.setMinDeltaTime(1e-9) /*Gere l'endommagement'*/;
-    F.setSamplingRestriction( 4 ) ;
+    F.setSamplingRestriction( 1. ) ;
 
     std::valarray<Point *> pts(5) ;
     pts[0] = new Point(-80, 50) ;

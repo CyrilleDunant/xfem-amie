@@ -46,6 +46,9 @@ public:
     double optimize(double eps = 0.0001, int Maxit = -1, int population = -1, double elitism = .1, double factor = .65) ;
 
     std::vector<std::pair<std::string, double> > getValues() const ;
+
+    static std::vector<double> getRoots( double a, double b, double c) ;
+
 } ;
 
 class LeastSquaresApproximation

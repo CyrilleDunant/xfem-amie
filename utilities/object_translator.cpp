@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 3/8/2015 at 10:1  */
+/* this is an auto-generated file created on 12/10/2015 at 10:15  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -486,6 +486,7 @@ namespace Amie
     {
         // parsed from header file: ../physics/material_laws/logcreep_accumulator.h
         if( type == "No" ) { return new NoLogCreepAccumulator() ; }
+        if( type == "StrainConsolidation" ) { return new StrainConsolidationLogCreepAccumulator() ; }
         if( type == "RealTime" )
         { 
             if( values.find("viscous_flow") == values.end() ) { values["viscous_flow"] = 0 ; } ; 
@@ -500,6 +501,7 @@ namespace Amie
     {
         // parsed from header file: ../physics/material_laws/logcreep_accumulator.h
         if( type == "No" ) { return true ; }
+        if( type == "StrainConsolidation" ) { return true ; }
         if( type == "RealTime" ) { return true ; }
         if( type == "TimeUnderLoad" ) { return true ; }
    

@@ -27,6 +27,21 @@ GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(const std::vector<std::pair
 {
 }
 
+std::vector<double> GeneticAlgorithmOptimizer::getRoots( double a, double b, double c) 
+{
+    std::vector<double> ret ;
+    double delta = b*b-4.*a*c ;
+    if(std::abs(delta) < POINT_TOLERANCE)
+       ret.push_back( -b/(2.*a) ) ;
+    else if(delta > POINT_TOLERANCE)
+    {
+        ret.push_back( (-b+std::sqrt(delta))/(2.*a) ) ;
+        ret.push_back( (-b-std::sqrt(delta))/(2.*a) ) ;
+    }
+    return ret ;
+}
+
+
 double GeneticAlgorithmOptimizer::applyFunction(const std::vector<double> & vals) const
 {
     // x, y, z, t, u, v, w

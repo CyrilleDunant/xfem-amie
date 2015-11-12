@@ -7593,7 +7593,7 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangl
             }*/
         }
 
-        if(dt < 0.01)
+        if(dt < minDeltaTime)
         {
             size_t i = timePlanes-1 ;
             for(size_t j = 0 ; j < dofPerPlane ; j++)

@@ -490,6 +490,9 @@ target_link_libraries( test/stxfem Amie ${ALL_LINK_FLAGS})
 add_executable( test/time_continuity EXCLUDE_FROM_ALL examples/test/main_test_time_continuity.cpp )
 target_link_libraries( test/time_continuity Amie ${ALL_LINK_FLAGS})
 
+add_executable( test/weibull EXCLUDE_FROM_ALL examples/test/main_test_weibull.cpp )
+target_link_libraries( test/weibull Amie ${ALL_LINK_FLAGS})
+
 ADD_CUSTOM_TARGET(unitTests)
 ADD_DEPENDENCIES(unitTests 
 check_test 
@@ -502,6 +505,7 @@ test/viscodamage_multilinearsoftening
 test/viscoelasticity_imposed_deformation 
 test/viscoelasticity_kv 
 test/xfem 
+test/weibull
 )
 
 # mesh

@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 	FeatureTree f(&rect) ;
 	PSDGenerator::get2DVoronoiPolygons( &f, grains, 0, 0.003, 0.01, 32, true, 0) ;
 	f.setSamplingNumber( 128 ) ;
-	f.setSamplingRestriction(8) ;
+	f.setSamplingRestriction(0.002) ;
 	
 	parser.setFeatureTree(&f) ;
 	

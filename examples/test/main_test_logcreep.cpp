@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 
 
         Sample rect(nullptr, 0.04,0.04,0,0) ;
-	rect.setBehaviour(new LogarithmicCreepWithExternalParameters("young_modulus = 10e9, poisson_ratio = 0.2, creep_modulus = 10e9, creep_poisson = 0.2, creep_characteristic_time = 10" ) ) ;
+	rect.setBehaviour(new LogarithmicCreepWithExternalParameters("young_modulus = 10e9, poisson_ratio = 0.2, creep_modulus = 10e9, creep_poisson = 0.2, creep_characteristic_time = 10" /*, new StrainConsolidationLogCreepAccumulator()*/ ) ) ;
 
 	FeatureTree f(&rect) ;
 	f.setSamplingNumber(0) ;
@@ -42,6 +42,8 @@ int main(int argc, char *argv[])
         f.setDeltaTime(1) ;
 	
 	f.step() ;
+
+        DelaunayTriangle * trg = f.get2DMesh()->getConflictingElements(new Point(0,0.01))[0] ;
 
 	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT_AFTER) ) ;
 	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER ) ) ;
@@ -57,7 +59,7 @@ int main(int argc, char *argv[])
 	{
                 f.setDeltaTime(deltaTime++) ;
 		f.step() ;
-		out << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, -1,1 )[1]/1e6 << "\t" << f.getAverageField( STRAIN_FIELD, -1,1 )[1]*1e3 << std::endl ;
+		out << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, -1,1 )[1]/1e6 << "\t" << f.getAverageField( STRAIN_FIELD, -1,1 )[1]*1e3 << "\t" << trg->getBehaviour()->getViscousTensor(Point(0,0,0,0))[3][3] << " " << std::endl ;
 	}
 
 	return 0 ;
