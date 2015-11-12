@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
     }
     double scale = 100.;//atof(argv[4]) ;
     prop = 3;//atof(argv[5]) ;
-    int sampling = 1000;//atof(argv[6]) ;
+    int sampling = 8000;//atof(argv[6]) ;
     double length = getLength(micro) ;
 
     double size = scale*length ;
@@ -229,10 +229,10 @@ int main(int argc, char *argv[])
     std::vector<Feature * > inclusions ;
 //        if(micro == S1)
 //        {*/
-//     inclusions.push_back(new Inclusion3D(0.0623*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ())) ;
+    inclusions.push_back(new Inclusion3D(0.0623*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ())) ;
     Vector str(0., 6) ;
-    inclusions.push_back(new ExpansiveZone3D(&sample , 0.0623*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ(),Tensor::cauchyGreen(10., .2, true,  SPACE_THREE_DIMENSIONAL ), str )) ;
-//     inclusions[0]->setBehaviour(behaviour) ;
+//     inclusions.push_back(new ExpansiveZone3D(&sample , 0.0623*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ(),Tensor::cauchyGreen(10., .2, true,  SPACE_THREE_DIMENSIONAL ), str )) ;
+    inclusions[0]->setBehaviour(behaviour) ;
     F.addFeature(&sample, inclusions[0]) ;
 
     F.setSamplingNumber(sampling) ;

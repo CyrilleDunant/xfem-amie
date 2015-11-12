@@ -139,7 +139,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
                 P->precondition(r,r);
                 for(int i = rowstart ; i < vsize ; i++)
                 {
-                    double yx =  -r[i] - xcompensate[i];
+                    double yx =  -0.5*r[i] - xcompensate[i];
                     double xtot = x[i]+yx ;
                     xcompensate[i] = (xtot-x[i])-yx ;
                     x[i] = xtot ;
@@ -172,7 +172,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
                     assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
                     perr = err ;
                     err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
-                    if(perr > err*.99)
+                    if(perr > err*1.001)
                         break ;
                     P->precondition(r,r);
                     for(int i = rowstart ; i < vsize ; i++)
@@ -263,7 +263,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
             assign(q, assembly->getMatrix()*p, rowstart, colstart) ;
             pq =  parallel_inner_product_restricted(&q[rowstart], &p[rowstart], vsize-rowstart);
-            if(std::abs(pq) < 1e-12*rho)
+            if(std::abs(pq) < 1e-16*rho)
             {
                 last_rho = rho ;
                 break ;
@@ -312,7 +312,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
                 ssor.precondition(r,r);
                 for(int i = rowstart ; i < vsize ; i++)
                 {
-                    double yx =  -r[i] - xcompensate[i];
+                    double yx =  -0.5*r[i] - xcompensate[i];
                     double xtot = x[i]+yx ;
                     xcompensate[i] = (xtot-x[i])-yx ;
                     x[i] = xtot ;
@@ -322,7 +322,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
                 err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
                 if(iters%256 == 0 )
                     std::cerr << "m" << "\t" << err << std::endl  ;
-                if( minerr > err )
+                if( minerr > err*1.001 )
                     break ;
                 else
                     xmin = x ;

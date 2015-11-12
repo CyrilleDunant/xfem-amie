@@ -1317,13 +1317,13 @@ void Circle::sampleBoundingSurface(double linearDensity)
 
 void Circle::sampleSurface(double linearDensity)
 {
-    size_t num_points = round(linearDensity*2.*M_PI*getRadius()) ;
+    size_t num_points = 2*round(linearDensity*2.5*M_PI*getRadius()) ;
     
     if(!sampled)
     {
         sampleBoundingSurface(linearDensity*2.5) ;
         sampled = true ;
-        size_t numberOfRings = static_cast<size_t>((double)num_points/(2. * M_PI )) ;
+        size_t numberOfRings = static_cast<size_t>((double)getBoundingPoints().size()/(2. * M_PI )) ;
 
         double angle = 2.*M_PI/ (num_points) ;
         double offset = 0 ;
