@@ -242,13 +242,9 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         double rho = 0 ;
         double beta = 0 ;
 
-        double localeps = realeps ;
         size_t reduxit = 0 ;
-	while(sqrt(std::abs(last_rho)) < localeps && nit > 0 && reduxit < 4)
-            localeps *= 0.1 ;
 
-
-        while(sqrt(std::abs(last_rho)) > localeps && localnit < multi*std::max(assembly->getForces().size()/16, (size_t)256))
+        while(sqrt(std::abs(last_rho)) > realeps && localnit < multi*std::max(assembly->getForces().size()/16, (size_t)256))
         {
             localnit++ ;
 

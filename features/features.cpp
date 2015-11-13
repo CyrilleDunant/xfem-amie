@@ -2318,7 +2318,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
         for ( size_t i = 0 ; i < targetstmp.size() ; i++ )
         {
             const Feature * tmp = dynamic_cast<const Feature *> ( targetstmp[i] ) ;
-            if ( tmp->getLayer() == layer && ( (tmp->getBoundingPoints().size()  && tmp->getInPoints().size()) || tmp->isVirtualFeature || samplingRestriction == 0 ) )
+            if ( tmp->getLayer() == layer && ( (tmp->getBoundingPoints().size()  && tmp->getInPoints().size()) || tmp->isVirtualFeature || samplingRestriction < POINT_TOLERANCE ) )
             {
                 targets.push_back ( const_cast<Feature *> ( tmp ) ) ;
             }
@@ -2328,7 +2328,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
     {
         for ( size_t i = 0 ; i < tree.size() ; i++ )
         {
-            if ( tree[i]->getLayer() == layer && ( (tree[i]->getBoundingPoints().size() && tree[i]->getInPoints().size()) || tree[i]->isVirtualFeature || samplingRestriction == 0 ) )
+            if ( tree[i]->getLayer() == layer && ( (tree[i]->getBoundingPoints().size() && tree[i]->getInPoints().size()) || tree[i]->isVirtualFeature || samplingRestriction < POINT_TOLERANCE ) )
             {
                 targets.push_back ( tree[i] ) ;
             }
@@ -4565,7 +4565,7 @@ bool FeatureTree::stepElements()
 #else
                         int numThreads = 1 ;
 #endif
-                        size_t chunksize = std::max(j->second->begin().size()/(8*numThreads),(size_t)1) ;
+                        size_t chunksize = std::max(j->second->begin().size()/(2*numThreads),(size_t)1) ;
                         size_t localEnd = 0 ;
                         int t = 0 ;
                         size_t end = j->second->end().getPosition() ;
@@ -7296,13 +7296,13 @@ void FeatureTree::generateElements()
                 for ( size_t k  =  0 ; k <  potentialChildren.size() ; k++ )
                 {
                     if ( ( !potentialChildren[k]->isVirtualFeature
-                            && (potentialChildren[k]->inBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*(i == 0 ? 0.1 : 0.33) ))
-                            && potentialChildren[k]->inMask( tree[i]->getBoundingPoint ( j ), pointDensity*(i == 0 ? 0.1 : 0.33)) )
+                            && (potentialChildren[k]->inBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*(i == 0 ? 0.1 : 0.44) ))
+                            && potentialChildren[k]->inMask( tree[i]->getBoundingPoint ( j ), pointDensity*(i == 0 ? 0.1 : 0.44)) )
                             || ( potentialChildren[k]->isVirtualFeature
                                  && tree[i]->isVirtualFeature
                                  && ( dynamic_cast<VirtualFeature *> ( potentialChildren[k] )->getSource()
                                       != dynamic_cast<VirtualFeature *> ( tree[i] )->getSource() )
-                                 && potentialChildren[k]->inBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*0.33 )
+                                 && potentialChildren[k]->inBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*0.44 )
                                )
                        )
                     {
@@ -7329,12 +7329,12 @@ void FeatureTree::generateElements()
                     isIn = true ;
                 }
 
-//                if ( tree[i]->getFather() && tree[i]->getFather()->onBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*0.33 ) )
+//                if ( tree[i]->getFather() && tree[i]->getFather()->onBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*0.44 ) )
 //                {
 //                    isIn = true ;
 //                }
 
-                if ( tree[i]->getFather() && !isIn && i && tree[0]->onBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*0.33 ) )
+                if ( tree[i]->getFather() && !isIn && i && tree[0]->onBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*0.44 ) )
                 {
                     isIn = true ;
                 }
@@ -7457,7 +7457,7 @@ void FeatureTree::generateElements()
                                 dynamic_cast<VirtualFeature *> ( potentialChildren[k] )->getSource()
                                 != dynamic_cast<VirtualFeature *> ( tree[i] )->getSource()
                             )
-                            && potentialChildren[k]->inBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.33 )
+                            && potentialChildren[k]->inBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.44 )
                         )
                     )
                     {
@@ -7479,7 +7479,7 @@ void FeatureTree::generateElements()
                     isIn = true ;
                 }
 
-                if ( tree[i]->getFather() && tree[i]->getFather()->onBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.33 ) && ! tree[i]->isMaskedBy( tree[i]->getFather() ) )
+                if ( tree[i]->getFather() && tree[i]->getFather()->onBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.44 ) && ! tree[i]->isMaskedBy( tree[i]->getFather() ) )
                 {
                     isIn = true ;
                 }
@@ -7489,7 +7489,7 @@ void FeatureTree::generateElements()
                     isIn = true ;
                 }
 
-                if ( tree[i]->getFather() && i && tree[0]->onBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.33 ) )
+                if ( tree[i]->getFather() && i && tree[0]->onBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.44 ) )
                 {
                     isIn = true ;
                 }
@@ -7587,7 +7587,7 @@ void FeatureTree::generateElements()
                             {
                                 bool alone = true ;
                                 for(int l = 0 ; alone && l < base ; l++)
-                                    alone = ( dist( inter[l], tree[i]->getBoundingPoint(k) ) > pointDensity*0.33 ) ;
+                                    alone = ( dist( inter[l], tree[i]->getBoundingPoint(k) ) > pointDensity*0.44 ) ;
                                 if(alone)
                                     inter.push_back( tree[i]->getBoundingPoint(k) ) ;
                             }
@@ -7603,7 +7603,7 @@ void FeatureTree::generateElements()
 
                             for ( size_t l = 0 ; l < descendants.size() ; l++ )
                             {
-                                if ( !descendants[l]->isVirtualFeature && descendants[l]->inBoundary ( inter[k], pointDensity*0.33 ) && !descendants[l]->isMaskedBy( tree[i] ))
+                                if ( !descendants[l]->isVirtualFeature && descendants[l]->inBoundary ( inter[k], pointDensity*0.44 ) && !descendants[l]->isMaskedBy( tree[i] ))
                                 {
                                     indescendants = true ;
                                     break ;
@@ -7613,7 +7613,7 @@ void FeatureTree::generateElements()
 //
                             if ( !indescendants )
                             {
-                                if ( inRoot ( inter[k] ) && tree[i]->inMask( inter[k], pointDensity*0.1 ) && (!tree[i]->onMaskBoundary( inter[k], pointDensity*0.33) || tree[i]->isMaskedBy( coOccuringFeatures[j])) )
+                                if ( inRoot ( inter[k] ) && tree[i]->inMask( inter[k], pointDensity*0.1 ) && (!tree[i]->onMaskBoundary( inter[k], pointDensity*0.44) || tree[i]->isMaskedBy( coOccuringFeatures[j])) )
                                 {
                                     Point *p = new Point ( inter[k] ) ;
                                     additionalPoints.push_back ( p ) ;
@@ -7652,7 +7652,7 @@ void FeatureTree::generateElements()
                     {
                         bool alone = true ;
                         for(size_t l = 0 ; alone && l < base ; l++)
-                            alone = ( dist( inter[l], tree[0]->getBoundingPoint(k) ) > pointDensity*0.33 ) ;
+                            alone = ( dist( inter[l], tree[0]->getBoundingPoint(k) ) > pointDensity*0.44 ) ;
                         if(alone)
                             inter.push_back( tree[0]->getBoundingPoint(k) ) ;
                     }
@@ -7665,7 +7665,7 @@ void FeatureTree::generateElements()
 
                     for ( size_t l = 0 ; l < descendants.size() ; l++ )
                     {
-                        if ( descendants[l]->inBoundary ( inter[k], pointDensity*0.33 ) && descendants[l]->inMask ( inter[k], pointDensity*0.33 ) )
+                        if ( descendants[l]->inBoundary ( inter[k], pointDensity*0.44 ) && descendants[l]->inMask ( inter[k], pointDensity*0.44 ) )
                         {
                             indescendants = true ;
                             break ;
@@ -7674,7 +7674,7 @@ void FeatureTree::generateElements()
 
                     for ( size_t l = 0 ; l < fatherdescendants.size() ; l++ )
                     {
-                        if ( fatherdescendants[l] != feature && !fatherdescendants[l]->isVirtualFeature && fatherdescendants[l]->getBoundingPoints().size() && fatherdescendants[l]->inBoundary ( inter[k], pointDensity*0.33 ) && !feature->onBoundary ( inter[k], pointDensity*0.33 ) )
+                        if ( fatherdescendants[l] != feature && !fatherdescendants[l]->isVirtualFeature && fatherdescendants[l]->getBoundingPoints().size() && fatherdescendants[l]->inBoundary ( inter[k], pointDensity*0.44 ) && !feature->onBoundary ( inter[k], pointDensity*0.44 ) )
                         {
 //                            indescendants = true ;
                             break ;
@@ -7754,7 +7754,7 @@ void FeatureTree::generateElements()
 
 
                         // no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
-                        if ( ( feature->inBoundary ( inter[k], pointDensity*0.33 ) && feature->inMask ( inter[k], pointDensity*0.1 ) ) || ( !indescendants && squareDist3D ( proj, inter[k] ) < POINT_TOLERANCE * POINT_TOLERANCE && inRoot ( inter[k] ) && ( ( onEdge && tooClose == 3 ) || onVertex ) ) )
+                        if ( ( feature->inBoundary ( inter[k], pointDensity*0.44 ) && feature->inMask ( inter[k], pointDensity*0.1 ) ) || ( !indescendants && squareDist3D ( proj, inter[k] ) < POINT_TOLERANCE * POINT_TOLERANCE && inRoot ( inter[k] ) && ( ( onEdge && tooClose == 3 ) || onVertex ) ) )
                         {
                             Point *p = new Point ( inter[k] ) ;
                             additionalPoints.push_back ( p ) ;

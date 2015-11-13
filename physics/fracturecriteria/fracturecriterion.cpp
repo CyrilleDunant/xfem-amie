@@ -28,9 +28,9 @@ double getSmoothingKernelSize( SmoothingFunctionType type )
     switch(type)
     {
         case QUARTIC_COMPACT:
-           return 4. ;
+           return 1.5 ;
         case GAUSSIAN_NONCOMPACT:
-           return 6. ;
+           return 4. ;
     }
     return 1. ;
 }

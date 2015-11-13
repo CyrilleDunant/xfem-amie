@@ -19,7 +19,7 @@ struct GelBehaviour : public StiffnessWithImposedDeformation
     //volumic expansion is 22%, so linear is 7%,            cube root 0.0685
     // bulteel suggests 0.5 expansion,                             so 0.1447
     // gel behaviour should be 0.18                          0.025
-    GelBehaviour(double E=22e9, double nu=0.18, double alpha=0.1447, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+    GelBehaviour(double E=22e9, double nu=0.499, double alpha=0.1447, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 
 } ;
 

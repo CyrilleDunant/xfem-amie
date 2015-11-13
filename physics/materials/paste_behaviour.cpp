@@ -33,7 +33,7 @@ Form * PasteBehaviour::getCopy() const
     double factor = 1. - variability + variability*weib ;
 //	return new Stiffness(param*factor) ;
 //     StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalLinearlyDecreasingMohrCoulomb(up*factor,-8000.*up*factor, 3.*factor*up/E, -factor*24000.*up/E,E), new FiberBasedIsotropicLinearDamage(0.1,0.95)) ;
-    StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8000.*up*factor,E), new FiberBasedIsotropicLinearDamage(0.1,0.799)) ;
+    StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8000.*up*factor,E), new FiberBasedIsotropicLinearDamage(0.1,0.699)) ;
     copy->criterion->setMaterialCharacteristicRadius(materialRadius);
     return copy ;
 }
