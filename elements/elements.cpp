@@ -2392,12 +2392,9 @@ Point TriElement::inLocalCoordinates(const Point &p) const
 {
     // in barycentric coordinates, we have the following :
 
-    size_t factor = 1 ;
-
-    if(order == QUADRATIC || order == QUADRATIC_TIME_LINEAR || order == QUADRATIC_TIME_QUADRATIC)
-        factor = 2 ;
-    if(order == CUBIC )
-        factor = 3 ;
+    size_t factor = getBoundingPoints().size()/3 ;
+    if(order >= CONSTANT_TIME_LINEAR)
+        factor /=2 ;
 
     Matrix S(3,3) ;
     S[0][0] = getBoundingPoint(0).getX() ;

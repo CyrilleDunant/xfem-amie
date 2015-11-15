@@ -420,7 +420,10 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
         Function hatdx ;
         Function hatdy ;
         
-        int factor  = ring[i]->getOrder() ;
+        int factor = ring[i]->getBoundingPoints().size()/3 ;
+        if(ring[i]->getOrder() >= CONSTANT_TIME_LINEAR)
+            factor /=2 ;
+
         
         if(in(ring[i]->getBoundingPoint(0*factor)) == in(ring[i]->getBoundingPoint(1*factor)))
         {

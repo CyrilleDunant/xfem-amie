@@ -1320,10 +1320,10 @@ void Circle::sampleSurface(double linearDensity)
     
     if(!sampled)
     {
-        sampleBoundingSurface(linearDensity*1.5) ;
+        sampleBoundingSurface(linearDensity*4.5) ;
         sampled = true ;
-        size_t numberOfRings = static_cast<size_t>((double)getBoundingPoints().size()/(2. * M_PI )) ;
-	size_t num_points = getBoundingPoints().size()/2 ;
+        size_t numberOfRings = static_cast<size_t>((double)getBoundingPoints().size()/(3. * M_PI )) ;
+        size_t num_points = getBoundingPoints().size()/2 ;
 
         double angle = 2.*M_PI/ (num_points) ;
         double offset = 0 ;
