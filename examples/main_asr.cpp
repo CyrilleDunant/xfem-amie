@@ -151,7 +151,7 @@ int main( int argc, char *argv[] )
     featureTree = &F ;
 
     double itzSize = 0.00002;
-    int inclusionNumber =  2500 ; 1 ; 
+    int inclusionNumber = 1 ; 2500 ;
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
 
@@ -214,7 +214,7 @@ int main( int argc, char *argv[] )
     Sample *blocktop = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
     if(fact0 > 10)
     {
-        blocktop->setBehaviour(new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  0., 0.) ) ;
+        blocktop->setBehaviour(new OrthotropicStiffness(fact0*1e-8, fact0, fact0*1e-8*fact0/(fact0+fact0),  0., 0.) ) ;
         blocks.push_back(blocktop);
     }
     else
@@ -256,7 +256,7 @@ int main( int argc, char *argv[] )
     Sample *blockright = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().getY() ) ;
     if(fact > 10)
     {
-        blockright->setBehaviour(new OrthotropicStiffness(fact, fact*1e-4, fact*1e-4*fact/(fact+fact),  0., 0.) ) ;
+        blockright->setBehaviour(new OrthotropicStiffness(fact, fact*1e-8, fact*1e-8*fact/(fact+fact),  0., 0.) ) ;
         blocks.push_back(blockright);
     }
     else
@@ -286,7 +286,7 @@ int main( int argc, char *argv[] )
 
     gelManager = new GelManager(&F, nzones/baseGeometry.area(), feats, 0.5, 1e-5) ;
     F.addManager(gelManager) ;
-    F.setSamplingNumber( 72 ) ;
+    F.setSamplingNumber( 70 ) ;
 
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , LEFT ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , RIGHT ) ) ;

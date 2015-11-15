@@ -2951,11 +2951,16 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             }
             if(tri.size() < 3 || std::abs(parentArea - 0.5) > 1e-5)
             {
+                delete getCachedGaussPoints() ;
+                setOrder(CUBIC) ;
+                genGaussPoints() ;
+                return *getCachedGaussPoints() ;
+                
                 if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
                     return *getCachedGaussPoints() ;
                 
                 delete cachedGps ;
-                cachedGps = new GaussPointArray(monteCarloGaussPoints(512, this)) ;
+                cachedGps = new GaussPointArray(monteCarloGaussPoints(32, this)) ;
                 cachedGps->getId() = REGULAR_GRID ;
                 return *getCachedGaussPoints() ;
             }

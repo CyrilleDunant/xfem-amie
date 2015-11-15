@@ -293,13 +293,18 @@ GaussPointArray gaussPointSet(Order order, const TriElement * t)
     }
     case QUADRATIC:
     {
-
+/*
         ordre = 4 ;
         fin.resize(ordre);
         fin[0] = std::pair<Point, double>(Point(0.2, 0.2), 0.260416666666667) ;
         fin[1] = std::pair<Point, double>(Point(0.6, 0.2), 0.260416666666667) ;
         fin[2] = std::pair<Point, double>(Point(0.2, 0.6), 0.260416666666667) ;
-        fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333), -0.28125) ;
+        fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333), -0.28125) ;*/
+        ordre = 3 ;
+        fin.resize(ordre);
+        fin[0] = std::pair<Point, double>(Point(.25, .25), 0.1666666666666667) ;
+        fin[1] = std::pair<Point, double>(Point(.25, .75), 0.1666666666666667) ;
+        fin[2] = std::pair<Point, double>(Point(.75, .25), 0.1666666666666667) ;
         break ;
     }
     case QUADTREE_REFINED:

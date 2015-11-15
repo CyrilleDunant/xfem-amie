@@ -1735,11 +1735,9 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             strainAtGaussPointsSet = true ;
 
             Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
-            Vector imp( tmp.size() ) ;
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                 
-                imp = 0. ;
                 getField ( STRAIN_FIELD, gp.gaussPoints[i].first, tmp, true,vm, i ) ;
                 for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
                 {
@@ -1747,16 +1745,21 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
-                if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
-                    imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+
                 if(weighted)
                 {
-                    ret += (tmp-imp) *gp.gaussPoints[i].second*weights[i] ;
+                    if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
+                        ret += (tmp- getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first )) *gp.gaussPoints[i].second*weights[i] ;
+                    else
+                        ret += tmp *gp.gaussPoints[i].second*weights[i] ;
                     total += gp.gaussPoints[i].second*weights[i] ;
                 }
                 else
                 {
-                    ret += (tmp-imp) *gp.gaussPoints[i].second ;
+                    if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
+                        ret += (tmp-getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first )) *gp.gaussPoints[i].second ;
+                    else
+                        ret += tmp *gp.gaussPoints[i].second ;
                     total += gp.gaussPoints[i].second ;
                 }
 
@@ -1777,27 +1780,29 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         else
         {
             Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
-            Vector imp( tmp.size() ) ;
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
-                
-                imp = 0. ;
+
                 for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
                 {
                     tmp[j] = strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j];
                 }
                 if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
-                if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
-                    imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
                 if(weighted)
                 {
-                    ret += (tmp-imp)*gp.gaussPoints[i].second*weights[i] ;
+                    if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
+                        ret += (tmp-getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ))*gp.gaussPoints[i].second*weights[i] ;
+                    else
+                        ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                     total += gp.gaussPoints[i].second*weights[i] ;
                 }
                 else
                 {
-                    ret += (tmp-imp)*gp.gaussPoints[i].second ;
+                    if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
+                        ret += (tmp-getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ))*gp.gaussPoints[i].second ;
+                    else
+                        ret += tmp*gp.gaussPoints[i].second ;
                     total += gp.gaussPoints[i].second ; 
                 }
             }
@@ -1831,20 +1836,17 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             strainAtGaussPoints = 0 ;
             strainAtGaussPointsSet = true ;
             Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
-            Vector imp( tmp.size() ) ;
                 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
-                
-                imp = 0. ;
                 getField ( STRAIN_FIELD, gp.gaussPoints[i].first, tmp, true,vm, i ) ;
                 for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
                 {
                     strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j] = tmp[j] ;
                 }
                 if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
-                    imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
-                Vector ptmp = toPrincipal(tmp-imp, DOUBLE_OFF_DIAGONAL_VALUES) ;
+                    tmp -= getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+                Vector ptmp = toPrincipal(tmp, DOUBLE_OFF_DIAGONAL_VALUES) ;
                 if(ret.size() != ptmp.size())
                     ret.resize(ptmp.size(), 0.);
                 if(weighted)
@@ -1875,18 +1877,16 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         else
         { 
             Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
-            Vector imp( tmp.size() ) ;
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                
-                imp = 0. ;
                 for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
                 {
                     tmp[j] = strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j];
                 }
                 if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
-                    imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
-                Vector ptmp = toPrincipal(tmp-imp, DOUBLE_OFF_DIAGONAL_VALUES) ;
+                    tmp -= getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+                Vector ptmp = toPrincipal(tmp, DOUBLE_OFF_DIAGONAL_VALUES) ;
                 if(ret.size() != ptmp.size())
                     ret.resize(ptmp.size(), 0.);
                 if(weighted)
