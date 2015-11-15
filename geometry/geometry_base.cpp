@@ -1543,9 +1543,7 @@ bool Geometry::intersects(const Geometry *g) const
 
             double theta = 0 ;
             double dtheta = 2.*M_PI/64 ;
-            double dprevprev = -1 ;
-            double dprev = -1 ;
-            double d = -1 ;
+
             Function f = dynamic_cast<const Ellipse *>(this)->getEllipseFormFunction() ;
             VirtualMachine vm ;
             while(theta < 2.*M_PI)

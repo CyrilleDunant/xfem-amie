@@ -1308,7 +1308,6 @@ void Circle::sampleBoundingSurface(double linearDensity)
     boundingPoints.resize(num_points) ;
     double angle = 2.*M_PI/ (num_points) ;
 
-    double start= 2.*M_PI*std::rand()/RAND_MAX ;
     for (size_t i = 0 ; i < num_points ; i++)
     {
         boundingPoints[i] = new Point(getRadius()*cos((double)i*(angle)) + getCenter().getX(), getRadius()*sin((double)i*(angle)) + getCenter().getY());
@@ -1797,7 +1796,6 @@ std::vector<Point> Ellipse::getSamplingBoundingPoints(double linearDensity) cons
     if(num_points < 4)
        return ret ;
     double dist = perimeter/num_points ;
-    double angle = 2.*M_PI / num_points ;
     double theta = (double) std::rand()/RAND_MAX*2.*M_PI ;
     Vector allTheta(num_points*8) ; allTheta = 0. ;
 
@@ -2057,7 +2055,6 @@ void Ellipse::sampleSurface (double linearDensity)
 
     double a = getMajorRadius() ;
     double b = getMinorRadius() ;
-    int rm = 0 ;
     std::vector<Point> toadd ;
     std::default_random_engine generator;
     std::uniform_real_distribution< double > distribution(0, dist*0.1);

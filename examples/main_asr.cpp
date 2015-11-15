@@ -151,7 +151,7 @@ int main( int argc, char *argv[] )
     featureTree = &F ;
 
     double itzSize = 0.00002;
-    int inclusionNumber = 2500 ; 1 ; 
+    int inclusionNumber = 1 ; 2500 ; 
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
 
@@ -214,7 +214,7 @@ int main( int argc, char *argv[] )
     Sample *blocktop = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
     if(fact0 > 10)
     {
-        blocktop->setBehaviour(new OrthotropicStiffness(fact0*sqrt(POINT_TOLERANCE), fact0, fact0*sqrt(POINT_TOLERANCE)*fact0/(fact0+fact0),  0., 0.) ) ;
+        blocktop->setBehaviour(new Stiffness(fact0,  0.) ) ;
         blocks.push_back(blocktop);
     }
     else
@@ -262,7 +262,7 @@ int main( int argc, char *argv[] )
                                               sample.getCenter().getY() ) ;
     if(fact > 10)
     {
-        blockright->setBehaviour(new OrthotropicStiffness(fact, fact*sqrt(POINT_TOLERANCE), fact*sqrt(POINT_TOLERANCE)*fact/(fact+fact),  0., 0.) ) ;
+        blockright->setBehaviour(new Stiffness(fact, 0.) ) ;
         blocks.push_back(blockright);
     }
     else
