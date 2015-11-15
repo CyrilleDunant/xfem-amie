@@ -1696,7 +1696,6 @@ void FeatureTree::sample()
         if ( is2D() )
         {
             std::cerr << "2D features " << tree.size() << std::endl ;
-            double total_area = tree[0]->area() ;
             double linearDensity = samplingNumber/sqrt(tree[0]->area()) ;
 
             double correctionfactor = 1. ;
@@ -1806,7 +1805,6 @@ void FeatureTree::sample()
         if ( is2D() )
         {
             std::cerr << "2D features (updating sampling)" << std::endl ;
-            double total_area = tree[0]->area() ;
 
             if ( tree[0]->isUpdated )
             {
@@ -1861,7 +1859,6 @@ void FeatureTree::sample()
                     }
                     std::cerr << "\r 3D features... sampling feature " << count << "/" << this->tree.size() << "          " << std::flush ;
 
-                    double shape_factor = tree[i]->area() / pow(tree[i]->volume(), .666666666) ;
                     double factor = 1 ;
                     if ( samplingFactors.find ( tree[i] ) != samplingFactors.end() )
                     {

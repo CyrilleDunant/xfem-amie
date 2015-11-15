@@ -2949,14 +2949,14 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                     parentArea += gp_temp.gaussPoints[j].second ;
                 }
             }
-            if(tri.size() < 3 || std::abs(parentArea - 0.5) > 1e-5)
+            if(tri.size() < 3 || std::abs(parentArea - 0.5) > 1e-4)
             {
 
                 if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
                     return *getCachedGaussPoints() ;
                 
                 delete cachedGps ;
-                cachedGps = new GaussPointArray(TriElement(CUBIC).getGaussPoints()) ;
+                cachedGps = new GaussPointArray(TriElement(CUBIC).getGaussPoints()/*monteCarloGaussPoints(1024, this)*/) ;
                 cachedGps->getId() = REGULAR_GRID ;
                 return *getCachedGaussPoints() ;
             }

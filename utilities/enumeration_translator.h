@@ -1286,12 +1286,7 @@ struct Enum
     }
     static std::string frombool(bool value)
     {
-        switch(value)
-        {
-            case false: return "false" ;
-            case true: return "true" ;
-        }
-        return "false" ;
+        return value ? "true" : "false" ;
     }
    
     // parsed from header file: ../utilities/granulo.h

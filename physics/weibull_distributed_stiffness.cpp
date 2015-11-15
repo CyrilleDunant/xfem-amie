@@ -53,7 +53,7 @@ Form * WeibullDistributedStiffness::getCopy() const
     double weib = distribution(generator) ;
     double factor = 1 - variability + variability*weib ;
     StiffnessAndFracture * copy = new StiffnessAndFracture(
-        Tensor::cauchyGreen(std::make_pair(E,nu), true,dim)*factor,
+        Tensor::cauchyGreen(std::make_pair(E,nu), true,dim,PLANE_STRESS)*factor,
         new NonLocalMCFT(
             down*factor ,
             E,

@@ -63,11 +63,11 @@ public:
 	
 	void threshold(double thr) ;
 
-	static Matrix cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimensionality dim, planeType pt = PLANE_STRESS) ;
-	static Matrix cauchyGreen(double p1, double p2, bool hooke, SpaceDimensionality dim, planeType pt = PLANE_STRESS) ;
-	static Matrix orthothropicCauchyGreen(double E_1, double E_2, double G,  double nu, planeType pt= PLANE_STRESS) ;
-	static Matrix orthothropicCauchyGreen(double E_1, double E_2, double G,  double nu, double angle, planeType pt= PLANE_STRESS) ;
-	static Matrix orthothropicCauchyGreen(double E_1, double E_2, double E_3, double G_1, double G_2, double G_3,  double nu) ;
+	static Matrix cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimensionality dim, planeType pt ) ;
+	static Matrix cauchyGreen(double p1, double p2, bool hooke, SpaceDimensionality dim, planeType pt ) ;
+	static Matrix orthotropicCauchyGreen(double E_1, double E_2, double G,  double nu, planeType pt) ;
+	static Matrix orthotropicCauchyGreen(double E_1, double E_2, double G,  double nu, double angle, planeType pt) ;
+	static Matrix orthotropicCauchyGreen(double E_1, double E_2, double E_3, double G_1, double G_2, double G_3,  double nu) ;
 	static Vector rotate2ndOrderTensor2D( Vector & tensor, double angle ) ;
 		
   

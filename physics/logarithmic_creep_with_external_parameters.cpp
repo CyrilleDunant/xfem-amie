@@ -66,7 +66,7 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 		double E_inst = values["young_modulus"] ;
 		double nu_inst = values["poisson_ratio"] ;
                 if(values.find("angle") != values.end() && values.find("young_modulus_anisotropy_coefficient") != values.end())
-			C = Tensor::orthothropicCauchyGreen( E_inst, E_inst*values["young_modulus_anisotropy_coefficient"], E_inst, nu_inst, values["angle"], plane) ;
+			C = Tensor::orthotropicCauchyGreen( E_inst, E_inst*values["young_modulus_anisotropy_coefficient"], E_inst, nu_inst, values["angle"], plane) ;
 		else
 			C = Tensor::cauchyGreen( E_inst, nu_inst, true, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
 	}

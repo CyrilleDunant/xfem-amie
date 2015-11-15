@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 
     nu = 0.2 ;
     E = 37e9 ;
-    Matrix m1 = Tensor::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
+    Matrix m1 = Tensor::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL, PLANE_STRESS);
     
 //     for(double phi = 1 ;  phi >=0  ; phi -=0.01)
 //     {

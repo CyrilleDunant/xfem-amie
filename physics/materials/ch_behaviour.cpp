@@ -11,7 +11,7 @@
 
 using namespace Amie ;
 
-CHBehaviour::CHBehaviour(double E, double nu, SpaceDimensionality dim) : Stiffness(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim))
+CHBehaviour::CHBehaviour(double E, double nu, SpaceDimensionality dim) : Stiffness(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim, PLANE_STRESS))
 {
 }
 

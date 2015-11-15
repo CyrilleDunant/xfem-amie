@@ -363,9 +363,9 @@ Matrix Tensor::cauchyGreen(double p1, double p2, bool hooke, SpaceDimensionality
     return Matrix(0,0) ;
 }
 
-Matrix Tensor::orthothropicCauchyGreen(double E_1, double E_2, double G,  double nu, double angle, planeType pt)
+Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double G,  double nu, double angle, planeType pt)
 {
-    Matrix cg = Tensor::orthothropicCauchyGreen(E_1, E_2, G, nu, pt ) ;
+    Matrix cg = Tensor::orthotropicCauchyGreen(E_1, E_2, G, nu, pt ) ;
     Matrix transform(3,3) ;
     Matrix transformt(3,3) ;
     double c = cos(angle) ;
@@ -383,7 +383,7 @@ Matrix Tensor::orthothropicCauchyGreen(double E_1, double E_2, double G,  double
     return (transform*cg)*transformt ;
 }
 
-Matrix Tensor::orthothropicCauchyGreen(double E_1, double E_2, double G,  double nu, planeType pt)
+Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double G,  double nu, planeType pt)
 {
 
     Matrix cg(3,3) ;
@@ -402,6 +402,8 @@ Matrix Tensor::orthothropicCauchyGreen(double E_1, double E_2, double G,  double
 
             //nu_12*nu_21 = nu*nu ;
             double nu_21 = (nu/E_1)*(E_1+E_2)*.5 ;
+            if(nu < POINT_TOLERANCE)
+                nu_21 =  0 ;
             double gamma = 1./(1.-nu*nu) ;
 
             cg[0][0] = E_1*gamma ;
@@ -416,16 +418,18 @@ Matrix Tensor::orthothropicCauchyGreen(double E_1, double E_2, double G,  double
         else if(E_1 > POINT_TOLERANCE)
         {
             cg[0][0] = E_1 ;
+            cg[1][1] = E_1*POINT_TOLERANCE ;
             cg[2][2] = 0 ;
 
         }
         else if(E_2 > POINT_TOLERANCE)
         {
+            cg[0][0] = E_2*POINT_TOLERANCE ;
             cg[1][1] = E_2 ;
             cg[2][2] = 0 ;
         }
         else
-            cg.array() = 0 ;
+            cg.array() = POINT_TOLERANCE ;
     }
     else if (pt == PLANE_STRAIN)
     {
@@ -434,7 +438,11 @@ Matrix Tensor::orthothropicCauchyGreen(double E_1, double E_2, double G,  double
             Matrix A(2,2) ;
 
             double nu21 = (nu/E_1)*(E_1+E_2)*.5 ;
+            if(nu < POINT_TOLERANCE)
+                nu21 =  0 ;
             double nu12 = (nu/E_2)*(E_1+E_2)*.5 ;
+            if(nu < POINT_TOLERANCE)
+                nu12 =  0 ;
             double nu23 = nu ;
             double nu32 = nu ;
             double nu13 = nu ;
@@ -460,10 +468,11 @@ Matrix Tensor::orthothropicCauchyGreen(double E_1, double E_2, double G,  double
         else
             cg.array() = 0 ;
     }
+    cg.print();
     return cg ;
 }
 
-Matrix Tensor::orthothropicCauchyGreen(double E_1, double E_2, double E_3, double G_1, double G_2, double G_3,  double nu)
+Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double E_3, double G_1, double G_2, double G_3,  double nu)
 {
 
     Matrix cg(6,6) ;

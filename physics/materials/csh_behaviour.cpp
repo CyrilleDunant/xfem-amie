@@ -12,7 +12,7 @@
 namespace Amie
 {
 
-CSHBehaviour::CSHBehaviour(CSHType type, const  std::vector<double> & densities, const std::vector<double> & shrinkageStresses, const std::vector<double> & times, double E, double nu,  SpaceDimensionality dim ) : Stiffness(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim)), currentTime(0), CshType(type), densities(densities), shrinkageStresses(shrinkageStresses), times(times)
+CSHBehaviour::CSHBehaviour(CSHType type, const  std::vector<double> & densities, const std::vector<double> & shrinkageStresses, const std::vector<double> & times, double E, double nu,  SpaceDimensionality dim ) : Stiffness(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim, PLANE_STRESS)), currentTime(0), CshType(type), densities(densities), shrinkageStresses(shrinkageStresses), times(times)
 {
 }
 
