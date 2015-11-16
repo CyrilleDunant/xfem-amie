@@ -9,11 +9,13 @@
 \usepackage{booktabs}
 \usepackage{xspace}
 \usepackage{array}
+\usepackage{color}
 \usepackage{enumitem}
 \usepackage{fullpage}
 
 %\input{../notations}
 \newcommand{\amie}{\textsc{amie}\xspace}
+\newcommand{\whiteline}{\textcolor{white}{.\\}}
 
 \begin{document}
 
@@ -23,320 +25,707 @@
 \maketitle
 
 This document shows how to write initiation files for \amie. 
-These files can be used to set up variables in simulations without re-compiling the main executable. 
-An example of initiation file usage in \amie can be found in the \verb+main_2d_composite+ example.
+These files can be used to set up 2D simulations with the \verb+2d_composite+ executable.\\
+
+This document only presents the basic capabilities of \verb+2d_composite+.
+Advanced features will be described in another guide.
+
 
 \tableofcontents
 
+\eject
+
+\listoftables
+\addcontentsline{toc}{section}{List of Tables}
+
 \eject 
 
-\section{Structure of the initiation file}
+\section{Syntax}
 
 Each line in the initiation file contains a variable for the \amie simulation, using the following format:\\
 
 \noindent \verb+.parameter = value # comment+\\
 
-\subsection{Hierarchy}
+\paragraph{Special characters:} \whiteline
 
-The number of leading dots before \verb+parameter+ indicates the level of the current line.
-A \verb+parameter+ at level n+1 is attached to the \verb+parameter+ at level n placed directly above.
-In the following example, \verb+son+ (level 2) is attached to \verb+father+ (level 1) and not \verb+step_father_1+ or \verb+step_father_2+ (both level 1 items as well).\\
+\verb+parameter+ must be a character string which contains no space, dot, \verb+@+, \verb+#+, quotes, or brackets of any kind.
+Each variable must be on its own line.\\
 
-\noindent \verb+.step_father_1+\\
-\verb+.father+\\
-\verb+..son+\\
-\verb+.step_father_2+\\
+\verb+value+ can either be a number (using \verb+e+ to express powers of 10) or a character string following the same rule as \verb+parameter+.
+Some variables require no value, in which case both the \verb+=+ and the right-hand side can be omitted.\\
 
-The order in which items at the same level (with the same father) is not relevant.
-The previous example and the following are therefore equivalent:\\
+An entire line can be commented using the \verb+#+ character.\\
 
-\noindent \verb+.step_father_2+\\
-\verb+.step_father_1+\\
-\verb+.father+\\
-\verb+..son+\\
+All character strings are case-sensitive.\\
 
-However, if an item with the same name is defined multiple times, only the last will be accounted for.
+\paragraph{Hierarchy:} \whiteline
 
+The variables are organized using a tree-like hierarchy.
+The number of leading dots before \verb+parameter+ indicates the level of the current line in the tree.
+A \verb+parameter+ at level n+1 is attached to the \verb+parameter+ at level n placed directly above (hereafter called its father).\\
 
+The order in which parameters of the same level and sharing the same father are defined is not relevant.
+The exception is when a parameter is defined multiple times, in which case only the last definition applies.\\
 
-
-\subsection{Special characters}
-
-Several characters have specific roles that are defined later in the document, and summarized here:
-
-\begin{itemize}
-	\item Empty spaces are ignored
-	\item \verb+#+ indicates a comment. It can be placed at the start of a line or later.
-Any character after it will be ignored.
-	\item \verb+=+ makes the separation between the parameter name and its value.
-In some cases, it may be preceded by an operator sign among \verb-+-, \verb+-+, \verb+*+, or \verb+/+.
-	\item \verb+@+ indicates an input file variable.
-Variables can be used to ensure that several parameters always have the same values.
-	\item \verb+--+ indicates a flag.
-Flags are specific token that can be activated with the command line and uses to ignore some sections of the initiation file.
-	\item Analytic expressions must be written between quotes \verb+"+.
-\end{itemize}
-
-\subsection{Value types}
-
-Values can have different types:
-
-\begin{itemize}
-	\item Number (using \verb+e+ to express powers of 10, as in \verb+1.5e6+ for $1.5 \times 10^6$
-	\item Character strings (case-sensitive, spaces are ignored)
-	\item Analytic function (defined between quotes \verb+"+)
-	\item Input variable (character string starting with an \verb+@+)
-\end{itemize}
-
-Parameters may have no value at all, in which case the sign \verb+=+ must not be present on the line.
-
-\subsubsection*{Paths and file names}
+\paragraph{Paths and file names:} \whiteline
 
 Several items can be defined using additional files.
 These files are always defined using the path relative to the folder from which \amie was called.
 Folder separators are always \verb+"/"+ even in a Windows environment.
-As spaces are ignored, files or folders must not include spaces in their name.
+As spaces are ignored, files or folders must not include spaces in their name.\\
 
-\subsubsection*{Units}
+\paragraph{Units:} \whiteline	
 
 S.I. units are generally used, except for times which are expressed in days.
 Notably, stresses are in Pascal.
 
-\subsection{First-level items}
-
-The initiation file must contain a certain number of items to be ran successfully.
-These items are described in more details in the following sections.
-Required first-level items are:\\
-
-\begin{itemize}[label=]
-	\item \verb+.boundary_conditions+ defines the external mechanical boundary conditions.
-	\item \verb+.discretization+ defines the parameters for the finite element mesh.
-	\item \verb+.sample+ defines the geometry and mechanical behaviour of the sample.
-	\item \verb+.stepping+ defines the time steps for the simulation.\\
-\end{itemize}
-
-Optional first-level items are:\\
-
-\begin{itemize}[label=]
-	\item \verb+.define+ defines special input variables.
-	\item \verb+.export+ defines which fields are extracted in a mesh file.
-	\item \verb+.inclusions+ defines the geometry and mechanical behaviour of the inclusions.
-	\item \verb+.output+ defines which fields are extracted in a table file.
-\end{itemize}
-
 \eject
 
-\section{Numerical parameters}
+\section{Structure}
 
-This section defines how to write \verb+.discretization+ and \verb+.stepping+ items.
+The following first-level parameters must be defined in the initiation file.
+Some of them are required, as indicated in the Req. column.\\
 
-\subsection{Spatial discretization}
+\begin{table}[h!]
+\begin{tabular}{lcl}
+ & Req. & Description \\
+\hline
+\verb+.define+ & no & Advanced input parameters (not covered in this guide) \\
+\verb+.discretization+ & yes & Parameters for the finite element mesh \\
+\verb+.stepping+ & yes & Time steps and solver parameters\\
+\verb+.sample+ & yes & Geometry and mechanical behaviour of the matrix \\
+\verb+.inclusions+ & no & Geometry and mechanical behaviour of the inclusions \\
+\verb+.boundary_conditions+ & yes & External mechanical boundary conditions \\
+\verb+.output+ & no & Tables of average values (strain, stress, etc) at different time steps \\
+\verb+.export+ & no & Mesh files to visualize certain values (strain, stress, etc)\\
+\hline
+\end{tabular}
+\caption{First-level parameters}
+\end{table}
 
-The \verb+.discretization+ item defines a certain number of parameters that control the mesh density and element type.
-It has the following structure:\\
+Each of these items are described in a different section of this guide.\\
 
-\noindent \verb+.discretization+\\
-\verb+..sampling_number = 4+\\
-\verb+..order = LINEAR+\\
-\verb+..sampling_restriction = 0+\\
-\verb+..refinement_zone+\\
+\section{Discretization}
 
-These parameters are described below:
+The \verb+discretization+ item defines a parameters that control the mesh density and element type.
+All its parameters are optional.
+If a parameter is not found, its default value will be used instead.\\
 
-\begin{itemize}[label=]
-	\item \verb+..order+ (string) defines the order of the finite element approximation.
-The string must be a valid finite element order.
-\verb+LINEAR_TIME_LINEAR+ is required for visco-elastic analysis.
-	\item \verb+..refinement_zone+ describes a section of the mesh in which the mesh density is increased. 
-Multiple \verb+refinement_zone+ items can be defined at the same level. 
-Each \verb+refinement_zone+ is a rectangle defined by its height, width and center as a \verb+sample+ item (without mechanical behaviour).
-	\item \verb+..sampling_number+ (number) indicates the number of mesh nodes along one side of the sample.
-	\item \verb+..sampling_restriction+ (number) is a threshold so that inclusions with less mesh points than the restriction are ignored.
-This parameter essentially removes the smallest inclusions from the simulation.
-It is optional (default value of 0: all inclusions are accounted for).
-\end{itemize}
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+.discretization+ &  Def. & Description \\
+\hline
+\verb+..order+ & \verb+LINEAR+ & Order of the shape functions for the finite element discretization. In space-time finite elements, the order is automatically set to \verb+LINEAR_TIME_LINEAR+.\\
+\verb+..sampling_number+ & 4 & Number of mesh points on the side of the sample. \\
+\verb+..sampling_restriction+ & 0 & Radius (in meters) below which inclusions are not meshed.\\
+\hline
+\end{tabularx}
+\caption{Discretization parameters}
+\end{table}
 
-\subsection{Time and damage stepping}
 
-The \verb+.stepping+ item defines a certain number of parameters required for the time-stepping as well as the damage algorithm.
 
-\subsubsection*{Damage stepping}
+\section{Stepping}
 
-Three parameters control the damage stepping.
-They are all optional (default values are assumed if not defined).\\
+The \verb+stepping+ item defines parameters required for time-stepping and controls parameters of the solver.
+All its parameters are optional.
+If a parameter is not found, its default value will be used instead.\\
 
-\noindent \verb+.stepping+\\
-\verb+..solver_precision = 1e-8+\\
-\verb+..maximum_iterations_per_step = 256+\\
-\verb+..minimum_time_step = 1e-9+\\
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+.stepping+ &  Def. & Description \\
+\hline
+\verb+..first_time_step+ & 1 & Value of the first time step in the absolute time scale. This is only required if \verb+logarithmic+ is set to \verb+TRUE+.\\
+\verb+..list_of_time_steps+ & & List of coma-separated value or path to a text file containing the list of time steps written in a single column, starting with 0 and containing all instants in increasing order. \\
+\verb+..logarithmic+ & \verb+FALSE+ & If this flag is set to \verb+TRUE+, then the time steps will be spaced equally in the logarithmic scale.\\
+\verb+..maximum_iterations_per_step+ & 256 & Maximum number of iterations of the damage algorithm at each time step\\
+\verb+..minimum_time_step+ & 1e-9 & Smallest amount of time during which coupled damage and visco-elasticity are exactly calculated. Viscous effects are ignored below this value.\\
+\verb+..number_of_time_steps+ & 1 & Number of time steps to perform.\\
+\verb+..solver_precision+ & 1e-8 & Precision of the conjugate gradient solver \\
+\verb+..ssor_iterations+ & 20 & Number of SSOR iterations used to stabilize the conjugate gradient solver \\
+\verb+..time_step+ & 1 & Value of a time step in day (or in the logarithmic scale if \verb+logarithmic+ is set to \verb+TRUE+).\\
+\hline
+\end{tabularx}
+\caption{Stepping parameters}
+\end{table}
 
-These parameters are described below:
+There are four different ways to define the time steps, depending on which parameters are defined.
+By order of priority:
 
-\begin{itemize}[label=]
-	\item \verb+..maximum_iterations_per_step+ (number) defines the maximum number of internal iterations of the damage algorithm.
-If the damage algorithm has not converged after that amount of steps, the results will be extracted according to the \verb+export+ and \verb+output+ first-level items and the current time step will be repeated.
-	\item \verb+..minimum_time_step+ (number) defines the smallest amount of time lapsed between two damage increments.
-This value is relative to the length of the current time step, so it must be lower than 1.
-Values lower than 0.001 are recommended.
-	\item \verb+..solver_precision+ (number) indicates the tolerance for the finite element resolution.
-\end{itemize}
+\begin{enumerate}
+	\item \textbf{With a direct list of time steps:}\\
 
-\subsubsection*{Time stepping}
+	\noindent \verb+..list_of_time_steps = 0,1,2,3+ \\	
 
-\paragraph{Option A - Fixed time step:} This method allows to set a fixed time step for the entire simulation.\\
+	The right-hand side must be a list of coma-separated values that will be used as the time steps of the simulation.
+	The list must start with 0 and strictly increasing.\\
 
-\noindent \verb+.stepping+\\
-\verb+..time_step = 1+\\
-\verb+..number_of_time_steps = 1+\\
-\verb+..logarithmic = FALSE+\\
-\verb+..first_time_step = 0.1+\\
+	\eject
 
-The required parameters are:
+	\item \textbf{From an external file:}\\
+	
+	\noindent \verb+..list_of_time_steps = path/to/time_step_file.txt+ \\	
+	
+	The values stored in the text file are used for the time steps of the simulation. 
+	The file must contain a single column of numbers, starting with 0, and strictly increasing.
+	The file name must contain no coma, otherwise the first option will be detected.
+	
+	\item \textbf{Using a logarithmic time step:\\} 
 
-\begin{itemize}[label=]
-	\item \verb+..time_step+ (number) defines the interval between two instants of the simulation.
-It must be strictly positive.
-	\item \verb+..number_of_time_steps+ (number) defines the number of time steps to perform.
-It must be strictly positive.
-\end{itemize}
+	\noindent \verb+..logarithmic = TRUE+ \\	
+	\verb+..first_time_step = 1+\\
+	\verb+..time_step = 1+\\
+	\verb+..number_of_time_steps = 1+\\
 
-The optionals parameters are:
+	The simulation will consists in \verb+number_of_time_steps+ time steps, starting with \verb+first_time_steps+ (in days), and separated by \verb+time_step+ (in the logarithmic space).
+	
+	\item \textbf{Using a constant time step:\\}
 
-\begin{itemize}[label=]
-	\item \verb+..first_time_step+ (number) defines the first time step of the simulation if the time step is defined as \verb+logarithmic+.
-It must be strictly positive.
-	\item \verb+..logarithmic+ (boolean).
-If this is \verb+TRUE+, then the time steps are spaced regularly in the logarithmic(10) of time, using \verb+time_step+ as the interval in the logarithmic scale.
-\verb+first_time_step+ is then used to define the value of the first instant of the simulation.
-\end{itemize}
+	\noindent \verb+..time_step = 1+\\
+	\verb+..number_of_time_steps = 1+\\
 
-\paragraph{Option B - From an external file:} This method reads the time steps from an external file.\\
+	The simulation will perform \verb+number_of_time_steps+ time steps, each having the same value \verb+time_step+ (in days).
 
-\noindent \verb+.stepping+\\
-\verb+..list_of_time_steps = path_to_file+\\
-
-The required parameter is:
-
-\begin{itemize}[label=]
-	\item \verb+..list_of_time_steps+ (string) defines the path to the file containing the list of instants at which the simulation is carried out.
-The file must only contain a single column of numbers, starting with 0 and sorted by increasing value.
-\end{itemize}
-
-If both options A and B are defined, option B will be activated.
-
-\eject
+\end{enumerate}
 
 \section{Sample}
 
-The sample is a rectangle defined by its width, height, center and mechanical behaviour.\\
+The \verb+sample+ item defines the geometry of the main box in which the simulation is performed as well as its mechanical behaviour.
+Geometrical parameters are optional (default values will be used if they are not found), but the mechanical behaviour must be defined in the file.
 
-\noindent \verb+.sample+\\
-\verb+..height = 1+\\
-\verb+..width = 1+\\
-\verb+..center+\\
-\verb+...x = 0+\\
-\verb+...y = 0+\\
-\verb+..behaviour+\\
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+.stepping+ &  Def. & Description \\
+\hline
+\verb+..behaviour+ & & A \textbf{Behaviour} object representing the mechanical behaviour of the sample. Behaviours are described in their own section. \\
+\verb+..center+ &  & \\	
+\verb+...x+ & 0 & $x$ coordinate of the \verb+center+ of the box.\\
+\verb+...y+ & 0 & $y$ coordinate of the \verb+center+ of the box.\\
+\verb+..height+ & 0.1 & Height of the box ($y$ axis).\\
+\verb+..width+ & 0.1 & Width of the box ($x$ axis)\\
+\hline
+\end{tabularx}
+\caption{Sample parameters}
+\end{table}
 
-All parameters except the behaviour are optional.
+\section{Inclusions}
 
-\begin{itemize}[label=]
-	\item \verb+..height+ (number) defines the vertical dimension of the sample.
-	\item \verb+..width+ (number) defines the horizontal dimension of the sample.
-	\item \verb+..center+ (point) defines the x and y coordinates of the center of the sample.
-	\item \verb+..behaviour+ defines the mechanical behaviour of the sample (see appropriate section).
-\end{itemize}
+The \verb+inclusions+ item defines the inclusions embedded in the matrix.
+Most parameters are optional (default values will be used if not found).
+Parameters without default values are required.
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+.inclusions+ &  Def. & Description \\
+\hline
+\verb+..behaviour+ & & A \textbf{Behaviour} object representing the mechanical behaviour of the inclusions. Behaviours are described in their own section. \\
+\verb+..geometry+ & Circular & A \textbf{Geometry} objects which defines basic shape properties of the inclusions (see below).\\
+\verb+..particle_size_distribution+ & Constant & A \textbf{Particle Size Distribution} object which represents the size distribution of the inclusions (see below).\\
+\verb+..placement+ & & A \textbf{Placement} object defining rules for the random placement of the inclusions (see below). \\	
+\verb+..copy_grain_behaviour+ & \verb+FALSE+ & If this is \verb+TRUE+, then the mechanical behaviour will be randomized for each inclusion (but will remain constant in each inclusion). Otherwise it is randomized for each element in the inclusions.\\
+\verb+..number+ &  & Number of inclusions to generate.\\
+\verb+..radius_maximum+ &  & Maximum radius of the inclusions.\\
+\verb+..sampling_factor+ & 1 & Increases the density of the mesh in the inclusions.\\
+\verb+..surface_fraction+ &  & The fraction of the area of the sample covered by the inclusions.\\
+\hline
+\end{tabularx}
+\caption{Inclusions parameters}
+\end{table}
+
+\subsection{Geometry}
+
+The \verb+geometry+ item defines basic properties of the inclusions.
+It consists into a \verb+type+ and several optional parameters, depending on the actual type of the inclusions.
+The following list details parameters common for different types of geometry.
+\textbf{Req.} indicates a required parameters (only for geometry types for which this is relevant).
+
+\eject 
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..geometry = type+ & Def. & Description\\
+\hline
+\verb+...orientation+ & 0 & Default angle of the major axis of the inclusion with the $x$ axis.\\
+\verb+...orientation_variability+ & $\pi$ & Variation of the random distribution of the angle of the major axis around its average value.\\
+\verb+...placement_rotation+ & 0 & Maximum angle by which the inclusions can be rotated during the placement. Setting this value higher than 0 can result in microstructures in which the inclusions are not oriented as defined by \verb+orientation+ and \verb+orientation_variability+\\
+\verb+...shape_factor+ &  Req. & Average ratio between major and minor axis of the inclusions.\\
+\verb+...shape_factor_variability+ & 0 & Variation of the random distribution of the shape factor around its average value.\\
+\verb+...vertex+ &  Req. & Average number of vertexes for polygonal inclusions.\\
+\verb+...vertex_variability+ & 0 & Variation of the number of vertexes for polygonal inclusions.\\
+\hline
+\end{tabularx}
+\caption{Common geometry parameters}
+\end{table}
+
+The different types available are detailed below:
+
+\paragraph{Circles:} \whiteline
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..geometry = Circular+ & Def. & Description\\
+\hline
+\end{tabularx}
+\caption{Geometry parameters for circles}
+\end{table}
+
+Alternatively, using extended finite elements (constant radius):
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..geometry = XFEM+ & Def. & Description\\
+\hline
+\end{tabularx}
+\caption{Geometry parameters for extended finite elements circles}
+\end{table}
+
+And for extended finite elements in space and time (constant radius):
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..geometry = SpaceTimeXFEM+ & Def. & Description\\
+\hline
+\end{tabularx}
+\caption{Geometry parameters for space-time extended finite elements circles}
+\end{table}
+
+\paragraph{Ellipses:} \whiteline
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..geometry = Ellipsoidal+ & Def. & Description\\
+\hline
+\verb+...orientation+ & 0 & \\
+\verb+...orientation_variability+ & $\pi$ & \\
+\verb+...placement_rotation+ & 0 & \\
+\verb+...shape_factor+ &  Req. & \\
+\verb+...shape_factor_variability+ & 0 & \\
+\hline
+\end{tabularx}
+\caption{Geometry parameters for ellipses}
+\end{table}
 
 \eject
 
-\section{Boundary conditions}
+\paragraph{Rectangles:} \whiteline
 
-The \verb+boundary_conditions+ item contains a list of \verb+boundary_condition+ sub-items:\\
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..geometry = Rectangular+ & Def. & Description\\
+\hline
+\verb+...orientation+ & 0 & \\
+\verb+...orientation_variability+ & $\pi$ & \\
+\verb+...placement_rotation+ & 0 & \\
+\verb+...shape_factor+ &  Req. & \\
+\verb+...shape_factor_variability+ & 0 & \\
+\hline
+\end{tabularx}
+\caption{Geometry parameters for rectangles}
+\end{table}
 
-\noindent \verb+.boundary_conditions+\\
-\verb+..boundary_condition+\\
-\verb+# description of the first BC+\\
-\verb+..boundary_condition+\\
-\verb+# description of the second BC+\\
-\verb+..boundary_condition+\\
-\verb+# etc+\\
+\paragraph{Regular polygons:} \whiteline
 
-There is no limit to the number of sub-items in the list.
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..geometry = Polygonal+ & Def. & Description\\
+\hline
+\verb+...orientation+ & 0 & \\
+\verb+...orientation_variability+ & $\pi$ & \\
+\verb+...placement_rotation+ & 0 & \\
+\verb+...vertex+ &  Req. & \\
+\verb+...vertex_variability+ & 0 & \\
+\hline
+\end{tabularx}
+\caption{Geometry parameters for rectangles}
+\end{table}
 
-\subsection{Common boundary condition parameters}
+\paragraph{Gravel-like polygons:} \whiteline
 
-All boundary condition sub-items must have the following parameters:\\
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..geometry = GravelPolygonal+ & Def. & Description\\
+\hline
+\verb+...amplitude_factor+ & 0.9 & Controls the regularity of the inclusions. \\
+\verb+...amplitude_exponent+ & 1.9 & Controls the regularity of the inclusions \\
+\verb+...degree+ & 2 & Higher degree may result in rougher surfaces. \\
+\verb+...orientation+ & 0 & \\
+\verb+...orientation_variability+ & $\pi$ & \\
+\verb+...placement_rotation+ & 0 & \\
+\verb+...vertex+ &  Req. & \\
+\verb+...vertex_variability+ & 0 & \\
+\hline
+\end{tabularx}
+\caption{Geometry parameters for gravel-like polygons}
+\end{table}
 
-\noindent \verb+..boundary_condition+\\
-\verb+...condition = FIX_ALONG_XI+\\
-\verb+...position = TOP+\\
-\verb+...value = 0+\\
+\eject
 
-In which:
+\paragraph{Crushed-like polygons:} \whiteline
 
-\begin{itemize}[label=]
-	\item \verb+...condition+ (string) defines the type of boundary condition, either in displacements (with \verb+SET_ALONG_XI+) or in stress (with \verb+SET_STRESS_XI+).
-Displacements can be also fixed to 0 with \verb+FIX_ALONG_XI+.
-\verb+XI+ denotes the horizontal direction, and can be replaced with \verb+ETA+ foir the vertical direction.
-	\item \verb+...position+ (string) is the edge or corner of the sample on which the boundary condition is applied.
-Edges are \verb+LEFT+, \verb+RIGHT+, \verb+BOTTOM+ and \verb+TOP+.
-Corners are combination of one vertical and horizontal edge, starting with the vertical direction, as in \verb+BOTTOM_RIGHT+.
-For visco-elastic analysis, the position must also be completed with \verb+_AFTER+ (such as \verb+TOP_AFTER+).
-	\item \verb+...value+ (number) the value of the imposed displacement or stress.
-Fixed displacements (such as \verb+FIX_ALONG_XI+) do not need a value.
-\end{itemize}
+As opposed to other geometries, crushed aggregates already result in inclusions with variable elongations.
+Therefore, \verb+shape_factor_variability+ is not a parameter of that specific geometry.
 
-Without additional parameters, the boundary condition is applied to the entire edge (or corner), and the value is constant.
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..geometry = CrushedPolygonal+ & Def. & Description\\
+\hline
+\verb+...orientation+ & 0 & \\
+\verb+...orientation_variability+ & $\pi$ & \\
+\verb+...placement_rotation+ & 0 & \\
+\verb+...shape_factor+ &  Req. & \\
+\verb+...vertex+ &  Req. & \\
+\verb+...vertex_variability+ & 0 & \\
+\hline
+\end{tabularx}
+\caption{Geometry parameters for crushed-like polygons}
+\end{table}
 
-\subsection{Spatial restriction}
+Alternatively:
 
-It is possible to apply the boundary condition on a section of an edge or a specific point instead of the entire edge.
-Both options are incompatible: the segment restriction has priority over the point restriction.
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..geometry = CrushedSubtendedPolygonal+ & Def. & Description\\
+\hline
+\verb+...angle_variability+ & & Variation of the angle between two consecutive segments of the polygons.\\
+\verb+...orientation+ & 0 & \\
+\verb+...orientation_variability+ & $\pi$ & \\
+\verb+...placement_rotation+ & 0 & \\
+\verb+...shape_factor+ &  Req. & \\
+\verb+...vertex+ &  Req. & \\
+\verb+...vertex_variability+ & 0 & \\
+\hline
+\end{tabularx}
+\caption{Geometry parameters for crushed-like polygons}
+\end{table}
 
-\paragraph{Option A - Segment restriction:} this option defines a rectangular box.
-The boundary condition will be applied on points located on the edge defined by \verb+position+ and located within the box.
-The definition follows:\\
+\paragraph{Voronoi-generated polygons:} \whiteline
 
-\noindent \verb+..boundary_condition+\\
-\verb+...restriction+\\
-\verb+....top_right+\\
-\verb+.....x = 1+\\
-\verb+.....y = 1+\\
-\verb+....bottom_left+\\
-\verb+.....x = -1+\\
-\verb+.....y = -1+\\
+This specific method creates polygons extracted from a Voronoi diagram.
+\textbf{The resulting microstructure will NOT be a Voronoi diagram.}
 
-Where \verb+bottom_left+ and \verb+top_right+ define the coordinates of the points located on the bottom-left and top-right corners of the restriction box.
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..geometry = VoronoiPolygonal+ & Def. & Description\\
+\hline
+\verb+...box_width+ & Req. & Size of the box that is used to generate the Voronoi polygons (independent of the size of the sample or the inclusions).\\
+\verb+...grains+ & Req. & Number of points used for the Delaunay triangulation upon which the Voronoi polygons will be based. This number does not correlate with the number of inclusions in the simulation. Instead, it dictates the number of different shapes available in the distribution.\\
+\verb+...orientation+ & 0 & \\
+\verb+...orientation_variability+ & $\pi$ & \\
+\verb+...placement_rotation+ & 0 & \\
+\verb+...spacing+ & Req. & Distance between the points used for the Delaunay triangulation. That distance is related to \verb+box_width+ and not the size of the sample or the inclusions itself. \\
+\hline
+\end{tabularx}
+\caption{Geometry parameters for Voronoi-generated polygons}
+\end{table}
 
-\paragraph{Option B - Point restriction:} the boundary condition will be applied on the nearest node from the specified position and located on the edge defined by \verb+position+.
-This is defined with:\\
+\subsection{Particle Size Distribution}
 
-\noindent \verb+..boundary_condition+\\
-\verb+...point+\\
-\verb+....x = 0+\\
-\verb+....y = 0+\\
+The \verb+particle_size_distribution+ can either be defined as a pre-generated function, or using a text file.
+Most distributions have no parameters.
 
-\subsection{Time evolution}
+\paragraph{Constant distribution:} \whiteline
 
-It is possible to define a specific evolution of the value of a boundary condition, either using a constant rate or by defining the time evolution in an external file.
-Both options are incompatible: the rate-definition has priority over the external file.
+This is the default distribution if none is found.
 
-\paragraph{Option A - Rate:} the value of the boundary condition will be evaluated at each time step of the simulation as the rate multiplied by the current instant.
-It is defined by:\\
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..particle_size_distribution = ConstantSizeDistribution+ & Def & Description \\
+\hline
+\end{tabularx}
+\caption{Parameters for the constant size distribution}
+\end{table}
 
-\noindent \verb+..boundary_condition+\\
-\verb+...rate = 1+\\
 
-\paragraph{Option B - Time-evolution:} the value of the boundary condition will be evaluated at each time step of the simulation using an external file as input.
-It is defined by:\\
+\paragraph{Bolome distribution:} \whiteline
 
-\noindent \verb+..boundary_condition+\\
-\verb+...interpolation = path_to_file+\\
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..particle_size_distribution+ & Def & Description \\
+\hline
+\verb+..particle_size_distribution = PSDBolomeA+ & & Curve for concrete.\\
+\verb+..particle_size_distribution = PSDBolomeB+ & & Curve for concrete.\\
+\verb+..particle_size_distribution = PSDBolomeC+ & & Curve for concrete.\\
+\verb+..particle_size_distribution = PSDBolomeD+ & & Curve for mortar.\\
+\hline
+\end{tabularx}
+\caption{Parameters for the Bolome particle size distributions}
+\end{table}
 
-The file must contain two columns of numbers, the time in the first column, and the corresponding value in the second.
-The series of instants must be strictly increasing, but it does not need to correspond to the actual time steps used in the simulation.
-\amie will perform a linear interpolation to get the value of the boundary condition at each time step of the simulation.
+\paragraph{Fuller distribution:} \whiteline
 
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..particle_size_distribution = PSDFuller+ & Def. & Description\\
+\hline
+\verb+...exponent+ & 0.5 & Defines the slope of the distribution. \\
+\verb+...radius_minimum+ & 0 & Defines the smallest radius in the distribution. \\
+\hline
+\end{tabularx}
+\caption{Parameters for the Fuller particle size distribution}
+\end{table}
+
+\paragraph{Distribution from an external file:} \whiteline
+
+This method reads a text file containing the discretized particle size distribution as a two-column table. 
+The first column contains the fraction, the second the radii.
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..particle_size_distribution+ & Def. & Description\\
+\textcolor{white}{....}\verb+= GranuloFromCumulativePSD+ & & \\
+\hline
+\verb+...factor+ & 1 & Multiplies all radii in the distribution by the same factor. \\
+\verb+...file_name+ & & Path to the text file containing the particle size distribution. \\
+\verb+...radius_maximum+ & -1 & Cuts off the distribution above the specified radius (if positive). \\
+\verb+...radius_minimum+ & -1 & Cuts off the distribution below the specified radius (if positive). \\
+\verb+...specification+ & & Indicates how to read the file. \\
+\hline
+\end{tabularx}
+\caption{Parameters for the file-defined particle size distribution}
+\end{table}
+
+\verb+specification+ indicates if the fraction and radii are defined in increasing or decreasing order.
+It can be one of the following:
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lX}
+\verb+...specification =+ & Description \\
+\hline
+\verb+CUMULATIVE_PERCENT+ & Radii are sorted by decreasing order, and fractions are expressed in percentage, from 100 to 0. \\
+\verb+CUMULATIVE_FRACTION+ & Radii are sorted by decreasing order, and fractions range from 1 to 0. \\
+\verb+CUMULATIVE_ABSOLUTE+ & Radii are sorted by decreasing order, and fractions are in absolute value of the volume of aggregate, finishing with 0. \\
+\verb+CUMULATIVE_PERCENT_REVERSE+ & Radii are sorted by increasing order, and fractions are expressed in percentage, from 0 to 100. \\
+\verb+CUMULATIVE_FRACTION_REVERSE+ & Radii are sorted by increasing order, and fractions range from 0 to 1. \\
+\verb+CUMULATIVE_ABSOLUTE_REVERSE+ & Radii are sorted by increasing order, and fractions are in absolute value of the volume of aggregate, starting with 0. \\
+\hline
+\end{tabularx}
+\caption{Specification types for the file-defined particle size distribution}
+\end{table}
+
+\subsection{Placement}
+
+This item defines how particles are placed in the sample.
+All parameters are optional.
+If the geometry properties (\verb+center+, \verb+height+ and \verb+width+) are not defined, the inclusions will be placed in the \verb+sample+ of the simulation instead.
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..placement+ & Def. & Description\\
+\hline
+\verb+...center+ &  & \\	
+\verb+....x+ &  & $x$ coordinate of the \verb+center+ of the box in which the inclusions are placed.\\
+\verb+....y+ &  & $y$ coordinate of the \verb+center+ of the box in which the inclusions are placed.\\
+\verb+...height+ & & Height of the box in which the inclusions are placed ($y$ axis).\\
+\verb+...random_seed+ & 1 & Seed to generate different random microstructures based on the same inclusions.\\
+\verb+...spacing+ & 0 & Minimum distance between inclusions, or between the inclusions and the edges of the placement box.\\
+\verb+...tries+ & 1000 & Number of random tries for the placement.\\
+\verb+...width+ & & Width of the box in which the inclusions are placed ($x$ axis)\\
+\hline
+\end{tabularx}
+\caption{Placement parameters}
+\end{table}
+
+\section{Boundary Conditions}
+
+The \verb+boundary_conditions+ item contains a list of \verb+boundary_condition+ sub-items.
+As many \verb+boundary_condition+ subitems can be defined.
+Each \verb+boundary_condition+ item can have the following parameters.
+\textbf{Req} indicates required parameters; Others are optional.
+
+\eject
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..boundary_condition+ & Def. & Description\\
+\hline
+\verb+...condition+ & Req.  & Type of boundary condition to apply. \\	
+\verb+...interpolation+ &  & Path to a text file containing the value of the boundary condition at different instants. The file must be written as a two-column table, with the time in the first column and the value in the second. A linear interpolation will be carried between the specified points. \\	
+\verb+...point+ & & \\
+\verb+....x+ & & $x$ coordinate of the node on which the boundary condition is applied.\\
+\verb+....y+ & & $x$ coordinate of the node on which the boundary condition is applied.\\
+\verb+...position+ & Req.  & Edge of the sample on which the boundary condition is applied. \\	
+\verb+...restriction+ & & \\
+\verb+....top_right+ & & \\
+\verb+.....x+ & 1 & Maximum $x$ coordinate of the nodes on which the boundary condition is applied.\\
+\verb+.....y+ & 1 & Maximum $y$ coordinate of the nodes on which the boundary condition is applied.\\
+\verb+....bottom_left+ & & \\
+\verb+.....x+ & -1 & Minimum $x$ coordinate of the nodes on which the boundary condition is applied.\\
+\verb+.....y+ & -1 & Minimum $y$ coordinate of the nodes on which the boundary condition is applied.\\
+\verb+...rate+ & 0  & Rate of the boundary condition to apply. The value will be linear in time with the specified rate. \\	
+\verb+...value+ & 0  & Value of the boundary condition to apply. \\	
+\hline
+\end{tabularx}
+\caption{Boundary condition parameters}
+\end{table}
+
+In its basic form, a \verb+boundary_condition+ applies a \verb+condition+ with a constant \verb+value+ on an edge or vertex of the sample defined with \verb+position+.
+
+\paragraph{Geometric restrictions:} \whiteline
+
+If \verb+restriction+ is defined, the \verb+condition+ will only be applied on the nodes located on the specified \verb+position+ and in the rectangular box defined by the \verb+top_right+ and \verb+bottom_left+ points.\\
+
+If \verb+point+ is defined, the \verb+condition+ will be applied to the node located on the specified \verb+position+ and closest to \verb+point+.\\
+
+If both \verb+restriction+ and \verb+point+ are defined, only \verb+restriction+ will be applied.
+
+\paragraph{Time evolution:} \whiteline
+
+In its basic form, the value of the \verb+condition+ is constant. However, it can be set as linear in time using \verb+rate+, or use a linear interpolation in time using \verb+interpolation+.\\
+
+In case of an \verb+interpolation+, the boundary condition will be interpolated linearly in-between the specified instants. Therefore, special care must be taken to represent step-wise loadings.
+
+\eject
+
+\paragraph{Conditions:} \whiteline
+
+Common mechanical boundary conditions are:
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lX}
+\verb+..condition =+ & Description\\
+\hline
+\verb+FIX_ALONG_XI+ & Fixed horizontal ($x$) displacements.\\
+\verb+FIX_ALONG_ETA+ & Fixed vertical ($y$) displacements.\\
+\verb+SET_ALONG_XI+ & Imposed horizontal ($x$) displacements.\\
+\verb+SET_ALONG_ETA+ & Imposed vertical ($y$) displacements.\\
+\verb+SET_STRESS_XI+ & Imposed horizontal ($x$) stress.\\
+\verb+SET_STRESS_ETA+ & Imposed vertical ($y$) stress.\\
+\hline
+\end{tabularx}
+\caption{Mechanical conditions}
+\end{table}
+
+\paragraph{Positions:} \whiteline
+
+Common positions in two dimensions are:
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lX}
+\verb+..position =+ & Description\\
+\hline
+\verb+LEFT+ & Minimum horizontal ($x$) coordinates. \\
+\verb+RIGHT+ & Maximum horizontal ($x$) coordinates. \\
+\verb+BOTTOM+ & Minimum vertical ($y$) coordinates. \\
+\verb+TOP+ & Maximum vertical ($y$) coordinates. \\
+\verb+BOTTOM_LEFT+ & \\
+\verb+TOP_LEFT+ & \\
+\verb+BOTTOM_RIGHT+ &  \\
+\verb+TOP_RIGHT+ & \\
+\hline
+\end{tabularx}
+\caption{Bounding box positions}
+\end{table}
+
+In space-time finite elements, these all required the \verb+_AFTER+ suffix (as in \verb+LEFT_AFTER+, etc).
+
+\section{Output}
+
+The \verb+output+ of the simulation is exported as a table containing for each time step average values of different fields.\\
+
+The \verb+inclusions+, \verb+edge+ and \verb+point+ sub-items can all be defined multiple times (for example to get average strains or stresses in both the matrix and the inclusions).\\
+
+In the main \verb+output+ item (respectively any of the \verb+inclusions+, \verb+edge+ and \verb+point+ sub-items) the \verb+field+ sub-item can be defined multiple times. 
+
+\eject
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+.output+ & Def. & Description\\
+\hline
+\verb+..instant+ & \verb+NOW+  & Instant at which the values are extracted. Use \verb+AFTER+ in space-time finite elements.\\	
+\verb+..file_name+ & \verb+output+ & Path to the file in which the results are stored. \textbf{The file will be overwritten at each simulation.}\\
+\verb+..field+ & & Name of the field. \\
+\verb+..inclusions+ & & Allows to output the average value of some fields over a certain phase. \\
+\verb+...index+ & 0 & Index of the phase over which the average is carried. 0 is the matrix (\verb+.sample+), 1 the inclusions (\verb+.inclusions+).\\
+\verb+...field+ & & Name of the field. \\
+\verb+..edge+ & & Allows to output the average value of some fields over an edge of the sample. \\
+\verb+...position+ & \verb+BOTTOM+ & Indicates which edge is selected.\\
+\verb+...field+ & & Name of the field. \\
+\verb+..point+ & & Finds the local value of some fields at a given point.\\
+\verb+...x+ & 0 & $x$ coordinate where to measure the selected fields.\\
+\verb+...y+ & 0 & $y$ coordinate where to measure the selected fields.\\
+\verb+...field+ & & Name of the field. \\
+\hline
+\end{tabularx}
+\caption{Output parameters}
+\end{table}
+
+The fields are ordered in the output table in the same order as they are defined in the initiation file. Fields can be any standard \amie field. The most common are:
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..field =+ & Columns & Comments\\
+\hline
+\verb+DISPLACEMENT_FIELD+ & 2 & \\	
+\verb+STRAIN_FIELD+ & 3 & \\	
+\verb+STRAIN_RATE_FIELD+ & 3 & \\	
+\verb+MECHANICAL_STRAIN_FIELD+ & 3 & Strain field not accounting for visco-elastic and imposed strains\\	
+\verb+REAL_STRESS_FIELD+ & 3 & \\	
+\verb+EFFECTIVE_STRESS_FIELD+ & 3 & Stress field not accounting for the damage \\	
+\verb+PRINCIPAL_STRAIN_FIELD+ & 2 & \\	
+\verb+PRINCIPAL_STRAIN_RATE_FIELD+ & 2 & \\	
+\verb+PRINCIPAL_MECHANICAL_STRAIN_FIELD+ & 2 & \\	
+\verb+PRINCIPAL_REAL_STRESS_FIELD+ & 2 & \\	
+\verb+PRINCIPAL_STRESS_FIELD+ & 2 &  \\	
+\verb+SCALAR_DAMAGE_FIELD+ & 1 & \\
+\verb+GENERALIZED_VISCOELASTIC_STRAIN_FIELD+ & variable & Size depends on the viscoelastic model (3 + 3 for each dashpot in the rheological assembly).\\	
+\hline
+\end{tabularx}
+\caption{List of common output field types}
+\end{table}
+
+\section{Export}
+
+The \verb+export+ consists in one mesh file per time step numbered from 1 to the number of time steps in the simulation. 
+Each file describes a series of fields (the same series is used in each file).
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+.export+ & Def. & Description\\
+\hline
+\verb+..instant+ & \verb+NOW+  & Instant at which the values are extracted. Use \verb+AFTER+ in space-time finite elements.\\	
+\verb+..file_name+ & \verb+export+ & Basic path to the files in which the results are written. \verb+"_i"+ will be added to the name of each file, with \verb+i+ the index of the time step. \textbf{The files will be overwritten at each simulation.}\\
+\verb+..field+ & & Name of the field. \\
+\hline
+\end{tabularx}
+\caption{Export parameters}
+\end{table}
+
+\eject
+
+The \verb+field+ subitem can be defined multiple times.
+It can be a field from the list of the output field types (see above), or one of the list below.
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..field =+ & Columns & Comments\\
+\hline
+\verb+TWFT_STIFFNESS+ & 1 &  Value of the 1111 component of the stiffness tensor.\\	
+\verb+TWFT_VISCOSITY+ & 1 &  Value of the 1111 component of the viscosity tensor.\\	
+\verb+TWFT_CRITERION+ & 1 &  Value of the fracture criterion used to evaluate the damage.\\	
+\hline
+\end{tabularx}
+\caption{List of common export field types}
+\end{table}
+
+\section{Mechanical behaviours}
+
+The \verb+behaviour+ items describes the mechanical behaviour of the matrix and the inclusions.
+It is defined by its \verb+type+ and a certain number of parameters or subitems.
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+.behaviour+ & Def. & Description\\
+\hline
+\verb+..damage_model+ &   & A \textbf{DamageModel} item which indicates which algorithm is used to compute the damage.\\	
+\verb+..fracture_criterion+ &   & A \textbf{FractureCriterion} items which define the failure surface of the material. The material does not fail if the criterion is not defined.\\	
+\verb+..plane_type+ & \verb+PLANE_STRESS+ & Indicates which 2D approximation is used.\\
+\verb+..poisson_ratio+ & Req. & The Poisson ratio of the material.\\
+\verb+..young_modulus+ & Req. & The Young's modulus of the material.\\
+\hline
+\end{tabularx}
+\caption{Behaviour parameters}
+\end{table}
 
 
 

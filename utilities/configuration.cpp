@@ -911,7 +911,7 @@ InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, Inclusio
             inc->setFather( father, index ) ;
         inc->place( placement, getData("placement.spacing", 0), getData("placement.tries", 1000), getData("placement.random_seed", 1) ) ;
         if( hasChild("sampling_factor" ) )
-            inc->setSamplingFactor(0, getData("sampling_factor" ,-1) ) ;
+            inc->setSamplingFactor(0, getData("sampling_factor" ,1.) ) ;
         inc->addToFeatureTree(F) ;
         if(hasChild("enrichment") && Object::isEnrichmentManager( getStringData("enrichment", "NoEnrichment" ) ) )
         {
@@ -1115,13 +1115,13 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
 
 bool ConfigTreeItem::isAtTimeStep(int i, int nsteps) const
 {
-    if(getStringData("at","NONE") == "ALL")
+    if(getStringData("at","ALL") == "ALL")
         return true ;
-    if(getStringData("at","NONE") == "LAST")
+    if(getStringData("at","ALL") == "LAST")
         return i == nsteps-1 ;
-    if(getStringData("at","NONE") == "FIRST")
+    if(getStringData("at","ALL") == "FIRST")
         return i == 1 ;
-    if(getStringData("at","NONE") == "REGULAR")
+    if(getStringData("at","ALL") == "REGULAR")
         return i%((int) getData("every", 2)) == 0 ;
     return false ;
 }

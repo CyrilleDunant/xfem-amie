@@ -664,6 +664,7 @@ int main(int argc, char *argv[])
 	behaviourReq.push_back("../physics/fracturecriteria/fracturecriterion.h") ;
 	AMIEConstructorParser behaviour("Form",std::string(),"behaviour", behaviourReq) ;
         behaviour.parseFolder("../physics/") ;
+        behaviour.parseFolder("../physics/materials/") ;
 
 	all.push_back(behaviour) ;
 

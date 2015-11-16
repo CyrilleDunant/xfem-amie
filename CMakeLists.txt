@@ -525,6 +525,9 @@ target_link_libraries( mesh/circle_circle_intersection Amie ${ALL_LINK_FLAGS})
 add_executable( mesh/circle_circle_mask EXCLUDE_FROM_ALL examples/mesh/main_mesh_circle_circle_mask.cpp )
 target_link_libraries( mesh/circle_circle_mask Amie ${ALL_LINK_FLAGS})
 
+add_executable( mesh/circle_ellipse_polygon EXCLUDE_FROM_ALL examples/mesh/main_mesh_circle_ellipse_polygon.cpp )
+target_link_libraries( mesh/circle_ellipse_polygon Amie ${ALL_LINK_FLAGS})
+
 add_executable( mesh/circle_ellipse_intersection EXCLUDE_FROM_ALL examples/mesh/main_mesh_circle_ellipse_intersection.cpp )
 target_link_libraries( mesh/circle_ellipse_intersection Amie ${ALL_LINK_FLAGS})
 
@@ -573,6 +576,18 @@ target_link_libraries( mesh/polygon_convex Amie ${ALL_LINK_FLAGS})
 add_executable( mesh/polygon_polygon_edge EXCLUDE_FROM_ALL examples/mesh/main_mesh_polygon_polygon_edge.cpp )
 target_link_libraries( mesh/polygon_polygon_edge Amie ${ALL_LINK_FLAGS})
 
+add_executable( mesh/polygon_circle_intersection EXCLUDE_FROM_ALL examples/mesh/main_mesh_polygon_circle_intersection.cpp )
+target_link_libraries( mesh/polygon_circle_intersection Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/polygon_circle_mask EXCLUDE_FROM_ALL examples/mesh/main_mesh_polygon_circle_mask.cpp )
+target_link_libraries( mesh/polygon_circle_mask Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/polygon_ellipse_intersection EXCLUDE_FROM_ALL examples/mesh/main_mesh_polygon_ellipse_intersection.cpp )
+target_link_libraries( mesh/polygon_ellipse_intersection Amie ${ALL_LINK_FLAGS})
+
+add_executable( mesh/polygon_ellipse_mask EXCLUDE_FROM_ALL examples/mesh/main_mesh_polygon_ellipse_mask.cpp )
+target_link_libraries( mesh/polygon_ellipse_mask Amie ${ALL_LINK_FLAGS})
+
 add_executable( mesh/polygon_polygon_intersection EXCLUDE_FROM_ALL examples/mesh/main_mesh_polygon_polygon_intersection.cpp )
 target_link_libraries( mesh/polygon_polygon_intersection Amie ${ALL_LINK_FLAGS})
 
@@ -593,6 +608,7 @@ mesh/circle_circle_intersection
 mesh/circle_circle_mask 
 mesh/circle_ellipse_intersection 
 mesh/circle_ellipse_mask
+mesh/circle_ellipse_polygon
 mesh/circle_sample_intersection 
 mesh/concrete_circle
 mesh/concrete_crushed
@@ -605,7 +621,11 @@ mesh/ellipse_sample_intersection
 mesh/layered_circles 
 mesh/polycrystal
 mesh/polycrystal_itz
+mesh/polygon_circle_intersection
+mesh/polygon_circle_mask
 mesh/polygon_convex
+mesh/polygon_ellipse_intersection
+mesh/polygon_ellipse_mask
 mesh/polygon_polygon_edge
 mesh/polygon_polygon_intersection
 mesh/polygon_polygon_mask

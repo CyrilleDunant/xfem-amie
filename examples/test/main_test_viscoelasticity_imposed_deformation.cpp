@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 
 
         Sample rect(nullptr, 0.04,0.04,0,0) ;
-	Matrix M = Tensor::cauchyGreen(10e9, 0.2, true, SPACE_TWO_DIMENSIONAL) ;
+	Matrix M = Tensor::cauchyGreen(10e9, 0.2, true, SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
 	Vector v(3) ; v[0]=0.001 ; v[1]=0.001 ;
 	rect.setBehaviour(new ViscoelasticityAndImposedDeformation( GENERALIZED_KELVIN_VOIGT, M, M, M*5, v ) ) ;
 //	rect.setBehaviour(new LogarithmicCreepWithExternalParameters( "young_modulus = 10e9, poisson_ratio = 0.2, imposed_deformation = 0.001" ) ) ;

@@ -1258,11 +1258,13 @@ std::vector<Point> Circle::getSamplingBoundingPoints(double linearDensity) const
 {
     std::vector<Point> ret ;
 
-    double angle = 1./ std::floor(linearDensity*getRadius()) ;
+    size_t num_points = round(linearDensity*2.*M_PI*getRadius()) ;
+    double angle = 2.*M_PI/ (num_points) ;
+    double start = angle * (0.5-(double) std::rand()/(double) RAND_MAX) ;
 
-    for (double theta = 0 ; theta < 2.*M_PI ; theta += angle)
+    for (size_t i = 0 ; i < num_points ; i ++)
     {
-        ret.push_back(Point(getRadius()*cos(theta) + getCenter().getX(), getRadius()*sin(theta) + getCenter().getY()));
+        ret.push_back(Point(getRadius()*cos(start+angle*(double) i) + getCenter().getX(), getRadius()*sin(start+angle*(double) i) + getCenter().getY()));
     }
 
     return ret ;
@@ -1322,12 +1324,12 @@ void Circle::sampleSurface(double linearDensity)
         sampleBoundingSurface(linearDensity*4.5) ;
         sampled = true ;
         size_t numberOfRings = static_cast<size_t>((double)getBoundingPoints().size()/(3. * M_PI )) ;
-        size_t num_points = getBoundingPoints().size()/2 ;
+/*        size_t num_points = getBoundingPoints().size()*0.666666 ;
 
         double angle = 2.*M_PI/ (num_points) ;
         double offset = 0 ;
 
-        size_t num_points_start = num_points ;
+        size_t num_points_start = num_points ;*/
 
         std::vector<Point*> temp ;
 
@@ -1335,19 +1337,30 @@ void Circle::sampleSurface(double linearDensity)
         {
             double r = getRadius()*(1. - (double)(i + 1)/(numberOfRings+1)) ;
 
-            for (size_t j = 0 ; j< num_points ; ++j)
+            Circle c(r, getCenter().getX(), getCenter().getY()) ;
+            std::vector<Point> pts = c.getSamplingBoundingPoints(linearDensity*2.) ;
+
+            if(pts.size() > 4)
             {
-                temp.push_back(new Point(r*cos((double)(j+0.5*(i))*angle+offset) + getCenter().getX(), r*sin((double)(j+0.5*(i))*angle+offset) + getCenter().getY()));
+                for(size_t j = 0 ; j < pts.size() ; j++)
+                    temp.push_back(new Point(pts[j].getX(), pts[j].getY())) ;
             }
-
-            num_points = (size_t)(/*std::max(*/(double)num_points_start*(r/getRadius())/*, (double)8)*/) ;
-
-            angle = 2.*M_PI/ (num_points) ;
-
-            offset = 0.5*(2.*M_PI/ (num_points) -  2.*M_PI/ (num_points*1.1)) ;
-
-            if(num_points < 5)
+            else
                 break ;
+
+//            for (size_t j = 0 ; j< num_points ; ++j)
+//            {
+//                temp.push_back(new Point(r*cos((double)(j+0.5*(i))*angle+offset) + getCenter().getX(), r*sin((double)(j+0.5*(i))*angle+offset) + getCenter().getY()));
+//            }
+
+//            num_points = (size_t)(/*std::max(*/(double)num_points_start*(r/getRadius())/*, (double)8)*/) ;
+
+//            angle = 2.*M_PI/ (num_points) ;
+
+//            offset = 0.5*(2.*M_PI/ (num_points) -  2.*M_PI/ (num_points*1.1)) ;
+
+//            if(num_points < 5)
+//                break ;
         }
         for(size_t i = 0 ; i < inPoints.size() ; i++)
             delete inPoints[i] ;
@@ -1796,7 +1809,7 @@ std::vector<Point> Ellipse::getSamplingBoundingPoints(double linearDensity) cons
     if(num_points < 4)
        return ret ;
     double dist = perimeter/num_points ;
-    double theta = (double) std::rand()/RAND_MAX*2.*M_PI ;
+    double theta = (double) std::rand()/RAND_MAX*2.*M_PI/num_points ;
     Vector allTheta(num_points*8) ; allTheta = 0. ;
 
     std::vector<Point> all ;
@@ -2046,7 +2059,7 @@ void Ellipse::sampleSurface (double linearDensity)
     inPoints.resize(1) ;
     inPoints[0] = new Point(center) ;
 
-    sampleBoundingSurface(linearDensity) ;
+    sampleBoundingSurface(linearDensity*1.5) ;
     sampled = true ;
     if(getBoundingPoints().size() < 8)
         return ;
@@ -2060,8 +2073,8 @@ void Ellipse::sampleSurface (double linearDensity)
     std::uniform_real_distribution< double > distribution(0, dist*0.1);
     while(b > dist*1.5)
     {
-        b -= dist*0.75 ;
-        a -= dist*0.75 ;
+        b -= dist*1.1 ;
+        a -= dist*1.1 ;
         Ellipse elln(center,getMajorAxis()*a/getMajorRadius(), getMinorAxis()*b/getMinorRadius()) ;
 
             std::vector<Point> pn = elln.getSamplingBoundingPoints(linearDensity) ;
@@ -2377,14 +2390,14 @@ std::vector<Point> Polygon::getSamplingBoundingPoints(double linearDensity) cons
     {
         int inext = (i+1)%originalPoints.size() ;
         double fraction = dist(originalPoints[i], originalPoints[inext]) ;
-        int numPointsOnSegment = std::max(round(fraction*linearDensity)+1, 3.) ;
+        int numPointsOnSegment = std::max(round(fraction*linearDensity)+1, (fraction > linearDensity?3.:2.) ) ;
 
 /*        if( numPointsOnSegment == 2 && dist(originalPoints[i], originalPoints[inext]) > perimeter*0.25/(num_points) )
             numPointsOnSegment++ ;*/
 
-        if(numPointsOnSegment > 2 || dist(originalPoints[i], originalPoints[inext]) > linearDensity)
-            ret.push_back(originalPoints[i]);        
-        for(int j = 1 ; j < numPointsOnSegment-1 ; j++)
+//        if(numPointsOnSegment > 2 || dist(originalPoints[i], originalPoints[inext]) > linearDensity)
+//            ret.push_back(originalPoints[i]);        
+        for(int j = 0 ; j < numPointsOnSegment-1 ; j++)
         {
             double f = ((double)j/(numPointsOnSegment-1)) ;
             ret.push_back(originalPoints[i]*(1.-f) + (originalPoints[inext]*f) );
@@ -2763,12 +2776,12 @@ void Polygon::sampleSurface(double linearDensity)
 //    num_points *= 2 ;
 //    double real_num = num_points*2. ;//std::sqrt((getRadius()*2.*M_PI/getPerimeter())) ; //*M_PI*(getRadius())/std::sqrt(area()) ;
 
-    sampleBoundingSurface( linearDensity*1.2);
+    sampleBoundingSurface( linearDensity*3.);
 
     std::vector<Polygon> clusters ;
     clusters.push_back( Polygon(originalPoints) ) ;
     double perimeter = clusters[0].getPerimeter() ;
-    double delta = perimeter/getBoundingPoints().size() ;
+    double delta = 2.*perimeter/getBoundingPoints().size() ;
     std::vector<Point> newPoints ;
 //    int t = 0 ; // for debugging purpose
 
@@ -2779,12 +2792,17 @@ void Polygon::sampleSurface(double linearDensity)
         for(size_t i = 0 ; i < clusters.size() ; i++)
         {
             std::vector<Polygon> inscribed = clusters[i].getInscribedPolygons( delta ) ;
-//            if( inscribed.size() == 0 && clusters[i].getOriginalPoints().size() > 2)
-  //              newPoints.push_back( clusters[i].getCenter() ) ;
+            if( inscribed.size() == 0)// && clusters[i].getOriginalPoints().size() > 2)
+                newPoints.push_back( clusters[i].getCenter() ) ;
             for(size_t j = 0 ; j < inscribed.size() ; j++)
             {
-                std::valarray<Point> pts = inscribed[j].getOriginalPoints() ;
-                for(size_t k = 0 ; k < pts.size() ; k++)
+                std::vector<Point> next = inscribed[j].getSamplingBoundingPoints(linearDensity*2.) ;
+                if(next.size() > 4)
+                    nextPoints.insert( nextPoints.end(), next.begin(), next.end()) ;
+//                else
+//                    nextPoints.push_back( inscribed[j].getCenter() ) ;
+//                std::valarray<Point> pts = inscribed[j].getOriginalPoints() ;
+/*                for(size_t k = 0 ; k < pts.size() ; k++)
                 {
                     bool alone = true ;
                     for(size_t l = 0 ; alone && l < newPoints.size() ; l++)
@@ -2807,7 +2825,7 @@ void Polygon::sampleSurface(double linearDensity)
                        if(alone)
                            newPoints.push_back(tentative);
                     }
-                }
+                }*/
                 nextCluster.push_back( inscribed[j] ) ;
             }
         }
