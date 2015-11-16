@@ -7284,7 +7284,8 @@ void FeatureTree::generateElements()
                     if ( i && tree[i] != potentialFeatures[k]
                             && !potentialFeatures[k]->isVirtualFeature
                             && potentialFeatures[k]->onBoundary ( tree[i]->getBoundingPoint ( j ), POINT_TOLERANCE )
-                            && potentialFeatures[k]->getBoundingPoints().size() )
+                            && potentialFeatures[k]->getBoundingPoints().size() 
+                            && !potentialFeatures[k]->isMaskedBy( tree[i] ))
                     {
                         isIn = true ;
                         break ;
@@ -7294,7 +7295,8 @@ void FeatureTree::generateElements()
                 {
                     if ( ( !potentialChildren[k]->isVirtualFeature
                             && (potentialChildren[k]->inBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*(i == 0 ? 0.1 : 0.44) ))
-                            && potentialChildren[k]->inMask( tree[i]->getBoundingPoint ( j ), pointDensity*(i == 0 ? 0.1 : 0.44)) )
+                            && potentialChildren[k]->inMask( tree[i]->getBoundingPoint ( j ), pointDensity*(i == 0 ? 0.1 : 0.44)) 
+                            && !potentialChildren[k]->isMaskedBy( tree[i] ))
                             || ( potentialChildren[k]->isVirtualFeature
                                  && tree[i]->isVirtualFeature
                                  && ( dynamic_cast<VirtualFeature *> ( potentialChildren[k] )->getSource()
@@ -7311,7 +7313,7 @@ void FeatureTree::generateElements()
                     }
                 }
 
-                if( i && ((!tree[i]->inMask( tree[i]->getBoundingPoint ( j ), pointDensity*0.1 )) || tree[i]->onMaskBoundary( tree[i]->getBoundingPoint ( j ), pointDensity*0.1 )))
+                if( i && ((!tree[i]->inMask( tree[i]->getBoundingPoint ( j ), pointDensity*0.1 )) || tree[i]->onMaskBoundary( tree[i]->getBoundingPoint ( j ), pointDensity*0.44 )))
                 {
                     isIn = true ;
                 }
@@ -7471,10 +7473,8 @@ void FeatureTree::generateElements()
                     isIn = true ;
                 }
 
-                if( i && ( (!tree[i]->inMask( tree[i]->getInPoint ( j ) ))  || tree[i]->onMaskBoundary( tree[i]->getInPoint ( j ), pointDensity*0.5 )))
-                {
-                    isIn = true ;
-                }
+
+
 
                 if ( tree[i]->getFather() && tree[i]->getFather()->onBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.44 ) && ! tree[i]->isMaskedBy( tree[i]->getFather() ) )
                 {
@@ -7496,7 +7496,11 @@ void FeatureTree::generateElements()
                     isIn = false ;
                 }
                 
-                if ( descendants.empty() )
+                if( i && ( (!tree[i]->inMask( tree[i]->getInPoint ( j ) ))  || tree[i]->onMaskBoundary( tree[i]->getInPoint ( j ), pointDensity*0.44 )))
+                {
+                    isIn = true ;
+                }
+                else if ( descendants.empty() )
                 {
                     isIn = false ;
                 }

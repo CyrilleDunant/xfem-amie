@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 	PolygonalSample inc(&rect, vertex) ;
 	inc.setBehaviour(new Stiffness(20e9, 0.2) ) ;
 
-	EllipsoidalInclusion inc2(Point(0.004,0.005), Point(0.01,0.01), Point(0.007,-0.007)) ;
+	EllipsoidalInclusion inc2(&inc, Point(0.004,0.005), Point(0.01,0.01), Point(0.007,-0.007)) ;
 	inc2.setBehaviour(new Stiffness(25e9, 0.2) ) ;
         inc2.addToMask(&inc) ;
 
