@@ -2956,7 +2956,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                     return *getCachedGaussPoints() ;
                 
                 delete cachedGps ;
-                cachedGps = new GaussPointArray(TriElement(CUBIC).getGaussPoints()/*monteCarloGaussPoints(1024, this)*/) ;
+                cachedGps = new GaussPointArray(/*TriElement(CUBIC).getGaussPoints()*/monteCarloGaussPoints(128, this)) ;
                 cachedGps->getId() = REGULAR_GRID ;
                 return *getCachedGaussPoints() ;
             }

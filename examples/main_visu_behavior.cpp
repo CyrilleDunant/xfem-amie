@@ -113,10 +113,10 @@ int main(int argc, char *argv[])
     double delay = 0. ;
     int b = 0 ;
     int a = 0 ;
-    Matrix E_kv = Tensor::cauchyGreen( k_kv, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
-    Matrix C_kv = Tensor::cauchyGreen( am_kv, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
-    Matrix C_tau = Tensor::cauchyGreen( am_mx, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
-    Matrix C_eta = Tensor::cauchyGreen( k_mx, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
+    Matrix E_kv = Tensor::cauchyGreen( k_kv, nu_rec, true,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
+    Matrix C_kv = Tensor::cauchyGreen( am_kv, nu_rec, true,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
+    Matrix C_tau = Tensor::cauchyGreen( am_mx, nu_rec, true,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
+    Matrix C_eta = Tensor::cauchyGreen( k_mx, nu_rec, true,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
     //Failure cirterion
     //LimitStrains * fail_crit = new LimitStrains(-1.0, 0.0001);
     //Damage Modele

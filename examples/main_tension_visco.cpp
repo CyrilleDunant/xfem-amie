@@ -141,15 +141,15 @@ int main ( int argc, char *argv[] )
     // Beton
      double k_elas = 40.4e9;
      double nu_elas = 0.2 ;
-     Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
+     Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas, true,  SPACE_TWO_DIMENSIONAL , PLANE_STRESS) ;
      std::vector<std::pair<Matrix, Matrix> > branches ;
      double factor_k = 1.;
          std::vector<double> K_chaine_cp = {5.4e11/factor_k,  3.9e11/factor_k, 2.02e11/factor_k,5.1e10/factor_k} ;
      for(size_t i = 0 ; i < K_chaine_cp.size() ; i++)
      {
          double tau = 5.*std::pow(10., (double) i - 2 ); std::cerr << "TAU "<< tau << std::endl ;
-         Matrix K_i = Tensor::cauchyGreen(K_chaine_cp[i], nu_elas,  true,  SPACE_TWO_DIMENSIONAL )  ; 
-         Matrix Am_i = Tensor::cauchyGreen( K_chaine_cp[i]*tau, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
+         Matrix K_i = Tensor::cauchyGreen(K_chaine_cp[i], nu_elas,  true,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS )  ; 
+         Matrix Am_i = Tensor::cauchyGreen( K_chaine_cp[i]*tau, nu_elas, true,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
          branches.push_back(std::make_pair(K_i, Am_i)) ;
      }
     Viscoelasticity * paste = new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches) ;
