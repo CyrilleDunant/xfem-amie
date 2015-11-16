@@ -7486,11 +7486,6 @@ void FeatureTree::generateElements()
                     isIn = true ;
                 }
 
-                if ( tree[i]->getFather() && i && tree[0]->onBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.44 ) )
-                {
-                    isIn = true ;
-                }
-
                 if ( !tree[i]->getFather() && i )
                 {
                     isIn = false ;
@@ -7503,6 +7498,11 @@ void FeatureTree::generateElements()
                 else if ( descendants.empty() )
                 {
                     isIn = false ;
+                }
+
+                if ( tree[i]->getFather() && i && tree[0]->onBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.44 ) )
+                {
+                    isIn = true ;
                 }
 
                 for ( size_t k = 0 ; k < nullFatherFeatures.size() ; k++ )
@@ -7638,11 +7638,16 @@ void FeatureTree::generateElements()
             if(feature == tree[0])
                 continue ;
 
+            std::cout << "hello" << std::endl ;
+            std::cout << tree[0]->intersects ( feature ) << std::endl ;
+
             if ( !feature->isEnrichmentFeature && feature->getBoundingPoints().size() && feature->getInPoints().size() && !feature->isVirtualFeature && tree[0]->intersects ( feature ) && feature->getFather() != nullptr )
             {
+            std::cout << "hello" << std::endl ;
                 std::vector<Point> inter = tree[0]->intersection ( feature ) ;
                 if(inter.size() == 0)
                     inter = feature->intersection( tree[0] ) ;
+                std::cout << inter.size() << std::endl ;
                 std::vector<Feature *> descendants = feature->getDescendants() ;
                 std::vector<Feature *> fatherdescendants = tree[0]->getDescendants() ;
 

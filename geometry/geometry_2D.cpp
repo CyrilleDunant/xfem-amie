@@ -1619,6 +1619,12 @@ bool SegmentedLine::in(const Point & v) const
 
 Ellipse::Ellipse(Point center, Point a, Point b) : majorAxis(a), minorAxis(b)
 {
+    if(b.norm() > a.norm())
+    {
+        majorAxis = b ;
+        minorAxis = a ;
+    }
+
     gType = ELLIPSE ;
     this->center = center ;
     this->computeCenter() ;
@@ -1836,7 +1842,8 @@ std::vector<Point> Ellipse::getSamplingBoundingPoints(double linearDensity) cons
             ret.push_back( all[j] ) ;
         else
             break ;
-        finish = squareDist2D(ret[0], ret[ret.size()-1])/(coeff*coeff) ;
+        if(i > all.size() * 3/4 )
+            finish = squareDist2D(ret[0], ret[ret.size()-1])/(coeff*coeff) ;
         i = j ;
     }
     if(finish < dist*dist*0.5)
@@ -2056,8 +2063,8 @@ void Ellipse::sampleSurface (double linearDensity)
     for(size_t i = 0 ; i < inPoints.size() ; i++)
         delete inPoints[i] ;
 
-    inPoints.resize(1) ;
-    inPoints[0] = new Point(center) ;
+//    inPoints.resize(1) ;
+//    inPoints[0] = new Point(center) ;
 
     sampleBoundingSurface(linearDensity*1.5) ;
     sampled = true ;
@@ -2121,6 +2128,7 @@ void Ellipse::sampleSurface (double linearDensity)
 
     if(b > dist*0.6)
     {
+        toadd.push_back(getCenter()) ;
         for(double x = dist ; x < a-dist*0.6 ; x += dist)
         {
             toadd.push_back( getCenter() + getMajorAxis()*x/getMajorRadius() ) ;
@@ -2129,15 +2137,15 @@ void Ellipse::sampleSurface (double linearDensity)
     }
 
 
-        PointArray inTemp(inPoints) ;
+//        PointArray inTemp(inPoints) ;
 
-        inPoints.resize(inPoints.size()+toadd.size()) ;
+        inPoints.resize(toadd.size()) ;
 
-        for(size_t j = 0 ; j < inTemp.size() ; j++)
-            inPoints[j] = inTemp[j] ;
+/*        for(size_t j = 0 ; j < inTemp.size() ; j++)
+            inPoints[j] = inTemp[j] ;*/
         for(size_t j = 0 ; j < toadd.size() ; j++)
         {
-            inPoints[j+inTemp.size()] = new Point(toadd[j]) ;
+            inPoints[j] = new Point(toadd[j]) ;
         }
 
 /*    
@@ -2261,7 +2269,7 @@ Point Ellipse::toLocalCoordinates(const Point & p) const
 {
     double alpha = majorAxis.angle() ;
     Point prot((p-center).getX()*cos(-alpha)-(p-center).getY()*sin(-alpha),
-               +(p-center).getX()*sin(-alpha)+(p-center).getY()*cos(-alpha)) ;
+               -(p-center).getX()*sin(-alpha)-(p-center).getY()*cos(-alpha)) ;
     return prot ;
 }
 

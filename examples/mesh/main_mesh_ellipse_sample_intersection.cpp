@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
         Sample rect(nullptr, 0.04,0.04,0,0) ;
 	rect.setBehaviour(new Stiffness( 10e9, 0.2 ) ) ;
         
-	EllipsoidalInclusion inc(Point(0.02,0.0195),Point(0.02,0.02),Point(0.01,-0.01)) ;
+	EllipsoidalInclusion inc(&rect, Point(0.02,0.0195),Point(0.02,0.02),Point(0.01,-0.01)) ;
 	inc.setBehaviour(new Stiffness(20e9, 0.2) ) ;
 
 	FeatureTree f(&rect) ;
