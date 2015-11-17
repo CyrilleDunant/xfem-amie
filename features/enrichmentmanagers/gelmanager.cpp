@@ -93,6 +93,8 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
         count += i.second ;
     }
     deltaRadius *= .5 ;
+    for( size_t z = 0 ; z < zones.size() ; z++ )
+        zones[z].first->setRadius( deltaRadius*4 ) ;
 }
 
 GelManager::GelManager( FeatureTree * f, InclusionFamily * inc, int gel, double rf, double dr)  : deltaRadius(dr), reactedArea(0), aggregateArea(0), reactiveFraction(rf), ftree(f)
@@ -142,7 +144,6 @@ bool GelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTre
     int currentNumber = 0 ;
     int stoppedReaction = 0 ;
     reactedArea = 0 ;
-    ftree->forceEnrichmentChange();
 
     for( size_t z = 0 ; z < zones.size() ; z++ )
     {
@@ -274,7 +275,6 @@ bool SpaceTimeGelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, De
     int currentNumber = 0 ;
     int stoppedReaction = 0 ;
     reactedArea = 0 ;
-    ftree->forceEnrichmentChange();
 
     std::vector<Circle> tests ;
 

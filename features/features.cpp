@@ -3199,19 +3199,18 @@ void FeatureTree::updateElementBehaviours()
 
 void FeatureTree::enrich()
 {
-
-    enrichmentChange = false ;
     lastEnrichmentId = getNodes().size() ;
 
     std::cerr << "\r enriching... feature " << 0 << "/" << tree.size() << std::flush ;
 
+    bool needEnrichmentChange = enrichmentChange ;
     for ( size_t i = 1 ; i < tree.size() ; i++ )
     {
         if ( is3D() )
         {
             std::vector<Mesh <DelaunayTetrahedron, DelaunayTreeItem3D > *> extra3dMeshes ;
 
-            if ( tree[i]->isEnrichmentFeature && ( dynamic_cast<EnrichmentFeature *> ( tree[i] )->moved() || !state.enriched ) )
+            if ( tree[i]->isEnrichmentFeature && ( dynamic_cast<EnrichmentFeature *> ( tree[i] )->moved() || !state.enriched  || needEnrichmentChange) )
             {
                 if ( !state.enriched )
                 {
@@ -3240,7 +3239,7 @@ void FeatureTree::enrich()
                 }
             }
 
-            if ( tree[i]->isEnrichmentFeature && ( dynamic_cast<EnrichmentFeature *> ( tree[i] )->moved() || !state.enriched ) )
+            if ( tree[i]->isEnrichmentFeature && ( dynamic_cast<EnrichmentFeature *> ( tree[i] )->moved() || !state.enriched || needEnrichmentChange) )
             {
                 if ( !state.enriched )
                 {
@@ -3258,11 +3257,8 @@ void FeatureTree::enrich()
             }
         }
     }
-
-    if(enrichmentChange)
-        K->clear();
-
     std::cerr << " ...done" << std::endl ;
+
 }
 
 void FeatureTree::assemble()
@@ -4338,6 +4334,96 @@ void FeatureTree::solve()
     residualError = sqrt ( parallel_inner_product ( &r[0], &r[0], r.size() ) ) ;
 
 
+    if(enrichmentChange)
+    {
+        if ( !elastic )
+        {
+            if(is2D())
+            for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+            {
+                #pragma omp parallel
+                {
+#ifdef HAVE_OMP
+                    int numThreads = omp_get_num_threads() ;
+#else
+                    int numThreads = 1 ;
+#endif
+                    size_t chunksize = std::max(j->second->begin().size()/(2*numThreads),(size_t)1) ;
+                    size_t localEnd = 0 ;
+                    int t = 0 ;
+                    size_t end = j->second->end().getPosition() ;
+                    #pragma omp single
+                    {
+                        while (localEnd < end)
+                        {
+                            size_t localStart = std::min(t*chunksize,end)  ;
+                            localEnd = std::min(localStart+chunksize,end) ;
+                            t++ ;
+                            #pragma omp task firstprivate(localStart,localEnd)
+                            {
+                                auto i = j->second->begin()+localStart ;
+                                for ( ; i.getPosition() < localEnd; i++)
+                                {
+                                    if ( i.getPosition() % 200 == 0 )
+                                        std::cerr << "\r updating Gauss points for fracture criterion... " << i.getPosition() << "/" << i.size() << std::flush ;
+                                    if ( i->getBehaviour()->getFractureCriterion() )
+                                    {
+                                        i->getBehaviour()->getFractureCriterion()->updateRestriction(i->getState()) ; 
+                                    }
+                                }
+
+                            }
+                            localStart = localEnd ;
+                        }
+
+                    }
+                }
+            }
+            else
+            {
+                 #pragma omp parallel
+                {
+#ifdef HAVE_OMP
+                    int numThreads = omp_get_num_threads() ;
+#else
+                    int numThreads = 1 ;
+#endif
+                    size_t chunksize = std::max(dtree3D->begin().size()/(2*numThreads),(size_t)1) ;
+                    size_t localEnd = 0 ;
+                    int t = 0 ;
+                    size_t end = dtree3D->end().getPosition() ;
+                    #pragma omp single
+                    {
+                        while (localEnd < end)
+                        {
+                            size_t localStart = std::min(t*chunksize,end)  ;
+                            localEnd = std::min(localStart+chunksize,end) ;
+                            t++ ;
+                            #pragma omp task firstprivate(localStart,localEnd)
+                            {
+                                auto i = dtree3D->begin()+localStart ;
+                                for ( ; i.getPosition() < localEnd; i++)
+                                {
+                                    if ( i.getPosition() % 200 == 0 )
+                                        std::cerr << "\r updating Gauss points... " << i.getPosition() << "/" << i.size() << std::flush ;
+                                    if ( i->getBehaviour()->getFractureCriterion() )
+                                    {
+                                        i->getBehaviour()->getFractureCriterion()->updateRestriction(i->getState()) ; 
+                                    }
+                                }
+
+                            }
+                            localStart = localEnd ;
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+    enrichmentChange = false ;
+
+    std::cerr << " ...done" << std::endl ;
 }
 
 void FeatureTree::stepXfem()
@@ -4410,11 +4496,12 @@ void FeatureTree::stepXfem()
             }
         }
     }
-
-    if ( enrichmentChange )
+    
+    if(enrichmentChange)
     {
         residualError = 1e19 ;
     }
+
 }
 
 bool sortByScore ( DelaunayTriangle * tri1, DelaunayTriangle * tri2 )
@@ -5335,7 +5422,6 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
     {
         return ;
     }
-
     if ( !enriched )
     {
         ft->enrich() ;
@@ -5380,6 +5466,7 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
         ft->stepXfem();
         xfemStepped = true ;
     }
+
 }
 
 void FeatureTree::resetBoundaryConditions()

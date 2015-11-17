@@ -19,7 +19,7 @@ FiberBasedIsotropicLinearDamage::FiberBasedIsotropicLinearDamage(double f, doubl
     alt = false ;
     thresholdDamageDensity = c ;
     getState(true).resize(1, 0.);
-    residualStiffnessFraction = 1e-2 ;
+    residualStiffnessFraction = 1e-6 ;
     isNull = false ;
 }
 

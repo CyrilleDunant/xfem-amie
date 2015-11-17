@@ -19,7 +19,7 @@ struct AggregateBehaviour : public WeibullDistributedStiffness
     double yield ;
     double c ;
     //Yield 30 MPa
-    AggregateBehaviour(double E=59e9, double nu=0.3, double up = 14.75e6, double yield = 0.00044, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
+    AggregateBehaviour(double E=59e9, double nu=0.3, double up = 10e6, double yield = 0.00044, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
 
     virtual Form * getCopy() const ;
 

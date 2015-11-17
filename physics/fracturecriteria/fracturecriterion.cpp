@@ -115,7 +115,7 @@ std::pair<Vector, Vector> FractureCriterion::getSmoothedFields( FieldType f0, Fi
 
 void FractureCriterion::updateRestriction(ElementState &s)
 {
-    if(!restrictionSource|| !needRestrictionUpdate)
+    if(!restrictionSource || !needRestrictionUpdate)
         return ;
     
     needRestrictionUpdate = false ;
@@ -197,8 +197,9 @@ void FractureCriterion::initialiseCache( ElementState & s)
 }
 void FractureCriterion::updateCache( ElementState & s)
 {
-// #pragma omp critical
-// {
+    if(!mesh2d && !mesh3d)
+        initialiseCache(s) ;
+
     if(s.getMesh2D())
     {
         Function x = Function("x")-s.getParent()->getCenter().getX() ;
@@ -227,7 +228,6 @@ void FractureCriterion::updateCache( ElementState & s)
             mesh3d->updateCache(cacheID) ;
 
     }
-// }
 }
 
 
@@ -534,7 +534,6 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
 
 void FractureCriterion::step(ElementState &s)
 {
-
     if(!mesh2d && !mesh3d )
         initialiseCache(s) ;
     
@@ -542,12 +541,11 @@ void FractureCriterion::step(ElementState &s)
         dynamic_cast<DelaunayTriangle *>(s.getParent())->getSubTriangulatedGaussPoints() ;
     if(mesh3d)
         dynamic_cast<DelaunayTetrahedron *>(s.getParent())->getSubTriangulatedGaussPoints() ;
-    updateRestriction(s) ;
 
     if(s.getParent()->getBehaviour()->fractured())
     {
         scoreAtState = -1 ;
-	scoreAtTimeStepEnd = -1 ;
+        scoreAtTimeStepEnd = -1 ;
         metAtStep = false ;
         return ;
     }

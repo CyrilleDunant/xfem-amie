@@ -146,7 +146,6 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 //         }
         if(ring[i]->getBehaviour()->getFractureCriterion())
         {
-                ring[i]->getElementaryMatrix() ;
                 ring[i]->getBehaviour()->getFractureCriterion()->setRestriction(getPrimitive(),ring[i]->getState()) ;
         }
 

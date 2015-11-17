@@ -2810,13 +2810,63 @@ std::vector<std::pair<Point, double> > monteCarloGaussPoints(int nPoints, Delaun
         return gp_alternative ;
 }
 
+std::vector<std::pair<Point, double> > monteCarloGaussPoints(size_t nPoints, DelaunayTriangle *t, const Geometry * enr, double fact  =1)
+{
+        std::vector<std::pair<Point, double> > gp_alternative_in ;
+        std::vector<std::pair<Point, double> > gp_alternative_out ;
+        TriElement father(LINEAR) ;
+
+        Function xtrans = t->getXTransform() ;
+        Function ytrans = t->getYTransform() ;
+        VirtualMachine vm ;
+        double infrac = 0 ;
+        double count = 0 ;
+        while(count < 256000 && ( gp_alternative_out.empty() < nPoints || gp_alternative_in.empty() < nPoints) )
+        {
+            Point test = Point((double)std::rand()/RAND_MAX,(double)std::rand()/RAND_MAX);
+
+            if( father.in( test ) )
+            {
+                count++ ;
+ 
+                Point gtest = Point(vm.eval(xtrans, test.getX(), test.getY()), vm.eval(ytrans, test.getX(), test.getY())) ;
+                if(enr->in(gtest))
+                {
+                    infrac++ ;
+                    if(gp_alternative_in.size() < nPoints)
+                    {
+                        gp_alternative_in.push_back( std::make_pair( test, 0.5 ) ) ;
+                    }
+                }
+                else if(gp_alternative_out.size() < nPoints)
+                    gp_alternative_out.push_back( std::make_pair( test, 0.5 ) ) ;
+            }
+        }
+        
+        double f = infrac/count ;
+
+        for( size_t i = 0 ; i < gp_alternative_in.size() ; i++ )
+            gp_alternative_in[i].second = f*fact/( gp_alternative_in.size()) ;
+        for( size_t i = 0 ; i < gp_alternative_out.size() ; i++ )
+            gp_alternative_out[i].second = (1.-f)*fact/(gp_alternative_out.size()) ;
+        
+        gp_alternative_in.insert(gp_alternative_in.end(), gp_alternative_out.begin(),gp_alternative_out.end());
+        double sum = 0 ;
+        for( size_t i = 0 ; i < gp_alternative_in.size() ; i++ )
+            sum += gp_alternative_in[i].second ;
+        double j = t->area() ;
+        for( size_t i = 0 ; i < gp_alternative_in.size() ; i++ )
+            gp_alternative_in[i].second *= j/sum ;
+        
+        return gp_alternative_in ;
+}
+
 const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 {
     if(!enrichmentUpdated && getCachedGaussPoints())
     {
         return *getCachedGaussPoints() ;
     }
-    
     size_t numberOfRefinements = 0 ;
 //     if(getEnrichmentFunctions().size() > getBoundingPoints().size())
 //         numberOfRefinements = 4 ;
@@ -2951,12 +3001,12 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             }
             if(tri.size() < 3 || std::abs(parentArea - 0.5) > 1e-4)
             {
-
+/*
                 if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
                     return *getCachedGaussPoints() ;
-                
+                */
                 delete cachedGps ;
-                cachedGps = new GaussPointArray(/*TriElement(CUBIC).getGaussPoints()*/monteCarloGaussPoints(128, this)) ;
+                cachedGps = new GaussPointArray(/*TriElement(CUBIC).getGaussPoints()*/monteCarloGaussPoints(32, this, enrichmentSource[0])) ;
                 cachedGps->getId() = REGULAR_GRID ;
                 return *getCachedGaussPoints() ;
             }

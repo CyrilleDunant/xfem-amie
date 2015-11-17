@@ -3152,10 +3152,11 @@ void ElementarySurface::setEnrichment( const Function & p, const Geometry * g)
             unique = false ;
             break ;
         }
-    }
+    } 
+    enrichmentUpdated = true ;
     if(unique)
     {
-        enrichmentUpdated = true ;
+       
         enrichfunc.push_back(p) ;
         enrichmentSource.push_back(g) ;
     }
@@ -3779,6 +3780,7 @@ void ElementaryVolume::setEnrichment(const Function & p, Geometry * g)
             break ;
         }
     }
+    enrichmentUpdated = true ;
     if(unique)
     {
         enrichfunc.push_back(p) ;

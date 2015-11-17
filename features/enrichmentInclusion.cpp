@@ -372,13 +372,8 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
             points.insert(&ring[i]->getBoundingPoint(j)) ;
         }
         ring[i]->enrichmentUpdated = false ;
-        std::vector<DelaunayTriangle *> neighbourhood = dtree->getNeighbourhood(ring[i]) ;
-        for(size_t j = 0 ; j < neighbourhood.size() ; j++)
-        {
-            neighbourhood[j]->enrichmentUpdated = false ;
-        }
+
     }
-    std::sort(ring.begin(), ring.end()) ;
     //we build a map of the points and corresponding enrichment ids
     std::map<const Point *, int> dofId ;
 
