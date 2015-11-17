@@ -101,6 +101,8 @@ public:
 
 	virtual bool inBoundary(const Point &p, double d) const ;
 	virtual bool onBoundary(const Point &p, double d) const ;
+
+        std::map<Feature *, std::vector<Point> > sampleOuterShells(double pointDensity, double distance, bool in = true) ;
 	
 	int getLayer() const {return layer ;}
 	void setLayer(int l) {layer = l;}
@@ -234,7 +236,7 @@ public:
 	virtual const Point & getCenter() const = 0 ;
 	virtual double getRadius() const = 0 ;
 	virtual double area() const = 0 ;
-	virtual void sample(double linearDensity) = 0 ;
+	virtual void sample(double linearDensity, double surfaceDensityFactor) = 0 ;
 	
 	virtual bool isVoid( const Point &) const = 0 ;
 	

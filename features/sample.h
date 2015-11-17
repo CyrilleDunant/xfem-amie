@@ -71,10 +71,7 @@ public:
 
     GEO_DERIVED_OBJECT(Rectangle) ;
 
-    virtual void sample(double linearDensity)
-    {
-        this->sampleSurface(linearDensity) ;
-    }
+    virtual void sample(double linearDensity, double surfaceDensityFactor) ;
 
 } ;
 

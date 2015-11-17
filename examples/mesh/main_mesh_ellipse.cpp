@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 	f.addFeature(&rect, &ell9) ;
 	f.addFeature(&rect, &ell6) ;
 	f.addFeature(&rect, &ell3) ;
-	f.setSamplingNumber(16) ;
+	f.setSamplingNumber(8) ;
 	
 	parser.setFeatureTree(&f) ;
 	

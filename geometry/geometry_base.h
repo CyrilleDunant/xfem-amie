@@ -72,9 +72,13 @@ virtual void sampleBoundingSurface(double linearDensity)               \
 {                                                          \
 this->__geo_type__::sampleBoundingSurface(linearDensity) ;             \
 }                                                          \
-virtual void sampleSurface(double linearDensity)                       \
+virtual void sampleSurface(double linearDensity, double surfaceDensityFactor)                       \
 {                                                          \
-this->__geo_type__::sampleSurface(linearDensity) ;                     \
+this->__geo_type__::sampleSurface(linearDensity, surfaceDensityFactor) ;                     \
+}                                                          \
+virtual std::vector<Point> sampleOuterShell(double linearDensity, double distance) \
+{                                                          \
+    return this->__geo_type__::sampleOuterShell(linearDensity, distance) ;                     \
 }                                                          \
 virtual SpaceDimensionality spaceDimensions() const        \
 {                                                          \
@@ -825,6 +829,8 @@ public:
     /** \brief Return the circumscribing radius*/
     virtual double getRadius() const = 0;
 
+    virtual std::vector<Point> sampleOuterShell(double linearDensity, double distance) { return std::vector<Point>() ; }
+
     /** \brief Sample the bounding surface with a given number of sampling points. the points are stored as boundingPoints*/
     virtual void sampleBoundingSurface(double linearDensity) = 0 ;
 
@@ -832,7 +838,7 @@ public:
     virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const = 0 ;
 
     /** \brief Sample the bounding surface and the surface of the Geometry. The points are stored as inpoints and bounding points */
-    virtual void sampleSurface(double linearDensity) = 0 ;
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor) = 0 ;
 
     /** \brief Return true  if the argument is in the geometry*/
     virtual bool in(const Point & p)const  = 0;
@@ -1368,6 +1374,8 @@ public:
     /** \brief projection operator*/
     virtual void project(Point *) const = 0;
 
+    virtual void sampleSurface( double linearDensity, double surfaceDensityFactor) { std::cout << "do nothing!" << std::endl ; }
+
 } ;
 
 /** \brief Convex Polygon, defined from a Pointset*/
@@ -1463,7 +1471,7 @@ public:
     virtual void sampleBoundingSurface(double linearDensity) ;
 
     /** \brief sample the circle surface*/
-    virtual void sampleSurface(double linearDensity);
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor);
 
     /** \brief return true if the argument lies in the circle*/
     virtual bool in(const Point & v) const ;

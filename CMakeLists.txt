@@ -600,6 +600,9 @@ target_link_libraries( mesh/polygon_sample_edge Amie ${ALL_LINK_FLAGS})
 add_executable( mesh/polygon_sample_intersection EXCLUDE_FROM_ALL examples/mesh/main_mesh_polygon_sample_intersection.cpp )
 target_link_libraries( mesh/polygon_sample_intersection Amie ${ALL_LINK_FLAGS})
 
+add_executable( mesh/sample EXCLUDE_FROM_ALL examples/mesh/main_mesh_sample.cpp )
+target_link_libraries( mesh/sample Amie ${ALL_LINK_FLAGS})
+
 ADD_CUSTOM_TARGET(meshTests)
 ADD_DEPENDENCIES(meshTests 
 check_mesh 
@@ -632,5 +635,6 @@ mesh/polygon_polygon_mask
 mesh/polygon_regular
 mesh/polygon_sample_edge
 mesh/polygon_sample_intersection
+mesh/sample
 )
 

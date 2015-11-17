@@ -400,7 +400,7 @@ public:
 
     virtual std::vector<DelaunayTetrahedron *> getNeighbourhood(DelaunayTetrahedron * element) const ;
 
-    void insert( Point *p) ;
+    void insert( Point *p, double minDist) ;
     void insert( Segment *s) ;
 
     /** \brief Get the list of triangles in comflict with a point. This method is O(log(n)), except when construction of the mesh has led to circular stepparenthoods. In that case, it is O(log(n)) in general, and O(n) 5% of the times.

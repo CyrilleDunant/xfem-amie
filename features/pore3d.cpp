@@ -95,8 +95,8 @@ std::vector<DelaunayTetrahedron *> Pore3D::getElements3D( FeatureTree * dt){
 }
 
 
-void Pore3D::sample(size_t n) {
-	this->Sphere::sampleSurface(4*n) ;
+void Pore3D::sample(double linearDensity, double surfaceDensityFactor) {
+	this->Sphere::sampleSurface(linearDensity, surfaceDensityFactor) ;
 	
 // 	size_t numberOfRadii = static_cast<size_t>(sqrt(std::max(4*n, (size_t)27))) ;
 // 	double r = sqrt(radius) ;

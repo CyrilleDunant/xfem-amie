@@ -112,6 +112,8 @@ public:
     void flatConflicts(std::valarray<bool> & visited, std::vector<DelaunayTreeItem *> & toTest, std::vector<DelaunayTreeItem *> & ret,const Point *p) ;
     virtual void print() const { } ;
 
+    virtual double distanceToVertex(const Point * p) const { return 1e9 ; }
+
     virtual bool in( const Point & p) const  = 0;
 
     size_t numberOfCommonVertices(const DelaunayTreeItem * s) const;
@@ -172,6 +174,8 @@ public:
     virtual const GaussPointArray & getSubTriangulatedGaussPoints() ;
     virtual const GaussPointArray & getSubTriangulatedGaussPoints(const Function & f0, const Function & f1, Matrix &m) ;
 
+    virtual double distanceToVertex(const Point * p) const ;
+
     std::valarray<unsigned int> neighbourhood ;
 
     bool isInNeighbourhood(const DelaunayTriangle * t) const ;
@@ -217,6 +221,7 @@ public:
     virtual bool onCircumCircle(const Point &p) const  ;
     virtual bool isNeighbour( const DelaunayTreeItem * t) const;
     virtual bool isVertex(const Point *p) const ;
+    virtual double distanceToVertex(const Point * p) const ;
 
     void merge(DelaunayDemiPlane * p) ;//!<  Merge two planes. If the planes are found to form a partition of the universe, they are both killed. If they are found to define the same demiplane, their families are merged, and one of them is killed.
 
@@ -319,6 +324,7 @@ public:
     bool isNeighbour( const DelaunayTreeItem * t) const ;
     bool isVertex(const Point *p) const ;
     bool isVertexByID(const Point *p) const ;
+    virtual double distanceToVertex(const Point * p) const ;
 
     void insert(std::valarray<bool> & visited,std::vector<DelaunayTreeItem *>& , Point *p, Star *s) { };
 
@@ -417,7 +423,7 @@ public:
 
     virtual ~DelaunayTree() ;
 
-    void insert( Point *p) ;
+    void insert( Point *p, double minDist ) ;
 
     /** \brief Conditionnal insertion of points.
      *

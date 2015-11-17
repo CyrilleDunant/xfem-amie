@@ -88,7 +88,7 @@ Phase::Phase( Feature *f , DelaunayTriangle * tri)
 		if(dynamic_cast<Circle *>(f))
 		{
 			Circle overlap(f->getRadius(), f->getCenter()) ;
-			overlap.sampleSurface(50) ;
+			overlap.sampleSurface(50./f->getRadius(), 1.) ;
 			int count = 0 ;
 			for(size_t i = 0 ; i < overlap.getBoundingPoints().size() ; i++)
 				count += (int) tri->in(overlap.getBoundingPoint(i)) ;

@@ -39,7 +39,7 @@ public:
         return points ;
     } ;
     virtual void setElementOrder ( Order o, double dt = 0 );
-    virtual void insert ( Point * ) ;
+    virtual void insert ( Point *, double  ) ;
     virtual size_t getLastNodeId() const;
 
 
@@ -84,7 +84,7 @@ public:
 
     virtual void setElementOrder ( Order elemOrder, double dt = 0. ) ;
 
-    virtual void insert ( Point * ) { } ;
+    virtual void insert ( Point *, double  ) { } ;
 
     virtual size_t getLastNodeId() const {return global_counter ;};
     virtual size_t size() const {return tree.size() ;} ;

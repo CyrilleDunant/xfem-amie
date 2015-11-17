@@ -294,6 +294,54 @@ std::vector<Feature *> Feature::getDescendants() const
     return ret ;
 }
 
+std::map<Feature *, std::vector<Point> > Feature::sampleOuterShells(double linearDensity, double distance, bool in) 
+{
+    std::map<Feature *, std::vector<Point> > ret ;
+    for(size_t i = 0 ; i < m_c.size() ; i++)
+    {
+        if(!m_c[i]->isVirtualFeature && m_c[i]->getBoundingPoints().size() && m_c[i]->getInPoints().size())
+        {
+            std::vector<Point> tmp = m_c[i]->sampleOuterShell(linearDensity, distance) ;
+            std::vector<Point> out ;
+            for(size_t j = 0 ; j < tmp.size() ; j++)
+            {
+                if(this->in(tmp[j]) && in)
+                    out.push_back(tmp[j]) ;
+                else if(!in && !this->in(tmp[j]) && m_c[i]->inMask(tmp[j]))
+                    out.push_back(tmp[j]) ;
+            }
+            if(out.size() > 0)
+               ret[m_c[i]] = out ;
+
+            if(in)
+            {
+                std::map<Feature *, std::vector<Point> > below = m_c[i]->sampleOuterShells(linearDensity, distance, false) ;
+                ret.insert( below.begin(), below.end() ) ;
+            }
+
+        }
+    }
+
+    if(!in)
+        return ret ;
+
+    for(size_t i = 0 ; i < mask.size() ; i++)
+    {
+        std::vector<Point> tmp = mask[i]->sampleOuterShell(linearDensity, -distance) ;
+        std::vector<Point> out ;
+        for(size_t j = 0 ; j < tmp.size() ; j++)
+        {
+            if(in && this->in(tmp[j]))
+                out.push_back(tmp[j]) ;
+        }
+        if(out.size() > 0)
+           ret[mask[i]] = out ;
+    }
+
+    return ret ;
+}
+
+
 void  Feature::setFather(Feature * const f)
 {
     m_f = f ;

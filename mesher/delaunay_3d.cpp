@@ -2311,7 +2311,7 @@ std::vector<DelaunayTreeItem3D *> DelaunayTree3D::addElements(std::vector<Delaun
     return ret ;
 }
 
-void DelaunayTree3D::insert( Point *p )
+void DelaunayTree3D::insert( Point *p , double minDist)
 {
     neighbourhood = false ;
     std::vector<DelaunayTreeItem3D *> cons = conflicts( p ) ;
@@ -3029,7 +3029,7 @@ std::valarray<std::valarray<Matrix> > DelaunayTetrahedron::getNonLinearElementar
 
     for( size_t i = 4 ; i < to_add.size() ; i++ )
     {
-        dt.insert( &to_add[i] ) ;
+        dt.insert( &to_add[i], 0 ) ;
     }
 
 // 	TetrahedralElement father(QUADRATIC) ;
@@ -3292,7 +3292,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
         for( size_t i = 4 ; i < to_add.size() ; i++ )
         {
-            dt->insert( to_add[i] ) ;
+            dt->insert( to_add[i], 0 ) ;
         }
 
         for( size_t i = 0 ; i < numberOfRefinements ; i++ )
@@ -3384,7 +3384,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
             for( size_t i = 4 ; i < to_add.size() ; i++ )
             {
-                dt->insert( to_add[i] ) ;
+                dt->insert( to_add[i], 0 ) ;
             }
 
             for( size_t k = 0 ; k < uniquePoints.size() ; k++ )

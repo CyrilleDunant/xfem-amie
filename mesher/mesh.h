@@ -181,7 +181,7 @@ public:
     }
 
     virtual void setElementOrder ( Order o, double dt = 0. ) = 0;
-    virtual void insert ( Point * ) = 0 ;
+    virtual void insert ( Point * , double ) = 0 ;
     template <class ETARGETTYPE>
     /** \brief Return the displacements in source mesh projected on current mesh.
     */

@@ -596,6 +596,10 @@ void CommandLineParser::setFeatureTree( FeatureTree * f )
         f->setSSORIterations( values[std::string("--set-ssor-iterations")] ) ;
     if(values[std::string("--set-sampling-number")] > 0)
         f->setSamplingNumber( values[std::string("--set-sampling-number")] ) ;
+    if(values[std::string("--set-surface-sampling-factor")] > 1)
+        f->setSurfaceSamplingFactor( values[std::string("--set-surface-sampling-factor")] ) ;
+    if(values[std::string("--set-min-mesh-density")] > 1)
+        f->setMinimumMeshDensity( values[std::string("--set-min-mesh-density")] ) ;
     if(strings[std::string("--set-order")].size() > 0)
     {
         bool ok = false ;
@@ -611,19 +615,23 @@ void CommandLineParser::disableFeatureTreeArguments()
     values.erase(std::string("--set-sampling-restriction")) ;
     values.erase(std::string("--set-delta-time")) ;
     values.erase(std::string("--set-min-delta-time")) ;
+    values.erase(std::string("--set-min-mesh-density")) ;
     values.erase(std::string("--set-solver-precision")) ;
     values.erase(std::string("--set-max-iterations-per-step")) ;
     values.erase(std::string("--set-sampling-number")) ;
     values.erase(std::string("--set-ssor-iterations")) ;
+    values.erase(std::string("--set-surface-sampling-factor")) ;
     strings.erase(std::string("--set-order")) ;
 
     help.erase(std::string("--set-sampling-restriction")) ;
     help.erase(std::string("--set-delta-time")) ;
     help.erase(std::string("--set-min-delta-time")) ;
+    help.erase(std::string("--set-min-mesh-density")) ;
     help.erase(std::string("--set-solver-precision")) ;
     help.erase(std::string("--set-max-iterations-per-step")) ;
     help.erase(std::string("--set-sampling-number")) ;
     help.erase(std::string("--set-ssor-iterations")) ;
+    help.erase(std::string("--set-surface-sampling-factor")) ;
     help.erase(std::string("--set-order")) ;
 }
 
@@ -637,10 +645,12 @@ CommandLineParser::CommandLineParser(std::string d, bool c, bool f) : descriptio
     addValue(std::string("--set-sampling-restriction"), -1, std::string("set the number of mesh points below which small inclusions are not meshed")) ;
     addValue(std::string("--set-delta-time"), -1, std::string("set the time step")) ;
     addValue(std::string("--set-min-delta-time"), -1, std::string("set the minimum time increment between two damage steps")) ;
+    addValue(std::string("--set-min-mesh-density"), -1, std::string("set the minimum mesh density (factor between 0 and 1)")) ;
     addValue(std::string("--set-solver-precision"), -1, std::string("set the precision of the conjugate gradient solver")) ;
     addValue(std::string("--set-max-iterations-per-step"), -1, std::string("set the maximum number of iterations during a damage step")) ;
     addValue(std::string("--set-ssor-iterations"), -1, std::string("set the number of SSOR iterations in the solver")) ;
     addValue(std::string("--set-sampling-number"), -1, std::string("set the number of points on the edges of the sample")) ;
+    addValue(std::string("--set-surface-sampling-factor"), -1, std::string("increases the number of points on boundaries")) ;
     addString(std::string("--set-order"), std::string(), std::string("set the order of the finite elements")) ;
 }
 

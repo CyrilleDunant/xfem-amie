@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
         
 	FeatureTree f(&rect) ;
 	PSDGenerator::get2DConcrete( &f, new Stiffness(20e9, 0.2), parser.getValue("--inclusions"), 0.008, 0.00001, new PSDBolomeA(), new CircularInclusionGenerator(), 100000, 0.7, nullptr, std::vector<Geometry *>(), 1) ;
-	f.setSamplingNumber( 128 ) ;
+	f.setSamplingNumber( 48 ) ;
 	f.setSamplingRestriction(0.002) ;
 	
 	parser.setFeatureTree(&f) ;

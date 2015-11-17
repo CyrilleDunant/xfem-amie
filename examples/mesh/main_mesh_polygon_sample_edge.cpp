@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 
 	FeatureTree f(&rect) ;
 	f.addFeature(&rect, &inc) ;
-	f.setSamplingNumber(16) ;
+	f.setSamplingNumber(8) ;
 	
 	parser.setFeatureTree(&f) ;
 	

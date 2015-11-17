@@ -131,10 +131,10 @@ std::vector<Point> RegularOctahedron::getSamplingBoundingPoints(double linearDen
     return samplingPoints ;
 }
 
-void RegularOctahedron::sampleSurface(double linearDensity)
+void RegularOctahedron::sampleSurface(double linearDensity, double surfaceDensityFactor)
 {
 
-    sampleBoundingSurface(linearDensity) ;
+    sampleBoundingSurface(linearDensity*surfaceDensityFactor) ;
 
     int realPointsOnEquator = Rectangle(length, length, getCenter().getX(), getCenter().getY()).getSamplingBoundingPoints(linearDensity).size() ;
     int iterations = 1 ;
@@ -441,7 +441,7 @@ const Amie::Point& Tetrahedron::getCircumCenter() const
     return circumCenter ;
 }
 
-void Tetrahedron::sampleSurface(double linearDensity)
+void Tetrahedron::sampleSurface(double linearDensity, double surfaceDensityFactor)
 {
     //! \todo make it do something
     return ;
@@ -951,7 +951,7 @@ double Hexahedron::getRadius() const
     return dist(getCenter(), getCenter()+Point(size_x, size_y, size_z)*.5) ;
 }
 
-void Hexahedron::sampleSurface(double linearDensity)
+void Hexahedron::sampleSurface(double linearDensity, double surfaceDensityFactor)
 {
     Point point000_(*boundingPoints[0]) ;
 
@@ -1488,10 +1488,10 @@ void Sphere::sampleBoundingSurface(double linearDensity)
 
 }
 
-void Sphere::sampleSurface(double linearDensity)
+void Sphere::sampleSurface(double linearDensity, double surfaceDensityFactor)
 {
 
-    sampleBoundingSurface(linearDensity) ;
+    sampleBoundingSurface(linearDensity*surfaceDensityFactor) ;
 
     std::vector<Point> points ;
 
@@ -2090,7 +2090,7 @@ std::vector<Point> PolygonPrism::getSamplingBoundingPoints(size_t num_points) co
         pts[i] = new Point(base.originalPoints[i]) ;
 
     Polygon basel(pts) ;
-    basel.sampleSurface(num_points) ;
+    basel.sampleSurface((double) num_points/basel.getRadius(), 1.) ;
     for(size_t i = 0 ; i < basel.getInPoints().size() ; i++)
         newPoints.push_back(basel.getInPoint(i));
     for(size_t i = 0 ; i < basel.getBoundingPoints().size() ; i++)
@@ -2136,7 +2136,7 @@ std::vector<Point> LoftedPolygonPrism::getSamplingBoundingPoints(size_t num_poin
         pts[i] = new Point(base.originalPoints[i]) ;
 
     Polygon basel(pts) ;
-    basel.sampleSurface(num_points) ;
+    basel.sampleSurface((double) num_points/basel.getRadius(), 1.) ;
 
     std::vector<Point> ret ;
     for(size_t j = 0 ; j< basel.getInPoints().size() ; j++)
@@ -2172,7 +2172,7 @@ std::vector<Point> LoftedPolygonPrism::getSamplingBoundingPoints(size_t num_poin
 void PolygonPrism::sampleSurface(size_t num_points)
 {
     sampleBoundingSurface(num_points);
-    base.sampleSurface(num_points) ;
+    base.sampleSurface((double) num_points/base.getRadius(), 1.) ;
 
     double numSlices = std::max(round(axis.norm()/base.getPerimeter()*num_points), 2.) ;
 
@@ -2194,7 +2194,7 @@ void LoftedPolygonPrism::sampleSurface(size_t num_points)
 {
 //     num_points *=1.5 ;
     sampleBoundingSurface(num_points*1.5);
-    base.sampleSurface(num_points) ;
+    base.sampleSurface((double) num_points/base.getRadius(),  1.) ;
 
     std::vector<Point> newPoints ;
 

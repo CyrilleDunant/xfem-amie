@@ -69,9 +69,9 @@ public:
 	
 	GEO_DERIVED_OBJECT(Hexahedron) ;
 	
-	virtual void sample(double linearDensity)
+	virtual void sample(double linearDensity, double surfaceDensityFactor)
 	{
-		sampleSurface(linearDensity) ;
+		sampleSurface(linearDensity, surfaceDensityFactor) ;
 	}
 	
 } ;

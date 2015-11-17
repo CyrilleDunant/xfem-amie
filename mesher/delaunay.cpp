@@ -1273,6 +1273,13 @@ bool DelaunayDeadTriangle::isVertex(const Point *p) const
     return (*p == *first) || (*p == *second) || (*p == *third)  ;
 }
 
+double DelaunayDeadTriangle::distanceToVertex(const Point *p) const
+{
+    if(this->isVertex(p))
+        return 0 ;
+    return sqrt(std::min( squareDist2D(*p, *first), std::min( squareDist2D(*p, *second),  squareDist2D(*p, *third) ) ) ) ;
+}
+
 bool DelaunayDeadTriangle::isVertexByID(const Point *p) const
 {
     return p == first || p == second || p == third  ;
@@ -1349,6 +1356,13 @@ DelaunayDemiPlane::~DelaunayDemiPlane()
 inline bool DelaunayTriangle::isVertex(const Point * p) const
 {
     return (*p == *first || *p == *second || *p == *third) ;
+}
+
+double DelaunayTriangle::distanceToVertex(const Point *p) const
+{
+    if(this->isVertex(p))
+        return 0 ;
+    return sqrt(std::min( squareDist2D(*p, *first), std::min( squareDist2D(*p, *second),  squareDist2D(*p, *third) ) ) ) ;
 }
 
 bool DelaunayTriangle::isVertexByID(const Point * p) const
@@ -1652,6 +1666,15 @@ bool DelaunayDemiPlane::onCircumCircle(const Point &p) const
 bool DelaunayDemiPlane::isVertex(const Point *p) const
 {
     return ( (*p) == (*first) || (*p) == (*second) ) || isAligned(p, first, second) ;
+}
+
+double DelaunayDemiPlane::distanceToVertex(const Point *p) const
+{
+    if(this->isVertex(p))
+        return 0 ;
+    Line l(*first, *second) ;
+    Point p_ = l.projection(*p) ;
+    return dist(*p, p_) ;
 }
 
 
@@ -2172,7 +2195,7 @@ std::vector<DelaunayTreeItem *> DelaunayTree::addElements(std::vector<DelaunayTr
     return ret ;
 }
 
-void DelaunayTree::insert(Point *p)
+void DelaunayTree::insert(Point *p, double minDist)
 {
     if(falseTopology)
         return ;
@@ -2189,6 +2212,12 @@ void DelaunayTree::insert(Point *p)
         {
             return ;
         }
+        else if(minDist > POINT_TOLERANCE)
+        {
+            if(cons[i]->distanceToVertex(p) < minDist)
+                return ;
+        }
+
     }
 
     addElements(cons, p) ;
@@ -2887,16 +2916,16 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             TriElement father (LINEAR) ;
             TriangularInclusion trg(A,B,C) ;
             srand(0) ;
-            trg.sample(16) ;
+            trg.sample(1./16., 1.) ;
             DelaunayTree * dt = new DelaunayTree(&A,&B,&C) ;
 
             for(size_t i = 0 ; i < trg.getBoundingPoints().size() ; i++)
             {
-                dt->insert(&trg.getBoundingPoint(i));
+                dt->insert(&trg.getBoundingPoint(i), 0);
             }
             for(size_t i = 0 ; i < trg.getInPoints().size() ; i++)
             {
-                dt->insert(&trg.getInPoint(i));
+                dt->insert(&trg.getInPoint(i), 0);
             }
 
             std::vector<DelaunayTriangle *> tris = dt->getElements() ;
@@ -2973,7 +3002,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
             for(size_t i = 3 ; i < to_add.size() ; i++)
             {
-                dt->insert(to_add[i]) ;
+                dt->insert(to_add[i], 0) ;
             }
 
             dt->setElementOrder(QUADRATIC); 

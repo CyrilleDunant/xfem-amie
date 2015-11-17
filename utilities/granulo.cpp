@@ -425,25 +425,25 @@ std::vector<std::vector<PolygonalSample *> > PSDGenerator::get2DSourceVoronoiPol
 
     double n = grains.size() ;
     Mesh<DelaunayTriangle, DelaunayTreeItem> * test = new DelaunayTree ( &box->getBoundingPoint(0), &box->getBoundingPoint(1), &box->getBoundingPoint(2) ) ;
-    test->insert( &box->getBoundingPoint(3) ) ;
+    test->insert( &box->getBoundingPoint(3), 0 ) ;
     double divx = box->width()/sqrt(n) ;
     Point c = box->getCenter() ;
     for(double x = c.getX()-box->width()*0.5+divx ; x < c.getX()+box->width()*0.5-divx/2 ; x += divx )
     {
-        test->insert( new Point( x, c.getY()-box->height()*0.5 ) ) ;
-        test->insert( new Point( x, c.getY()+box->height()*0.5 ) ) ;
+        test->insert( new Point( x, c.getY()-box->height()*0.5 ), 0 ) ;
+        test->insert( new Point( x, c.getY()+box->height()*0.5 ), 0 ) ;
     }
     double divy = box->height()/sqrt(n) ;
     for(double y = c.getY()-box->height()*0.5+divx ; y < c.getY()+box->height()*0.5-divy/2 ; y += divy )
     {
-        test->insert( new Point( c.getX()-box->width()*0.5, y ) ) ;
-        test->insert( new Point( c.getX()+box->width()*0.5, y ) ) ;
+        test->insert( new Point( c.getX()-box->width()*0.5, y ), 0 ) ;
+        test->insert( new Point( c.getX()+box->width()*0.5, y ), 0 ) ;
     }
     std::vector<Point *> nodes ;
     for(size_t i = 0 ; i < grains.size() ; i++)
     {
         nodes.push_back( new Point(grains[i].first) ) ;
-        test->insert( nodes[i] ) ;
+        test->insert( nodes[i], 0 ) ;
     }
 
     std::vector<DelaunayTriangle *> connectivity = test->getConflictingElements( box ) ;

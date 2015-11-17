@@ -300,7 +300,7 @@ void StructuredMesh::setElementOrder(Order o, double dt)
 
     }
 }
-void StructuredMesh::insert(Point *)
+void StructuredMesh::insert(Point *, double)
 {
 }
 

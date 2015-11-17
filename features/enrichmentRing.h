@@ -124,7 +124,7 @@ public:
      *
      * @param n
      */
-    virtual void sample(double linearDensity)
+    virtual void sample(double linearDensity, double surfaceDensityFactor)
     {
 
     }

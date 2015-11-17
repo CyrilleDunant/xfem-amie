@@ -52,9 +52,9 @@ public:
 
     GEO_DERIVED_OBJECT(LoftedPolygonPrism) ;
 
-    virtual void sample(double linearDensity)
+    virtual void sample(double linearDensity, double surfaceDensityFactor)
     {
-        sampleSurface(linearDensity) ;
+        sampleSurface(linearDensity, surfaceDensityFactor) ;
     }
 
 } ;

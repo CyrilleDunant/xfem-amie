@@ -171,7 +171,7 @@ public:
 	//	virtual void printFile(const std::string& filename) const;//SB
 
 /** \brief do nothing*/
-	virtual void sample(double linearDensity) ;
+	virtual void sample(double linearDensity, double surfaceDensityFactor) ;
 
 /** \brief return false*/
 	virtual bool isVoid(const Point&) const ;
