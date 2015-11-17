@@ -151,7 +151,7 @@ int main( int argc, char *argv[] )
     featureTree = &F ;
 
     double itzSize = 0.00002;
-    int inclusionNumber =2500 ; 1 ;  
+    int inclusionNumber = 2500 ; 1 ; 
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
 
@@ -288,22 +288,22 @@ int main( int argc, char *argv[] )
     F.addManager(gelManager) ;
     F.setSamplingNumber( 50 ) ;
 
-    F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, LEFT,    sample.getCenter().getX()-sample.width()*.5-restraintDepth, 
-                                                                                                         sample.getCenter().getX()+sample.width()*.5,
-                                                                                                         sample.getCenter().getY()-sample.width()*.5, 
-                                                                                                         sample.getCenter().getY()+sample.width()*.5)  ) ;
-    F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT,   sample.getCenter().getX()-sample.width()*.5, 
-                                                                                                         sample.getCenter().getX()+sample.width()*.5+restraintDepth,
-                                                                                                         sample.getCenter().getY()-sample.width()*.5, 
-                                                                                                         sample.getCenter().getY()+sample.width()*.5)  ) ;    
-    F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, TOP,    sample.getCenter().getX()-sample.width()*.5, 
-                                                                                                         sample.getCenter().getX()+sample.width()*.5,
-                                                                                                         sample.getCenter().getY()-sample.width()*.5, 
-                                                                                                         sample.getCenter().getY()+sample.width()*.5+restraintDepth)  ) ;
-    F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, sample.getCenter().getX()-sample.width()*.5, 
-                                                                                                         sample.getCenter().getX()+sample.width()*.5,
-                                                                                                         sample.getCenter().getY()-sample.width()*.5-restraintDepth, 
-                                                                                                         sample.getCenter().getY()+sample.width()*.5)  ) ;
+    F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, LEFT,    sample.getCenter().getX()-basesize*.5-restraintDepth, 
+                                                                                                         sample.getCenter().getX()+basesize*.5,
+                                                                                                         sample.getCenter().getY()-basesize*.5, 
+                                                                                                         sample.getCenter().getY()+basesize*.5)  ) ;
+    F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT,   sample.getCenter().getX()-basesize*.5, 
+                                                                                                         sample.getCenter().getX()+basesize*.5+restraintDepth,
+                                                                                                         sample.getCenter().getY()-basesize*.5, 
+                                                                                                         sample.getCenter().getY()+basesize*.5)  ) ;    
+    F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, TOP,    sample.getCenter().getX()-basesize*.5, 
+                                                                                                         sample.getCenter().getX()+basesize*.5,
+                                                                                                         sample.getCenter().getY()-basesize*.5, 
+                                                                                                         sample.getCenter().getY()+basesize*.5+restraintDepth)  ) ;
+    F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, sample.getCenter().getX()-basesize*.5, 
+                                                                                                         sample.getCenter().getX()+basesize*.5,
+                                                                                                         sample.getCenter().getY()-basesize*.5-restraintDepth, 
+                                                                                                         sample.getCenter().getY()+basesize*.5)  ) ;
     
 
     F.setOrder( LINEAR ) ;
