@@ -151,7 +151,7 @@ int main( int argc, char *argv[] )
     featureTree = &F ;
 
     double itzSize = 0.00002;
-    int inclusionNumber = 2500 ; 1 ; 
+    int inclusionNumber =1 ;  2500 ; 
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
 
@@ -174,8 +174,8 @@ int main( int argc, char *argv[] )
 
     Sample *voidtop = new Sample( nullptr, restraintDepth * .5, 
                                            restraintDepth * .5, 
-                                           sample.getCenter().getX() - ( sample.width()  - restraintDepth )*.5 - restraintDepth * .25, 
-                                           sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25) ;
+                                           sample.getCenter().getX() - basesize*.5 - restraintDepth * .25, 
+                                           sample.getCenter().getY() + basesize*.5 + restraintDepth * .25) ;
 //     voidtop->isVirtualFeature = true ;
     voidtop->setBehaviour( new VoidForm() );
     F.addFeature( &sample, voidtop );
@@ -183,8 +183,8 @@ int main( int argc, char *argv[] )
 
     Sample *voidbottom = new Sample( nullptr, restraintDepth * .5, 
                                               restraintDepth * .5, 
-                                              sample.getCenter().getX() - ( sample.width()  - restraintDepth )*.5 - restraintDepth * .25, 
-                                              sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
+                                              sample.getCenter().getX() - basesize*.5 - restraintDepth * .25, 
+                                              sample.getCenter().getY() - basesize*.5 - restraintDepth * .25 ) ;
 //     voidbottom->isVirtualFeature = true ;
     voidbottom->setBehaviour( new VoidForm() );
     F.addFeature( &sample, voidbottom );
@@ -192,8 +192,8 @@ int main( int argc, char *argv[] )
 
     Sample *voidleft = new Sample( nullptr, restraintDepth * .5, 
                                             restraintDepth * .5, 
-                                            sample.getCenter().getX() + ( sample.width()  - restraintDepth )*.5 + restraintDepth * .25, 
-                                            sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
+                                            sample.getCenter().getX() + basesize*.5 + restraintDepth * .25, 
+                                            sample.getCenter().getY() + basesize*.5 + restraintDepth * .25 ) ;
 //     voidleft->isVirtualFeature = true ;
     voidleft->setBehaviour( new VoidForm() );
     F.addFeature( &sample, voidleft );
@@ -201,8 +201,8 @@ int main( int argc, char *argv[] )
 
     Sample *voidright = new Sample( nullptr, restraintDepth * .5, 
                                              restraintDepth * .5, 
-                                             sample.getCenter().getX() + ( sample.width()  - restraintDepth )*.5 + restraintDepth * .25, 
-                                             sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
+                                             sample.getCenter().getX() + basesize*.5 + restraintDepth * .25, 
+                                             sample.getCenter().getY() - basesize*.5 - restraintDepth * .25 ) ;
 //     voidright->isVirtualFeature = true ;
     voidright->setBehaviour( new VoidForm() );
     F.addFeature( &sample, voidright );
@@ -211,7 +211,7 @@ int main( int argc, char *argv[] )
     //width are  1100000000 3340000000  4360000000      done: 
     //length are 1220000000 2180000000  3400000000      next: 
 
-    Sample *blocktop = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
+    Sample *blocktop = new Sample( nullptr, basesize, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() + basesize*.5 + restraintDepth * .25 ) ;
     if(fact0 > 10)
     {
         blocktop->setBehaviour(new Stiffness(fact0,  0.) ) ;
@@ -224,41 +224,29 @@ int main( int argc, char *argv[] )
     }
     F.addFeature( &sample, blocktop );
 
-    Sample *blockbottom = new Sample( nullptr, sample.width() - restraintDepth, 
+    Sample *blockbottom = new Sample( nullptr, basesize, 
                                                restraintDepth * .5, 
                                                sample.getCenter().getX(), 
-                                               sample.getCenter().getY() - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
-    if(fact0 > 10)
-    {
-        blockbottom->setBehaviour(new VoidForm()) ;
-        blocks.push_back(blockbottom);
-    }
-    else
-    {
-        blockbottom->setBehaviour(new VoidForm()) ;
-        blocks.push_back(blockbottom);
-    }
+                                               sample.getCenter().getY() - basesize*.5 - restraintDepth * .25 ) ;
+
+    blockbottom->setBehaviour(new VoidForm()) ;
+    blocks.push_back(blockbottom);
+
     F.addFeature( &sample, blockbottom );
 
     Sample *blockleft = new Sample( nullptr, restraintDepth * .5, 
-                                             sample.height() - restraintDepth, 
-                                             sample.getCenter().getX() - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, 
+                                             basesize, 
+                                             sample.getCenter().getX() - ( basesize )*.5 - restraintDepth * .25, 
                                              sample.getCenter().getY() ) ;
-    if(fact > 10)
-    {
-        blockleft->setBehaviour(new VoidForm()) ;
-        blocks.push_back(blockleft);
-    }
-    else
-    {
-        blockleft->setBehaviour(new VoidForm()) ;
-        blocks.push_back(blockleft);
-    }
+
+    blockleft->setBehaviour(new VoidForm()) ;
+    blocks.push_back(blockleft);
+
     F.addFeature( &sample, blockleft );
 
     Sample *blockright = new Sample( nullptr, restraintDepth * .5, 
-                                              sample.height() - restraintDepth, 
-                                              sample.getCenter().getX() + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, 
+                                              basesize, 
+                                              sample.getCenter().getX() + ( basesize )*.5 + restraintDepth * .25, 
                                               sample.getCenter().getY() ) ;
     if(fact > 10)
     {
@@ -288,22 +276,16 @@ int main( int argc, char *argv[] )
     F.addManager(gelManager) ;
     F.setSamplingNumber( 50 ) ;
 
-    F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, LEFT,    sample.getCenter().getX()-basesize*.5-restraintDepth, 
-                                                                                                         sample.getCenter().getX()+basesize*.5,
-                                                                                                         sample.getCenter().getY()-basesize*.5, 
-                                                                                                         sample.getCenter().getY()+basesize*.5)  ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)  ) ;
     F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT,   sample.getCenter().getX()-basesize*.5, 
-                                                                                                         sample.getCenter().getX()+basesize*.5+restraintDepth,
+                                                                                                         sample.getCenter().getX()+basesize*.5+restraintDepth*.5,
                                                                                                          sample.getCenter().getY()-basesize*.5, 
                                                                                                          sample.getCenter().getY()+basesize*.5)  ) ;    
     F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, TOP,    sample.getCenter().getX()-basesize*.5, 
                                                                                                          sample.getCenter().getX()+basesize*.5,
                                                                                                          sample.getCenter().getY()-basesize*.5, 
-                                                                                                         sample.getCenter().getY()+basesize*.5+restraintDepth)  ) ;
-    F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, sample.getCenter().getX()-basesize*.5, 
-                                                                                                         sample.getCenter().getX()+basesize*.5,
-                                                                                                         sample.getCenter().getY()-basesize*.5-restraintDepth, 
-                                                                                                         sample.getCenter().getY()+basesize*.5)  ) ;
+                                                                                                         sample.getCenter().getY()+basesize*.5+restraintDepth*.5)  ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM) ) ;
     
 
     F.setOrder( LINEAR ) ;
