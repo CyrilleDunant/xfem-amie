@@ -7252,19 +7252,23 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTet
             return ;
         }
 
-        double minx = t->begin()->getBoundingPoint ( 0 ).getX() ;
-        double maxx = t->begin()->getBoundingPoint ( 0 ).getX() ;
+        auto i = t->begin() ;
+        while((i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured()) || i->getBehaviour()->type == VOID_BEHAVIOUR)
+            i++ ;
 
-        double miny = t->begin()->getBoundingPoint ( 0 ).getY() ;
-        double maxy = t->begin()->getBoundingPoint ( 0 ).getY() ;
+        double minx = i->getBoundingPoint ( 0 ).getX() ;
+        double maxx = i->getBoundingPoint ( 0 ).getX() ;
 
-        double minz = t->begin()->getBoundingPoint ( 0 ).getZ() ;
-        double maxz = t->begin()->getBoundingPoint ( 0 ).getZ() ;
+        double miny = i->getBoundingPoint ( 0 ).getY() ;
+        double maxy = i->getBoundingPoint ( 0 ).getY() ;
+        
+        double minz = i->getBoundingPoint ( 0 ).getZ() ;
+        double maxz = i->getBoundingPoint ( 0 ).getZ() ; 
 
-        double mint = t->begin()->getBoundingPoint ( 0 ).getT() ;
-        double maxt = t->begin()->getBoundingPoint ( 0 ).getT() ;
+        double mint = i->getBoundingPoint ( 0 ).getT() ;
+        double maxt = i->getBoundingPoint ( 0 ).getT() ;
 
-        for ( auto i = t->begin() ; i != t->end()  ; i++  )
+        for (  ; i != t->end() ; i++ )
         {
             if ( (i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured()) || i->getBehaviour()->type == VOID_BEHAVIOUR  )
             {
