@@ -186,7 +186,7 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
     previousSamplingNumber = 0 ;
     samplingRestriction = 0 ;
     surfaceSamplingFactor = 2. ;
-    minimumMeshDensity = 0.4 ;
+    minimumMeshDensity = 0.005 ;
 
 
     lastNodeId = 0;
@@ -244,7 +244,7 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     previousSamplingNumber = 0 ;
     samplingRestriction = 0 ;
     surfaceSamplingFactor = 2. ;
-    minimumMeshDensity = 0.4 ;
+    minimumMeshDensity = 0.005 ;
 
 
     lastNodeId = 0;
