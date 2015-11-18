@@ -139,7 +139,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
                 P->precondition(r,r);
                 for(int i = rowstart ; i < vsize ; i++)
                 {
-                    double yx =  -0.5*r[i] - xcompensate[i];
+                    double yx =  -r[i] - xcompensate[i];
                     double xtot = x[i]+yx ;
                     xcompensate[i] = (xtot-x[i])-yx ;
                     x[i] = xtot ;
@@ -308,7 +308,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
                 ssor.precondition(r,r);
                 for(int i = rowstart ; i < vsize ; i++)
                 {
-                    double yx =  -0.5*r[i] - xcompensate[i];
+                    double yx =  -r[i] - xcompensate[i];
                     double xtot = x[i]+yx ;
                     xcompensate[i] = (xtot-x[i])-yx ;
                     x[i] = xtot ;

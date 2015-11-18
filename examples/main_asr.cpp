@@ -151,7 +151,7 @@ int main( int argc, char *argv[] )
     featureTree = &F ;
 
     double itzSize = 0.00002;
-    int inclusionNumber =1 ;  2500 ; 
+    int inclusionNumber = 2500 ; 1 ; 
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
 
