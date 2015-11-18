@@ -2850,7 +2850,7 @@ std::vector<std::pair<Point, double> > monteCarloGaussPoints(size_t nPoints, Del
         VirtualMachine vm ;
         double infrac = 0 ;
         double count = 0 ;
-        while(count < 256000 && ( gp_alternative_out.empty() < nPoints || gp_alternative_in.empty() < nPoints) )
+        while(count < 32000 || (gp_alternative_out.size() < nPoints && gp_alternative_in.size() < nPoints) )
         {
             Point test = Point((double)std::rand()/RAND_MAX,(double)std::rand()/RAND_MAX);
 
@@ -2980,8 +2980,8 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
             if( false )
             {
-                if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
-                    return *getCachedGaussPoints() ;
+//                 if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
+//                     return *getCachedGaussPoints() ;
 
                 delete cachedGps ;
                 cachedGps = new GaussPointArray(monteCarloGaussPoints(64, this)) ;

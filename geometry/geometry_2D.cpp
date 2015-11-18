@@ -436,7 +436,7 @@ void OrientedRectangle::sampleBoundingSurface(double linearDensity)
 void OrientedRectangle::sampleSurface(double linearDensity, double surfaceDensityFactor)
 {
 //	size_t n = 2*num_points ;
-    sampleBoundingSurface(linearDensity*surfaceDensityFactor) ;
+    sampleBoundingSurface(linearDensity*surfaceDensityFactor*1.2) ;
 
     for(size_t i = 0 ; i < inPoints.size() ; i++)
         delete inPoints[i] ;
@@ -1117,8 +1117,8 @@ void Rectangle::sampleBoundingSurface(double linearDensity)
             center.getX() + 0.5*size_x - i*distanceBetweenPointsAlongX +randx ,
             center.getY() + 0.5*size_y) ;
     }
-    numberOfPointsAlongY *= .666 ;
-    numberOfPointsAlongX *= .666 ;
+    numberOfPointsAlongY *= .5 ;
+    numberOfPointsAlongX *= .5 ;
 }
 
 void Rectangle::sampleSurface(double linearDensity, double surfaceDensityFactor)
@@ -1126,7 +1126,7 @@ void Rectangle::sampleSurface(double linearDensity, double surfaceDensityFactor)
 
 //     if(std::max(size_x/size_y, size_y/size_x) < 10)
 //     {
-        sampleBoundingSurface(linearDensity*2) ;
+        sampleBoundingSurface(linearDensity*3) ;
 //     }
 //     else if(std::max(size_x/size_y, size_y/size_x) < 60)
 //     {
@@ -2455,7 +2455,6 @@ Polygon Polygon::getExcribedPolygon( double delta ) const
     while(!allvisited)
     {
         Point mid = lines[i].origin() ;
-        size_t i_prev = ((i == 0) ? originalPoints.size()-1 : i-1) ;
         size_t j = (i+1)%originalPoints.size() ;
         Point next = lines[i].intersection( lines[j] ) ;
         Segment half( mid, next ) ;
@@ -2931,7 +2930,6 @@ void Polygon::sampleSurface(double linearDensity, double surfaceDensityFactor)
 
     std::vector<Polygon> clusters ;
     clusters.push_back( Polygon(originalPoints) ) ;
-    double perimeter = clusters[0].getPerimeter() ;
     double delta = 0.6/linearDensity ;
     std::vector<Point> newPoints ;
     double secondaryDensity = 1.+(surfaceDensityFactor-1.)*0.5 ;
@@ -2947,15 +2945,15 @@ void Polygon::sampleSurface(double linearDensity, double surfaceDensityFactor)
             std::vector<Polygon> inscribed = clusters[i].getInscribedPolygons( delta/(first ? secondaryDensity : 1.)  ) ;
             if( inscribed.size() == 0)// && clusters[i].getOriginalPoints().size() > 2)
             {
-                double r = clusters[i]->getRadius() ;
+                double r = clusters[i].getRadius() ;
                 while(r > delta*2.)
                 {
                      r -= delta ;
-                     Circle c( r-delta, clusters[i]->getCenter() ;
+                     Circle c( r-delta, clusters[i].getCenter() );
                      std::vector<Point> pts = c.getSamplingBoundingPoints( linearDensity) ;
                      for(size_t j = 0 ; j < pts.size() ; j++)
                      {
-                         if(clusters[i]->in(pts[j]))
+                         if(clusters[i].in(pts[j]))
                              newPoints.push_back(pts[j]) ;
                      }
                 }

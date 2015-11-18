@@ -4286,6 +4286,8 @@ void FeatureTree::solve()
         {
             for ( auto i = j->second->begin() ; i != j->second->end() ; i++ )
             {
+                if(i.getPosition()%100 == 0)
+                    std::cerr << "\rupdating elementary matrices and induced BCs... " << i.getPosition() +1 << "/"<< i.size()<< std::flush ;
                 i->getElementaryMatrix(&vm) ;
                 i->applyBoundaryCondition ( K ) ;
             }
@@ -4297,6 +4299,8 @@ void FeatureTree::solve()
         std::cerr << "updating elementary matrices and induced BCs... " << std::flush ;
         for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
         {
+            if(i.getPosition()%100 == 0)
+                std::cerr << "\rupdating elementary matrices and induced BCs... " << i.getPosition() +1 << "/"<< i.size()<< std::flush ;
             i->getElementaryMatrix(&vm) ;
             i->applyBoundaryCondition ( K ) ;
         }
