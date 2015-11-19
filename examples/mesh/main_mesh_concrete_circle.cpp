@@ -53,6 +53,16 @@ int main(int argc, char *argv[])
 	else
 		name += "current" ;
 
+/*	for(size_t i = 1 ; i < parser.getValue("--inclusions") ; i++)
+	{
+		Feature * feat = f.getFeature(i) ;
+		size_t count = 0 ;
+		for(size_t j = 0 ; j < feat->getInPoints().size() ; j++)
+			if(feat->getInPoint(j).getId() == -1) { count++ ; }
+		if(feat->getInPoints().size() > 0)
+			std::cout << i << " " << count << std::endl ;
+	}*/
+
 	TriangleWriter trg( name.c_str(), &f, 1. ) ;
 	trg.getField( TWFT_STIFFNESS ) ;
 	trg.write() ;

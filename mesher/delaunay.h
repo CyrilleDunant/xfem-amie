@@ -289,8 +289,8 @@ class Star
 {
 protected:
     std::vector<const Point *> edge ;
-    std::vector<DelaunayTreeItem *> treeitem ;
     const Point * creator ;
+    std::vector<DelaunayTreeItem *> treeitem ;
 
 public:
     Star(std::vector<DelaunayTreeItem *> *t, const Point *p) ;
@@ -298,6 +298,8 @@ public:
     size_t size() ;
 
     const Point * getEdge(size_t i) const;
+
+    bool contains(DelaunayTreeItem * t) const ;
 
     void updateNeighbourhood() ;
 } ;
@@ -357,6 +359,7 @@ protected:
         return getTriangles() ;
     };
 public:
+    virtual bool valid() const { return !falseTopology ; }
 
     virtual size_t size() const {
         return tree.size() ;

@@ -8119,7 +8119,7 @@ void FeatureTree::generateElements()
         {
             if ( ( i ) % 1000 == 0 )
             {
-                std::cerr << "\r generating triangles... point " << count << "/" << meshPoints.size() << std::flush ;
+                std::cerr << "\r generating triangles... point " << count << "/" << meshPoints.size()+meshShellPoints.size() << std::flush ;
             }
 
             ++count ;
@@ -8134,11 +8134,19 @@ void FeatureTree::generateElements()
                 {
                     j->second->insert ( meshShellPoints[shiterators[i]].first, pointDensity*minimumMeshDensity ) ;
                 }
-                meshPoints.push_back(meshShellPoints[shiterators[i]]) ;
             }
         }
 
-        std::cerr << "\r generating triangles.... point " << meshPoints.size() - 3 << "/" << meshPoints.size() - 4 << std::flush ;
+        std::cerr << "\r generating triangles.... point " << meshPoints.size()+meshShellPoints.size() - 3 << "/" << meshPoints.size()+meshShellPoints.size() - 4 << std::flush ;
+
+        for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+        {
+            if(!j->second->valid())
+            {
+                std::cout << "false mesh topology, exiting now..." << std::endl ;
+                exit(0) ;
+            }
+        }
 
 
         bool correct = false ;

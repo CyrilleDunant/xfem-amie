@@ -395,9 +395,9 @@ public:
         samplingRestriction = sr ;
     }
 
-    void setSurfaceSamplingFactor( double f ) { if(f > 1) { surfaceSamplingFactor = f ; } }
+    void setSurfaceSamplingFactor( double f ) { if(f >= 1) { surfaceSamplingFactor = f ; } }
 
-    void setMinimumMeshDensity( double d ) { if(d > 1) { minimumMeshDensity = d ; } }
+    void setMinimumMeshDensity( double d ) { if(d <= 1 && d >= 0) { minimumMeshDensity = d ; } }
 
     std::vector<int> listLayers() const ;
 

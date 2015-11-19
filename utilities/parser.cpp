@@ -582,7 +582,7 @@ ConfigTreeItem * ConfigParser::readFile(std::string f, ConfigTreeItem * def, boo
 
 void CommandLineParser::setFeatureTree( FeatureTree * f ) 
 {
-    if(values[std::string("--set-sampling-restriction")] > 0)
+    if(values[std::string("--set-sampling-restriction")] > -1)
         f->setSamplingRestriction( values[std::string("--set-sampling-restriction")] ) ;
     if(values[std::string("--set-delta-time")] > 0)
         f->setDeltaTime( values[std::string("--set-delta-time")] ) ;
@@ -596,9 +596,9 @@ void CommandLineParser::setFeatureTree( FeatureTree * f )
         f->setSSORIterations( values[std::string("--set-ssor-iterations")] ) ;
     if(values[std::string("--set-sampling-number")] > 0)
         f->setSamplingNumber( values[std::string("--set-sampling-number")] ) ;
-    if(values[std::string("--set-surface-sampling-factor")] > 1)
+    if(values[std::string("--set-surface-sampling-factor")] > 1-POINT_TOLERANCE)
         f->setSurfaceSamplingFactor( values[std::string("--set-surface-sampling-factor")] ) ;
-    if(values[std::string("--set-min-mesh-density")] > 1)
+    if(values[std::string("--set-min-mesh-density")] > -1)
         f->setMinimumMeshDensity( values[std::string("--set-min-mesh-density")] ) ;
     if(strings[std::string("--set-order")].size() > 0)
     {

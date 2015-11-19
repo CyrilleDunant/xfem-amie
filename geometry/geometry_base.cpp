@@ -2297,7 +2297,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 
         for(size_t i = 0 ; i < segs.size() ; i++)
         {
-            std::vector<Point>intersection = segs[i].intersection(this) ;
+            std::vector<Point> intersection = segs[i].intersection(this) ;
             ret.insert(ret.end(), intersection.begin(), intersection.end()) ;
         }
         return ret ;
@@ -3457,7 +3457,6 @@ Point Line::intersection(const Line &l) const
         Vector fac = myz * vec ;
         return p + v*fac[0];
     }
-
 
     return Point() ;
 
@@ -6061,7 +6060,7 @@ bool isAligned(const Point &test, const Point &f0, const Point &f1)
     Point f0_(f0.getX()-cx, f0.getY()-cy, f0.getZ()-cz) ;
     Point f1_(f1.getX()-cx, f1.getY()-cy, f1.getZ()-cz) ;
     Point test_(test.getX()-cx, test.getY()-cy, test.getZ()-cz) ;
-    double scale = sqrt(4./(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm()))) ;
+    double scale = sqrt(1./(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm()))) ;
     f0_   *= scale ;
     f1_   *= scale ;
     test_ *= scale ;
@@ -6093,7 +6092,7 @@ bool isAligned(const Point &test, const Point &f0, const Point &f1)
         double c = f0testx*f0testx
                    +f0testy*f0testy
                    +(f0testz+POINT_TOLERANCE)*(f0testz-POINT_TOLERANCE) ;
-        return b*b - 4.*a*c >= 0;
+        return (b*b - 4.*a*c) >= -POINT_TOLERANCE;
         
         
     }
@@ -6106,7 +6105,7 @@ bool isAligned(const Point &test, const Point &f0, const Point &f1)
         double c = f0f1x*f0f1x
                    +f0f1y*f0f1y
                    +(f0f1z+POINT_TOLERANCE)*(f0f1z-POINT_TOLERANCE) ;
-        return b*b - 4.*a*c >= 0;
+        return (b*b - 4.*a*c) >= -POINT_TOLERANCE;
     }
     nc = sqrt(nc) ;
     Point v(f1testx/nc,f1testy/nc,f1testz/nc) ;
@@ -6115,7 +6114,7 @@ bool isAligned(const Point &test, const Point &f0, const Point &f1)
     double c = f0f1x*f0f1x
                 +f0f1y*f0f1y
                 +(f0f1z-POINT_TOLERANCE)*(f0f1z+POINT_TOLERANCE) ;
-    return b*b - 4.*a*c >= 0;
+    return (b*b - 4.*a*c) >= -POINT_TOLERANCE;
 
 //         Line l(f0_,Point((f1_.getX()-f0_.getX())/na,(f1_.getY()-f0_.getY())/na,(f1_.getZ()-f0_.getZ())/na)) ;
 //         Sphere s(POINT_TOLERANCE, test_) ;

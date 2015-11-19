@@ -44,7 +44,7 @@ int main( int argc, char *argv[] )
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM ) ) ;
 
-    F.setSamplingNumber(8) ;
+    F.setSamplingNumber(4) ;
     F.setDeltaTime(1) ;
 
     std::ofstream out ;

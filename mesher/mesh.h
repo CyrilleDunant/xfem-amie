@@ -63,6 +63,8 @@ public:
     virtual double getInternalScale() const {
         return 1. ;
     } ;
+    virtual bool valid() const { return true ; }
+
 public:
     Mesh(SpaceDimensionality spaceDimensions) : spaceDimensions(spaceDimensions), allElementsCacheID(-1) {} ;
     virtual ~Mesh() {} ;

@@ -121,11 +121,11 @@ size_t DelaunayTreeItem::numberOfCommonVertices(const DelaunayTreeItem * s) cons
     {
         size_t ret = 0 ;
 
-        if(isAligned(s->first, s->second, first))
+        if(isAligned(s->first, s->second, this->first))
             ret++ ;
-        if(isAligned(s->first, s->second, second))
+        if(isAligned(s->first, s->second, this->second))
             ret++ ;
-        if(isAligned(s->first, s->second, third))
+        if(isAligned(s->first, s->second, this->third))
             ret++ ;
 
         assert(ret < 4) ;
@@ -136,9 +136,9 @@ size_t DelaunayTreeItem::numberOfCommonVertices(const DelaunayTreeItem * s) cons
     {
         size_t ret = 0 ;
 
-        if(isAligned(s->first, s->second, first))
+        if(isAligned(s->first, s->second, this->first))
             ret++ ;
-        if(isAligned(s->first, s->second, second))
+        if(isAligned(s->first, s->second, this->second))
             ret++ ;
 
         assert(ret < 4) ;
@@ -875,7 +875,6 @@ void DelaunayTreeItem::conflicts(std::valarray<bool> & visited,std::vector<Delau
 
 void DelaunayTreeItem::flatConflicts(std::valarray<bool> & visited,std::vector<DelaunayTreeItem *> & toTest,  std::vector<DelaunayTreeItem *> & ret,const Point *p)
 {
-
     if(visited[index])
         return  ;
     visited[index] = true ;
@@ -1594,6 +1593,21 @@ void DelaunayTriangle::insert(std::valarray<bool> & visited,std::vector<Delaunay
             std::pair< Point*,  Point*> pp = commonEdge(getNeighbour(i)) ;
             if(!isAligned(p,pp.first,pp.second))
             {
+/*                {
+                    continue ;
+
+                 for(size_t j = 0 ; j < neighbour.size() ; j++)
+                 {
+                     getNeighbour(j)->print() ;
+            std::pair< Point*,  Point*> pq = commonEdge(getNeighbour(j)) ;
+                 pq.first->print() ;
+                 pq.second->print() ;
+                     std::cout << getNeighbour(j)->inCircumCircle(*p) <<std::endl ;
+                     std::cout << getNeighbour(j)->onCircumCircle(*p) <<std::endl ;
+                     std::cout << isAligned(p, pq.first, pq.second) << std::endl ;
+                    }
+                }*/
+
                 DelaunayTriangle *ss = new DelaunayTriangle(tree, this, p, pp.first, pp.second, p) ;
                 addSon(ss) ;
 
@@ -1721,7 +1735,7 @@ void DelaunayDemiPlane::insert(std::valarray<bool> & visited,std::vector<Delauna
 
                 assert(getNeighbour(i)->isNeighbour(this) );
 
-                if(Triangle(*p, *pp.first, *pp.second).area() > static_cast<DelaunayTriangle *>(getNeighbour(i))->getRadius()*std::numeric_limits<double>::epsilon())
+                if(sqrt(Triangle(*p, *pp.first, *pp.second).area()) > static_cast<DelaunayTriangle *>(getNeighbour(i))->getRadius()*std::numeric_limits<double>::epsilon())
                 {
                     DelaunayTriangle *ss = new DelaunayTriangle(this->tree, this, p, pp.first, pp.second , p) ;
 
@@ -1980,6 +1994,11 @@ Star::Star(std::vector<DelaunayTreeItem *> *t, const Point *p) : creator(p)
     edge.erase(unique(edge.begin(), edge.end()), edge.end()) ;
 }
 
+bool Star::contains(DelaunayTreeItem * t) const 
+{
+   return (std::find(treeitem.begin(), treeitem.end(), t) != treeitem.end() ) ;
+}
+
 size_t Star::size()
 {
     return edge.size() ;
@@ -2130,10 +2149,57 @@ std::vector<DelaunayTreeItem *> DelaunayTree::addElements(std::vector<DelaunayTr
 
     std::vector<DelaunayTreeItem *> ret ;
 
+    std::valarray<bool> in(cons.size()) ;
+    std::valarray<bool> out(cons.size()) ;
+    in = false ;
+    out = false ;
+
+    for(size_t i = 0 ; i < cons.size() ; i++)
+        in[i] = !cons[i]->onCircumCircle(*p) ;
+
+    if(cons.size() > 3)
+    {
+        for(size_t i = 0 ; i < cons.size() ; i++)
+        {
+            if(!in[i] && cons[i]->isTriangle)
+            {
+                for(size_t j = 0 ; j < cons.size() ; j++)
+                {
+                    if( i != j && cons[j]->isTriangle && cons[i]->isNeighbour(cons[j]))
+                    {
+                        bool alone = true ;
+                        for(size_t k = 0 ; k < cons.size() && alone ; k++)
+                        {
+                            if( i != j && i != k && cons[k]->isTriangle && cons[j]->isNeighbour(cons[k]) )
+                                alone = false ;
+                        }
+                        if(alone)
+                            out[j] = true ;
+                    }
+                }
+            }
+        }
+    }
+    if(cons.size() == 1)
+       in[0] = true ;
+
+    size_t realInCount = 0 ;
+    for(size_t i = 0 ; i < in.size() ; i++)
+        realInCount += (in[i] && !out[i]) ;
+
+    if(realInCount > 0)
+    {
+        for(size_t i = 0 ; i < in.size() ; i++)
+        {
+            if(in[i] && out[i] && cons[i]->isTriangle && cons.size() > 1)
+                in[i] = false ;
+        }
+    }
+
     for(size_t i = 0 ; i < cons.size() ; i++)
     {
 
-        if(!cons[i]->onCircumCircle(*p))
+        if(in[i])
         {
             std::vector<DelaunayTreeItem *> temp ;
             cons[i]->insert(visited,temp,p, s) ;
@@ -2149,8 +2215,31 @@ std::vector<DelaunayTreeItem *> DelaunayTree::addElements(std::vector<DelaunayTr
     {
         if(!ret[j]->isPlane && ret[j]->isAlive())
         {
-            if(ret[j]->neighbour.size() != 3)
+            if(ret[j]->neighbour.size() != 3 )
+            {
+/*                std::cout << "on exit" << std::endl ;
+                p->print() ;
+		std::cout << isAligned(*p, Point(1,0), Point(0,1)) << std::endl ;
+                std::cout << "ret" << std::endl ;
+                for(size_t i = 0 ; i < ret.size() ; i++)
+                {
+                    ret[i]->print() ;
+                    std::cout << "neighbour" << std::endl ;
+                    for(size_t k = 0 ; k < ret[i]->neighbour.size() ; k++)
+                         ret[i]->getNeighbour(k)->print() ;
+                    std::cout << "//neighbour" << std::endl ;
+                }
+                std::cout << "cons" << std::endl ;
+                for(size_t i = 0 ; i < cons.size() ; i++)
+                {
+                    cons[i]->print() ;
+                    std::cout << "neighbour" << std::endl ;
+                    for(size_t k = 0 ; k < cons[i]->neighbour.size() ; k++)
+                         cons[i]->getNeighbour(k)->print() ;
+                }
+            if(ret[j]->neighbour.size() != 3)*/
                 falseTopology = true ;
+            }
         }
         if(ret[j]->isAlive() && ret[j]->isPlane )
         {
@@ -2172,7 +2261,7 @@ std::vector<DelaunayTreeItem *> DelaunayTree::addElements(std::vector<DelaunayTr
 
     for(size_t i = 0 ; i < cons.size() ; i++)
     {
-        if(!cons[i]->onCircumCircle(*p))
+        if(in[i])
             cons[i]->kill(p) ;
     }
     std::vector<DelaunayDemiPlane *> * hull = this->getConvexHull() ;
@@ -2198,9 +2287,14 @@ std::vector<DelaunayTreeItem *> DelaunayTree::addElements(std::vector<DelaunayTr
 void DelaunayTree::insert(Point *p, double minDist)
 {
     if(falseTopology)
+    {
+        std::cout << "Warning: false mesh topology" << std::endl ;
+        exit(0) ;
         return ;
+    }
     neighbourhood = false ;
     std::vector<DelaunayTreeItem *> cons = this->conflicts(p) ;
+
     if(cons.empty())
     {
         std::cout << "Failed insertion : in nothing !" << std::endl ;
@@ -2212,10 +2306,19 @@ void DelaunayTree::insert(Point *p, double minDist)
         {
             return ;
         }
+
+        if(cons[i]->isTriangle && cons[i]->neighbour.size() != 3)
+        {
+            falseTopology = true ;
+            return ;
+        }
+
         else if(minDist > POINT_TOLERANCE)
         {
             if(cons[i]->distanceToVertex(p) < minDist)
+            {
                 return ;
+            }
         }
 
     }
@@ -2996,6 +3099,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             std::vector<DelaunayTriangle *> tri ;
 
             DelaunayTree * dt = new DelaunayTree(to_add[0], to_add[1], to_add[2]) ;
+            std::cout << "renew" << std::endl ;
             TriElement f(QUADRATIC) ;
             if(to_add.size() > 4)
                 std::random_shuffle(to_add.begin()+3, to_add.end()) ;
