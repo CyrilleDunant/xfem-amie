@@ -151,7 +151,7 @@ int main( int argc, char *argv[] )
     featureTree = &F ;
 
     double itzSize = 0.00002;
-    int inclusionNumber = 2500 ; 1 ; 
+    int inclusionNumber = 150 ; 2500 ; 1 ; 
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
 
@@ -219,7 +219,7 @@ int main( int argc, char *argv[] )
     }
     else
     {
-        blocktop->setBehaviour(new Stiffness( std::max(fact, fact0)*sqrt(POINT_TOLERANCE),  0.) ) ;
+        blocktop->setBehaviour(new Stiffness( std::max(std::max(fact, fact0)*sqrt(POINT_TOLERANCE),1e5),  0.) ) ;
         blocks.push_back(blocktop);
     }
     F.addFeature( &sample, blocktop );
@@ -255,7 +255,7 @@ int main( int argc, char *argv[] )
     }
     else
     {
-        blockright->setBehaviour(new Stiffness( std::max(fact, fact0)*sqrt(POINT_TOLERANCE), 0.)) ;
+        blockright->setBehaviour(new Stiffness( std::max(std::max(fact, fact0)*sqrt(POINT_TOLERANCE),1e5), 0.)) ;
         blocks.push_back(blockright);
     }
     F.addFeature( &sample, blockright );

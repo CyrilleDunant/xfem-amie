@@ -173,7 +173,7 @@ void ElementarySurface::setBehaviour( Mesh<DelaunayTriangle,DelaunayTreeItem> * 
         delete state ;
     }
     state = f->createElementState( this ) ;
-    this->behaviourUpdated = true ;
+    behaviourUpdated = true ;
 //	Form * old = behaviour ;
 
     delete behaviour ;

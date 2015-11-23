@@ -59,6 +59,8 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, Dela
 
     VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
     equivalent = composite.getBehaviour() ;
+    if(feats.empty())
+        equivalent = self->getBehaviour() ;
 
 
     v.push_back( XI );
@@ -78,8 +80,11 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, Dela
         original = self->getBehaviour()->getCopy() ;
 
     VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
-    equivalent = composite.inclusions[0].getBehaviour() ;
-    equivalent->getTensor(Point(0,0)).print() ;
+    equivalent = composite.getBehaviour() ;
+    
+    if(feats.empty())
+        equivalent = self->getBehaviour() ;
+//     equivalent->getTensor(Point(0,0,0)).print() ;
 
     v.push_back( XI );
     v.push_back( ETA );

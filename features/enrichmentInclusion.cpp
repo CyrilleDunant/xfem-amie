@@ -181,13 +181,7 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
          DelaunayTriangle * tri = dtree->getUniqueConflictingElement(&getCenter()) ;
          
          if(tri)
-         {
-             std::map<double, Point> pd;
-             pd[squareDist2D(*tri->first, getCenter())] = *tri->first ;
-             pd[squareDist2D(*tri->second, getCenter())] = *tri->second ;
-             pd[squareDist2D(*tri->third, getCenter())] = *tri->third ;
-             setCenter(pd.begin()->second);
-         }
+             setCenter(tri->getCenter());
      }
     freeIds[dtree].clear();
     for(size_t i = 0 ; i < cache.size() ; i++)
@@ -238,62 +232,24 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
     updated = false ;
     std::vector<DelaunayTriangle *> & disc  = cache;
 
-    if(disc.size() < 2)
+    if(disc.size() < 6)
     {
-        return ;
-/*        DelaunayTriangle * toHomogenise = disc[0];
-        for(size_t i = 0 ; i < disc.size() ; i++)
-        {
-            if(disc[i]->in(Circle::getCenter()))
-            {
-                toHomogenise = disc[i] ;
-                break ;
-            }
-        }
+
+        DelaunayTriangle * toHomogenise = disc[0];
+
         disc.clear() ;
         disc.push_back(toHomogenise) ;
         cache = disc ;
         
-        for(size_t i = 0 ; i < disc.size() ; i++)
-        {
-            HomogeneisedBehaviour * hom = dynamic_cast<HomogeneisedBehaviour *>(disc[i]->getBehaviour());
-            if(hom)
-            {
-                if(disc.size() < 4)
-                {
-                    std::vector<Feature *> brother ;
-                    if(getFather())
-                        brother = getFather()->getChildren() ;
-                    std::vector<Feature *> feat ;
-                    for(size_t j = 0 ; j < brother.size() ; j++)
-                    {
-                        if(disc[i]->in(brother[j]->getCenter()))
-                            feat.push_back(brother[j]) ;
-                    }
-                    hom->updateEquivalentBehaviour(feat, disc[i]) ;
+        std::vector< Feature *> feat ;
+        feat.push_back(this) ;
 
-                }
-            
-                
-            }
-            else
-            {
-                std::vector< Feature *> brother ;
-                if(getFather())
-                    brother = getFather()->getChildren() ;
-                std::vector< Feature *> feat ;
-                for(size_t j= 0 ; j < brother.size() ; j++)
-                {
-                    if(disc[i]->in(brother[j]->getCenter()))
-                        feat.push_back(brother[j]) ;
-                }
-                HomogeneisedBehaviour * hom2 = new HomogeneisedBehaviour(feat, disc[i]) ;
-                disc[i]->setBehaviour(dtree,hom2) ;
-                disc[i]->getBehaviour()->setSource(getPrimitive()) ;
-                
-            }
-        } 
-        return ;*/
+        HomogeneisedBehaviour * hom2 = new HomogeneisedBehaviour(feat, toHomogenise) ;
+        toHomogenise->setBehaviour(dtree,hom2) ;
+        toHomogenise->getBehaviour()->setSource(getPrimitive()) ;
+
+
+        return ;
     }
 
     //then we select those that are cut by the circle

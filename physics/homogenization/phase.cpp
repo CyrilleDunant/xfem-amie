@@ -135,15 +135,18 @@ void Phase::apply()
 
 Form *Phase::getBehaviour()
 {
-	this->apply() ;
+	apply() ;
 	Matrix S = C ;
-
+        
+//         S.print() ;
 	if( S.size() == 36 )
 		invert6x6Matrix( S ) ;
 	else
 		invert3x3Matrix( S ) ;
 	
 	Vector alpha = S * beta ;
+//         std::cout << alpha[0] << std::endl ;
+//         S.print() ;
 	return new StiffnessWithImposedDeformation( C, alpha ) ;
 }
 
