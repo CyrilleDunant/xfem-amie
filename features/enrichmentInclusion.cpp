@@ -232,7 +232,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
     updated = false ;
     std::vector<DelaunayTriangle *> & disc  = cache;
 
-    if(disc.size() < 6)
+    if(disc.size() < 8)
     {
 
         DelaunayTriangle * toHomogenise = disc[0];

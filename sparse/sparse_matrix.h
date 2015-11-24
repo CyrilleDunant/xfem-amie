@@ -238,32 +238,33 @@ public:
             const double * vec_iterator = v + column_index[mstart]*2 ;
             double compensate0 = 0 ;
             double compensate1 = 0 ;
+            double toAdd,tot ;
 
             for(unsigned int j = mstart ; j < length+start ; j++ )
             {
-                double toAdd = *array_iterator*(*vec_iterator) - compensate0;
-                double tot = *dest+toAdd ;
-                compensate0 = (tot-*dest) -toAdd ;
+                toAdd = *array_iterator*(*vec_iterator) - compensate0;
+                tot = *dest + toAdd ;
+                compensate0 = (tot-*dest) - toAdd ;
                 *dest = tot ;
                 
                 toAdd = *(array_iterator+1)*(*vec_iterator) - compensate1;
                 tot = *(dest+1)+toAdd ;
-                compensate1 = (tot-*(dest+1)) -toAdd ;
+                compensate1 = (tot-*(dest+1)) - toAdd ;
                 *(dest+1) = tot ;
                         
                 toAdd = *(array_iterator+2)*(*(vec_iterator +1)) - compensate0;
                 tot = *dest+toAdd ;
-                compensate0 = (tot-*dest) -toAdd ;
+                compensate0 = (tot-*dest) - toAdd ;
                 *dest = tot ;
                 
                 toAdd = *(array_iterator+3)*(*(vec_iterator +1)) - compensate1;
                 tot = *(dest+1)+toAdd ;
-                compensate1 = (tot-*(dest+1)) -toAdd ;
+                compensate1 = (tot-*(dest+1)) - toAdd ;
                 *(dest+1) = tot ;
                 
                 array_iterator+=4 ;
                 if(j+1 < column_index.size())
-                    vec_iterator += column_index[j+1]*stride-column_index[j]*stride ;
+                    vec_iterator += (column_index[j+1]-column_index[j])*stride ;
             }
             return ;
         }
@@ -275,10 +276,11 @@ public:
             double compensate0 = 0 ;
             double compensate1 = 0 ;
             double compensate2 = 0 ;
+            double toAdd,tot ;
             for(unsigned int j = mstart ; j < length+start ; j++)
             {
-                double toAdd = *array_iterator*(*vec_iterator) - compensate0;
-                double tot = *dest+toAdd ;
+                toAdd = *array_iterator*(*vec_iterator) - compensate0;
+                tot = *dest+toAdd ;
                 compensate0 = (tot-*dest) -toAdd ;
                 *dest = tot ;
                 
@@ -331,6 +333,7 @@ public:
         }
         case 4:
         {
+            double toAdd,tot ;
             const double * array_iterator = &array[mstart*4*4] ;
             const double * vec_iterator = v + column_index[mstart]*4 ;
             double compensate0 = 0 ;
@@ -339,8 +342,8 @@ public:
             double compensate3 = 0 ;
             for(unsigned int j = mstart ; j < length+start ; j++)
             {
-                double toAdd = *array_iterator*(*vec_iterator) - compensate0;
-                double tot = *dest+toAdd ;
+                toAdd = *array_iterator*(*vec_iterator) - compensate0;
+                tot = *dest+toAdd ;
                 compensate0 = (tot-*dest) -toAdd ;
                 *dest = tot ;
                 
@@ -437,13 +440,14 @@ public:
             double compensate3 = 0 ;
             double compensate4 = 0 ;
             double compensate5 = 0 ;
+            double toAdd,tot,vval ;
             // 			#pragma omp parallel for schedule(runtime)
             for(unsigned int j = mstart ; j < length+start ; j++)
             {
-                double vval =  *(v+column_index[j]*6) ;
+                vval =  *(v+column_index[j]*6) ;
 
-                double toAdd = *array_iterator0*vval - compensate0;
-                double tot =       *dest+toAdd ;
+                toAdd = *array_iterator0*vval - compensate0;
+                tot =       *dest+toAdd ;
                 compensate0 = (tot-*dest) -toAdd ;
                                    *dest = tot ;
                 

@@ -64,7 +64,8 @@ void StiffnessAndIndexedFracture::apply(const Function & p_i, const Function & p
 void StiffnessAndIndexedFracture::step(double timestep, ElementState & currentState, double maxscore)
 {
     dfunc->step(currentState, maxscore) ;
-
+    currentState.getParent()->behaviourUpdated = dfunc->changed()  ;
+    currentState.getParent()->needAssembly = dfunc->changed()  ;
 }
 
 bool StiffnessAndIndexedFracture::changed() const

@@ -95,6 +95,9 @@ void WeibullStiffnessWithVariableImposedDeformationAndFracture::step(double time
     {
         imposed = 0 ;
     }
+    
+    currentState.getParent()->needAssembly = dfunc.changed() ;
+    currentState.getParent()->behaviourUpdated = dfunc.changed() ;
 }
 
 

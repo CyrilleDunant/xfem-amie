@@ -148,8 +148,10 @@ void StiffnessWithDiffusionDeformationAndFracture::step(double timestep, Element
         ageing = true ;
     }
 
-
+    
     dfunc->step(currentState, maxscore) ;
+    currentState.getParent()->needAssembly = dfunc->changed() || change ;
+    currentState.getParent()->behaviourUpdated = dfunc->changed() || change ;
 
 }
 

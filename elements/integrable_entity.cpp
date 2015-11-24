@@ -89,6 +89,7 @@ IntegrableEntity::IntegrableEntity() : boundaryConditionCache ( nullptr ), cache
     state = new ElementState ( this ) ;
     enrichmentUpdated = false ;
     behaviourUpdated = false ;
+    needAssembly = true ;
 }
 
 

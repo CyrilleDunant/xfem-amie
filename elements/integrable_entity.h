@@ -359,6 +359,7 @@ struct IntegrableEntity : public Geometry
 
     bool enrichmentUpdated ;
     bool behaviourUpdated ;
+    bool needAssembly ;
 
     IntegrableEntity() ;
     virtual void getInverseJacobianMatrix ( const Point &p, Matrix & ret ) = 0 ;

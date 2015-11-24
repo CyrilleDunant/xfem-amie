@@ -52,7 +52,8 @@ void StiffnessWithImposedDeformationAndFracture::step(double timestep, ElementSt
 {
 
     dfunc->step(currentState, maxscore) ;
-    currentState.getParent()->behaviourUpdated = dfunc->changed() ;
+    currentState.getParent()->needAssembly = dfunc->changed()  ;
+    currentState.getParent()->behaviourUpdated = dfunc->changed()  ;
 }
 
 bool StiffnessWithImposedDeformationAndFracture::changed() const

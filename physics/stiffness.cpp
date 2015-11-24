@@ -156,6 +156,7 @@ void PseudoPlastic::step(double timestep, ElementState & currentState, double ma
         alpha = std::max(1.-(vm->threshold/maxStress)*(1.-alpha), lastDamage) ;
         change = std::abs(alpha-lastalpha) > 1e-6 ;
         currentState.getParent()->behaviourUpdated = change ;
+        currentState.getParent()->needAssembly = currentState.getParent()->behaviourUpdated ;
     }
 }
 

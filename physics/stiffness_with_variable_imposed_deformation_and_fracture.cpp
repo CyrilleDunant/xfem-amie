@@ -68,6 +68,7 @@ void StiffnessWithVariableImposedDeformationAndFracture::step(double timestep, E
     }
 
     change = currentState.getParent()->behaviourUpdated  ;
+    currentState.getParent()->needAssembly = change  ;
 }
 
 bool StiffnessWithVariableImposedDeformationAndFracture::changed() const

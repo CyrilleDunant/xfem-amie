@@ -224,6 +224,7 @@ void LogarithmicCreepWithImposedDeformationAndFracture::step(double timestep, El
     {
         dfunc->step(currentState, maxscore) ;
         currentState.getParent()->behaviourUpdated = dfunc->changed() ;
+        currentState.getParent()->needAssembly = currentState.getParent()->behaviourUpdated ;
     }
     if(maxscore > 0)
     {

@@ -82,6 +82,7 @@ void StiffnessWithImposedStressAndFracture::step(double timestep, ElementState &
 {
 	dfunc->step(currentState, maxscore) ;
 	currentState.getParent()->behaviourUpdated = dfunc->changed() ;
+        currentState.getParent()->needAssembly = dfunc->changed()  ;
 }
 
 Vector StiffnessWithImposedStressAndFracture::getImposedStress(const Point & p, IntegrableEntity * e, int g) const

@@ -842,11 +842,9 @@ bool Assembly::make_final()
                 addToExternalForces = 0 ;
             }
         }
-        else if (element2d[0]->timePlanes() == 1)
+        else if (false && element2d[0]->timePlanes() == 1)
         {
             std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
-            size_t instants = element2d[0]->timePlanes() ;
-            size_t dofsperplane = element2d[0]->getBoundingPoints().size() / instants ;
 
             for(size_t i = 0 ; i < element2d.size() ; i++)
             {
@@ -882,31 +880,15 @@ bool Assembly::make_final()
                 {
                     if(i%100000 == 0)
                         std::cerr << "\r computing mask sparsness pattern... triangle " << i+1 << "/" << element2d.size() << std::flush ;
-                    size_t additionalDofPerPlane = ids.size()/instants - dofsperplane ;
 
-                    for(size_t j = 0 ; j < dofsperplane * instants ; j++)
-                    {
-                        map->insert(std::make_pair(ids[j], ids[j])) ;
-                        if( j >=  dofsperplane * instants - dofsperplane )
-                        {
-                            for( size_t k = 0 ; k < j ; k++)
-                                map->insert( std::make_pair(ids[j], ids[k])) ;
-                            for( size_t k = j+1 ; k < ids.size() ; k++)
-                                map->insert( std::make_pair(ids[j], ids[k])) ;
-                        }
-                    }
-
-                    for(size_t j = dofsperplane * instants ; j < ids.size() ; j++)
+                    for(size_t j = 0 ; j < ids.size()  ; j++)
                     {
                         map->insert(std::make_pair(ids[j], ids[j])) ;
 
-                        if( j >= ids.size() - additionalDofPerPlane )
-                        {
-                            for( size_t k = 0 ; k < j ; k++)
-                                map->insert( std::make_pair(ids[j], ids[k])) ;
-                            for( size_t k = j+1 ; k < ids.size() ; k++)
-                                map->insert( std::make_pair(ids[j], ids[k])) ;
-                        }
+                        for( size_t k = 0 ; k < j ; k++)
+                            map->insert( std::make_pair(ids[j], ids[k])) ;
+                        for( size_t k = j+1 ; k < ids.size() ; k++)
+                            map->insert( std::make_pair(ids[j], ids[k])) ;
 
                     }
                 }

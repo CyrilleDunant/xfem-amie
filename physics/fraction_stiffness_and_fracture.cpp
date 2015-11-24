@@ -66,6 +66,7 @@ void FractionStiffnessAndFracture::step(double timestep, ElementState & currentS
 
     dfunc->step(currentState, maxscore) ;
     currentState.getParent()->behaviourUpdated = dfunc->changed() ;
+    currentState.getParent()->needAssembly = currentState.getParent()->behaviourUpdated ;
 
 }
 
