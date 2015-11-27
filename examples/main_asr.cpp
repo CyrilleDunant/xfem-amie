@@ -66,7 +66,7 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
     int nsteps = 1600;
 
     int intermediateCount=0 ;
-    featureTree->setMaxIterationsPerStep( 800 ) ;
+    featureTree->setMaxIterationsPerStep( 3200 ) ;
 
     std::vector<Feature *> inclusionsAndBlocks =inclusions ;
     if(!blocks.empty())
@@ -212,23 +212,20 @@ int main( int argc, char *argv[] )
     //length are 1220000000 2180000000  3400000000      next: 
 
     Sample *blocktop = new Sample( nullptr, basesize, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() + basesize*.5 + restraintDepth * .25 ) ;
-    if(fact0 > 10)
-    {
-        blocktop->setBehaviour(new Stiffness(fact0,  0.) ) ;
-        blocks.push_back(blocktop);
-    }
-    else
-    {
-        blocktop->setBehaviour(new Stiffness( std::max(std::max(fact, fact0)*sqrt(POINT_TOLERANCE),1e5),  0.) ) ;
-        blocks.push_back(blocktop);
-    }
+    double Emin = std::max(std::max(fact, fact0)*sqrt(POINT_TOLERANCE),1e5) ;
+    fact = std::max(fact, Emin) ;
+    fact0 = std::max(fact0, Emin) ;
+
+    blocktop->setBehaviour( new OrthotropicStiffness(fact, fact0, (fact0+fact)*.5,  0., 0.))  ;
+    blocks.push_back(blocktop);
+
+
     F.addFeature( &sample, blocktop );
 
     Sample *blockbottom = new Sample( nullptr, basesize, 
                                                restraintDepth * .5, 
                                                sample.getCenter().getX(), 
                                                sample.getCenter().getY() - basesize*.5 - restraintDepth * .25 ) ;
-
     blockbottom->setBehaviour(new VoidForm()) ;
     blocks.push_back(blockbottom);
 
@@ -248,16 +245,9 @@ int main( int argc, char *argv[] )
                                               basesize, 
                                               sample.getCenter().getX() + ( basesize )*.5 + restraintDepth * .25, 
                                               sample.getCenter().getY() ) ;
-    if(fact > 10)
-    {
-        blockright->setBehaviour(new Stiffness(fact, 0.) ) ;
-        blocks.push_back(blockright);
-    }
-    else
-    {
-        blockright->setBehaviour(new Stiffness( std::max(std::max(fact, fact0)*sqrt(POINT_TOLERANCE),1e5), 0.)) ;
-        blocks.push_back(blockright);
-    }
+    blockright->setBehaviour( new OrthotropicStiffness(fact, fact0, (fact0+fact)*.5,  0., 0.)) ;
+    blocks.push_back(blockright);
+
     F.addFeature( &sample, blockright );
 
     for( size_t i = 0 ; i < feats.size() ; i++ )
