@@ -464,7 +464,6 @@ std::string ConfigTreeItem::getStringData(std::string path, std::string defaultV
 
 Sample * ConfigTreeItem::getSample(std::vector<ExternalMaterialLaw *> common)
 {
-    bool spaceTime = (Enum::getOrder(getRoot()->getStringData("discretization.order","LINEAR")) >= CONSTANT_TIME_LINEAR) ;
     double sampleWidth = getData("width",1) ;
     double sampleHeight = getData("height",1) ;
     double sampleCenterX = getData("center.x",0) ;
@@ -472,7 +471,7 @@ Sample * ConfigTreeItem::getSample(std::vector<ExternalMaterialLaw *> common)
     Sample * ret = new Sample(nullptr, sampleWidth, sampleHeight, sampleCenterX, sampleCenterY) ;
     if(hasChild("behaviour"))
     {
-        ret->setBehaviour( getChild("behaviour")->getBehaviour( SPACE_TWO_DIMENSIONAL, spaceTime, common ) ) ;
+        ret->setBehaviour( getChild("behaviour")->getBehaviour( SPACE_TWO_DIMENSIONAL, common ) ) ;
     }
 
     return ret ;
@@ -696,7 +695,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw()
     return Object::getExternalMaterialLaw( type, strings, stringlists, values ) ;
 }
 
-Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime, std::vector<ExternalMaterialLaw *> common)
+Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, std::vector<ExternalMaterialLaw *> common)
 {
     std::map<std::string, double> values ;
     std::map<std::string, std::string> strings ;
@@ -830,7 +829,7 @@ VoronoiGrain ConfigTreeItem::getVoronoiGrain(SpaceDimensionality dim, bool space
 {
     Form * b = new VoidForm() ;
     if(hasChild("behaviour"))
-        b = getChild("behaviour")->getBehaviour( dim, spaceTime, common ) ;
+        b = getChild("behaviour")->getBehaviour( dim, common ) ;
     double r = getData("radius", 0.001) ;
     double f = getData("fraction", 0.1) ;
     double c = getData("correction_factor", 1.) ;
@@ -887,7 +886,6 @@ Point ConfigTreeItem::getPoint(Point def )
 InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, InclusionFamily * father, int index )
 {
     SpaceDimensionality dim = F->is2D() ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ;
-    bool spaceTime = F->getOrder() >= CONSTANT_TIME_LINEAR ;
 
     if(!hasChild("family"))
     {
@@ -906,7 +904,7 @@ InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, Inclusio
 
         InclusionFamily * inc = getInclusionFamily() ;
         if(hasChild("behaviour"))
-            inc->setBehaviour( getChild("behaviour")->getBehaviour( dim, spaceTime ), 0, getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
+            inc->setBehaviour( getChild("behaviour")->getBehaviour( dim ), 0, getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
         if( father )
             inc->setFather( father, index ) ;
         inc->place( placement, getData("placement.spacing", 0), getData("placement.tries", 1000), getData("placement.random_seed", 1) ) ;
@@ -960,7 +958,7 @@ InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, Inclusio
             all[i]->addChild( new ConfigTreeItem( nullptr, "surface", all[i]->getData("surface_fraction")*placement->area() ) ) ; 
         InclusionFamily * current = all[i]->getInclusionFamily( str ) ;
         if(all[i]->hasChild("behaviour"))
-            current->setBehaviour( all[i]->getChild("behaviour")->getBehaviour( dim, spaceTime ), 0, getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
+            current->setBehaviour( all[i]->getChild("behaviour")->getBehaviour( dim ), 0, getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
         if( father )
             current->setFather( father, index ) ;
 

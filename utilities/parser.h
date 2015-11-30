@@ -70,6 +70,7 @@ public:
 	std::string getStringArgument( size_t i ) ;
 	double getNumeralArgument( std::string arg ) ;
 	double getNumeralArgument( size_t i ) ;
+	Form * getBehaviour( std::string arg, Form * b, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 
 	void parseCommandLine( int argc, char *argv[] ) ;
 
@@ -308,7 +309,7 @@ public:
 	static ConfigTreeItem * readFile(std::string f, ConfigTreeItem * def, bool define = true, bool bind = false, std::vector<std::string> flags = std::vector<std::string>(), std::string path = std::string()) ;
 	static std::vector<BoundaryCondition *> getBoundaryConditions( std::string filename, FeatureTree * F) ;
 
-	static Form * getBehaviour( std::string filename, Form * def = new VoidForm(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, bool spaceTime = true ) ;
+	static Form * getBehaviour( std::string filename, Form * def = new VoidForm(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL ) ;
 
 } ;
 

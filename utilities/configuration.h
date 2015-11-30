@@ -198,7 +198,7 @@ public:
     Sample * getSample( std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>() ) ;
 
     /** Translates the current item in a mechanical behaviour*/
-    Form * getBehaviour(SpaceDimensionality dim, bool spaceTime = false, std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>() ) ;
+    Form * getBehaviour(SpaceDimensionality dim, std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>() ) ;
 
     VoronoiGrain getVoronoiGrain(SpaceDimensionality dim, bool spaceTime = false, std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>() ) ;
 

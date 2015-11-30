@@ -406,12 +406,12 @@ int ConfigParser::getIndentLevel( std::string test )
     return i ;
 }
 
-Form * ConfigParser::getBehaviour( std::string filename, Form * def , SpaceDimensionality dim, bool spaceTime) 
+Form * ConfigParser::getBehaviour( std::string filename, Form * def , SpaceDimensionality dim) 
 {
 	ConfigTreeItem * cnf = ConfigParser::readFile( filename, nullptr ) ;
 	if(cnf->hasChild("behaviour"))
 	{
-		Form * b = cnf->getChild("behaviour")->getBehaviour(dim, spaceTime) ;
+		Form * b = cnf->getChild("behaviour")->getBehaviour(dim) ;
 		if(b)
 			return b ;
 	}
@@ -786,6 +786,14 @@ std::string CommandLineParser::getAlias(std::string complete)
 	}
 //	std::cout << "alias for " << complete << " not found!" << std::endl ;
 	return std::string() ;
+}
+
+Form * CommandLineParser::getBehaviour(std::string token, Form * b, SpaceDimensionality dim)
+{
+	std::string file = getString(token) ;
+	if(file.size() > 4 && file.find(".ini") == file.length()-4)
+		return ConfigParser::getBehaviour( file, b, dim ) ;
+	return b ;
 }
 
 void CommandLineParser::printHelp( )

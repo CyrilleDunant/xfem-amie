@@ -33,6 +33,8 @@ int main( int argc, char *argv[] )
     parser.addFlag("--no-export", "disable export of the triangles" ) ;
     parser.addFlag("--mesh-only", "stop simulation after meshing", "-m" ) ;
     parser.addValue("--inclusions", 10000, "number of aggregates (default 10,000)", "-i" ) ;
+    parser.addString("--matrix-behaviour", "", "path to a *.ini file containing the matrix mechanical behaviour") ;
+    parser.addString("--inclusion-behaviour", "", "path to a *.ini file containing the inclusion mechanical behaviour") ;
     parser.addString("--export-file", std::string(), "name of the file to export the triangles (auto-generated if not specified)", "-e" ) ;
     parser.parseCommandLine(argc, argv) ;
 
@@ -42,6 +44,8 @@ int main( int argc, char *argv[] )
     bool exp = !parser.getFlag("--no-export") ;
     bool bc = !parser.getFlag("--mesh-only") ;
     int inc = parser.getValue("--inclusions") ;
+    std::string matrixBehaviour = parser.getString("--matrix-behaviour") ;
+    std::string inclusionBehaviour = parser.getString("--inclusion-behaviour") ;
     std::string file = parser.getString("--export-file") ;
     if(file.size() == 0 && exp)
     {
@@ -81,6 +85,8 @@ int main( int argc, char *argv[] )
     if(pores)
         agg = new VoidForm() ;
 
+    paste = parser.getBehaviour("--matrix-behaviour", paste, SPACE_TWO_DIMENSIONAL) ;
+    agg = parser.getBehaviour("--inclusion-behaviour", agg, SPACE_TWO_DIMENSIONAL) ;
 
     timeval time0, time1, time2 ;
     gettimeofday ( &time0, nullptr );
