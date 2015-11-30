@@ -49,9 +49,9 @@ int main(int argc, char *argv[])
     gettimeofday ( &time0, nullptr );
 
     CommandLineParser parser("Run a 2D AMIE simulation using the configuration parameters found in a *.ini file", true, true) ;
-    parser.addFlag( "--print-microstructure", false , "print only the mesh and values of mechanical properties") ;
-    parser.addFlag( "--print-configuration-tree", false , "print only the configuration tree after parsing") ;
-    parser.addFlag( "--browse", false , "call the explorer to find the *.ini file") ;
+    parser.addFlag( "--print-microstructure", "print only the mesh and values of mechanical properties") ;
+    parser.addFlag( "--print-configuration-tree", "print only the configuration tree after parsing") ;
+    parser.addFlag( "--browse", "call the explorer to find the *.ini file", "-b") ;
     parser.addString( "--directory", std::string() , "directory to read additional input and write output") ;
     parser.addArgument( "file_name", "*.ini", "relative path to *.ini file to run") ;
     parser.parseCommandLine( argc, argv ) ;

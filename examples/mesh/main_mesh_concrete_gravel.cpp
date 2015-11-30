@@ -30,7 +30,7 @@ using namespace Amie ;
 int main(int argc, char *argv[])
 {
 	CommandLineParser parser("Builds a sample with a concrete-like microstructure with polygonal gravel aggregates") ;
-	parser.addFlag("--renew-base", false, "renew the base of results") ;
+	parser.addFlag("--renew-base", "renew the base of results") ;
 	parser.addValue("--inclusions", 1000, "number of inclusions (default: 1000)") ;
 	parser.parseCommandLine(argc, argv) ;
 	bool renew = parser.getFlag("--renew-base") ;

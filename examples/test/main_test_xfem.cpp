@@ -25,7 +25,7 @@ using namespace Amie ;
 int main( int argc, char *argv[] )
 {
 	CommandLineParser parser("Test a single XFEM inclusion") ;
-	parser.addFlag("--renew-base", false, "renew the base of results") ;
+	parser.addFlag("--renew-base", "renew the base of results") ;
 	parser.parseCommandLine(argc, argv) ;
 	bool renew = parser.getFlag("--renew-base") ;
 

@@ -96,13 +96,13 @@ bool isDeprecated( std::string test )
 int main(int argc, char *argv[])
 {
 	CommandLineParser parser("Run all tests found in AMIE test base") ;
-	parser.addFlag("--zero", false, "set tolerance and thresholds to 0") ;
-	parser.addFlag("--renew-base", false, "renew the base of results") ;
-	parser.addValue("--tolerance", 0.01, "set relative tolerance for evaluation of test success (default: 0.01)" ) ;
-	parser.addValue("--threshold", 1e-6, "set absolute threshold below which success is not evaluated (default: 1e-6)" ) ;
+	parser.addFlag("--zero", "set tolerance and thresholds to 0", "-O") ;
+	parser.addFlag("--renew-base", "renew the base of results") ;
+	parser.addValue("--tolerance", 0.01, "set relative tolerance for evaluation of test success (default: 0.01)", "-tol" ) ;
+	parser.addValue("--threshold", 1e-6, "set absolute threshold below which success is not evaluated (default: 1e-6)", "-thres" ) ;
 	parser.addValue("--timeout", 200, "maximum time (in seconds) spent for each test; use negative values for no time limit (default: 200s)" ) ;
-	parser.addString("--match", "*", "runs only the tests matching the required string (default: runs all tests found)" ) ;
-	parser.addString("--test", "*", "runs a single test with required string" ) ;
+	parser.addString("--match", "*", "runs only the tests matching the required string (default: runs all tests found)", "-m" ) ;
+	parser.addString("--test", "*", "runs a single test with required string", "-t" ) ;
 	parser.addString("--disable", "", "forces a specific test to be skipped for all users (developers only!)" ) ;
 	parser.disableFeatureTreeArguments() ;
 	parser.parseCommandLine(argc, argv) ;

@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 
 	// command line arguments; a test should be able to run by itself without any additional command line argument
 	// furthermore, the test should always be run on the same mesh to provide consistent results
-	parser.addFlag("--renew-base", false, "renew the base of results") ;
+	parser.addFlag("--renew-base", "renew the base of results") ;
 	parser.disableFeatureTreeArguments() ;
 	parser.parseCommandLine(argc, argv) ;
 	bool renew = parser.getFlag("--renew-base") ;

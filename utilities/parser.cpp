@@ -610,6 +610,13 @@ void CommandLineParser::setFeatureTree( FeatureTree * f )
 
 }
 
+std::string CommandLineParser::getCompleteString(std::string alias) 
+{
+    if(aliases.find(alias) != aliases.end())
+        return aliases[alias] ;
+    return alias ;
+}
+
 void CommandLineParser::disableFeatureTreeArguments() 
 {
     values.erase(std::string("--set-sampling-restriction")) ;
@@ -637,21 +644,21 @@ void CommandLineParser::disableFeatureTreeArguments()
 
 CommandLineParser::CommandLineParser(std::string d, bool c, bool f) : description(d), commandLineConfiguration(c), forceUnrecognizedFlags(f)
 {
-    addFlag(std::string("--help"), false, std::string("print help")) ;
-    addFlag(std::string("--version"), false, std::string("print current AMIE revision")) ;
-    addFlag(std::string("--no-openmp"), false, std::string("disable OpenMP (equivalent to --set-num-threads 1)")) ;
-    addFlag(std::string("--print-status"), false, std::string("print the list of activated command line arguments before launching the simulation")) ;
+    addFlag(std::string("--help"), std::string("print help"), "-h") ;
+    addFlag(std::string("--version"), std::string("print current AMIE revision"), "-v") ;
+    addFlag(std::string("--no-openmp"), std::string("disable OpenMP (equivalent to --set-num-threads 1)")) ;
+    addFlag(std::string("--print-status"), std::string("print the list of activated command line arguments before launching the simulation")) ;
     addValue(std::string("--set-num-threads"), -1, std::string("set the number of threads available for OpenMP")) ;
-    addValue(std::string("--set-sampling-restriction"), -1, std::string("set the number of mesh points below which small inclusions are not meshed")) ;
-    addValue(std::string("--set-delta-time"), -1, std::string("set the time step")) ;
+    addValue(std::string("--set-sampling-restriction"), -1, std::string("set the size of the smallest inclusions meshed")) ;
+    addValue(std::string("--set-delta-time"), -1, std::string("set the time step"), "-dt") ;
     addValue(std::string("--set-min-delta-time"), -1, std::string("set the minimum time increment between two damage steps")) ;
     addValue(std::string("--set-min-mesh-density"), -1, std::string("set the minimum mesh density (factor between 0 and 1)")) ;
-    addValue(std::string("--set-solver-precision"), -1, std::string("set the precision of the conjugate gradient solver")) ;
-    addValue(std::string("--set-max-iterations-per-step"), -1, std::string("set the maximum number of iterations during a damage step")) ;
-    addValue(std::string("--set-ssor-iterations"), -1, std::string("set the number of SSOR iterations in the solver")) ;
+    addValue(std::string("--set-solver-precision"), -1, std::string("set the precision of the conjugate gradient solver"), "-eps") ;
+    addValue(std::string("--set-max-iterations-per-step"), -1, std::string("set the maximum number of iterations during a damage step"), "-it") ;
+    addValue(std::string("--set-ssor-iterations"), -1, std::string("set the number of SSOR iterations in the solver"), "-ssor") ;
     addValue(std::string("--set-sampling-number"), -1, std::string("set the number of points on the edges of the sample")) ;
     addValue(std::string("--set-surface-sampling-factor"), -1, std::string("increases the number of points on boundaries")) ;
-    addString(std::string("--set-order"), std::string(), std::string("set the order of the finite elements")) ;
+    addString(std::string("--set-order"), std::string(), std::string("set the order of the finite elements"), "-O") ;
 }
 
 void setFeatureTree( FeatureTree * f, int argc, char *argv[], std::string description ) 
@@ -670,7 +677,7 @@ void CommandLineParser::parseCommandLine( int argc, char *argv[] )
 	size_t i = 1 ;
 	while(i < (size_t) argc)
 	{
-		std::string test = std::string(argv[i]) ;
+		std::string test = getCompleteString(std::string(argv[i])) ;
 		if(i-1 < arguments.size() && (test.length() < 2 || (test[0] != '-' || test[1] != '-')) )
 		{
 			arguments[i-1].str = test ;
@@ -749,12 +756,36 @@ void CommandLineParser::printStatus( )
 
 }
 
-void printFormatedHelp( std::string arg, size_t max, std::string help, std::string lead)
+void CommandLineParser::printFormatedHelp( std::string arg, int max, int maxalias, std::string help, std::string lead, bool printAlias)
 {
+
+	int length = arg.length() ;
+	if(printAlias)
+	{
+		length += maxalias+1 ;
+		std::string alias = getAlias(arg) ;
+		std::cout << alias ;
+		int alength = alias.length() ;
+		for(int i = 0 ; i < maxalias-alength ; i++)
+			std::cout << " " ;
+	}
 	std::cout << arg ;
-	for(size_t i = 0 ; i < max-arg.length() ; i++)
+	for(int i = 0 ; i < max-length ; i++)
 		std::cout << " " ;
 	std::cout << lead << help << std::endl ;
+}
+
+std::string CommandLineParser::getAlias(std::string complete)
+{
+	for(auto i = aliases.begin() ; i != aliases.end() ; i++)
+	{
+		if(aliases[i->first] == complete)
+		{
+			return i->first ;
+		}
+	}
+//	std::cout << "alias for " << complete << " not found!" << std::endl ;
+	return std::string() ;
 }
 
 void CommandLineParser::printHelp( )
@@ -784,24 +815,29 @@ void CommandLineParser::printHelp( )
 		m = std::max(m, arguments[i].name.length() ) ;
 
 	for(size_t i = 0 ; i < arguments.size() ; i++)
-		printFormatedHelp( arguments[i].name, m, arguments[i].help, "  " ) ;
+		printFormatedHelp( arguments[i].name, m, 0, arguments[i].help, "  ", false ) ;
 	if(arguments.size() > 0)
 		std::cout << std::endl ;
 
 	std::cout << "OPTIONS" << std::endl ;
 
+	size_t a = 0 ;
+	for(auto al = aliases.begin() ; al != aliases.end() ; al++)
+		a = std::max(a, al->first.length()+1 ) ;
+
 	m = 0 ;
 	for(auto h = help.begin() ; h != help.end() ; h++)
-		m = std::max(m, h->first.length() ) ;
+		m = std::max(m, h->first.length()+a ) ;
+
 
 	for(auto h = help.begin() ; h != help.end() ; h++)
 	{
-		std::string lead = "  " ;
+		std::string lead = "   " ;
 		if(values.find(h->first) != values.end())
-			lead = "  (numeral) " ;
+			lead = "   (numeral) " ;
 		if(strings.find(h->first) != strings.end())
-			lead = "  (string) " ;
-		printFormatedHelp( h->first, m, h->second, lead ) ;
+			lead = "   (string) " ;
+		printFormatedHelp( h->first, m,a, h->second, lead, true ) ;
 	}
 
 	std::cout << std::endl ;

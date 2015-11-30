@@ -115,9 +115,11 @@ If a parameter is not found, its default value will be used instead.\\
 \begin{tabularx}{\textwidth}{lcX}
 \verb+.discretization+ &  Def. & Description \\
 \hline
+\verb+..minimum_mesh_density+ & 0.4 & Controls the minimum distance between two mesh points. \\
 \verb+..order+ & \verb+LINEAR+ & Order of the shape functions for the finite element discretization. In space-time finite elements, the order is automatically set to \verb+LINEAR_TIME_LINEAR+.\\
 \verb+..sampling_number+ & 4 & Number of mesh points on the side of the sample. \\
 \verb+..sampling_restriction+ & 0 & Radius (in meters) below which inclusions are not meshed.\\
+\verb+..sampling_surface_factor+ & 2 & Increases the density of the mesh along the surfaces of inclusions. \\
 \hline
 \end{tabularx}
 \caption{Discretization parameters}
@@ -152,6 +154,9 @@ If a parameter is not found, its default value will be used instead.\\
 There are four different ways to define the time steps, depending on which parameters are defined.
 By order of priority:
 
+	\eject
+
+
 \begin{enumerate}
 	\item \textbf{With a direct list of time steps:}\\
 
@@ -159,8 +164,6 @@ By order of priority:
 
 	The right-hand side must be a list of coma-separated values that will be used as the time steps of the simulation.
 	The list must start with 0 and strictly increasing.\\
-
-	\eject
 
 	\item \textbf{From an external file:}\\
 	
@@ -178,6 +181,8 @@ By order of priority:
 	\verb+..number_of_time_steps = 1+\\
 
 	The simulation will consists in \verb+number_of_time_steps+ time steps, starting with \verb+first_time_steps+ (in days), and separated by \verb+time_step+ (in the logarithmic space).
+	
+    \eject	
 	
 	\item \textbf{Using a constant time step:\\}
 
@@ -239,8 +244,6 @@ It consists into a \verb+type+ and several optional parameters, depending on the
 The following list details parameters common for different types of geometry.
 \textbf{Req.} indicates a required parameters (only for geometry types for which this is relevant).
 
-\eject 
-
 \begin{table}[h!]
 \begin{tabularx}{\textwidth}{lcX}
 \verb+..geometry = type+ & Def. & Description\\
@@ -258,6 +261,8 @@ The following list details parameters common for different types of geometry.
 \end{table}
 
 The different types available are detailed below:
+
+\eject
 
 \paragraph{Circles:} \whiteline
 
@@ -289,6 +294,7 @@ And for extended finite elements in space and time (constant radius):
 \caption{Geometry parameters for space-time extended finite elements circles}
 \end{table}
 
+
 \paragraph{Ellipses:} \whiteline
 
 \begin{table}[h!]
@@ -304,8 +310,6 @@ And for extended finite elements in space and time (constant radius):
 \end{tabularx}
 \caption{Geometry parameters for ellipses}
 \end{table}
-
-\eject
 
 \paragraph{Rectangles:} \whiteline
 
@@ -339,6 +343,8 @@ And for extended finite elements in space and time (constant radius):
 \caption{Geometry parameters for rectangles}
 \end{table}
 
+\eject
+
 \paragraph{Gravel-like polygons:} \whiteline
 
 \begin{table}[h!]
@@ -357,8 +363,6 @@ And for extended finite elements in space and time (constant radius):
 \end{tabularx}
 \caption{Geometry parameters for gravel-like polygons}
 \end{table}
-
-\eject
 
 \paragraph{Crushed-like polygons:} \whiteline
 
@@ -397,6 +401,8 @@ Alternatively:
 \end{tabularx}
 \caption{Geometry parameters for crushed-like polygons}
 \end{table}
+
+\eject
 
 \paragraph{Voronoi-generated polygons:} \whiteline
 
@@ -450,6 +456,8 @@ This is the default distribution if none is found.
 \end{tabularx}
 \caption{Parameters for the Bolome particle size distributions}
 \end{table}
+
+\eject
 
 \paragraph{Fuller distribution:} \whiteline
 
@@ -532,8 +540,6 @@ As many \verb+boundary_condition+ subitems can be defined.
 Each \verb+boundary_condition+ item can have the following parameters.
 \textbf{Req} indicates required parameters; Others are optional.
 
-\eject
-
 \begin{table}[h!]
 \begin{tabularx}{\textwidth}{lcX}
 \verb+..boundary_condition+ & Def. & Description\\
@@ -560,6 +566,8 @@ Each \verb+boundary_condition+ item can have the following parameters.
 
 In its basic form, a \verb+boundary_condition+ applies a \verb+condition+ with a constant \verb+value+ on an edge or vertex of the sample defined with \verb+position+.
 
+\eject
+
 \paragraph{Geometric restrictions:} \whiteline
 
 If \verb+restriction+ is defined, the \verb+condition+ will only be applied on the nodes located on the specified \verb+position+ and in the rectangular box defined by the \verb+top_right+ and \verb+bottom_left+ points.\\
@@ -573,8 +581,6 @@ If both \verb+restriction+ and \verb+point+ are defined, only \verb+restriction+
 In its basic form, the value of the \verb+condition+ is constant. However, it can be set as linear in time using \verb+rate+, or use a linear interpolation in time using \verb+interpolation+.\\
 
 In case of an \verb+interpolation+, the boundary condition will be interpolated linearly in-between the specified instants. Therefore, special care must be taken to represent step-wise loadings.
-
-\eject
 
 \paragraph{Conditions:} \whiteline
 
@@ -625,8 +631,6 @@ The \verb+output+ of the simulation is exported as a table containing for each t
 The \verb+inclusions+, \verb+edge+ and \verb+point+ sub-items can all be defined multiple times (for example to get average strains or stresses in both the matrix and the inclusions).\\
 
 In the main \verb+output+ item (respectively any of the \verb+inclusions+, \verb+edge+ and \verb+point+ sub-items) the \verb+field+ sub-item can be defined multiple times. 
-
-\eject
 
 \begin{table}[h!]
 \begin{tabularx}{\textwidth}{lcX}
@@ -691,8 +695,6 @@ Each file describes a series of fields (the same series is used in each file).
 \caption{Export parameters}
 \end{table}
 
-\eject
-
 The \verb+field+ subitem can be defined multiple times.
 It can be a field from the list of the output field types (see above), or one of the list below.
 
@@ -727,6 +729,150 @@ It is defined by its \verb+type+ and a certain number of parameters or subitems.
 \caption{Behaviour parameters}
 \end{table}
 
+The different mechanical behaviours implemented are listed below. The default material behaviour is the \textbf{logarithmic creep} behaviour.
+
+\paragraph{Logarithmic creep:} \whiteline
+
+This behaviour requires the use of space-time finite elements. It is able to consider purely-elastic materials (no logarithmic creep), imposed deformation, as well as damage, depending on the parameters used for its definition.\\
+
+\textbf{This is the default behaviour, so it does not need a type.} If you need to specify it, use \verb+.behaviour = LogarithmicCreepWithExternalParameters+.
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+.behaviour+ & Def. & Description\\
+%\verb+    LogarithmicCreepWithExternalParameters+  & & \\
+\hline
+\verb+..creep_characteristic_time+ & & Optional. Indicates the delay before the creep reaches its logarithmic regime (in days). This parameter is required to activate the creep properties of the material (otherwise it will be considered as elastic).\\
+\verb+..creep_modulus+ & & Optional. Describes the rate of the uni-axial creep deformation in the logarithmic scale.\\
+\verb+..creep_poisson+ & & Optional. Defines the ratio between axial and lateral creep deformations. If this parameter is not found, \verb+poisson_ratio+ is used instead. \\
+\verb+..damage_model+ &   & Optional. The material will not exhibit damage if either \verb+damage_model+ or \verb+fracture_criterion+ are omitted.\\	
+\verb+..fracture_criterion+ &   & Optional. The material will not exhibit damage if either \verb+damage_model+ or \verb+fracture_criterion+ are omitted.\\	
+\verb+..imposed_deformation+ & 0 & Value of the linear expansion in absence of external mechanical restraints. Use 0 for a non-expanding material.\\
+\verb+..plane_type+ & \verb+PLANE_STRESS+ & \\
+\verb+..poisson_ratio+ & Req. & \\
+\verb+..young_modulus+ & Req. & \\
+\hline
+\end{tabularx}
+\caption{Parameters for logarithmic creep material behaviour}
+\end{table}
+
+\paragraph{Empty behaviour:} \whiteline
+
+Elements with a \verb+VoidForm+ behaviour are not part of the solid.
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+.behaviour = VoidForm+ & Def. & Description \\
+\hline
+\end{tabularx}
+\caption{Parameters for empty material behaviour}
+\end{table}
+
+\paragraph{Elastic behaviour:} \whiteline
+
+This behaviour is not compatible with space-time finite elements.
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+.behaviour = Stiffness+ & Def. & Description\\
+\hline
+\verb+..plane_type+ & \verb+PLANE_STRESS+ & \\
+\verb+..poisson_ratio+ & Req. & \\
+\verb+..young_modulus+ & Req. & \\
+\hline
+\end{tabularx}
+\caption{Parameters for elastic material behaviour}
+\end{table}
+
+\paragraph{Elastic quasi-brittle behaviour:} \whiteline
+
+This behaviour is not compatible with space-time finite elements.
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+.behaviour = Stiffness+ & Def. & Description\\
+\hline
+\verb+..damage_model+ & Req.  & \\	
+\verb+..fracture_criterion+ & Req.  & \\	
+\verb+..plane_type+ & \verb+PLANE_STRESS+ & \\
+\verb+..poisson_ratio+ & Req. & \\
+\verb+..young_modulus+ & Req. & \\
+\hline
+\end{tabularx}
+\caption{Parameters for elastic quasi-brittle material behaviour}
+\end{table}
+
+\paragraph{Elastic behaviour with imposed deformation:} \whiteline
+
+This behaviour is not compatible with space-time finite elements.
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+.behaviour = StiffnessWithImposedDeformation+ & Def. & Description\\
+\hline
+\verb+..imposed_deformation+ & Req. & Value of the linear expansion in absence of external mechanical restraints.\\
+\verb+..plane_type+ & \verb+PLANE_STRESS+ & \\
+\verb+..poisson_ratio+ & Req. & \\
+\verb+..young_modulus+ & Req. & \\
+\hline
+\end{tabularx}
+\caption{Parameters for elastic with imposed deformation material behaviour}
+\end{table}
+
+\paragraph{Elastic behaviour with imposed stress:} \whiteline
+
+This behaviour is not compatible with space-time finite elements.
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+.behaviour = StiffnessWithImposedDeformation+ & Def. & Description\\
+\hline
+\verb+..imposed_stress+ & Req. & Value of the volumetric stress induced in the material.\\
+\verb+..plane_type+ & \verb+PLANE_STRESS+ & \\
+\verb+..poisson_ratio+ & Req. & \\
+\verb+..young_modulus+ & Req. & \\
+\hline
+\end{tabularx}
+\caption{Parameters for elastic with imposed stress material behaviour}
+\end{table}
+
+\subsection{Damage model}
+
+Two damage models are used depending on the type of finite elements. 
+
+\paragraph{Isotropic damage model:} \whiteline
+
+This damage model is used for standard finite element calculations
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..damage_model = Isotropic+ & Def. & Description\\
+\hline
+\verb+...residual_stiffness_fraction+ & 0 & Stiffness of entirely damaged elements (expressed as a fraction of the stiffness of non-damaged elements).\\
+\hline
+\end{tabularx}
+\caption{Parameters for the isotropic damage model}
+\end{table}
+
+\paragraph{Space-time fiber-based damage model:} \whiteline
+
+This damage model is used for space-time finite element calculations
+
+\begin{table}[h!]
+\begin{tabularx}{\textwidth}{lcX}
+\verb+..damage_model = + & Def. & Description\\
+\verb+SpaceTimeFiberBasedIsotropic+ & & \\
+\hline
+\verb+...damage_increment+ & 0.1 & Value by which the damage is increased at each step of the algorithm.\\
+\verb+...maximum_damage+ & 0.99 & Value above which elements are considered entirely broken.\\
+\verb+...residual_stiffness_fraction+ & 0 & Stiffness of entirely damaged elements (expressed as a fraction of the stiffness of non-damaged elements).\\
+\verb+...time_tolerance+ & 0.001 & Minimum time interval between two damage events. This value is relative to the current time step (unit-less) and must be lower than 1.\\
+\hline
+\end{tabularx}
+\caption{Parameters for the space-time fiber-based damage model}
+\end{table}
+
+\subsection{Fracture criterion}
 
 
 \end{document}

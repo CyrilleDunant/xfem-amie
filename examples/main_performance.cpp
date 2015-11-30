@@ -27,13 +27,13 @@ using namespace Amie ;
 int main( int argc, char *argv[] )
 {
     CommandLineParser parser("Make an elastic tensile test on a finely discretized concrete microstructure") ;
-    parser.addFlag("--damage", false, "the test accounts for damage in the cement paste and aggregates") ;
-    parser.addFlag("--viscous", false, "the test accounts for visco-elasticity of the cement paste") ;
-    parser.addFlag("--pores", false, "use empty pores instead of aggregates") ;
-    parser.addFlag("--no-export", false, "disable export of the triangles" ) ;
-    parser.addFlag("--mesh-only", false, "stop simulation after meshing" ) ;
-    parser.addValue("--inclusions", 10000, "number of aggregates (default 10,000)" ) ;
-    parser.addString("--export-file", std::string(), "name of the file to export the triangles (auto-generated if not specified)" ) ;
+    parser.addFlag("--damage", "the test accounts for damage in the cement paste and aggregates", "-d") ;
+    parser.addFlag("--viscous", "the test accounts for visco-elasticity of the cement paste", "-V") ;
+    parser.addFlag("--pores", "use empty pores instead of aggregates", "-p") ;
+    parser.addFlag("--no-export", "disable export of the triangles" ) ;
+    parser.addFlag("--mesh-only", "stop simulation after meshing", "-m" ) ;
+    parser.addValue("--inclusions", 10000, "number of aggregates (default 10,000)", "-i" ) ;
+    parser.addString("--export-file", std::string(), "name of the file to export the triangles (auto-generated if not specified)", "-e" ) ;
     parser.parseCommandLine(argc, argv) ;
 
     bool damage = parser.getFlag("--damage") ;

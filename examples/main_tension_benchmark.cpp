@@ -35,11 +35,11 @@ int main(int argc, char *argv[])
 	gettimeofday ( &time0, nullptr );
 
 	CommandLineParser parser ;
-	parser.addFlag("--check", false ) ;
-	parser.addFlag("--space-time", true ) ;
-	parser.addFlag("--fiber", false ) ;
-	parser.addFlag("--newton", false ) ;
-	parser.addFlag("--no-openmp", false ) ;
+	parser.addFlag("--check" ) ;
+	parser.addFlag("--space-time" ) ;
+	parser.addFlag("--fiber" ) ;
+	parser.addFlag("--newton" ) ;
+	parser.addFlag("--no-openmp" ) ;
 
 	parser.addValue("--yield-strain", 0.0005 ) ;
 	parser.addValue("--max-strain", 0.0001 ) ;
@@ -55,7 +55,6 @@ int main(int argc, char *argv[])
 	bool spaceTime = parser.getFlag("--space-time") ;
 	bool fiber = parser.getFlag("--fiber") ;
 	bool newton = parser.getFlag("--newton") ;
-	bool noOpenMP = parser.getFlag("--no-openmp") ;
 	double yieldstrain = parser.getValue("--yield-strain") ;
 	double maxstrain = parser.getValue("--max-strain") ;
 	double young = parser.getValue("--young") ;

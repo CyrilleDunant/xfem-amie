@@ -42,6 +42,7 @@ protected:
 	std::map< std::string, std::string > strings ;
 	std::map< std::string, std::string> help ;
 	std::vector< CommandLineArgument > arguments ;
+	std::map<std::string, std::string> aliases ;
 	std::string command ;
 	std::string description ;
 
@@ -53,11 +54,14 @@ protected:
 public:
 	CommandLineParser(std::string d = std::string(), bool c = false, bool f = false) ;
 
-	void addFlag( std::string f, bool activated, std::string h = std::string() ) { flags[f] = activated ; help[f] = h ; }
-	void addValue( std::string f, double val, std::string h = std::string() ) { values[f] = val ; help[f] = h ; }
-	void addString( std::string f, std::string str, std::string h = std::string() ) { strings[f] = str ; help[f] = h ; }
+	void addAlias(std::string alias, std::string complete) { aliases[alias] = complete ; }
+	void addFlag( std::string f, std::string h = std::string(), std::string a = std::string() ) { flags[f] = false ; help[f] = h ; if(a.length() > 0) { addAlias(a,f) ; } }
+	void addValue( std::string f, double val, std::string h = std::string(), std::string a = std::string() ) { values[f] = val ; help[f] = h ; if(a.length() > 0) { addAlias(a,f) ; } }
+	void addString( std::string f, std::string str, std::string h = std::string(), std::string a = std::string() ) { strings[f] = str ; help[f] = h ; if(a.length() > 0) { addAlias(a,f) ; } }
 	void addArgument( std::string f, std::string defstr, std::string h = std::string()) { arguments.push_back( CommandLineArgument(f, h, defstr, 0. ) ) ; }
 	void addArgument( std::string f, double v, std::string h = std::string()) { arguments.push_back( CommandLineArgument(f, h, std::string(), v ) ) ; }
+	std::string getCompleteString(std::string alias) ;
+	std::string getAlias(std::string complete) ;
 
 	bool getFlag( std::string f ) ;
 	double getValue( std::string f ) ;
@@ -77,10 +81,9 @@ public:
 	void setNumThreads(int n) ;
 
 	void printStatus() ;
-
 	void printHelp() ;
-
 	void printVersion() ;
+	void printFormatedHelp( std::string arg, int max, int maxalias, std::string help, std::string lead, bool printAlias) ;
 
 	void setFeatureTree( FeatureTree * f) ;
 	static void setFeatureTree( FeatureTree * f, int argc, char *argv[], std::string str = std::string("AMIE") ) ;

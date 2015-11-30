@@ -29,7 +29,7 @@ using namespace Amie ;
 int main(int argc, char *argv[])
 {
 	CommandLineParser parser("Builds a sample without inclusions") ;
-	parser.addFlag("--renew-base", false, "renew the base of results") ;
+	parser.addFlag("--renew-base", "renew the base of results") ;
 	parser.parseCommandLine(argc, argv) ;
 	bool renew = parser.getFlag("--renew-base") ;
 

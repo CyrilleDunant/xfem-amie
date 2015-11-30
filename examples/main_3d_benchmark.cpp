@@ -213,12 +213,12 @@ int main(int argc, char *argv[])
 
             double nu = 0.2 ;
             double E = 1. ;
-            sample.setBehaviour(new Stiffness(Tensor::cauchyGreen(E, nu, true,  SPACE_THREE_DIMENSIONAL ))) ;
+            sample.setBehaviour(new Stiffness(Tensor::cauchyGreen(E, nu, true,  SPACE_THREE_DIMENSIONAL, PLANE_STRESS ))) ;
 
 //             std::cout << prop << std::endl ;
 
             Vector alpha(0., 6) ;
-            behaviour = new StiffnessWithImposedDeformation(Tensor::cauchyGreen(10., .2, true,  SPACE_THREE_DIMENSIONAL ),alpha) ;
+            behaviour = new StiffnessWithImposedDeformation(Tensor::cauchyGreen(10., .2, true,  SPACE_THREE_DIMENSIONAL, PLANE_STRESS ),alpha) ;
             break ;
         }
     }

@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 	CommandLineParser parser("Description of the current problem") ; 
 
 	// command line arguments; a test should be able to run by itself without any additional command line argument
-	parser.addFlag("--renew-base", false, "renew the base of results") ;
+	parser.addFlag("--renew-base", "renew the base of results") ;
 	parser.parseCommandLine(argc, argv) ;
 	bool renew = parser.getFlag("--renew-base") ;
 

@@ -26,7 +26,7 @@ using namespace Amie ;
 int main(int argc, char *argv[])
 {
 	CommandLineParser parser("Test the randomness of a weibull-distributed stiffness") ;
-	parser.addFlag("--renew-base", false, "renew the base of results") ;
+	parser.addFlag("--renew-base", "renew the base of results") ;
 	parser.addValue("--seed", 1, "random seed") ;
 	parser.parseCommandLine(argc, argv) ;
 	bool renew = parser.getFlag("--renew-base") ;

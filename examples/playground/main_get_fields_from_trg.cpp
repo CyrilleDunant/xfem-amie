@@ -218,11 +218,11 @@ int main( int argc, char *argv[] )
 {
     CommandLineParser parser("Reads an AMIE trg file and obtains maximum values on a certain boundary") ;
     parser.addArgument("file_name","file","relative path to the trg file to read (use %i for multiple files)") ;
-    parser.addValue("--tolerance",0.00001,"spatial tolerance on the edge-detection") ;
-    parser.addValue("--steps",100,"maximum number of trg files read") ;
-    parser.addValue("--x",0,"index of the field in the horizontal direction (default 0: displacements along XI)") ;
-    parser.addValue("--y",1,"index of the field in the horizontal direction (default 1: displacements along ETA)") ;
-    parser.addString("--out","","file in which the results are stored (results are printed in the console if no file is defined)") ;
+    parser.addValue("--tolerance",0.00001,"spatial tolerance on the edge-detection", "-t") ;
+    parser.addValue("--steps",100,"maximum number of trg files read", "-s") ;
+    parser.addValue("--x",0,"index of the field in the horizontal direction (default 0: displacements along XI)", "-x") ;
+    parser.addValue("--y",1,"index of the field in the vertical direction (default 1: displacements along ETA)", "-y") ;
+    parser.addString("--out","","file in which the results are stored (results are printed in the console if no file is defined)", "-o") ;
     parser.disableFeatureTreeArguments() ;
     parser.parseCommandLine(argc, argv) ;
 

@@ -37,16 +37,16 @@ int main(int argc, char *argv[])
 {
 	CommandLineParser parser("Evaluate the value of an AMIE function at different coordinates and print the result in the console") ;
 	parser.addArgument("\"function\"", "x", "AMIE function written in RPN (quotes are mandatory)") ;
-	parser.addString("--range-x", "[0:0:0]", "range of the x coordinates formatted as [start:step:end]") ;
-	parser.addString("--range-y", "[0:0:0]", "range of the y coordinates formatted as [start:step:end]") ;
-	parser.addString("--range-z", "[0:0:0]", "range of the z coordinates formatted as [start:step:end]") ;
-	parser.addString("--range-t", "[0:0:0]", "range of the t coordinates formatted as [start:step:end]") ;
-	parser.addString("--output", "", "writes output in specified file instead of console") ;
+	parser.addString("--range-x", "[0:0:0]", "range of the x coordinates formatted as [start:step:end]", "-x") ;
+	parser.addString("--range-y", "[0:0:0]", "range of the y coordinates formatted as [start:step:end]", "-y") ;
+	parser.addString("--range-z", "[0:0:0]", "range of the z coordinates formatted as [start:step:end]", "-z") ;
+	parser.addString("--range-t", "[0:0:0]", "range of the t coordinates formatted as [start:step:end]", "-t") ;
+	parser.addString("--output", "", "writes output in specified file instead of console", "-o") ;
 	parser.addValue("--print-limit", 1e6, "maximum number of values printed (default 1e6)") ;
-	parser.addFlag("--print-vm", false, "print instructions of the AMIE virtual machine") ;
-	parser.addFlag("--print-roots", false, "print roots of token list of the expression parser") ;
-	parser.addFlag("--print-parser", false, "print token list of the expression parser") ;
-	parser.addFlag("--rpn", false, "parse function in Reverse Polish Notation") ;
+	parser.addFlag("--print-vm", "print instructions of the AMIE virtual machine", "-vm") ;
+	parser.addFlag("--print-roots", "print roots of token list of the expression parser", "-r") ;
+	parser.addFlag("--print-parser", "print token list of the expression parser", "-p") ;
+	parser.addFlag("--rpn", "parse function in Reverse Polish Notation", "-R") ;
 	parser.disableFeatureTreeArguments() ;
 	
 	parser.parseCommandLine(argc, argv) ;
