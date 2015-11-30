@@ -791,6 +791,11 @@ std::string CommandLineParser::getAlias(std::string complete)
 Form * CommandLineParser::getBehaviour(std::string token, Form * b, SpaceDimensionality dim)
 {
 	std::string file = getString(token) ;
+	for(size_t i = 0 ; i < arguments.size() ; i++)
+	{
+		if(arguments[i].name == token)
+			file = arguments[i].str ;
+	}
 	if(file.size() > 4 && file.find(".ini") == file.length()-4)
 		return ConfigParser::getBehaviour( file, b, dim ) ;
 	return b ;
@@ -835,7 +840,7 @@ void CommandLineParser::printHelp( )
 
 	m = 0 ;
 	for(auto h = help.begin() ; h != help.end() ; h++)
-		m = std::max(m, h->first.length()+a ) ;
+		m = std::max(m, h->first.length()+a+1 ) ;
 
 
 	for(auto h = help.begin() ; h != help.end() ; h++)

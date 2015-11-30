@@ -463,6 +463,9 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/test ${CMAKE_BINARY_DIR}/mesh)
 add_executable(check_test EXCLUDE_FROM_ALL examples/main_check_test.cpp )
 target_link_libraries( check_test Amie ${ALL_LINK_FLAGS} )
 
+add_executable(check_behaviour EXCLUDE_FROM_ALL examples/main_check_behaviour.cpp )
+target_link_libraries( check_behaviour Amie ${ALL_LINK_FLAGS} )
+
 add_executable( test/logcreep EXCLUDE_FROM_ALL examples/test/main_test_logcreep.cpp )
 target_link_libraries( test/logcreep Amie ${ALL_LINK_FLAGS})
 
@@ -496,6 +499,7 @@ target_link_libraries( test/weibull Amie ${ALL_LINK_FLAGS})
 ADD_CUSTOM_TARGET(unitTests)
 ADD_DEPENDENCIES(unitTests 
 check_test 
+check_behaviour 
 test/imposed_deformation 
 test/logcreep 
 test/logcreep_imposed_deformation 
