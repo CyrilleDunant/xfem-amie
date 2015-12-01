@@ -94,6 +94,11 @@ struct Viscoelasticity : public LinearForm
 	// constructor for general viscoelasticity (rig and eta are supposed symmetric)
 	Viscoelasticity( const Matrix & rig, const Matrix & eta, int blocks, int additionnalBlocksAfter = 0, double r = 0) ; 
 
+	/* file must point to a text file containing a 3-column table. 
+        Each row represents a single spring-dashpot pair in the chain formated as
+	Young's modulus of the spring | dashpot of the spring | characteristic time of the dasahpot (in days)
+	Springs or dashpots that are alone in the assembly are described by young, poisson and tau
+	*/
 	Viscoelasticity( ViscoelasticModel model, double young, double poisson, double tau = 1, std::string file = std::string(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, bool hooke = true, int additionnalBlocksBefore = 0, int additionnalBlocksAfter = 0) ;
 
 	virtual ~Viscoelasticity() ;

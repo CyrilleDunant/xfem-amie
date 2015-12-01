@@ -462,7 +462,7 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, const M
     makeBlockConnectivity() ;
 }
 
-Viscoelasticity::Viscoelasticity( ViscoelasticModel m, double young, double poisson, double tau, std::string file, SpaceDimensionality dim, planeType pt, bool hooke, int b, int a) : LinearForm(Tensor::cauchyGreen(young, poisson, true, dim, pt), false, false, dim), model(m), blocks(1+a+b), effblocks(1)
+Viscoelasticity::Viscoelasticity( ViscoelasticModel m, double young, double poisson, double tau, std::string file, SpaceDimensionality dim, planeType pt, bool hooke, int b, int a) : LinearForm(Tensor::cauchyGreen(young, poisson, hooke, dim, pt), false, false, dim), model(m), blocks(1+a+b), effblocks(1)
 {
     v.push_back(XI);
     v.push_back(ETA);
@@ -502,8 +502,8 @@ Viscoelasticity::Viscoelasticity( ViscoelasticModel m, double young, double pois
 
      }
 
-     Matrix C = Tensor::cauchyGreen(young, poisson, true, dim, pt) ;
-     Matrix E = Tensor::cauchyGreen(young*tau, poisson, true, dim, pt) ;
+     Matrix C = Tensor::cauchyGreen(young, poisson, hooke, dim, pt) ;
+     Matrix E = C*tau ;
      std::vector<std::pair<Matrix, Matrix> > branches ;
      for(size_t i = 0 ; i < modulus.size() && i < ratio.size() && i < time.size() ; i++)
      {
