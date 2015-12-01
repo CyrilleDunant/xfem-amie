@@ -5530,30 +5530,20 @@ void FeatureTree::checkSpaceTimeConsistency()
             if(blocks > maxBlocks)
                 maxBlocks = blocks ;
         }
-        if ( (dynamic_cast<AggregateBehaviour *>(behaviour) || dynamic_cast<PasteBehaviour *>(behaviour) || dynamic_cast<GelBehaviour *>(behaviour)) && maxBlocks < 3)
-        {
-            maxBlocks = 3 ;
-        }
-        if( dynamic_cast<ViscoElasticOnlyAggregateBehaviour*>(behaviour) || dynamic_cast<ViscoDamageAggregateBehaviour*>(behaviour) ||
-                dynamic_cast<ViscoElasticOnlyPasteBehaviour*>(behaviour) || dynamic_cast<ViscoDamagePasteBehaviour*>(behaviour) ||
-                dynamic_cast<ViscoElasticOnlyGelBehaviour*>(behaviour))
+        if( (dynamic_cast<AggregateBehaviour*>(behaviour) && dynamic_cast<AggregateBehaviour*>(behaviour)->spaceTime) ||
+                (dynamic_cast<PasteBehaviour*>(behaviour) && dynamic_cast<PasteBehaviour*>(behaviour)->spaceTime) ||
+                (dynamic_cast<GelBehaviour*>(behaviour) && dynamic_cast<GelBehaviour*>(behaviour)->spaceTime))
         {
             spaceTimeElemBehaviour = true ;
             int fblocks = 3 ;
-            if( dynamic_cast<ViscoElasticOnlyAggregateBehaviour*>(behaviour) ) {
-                fblocks += dynamic_cast<ViscoElasticOnlyAggregateBehaviour*>(behaviour)->freeblocks ;
+            if( dynamic_cast<AggregateBehaviour*>(behaviour) ) {
+                fblocks += dynamic_cast<AggregateBehaviour*>(behaviour)->freeblocks ;
             }
-            else if( dynamic_cast<ViscoDamageAggregateBehaviour*>(behaviour) ) {
-                fblocks += dynamic_cast<ViscoDamageAggregateBehaviour*>(behaviour)->freeblocks ;
+            else if( dynamic_cast<PasteBehaviour*>(behaviour) ) {
+                fblocks += dynamic_cast<PasteBehaviour*>(behaviour)->freeblocks ;
             }
-            else if( dynamic_cast<ViscoElasticOnlyPasteBehaviour*>(behaviour) ) {
-                fblocks += dynamic_cast<ViscoElasticOnlyPasteBehaviour*>(behaviour)->freeblocks ;
-            }
-            else if( dynamic_cast<ViscoDamagePasteBehaviour*>(behaviour) ) {
-                fblocks += dynamic_cast<ViscoDamagePasteBehaviour*>(behaviour)->freeblocks ;
-            }
-            else if( dynamic_cast<ViscoElasticOnlyGelBehaviour*>(behaviour) ) {
-                fblocks += dynamic_cast<ViscoElasticOnlyGelBehaviour*>(behaviour)->freeblocks ;
+            else if( dynamic_cast<GelBehaviour*>(behaviour) ) {
+                fblocks += dynamic_cast<GelBehaviour*>(behaviour)->freeblocks ;
             }
             if(fblocks > maxBlocks)
                 maxBlocks = fblocks ;

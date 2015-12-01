@@ -13,43 +13,31 @@
 
 namespace Amie
 {
+
+/*PARSE AggregateBehaviour Form 
+    @string<bool>[elastic] FALSE // desactivates the damage if TRUE
+    @string<bool>[space_time] FALSE // uses the behaviour in space-time if TRUE
+    @value[young_modulus] 59e9 // value of the Young modulus
+    @value[poisson_ratio] 0.3 // value of the Poisson ratio
+    @value[tensile_strength] 10e6 // value of the tensile strength of the material
+    @value[material_characteristic_radius] 0.00025 // radius of the non-local damage model
+    @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
+    @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+    @value[variability] 0.2 // variability of the mechanical properties
+    @value[blocks] 0 // additional ghost blocks for viscoelastic simulations 
+ */
 struct AggregateBehaviour : public WeibullDistributedStiffness
 {
-    double up ;
-    double yield ;
-    double c ;
-    //Yield 30 MPa
-    AggregateBehaviour(double E=59e9, double nu=0.3, double up = 10e6, double yield = 0.00044, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
-
-    virtual Form * getCopy() const ;
-
-} ;
-
-struct ElasticOnlyAggregateBehaviour : public AggregateBehaviour
-{
-    ElasticOnlyAggregateBehaviour(double E=59e9, double nu=0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
-
-    virtual Form * getCopy() const ;
-
-} ;
-
-struct ViscoElasticOnlyAggregateBehaviour : public AggregateBehaviour
-{
     int freeblocks ;
-    ViscoElasticOnlyAggregateBehaviour(double E=59e9, double nu=0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
+    bool spaceTime ;
+    bool elastic ;
+
+    AggregateBehaviour(bool elastic = false, bool st = false, double E=59e9, double nu=0.3, double up = 10e6, double r = 0.00025, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS,  double var = 0.2, int blocks = 0) ;
 
     virtual Form * getCopy() const ;
-} ;
 
-struct ViscoDamageAggregateBehaviour : public AggregateBehaviour
-{
-    double rad ;
-    int freeblocks ;
-    ViscoDamageAggregateBehaviour(double E=59e9, double nu=0.3, double up = 0.00025, double r = 0.00025, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
-
-    virtual Form * getCopy() const ;
 } ;
 
 }
 
-#endif // PASTE_BEHAVIOUR
+#endif // AGGREGATE_BEHAVIOUR

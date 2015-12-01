@@ -109,10 +109,10 @@ int main(int argc, char *argv[])
     int setup = -1 ; //atoi(argv[2]) ;
     int load  = -1 ; //atoi(argv[3]) ;
 
-    samplers.setBehaviour(new ElasticOnlyPasteBehaviour(12e9*1e-2)) ;
-    ExpansiveZone inc(&samplers , 15, -100, 0,                     new ElasticOnlyAggregateBehaviour()) ;
-    Inclusion     inc0(&samplers, 15,  0  , 0) ; inc0.setBehaviour(new ElasticOnlyAggregateBehaviour()) ;
-    Inclusion     inc1(&samplers, 15,  100, 0) ; inc1.setBehaviour(new ElasticOnlyAggregateBehaviour()) ;
+    samplers.setBehaviour(new PasteBehaviour(true, false, 12e9*1e-2)) ;
+    ExpansiveZone inc(&samplers , 15, -100, 0,                     new AggregateBehaviour(true)) ;
+    Inclusion     inc0(&samplers, 15,  0  , 0) ; inc0.setBehaviour(new AggregateBehaviour(true)) ;
+    Inclusion     inc1(&samplers, 15,  100, 0) ; inc1.setBehaviour(new AggregateBehaviour(true)) ;
     inc1.isVirtualFeature = true ;
 //     std::valarray<Point *> pts(5) ;
     

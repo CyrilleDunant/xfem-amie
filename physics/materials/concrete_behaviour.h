@@ -14,6 +14,15 @@
 
 namespace Amie
 {
+
+/*PARSE ConcreteBehaviour Form 
+    @value[young_modulus] // value of the Young modulus
+    @value[poisson_ratio] // value of the Poisson ratio
+    @value[compressive_strength] // value of the tensile strength of the material
+    @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+    @string<RedistributionType>[redistribution] UPPER_BOUND // redistribution of the rebars
+    @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
+ */
 struct ConcreteBehaviour : public WeibullDistributedStiffness
 {
     std::vector<std::pair<double, double> > rebarLocationsAndDiameters ;

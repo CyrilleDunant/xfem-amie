@@ -23,9 +23,9 @@
 
 using namespace Amie ;
 
-WeibullDistributedStiffness::WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt ,MirrorState mirroring, double dx, double dy, double dz) : LinearForm(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim, pt), true, true, dim), down(down), up(up), E(E), nu(nu), dim(dim), mirroring(mirroring), dx(dx), dy(dy), dz(dz)
+WeibullDistributedStiffness::WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt , double var, double r, MirrorState mirroring, double dx, double dy, double dz) : LinearForm(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim, pt), true, true, dim), variability(var), down(down), up(up), E(E), nu(nu), dim(dim), mirroring(mirroring), dx(dx), dy(dy), dz(dz)
 {
-    materialRadius = .001;
+    materialRadius = r;
 
     v.push_back(XI);
     v.push_back(ETA);

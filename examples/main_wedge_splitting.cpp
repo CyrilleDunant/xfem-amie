@@ -54,8 +54,8 @@ int main(int argc, char *argv[])
 	F.setDeltaTime(totaltime/500.) ;
 	F.setMinDeltaTime((totaltime/100.)*1e-9) ;
 
-	ViscoElasticOnlyPasteBehaviour paste ;
-	ViscoElasticOnlyPasteBehaviour pastenodamage ;
+	PasteBehaviour paste(false, true) ;
+	PasteBehaviour pastenodamage(true, true) ;
 
 	Rectangle * placement= new Rectangle(width,nnotch*1.1, 0., nnotch*0.552) ;
 
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 	top.setBehaviour( new VoidForm() ) ;
 	notch.setBehaviour( new VoidForm() ) ;
 
-	ViscoElasticOnlyAggregateBehaviour agg ;
+	AggregateBehaviour agg(true, true) ;
 	agg.freeblocks = -1 ;
 
 	std::vector<Geometry *> exclusionZones ;

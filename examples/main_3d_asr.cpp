@@ -315,7 +315,7 @@ std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > generateExpansiveZones
 	std::uniform_real_distribution< double > xpos( sample.getXSize()*0.01, sample.getXSize()*0.99 ) ;
 	std::uniform_real_distribution< double > ypos( sample.getYSize()*0.01, sample.getYSize()*0.99 ) ;
 	std::uniform_real_distribution< double > zpos( sample.getZSize()*0.01, sample.getZSize()*0.99 ) ;
-	GelBehaviour * gel = new GelBehaviour(22e9, 0.3, 0.5, SPACE_THREE_DIMENSIONAL) ;
+	GelBehaviour * gel = new GelBehaviour(false, 22e9, 0.3, 0.5, SPACE_THREE_DIMENSIONAL) ;
 	
 	srand(1);
 	for( int i = 0 ; i < n ; i++ )
@@ -403,11 +403,11 @@ int main( int argc, char *argv[] )
 		for( size_t i = 0 ; i < inclusions.size() ; i++ )
 			volume += inclusions[i]->volume() ;
 		
-		sample.setBehaviour( new /*ElasticOnly*/PasteBehaviour(12e9,0.3,2.9e6,SPACE_THREE_DIMENSIONAL) ) ;
+		sample.setBehaviour( new /*ElasticOnly*/PasteBehaviour(false, false, 12e9,0.3,2.9e6,SPACE_THREE_DIMENSIONAL) ) ;
 		for(size_t i = 0 ; i < inclusions.size() ; i++)
 		{
 //			inclusions[i]->setBehaviour(new GelBehaviour(59e9,0.3,0.1,SPACE_THREE_DIMENSIONAL)) ;
-			inclusions[i]->setBehaviour(new /*ElasticOnly*/AggregateBehaviour(59e9,0.3,5.7e6,SPACE_THREE_DIMENSIONAL)) ;
+			inclusions[i]->setBehaviour(new /*ElasticOnly*/AggregateBehaviour(false, false, 59e9,0.3,5.7e6,SPACE_THREE_DIMENSIONAL)) ;
 			F.addFeature(&sample, inclusions[i]) ;
 			placed_area += inclusions[i]->volume() ;
 		}

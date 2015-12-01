@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
   {
     innerVolumeReal += incs[i]->volume() ;
     inner.push_back(incs[i]);
-    incs[i]->setBehaviour(new ElasticOnlyPasteBehaviour(1e-4, 0.01, SPACE_THREE_DIMENSIONAL)) ;
+    incs[i]->setBehaviour(new PasteBehaviour(true, false, 1e-4, 0.01, SPACE_THREE_DIMENSIONAL)) ;
     innerVolume += incs[i]->volume() ;
   }
   
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 //   std::cout << "sampleSide = " << sampleSide << std::endl ;
   
   Sample3D s(sampleSide, sampleSide, sampleSide, 0., 0., 0.) ;
-  s.setBehaviour(new ElasticOnlyPasteBehaviour(E_matrix, nu, SPACE_THREE_DIMENSIONAL) );
+  s.setBehaviour(new PasteBehaviour(true, false, E_matrix, nu, SPACE_THREE_DIMENSIONAL) );
   
   inner = placement3D(s.getPrimitive(), inner, .05, 0, 500) ;
   

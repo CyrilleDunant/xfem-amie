@@ -48,7 +48,15 @@ struct BlockConnectivity
 
 } ;
 
-
+/*PARSE Viscoelasticity Form 
+    @string<ViscoelasticModel>[model] // rheological assembly
+    @value[young_modulus] // value of the Young modulus
+    @value[poisson_ratio] // value of the Poisson ratio
+    @value[creep_characteristic_time] 1 // value of the viscosity characteristic time
+    @string[file_name] // name of the file containing the modulus of the different branches
+    @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
+    @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+ */
 struct Viscoelasticity : public LinearForm
 {
 	// generalized viscosity tensor
@@ -80,10 +88,13 @@ struct Viscoelasticity : public LinearForm
 	Viscoelasticity( ViscoelasticModel model, const Matrix & c_kv, const Matrix & e_kv, const Matrix & c_mx, const Matrix & e_mx, int additionnalBlocksBefore = 0, int additionnalBlocksAfter = 0, double r = 0) ; 
 	// constructor for generalized KelvinVoigt or Maxwell
 	Viscoelasticity( ViscoelasticModel model, const Matrix & c_0, std::vector<std::pair<Matrix, Matrix> > & branches, int additionnalBlocksBefore = 0, int additionnalBlocksAfter = 0, double r = 0) ;
+	Viscoelasticity( ViscoelasticModel model, Matrix c_0, std::vector<std::pair<Matrix, Matrix> > branches, bool dummy, int additionnalBlocksBefore = 0, int additionnalBlocksAfter = 0, double r = 0) ;
 	// constructor for generalized KelvinVoigt or Maxwell with 1 module only
 	Viscoelasticity( ViscoelasticModel model, const Matrix & c_0, const Matrix & c_1, const Matrix & e_1, int additionnalBlocksBefore = 0, int additionnalBlocksAfter = 0, double r = 0) ;
 	// constructor for general viscoelasticity (rig and eta are supposed symmetric)
 	Viscoelasticity( const Matrix & rig, const Matrix & eta, int blocks, int additionnalBlocksAfter = 0, double r = 0) ; 
+
+	Viscoelasticity( ViscoelasticModel model, double young, double poisson, double tau = 1, std::string file = std::string(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, bool hooke = true, int additionnalBlocksBefore = 0, int additionnalBlocksAfter = 0) ;
 
 	virtual ~Viscoelasticity() ;
 
@@ -135,6 +146,23 @@ typedef enum
         JSCE_CREEP,
         FIB_CREEP,
 } CreepComplianceModel ;
+
+/*PARSE StandardViscoelasticity Form 
+    @string<CreepComplianceModel>[model] // creep model
+    @value[young_modulus] // value of the Young modulus
+    @value[poisson_ratio] // value of the Poisson ratio
+    @value[creep_modulus] // uni-axial creep curve
+    @value[creep_poisson] // Poisson ratio of the creep curve
+    @value[tau] // time of the first branch
+    @value[branches] // number of branches in the model
+    @value[] // list of additional parameters of the creep model
+    @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
+    @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+ */
+struct StandardViscoelasticity : public Viscoelasticity
+{
+       StandardViscoelasticity( CreepComplianceModel model, double young, double poisson, double creep_modulus, double creep_poisson, double tau0, int branches, std::map<std::string, double> args, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS) ;
+} ;
 
 struct ViscoelasticKelvinVoigtChainGenerator
 {

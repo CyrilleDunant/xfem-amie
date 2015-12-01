@@ -19,10 +19,9 @@
 
 using namespace Amie ;
 
-AggregateBehaviour::AggregateBehaviour(double E, double nu, double up_, double yield, double c, SpaceDimensionality dim, double var) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up_), yield(yield), c(c)
+AggregateBehaviour::AggregateBehaviour(bool e, bool st, double E, double nu, double up, double r, SpaceDimensionality dim, planeType pt, double var, int blocks)  : WeibullDistributedStiffness(E,nu, dim, -8000.*up,up, pt, var, r), freeblocks(blocks), spaceTime(st), elastic(e)
 {
-	materialRadius = 0.00025 ;
-    variability = var ;
+
 }
 
 Form * AggregateBehaviour::getCopy() const 
@@ -31,62 +30,42 @@ Form * AggregateBehaviour::getCopy() const
         std::weibull_distribution< double > distribution(5, 1);
         double weib = distribution(generator) ;
 	double factor = 1. - variability + variability*weib ;
+
+	Form * copy ;
+
+	if(spaceTime)
+	{
+		if(!elastic)
+		{
+			copy = new ViscoelasticityAndFracture( PURE_ELASTICITY, param*factor, new SpaceTimeNonLocalMaximumStrain(up/E), new IsotropicLinearDamage(), 2+freeblocks )  ;
+			copy->getFractureCriterion()->setScoreTolerance(1e-4) ;
+			copy->getDamageModel()->setDamageDensityTolerance(0.05) ;
+			copy->getDamageModel()->setThresholdDamageDensity(0.8) ;
+			copy->getFractureCriterion()->setMaterialCharacteristicRadius(materialRadius) ;
+			copy->getDamageModel()->setNeedGlobalMaximumScore(true) ;
+		}
+		else
+		{
+			copy = new Viscoelasticity( PURE_ELASTICITY, param*factor, 2+freeblocks )  ;
+		}
+	}
+	else
+	{
+		if(!elastic)
+		{
+			copy = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8000.*up*factor, E), new FiberBasedIsotropicLinearDamage(0.1,0.699)) ;
+			copy->getFractureCriterion()->setMaterialCharacteristicRadius(materialRadius);
+		}
+		else
+		{
+			copy = new Stiffness(param*factor) ;
+		}
+	}
+
 //	return new Stiffness(param*factor) ;
 //     StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalLinearlyDecreasingMohrCoulomb(up*factor,-8000.*up*factor, 3.*factor*up/E, -factor*24000.*up/E,E), new FiberBasedIsotropicLinearDamage(0.1,0.95)) ;
-    StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8000.*up*factor, E), new FiberBasedIsotropicLinearDamage(0.1,0.699)) ;
-	copy->criterion->setMaterialCharacteristicRadius(materialRadius);
-
-	return copy ;
-}
-
-ElasticOnlyAggregateBehaviour::ElasticOnlyAggregateBehaviour(double E, double nu, SpaceDimensionality dim, double var) : AggregateBehaviour(E,nu,0.,0.,0.,dim, var)
-{
-//	variability = 0.5 ;
-}
-
-Form * ElasticOnlyAggregateBehaviour::getCopy() const 
-{
-        std::default_random_engine generator(std::rand());
-        std::weibull_distribution< double > distribution(5, 1);
-        double weib = distribution(generator) ;
-	double factor = 1. - variability + variability*weib ;
-	Stiffness * copy =  new Stiffness(param*factor) ;
 
 	return copy ;
 }
 
 
-ViscoElasticOnlyAggregateBehaviour::ViscoElasticOnlyAggregateBehaviour(double E, double nu, SpaceDimensionality dim, double var) : AggregateBehaviour(E,nu,0.,0.,0.,dim, var), freeblocks(0)
-{
-
-}
-
-Form * ViscoElasticOnlyAggregateBehaviour::getCopy() const 
-{
-        std::default_random_engine generator(std::rand());
-        std::weibull_distribution< double > distribution(5, 1);
-        double weib = distribution(generator) ;
-	double factor = 1. - variability + variability*weib ;
-	return new Viscoelasticity( PURE_ELASTICITY, param*factor, 2+freeblocks )  ;
-
-}
-
-ViscoDamageAggregateBehaviour::ViscoDamageAggregateBehaviour(double E, double nu, double up, double r, SpaceDimensionality dim, double var) : AggregateBehaviour(E,nu,up,0.,0.,dim, var), rad(r), freeblocks(0)
-{
-	materialRadius = r ;
-}
-
-Form * ViscoDamageAggregateBehaviour::getCopy() const 
-{
-        std::default_random_engine generator(std::rand());
-        std::weibull_distribution< double > distribution(5, 1);
-        double weib = distribution(generator) ;
-	double factor = 1. - variability + variability*weib ;
-	ViscoelasticityAndFracture * copy = new ViscoelasticityAndFracture( PURE_ELASTICITY, param*factor, new SpaceTimeNonLocalMaximumStrain(up), new IsotropicLinearDamage(), 2+freeblocks )  ;
-	copy->getFractureCriterion()->setScoreTolerance(1e-4) ;
-	copy->getDamageModel()->setDamageDensityTolerance(0.05) ;
-	copy->getDamageModel()->setThresholdDamageDensity(0.8) ;
-	copy->criterion->setMaterialCharacteristicRadius(rad) ;
-	copy->getDamageModel()->setNeedGlobalMaximumScore(true) ;
-	return copy ;
-}

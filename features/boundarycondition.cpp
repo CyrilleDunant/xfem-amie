@@ -7098,7 +7098,7 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTri
 
         for ( auto i = t->begin() ; i != t->end() ; i++ )
         {
-            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured()  || i->getBehaviour()->type == VOID_BEHAVIOUR)
+            if ( (i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured())  || i->getBehaviour()->type == VOID_BEHAVIOUR)
             {
                 continue ;
             }

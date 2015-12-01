@@ -15,6 +15,50 @@ LogarithmicCreep::LogarithmicCreep(const Matrix & rig, const Matrix & vs, const 
     makeBlockConnectivity() ;
 }
 
+LogarithmicCreep::LogarithmicCreep(double young, double poisson, double E_creep, double nu_creep, double t, double E_recovery, double nu_recovery, LogCreepAccumulator * acc, SpaceDimensionality dim, planeType pt) : Viscoelasticity(PURE_ELASTICITY, Tensor::cauchyGreen(young, poisson, true, dim, pt), 2), tau(t), reducedTimeStep(-1.), accumulator(acc), updated(true), timeDependentIntegration(false),fixCreepVariable(false), prevParam(param), prevEta(eta)
+{
+    C = Tensor::cauchyGreen(young, poisson, true, dim, pt) ;
+    double nu = poisson ;
+    if(nu_creep > 0 && E_creep > 0) { nu = nu_creep ; }
+    E = Tensor::cauchyGreen(E_creep, nu, true, dim, pt) ; if(E_creep < 0) { E = 0 ; }
+    if(nu_recovery > 0 && tau > 0) { nu = nu_recovery ; }
+    double y = E_creep ;
+    if(E_recovery > 0) { y = E_recovery ; }
+    R = Tensor::cauchyGreen(y, nu, true, dim, pt) ; if(y < 0) { R = 0 ; }
+
+    if(tau < 0 || E_creep < 0) 
+    { 
+        tau = 0 ;
+        E = 0 ;
+        R = 0 ;
+        isPurelyElastic = true ;
+    }
+
+        param = 0. ;
+        eta = 0. ;
+        placeMatrixInBlock(C,0,0,param) ;
+        if(!isPurelyElastic)
+        {
+            Matrix S = -C ;
+            placeMatrixInBlock(S,0,1,param) ;
+            placeMatrixInBlock(S,0,2,param) ;
+            placeMatrixInBlock(S,1,0,param) ;
+            placeMatrixInBlock(S,2,0,param) ;
+            placeMatrixInBlock(C,1,1,param) ;
+            placeMatrixInBlock(C,1,2,param) ;
+            placeMatrixInBlock(C,2,1,param) ;
+            placeMatrixInBlock(C,2,2,param) ;
+            S = E*(accumulator->getKelvinVoigtSpringReduction()) ;
+            addMatrixInBlock(S,1,1,param) ;
+            S = E*accumulator->getKelvinVoigtDashpotReduction() ;
+            placeMatrixInBlock(E,1,1,eta) ;
+            addMatrixInBlock(R,2,2,param) ;
+            addMatrixInBlock(R*tau,2,2,eta) ;
+        }
+
+    makeBlockConnectivity() ;
+
+}
 
 Form * LogarithmicCreep::getCopy() const
 {
@@ -59,7 +103,7 @@ void LogarithmicCreep::preProcess(double timeStep, ElementState & currentState)
             S = E*accumulator->getKelvinVoigtDashpotReduction() ;
             placeMatrixInBlock(S,1,1,eta) ;
             addMatrixInBlock(R,2,2,param) ;
-            addMatrixInBlock(R*tau,2,2,param) ;
+            addMatrixInBlock(R*tau,2,2,eta) ;
         }
     }
 }
@@ -105,6 +149,13 @@ LogarithmicCreepWithImposedDeformation::LogarithmicCreepWithImposedDeformation( 
 {
 
 }
+
+LogarithmicCreepWithImposedDeformation::LogarithmicCreepWithImposedDeformation(double young, double poisson, double alpha, double E_creep, double nu_creep, double tau, double E_recovery, double nu_recovery, LogCreepAccumulator * acc, SpaceDimensionality dim, planeType pt) : LogarithmicCreep( young, poisson, E_creep, nu_creep, tau, E_recovery, nu_recovery, acc, dim, pt), imposed(C.size()), prevImposed(C.size())
+{
+    for(size_t i = 0 ; i < dim ; i++)
+        imposed[i] = alpha ;
+}
+
 
 Form * LogarithmicCreepWithImposedDeformation::getCopy() const
 {

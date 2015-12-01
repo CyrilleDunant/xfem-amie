@@ -19,10 +19,9 @@
 
 using namespace Amie ;
 
-PasteBehaviour::PasteBehaviour(double E, double nu, double up, double yield, double c, SpaceDimensionality dim, double var) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up), yield(yield), c(c)
+PasteBehaviour::PasteBehaviour(bool e, bool st, double E, double nu, double up, double e10, double e300, SpaceDimensionality dim, planeType pt, double r, double var, int b) : WeibullDistributedStiffness(E,nu, dim, -8000.*up, up, pt, var, r), spaceTime(st), elastic(e), freeblocks(b), eta10(e10), eta300(e300)
 {
-    materialRadius = 0.000175 ;
-    variability= var ;
+
 }
 
 Form * PasteBehaviour::getCopy() const
@@ -31,67 +30,55 @@ Form * PasteBehaviour::getCopy() const
     std::weibull_distribution< double > distribution(5, 1);
     double weib = distribution(generator) ;
     double factor = 1. - variability + variability*weib ;
-//	return new Stiffness(param*factor) ;
-//     StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalLinearlyDecreasingMohrCoulomb(up*factor,-8000.*up*factor, 3.*factor*up/E, -factor*24000.*up/E,E), new FiberBasedIsotropicLinearDamage(0.1,0.95)) ;
-    StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8000.*up*factor,E), new FiberBasedIsotropicLinearDamage(0.1,0.699)) ;
-    copy->criterion->setMaterialCharacteristicRadius(materialRadius);
+
+    Form * copy ;
+    if(spaceTime)
+    {
+        Matrix C0 = param*factor ;
+        Matrix C1 = C0*eta10 ;
+        Matrix C2 = C0*eta300 ;
+        Matrix E1 = C1*10. ;
+        Matrix E2 = C2*300. ;
+    
+        std::vector<std::pair<Matrix, Matrix> > branches ;
+        branches.push_back(std::make_pair(C1,E1));
+        branches.push_back(std::make_pair(C2,E2));
+
+        if(elastic)
+        {
+            copy = new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C0, branches,0,freeblocks) ;
+        }
+        else
+        {
+            SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.025, 1e-9, 0.8 ) ;
+            dampaste->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
+            copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStress(up*factor), dampaste, 0, freeblocks) ;
+            copy->getFractureCriterion()->setMaterialCharacteristicRadius(materialRadius);
+            copy->getFractureCriterion()->setScoreTolerance(1e-4) ;
+            copy->getDamageModel()->setDamageDensityTolerance(0.01) ;
+            copy->getDamageModel()->setThresholdDamageDensity(0.8) ;
+            copy->getDamageModel()->setNeedGlobalMaximumScore(true) ;
+        }
+
+    }
+    else
+    {
+        if(elastic)
+        {
+            copy = new Stiffness(param*factor) ;
+        }
+        else
+        {
+            copy = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8000.*up*factor,E), new FiberBasedIsotropicLinearDamage(0.1,0.699)) ;
+            copy->getFractureCriterion()->setMaterialCharacteristicRadius(materialRadius);
+        }
+    }
+
     return copy ;
 }
 
-ElasticOnlyPasteBehaviour::ElasticOnlyPasteBehaviour(double E, double nu, SpaceDimensionality dim, double var) : PasteBehaviour(E,nu,0.,0.,0.,dim, var)
-{
 
-}
-
-Form * ElasticOnlyPasteBehaviour::getCopy() const
-{
-    std::default_random_engine generator(std::rand());
-    std::weibull_distribution< double > distribution(5, 1);
-    double weib = distribution(generator) ;
-    double factor = 1. - variability + variability*weib ;
-    return new Stiffness(param*factor) ;
-}
-
-ViscoElasticOnlyPasteBehaviour::ViscoElasticOnlyPasteBehaviour(double E, double nu, double e1, double e2, SpaceDimensionality dim, double var) : PasteBehaviour(E, nu, 0.,0.,0., dim, var), e_1(e1), e_2(e2), freeblocks(0)
-{
-
-}
-
-Form * ViscoElasticOnlyPasteBehaviour::getCopy() const
-{
-    std::default_random_engine generator(std::rand());
-    std::weibull_distribution< double > distribution(5, 1);
-    double weib = distribution(generator) ;
-    double factor = 1. - variability + variability*weib ;
-
-    Matrix C0 = param*factor ;
-    Matrix C1 = C0*e_1 ;
-    Matrix C2 = C0*e_2 ;
-    Matrix E1 = C1*10. ;
-    Matrix E2 = C2*300. ;
-
-    std::vector<std::pair<Matrix, Matrix> > branches ;
-    branches.push_back(std::make_pair(C1,E1));
-    branches.push_back(std::make_pair(C2,E2));
-
-    return new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C0, branches,0,freeblocks) ;
-}
-
-Form * ShortTermViscoElasticOnlyPasteBehaviour::getCopy() const
-{
-    std::default_random_engine generator(std::rand());
-    std::weibull_distribution< double > distribution(5, 1);
-    double weib = distribution(generator) ;
-    double factor = 1. - variability + variability*weib ;
-
-    Matrix C0 = param*factor ;
-    Matrix C1 = C0*e_1 ;
-    Matrix E1 = C1*0.002 ;
-
-    return new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C0, C1, E1) ;
-}
-
-LogCreepPasteBehaviour::LogCreepPasteBehaviour(double E, double nu, double eta, double tau, SpaceDimensionality dim, double var) : LogarithmicCreepWithExternalParameters("young_modulus=12e9,poisson_ration=0.2,creep_modulus=40e9,creep_poisson=0.2,creep_characteristic_time=2", new RealTimeLogCreepAccumulator(), dim)
+LogCreepPasteBehaviour::LogCreepPasteBehaviour(bool e, double E, double nu, double up, double eta, double tau, SpaceDimensionality dim, planeType pt, double r, double var) : LogarithmicCreepWithExternalParameters("young_modulus=12e9,poisson_ration=0.2,creep_modulus=40e9,creep_poisson=0.2,creep_characteristic_time=2", new RealTimeLogCreepAccumulator(), dim, pt)
 {
     external["young_modulus"] = E ;
     external["poisson_ratio"] = nu ;
@@ -101,180 +88,25 @@ LogCreepPasteBehaviour::LogCreepPasteBehaviour(double E, double nu, double eta, 
     external["recoverable_poisson"] = nu ;
     external["creep_characteristic_time"] = tau ;
     external["weibull_variability"] = var ;
+    external["material_characteristic_radius"] = r ;
+    if(!e && up > 0)
+    {
+        external["tensile_strength"] = up ;
+        noFracture = false ;
+        dfunc = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.025, 1e-9, 0.8 ) ;
+        criterion = new SpaceTimeNonLocalMaximumStress(up) ;
+        criterion->setMaterialCharacteristicRadius(r);
+        criterion->setScoreTolerance(1e-4) ;
+        dfunc->setDamageDensityTolerance(0.01) ;
+        dfunc->setThresholdDamageDensity(0.8) ;
+        dfunc->setNeedGlobalMaximumScore(true) ;
+    }
+    else
+        noFracture = true ;
 
     this->makeProperties( external ) ;
 
     this->addMaterialLaw( new WeibullDistributedMaterialLaw("young_modulus", "weibull") ) ;
-}
-
-
-ViscoDamagePasteBehaviour::ViscoDamagePasteBehaviour(double E, double nu, double e1, double e2 , double up_, double r, SpaceDimensionality dim, double var) : PasteBehaviour(E, nu, up_,0.,0., dim, var), e_1(e1), e_2(e2), freeblocks(0), ctype(STRESS_CRITERION)
-{
-    materialRadius = r ;
-    stressFraction = 1. ;
-    time_d = true ;
-}
-
-Form * ViscoDamagePasteBehaviour::getCopy() const
-{
-    std::default_random_engine generator(std::rand());
-    std::weibull_distribution< double > distribution(5, 1);
-    double weib = distribution(generator) ;
-    double factor = 1. - variability + variability*weib ;
-
-    Matrix C0 = param*factor ;
-    Matrix C1 = C0*e_1 ;
-    Matrix C2 = C0*e_2 ;
-    Matrix E1 = C1*10. ;
-    Matrix E2 = C2*300. ;
-
-    std::vector<std::pair<Matrix, Matrix> > branches ;
-    branches.push_back(std::make_pair(C1,E1));
-    branches.push_back(std::make_pair(C2,E2));
-
-    ViscoelasticityAndFracture * copy = nullptr;
-// 	IsotropicLinearDamageRate * dampaste = new IsotropicLinearDamageRate() ;
-    SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.025, 1e-9, 0.8 ) ;
-    dampaste->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
-
-    switch(ctype)
-    {
-    case STRAIN_CRITERION:
-        copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStrain(up*factor), dampaste, 0, freeblocks) ;
-        break ;
-    case STRESS_CRITERION:
-        copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStress(up*param[0][0]*factor), dampaste, 0, freeblocks) ;
-        break ;
-    case MIXED_CRITERION:
-        double k = 1. + C0[0][0]/C1[0][0] + C0[0][0]/C2[0][0] ;
-        copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*stressFraction, param[0][0], param[0][0]/k), dampaste, 0, freeblocks) ;
-        break ;
-    }
-    if(!copy)
-        return copy ;
-    copy->criterion->setMaterialCharacteristicRadius(materialRadius) ;
-    copy->getFractureCriterion()->setScoreTolerance(1e-4) ;
-    copy->getDamageModel()->setDamageDensityTolerance(0.01) ;
-    copy->getDamageModel()->setThresholdDamageDensity(0.8) ;
-    copy->getDamageModel()->setNeedGlobalMaximumScore(true) ;
-    return copy ;
-
-}
-
-
-Form * ShortTermViscoDamagePasteBehaviour::getCopy() const
-{
-    std::default_random_engine generator(std::rand());
-    std::weibull_distribution< double > distribution(5, 1);
-    double weib = distribution(generator) ;
-    double factor = 1. - variability + variability*weib ;
-
-    Matrix C0 = param*factor ;
-    Matrix C1 = C0*e_1 ;
-    Matrix E1 = C1*0.002 ;
-
-
-    ViscoelasticityAndFracture * copy = nullptr;
-// 	IsotropicLinearDamageRate * dampaste = new IsotropicLinearDamageRate() ;
-    SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.01, 1e-9, 0.8 ) ;
-    dampaste->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
-
-    switch(ctype)
-    {
-    case STRAIN_CRITERION:
-        copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, C1, E1, new SpaceTimeNonLocalMaximumStrain(up*factor), dampaste, 0, freeblocks) ;
-        break ;
-    case STRESS_CRITERION:
-        copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, C1, E1, new SpaceTimeNonLocalMaximumStress(up*param[0][0]*factor), dampaste, 0, freeblocks) ;
-        break ;
-    case MIXED_CRITERION:
-        double k = 1. + C0[0][0]/C1[0][0];
-        copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, C1, E1, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*stressFraction, param[0][0], param[0][0]/k), dampaste, 0, freeblocks) ;
-        break ;
-    }
-    if(!copy)
-        return nullptr ;
-    copy->criterion->setMaterialCharacteristicRadius(materialRadius) ;
-    copy->getFractureCriterion()->setScoreTolerance(1e-4) ;
-    copy->getDamageModel()->setDamageDensityTolerance(0.01) ;
-    copy->getDamageModel()->setThresholdDamageDensity(0.85) ;
-    copy->getDamageModel()->setNeedGlobalMaximumScore(true) ;
-    return copy ;
-
-}
-
-PseudoBurgerViscoElasticOnlyPasteBehaviour::PseudoBurgerViscoElasticOnlyPasteBehaviour(double E, double nu, double e1, double t2, SpaceDimensionality dim, double var) : PasteBehaviour(E, nu, 0.,0.,0., dim, var), e_1(e1), t_2(t2)
-{
-    variability = 0. ;//0.001 ;
-}
-
-Form * PseudoBurgerViscoElasticOnlyPasteBehaviour::getCopy() const
-{
-    std::default_random_engine generator(std::rand());
-    std::weibull_distribution< double > distribution(5, 1);
-    double weib = distribution(generator) ;
-    double factor = 1. - variability + variability*weib ;
-
-    Matrix C0 = param*factor ;
-    Matrix C1 = C0*e_1 ;
-    Matrix C2 = C0*0.1 ;
-    Matrix E1 = C1*2. ;
-    Matrix E2 = C2*t_2 ;
-
-    std::vector<std::pair<Matrix, Matrix> > branches ;
-    branches.push_back(std::make_pair(C1,E1));
-    branches.push_back(std::make_pair(C2,E2));
-
-    return new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C0, branches) ;
-}
-
-PseudoBurgerViscoDamagePasteBehaviour::PseudoBurgerViscoDamagePasteBehaviour(double E, double nu, double e1, double t2, double up, double r, SpaceDimensionality dim, double var) : PasteBehaviour(E, nu, up,0.,0., dim, var), e_1(e1), t_2(t2), freeblocks(0), ctype(STRESS_CRITERION)
-{
-    stressFraction = 0.85 ;
-    materialRadius = r ;
-    variability = 0. ;//0.001 ;
-}
-
-Form * PseudoBurgerViscoDamagePasteBehaviour::getCopy() const
-{
-
-    std::default_random_engine generator(std::rand());
-    std::weibull_distribution< double > distribution(5, 1);
-    double weib = distribution(generator) ;
-    double factor = 1. - variability + variability*weib ;
-
-    Matrix C0 = param*factor ;
-    Matrix C1 = C0*e_1 ;
-    Matrix C2 = C0*0.1 ;
-    Matrix E1 = C1*2. ;
-    Matrix E2 = C2*t_2 ;
-
-    std::vector<std::pair<Matrix, Matrix> > branches ;
-    branches.push_back(std::make_pair(C1,E1));
-    branches.push_back(std::make_pair(C2,E2));
-
-    SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.05, 1e-9, 0.7 ) ;
-    dampaste->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
-
-    ViscoelasticityAndFracture * copy = nullptr;
-    switch(ctype)
-    {
-    case STRAIN_CRITERION:
-        copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStrain(up*factor), dampaste, 0, freeblocks) ;
-        break ;
-    case STRESS_CRITERION:
-        copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStress(up*param[0][0]*factor), dampaste, 0, freeblocks) ;
-        break ;
-    case MIXED_CRITERION:
-        double k = 1. + C0[0][0]/C1[0][0] + C0[0][0]/C2[0][0] ;
-        copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*stressFraction, param[0][0], param[0][0]/k), dampaste, 0, freeblocks) ;
-        break ;
-    }
-    if(!copy)
-        return nullptr ;
-    copy->criterion->setMaterialCharacteristicRadius(materialRadius) ;
-    return copy ;
-
 }
 
 

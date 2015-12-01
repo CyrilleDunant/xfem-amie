@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     double sampleSide = sqrt(poreArea/poreFraction) ;
     
     Sample s(sampleSide, sampleSide, 0., 0.) ;
-    s.setBehaviour(new ElasticOnlyPasteBehaviour(E, nu, SPACE_TWO_DIMENSIONAL) );
+    s.setBehaviour(new PasteBehaviour(true, false, E, nu, SPACE_TWO_DIMENSIONAL) );
     
     pores = placement2D(s.getPrimitive(), pores, waterLayerDepth*4., 0, 2000000) ;
     

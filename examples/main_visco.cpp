@@ -69,13 +69,13 @@ int main(int argc, char *argv[])
 
 	Sample box(nullptr, 0.08,0.08,0.,0.) ;
 
-	Form * paste = new ViscoElasticOnlyPasteBehaviour() ;
+	Form * paste = new PasteBehaviour(true, true) ;
 	if(iniPaste.size() > 0)
-		paste = ConfigParser::getBehaviour( iniPaste, paste, SPACE_TWO_DIMENSIONAL, true ) ;
+		paste = ConfigParser::getBehaviour( iniPaste, paste, SPACE_TWO_DIMENSIONAL ) ;
 
-	Form * aggregate = new ViscoElasticOnlyAggregateBehaviour() ;
+	Form * aggregate = new AggregateBehaviour(true, true) ;
 	if(iniAgg.size() > 0)
-		aggregate = ConfigParser::getBehaviour( iniAgg, aggregate, SPACE_TWO_DIMENSIONAL, true ) ;
+		aggregate = ConfigParser::getBehaviour( iniAgg, aggregate, SPACE_TWO_DIMENSIONAL ) ;
 	
 
 	FeatureTree F(&box) ;

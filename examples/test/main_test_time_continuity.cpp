@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 
 
         Sample rect(nullptr, 0.01,0.01,0,0) ;
-	Matrix C = ElasticOnlyPasteBehaviour(10e9).param ;
+	Matrix C = PasteBehaviour(true, false, 10e9).param ;
 	rect.setBehaviour(new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C, C, C*25)) ;
 
 	FeatureTree f(&rect) ;

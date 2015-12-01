@@ -60,20 +60,20 @@ int main( int argc, char *argv[] )
     }
     
 
-    Form * paste = new ElasticOnlyPasteBehaviour() ;
-    Form * agg = new ElasticOnlyAggregateBehaviour() ;
+    Form * paste = new PasteBehaviour(true) ;
+    Form * agg = new AggregateBehaviour(true, true) ;
 
     if(viscous)
     {
         if(damage)
         {
-            paste = new ViscoDamagePasteBehaviour() ;
-            agg = new ViscoDamageAggregateBehaviour() ;
+            paste = new PasteBehaviour(false, true) ;
+            agg = new AggregateBehaviour(false, true) ;
         }
         else
         {
-            paste = new ViscoElasticOnlyPasteBehaviour() ;
-            agg = new ViscoElasticOnlyAggregateBehaviour() ;
+            paste = new PasteBehaviour(true, true) ;
+            agg = new AggregateBehaviour(true, true) ;
         }
     }
     else if(damage)
@@ -96,6 +96,7 @@ int main( int argc, char *argv[] )
 
     FeatureTree F(&box) ;
     F.setSamplingRestriction( 0.002 ) ;
+    F.setSamplingNumber(64) ;
     F.setDeltaTime( 0.01 ) ;
     parser.setFeatureTree( &F ) ;
 

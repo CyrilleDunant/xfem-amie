@@ -1,6 +1,7 @@
 #include "viscoelasticity.h"
 #include "material_laws/material_laws.h"
 #include "../elements/generalized_spacetime_viscoelastic_element_state.h"
+#include <fstream>
 
 using namespace Amie ;
 
@@ -351,6 +352,68 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, std::ve
     makeBlockConnectivity() ;
 }
 
+Viscoelasticity::Viscoelasticity(ViscoelasticModel m, Matrix c0, std::vector<std::pair<Matrix, Matrix> > branches, bool dummy, int b, int n, double r) : LinearForm(c0, false, false, (1+n+b+branches.size())*(c0.numRows()/3+1)), model(m), blocks(1+n+b+branches.size()), effblocks(1+branches.size())
+{
+    v.push_back(XI);
+    v.push_back(ETA);
+    if(c0.size() > 9)
+        v.push_back(ZETA);
+    v.push_back(TIME_VARIABLE);
+
+    param.resize(c0.numRows()*(1+n+b+branches.size()), c0.numCols()*(1+n+b+branches.size())) ;
+    eta.resize(c0.numRows()*(1+n+b+branches.size()), c0.numCols()*(1+n+b+branches.size())) ;
+    param.array() = 0 ;
+    eta.array() = 0 ;
+
+    switch(model)
+    {
+    case GENERALIZED_KELVIN_VOIGT:
+    {
+        placeMatrixInBlock( c0, 0,0, param) ;
+        Matrix r0 = c0*(-1) ;
+        for(size_t i = 1 ; i < branches.size()+1 ; i++)
+        {
+            placeMatrixInBlock( r0, i+b,0, param) ;
+            placeMatrixInBlock( r0, 0,i+b, param) ;
+            placeMatrixInBlock( c0, i+b,i+b, param) ;
+            addMatrixInBlock( branches[i-1].first, i+b,i+b, param) ;
+            for(size_t j = i+1 ; j < branches.size()+1 ; j++)
+            {
+                placeMatrixInBlock( c0, i+b,j+b, param) ;
+                placeMatrixInBlock( c0, j+b,i+b, param) ;
+            }
+            placeMatrixInBlock( branches[i-1].second, i+b,i+b, eta) ;
+        }
+        break ;
+    }
+    case GENERALIZED_MAXWELL:
+    {
+        placeMatrixInBlock( c0, 0,0, param) ;
+        for(size_t i = 1 ; i < branches.size()+1 ; i++)
+        {
+            Matrix ri = branches[i-1].first * (-1) ;
+            addMatrixInBlock( branches[i-1].first, 0,0, param) ;
+            placeMatrixInBlock( branches[i-1].first, i+b,i+b, param) ;
+            placeMatrixInBlock( ri, 0,i+b, param) ;
+            placeMatrixInBlock( ri, i+b,0, param) ;
+            placeMatrixInBlock( branches[i-1].second, i+b,i+b, eta) ;
+        }
+        break ;
+    }
+    default:
+        std::cout << "warning: wrong constructor for Viscoelasticity" << std::endl ;
+    }
+
+    tensors.push_back(c0) ;
+    for(size_t i = 0 ; i < branches.size() ; i++)
+    {
+        tensors.push_back(branches[i].first) ;
+        tensors.push_back(branches[i].second) ;
+    }
+
+    makeBlockConnectivity() ;
+}
+
 Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, const Matrix & c1, const Matrix & e1, int b, int n, double r) : LinearForm(c0, false, false, (2+n+b)*(c0.numRows()/3+1)), model(m), blocks(2+n+b), effblocks(2)
 {
     v.push_back(XI);
@@ -397,6 +460,207 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, const M
     tensors.push_back(e1) ;
 
     makeBlockConnectivity() ;
+}
+
+Viscoelasticity::Viscoelasticity( ViscoelasticModel m, double young, double poisson, double tau, std::string file, SpaceDimensionality dim, planeType pt, bool hooke, int b, int a) : LinearForm(Tensor::cauchyGreen(young, poisson, true, dim, pt), false, false, dim), model(m), blocks(1+a+b), effblocks(1)
+{
+    v.push_back(XI);
+    v.push_back(ETA);
+    if(param.numCols() > 3)
+        v.push_back(ZETA);
+    v.push_back(TIME_VARIABLE);
+
+
+    std::vector<double> modulus ;
+    std::vector<double> ratio ;
+    std::vector<double> time ;
+
+    if(m == GENERAL_VISCOELASTICITY)
+    {
+        std::cout << "unable to make general viscoelasticity scheme from file " << file << " ... exiting now" << std::endl ;
+        exit(0) ;
+    }
+
+    if(file.length() > 0)
+    {
+        std::fstream read ;
+        read.open( file.c_str(), std::ios::in ) ;
+        int i = 0 ;
+        while(!read.eof())
+        {
+            double buffer = 0 ;
+            read >> buffer ;
+            if(i == 0)
+                modulus.push_back(buffer) ;
+            else if(i == 1)
+                ratio.push_back(buffer) ;    
+            else if(i == 2)    
+                time.push_back(buffer) ;
+
+            i = (i+1)%3 ;
+        }
+
+     }
+
+     Matrix C = Tensor::cauchyGreen(young, poisson, true, dim, pt) ;
+     Matrix E = Tensor::cauchyGreen(young*tau, poisson, true, dim, pt) ;
+     std::vector<std::pair<Matrix, Matrix> > branches ;
+     for(size_t i = 0 ; i < modulus.size() && i < ratio.size() && i < time.size() ; i++)
+     {
+         double current = (modulus[i] > 0 ? modulus[i] : young) ;
+         Matrix Ci = Tensor::cauchyGreen( modulus[i], ratio[i], hooke, dim, pt) ;
+         Matrix Ei = Ci*time[i] ;
+         if(current != modulus[i]) { Ci *= 0 ; }
+         branches.push_back(std::make_pair(Ci, Ei) ) ;
+     }
+
+     switch(m)
+     {
+         case PURE_ELASTICITY:
+         case PURE_VISCOSITY:
+         case KELVIN_VOIGT:
+         {
+             blocks = 1+a+b ;
+             effblocks = 1 ;
+             break ;
+         }
+         case MAXWELL:
+         {
+             blocks = 2+a+b ;
+             effblocks = 2 ;
+             break ;
+         }
+         case BURGER:
+         {
+             blocks = 3+a+b ;
+             effblocks = 3 ;
+             break ;
+         }
+         case GENERALIZED_KELVIN_VOIGT:
+         case GENERALIZED_MAXWELL:
+         {
+             blocks = 1+a+b+branches.size() ;
+             effblocks = 1+branches.size() ;
+             break ;
+         }
+         default:
+            break ;
+     }
+
+     param.resize( C.numCols()*blocks, C.numCols()*blocks ) ;
+     eta.resize( C.numCols()*blocks, C.numCols()*blocks ) ;
+     num_dof = blocks*dim ;
+     param = 0 ;
+     eta = 0 ;
+
+     switch(m)
+     {
+         case PURE_ELASTICITY:
+         {
+             placeMatrixInBlock( C,0,0, param ) ;
+             tensors.push_back(C) ;
+             break ;
+         }
+         case PURE_VISCOSITY:
+         {
+             placeMatrixInBlock( E,0,0, eta ) ;
+             tensors.push_back(C*0) ;
+             tensors.push_back(E) ;
+             break ;
+         }
+         case KELVIN_VOIGT:
+         {
+             placeMatrixInBlock( C,0,0, param ) ;
+             placeMatrixInBlock( E,0,0, eta ) ;
+             tensors.push_back(C) ;
+             tensors.push_back(E) ;
+             break ;
+         }
+         case MAXWELL:
+         {
+             Matrix R = C*(-1) ;
+             placeMatrixInBlock( C,0,0, param ) ;
+             placeMatrixInBlock( R,0,1+b, param ) ;
+             placeMatrixInBlock( R,1+b,0, param ) ;
+             placeMatrixInBlock( C,1+b,1+b, param ) ;
+             placeMatrixInBlock( E,1+b,1+b, eta ) ;
+             tensors.push_back(C) ;
+             tensors.push_back(E) ;
+             break ;
+         }
+         case BURGER:
+         {
+             Matrix R = C*(-1) ;
+             placeMatrixInBlock( C,0,0, param ) ;
+             placeMatrixInBlock( R,0,1+b, param ) ;
+             placeMatrixInBlock( R,0,2+b, param ) ;
+             placeMatrixInBlock( R,1+b,0, param ) ;
+             placeMatrixInBlock( R,2+b,0, param ) ;
+             placeMatrixInBlock( C,1+b,1+b, param ) ;
+             placeMatrixInBlock( C,1+b,2+b, param ) ;
+             placeMatrixInBlock( C,2+b,1+b, param ) ;
+             placeMatrixInBlock( C,2+b,2+b, param ) ;
+             placeMatrixInBlock( E,1+b,1+b, eta ) ;
+             addMatrixInBlock( branches[0].first, 2+b, 2+b, param ) ;
+             placeMatrixInBlock( branches[0].second,2+b,2+b, eta ) ;             
+             tensors.push_back(C) ;
+             tensors.push_back(E) ;
+             tensors.push_back(branches[0].first) ;
+             tensors.push_back(branches[0].second) ;
+             break ;
+         }
+         case GENERALIZED_KELVIN_VOIGT:
+         {
+             placeMatrixInBlock( C, 0,0, param) ;
+             Matrix r0 = C*(-1) ;
+             for(size_t i = 1 ; i < branches.size()+1 ; i++)
+             {
+                 placeMatrixInBlock( r0, i+b,0, param) ;
+                 placeMatrixInBlock( r0, 0,i+b, param) ;
+                 placeMatrixInBlock( C, i+b,i+b, param) ;
+                 addMatrixInBlock( branches[i-1].first, i+b,i+b, param) ;
+                 for(size_t j = i+1 ; j < branches.size()+1 ; j++)
+                 {
+                     placeMatrixInBlock( C, i+b,j+b, param) ;
+                     placeMatrixInBlock( C, j+b,i+b, param) ;
+                 }
+                 placeMatrixInBlock( branches[i-1].second, i+b,i+b, eta) ;
+             }
+             tensors.push_back(C) ;
+             for(size_t i = 0 ; i < branches.size() ; i++)
+             {
+                 tensors.push_back(branches[i].first) ;
+                 tensors.push_back(branches[i].second) ;
+             }
+             break ;
+         }
+         case GENERALIZED_MAXWELL:
+         {
+             placeMatrixInBlock( C, 0,0, param) ;
+             for(size_t i = 1 ; i < branches.size()+1 ; i++)
+             {
+                 Matrix ri = branches[i-1].first * (-1) ;
+                 addMatrixInBlock( branches[i-1].first, 0,0, param) ;
+                 placeMatrixInBlock( branches[i-1].first, i+b,i+b, param) ;
+                 placeMatrixInBlock( ri, 0,i+b, param) ;
+                 placeMatrixInBlock( ri, i+b,0, param) ;
+                 placeMatrixInBlock( branches[i-1].second, i+b,i+b, eta) ;
+             }
+             tensors.push_back(C) ;
+             for(size_t i = 0 ; i < branches.size() ; i++)
+             {
+                 tensors.push_back(branches[i].first) ;
+                 tensors.push_back(branches[i].second) ;
+             }
+             break ;
+         }
+         default:
+             std::cout << "warning: wrong constructor for Viscoelasticity" << std::endl ;
+     }
+
+
+    makeBlockConnectivity() ;
+
 }
 
 Viscoelasticity::~Viscoelasticity() {}
@@ -841,5 +1105,26 @@ std::vector< std::pair<Matrix, Matrix> > ViscoelasticKelvinVoigtChainGenerator::
     }
     return branches ;
 }
+
+
+std::string toArguments(std::map<std::string, double> args)
+{
+    std::string ret ;
+	for(auto ext : args)
+	{
+		ret.append(ext.first) ;
+		ret.append(" = ") ;
+		std::stringstream stream ;
+		stream << std::fixed << std::setprecision(16) << ext.second ;
+		ret.append(stream.str()) ;
+		ret.append(",") ;
+	}
+	ret = ret.substr(0, ret.size()-1) ;
+    return ret ;
+}
+
+StandardViscoelasticity::StandardViscoelasticity( CreepComplianceModel model, double young, double poisson, double creep_modulus, double creep_poisson, double tau0, int branches, std::map<std::string, double> args, SpaceDimensionality dim, planeType pt) : Viscoelasticity( GENERALIZED_KELVIN_VOIGT, Tensor::cauchyGreen( young, poisson, true, dim, pt ), ViscoelasticKelvinVoigtChainGenerator::getKelvinVoigtChain( creep_modulus, creep_poisson, model, toArguments( args ), tau0, branches, dim, pt),false ) 
+{
+ } 
 
 

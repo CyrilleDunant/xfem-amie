@@ -14,6 +14,7 @@
 #include "../utilities/writer/triangle_writer.h"
 #include "../utilities/parser.h"
 #include "../physics/materials/paste_behaviour.h"
+#include "../physics/stiffness.h"
 #include "../features/sample.h"
 
 #include <fstream>
@@ -93,7 +94,7 @@ int main(int argc, char *argv[])
 
         Sample sample(nullptr, check ? 0.1 : 0.2,0.1,0,0) ;
 
-	Matrix stiffness = ElasticOnlyPasteBehaviour(young).param ;
+	Matrix stiffness = Stiffness(young, 0.2).param ;
 
 	if(spaceTime)
 	{

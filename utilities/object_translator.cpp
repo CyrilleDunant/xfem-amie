@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 13/10/2015 at 14:24  */
+/* this is an auto-generated file created on 1/11/2015 at 14:52  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -6,12 +6,21 @@
 #include "../physics/material_laws/material_laws.h"
 #include "../physics/material_laws/mechanical_material_laws.h"
 #include "../physics/material_laws/temperature_material_laws.h"
+#include "../physics/logarithmic_creep.h"
+#include "../physics/weibull_distributed_stiffness.h"
 #include "../physics/stiffness.h"
 #include "../physics/stiffness_and_fracture.h"
 #include "../physics/void_form.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
+#include "../physics/viscoelasticity_and_fracture.h"
 #include "../physics/stiffness_with_imposed_stress.h"
+#include "../physics/viscoelasticity.h"
+#include "../physics/viscoelasticity_and_imposed_deformation.h"
 #include "../physics/logarithmic_creep_with_external_parameters.h"
+#include "../physics/materials/concrete_behaviour.h"
+#include "../physics/materials/aggregate_behaviour.h"
+#include "../physics/materials/gel_behaviour.h"
+#include "../physics/materials/paste_behaviour.h"
 #include "../physics/damagemodels/isotropiclineardamage.h"
 #include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include "../physics/fracturecriteria/boundedvonmises.h"
@@ -183,14 +192,44 @@ namespace Amie
    
     }
 
-    Form * Object::getForm(std::string type, std::map<std::string, double> & values, std::map<std::string, std::string> & strings, std::map<std::string, FractureCriterion*> & fracturecriterions, std::map<std::string, DamageModel*> & damagemodels, std::map<std::string, ExternalMaterialLawList*> & externalmateriallawlists, std::map<std::string, LogCreepAccumulator*> & logcreepaccumulators)
+    Form * Object::getForm(std::string type, std::map<std::string, double> & values, std::map<std::string, LogCreepAccumulator*> & logcreepaccumulators, std::map<std::string, std::string> & strings, std::map<std::string, FractureCriterion*> & fracturecriterions, std::map<std::string, DamageModel*> & damagemodels, std::map<std::string, ExternalMaterialLawList*> & externalmateriallawlists)
     {
+        // parsed from header file: ../physics/logarithmic_creep.h
+        if( type == "LogarithmicCreep" )
+        { 
+            if( values.find("creep_modulus") == values.end() ) { values["creep_modulus"] = -1 ; } ; 
+            if( values.find("creep_poisson") == values.end() ) { values["creep_poisson"] = -1 ; } ; 
+            if( values.find("creep_characteristic_time") == values.end() ) { values["creep_characteristic_time"] = -1 ; } ; 
+            if( values.find("recoverable_modulus") == values.end() ) { values["recoverable_modulus"] = -1 ; } ; 
+            if( values.find("recoverable_poisson") == values.end() ) { values["recoverable_poisson"] = -1 ; } ; 
+            if( logcreepaccumulators.find("accumulator") == logcreepaccumulators.end() ) { logcreepaccumulators["accumulator"] = new RealTimeLogCreepAccumulator() ; } ; 
+            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
+            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
+            return new LogarithmicCreep(values["young_modulus"], values["poisson_ratio"], values["creep_modulus"], values["creep_poisson"], values["creep_characteristic_time"], values["recoverable_modulus"], values["recoverable_poisson"], logcreepaccumulators["accumulator"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
+        }
+   
+        // parsed from header file: ../physics/weibull_distributed_stiffness.h
+        if( type == "WeibullDistributedStiffness" )
+        { 
+            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
+            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
+            if( values.find("variability") == values.end() ) { values["variability"] = 0.2 ; } ; 
+            if( values.find("material_characteristic_radius") == values.end() ) { values["material_characteristic_radius"] = 0.001 ; } ; 
+            return new WeibullDistributedStiffness(values["young_modulus"], values["poisson_ratio"], Enum::getSpaceDimensionality(strings["dimension"]), values["compressive_strength"], values["tensile_strength"], Enum::getplaneType(strings["plane_type"]), values["variability"], values["material_characteristic_radius"]) ;
+        }
+   
         // parsed from header file: ../physics/stiffness.h
         if( type == "Stiffness" )
         { 
             if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
             if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
             return new Stiffness(values["young_modulus"], values["poisson_ratio"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
+        }
+        if( type == "WeibullDistributedElasticStiffness" )
+        { 
+            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
+            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
+            return new WeibullDistributedElasticStiffness(values["young_modulus"], values["poisson_ratio"], values["variability"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
         }
    
         // parsed from header file: ../physics/stiffness_and_fracture.h
@@ -213,12 +252,47 @@ namespace Amie
             return new StiffnessWithImposedDeformation(values["young_modulus"], values["poisson_ratio"], values["imposed_deformation"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
         }
    
+        // parsed from header file: ../physics/viscoelasticity_and_fracture.h
+        if( type == "ViscoelasticityAndFracture" )
+        { 
+            if( fracturecriterions.find("fracture_criterion") == fracturecriterions.end() ) { fracturecriterions["fracture_criterion"] = nullptr ; } ; 
+            if( damagemodels.find("damage_model") == damagemodels.end() ) { damagemodels["damage_model"] = nullptr ; } ; 
+            if( values.find("creep_characteristic_time") == values.end() ) { values["creep_characteristic_time"] = 1 ; } ; 
+            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
+            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
+            return new ViscoelasticityAndFracture(Enum::getViscoelasticModel(strings["model"]), values["young_modulus"], values["poisson_ratio"], fracturecriterions["fracture_criterion"], damagemodels["damage_model"], values["creep_characteristic_time"], strings["file_name"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
+        }
+   
         // parsed from header file: ../physics/stiffness_with_imposed_stress.h
         if( type == "StiffnessWithImposedStress" )
         { 
             if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
             if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
             return new StiffnessWithImposedStress(values["young_modulus"], values["poisson_ratio"], values["imposed_stress"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
+        }
+   
+        // parsed from header file: ../physics/viscoelasticity.h
+        if( type == "Viscoelasticity" )
+        { 
+            if( values.find("creep_characteristic_time") == values.end() ) { values["creep_characteristic_time"] = 1 ; } ; 
+            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
+            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
+            return new Viscoelasticity(Enum::getViscoelasticModel(strings["model"]), values["young_modulus"], values["poisson_ratio"], values["creep_characteristic_time"], strings["file_name"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
+        }
+        if( type == "StandardViscoelasticity" )
+        { 
+            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
+            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
+            return new StandardViscoelasticity(Enum::getCreepComplianceModel(strings["model"]), values["young_modulus"], values["poisson_ratio"], values["creep_modulus"], values["creep_poisson"], values["tau"], values["branches"], values, Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
+        }
+   
+        // parsed from header file: ../physics/viscoelasticity_and_imposed_deformation.h
+        if( type == "ViscoelasticityAndImposedDeformation" )
+        { 
+            if( values.find("creep_characteristic_time") == values.end() ) { values["creep_characteristic_time"] = 1 ; } ; 
+            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
+            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
+            return new ViscoelasticityAndImposedDeformation(Enum::getViscoelasticModel(strings["model"]), values["young_modulus"], values["poisson_ratio"], values["imposed_deformation"], values["creep_characteristic_time"], strings["file_name"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
         }
    
         // parsed from header file: ../physics/logarithmic_creep_with_external_parameters.h
@@ -233,13 +307,87 @@ namespace Amie
             return new LogarithmicCreepWithExternalParameters(values, externalmateriallawlists["relations"], fracturecriterions["fracture_criterion"], damagemodels["damage_model"], logcreepaccumulators["accumulator"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
         }
    
+        // parsed from header file: ../physics/materials/concrete_behaviour.h
+        if( type == "ConcreteBehaviour" )
+        { 
+            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
+            if( strings.find("redistribution") == strings.end() ) { strings["redistribution"] = "UPPER_BOUND" ; } ; 
+            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
+            return new ConcreteBehaviour(values["young_modulus"], values["poisson_ratio"], values["compressive_strength"], Enum::getplaneType(strings["plane_type"]), Enum::getRedistributionType(strings["redistribution"]), Enum::getSpaceDimensionality(strings["dimension"])) ;
+        }
+   
+        // parsed from header file: ../physics/materials/aggregate_behaviour.h
+        if( type == "AggregateBehaviour" )
+        { 
+            if( strings.find("elastic") == strings.end() ) { strings["elastic"] = "FALSE" ; } ; 
+            if( strings.find("space_time") == strings.end() ) { strings["space_time"] = "FALSE" ; } ; 
+            if( values.find("young_modulus") == values.end() ) { values["young_modulus"] = 59e9 ; } ; 
+            if( values.find("poisson_ratio") == values.end() ) { values["poisson_ratio"] = 0.3 ; } ; 
+            if( values.find("tensile_strength") == values.end() ) { values["tensile_strength"] = 10e6 ; } ; 
+            if( values.find("material_characteristic_radius") == values.end() ) { values["material_characteristic_radius"] = 0.00025 ; } ; 
+            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
+            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
+            if( values.find("variability") == values.end() ) { values["variability"] = 0.2 ; } ; 
+            if( values.find("blocks") == values.end() ) { values["blocks"] = 0 ; } ; 
+            return new AggregateBehaviour(Enum::getbool(strings["elastic"]), Enum::getbool(strings["space_time"]), values["young_modulus"], values["poisson_ratio"], values["tensile_strength"], values["material_characteristic_radius"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"]), values["variability"], values["blocks"]) ;
+        }
+   
+        // parsed from header file: ../physics/materials/gel_behaviour.h
+        if( type == "GelBehaviour" )
+        { 
+            if( strings.find("space_time") == strings.end() ) { strings["space_time"] = "FALSE" ; } ; 
+            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
+            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
+            if( values.find("blocks") == values.end() ) { values["blocks"] = 0 ; } ; 
+            return new GelBehaviour(Enum::getbool(strings["space_time"]), values["young_modulus"], values["poisson_ratio"], values["imposed_deformation"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"]), values["blocks"]) ;
+        }
+   
+        // parsed from header file: ../physics/materials/paste_behaviour.h
+        if( type == "PasteBehaviour" )
+        { 
+            if( strings.find("elastic") == strings.end() ) { strings["elastic"] = "FALSE" ; } ; 
+            if( strings.find("space_time") == strings.end() ) { strings["space_time"] = "FALSE" ; } ; 
+            if( values.find("young_modulus") == values.end() ) { values["young_modulus"] = 12e9 ; } ; 
+            if( values.find("poisson_ratio") == values.end() ) { values["poisson_ratio"] = 0.3 ; } ; 
+            if( values.find("tensile_strength") == values.end() ) { values["tensile_strength"] = 3e6 ; } ; 
+            if( values.find("short_term_creep_modulus") == values.end() ) { values["short_term_creep_modulus"] = 3.6e9 ; } ; 
+            if( values.find("long_term_creep_modulus") == values.end() ) { values["long_term_creep_modulus"] = 4e9 ; } ; 
+            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
+            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
+            if( values.find("material_characteristic_radius") == values.end() ) { values["material_characteristic_radius"] = 0.000175 ; } ; 
+            if( values.find("variability") == values.end() ) { values["variability"] = 0.2 ; } ; 
+            if( values.find("blocks") == values.end() ) { values["blocks"] = 0 ; } ; 
+            return new PasteBehaviour(Enum::getbool(strings["elastic"]), Enum::getbool(strings["space_time"]), values["young_modulus"], values["poisson_ratio"], values["tensile_strength"], values["short_term_creep_modulus"], values["long_term_creep_modulus"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"]), values["material_characteristic_radius"], values["variability"], values["blocks"]) ;
+        }
+        if( type == "LogCreepPasteBehaviour" )
+        { 
+            if( strings.find("elastic") == strings.end() ) { strings["elastic"] = "FALSE" ; } ; 
+            if( values.find("young_modulus") == values.end() ) { values["young_modulus"] = 12e9 ; } ; 
+            if( values.find("poisson_ratio") == values.end() ) { values["poisson_ratio"] = 0.3 ; } ; 
+            if( values.find("tensile_strength") == values.end() ) { values["tensile_strength"] = 3e6 ; } ; 
+            if( values.find("creep_modulus") == values.end() ) { values["creep_modulus"] = 40e9 ; } ; 
+            if( values.find("creep_characteristic_time") == values.end() ) { values["creep_characteristic_time"] = 2 ; } ; 
+            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
+            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
+            if( values.find("material_characteristic_radius") == values.end() ) { values["material_characteristic_radius"] = 0.000175 ; } ; 
+            if( values.find("variability") == values.end() ) { values["variability"] = 0.2 ; } ; 
+            return new LogCreepPasteBehaviour(Enum::getbool(strings["elastic"]), values["young_modulus"], values["poisson_ratio"], values["tensile_strength"], values["creep_modulus"], values["creep_characteristic_time"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"]), values["material_characteristic_radius"], values["variability"]) ;
+        }
+   
         return nullptr ;
     }
 
     bool Object::isForm(std::string type)
     {
+        // parsed from header file: ../physics/logarithmic_creep.h
+        if( type == "LogarithmicCreep" ) { return true ; }
+   
+        // parsed from header file: ../physics/weibull_distributed_stiffness.h
+        if( type == "WeibullDistributedStiffness" ) { return true ; }
+   
         // parsed from header file: ../physics/stiffness.h
         if( type == "Stiffness" ) { return true ; }
+        if( type == "WeibullDistributedElasticStiffness" ) { return true ; }
    
         // parsed from header file: ../physics/stiffness_and_fracture.h
         if( type == "StiffnessAndFracture" ) { return true ; }
@@ -250,17 +398,44 @@ namespace Amie
         // parsed from header file: ../physics/stiffness_with_imposed_deformation.h
         if( type == "StiffnessWithImposedDeformation" ) { return true ; }
    
+        // parsed from header file: ../physics/viscoelasticity_and_fracture.h
+        if( type == "ViscoelasticityAndFracture" ) { return true ; }
+   
         // parsed from header file: ../physics/stiffness_with_imposed_stress.h
         if( type == "StiffnessWithImposedStress" ) { return true ; }
    
+        // parsed from header file: ../physics/viscoelasticity.h
+        if( type == "Viscoelasticity" ) { return true ; }
+        if( type == "StandardViscoelasticity" ) { return true ; }
+   
+        // parsed from header file: ../physics/viscoelasticity_and_imposed_deformation.h
+        if( type == "ViscoelasticityAndImposedDeformation" ) { return true ; }
+   
         // parsed from header file: ../physics/logarithmic_creep_with_external_parameters.h
         if( type == "LogarithmicCreepWithExternalParameters" ) { return true ; }
+   
+        // parsed from header file: ../physics/materials/concrete_behaviour.h
+        if( type == "ConcreteBehaviour" ) { return true ; }
+   
+        // parsed from header file: ../physics/materials/aggregate_behaviour.h
+        if( type == "AggregateBehaviour" ) { return true ; }
+   
+        // parsed from header file: ../physics/materials/gel_behaviour.h
+        if( type == "GelBehaviour" ) { return true ; }
+   
+        // parsed from header file: ../physics/materials/paste_behaviour.h
+        if( type == "PasteBehaviour" ) { return true ; }
+        if( type == "LogCreepPasteBehaviour" ) { return true ; }
    
         return false ;
     }
 
     void Object::resetForm(Form * target)
     {
+        // parsed from header file: ../physics/logarithmic_creep.h
+   
+        // parsed from header file: ../physics/weibull_distributed_stiffness.h
+   
         // parsed from header file: ../physics/stiffness.h
    
         // parsed from header file: ../physics/stiffness_and_fracture.h
@@ -269,9 +444,23 @@ namespace Amie
    
         // parsed from header file: ../physics/stiffness_with_imposed_deformation.h
    
+        // parsed from header file: ../physics/viscoelasticity_and_fracture.h
+   
         // parsed from header file: ../physics/stiffness_with_imposed_stress.h
    
+        // parsed from header file: ../physics/viscoelasticity.h
+   
+        // parsed from header file: ../physics/viscoelasticity_and_imposed_deformation.h
+   
         // parsed from header file: ../physics/logarithmic_creep_with_external_parameters.h
+   
+        // parsed from header file: ../physics/materials/concrete_behaviour.h
+   
+        // parsed from header file: ../physics/materials/aggregate_behaviour.h
+   
+        // parsed from header file: ../physics/materials/gel_behaviour.h
+   
+        // parsed from header file: ../physics/materials/paste_behaviour.h
    
     }
 

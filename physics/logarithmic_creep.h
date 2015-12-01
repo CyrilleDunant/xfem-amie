@@ -21,6 +21,18 @@
 namespace Amie
 {
 
+/*PARSE LogarithmicCreep Form 
+    @value[young_modulus] // value of the Young modulus
+    @value[poisson_ratio] // value of the Poisson ratio
+    @value[creep_modulus] -1 // viscosity of the dashpot
+    @value[creep_poisson] -1 // Poisson ratio of the dashpot
+    @value[creep_characteristic_time] -1 // creep rate in the log scale
+    @value[recoverable_modulus] -1 // modulus of the Kelvin_Voigt unit
+    @value[recoverable_poisson] -1 // Poisson ratio of the Kelvin-Voigt unit
+    @object<LogCreepAccumulator>[accumulator] RealTimeLogCreepAccumulator() // how the logrithmic creep is obtained
+    @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
+    @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+ */
 struct LogarithmicCreep : public Viscoelasticity
 {
     // material parameters
@@ -41,6 +53,8 @@ struct LogarithmicCreep : public Viscoelasticity
     LogarithmicCreep( const Matrix & rig, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator()) ;
     // standard constructor
     LogarithmicCreep( const Matrix & rig, const Matrix & v, const Matrix & r, double t, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator()) ;
+
+    LogarithmicCreep(double young, double poisson, double E_creep = -1, double nu_creep = -1, double tau = -1, double E_recovery = -1, double nu_recovery = -1, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator(), SpaceDimensionality = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS) ;
 
     virtual ~LogarithmicCreep() {
         if(accumulator) {
@@ -71,6 +85,8 @@ struct LogarithmicCreepWithImposedDeformation : public LogarithmicCreep
 
     LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Vector & imp, LogCreepAccumulator * acc = new LogCreepAccumulator() ) ;
     LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Matrix & v, const Matrix & r, double e, const Vector & imp, LogCreepAccumulator * acc = new TimeUnderLoadLogCreepAccumulator() ) ;
+
+    LogarithmicCreepWithImposedDeformation(double young, double poisson, double alpha, double E_creep = -1, double nu_creep = -1, double tau = -1, double E_recovery = -1, double nu_recovery = -1, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator(), SpaceDimensionality = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS) ;
 
     virtual ~LogarithmicCreepWithImposedDeformation() { } ;
 

@@ -17,6 +17,16 @@
 namespace Amie
 {
 
+/*PARSE ViscoelasticityAndImposedDeformation Form 
+    @string<ViscoelasticModel>[model] // rheological assembly
+    @value[young_modulus] // value of the Young modulus
+    @value[poisson_ratio] // value of the Poisson ratio
+    @value[imposed_deformation] // value of the elastic linear imposed deformation
+    @value[creep_characteristic_time] 1 // value of the viscosity characteristic time
+    @string[file_name] // name of the file containing the modulus of the different branches
+    @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
+    @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+ */
 struct ViscoelasticityAndImposedDeformation : public Viscoelasticity
 {
     Vector imposedStrain ;
@@ -36,6 +46,8 @@ struct ViscoelasticityAndImposedDeformation : public Viscoelasticity
     ViscoelasticityAndImposedDeformation( ViscoelasticModel model, const Matrix & c_0, const Matrix & c_1, const Matrix & e_1, Vector & imp,  int additionnalBlocksBefore = 0, int additionnalBlocksAfter = 0, double r = 0) ;
     // constructor for general viscoelasticity (rig and eta are supposed symmetric)
     ViscoelasticityAndImposedDeformation( const Matrix & rig, const Matrix & eta, int blocks, Vector & imp, int additionnalBlocksAfter = 0, double r = 0) ;
+
+    ViscoelasticityAndImposedDeformation( ViscoelasticModel model, double young, double poisson, double alpha, double tau = 1, std::string file = std::string(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, bool hooke = true, int additionnalBlocksBefore = 0, int additionnalBlocksAfter = 0) ;
 
     virtual ~ViscoelasticityAndImposedDeformation() ;
 

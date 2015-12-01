@@ -15,13 +15,30 @@
 
 namespace Amie
 {
+
+/*PARSE PasteBehaviour Form 
+    @string<bool>[elastic] FALSE // desactivates the damage if TRUE
+    @string<bool>[space_time] FALSE // uses the behaviour in space-time if TRUE
+    @value[young_modulus] 12e9 // value of the Young modulus
+    @value[poisson_ratio] 0.3 // value of the Poisson ratio
+    @value[tensile_strength] 3e6 // value of the tensile strength of the material
+    @value[short_term_creep_modulus] 3.6e9 // spring of the first KV chain 
+    @value[long_term_creep_modulus] 4e9 // spring of the second KV chain 
+    @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
+    @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+    @value[material_characteristic_radius] 0.000175 // radius of the non-local damage model
+    @value[variability] 0.2 // variability of the mechanical properties
+    @value[blocks] 0 // additional ghost blocks for viscoelastic simulations 
+ */
 struct PasteBehaviour : public WeibullDistributedStiffness
 {
-    // ultimate tensile strength: 20 MPa which is 5 * 4 MPa (instantaneous stress)
-    double up ;
-    double yield ;
-    double c ;
-    PasteBehaviour(double E = 12e9, double nu = 0.3,  double up = 3e6, double yield = 0.0001666, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
+    bool spaceTime ;
+    bool elastic ;
+    int freeblocks ;
+    double eta10 ;
+    double eta300 ;
+
+    PasteBehaviour(bool elastic = false, bool st = false, double E = 12e9, double nu = 0.3,  double up = 3e6, double shortTermCreepFactor = 3.6e9, double longTermCreepFactor = 4e9, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, double r = 0.000175, double var = 0.2, int blocks = 0) ;
 
     virtual Form * getCopy() const ;
 
@@ -110,86 +127,27 @@ struct HydratingDiffusionCementPaste final: public LinearForm
 
 } ;
 
-struct ElasticOnlyPasteBehaviour : public PasteBehaviour
-{
-    ElasticOnlyPasteBehaviour(double E = 12e9, double nu = 0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
 
-    virtual Form * getCopy() const ;
-} ;
 
-// parameters got for ./alain 1 500 500 0.29 10 200 at revision 2512
-struct ViscoElasticOnlyPasteBehaviour : public PasteBehaviour
-{
-    double e_1 ;
-    double e_2 ;
-    int freeblocks ;
-
-    ViscoElasticOnlyPasteBehaviour(double E = 12e9, double nu = 0.3, double e1 = 0.3, double e2 = 0.37, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
-
-    virtual Form * getCopy() const ;
-} ;
-
+/*PARSE LogCreepPasteBehaviour Form 
+    @string<bool>[elastic] FALSE // desactivates the damage if TRUE
+    @value[young_modulus] 12e9 // value of the Young modulus
+    @value[poisson_ratio] 0.3 // value of the Poisson ratio
+    @value[tensile_strength] 3e6 // value of the tensile strength of the material
+    @value[creep_modulus] 40e9 // long-term creep viscosity
+    @value[creep_characteristic_time] 2 // creep rate in the logarithmic scale
+    @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
+    @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+    @value[material_characteristic_radius] 0.000175 // radius of the non-local damage model
+    @value[variability] 0.2 // variability of the mechanical properties
+ */
 struct LogCreepPasteBehaviour : public LogarithmicCreepWithExternalParameters
 {
-    LogCreepPasteBehaviour(double E = 12e9, double nu = 0.3, double eta = 40e9, double tau = 2, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
+    LogCreepPasteBehaviour(bool elastic = false, double E = 12e9, double nu = 0.3, double up = 3e6, double eta = 40e9, double tau = 2, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, double r = 0.000175, double var = 0.2) ;
 } ;
 
-struct ShortTermViscoElasticOnlyPasteBehaviour : public ViscoElasticOnlyPasteBehaviour
-{
-    ShortTermViscoElasticOnlyPasteBehaviour(double E = 12e9, double nu = 0.3, double e1 = 0.3, double e2 = 0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) : ViscoElasticOnlyPasteBehaviour(E, nu, e1,e2,dim, var) { } ;
 
-    virtual Form * getCopy() const ;
-} ;
 
-typedef enum
-{
-    STRAIN_CRITERION,
-    STRESS_CRITERION,
-    MIXED_CRITERION,
-} PasteCriterion ;
-
-struct ViscoDamagePasteBehaviour : public PasteBehaviour
-{
-    double e_1 ;
-    double e_2 ;
-    int freeblocks ;
-    PasteCriterion ctype ;
-    double stressFraction ;
-
-    ViscoDamagePasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double e2=0.37, double up = 0.0003, double r  = 0.00018, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
-
-    virtual Form * getCopy() const ;
-} ;
-
-struct ShortTermViscoDamagePasteBehaviour : public ViscoDamagePasteBehaviour
-{
-    ShortTermViscoDamagePasteBehaviour(double E = 12e9, double nu = 0.3, double e1 = 0.3, double e2 = 0.3, double up = 0.0003, double r  = 0.00018,  SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) : ViscoDamagePasteBehaviour(E, nu, e1,e2,up,r,dim, var) { } ;
-
-    virtual Form * getCopy() const ;
-} ;
-
-struct PseudoBurgerViscoElasticOnlyPasteBehaviour : public PasteBehaviour
-{
-    double e_1 ;
-    double t_2 ;
-
-    PseudoBurgerViscoElasticOnlyPasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double t2=300, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
-
-    virtual Form * getCopy() const ;
-} ;
-
-struct PseudoBurgerViscoDamagePasteBehaviour : public PasteBehaviour
-{
-    double e_1 ;
-    double t_2 ;
-    int freeblocks ;
-    PasteCriterion ctype ;
-    double stressFraction ;
-
-    PseudoBurgerViscoDamagePasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double t2=300, double up = 0.0003, double r  = 0.00018, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, double var = 0.2) ;
-
-    virtual Form * getCopy() const ;
-} ;
 
 }
 

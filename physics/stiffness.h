@@ -62,6 +62,13 @@ struct Stiffness : public LinearForm
 
 } ;
 
+/*PARSE WeibullDistributedElasticStiffness Form 
+    @value[young_modulus] // value of the Young modulus
+    @value[poisson_ratio] // value of the Poisson ratio
+    @value[variability] // value of the Poisson ratio
+    @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
+    @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+ */
 struct WeibullDistributedElasticStiffness : public Stiffness 
 {
     double variability ;

@@ -761,7 +761,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, std::vector<Externa
              acc[ "accumulator" ] = Object::getLogCreepAccumulator( atype, values ) ;
     }
 
-    return Object::getForm( type, values, strings, frac, dam, law, acc ) ;
+    return Object::getForm( type, values, acc, strings, frac, dam, law ) ;
 }
 
 Vector ConfigTreeItem::readVectorFromFile() const

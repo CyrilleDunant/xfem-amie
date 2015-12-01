@@ -24,6 +24,16 @@ namespace Amie
 * The field param is the Cauchy-Green Strain Tensor
 * Actual tensors are distributed around the prescribed value following a Weibull distribution
 */
+/*PARSE WeibullDistributedStiffness Form 
+    @value[young_modulus] // value of the Young modulus
+    @value[poisson_ratio] // value of the Poisson ratio
+    @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
+    @value[compressive_strength] // value of the compressive strength of the material
+    @value[tensile_strength] // value of the tensile strength of the material
+    @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+    @value[variability] 0.2 // variability of the mechanical properties
+    @value[material_characteristic_radius] 0.001 // radius of the non-local damage model
+ */
 struct WeibullDistributedStiffness : public LinearForm
 {
     double materialRadius ;
@@ -45,7 +55,7 @@ struct WeibullDistributedStiffness : public LinearForm
     * @param rig Complete expression of the Cauchy-Green Strain Tensor
     * @param cri stress limit for the Mohr - Coulomb criterion to use
     */
-    WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt = PLANE_STRESS, MirrorState mirroring = NO_MIRROR, double dx = 0, double dy = 0, double dz = 0)  ;
+    WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt = PLANE_STRESS, double var = 0.2, double radius = 0.001, MirrorState mirroring = NO_MIRROR, double dx = 0, double dy = 0, double dz = 0)  ;
 
     void setNeighbourhoodRadius(double r) {
         materialRadius = r ;

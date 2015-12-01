@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 13/10/2015 at 14:24  */
+/* this is an auto-generated file created on 1/11/2015 at 14:52  */
 
 #ifndef __ENUMERATION_TRANSLATOR_H__
 #define __ENUMERATION_TRANSLATOR_H__
@@ -10,7 +10,6 @@
 #include "../physics/fracturecriteria/mcft.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
 #include "../physics/materials/csh_behaviour.h"
-#include "../physics/materials/paste_behaviour.h"
 #include "../physics/viscoelasticity.h"
 #include "../physics/finite_difference_viscoelasticity.h"
 #include "../physics/damagemodels/damagemodel.h"
@@ -706,27 +705,6 @@ struct Enum
         return "INNER_CSH" ;
     }
    
-    // parsed from header file: ../physics/materials/paste_behaviour.h
-    static PasteCriterion getPasteCriterion(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "STRAIN_CRITERION") { return STRAIN_CRITERION ; }
-        if( type == "STRESS_CRITERION") { return STRESS_CRITERION ; }
-        if( type == "MIXED_CRITERION") { return MIXED_CRITERION ; }
-        if(ok) { *ok = false ; }
-        return STRAIN_CRITERION ;
-    }
-    static std::string fromPasteCriterion(PasteCriterion value)
-    {
-        switch(value)
-        {
-            case STRAIN_CRITERION: return "STRAIN_CRITERION" ;
-            case STRESS_CRITERION: return "STRESS_CRITERION" ;
-            case MIXED_CRITERION: return "MIXED_CRITERION" ;
-        }
-        return "STRAIN_CRITERION" ;
-    }
-   
     // parsed from header file: ../physics/viscoelasticity.h
     static ViscoelasticModel getViscoelasticModel(std::string type, bool * ok = 0)
     {
@@ -1286,7 +1264,12 @@ struct Enum
     }
     static std::string frombool(bool value)
     {
-        return value ? "true" : "false" ;
+        switch(value)
+        {
+            case false: return "false" ;
+            case true: return "true" ;
+        }
+        return "false" ;
     }
    
     // parsed from header file: ../utilities/granulo.h

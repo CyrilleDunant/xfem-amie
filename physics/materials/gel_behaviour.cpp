@@ -10,18 +10,16 @@
 
 using namespace Amie ;
 
-GelBehaviour::GelBehaviour(double E, double nu, double alpha, SpaceDimensionality dim) : StiffnessWithImposedDeformation(E,nu, alpha, dim)
+GelBehaviour::GelBehaviour(bool st, double E, double nu, double alpha, SpaceDimensionality dim, planeType pt, int b) : StiffnessWithImposedDeformation(E,nu, alpha, dim, pt), spaceTime(st), freeblocks(b)
 {
 
 }
 
-ViscoElasticOnlyGelBehaviour::ViscoElasticOnlyGelBehaviour(double E, double nu, double alpha, SpaceDimensionality dim): GelBehaviour(E,nu,alpha,dim), freeblocks(0)
+Form * GelBehaviour::getCopy() const
 {
+	if(!spaceTime)
+		return this->getCopy() ;
 
-}
-
-Form * ViscoElasticOnlyGelBehaviour::getCopy() const
-{
 	Matrix c = param ;
 	Vector a = imposed ;
 	return new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, c, a, 2 + freeblocks ) ;

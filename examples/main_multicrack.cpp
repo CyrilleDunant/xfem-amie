@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	featureTree->addFeature(&sample, Crack1);//MY
 
 // 	sample.setBehaviour(new OrthotropicStiffness(E_paste, E_paste*.5,  E_paste*.5/(2.*1-nu*0.5),  nu, M_PI*.15)) ;
-	sample.setBehaviour(new ElasticOnlyPasteBehaviour(E_paste, nu)) ;
+	sample.setBehaviour(new PasteBehaviour(true, false, E_paste, nu)) ;
 
  	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA , TOP, .001)) ;
 	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , TOP, 0)) ;

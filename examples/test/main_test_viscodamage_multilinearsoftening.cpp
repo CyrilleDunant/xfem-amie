@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 
 
         Sample rect(nullptr, 0.01,0.01,0,0) ;
-	Matrix C = ElasticOnlyPasteBehaviour(10e9).param ;
+	Matrix C = PasteBehaviour(true, false, 10e9).param ;
 	Point t1(0.0001, 1e6) ;
 	Point t2(0.00015, 0.5e6) ;
 	Point t3(0.00025, 0.1e6) ;

@@ -1108,9 +1108,9 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
  	int inclusionNumber = 500 ;
-	sample.setBehaviour( new ElasticOnlyPasteBehaviour() ) ;
+	sample.setBehaviour( new PasteBehaviour(true) ) ;
 
-	ElasticOnlyAggregateBehaviour * agg = new ElasticOnlyAggregateBehaviour(59e9,0.3/*,0.00025*/) ;
+	AggregateBehaviour * agg = new AggregateBehaviour(true) ;
 	std::vector<Feature *> inclusions = PSDGenerator::get2DConcrete(&F, agg, inclusionNumber, 0.008, 0.00001,new PSDBolomeA(), new PolygonalInclusionGenerator( 3 ) ,inclusionNumber*100) ;
 
 	std::vector<TriangularInclusion *> ellinc ;

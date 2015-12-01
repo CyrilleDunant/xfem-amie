@@ -65,9 +65,9 @@ int main(int argc, char *argv[])
   std::vector<Inclusion3D *> incs = PSDGenerator::get3DInclusions(0.002, 0.000023104, new PSDBolomeB(), PSDEndCriteria(0.00025, -1, 3200)) ;
   // attributes mechanical behaviour to the box and the aggregates
   
-	box.setBehaviour( new ElasticOnlyPasteBehaviour( 12e9, 0.3, SPACE_THREE_DIMENSIONAL ) ) ;
+	box.setBehaviour( new PasteBehaviour( true, false,  12e9, 0.3, SPACE_THREE_DIMENSIONAL ) ) ;
   for(size_t i = 0 ; i < incs.size() ; i++)
-    incs[i]->setBehaviour( new ElasticOnlyAggregateBehaviour( 60e9, 0.3, SPACE_THREE_DIMENSIONAL ) ) ;
+    incs[i]->setBehaviour( new AggregateBehaviour( true, false, 60e9, 0.3, SPACE_THREE_DIMENSIONAL ) ) ;
 
   // creates main object
   FeatureTree F(&box) ;

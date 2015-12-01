@@ -96,32 +96,13 @@ bool BehaviourConverter::toSpaceTimeBehaviour( Feature * f, int maxBlocks )
          return false ;
      }
 
+
      // predefined aggregate behaviour
      // use predefined space-time behaviour
      else if(dynamic_cast<AggregateBehaviour *>(behaviour))
      {
-         if(dynamic_cast<ElasticOnlyAggregateBehaviour *>(behaviour))
-         {
-             ViscoElasticOnlyAggregateBehaviour * converted = new ViscoElasticOnlyAggregateBehaviour( 59e9, 0.3, (behaviour->getTensor( p ).numCols() == 3) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ) ;
-             converted->param = behaviour->getTensor( p ) ;
-             converted->freeblocks = maxBlocks-3 ;
-             f->setBehaviour( converted ) ;
-             return true ;
-         }
-         else if(dynamic_cast<ViscoElasticOnlyAggregateBehaviour *>(behaviour))
-         {
-             dynamic_cast<ViscoElasticOnlyAggregateBehaviour *>(behaviour)->freeblocks = maxBlocks-3 ;
-             return true ;
-         }
-         else if(dynamic_cast<ViscoDamageAggregateBehaviour *>(behaviour))
-         {
-             dynamic_cast<ViscoDamageAggregateBehaviour *>(behaviour)->freeblocks = maxBlocks-3 ;
-             return true ;
-         }
-         ViscoDamageAggregateBehaviour * converted = new ViscoDamageAggregateBehaviour( 59e9, 0.3, dynamic_cast<AggregateBehaviour *>(behaviour)->up, 0.00008, (behaviour->getTensor( p ).numCols() == 3) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ) ;
-         converted->param = behaviour->getTensor( p ) ;
-         converted->freeblocks = maxBlocks-3 ;
-         f->setBehaviour( converted ) ;
+         dynamic_cast<AggregateBehaviour *>(behaviour)->spaceTime = true ;
+         dynamic_cast<AggregateBehaviour *>(behaviour)->freeblocks = maxBlocks-3 ;
          return true ;
      }
 
@@ -129,44 +110,16 @@ bool BehaviourConverter::toSpaceTimeBehaviour( Feature * f, int maxBlocks )
      // use predefined space-time behaviour
      else if(dynamic_cast<PasteBehaviour *>(behaviour))
      {
-         if(dynamic_cast<ElasticOnlyPasteBehaviour *>(behaviour))
-         {
-             ViscoElasticOnlyPasteBehaviour * converted = new ViscoElasticOnlyPasteBehaviour( 12e9, 0.2, 0.3, 0.37, (behaviour->getTensor( p ).numCols() == 3) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ) ;
-             converted->param = behaviour->getTensor( p ) ;
-             converted->freeblocks = maxBlocks-3 ;
-             f->setBehaviour( converted ) ;
-             return true ;
-         }
-         else if(dynamic_cast<ViscoElasticOnlyPasteBehaviour *>(behaviour))
-         {
-             dynamic_cast<ViscoElasticOnlyPasteBehaviour *>(behaviour)->freeblocks = maxBlocks-3 ;
-             return true ;
-         }
-         else if(dynamic_cast<ViscoDamagePasteBehaviour *>(behaviour))
-         {
-             dynamic_cast<ViscoDamagePasteBehaviour *>(behaviour)->freeblocks = maxBlocks-3 ;
-             return true ;
-         }
-         ViscoDamagePasteBehaviour * converted = new ViscoDamagePasteBehaviour( 12e9, 0.3, dynamic_cast<PasteBehaviour *>(behaviour)->up, 0.00015 , (behaviour->getTensor( p ).numCols() == 3) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ) ;
-         converted->param = behaviour->getTensor( p ) ;
-         converted->freeblocks = maxBlocks-3 ;
-         f->setBehaviour( converted ) ;
+         dynamic_cast<PasteBehaviour *>(behaviour)->spaceTime = true ;
+         dynamic_cast<PasteBehaviour *>(behaviour)->freeblocks = maxBlocks-3 ;
          return true ;
      }
-
-     // predefined ASR gel paste behaviour
+     // predefined ASR gel behaviour
      // use predefined space-time behaviour
      else if(dynamic_cast<GelBehaviour *>(behaviour))
      {
-         if(dynamic_cast<ViscoElasticOnlyGelBehaviour *>(behaviour))
-         {
-             dynamic_cast<ViscoElasticOnlyGelBehaviour *>(behaviour)->freeblocks = maxBlocks-3 ;
-             return true ;
-         }
-         ViscoElasticOnlyGelBehaviour * converted = new ViscoElasticOnlyGelBehaviour( 22e9, 0.18, dynamic_cast<GelBehaviour*>(behaviour)->imposed[0], (behaviour->getTensor( p ).numCols() == 3) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ) ;
-         converted->param = behaviour->getTensor( p ) ;
-         converted->freeblocks = maxBlocks-3 ;
-         f->setBehaviour( converted ) ;
+         dynamic_cast<GelBehaviour *>(behaviour)->spaceTime = true ;
+         dynamic_cast<GelBehaviour *>(behaviour)->freeblocks = maxBlocks-3 ;
          return true ;
      }
 
