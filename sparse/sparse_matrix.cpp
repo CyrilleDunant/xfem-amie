@@ -223,7 +223,7 @@ Vector CoordinateIndexedSparseMatrix::inverseDiagonal() const
         if(std::abs(v) > 1e-12)
             ret[i] = 1./v ;
         else 
-            ret[i] = 0 ;
+            ret[i] = 0. ;
 
     }
 

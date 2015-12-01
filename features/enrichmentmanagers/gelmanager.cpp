@@ -27,7 +27,7 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
         ymin = std::min(ymin, agg->getCenter().getY()-agg->getRadius()) ;
         ymax = std::max(ymax, agg->getCenter().getY()+agg->getRadius()) ;
     }
-    int tries = 6000 ;
+    int tries = 600000 ;
     double area = (xmax-xmin)*(ymax-ymin) ;
     Rectangle baseGeometry(xmax-xmin, ymax-ymin, 0.5*(xmax+xmin), 0.5*(ymax+ymin)) ;
     int nzones = round(area*zonedensity) ;
@@ -144,7 +144,7 @@ bool GelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTre
     int currentNumber = 0 ;
     int stoppedReaction = 0 ;
     reactedArea = 0 ;
-
+    
     for( size_t z = 0 ; z < zones.size() ; z++ )
     {
 //         if( zones[z].first->intersects( zones[z].second))
@@ -166,7 +166,7 @@ bool GelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTre
                 for( int m = 0 ; m < currentNumber ; m++ )
                 {
                     reactedArea -= zones[z - 1 - m].first->area() ;
-                    zones[z - 1 - m].first->setRadius( zones[z].first->getRadius() - deltaRadius ) ;
+                    zones[z - 1 - m].first->setRadius( zones[z - 1 - m].first->getRadius() - deltaRadius ) ;
                     reactedArea += zones[z - 1 - m].first->area() ;
                 }
             }

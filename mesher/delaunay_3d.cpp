@@ -2641,7 +2641,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
     {
         return cachedElementaryMatrix ;
     }
-    
+    needAssembly = true ;
     clearBoundaryConditions() ;
 
     size_t dofCount = getShapeFunctions().size() + getEnrichmentFunctions().size() ;

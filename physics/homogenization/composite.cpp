@@ -117,6 +117,7 @@ MatrixInclusionComposite::MatrixInclusionComposite( DelaunayTriangle *tri, Featu
     inclusion = Phase( inc , tri ) ;
 
     matrix.volume -= inclusion.volume ;
+    matrix.volume = std::max(matrix.volume, 1e-4) ;
     volume = matrix.volume + inclusion.volume ;
     matrix.volume /= volume ;
     inclusion.volume /= volume ;
@@ -128,6 +129,7 @@ MatrixInclusionComposite::MatrixInclusionComposite( DelaunayTetrahedron *tet, Fe
     inclusion = Phase( inc ) ;
 
     matrix.volume -= inclusion.volume ;
+    matrix.volume = std::max(matrix.volume, 1e-4) ;
     volume = matrix.volume + inclusion.volume ;
     matrix.volume /= volume ;
     inclusion.volume /= volume ;
@@ -140,7 +142,7 @@ MatrixInclusionComposite::MatrixInclusionComposite( Phase mat, Phase inc ) : Com
 
     volume = inclusion.volume ;
 
-    inclusion.volume = 1 - matrix.volume ;
+    inclusion.volume = std::max(1. - matrix.volume, 1e-4) ;
 
 }
 
@@ -158,42 +160,9 @@ void MatrixInclusionComposite::apply()
 
     C = ( ( matrix.A * matrix.volume ) * matrix.C ) ;
     C += ( ( inclusion.A * inclusion.volume ) * inclusion.C ) ;
-    beta.resize( matrix.beta.size() );
+    beta.resize( matrix.beta.size(), 0. );
     beta = matrix.A * matrix.volume * matrix.beta ;
     beta += inclusion.A * inclusion.volume * inclusion.beta ;
-
-    /*    lambda.clear() ;
-        Vector b = inclusion.beta ;
-        b -= matrix.beta ;
-        Matrix Cdiff = inclusion.C - matrix.C ;
-        if(Cdiff.size()==36)
-    	invert6x6Matrix(Cdiff) ;
-        else
-    	invert3x3Matrix(Cdiff) ;
-        Matrix G = inclusion.A - I ;
-        G *= Cdiff ;
-        Vector a = G * b ;
-
-        for(size_t i = 0 ; i < matrix.lambda.size() ; i++)
-        {
-    	Matrix S = matrix.C ;
-    	if(S.size()==36)
-    	    invert6x6Matrix(S) ;
-    	else
-    	    invert3x3Matrix(S) ;
-    	Vector s1 = matrix.lambda[i] - matrix.beta ;
-    	s1 = S * s1 ;
-    	s1 = s1 - a ;
-
-    	Matrix K = inclusion.A ;
-    	if(K.size()==36)
-    	    invert6x6Matrix(K) ;
-    	else
-    	    invert3x3Matrix(K) ;
-    	K *= C ;
-    	s1 = K * s1 ;
-    	s1 = s1 + beta ;
-        }*/
 
 }
 
@@ -467,7 +436,9 @@ MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( DelaunayTriangle *
     for( size_t i = 0 ; i < inclusions.size() ; i++ )
         matrix.volume -= inclusions[i].volume ;
 
+    matrix.volume = std::max(matrix.volume, tri->area()*1e-4) ;
     matrix.volume /= volume ;
+    matrix.volume = std::min(matrix.volume, 1. - 1e-4) ;
 
     for( size_t i = 0 ; i < inclusions.size() ; i++ )
         inclusions[i].volume /= volume ;
@@ -527,6 +498,8 @@ MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( DelaunayTetrahedro
 
     for( size_t i = 0 ; i < inclusions.size() ; i++ )
         matrix.volume -= inclusions[i].volume ;
+    
+    matrix.volume = std::max(matrix.volume, 1e-4*tet->volume()) ;
 
     matrix.volume /= volume ;
 
@@ -559,7 +532,7 @@ void MatrixMultiInclusionComposite::apply()
     //  std::cerr << grains[0].volume << std::endl ;
     // grains[0].A.print() ;
 
-    beta.resize( beta.size() );
+    beta.resize( beta.size(), 0. );
 
     for( size_t i = 0 ; i < grains.size() ; i++ )
         beta += ( grains[i].A * ( grains[i].volume ) ) * grains[i].beta ;

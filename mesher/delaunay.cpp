@@ -2517,7 +2517,7 @@ void DelaunayTree::print() const
 
 void DelaunayTriangle::refresh(const TriElement * father)
 {
-    this->TriElement::refresh(father) ;
+    TriElement::refresh(father) ;
 
 // 	if(!cachedGPs)
 // 		cachedGPs = new GaussPointArray(getSubTriangulatedGaussPoints()) ;
@@ -2533,6 +2533,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
     {
         return cachedElementaryMatrix ;
     }
+    needAssembly = true ;
     clearBoundaryConditions() ;
 
     size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
@@ -3081,13 +3082,13 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
         else
         {
 
-            if( false )
+            if( true )
             {
-//                 if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
-//                     return *getCachedGaussPoints() ;
+                if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
+                    return *getCachedGaussPoints() ;
 
                 delete cachedGps ;
-                cachedGps = new GaussPointArray(monteCarloGaussPoints(64, this)) ;
+                cachedGps = new GaussPointArray(monteCarloGaussPoints(128, this)) ;
                 cachedGps->getId() = REGULAR_GRID ;
                 return *getCachedGaussPoints() ;
             }
@@ -3134,12 +3135,11 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             }
             if(tri.size() < 3 || std::abs(parentArea - 0.5) > 1e-4)
             {
-/*
-                if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
-                    return *getCachedGaussPoints() ;
-                */
+
+//                 if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
+//                     return *getCachedGaussPoints() ;
                 delete cachedGps ;
-                cachedGps = new GaussPointArray(/*TriElement(CUBIC).getGaussPoints()*/monteCarloGaussPoints(32, this, enrichmentSource[0])) ;
+                cachedGps = new GaussPointArray(/*TriElement(CUBIC).getGaussPoints()*/monteCarloGaussPoints(256, this)) ;
                 cachedGps->getId() = REGULAR_GRID ;
                 return *getCachedGaussPoints() ;
             }

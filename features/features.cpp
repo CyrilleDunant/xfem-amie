@@ -4459,8 +4459,6 @@ void FeatureTree::stepXfem()
         if ( is2D() )
         {
 
-// 			#pragma omp parallel for schedule(runtime)
-
             for ( size_t i = 0 ; i < featuresToStep.size() ; i++ )
             {
                 featuresToStep[i]->step( deltaTime, &K->getForces(), dtree ) ;

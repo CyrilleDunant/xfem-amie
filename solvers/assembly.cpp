@@ -655,7 +655,7 @@ void Assembly::checkZeroLines()
     }
     std::cerr << "removing 0-only lines..." << std::flush ;
     
-    if(zeroIds.size() == 0)
+    if(zeroIds.size() == 0 || removeZeroOnlyLines)
     {
 //        double maxval = std::abs(getMatrix().array).max() ;
         int zerocount = 0 ;
@@ -665,7 +665,7 @@ void Assembly::checkZeroLines()
                 std::cerr << "\r removing 0-only lines... " << i << "/" << externalForces.size() << std::flush ;
             
             double v = std::abs(getMatrix()[i][i]) ;
-            bool zeros =  v < 1e-24*std::abs(externalForces[i]) ;
+            bool zeros =  v < 1e-12*std::abs(std::max(externalForces[i], 1.)) ;
 /*        size_t j = rowstart ;
         while(zeros && (j < externalForces.size() ))
         {
@@ -695,38 +695,6 @@ void Assembly::checkZeroLines()
         externalForces[zeroIds[i]] = 0. ;
     }
 
-
-/*    std::valarray<bool> zeros(true, ndof) ;
-    int blocksize = ndof*(ndof+ndof%2) ;
-    double * array_iterator = &getMatrix().array[0] ;
-    for(size_t j = 0 ; j <  getMatrix().row_size.size() ; j++)
-    {   
-        zeros = true ;
-        array_iterator = &getMatrix().array[blocksize*getMatrix().accumulated_row_size[j]] ;
-        for(size_t i = 0 ; i < getMatrix().row_size[j] ; i++)
-        {
-            for(size_t n = 0 ; n < ndof ; n++)
-            {
-                for(size_t m = 0 ; m < ndof ; m++)
-                {
-                    if(std::abs(*array_iterator) > POINT_TOLERANCE)
-                        zeros[m] = false ; 
-                    array_iterator++ ;
-                }
-                if(ndof%2)
-                    array_iterator++ ;
-            }
-        }
-        
-        for(size_t m = 0 ; m < ndof ; m++)
-        {
-            if(zeros[m])
-            {
-                getMatrix()[j*ndof+m][j*ndof+m] = 1 ;
-                externalForces[j*ndof+m] = 0. ;
-            }
-        }
-    }*/
     
 }
 
@@ -752,7 +720,7 @@ bool Assembly::make_final()
         
         if(!coordinateIndexedMatrix)
         {
-
+            removeZeroOnlyLines = true ;
             std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
             size_t instants = element2d[0]->timePlanes() ;
             size_t dofsperplane = element2d[0]->getBoundingPoints().size() / instants ;
@@ -789,6 +757,7 @@ bool Assembly::make_final()
                     }
 
                 }
+                element2d[i]-> needAssembly = false ;
             }
             max = map->rbegin()->first +1;
             size_t realDofs = max ;
@@ -842,7 +811,7 @@ bool Assembly::make_final()
                 addToExternalForces = 0 ;
             }
         }
-        else if (false && element2d[0]->timePlanes() == 1)
+        else if (element2d[0]->timePlanes() == 1)
         {
             std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
 
@@ -851,7 +820,7 @@ bool Assembly::make_final()
                 size_t dofCount = element2d[i]->getShapeFunctions().size()+element2d[i]->getEnrichmentFunctions().size() ;
                 std::vector<size_t> ids = element2d[i]->getDofIds() ;
 
-                if(!element2d[i]->behaviourUpdated && !element2d[i]->enrichmentUpdated && element2d[i]->getCachedElementaryMatrix().size() && element2d[i]->getCachedElementaryMatrix()[0].size() == dofCount)
+                if(!element2d[i]->needAssembly && !element2d[i]->behaviourUpdated && !element2d[i]->enrichmentUpdated && element2d[i]->getCachedElementaryMatrix().size() && element2d[i]->getCachedElementaryMatrix()[0].size() == dofCount)
                 {
                      
                      for(size_t j = 0 ; j < ids.size() ; j++)
@@ -892,6 +861,8 @@ bool Assembly::make_final()
 
                     }
                 }
+                
+                element2d[i]->needAssembly = false ;
             }
             
             max = coordinateIndexedMatrix->accumulated_row_size.size() ;
@@ -1136,7 +1107,7 @@ bool Assembly::make_final()
        
         if(!coordinateIndexedMatrix)
         {
-
+            removeZeroOnlyLines = true ;
             std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
             size_t instants = element3d[0]->timePlanes() ;
             size_t dofsperplane = element3d[0]->getBoundingPoints().size() / instants ;
@@ -1173,6 +1144,8 @@ bool Assembly::make_final()
                     }
 
                 }
+                
+                element3d[i]->needAssembly = false ;
             }
             max = map->rbegin()->first +1;
             size_t realDofs = max ;
@@ -1294,6 +1267,8 @@ bool Assembly::make_final()
 
                     }
                 }
+                
+                element3d[i]->needAssembly = false ;
             }
             
             max = coordinateIndexedMatrix->accumulated_row_size.size() ;

@@ -158,6 +158,11 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             r[i] *= -1 ;
     
         double err0 = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
+        if(isnan(err0))
+        {
+            assembly->printDiag() ;
+            exit(0) ;
+        }
         
         if(nit == 0)
             errmin = err0 ;
@@ -168,6 +173,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
             return true ;
         }
+        
         std::cerr << "p\t" << err0 << std::endl  ;
         if(nit && std::abs(err0-perr) < 1e-4*std::max(err0, perr))
             multi *=2 ;
@@ -306,7 +312,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     double err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
     double last_rho = err ;
     std::cerr << "\n CG " << p.size() << " did not converge after " << nit*attempts << " iterations. Error : " << err << ", last rho = " << last_rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
-    return true ;
+    return false ;
 }
 
 }

@@ -665,33 +665,12 @@ void HatEnrichment::eval(double * a, double * b, double * c) const
         Point toCenter = test.getCenter()-pcopy ;
         toCenter /= toCenter.norm() ;
         
-//         while(!test.in(position))
-//         {
-             position = pcopy+toCenter*default_derivation_delta ;
-//         }
-//         position.print();
-//         test.print();
-//        
-//         test.project(&position); 
-//         position.print();
-// //         exit(0) ;
-//         position.getId() = -1 ;
+
+             position = pcopy+toCenter*2.*default_derivation_delta ;
+
 
     }
 
-    
-   
-//     if(squareDist2D(p,position) < 0.01*test.getRadius())
-//     {
-//        *c = 0 ;
-//        return ;
-//     }
-//     if(s.on(position))
-//     {
-//        *c = 0 ;
-//        return ;
-//     }
-    
     Line l(p, position-p) ;
     Line ls(s.first(), s.second()-s.first()) ;
     Point interseg = l.intersection(ls) ;
@@ -703,26 +682,24 @@ void HatEnrichment::eval(double * a, double * b, double * c) const
         return ;
     }
 
-//     Triangle t(p, s.first(), s.second()) ;
     Point pmin = intersgeo[0] ;
     
     if(squareDist2D(test.getCenter(), pmin) > squareDist2D(test.getCenter(), intersgeo[1]))
         pmin = intersgeo[1] ;
 
-    double distTotPoint = sqrt(squareDist2D(p, pmin));
-    double distTotSeg = sqrt(squareDist2D(interseg, pmin)); 
-    double renorm = 1 ; //std::max(distTotPoint,distTotSeg) ;
+    double distTotPoint = std::max(sqrt(squareDist2D(p, pmin)), default_derivation_delta);
+    double distTotSeg = std::max(sqrt(squareDist2D(interseg, pmin)), default_derivation_delta); 
     
     if(g->in(p) == g->in(position))
     { 
         double distPos = sqrt(squareDist2D(position, p)) ;
-        *c = std::min(distPos/distTotPoint, 1.)*renorm ;
+        *c = std::min(distPos/distTotPoint, 1.) ;
 
         return ;
     }
     
     double distPos = sqrt(squareDist2D(position, interseg)) ;
-    *c = std::min(distPos/distTotSeg, 1.)*renorm ;
+    *c = std::min(distPos/distTotSeg, 1.) ;
 }
 
 GeometryOperation * HatEnrichment::getCopy() const 
