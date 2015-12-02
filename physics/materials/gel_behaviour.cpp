@@ -18,7 +18,7 @@ GelBehaviour::GelBehaviour(bool st, double E, double nu, double alpha, SpaceDime
 Form * GelBehaviour::getCopy() const
 {
 	if(!spaceTime)
-		return this->getCopy() ;
+		return new  StiffnessWithImposedDeformation(param, imposed);
 
 	Matrix c = param ;
 	Vector a = imposed ;
