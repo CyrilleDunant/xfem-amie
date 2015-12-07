@@ -12,7 +12,7 @@
 #include "./../utilities/granulo.h"
 #include "./../utilities/parser.h"
 #include "./../utilities/writer/triangle_writer.h"
-//#include "./../utilities/writer/mesh_writer.h"
+#include "./../utilities/writer/exodus_writer.h"
 
 
 #include <fstream>
@@ -123,14 +123,14 @@ int main( int argc, char *argv[] )
     }
 
     F.step() ;
-    std::vector<unsigned int> dummy ;
-    std::vector<Geometry *> inclusions ;
-    for(size_t i = 0 ; i < incs.size() ; i++)
-        inclusions.push_back(dynamic_cast<Geometry *>(incs[i])) ;
-    dummy.push_back( F.get2DMesh()->generateCache(inclusions) ) ;
-    std::vector<unsigned int> all ;
-    all.push_back(F.get2DMesh()->generateCacheOut(dummy)) ;
-    all.push_back(dummy[0]) ;
+
+   ExodusTriangleWriter exo("test.txt", &F, 1) ;
+   exo.setCache( incs ) ;
+   exo.finalizeCache() ;
+   exo.setncgen( "/home/ag3/Code/netcdf/netcdf-c-4.4.0-rc5/ncgen/ncgen" ) ;
+   exo.setUSDateFormat(true) ;
+   exo.getField( STRAIN_FIELD ) ;
+   exo.write() ;
 
 //    MeshWriter::exportExodus2D("test.e.txt", &F, all) ;
     Vector strain = F.getAverageField( STRAIN_FIELD, -1, 1. ) ;

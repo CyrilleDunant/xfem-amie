@@ -415,7 +415,7 @@ public:
 
     }
 
-    virtual unsigned int generateCache( Segment * source, double width = 0.001) {
+    virtual unsigned int generateCache( Segment * source, double width = 0.001, bool side = false) {
         //search for first empty cache slot ;
         getElements() ;
         if ( caches.empty() ) {
@@ -440,8 +440,24 @@ public:
         for ( auto & element : elems ) {
             if(source->intersects(dynamic_cast<IntegrableEntity *>(element)))
             {
-                caches[position].push_back ( element->index ) ;
-                coefs[position].push_back ( std::vector<double>() ) ;
+                bool on = true ;
+                if(side)
+                {
+                     on = false ;
+                     size_t count = 0 ;
+                     for(size_t i = 0 ; i < element->getBoundingPoints().size()/element->timePlanes() ; i++)
+                     {
+                         if( source->on(element->getBoundingPoint(i)) )
+                             count++ ;
+                     }
+                     if(count >= 2)
+                         on = true ;
+                }
+                if(on)
+                {
+                    caches[position].push_back ( element->index ) ;
+                    coefs[position].push_back ( std::vector<double>() ) ;
+                }
             }
         }
         return position ;
