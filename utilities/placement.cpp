@@ -84,13 +84,13 @@ void transform3D( Feature * inc, double x, double y, double z)
     inc->setCenter( c ) ;
 }
 
-std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones)
+std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones, size_t seed)
 {
     std::vector<Feature *> ret ;
     int tries = 0 ;
 
     std::vector<Point> boundingBox = box->getBoundingBox() ;
-    std::default_random_engine generator ;
+    std::default_random_engine generator(seed) ;
     std::uniform_real_distribution< double > xDistribution( boundingBox[0].getX(), boundingBox[2].getX() ) ;
     std::uniform_real_distribution< double > yDistribution( boundingBox[0].getY(), boundingBox[2].getY() ) ;
     std::uniform_real_distribution< double > rDistribution( -orientation, orientation ) ;
@@ -161,7 +161,7 @@ std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Featur
     return ret ;
 }
 
-std::vector<Feature *> Amie::placement3D(const Geometry* box, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones)
+std::vector<Feature *> Amie::placement3D(const Geometry* box, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones, size_t seed)
 {
     std::vector<Feature *> ret ;
     int tries = 0 ;
@@ -201,7 +201,7 @@ std::vector<Feature *> Amie::placement3D(const Geometry* box, std::vector<Featur
             max_z = boundingBox[j].getZ() ;
         }
     }
-    std::default_random_engine generator ;
+    std::default_random_engine generator(seed) ;
     std::uniform_real_distribution< double > xDistribution( min_x, max_x ) ;
     std::uniform_real_distribution< double > yDistribution( min_y, max_y ) ;
     std::uniform_real_distribution< double > zDistribution( min_z, max_z ) ;
@@ -271,13 +271,13 @@ std::vector<Feature *> Amie::placement3D(const Geometry* box, std::vector<Featur
 }
 
 
-std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::vector<Geometry *> base, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones)
+std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::vector<Geometry *> base, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones, size_t seed)
 {
     std::vector<Feature *> ret ;
     int tries = 0 ;
 
     std::vector<Point> boundingBox = box->getBoundingBox() ;
-    std::default_random_engine generator ;
+    std::default_random_engine generator(seed) ;
     std::uniform_real_distribution< double > xDistribution( boundingBox[0].getX(), boundingBox[2].getX() ) ;
     std::uniform_real_distribution< double > yDistribution( boundingBox[0].getY(), boundingBox[2].getY() ) ;
     std::uniform_real_distribution< double > rDistribution( -orientation, orientation ) ;
@@ -346,13 +346,13 @@ std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::v
     return ret ;
 }
 
-std::vector<Feature *> Amie::placement2DOnEdge(const Geometry* box, std::vector<Geometry *> base, std::vector<Feature *> inclusions, bool vertex, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones)
+std::vector<Feature *> Amie::placement2DOnEdge(const Geometry* box, std::vector<Geometry *> base, std::vector<Feature *> inclusions, bool vertex, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones, size_t seed)
 {
     std::vector<Feature *> ret ;
     int tries = 0 ;
 
     std::vector<Point> boundingBox = box->getBoundingBox() ;
-    std::default_random_engine generator ;
+    std::default_random_engine generator(seed) ;
     std::uniform_real_distribution< double > xDistribution( boundingBox[0].getX(), boundingBox[2].getX() ) ;
     std::uniform_real_distribution< double > yDistribution( boundingBox[0].getY(), boundingBox[2].getY() ) ;
     std::uniform_real_distribution< double > rDistribution( -orientation, orientation ) ;

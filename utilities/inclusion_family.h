@@ -25,6 +25,8 @@ struct InclusionFamily
 
 	InclusionFamily() { keepNoFatherFeatures = true ; } 
 	InclusionFamily( size_t n, double rmax, double surface, ParticleSizeDistribution * type = nullptr, InclusionGenerator * geometry = nullptr) ;
+        InclusionFamily(Feature * matrix) ;
+        InclusionFamily(std::vector<Feature *> inclusions, InclusionFamily * father = nullptr, int index = 0) ;
 
 	void setFather( InclusionFamily * f, size_t i ) { father = f ; fatherIndex = i ; }
 

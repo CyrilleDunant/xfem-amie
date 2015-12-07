@@ -12,6 +12,7 @@
 #include "./../utilities/granulo.h"
 #include "./../utilities/parser.h"
 #include "./../utilities/writer/triangle_writer.h"
+//#include "./../utilities/writer/mesh_writer.h"
 
 
 #include <fstream>
@@ -33,6 +34,7 @@ int main( int argc, char *argv[] )
     parser.addFlag("--no-export", "disable export of the triangles" ) ;
     parser.addFlag("--mesh-only", "stop simulation after meshing", "-m" ) ;
     parser.addValue("--inclusions", 10000, "number of aggregates (default 10,000)", "-i" ) ;
+    parser.addValue("--seed", 1, "seed for the random placement of aggregates" ) ;
     parser.addString("--matrix-behaviour", "", "path to a *.ini file containing the matrix mechanical behaviour") ;
     parser.addString("--inclusion-behaviour", "", "path to a *.ini file containing the inclusion mechanical behaviour") ;
     parser.addString("--export-file", std::string(), "name of the file to export the triangles (auto-generated if not specified)", "-e" ) ;
@@ -44,6 +46,7 @@ int main( int argc, char *argv[] )
     bool exp = !parser.getFlag("--no-export") ;
     bool bc = !parser.getFlag("--mesh-only") ;
     int inc = parser.getValue("--inclusions") ;
+    size_t seed = parser.getValue("--seed") ;
     std::string matrixBehaviour = parser.getString("--matrix-behaviour") ;
     std::string inclusionBehaviour = parser.getString("--inclusion-behaviour") ;
     std::string file = parser.getString("--export-file") ;
@@ -61,7 +64,7 @@ int main( int argc, char *argv[] )
     
 
     Form * paste = new PasteBehaviour(true) ;
-    Form * agg = new AggregateBehaviour(true, true) ;
+    Form * agg = new AggregateBehaviour(true) ;
 
     if(viscous)
     {
@@ -100,8 +103,9 @@ int main( int argc, char *argv[] )
     F.setDeltaTime( 0.01 ) ;
     parser.setFeatureTree( &F ) ;
 
+    std::vector<Feature *> incs ;
     if(inc > 0)   
-        PSDGenerator::get2DConcrete(&F, agg, inc, 0.012, 0.00005, new PSDBolomeA(), nullptr , 1e8  ) ;
+        incs = (PSDGenerator::get2DConcrete(&F, agg, inc, 0.02, 0.00005, new PSDBolomeA(), nullptr , 1e8 , 0.8, nullptr, std::vector<Geometry *>(), seed )) ;
 
     if(!viscous)
     {
@@ -119,6 +123,16 @@ int main( int argc, char *argv[] )
     }
 
     F.step() ;
+    std::vector<unsigned int> dummy ;
+    std::vector<Geometry *> inclusions ;
+    for(size_t i = 0 ; i < incs.size() ; i++)
+        inclusions.push_back(dynamic_cast<Geometry *>(incs[i])) ;
+    dummy.push_back( F.get2DMesh()->generateCache(inclusions) ) ;
+    std::vector<unsigned int> all ;
+    all.push_back(F.get2DMesh()->generateCacheOut(dummy)) ;
+    all.push_back(dummy[0]) ;
+
+//    MeshWriter::exportExodus2D("test.e.txt", &F, all) ;
     Vector strain = F.getAverageField( STRAIN_FIELD, -1, 1. ) ;
     Vector stress = F.getAverageField( REAL_STRESS_FIELD, -1, 1. ) ;
     Vector dmg = F.getAverageField( SCALAR_DAMAGE_FIELD , -1, 1. ) ;

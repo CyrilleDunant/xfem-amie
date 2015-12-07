@@ -86,11 +86,10 @@ std::vector<Geometry *> InclusionFamily::getFeaturesAsGeometry(size_t index)
 
 void InclusionFamily::place( Rectangle * box, double spacing, size_t tries, size_t seed )
 {
-	srand(seed) ;
 	std::vector<Geometry *> brothers ;
 	for(size_t i = 0 ; i < features.size() ; i++)
 	{
-		std::vector<Feature *> placed = placement2D( box, features[i], spacing, 0, tries, rotations[i], brothers ) ;
+		std::vector<Feature *> placed = placement2D( box, features[i], spacing, 0, tries, rotations[i], brothers, seed ) ;
 		features[i] = placed ;
 		for(size_t j = 0 ; j < placed.size() ; j++)
 			brothers.push_back(dynamic_cast<Geometry *>(placed[j])) ;
@@ -105,12 +104,11 @@ EmbeddedInclusionFamily::EmbeddedInclusionFamily( size_t n, double rmax, double 
 
 void EmbeddedInclusionFamily::place( Rectangle * box, double spacing, size_t tries, size_t seed )
 {
-	srand(seed) ;
 	std::vector<Geometry *> brothers ;
 	std::vector<Geometry *> fathers = father->getFeaturesAsGeometry(fatherIndex) ;
 	for(size_t i = 0 ; i < features.size() ; i++)
 	{
-		std::vector<Feature *> placed = placement2DInInclusions( box, fathers, features[i], spacing, 0, tries, rotations[i], brothers ) ;
+		std::vector<Feature *> placed = placement2DInInclusions( box, fathers, features[i], spacing, 0, tries, rotations[i], brothers, seed ) ;
 		features[i] = placed ;
 		for(size_t j = 0 ; j < placed.size() ; j++)
 		{
@@ -139,12 +137,11 @@ MaskedInclusionFamily::MaskedInclusionFamily( size_t n, double rmax, double frac
 
 void MaskedInclusionFamily::place( Rectangle * box, double spacing, size_t tries, size_t seed )
 {
-	srand(seed) ;
 	std::vector<Geometry *> brothers ;
 	std::vector<Geometry *> fathers = father->getFeaturesAsGeometry( fatherIndex ) ;
 	for(size_t i = 0 ; i < features.size() ; i++)
 	{
-		std::vector<Feature *> placed = placement2D( box, features[i], spacing, 0, tries, rotations[i], brothers ) ;
+		std::vector<Feature *> placed = placement2D( box, features[i], spacing, 0, tries, rotations[i], brothers, seed ) ;
 		features[i] = placed ;
 		for(size_t j = 0 ; j < placed.size() ; j++)
 		{
@@ -221,12 +218,10 @@ void VoronoiInclusionFamily::concatenate( InclusionFamily * brother )
 
 void VoronoiInclusionFamily::place( Rectangle * box, double spacing, size_t tries, size_t seed )
 {
-	srand(seed) ;
-
 	if(father == nullptr)
-		features = PSDGenerator::get2DVoronoiPolygons( box, grains, n, -1, spacing, nmax, copy, spacing ) ;
+		features = PSDGenerator::get2DVoronoiPolygons( box, grains, n, -1, spacing, nmax, copy, spacing, seed ) ;
 	else
-		features = PSDGenerator::get2DVoronoiPolygons( box, grains, father->getFeatures(fatherIndex), n, -1, spacing, nmax, copy, spacing) ;
+		features = PSDGenerator::get2DVoronoiPolygons( box, grains, father->getFeatures(fatherIndex), n, -1, spacing, nmax, copy, spacing, seed) ;
 	generated = true ;
 
 	
