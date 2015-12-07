@@ -468,7 +468,6 @@ Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double G,  double 
         else
             cg.array() = 0 ;
     }
-    cg.print();
     return cg ;
 }
 

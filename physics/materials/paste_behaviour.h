@@ -38,7 +38,7 @@ struct PasteBehaviour : public WeibullDistributedStiffness
     double eta10 ;
     double eta300 ;
 
-    PasteBehaviour(bool elastic = false, bool st = false, double E = 12e9, double nu = 0.3,  double up = 3e6, double shortTermCreepFactor = 3.6e9, double longTermCreepFactor = 4e9, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, double r = 0.000175, double var = 0.2, int blocks = 0) ;
+    PasteBehaviour(bool elastic = false, bool st = false, double E = 12e9, double nu = 0.3,  double up = 3e6, double shortTermCreepFactor = 3.6e9, double longTermCreepFactor = 4e9, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, double r = 0.0003, double var = 0.2, int blocks = 0) ;
 
     virtual Form * getCopy() const ;
 
