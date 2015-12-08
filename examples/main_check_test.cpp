@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 
 	if(skip.size() > 0)
 	{
-		std::cout << "Warning: you are about to disble the test " << skip << std::endl ;
+		std::cout << "Warning: you are about to disable the test " << skip << std::endl ;
 		std::cout << "This will affect all users. Do you wish to continue? [y/n]" << std::flush ;
 		std::string buffer ;
 		getline( std::cin, buffer ) ;

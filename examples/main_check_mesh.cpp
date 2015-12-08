@@ -42,6 +42,7 @@ int main(int argc, char *argv[])
 	parser.addString("--viewer-path", "viewer", "path to AMIE viewer" ) ;
 	parser.addString("--match", "*", "runs only the tests matching the required string (default: runs all tests found)", "-m" ) ;
 	parser.addString("--test", "*", "runs a single test with required string" , "-t") ;
+	parser.addString("--output-directory","../examples/mesh/","directory where the results are stored", "-D") ;
 	parser.addValue("--set-sampling-number", 16, "set the number of points on the edge of the sample" ) ;
 	parser.addValue("--set-sampling-restriction", 0, "set the number of mesh points below which small inclusions are not meshed" ) ;
 	parser.parseCommandLine(argc, argv) ;
@@ -51,6 +52,7 @@ int main(int argc, char *argv[])
 	std::string viewer = parser.getString("--viewer-path") ;
 	std::string regexp = parser.getString("--match") ;
 	std::string exact = parser.getString("--test") ;
+	std::string dir = parser.getString("--output-directory") ;
 	if(renew)
 	{
 		std::cout << "Warning: you are about to renew the base of results. Do you wish to continue? [y/n]" << std::flush ;
@@ -90,14 +92,14 @@ int main(int argc, char *argv[])
 				base.erase(base.begin(), base.begin()+5) ;
 				if( base == exact )
 				{
-					files.push_back("../examples/mesh/"+test) ;
+					files.push_back(dir+"/"+test) ;
 					test[test.find("_")] = '/' ;
 					exec.push_back(test) ;
 				}
 			}
 			else if( regexp == "*" || test.find(regexp) != std::string::npos ) 
 			{
-				files.push_back("../examples/mesh/"+test) ;
+				files.push_back(dir+"/"+test) ;
 				test[test.find("_")] = '/' ;
 				exec.push_back(test) ;
 			}
@@ -107,7 +109,8 @@ int main(int argc, char *argv[])
 	if(!renew)
 	{
 		std::cout << "cleaning existing results..." << std::endl ;
-		std::system("rm ../examples/mesh/*_current") ;
+		std::string rm = "rm "+dir+"/*_current" ;
+		std::system(rm.c_str()) ;
 	}
 
 	for(size_t i = 0 ; i < exec.size() ; i++)

@@ -31,9 +31,11 @@ int main(int argc, char *argv[])
 {
 	CommandLineParser parser("Builds a sample with a concrete-like microstructure with ellipsoidal aggregates (aspect ratio between 0.6 and 0.8)") ;
 	parser.addFlag("--renew-base", "renew the base of results") ;
+	parser.addString("--output-directory","../examples/mesh/","directory where the results are stored", "-D") ;
 	parser.addValue("--inclusions", 1000, "number of inclusions (default: 1000)") ;
 	parser.parseCommandLine(argc, argv) ;
 	bool renew = parser.getFlag("--renew-base") ;
+	std::string dir = parser.getString("--output-directory") ;
 
         Sample rect(nullptr, 0.1,0.1,0,0) ;
 	rect.setBehaviour(new Stiffness( 10e9, 0.2 ) ) ;
@@ -47,7 +49,7 @@ int main(int argc, char *argv[])
 	
 	f.step() ;
 
-	std::string name = "../examples/mesh/mesh_concrete_ellipse_" ;
+	std::string name = dir+"/mesh_concrete_ellipse_" ;
 	if(renew)
 		name += "base" ;
 	else

@@ -1117,8 +1117,8 @@ void Rectangle::sampleBoundingSurface(double linearDensity)
             center.getX() + 0.5*size_x - i*distanceBetweenPointsAlongX +randx ,
             center.getY() + 0.5*size_y) ;
     }
-    numberOfPointsAlongY *= .5 ;
-    numberOfPointsAlongX *= .5 ;
+//    numberOfPointsAlongY *= .5 ;
+//    numberOfPointsAlongX *= .5 ;
 }
 
 void Rectangle::sampleSurface(double linearDensity, double surfaceDensityFactor)
@@ -1126,7 +1126,7 @@ void Rectangle::sampleSurface(double linearDensity, double surfaceDensityFactor)
 
 //     if(std::max(size_x/size_y, size_y/size_x) < 10)
 //     {
-        sampleBoundingSurface(linearDensity*3) ;
+        sampleBoundingSurface(linearDensity*surfaceDensityFactor) ;
 //     }
 //     else if(std::max(size_x/size_y, size_y/size_x) < 60)
 //     {
@@ -1136,6 +1136,9 @@ void Rectangle::sampleSurface(double linearDensity, double surfaceDensityFactor)
 //     {
 //         sampleBoundingSurface((size_t)round((double)num_points*0.2*std::max(size_x/size_y, size_y/size_x)/(M_PI))) ;
 //     }
+
+    numberOfPointsAlongX /= 1.+(surfaceDensityFactor-1)*0.5 ;
+    numberOfPointsAlongY /= 1.+(surfaceDensityFactor-1)*0.5 ;
 
     size_t nip = static_cast<size_t>(((double) numberOfPointsAlongX-2)*((double) numberOfPointsAlongY-2)) ;
 

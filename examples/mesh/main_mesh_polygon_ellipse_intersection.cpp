@@ -31,8 +31,10 @@ int main(int argc, char *argv[])
 {
 	CommandLineParser parser("Builds a sample with a regular polygonal inclusion intersection an ellipsoidal inclusion") ;
 	parser.addFlag("--renew-base", "renew the base of results") ;
+	parser.addString("--output-directory","../examples/mesh/","directory where the results are stored", "-D") ;
 	parser.parseCommandLine(argc, argv) ;
 	bool renew = parser.getFlag("--renew-base") ;
+	std::string dir = parser.getString("--output-directory") ;
 
         Sample rect(nullptr, 0.04,0.04,0,0) ;
 	rect.setBehaviour(new Stiffness( 10e9, 0.2 ) ) ;
@@ -55,7 +57,7 @@ int main(int argc, char *argv[])
 	
 	f.step() ;
 
-	std::string name = "../examples/mesh/mesh_polygon_ellipse_intersection_" ;
+	std::string name = dir+"/mesh_polygon_ellipse_intersection_" ;
 	if(renew)
 		name += "base" ;
 	else
