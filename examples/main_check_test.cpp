@@ -98,6 +98,8 @@ int main(int argc, char *argv[])
 	CommandLineParser parser("Run all tests found in AMIE test base") ;
 	parser.addFlag("--zero", "set tolerance and thresholds to 0", "-O") ;
 	parser.addFlag("--renew-base", "renew the base of results") ;
+	parser.addFlag("--only-ini","only runs tests defined as *.ini files") ;
+	parser.addFlag("--only-cpp","only runs tests defined as *.cpp files") ;
 	parser.addValue("--tolerance", 0.01, "set relative tolerance for evaluation of test success (default: 0.01)", "-tol" ) ;
 	parser.addValue("--threshold", 1e-6, "set absolute threshold below which success is not evaluated (default: 1e-6)", "-thres" ) ;
 	parser.addValue("--timeout", 200, "maximum time (in seconds) spent for each test; use negative values for no time limit (default: 200s)" ) ;
@@ -116,6 +118,8 @@ int main(int argc, char *argv[])
 	std::string exact = parser.getString("--test") ;
 	std::string skip = parser.getString("--disable") ;
 	bool renew = parser.getFlag("--renew-base") ;
+	bool ini = !parser.getFlag("--only-cpp") ;
+	bool cpp = !parser.getFlag("--only-ini") ;
 	std::string dir = parser.getString("--amie-build-directory") ;
 	std::string outdir = parser.getString("--output-directory") ;
 	std::string basedir = parser.getString("--base-directory") ;
@@ -171,6 +175,7 @@ int main(int argc, char *argv[])
 	std::string path(testdir) ;
 	std::vector<std::string> exec ;
 	std::vector<std::string> files ;
+	std::vector<std::string> inis ;
 	DIR * dp ;
 	struct dirent *dirp ;
 	if((dp = opendir(path.c_str())) == NULL)
@@ -201,6 +206,10 @@ int main(int argc, char *argv[])
 				exec.push_back(test) ;
 			}
 		}
+		else if(test.find(".ini") == test.size()-4 && (regexp == "*" || test.find(regexp) != std::string::npos) )
+		{
+			inis.push_back(test) ;
+		}
 	}
 
 	if(!renew)
@@ -210,7 +219,7 @@ int main(int argc, char *argv[])
 		std::system(rm.c_str()) ;
 	}
 
-	for(size_t i = 0 ; i < exec.size() ; i++)
+	for(size_t i = 0 ; i < exec.size() && cpp ; i++)
 	{
 		if(isDeprecated(files[i]))
 		{
@@ -253,8 +262,47 @@ int main(int argc, char *argv[])
 			else
 				std::cout << Font(BOLD, RED) << " FAIL " << Font() << "return value " << r << std::endl ;
 		}
-		
-		
+	}
+
+	for(size_t i = 0 ; i < inis.size() && ini ; i++)
+	{
+		timeval time0, time1 ;
+		gettimeofday ( &time0, nullptr );
+		std::cout << inis[i] << std::flush ;
+		std::string command ;
+		if(timeout > 0)
+			command = "timeout "+itoa(timeout)+" ";
+		command += dir+"/check_behaviour " + testdir+"/"+inis[i] ;
+		for(int j = 1 ; j < argc ; j++)
+			command += " " + std::string(argv[j]) ;
+		command += " 1>"+dir+"/test/"+inis[i]+".out 2>"+dir+"/"+inis[i]+".err" ;
+		int r = std::system(command.c_str()) ;
+		gettimeofday ( &time1, nullptr );
+		double dt = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
+		std::cout << " (" << dt/1000000 << "s)" << std::flush ;
+
+		if(!renew)
+		{
+			std::string name = inis[i].substr(0,inis[i].length()-4) ;
+			int delta = getDelta( basedir+"/check_behaviour_"+name+"_base", outdir+"/check_behaviour_"+name+"_current", tol, thr) ;
+			if(delta == 0 && r == 0)
+				std::cout << Font(BOLD, GREEN) << " SUCCESS" << Font() << std::endl ;
+			else if( r == 0 && delta > 0)
+				std::cout << Font(BOLD, RED) << " FAIL " << Font() << delta << " error(s) found" << std::endl ;
+			else if( r == 0 && delta < 0)
+				std::cout << Font(BOLD, RED) << " FAIL " << Font() << Font(BLUE) << "file not found: " << outdir+"/"+files[i] + (r==-1 ? "_base" : "_current") << Font() <<  std::endl ;
+			else
+				std::cout << Font(BOLD, RED) << " FAIL " << Font() << "return value " << r << std::endl ;
+		}
+		else
+		{
+			if(r == 0)
+				std::cout << Font(BOLD, GREEN) << " SUCCESS" << Font() << std::endl ;
+			else
+				std::cout << Font(BOLD, RED) << " FAIL " << Font() << "return value " << r << std::endl ;
+		}
+
+
 	}
 
 	return 0 ;

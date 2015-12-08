@@ -73,6 +73,7 @@ public:
 	Form * getBehaviour( std::string arg, Form * b, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 
 	void parseCommandLine( int argc, char *argv[] ) ;
+	void parseConfigFile( std::string file ) ;
 
 	std::vector<std::string> getActiveFlags() ;
 

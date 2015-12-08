@@ -73,6 +73,9 @@ struct LogarithmicCreep : public Viscoelasticity
         return fixCreepVariable ;
     }
 
+    virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+    virtual Matrix getViscousTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+
     virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 
 } ;
@@ -98,6 +101,9 @@ struct LogarithmicCreepWithImposedDeformation : public LogarithmicCreep
     virtual bool hasInducedForces() const {
         return fixCreepVariable || imposed.size()>0 ;
     }
+
+    virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+    virtual Matrix getViscousTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
     virtual void preProcess( double timeStep, ElementState & currentState ) ;
 

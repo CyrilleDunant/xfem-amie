@@ -5,17 +5,19 @@
 
 using namespace Amie ;
 
-LogarithmicCreep::LogarithmicCreep(const Matrix & rig, LogCreepAccumulator * acc) : Viscoelasticity(PURE_ELASTICITY, rig, 2), C(rig), E(rig*0), R(rig*0), tau(0), reducedTimeStep(-1.),  accumulator(acc), isPurelyElastic(true), updated(true), timeDependentIntegration(false),fixCreepVariable(false), prevParam(param), prevEta(eta)
+LogarithmicCreep::LogarithmicCreep(const Matrix & rig, LogCreepAccumulator * acc) : Viscoelasticity(PURE_ELASTICITY, rig, 2), C(rig), E(rig*0), R(rig*0), tau(0), reducedTimeStep(-1.),  accumulator(acc), isPurelyElastic(true), updated(true), timeDependentIntegration(true),fixCreepVariable(false), prevParam(param), prevEta(eta)
 {
+		model = GENERALIZED_KELVIN_VOIGT ;
     makeBlockConnectivity() ;
 }
 
-LogarithmicCreep::LogarithmicCreep(const Matrix & rig, const Matrix & vs, const Matrix & vr, double t, LogCreepAccumulator * acc) : Viscoelasticity(BURGER, rig, vr, vr*t, vs*t), C(rig), E(vs), R(vr), tau(t), reducedTimeStep(-1.), accumulator(acc), isPurelyElastic(false), updated(true),timeDependentIntegration(false), fixCreepVariable(false),  prevParam(param), prevEta(eta)
+LogarithmicCreep::LogarithmicCreep(const Matrix & rig, const Matrix & vs, const Matrix & vr, double t, LogCreepAccumulator * acc) : Viscoelasticity(BURGER, rig, vr, vr*t, vs*t), C(rig), E(vs), R(vr), tau(t), reducedTimeStep(-1.), accumulator(acc), isPurelyElastic(false), updated(true),timeDependentIntegration(true), fixCreepVariable(false),  prevParam(param), prevEta(eta)
 {
+		model = GENERALIZED_KELVIN_VOIGT ;
     makeBlockConnectivity() ;
 }
 
-LogarithmicCreep::LogarithmicCreep(double young, double poisson, double E_creep, double nu_creep, double t, double E_recovery, double nu_recovery, LogCreepAccumulator * acc, SpaceDimensionality dim, planeType pt) : Viscoelasticity(PURE_ELASTICITY, Tensor::cauchyGreen(young, poisson, true, dim, pt), 2), tau(t), reducedTimeStep(-1.), accumulator(acc), updated(true), timeDependentIntegration(false),fixCreepVariable(false), prevParam(param), prevEta(eta)
+LogarithmicCreep::LogarithmicCreep(double young, double poisson, double E_creep, double nu_creep, double t, double E_recovery, double nu_recovery, LogCreepAccumulator * acc, SpaceDimensionality dim, planeType pt) : Viscoelasticity(PURE_ELASTICITY, Tensor::cauchyGreen(young, poisson, true, dim, pt), 2), tau(t), reducedTimeStep(-1.), accumulator(acc), updated(true), timeDependentIntegration(true),fixCreepVariable(false), prevParam(param), prevEta(eta)
 {
     C = Tensor::cauchyGreen(young, poisson, true, dim, pt) ;
     double nu = poisson ;
@@ -33,6 +35,11 @@ LogarithmicCreep::LogarithmicCreep(double young, double poisson, double E_creep,
         R = 0 ;
         isPurelyElastic = true ;
     }
+    else
+    {
+		double a = R[1][1]/E[1][1] ;
+		tau /= exp(-a) ;
+    }
 
         param = 0. ;
         eta = 0. ;
@@ -44,16 +51,14 @@ LogarithmicCreep::LogarithmicCreep(double young, double poisson, double E_creep,
             placeMatrixInBlock(S,0,2,param) ;
             placeMatrixInBlock(S,1,0,param) ;
             placeMatrixInBlock(S,2,0,param) ;
-            placeMatrixInBlock(C,1,1,param) ;
             placeMatrixInBlock(C,1,2,param) ;
             placeMatrixInBlock(C,2,1,param) ;
-            placeMatrixInBlock(C,2,2,param) ;
-            S = E*(accumulator->getKelvinVoigtSpringReduction()) ;
-            addMatrixInBlock(S,1,1,param) ;
-            S = E*accumulator->getKelvinVoigtDashpotReduction() ;
-            placeMatrixInBlock(E,1,1,eta) ;
-            addMatrixInBlock(R,2,2,param) ;
-            addMatrixInBlock(R*tau,2,2,eta) ;
+		placeMatrixInBlock( C+E*accumulator->getKelvinVoigtSpringReduction(), 1,1, param) ;
+		placeMatrixInBlock( E*tau*accumulator->getKelvinVoigtDashpotReduction(), 1,1, eta) ;
+		placeMatrixInBlock( C+R, 2,2, param) ;
+		placeMatrixInBlock( R*tau, 2,2, eta) ;
+
+	model = GENERALIZED_KELVIN_VOIGT ;
         }
 
     makeBlockConnectivity() ;
@@ -86,6 +91,7 @@ void LogarithmicCreep::preProcess(double timeStep, ElementState & currentState)
         param = 0. ;
         eta = 0. ;
         placeMatrixInBlock(C,0,0,param) ;
+	model = PURE_ELASTICITY ;
         if(!isPurelyElastic)
         {
             accumulator->preProcess(timeStep, currentState) ;
@@ -94,18 +100,18 @@ void LogarithmicCreep::preProcess(double timeStep, ElementState & currentState)
             placeMatrixInBlock(S,0,2,param) ;
             placeMatrixInBlock(S,1,0,param) ;
             placeMatrixInBlock(S,2,0,param) ;
-            placeMatrixInBlock(C,1,1,param) ;
             placeMatrixInBlock(C,1,2,param) ;
             placeMatrixInBlock(C,2,1,param) ;
-            placeMatrixInBlock(C,2,2,param) ;
-            S = E*(accumulator->getKelvinVoigtSpringReduction()) ;
-            addMatrixInBlock(S,1,1,param) ;
-            S = E*accumulator->getKelvinVoigtDashpotReduction() ;
-            placeMatrixInBlock(S,1,1,eta) ;
-            addMatrixInBlock(R,2,2,param) ;
-            addMatrixInBlock(R*tau,2,2,eta) ;
+		placeMatrixInBlock( C+E*accumulator->getKelvinVoigtSpringReduction(), 1,1, param) ;
+		placeMatrixInBlock( E*tau*accumulator->getKelvinVoigtDashpotReduction(), 1,1, eta) ;
+		placeMatrixInBlock( C+R, 2,2, param) ;
+		placeMatrixInBlock( R*tau, 2,2, eta) ;
+
+		model = GENERALIZED_KELVIN_VOIGT ;
         }
+	currentState.getParent()->behaviourUpdated = true ;
     }
+
 }
 
 void LogarithmicCreep::step(double timestep, ElementState &s, double maxScore)
@@ -306,6 +312,26 @@ Vector LogarithmicCreepWithImposedDeformationAndFracture::getImposedStress(const
         return C*getImposedStrain(p,e,g) ;
     }
     return Vector(0., C.numCols()) ;
+}
+
+Matrix LogarithmicCreep::getTensor(const Point & p, IntegrableEntity * e, int g) const
+{
+    return param*(p.getT()+1.)*0.5 + prevParam*(1.-p.getT())*0.5 ;
+}
+
+Matrix LogarithmicCreep::getViscousTensor(const Point & p, IntegrableEntity * e, int g) const
+{
+    return eta*(p.getT()+1.)*0.5 + prevEta*(1.-p.getT())*0.5 ;
+}
+
+Matrix LogarithmicCreepWithImposedDeformation::getTensor(const Point & p, IntegrableEntity * e, int g) const
+{
+    return param*(p.getT()+1.)*0.5 + prevParam*(1.-p.getT())*0.5 ;
+}
+
+Matrix LogarithmicCreepWithImposedDeformation::getViscousTensor(const Point & p, IntegrableEntity * e, int g) const
+{
+    return eta*(p.getT()+1.)*0.5 + prevEta*(1.-p.getT())*0.5 ;
 }
 
 Matrix LogarithmicCreepWithImposedDeformationAndFracture::getTensor(const Point & p, IntegrableEntity * e, int g) const

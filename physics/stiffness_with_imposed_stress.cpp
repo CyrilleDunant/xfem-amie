@@ -11,6 +11,7 @@
 //
 
 #include "stiffness_with_imposed_stress.h"
+#include "homogenization/composite.h"
 #include "../features/boundarycondition.h"
 
 using namespace Amie ;
@@ -72,12 +73,14 @@ void StiffnessWithImposedStress::step(double timestep, ElementState & currentSta
 
 Vector StiffnessWithImposedStress::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
-    return (param * imposed) ;
+    return (imposed) ;
 }
 
 Vector StiffnessWithImposedStress::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
-    return imposed ;
+    Matrix compliance = param ;
+    Composite::invertTensor(compliance) ;
+    return compliance*imposed ;
 }
 
 std::vector<BoundaryCondition * > StiffnessWithImposedStress::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const

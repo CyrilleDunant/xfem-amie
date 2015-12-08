@@ -668,6 +668,23 @@ void setFeatureTree( FeatureTree * f, int argc, char *argv[], std::string descri
     parser.setFeatureTree(f) ;
 }
 
+void CommandLineParser::parseConfigFile( std::string file )
+{
+	ConfigTreeItem * tmp = ConfigParser::readFile( file, nullptr, false, false ) ;
+	if(tmp->hasChild( "define" ) )
+	{
+		std::vector<ConfigTreeItem *> args = tmp->getChild( "define" )->getAllChildren() ;
+		for(size_t i = 0 ; i < args.size() ; i++)
+		{
+			if(flags.find( args[i]->getLabel() ) != flags.end() )
+				flags[ args[i]->getLabel() ] = true ;
+			if(values.find( args[i]->getLabel() ) != values.end() )
+				values[ args[i]->getLabel() ] = args[i]->getData() ;
+			if(strings.find( args[i]->getLabel() ) != strings.end() )
+				strings[ args[i]->getLabel() ] = args[i]->getStringData() ;
+		}
+	}
+}
 
 void CommandLineParser::parseCommandLine( int argc, char *argv[] )
 {

@@ -29,20 +29,30 @@ int main(int argc, char *argv[])
 {
 	CommandLineParser parser("Makes a tensile test on a 2 elements sample at a constant imposed displacement rate") ;
 	parser.addArgument("file_name", "", "path to a *.ini file containing the behaviour of the sample" ) ;
-	parser.addValue("--steps", 10, "number of loading steps","-s") ;
-	parser.addValue("--maximum-value", 0.001, "maximum value of the mechanical boundary condition","-m") ;
+	parser.addFlag("--renew-base", "renew the base of results") ;
 	parser.addFlag("--constant","sets a constant boundary condition", "-c") ;
 	parser.addFlag("--free","sets no boundary condition", "-f") ;
 	parser.addFlag("--stress","sets the mechanical boundary condition in stress instead of imposed displacements", "-S") ;
+	parser.addFlag("--incremental-delta-time","progressively increments the time step" ) ;
+	parser.addValue("--steps", 10, "number of loading steps","-s") ;
+	parser.addValue("--maximum-value", 0.001, "maximum value of the mechanical boundary condition","-m") ;
+	parser.addString("--output-directory","../examples/test/","directory where the results are stored", "-D") ;
 	parser.parseCommandLine(argc, argv) ;
-
+	std::string test = parser.getStringArgument("file_name") ;
 	Form * behaviour = parser.getBehaviour( "file_name" , new Stiffness(10e9, 0.2), SPACE_TWO_DIMENSIONAL ) ;
-	size_t steps = parser.getValue("--steps") ;
-	double val = parser.getValue("--maximum-value") ;
+	parser.parseConfigFile( test ) ;
+
 	bool constant = parser.getFlag("--constant") ;
 	bool free = parser.getFlag("--free") ;
 	bool stress = parser.getFlag("--stress") ;
+	bool renew = parser.getFlag("--renew-base") ;
+	bool incr = parser.getFlag("--incremental-delta-time") ;
+	size_t steps = parser.getValue("--steps") ;
+	double val = parser.getValue("--maximum-value") ;
 	double init = (constant ? val : 0 ) ;
+	std::string outdir = parser.getString("--output-directory") ;
+	test = test.substr(test.rfind('/')+1, std::string::npos) ;
+	test = test.substr(0, test.length()-4) ;
 	
 	Sample sample(0.01,0.01,0,0) ;
 	sample.setBehaviour(behaviour) ;
@@ -50,10 +60,11 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	
 	parser.setFeatureTree(&F) ;
-	F.setSamplingNumber(1) ;
+	F.setSamplingNumber(0) ;
 
 	F.step() ;
-	std::cout << F.getCurrentTime() << "\t" << 0 << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1)[1] << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1)[1] << std::endl ;
+	std::cout << F.getCurrentTime() << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1)[1]*1e3 << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1)[1]/1e6 << std::endl ;
+	double dt = F.getDeltaTime() ;
 
 	BoundingBoxDefinedBoundaryCondition * up ;	
 	if(F.getOrder() < CONSTANT_TIME_LINEAR)
@@ -79,15 +90,28 @@ int main(int argc, char *argv[])
 			F.addBoundaryCondition(up) ;
 	}
 
-	
+	std::fstream out ;
+	if(renew)
+	{
+		out.open( outdir+"/check_behaviour_"+test+"_base", std::ios::out ) ;
+	}
+	else
+	{
+		out.open( outdir+"/check_behaviour_"+test+"_current", std::ios::out ) ;
+	}
+
 	for(size_t i = 1 ; i < steps+1 ; i++)
 	{	
 		if(!constant)
 			up->setData(val*(double) i/(double) steps) ;
+		if(incr)
+			F.setDeltaTime( F.getDeltaTime()+dt ) ;
 		F.step() ;
-		std::cout << F.getCurrentTime() << "\t" << up->getData() << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1)[1] << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1)[1] << std::endl ;
+		std::cout << F.getCurrentTime()  << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1)[1]*1e3 << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1)[1]/1e6 << std::endl ;
+		out << F.getCurrentTime() << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1)[1]*1e3 << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1)[1]/1e6 << std::endl ;
 	}		
 
+	F.getAssembly()->print() ;
 
 	return 0 ;
 }
