@@ -467,26 +467,11 @@ target_link_libraries( check_test Amie ${ALL_LINK_FLAGS} )
 add_executable(check_behaviour EXCLUDE_FROM_ALL examples/main_check_behaviour.cpp )
 target_link_libraries( check_behaviour Amie ${ALL_LINK_FLAGS} )
 
-add_executable( test/logcreep EXCLUDE_FROM_ALL examples/test/main_test_logcreep.cpp )
-target_link_libraries( test/logcreep Amie ${ALL_LINK_FLAGS})
-
 add_executable( test/viscodamage_multilinearsoftening EXCLUDE_FROM_ALL examples/test/main_test_viscodamage_multilinearsoftening.cpp )
 target_link_libraries( test/viscodamage_multilinearsoftening Amie ${ALL_LINK_FLAGS})
 
-add_executable( test/viscoelasticity_kv EXCLUDE_FROM_ALL examples/test/main_test_viscoelasticity_kv.cpp )
-target_link_libraries( test/viscoelasticity_kv Amie ${ALL_LINK_FLAGS})
-
 add_executable( test/xfem EXCLUDE_FROM_ALL examples/test/main_test_xfem.cpp )
 target_link_libraries( test/xfem Amie ${ALL_LINK_FLAGS})
-
-add_executable( test/imposed_deformation EXCLUDE_FROM_ALL examples/test/main_test_imposed_deformation.cpp )
-target_link_libraries( test/imposed_deformation Amie ${ALL_LINK_FLAGS})
-
-add_executable( test/viscoelasticity_imposed_deformation EXCLUDE_FROM_ALL examples/test/main_test_viscoelasticity_imposed_deformation.cpp )
-target_link_libraries( test/viscoelasticity_imposed_deformation Amie ${ALL_LINK_FLAGS})
-
-add_executable( test/logcreep_imposed_deformation EXCLUDE_FROM_ALL examples/test/main_test_logcreep_imposed_deformation.cpp )
-target_link_libraries( test/logcreep_imposed_deformation Amie ${ALL_LINK_FLAGS})
 
 add_executable( test/stxfem EXCLUDE_FROM_ALL examples/test/main_test_stxfem.cpp )
 target_link_libraries( test/stxfem Amie ${ALL_LINK_FLAGS})
