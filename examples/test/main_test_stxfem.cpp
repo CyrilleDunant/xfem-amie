@@ -28,8 +28,10 @@ int main( int argc, char *argv[] )
 {
 	CommandLineParser parser("Test a single space-time XFEM inclusion") ;
 	parser.addFlag("--renew-base", "renew the base of results") ;
+	parser.addString("--output-directory","../examples/test/","directory where the results are stored", "-D") ;
 	parser.parseCommandLine(argc, argv) ;
 	bool renew = parser.getFlag("--renew-base") ;
+	std::string outdir = parser.getString("--output-directory") ;
 
 
     Matrix C = Tensor::cauchyGreen( 10e9, 0.2, true, SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
@@ -54,9 +56,9 @@ int main( int argc, char *argv[] )
 
     std::ofstream out ;
     if(renew)
-        out.open("../examples/test/test_stxfem_base", std::ios::out) ;
+        out.open(outdir+"/test_stxfem_base", std::ios::out) ;
     else
-        out.open("../examples/test/test_stxfem_current", std::ios::out) ;
+        out.open(outdir+"/test_stxfem_current", std::ios::out) ;
 
     F.step() ;
     Vector str = F.getAverageField( STRAIN_FIELD, -1, 1 ) ;

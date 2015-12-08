@@ -27,10 +27,12 @@ int main(int argc, char *argv[])
 {
 	CommandLineParser parser("Test the randomness of a weibull-distributed stiffness") ;
 	parser.addFlag("--renew-base", "renew the base of results") ;
+	parser.addString("--output-directory","../examples/test/","directory where the results are stored", "-D") ;
 	parser.addValue("--seed", 1, "random seed") ;
 	parser.parseCommandLine(argc, argv) ;
 	bool renew = parser.getFlag("--renew-base") ;
 	std::srand( parser.getValue("--seed") ) ;
+	std::string outdir = parser.getString("--output-directory") ;
 
 
         Sample rect(nullptr, 0.04,0.04,0,0) ;
@@ -69,9 +71,9 @@ int main(int argc, char *argv[])
 
 	std::ofstream out ;
 	if(renew)
-		out.open("../examples/test/test_weibull_base", std::ios::out) ;
+		out.open(outdir+"/test_weibull_base", std::ios::out) ;
 	else
-		out.open("../examples/test/test_weibull_current", std::ios::out) ;
+		out.open(outdir+"/test_weibull_current", std::ios::out) ;
 
 
 	out << min << "\t" << max << std::endl ;

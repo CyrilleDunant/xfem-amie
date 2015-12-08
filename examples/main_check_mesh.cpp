@@ -42,7 +42,9 @@ int main(int argc, char *argv[])
 	parser.addString("--viewer-path", "viewer", "path to AMIE viewer" ) ;
 	parser.addString("--match", "*", "runs only the tests matching the required string (default: runs all tests found)", "-m" ) ;
 	parser.addString("--test", "*", "runs a single test with required string" , "-t") ;
+	parser.addString("--amie-build-directory","./","directory of the build of the main AMIE distribution", "-A") ;
 	parser.addString("--output-directory","../examples/mesh/","directory where the results are stored", "-D") ;
+	parser.addString("--base-directory","../examples/mesh/","directory where the results are stored", "-B") ;
 	parser.addValue("--set-sampling-number", 16, "set the number of points on the edge of the sample" ) ;
 	parser.addValue("--set-sampling-restriction", 0, "set the number of mesh points below which small inclusions are not meshed" ) ;
 	parser.parseCommandLine(argc, argv) ;
@@ -52,7 +54,11 @@ int main(int argc, char *argv[])
 	std::string viewer = parser.getString("--viewer-path") ;
 	std::string regexp = parser.getString("--match") ;
 	std::string exact = parser.getString("--test") ;
-	std::string dir = parser.getString("--output-directory") ;
+	std::string dir = parser.getString("--amie-build-directory") ;
+	std::string outdir = parser.getString("--output-directory") ;
+	std::string basedir = parser.getString("--base-directory") ;
+	std::string meshdir = dir+"../examples/mesh/" ;
+
 	if(renew)
 	{
 		std::cout << "Warning: you are about to renew the base of results. Do you wish to continue? [y/n]" << std::flush ;
@@ -71,7 +77,7 @@ int main(int argc, char *argv[])
 	}
 
 
-	std::string path("../examples/mesh/") ;
+	std::string path(meshdir) ;
 	std::vector<std::string> exec ;
 	std::vector<std::string> files ;
 	DIR * dp ;
@@ -92,14 +98,14 @@ int main(int argc, char *argv[])
 				base.erase(base.begin(), base.begin()+5) ;
 				if( base == exact )
 				{
-					files.push_back(dir+"/"+test) ;
+					files.push_back("/"+test) ;
 					test[test.find("_")] = '/' ;
 					exec.push_back(test) ;
 				}
 			}
 			else if( regexp == "*" || test.find(regexp) != std::string::npos ) 
 			{
-				files.push_back(dir+"/"+test) ;
+				files.push_back("/"+test) ;
 				test[test.find("_")] = '/' ;
 				exec.push_back(test) ;
 			}
@@ -109,7 +115,7 @@ int main(int argc, char *argv[])
 	if(!renew)
 	{
 		std::cout << "cleaning existing results..." << std::endl ;
-		std::string rm = "rm "+dir+"/*_current" ;
+		std::string rm = "rm "+outdir+"/*_current" ;
 		std::system(rm.c_str()) ;
 	}
 
@@ -122,10 +128,10 @@ int main(int argc, char *argv[])
 		std::string command ;
 		if(timeout > 0)
 			command = "timeout "+itoa(timeout)+" ";
-		command += "./" + exec[i] ;
+		command += dir + "/" + exec[i] ;
 		for(int j = 1 ; j < argc ; j++)
 			command += " " + std::string(argv[j]) ;
-		command += " 1>"+exec[i]+".out 2>"+exec[i]+".err" ;
+		command += " 1>"+dir+"/"+exec[i]+".out 2>"+dir+"/"+exec[i]+".err" ;
 		int r = std::system(command.c_str()) ;
 		gettimeofday ( &time1, nullptr );
 		double dt = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
@@ -135,7 +141,7 @@ int main(int argc, char *argv[])
 		{
 			if(compare)
 			{
-				std::string viewerCommand = viewer + " "+files[i]+"_base | "+viewer+" "+files[i]+"_current" ;
+				std::string viewerCommand = viewer + " "+basedir+files[i]+"_base | "+viewer+" "+outdir+files[i]+"_current" ;
 				std::cout << viewerCommand << std::endl ;
 				std::system( viewerCommand.c_str()  ) ;
 			}

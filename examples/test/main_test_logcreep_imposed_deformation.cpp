@@ -29,8 +29,10 @@ int main(int argc, char *argv[])
 {
 	CommandLineParser parser("Test the logarithmic-creep material behaviour on two elements") ;
 	parser.addFlag("--renew-base", "renew the base of results") ;
+	parser.addString("--output-directory","../examples/test/","directory where the results are stored", "-D") ;
 	parser.parseCommandLine(argc, argv) ;
 	bool renew = parser.getFlag("--renew-base") ;
+	std::string outdir = parser.getString("--output-directory") ;
 
 
         Sample rect(nullptr, 0.04,0.04,0,0) ;
@@ -49,9 +51,9 @@ int main(int argc, char *argv[])
 	
 	std::ofstream out ;
 	if(renew)
-		out.open("../examples/test/test_logcreep_imposed_deformation_base", std::ios::out) ;
+		out.open(outdir+"/test_logcreep_imposed_deformation_base", std::ios::out) ;
 	else
-		out.open("../examples/test/test_logcreep_imposed_deformation_current", std::ios::out) ;
+		out.open(outdir+"/test_logcreep_imposed_deformation_current", std::ios::out) ;
 
 	for(size_t i = 0 ; i < 5 ; i++)
 	{

@@ -32,8 +32,10 @@ int main(int argc, char *argv[])
 {
 	CommandLineParser parser("Test the time continuity for viscoelastic materials on two elements") ;
 	parser.addFlag("--renew-base", "renew the base of results") ;
+	parser.addString("--output-directory","../examples/test/","directory where the results are stored", "-D") ;
 	parser.parseCommandLine(argc, argv) ;
 	bool renew = parser.getFlag("--renew-base") ;
+	std::string outdir = parser.getString("--output-directory") ;
 
 
         Sample rect(nullptr, 0.01,0.01,0,0) ;
@@ -53,9 +55,9 @@ int main(int argc, char *argv[])
 
 	std::ofstream out ;
 	if(renew)
-		out.open("../examples/test/test_time_continuity_base", std::ios::out) ;
+		out.open(outdir+"/test_time_continuity_base", std::ios::out) ;
 	else
-		out.open("../examples/test/test_time_continuity_current", std::ios::out) ;
+		out.open(outdir+"/test_time_continuity_current", std::ios::out) ;
 
 	for(size_t i = 0 ; i < 3 ; i++)
 	{
