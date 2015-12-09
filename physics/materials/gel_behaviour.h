@@ -34,7 +34,7 @@ struct GelBehaviour : public StiffnessWithImposedDeformation
     // Leeman values are 8-12 (0.18) GPa "E-modulus of the alkali–silica-reaction product determined by micro-indentation"
     // Leeman values are 25 (0.35) GPa "Determination of the elastic properties of amorphous materials: Case study of alkali–silica reaction gel"
 
-    GelBehaviour(bool st=false, double E=25e9, double nu=0.35, double alpha=0.025, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, int blocks = 0) ;
+    GelBehaviour(bool st=false, double E=25e9, double nu=0.35, double alpha= 0.028, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, int blocks = 0) ;
 
     Form * getCopy() const ;
 } ;
