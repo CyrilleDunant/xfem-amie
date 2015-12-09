@@ -669,39 +669,44 @@ void setFeatureTree( FeatureTree * f, int argc, char *argv[], std::string descri
     parser.setFeatureTree(f) ;
 }
 
-void CommandLineParser::parseConfigFile( std::string file, bool priority )
+ConfigTreeItem * CommandLineParser::parseConfigFile( std::string file, bool priority )
 {
 	ConfigTreeItem * tmp = ConfigParser::readFile( file, nullptr, false, false ) ;
-	if(!tmp->hasChild("arguments"))
-		return ;
-	int argc = 1 ;
-	std::vector<std::string>  args ;
-	args.push_back(file) ;
-	std::string read = tmp->getStringData("arguments") ;
-	size_t sep = read.find(' ') ;
-	while(sep < std::string::npos)
+	if(tmp->hasChild("arguments"))
 	{
-		std::string test = read.substr(0, sep) ;
-		if( std::find( parsed.begin(), parsed.end(), test ) == parsed.end() || priority)
+		int argc = 1 ;
+		std::vector<std::string>  args ;
+		args.push_back(file) ;
+		std::string read = tmp->getStringData("arguments") ;
+		size_t sep = read.find(' ') ;
+		while(sep < std::string::npos)
 		{
-			args.push_back(test) ;
+			std::string test = read.substr(0, sep) ;
+			if( std::find( parsed.begin(), parsed.end(), test ) == parsed.end() || priority)
+			{
+				args.push_back(test) ;
+				argc++ ;
+			}
+			read = read.substr( sep+1, std::string::npos ) ;
+			sep = read.find(' ') ;
+		}
+		if( std::find( parsed.begin(), parsed.end(), read ) == parsed.end())
+		{
+			args.push_back(read) ;
 			argc++ ;
 		}
-		read = read.substr( sep+1, std::string::npos ) ;
-		sep = read.find(' ') ;
-	}
-	if( std::find( parsed.begin(), parsed.end(), read ) == parsed.end())
-	{
-		args.push_back(read) ;
-		argc++ ;
+	
+		if(args.size() > 0)
+			parseCommandLine( argc, nullptr, args ) ;
 	}
 
-	if(args.size() > 0)
-		parseCommandLine( argc, nullptr, args ) ;
+	input = ConfigParser::readFile( file, config, true, true, getActiveFlags(), getString("--directory")) ;
+	input->configure( directConfig ) ;
 
+	return input ;
 }
 
-void CommandLineParser::parseCommandLine( int argc, char *argv[], std::vector<std::string> sargs )
+ConfigTreeItem * CommandLineParser::parseCommandLine( int argc, char *argv[], std::vector<std::string> sargs )
 {
 	if(argv != nullptr)
 		command = std::string(argv[0]) ;
@@ -792,6 +797,7 @@ void CommandLineParser::parseCommandLine( int argc, char *argv[], std::vector<st
 		parseConfigFile( strings["--input-file"], false ) ;
 	}
 
+	return input ;
 }
 
 void CommandLineParser::setNumThreads( int n )

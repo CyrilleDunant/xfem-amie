@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
     }
 
 
-    ConfigTreeItem * define = parser.getConfiguration() ;
+    ConfigTreeItem * define = parser.getLocalConfiguration() ;
     std::map<std::string, std::string> direct = parser.getDirectConfiguration() ;
     std::vector<std::string> flags = parser.getActiveFlags() ;
 

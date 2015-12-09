@@ -256,9 +256,9 @@ void ExodusTriangleWriter::write()
         {
             int s = 0 ;
             DelaunayTriangle * trg = dynamic_cast<DelaunayTriangle *>(mesh->getInTree( cache[j] )) ;
-            if( !(sides[i].first->on( trg->getBoundingPoint( 0 )) ) ) { s = 1 ; }
-            if( !(sides[i].first->on( trg->getBoundingPoint( ps )) ) ) { s = 2 ; }
-            if( !(sides[i].first->on( trg->getBoundingPoint( ps*2 )) ) ) { s = 0 ; }
+            if( !(sides[i].first->on( trg->getBoundingPoint( 0 )) ) ) { s = 2 ; }
+            if( !(sides[i].first->on( trg->getBoundingPoint( ps )) ) ) { s = 3 ; }
+            if( !(sides[i].first->on( trg->getBoundingPoint( ps*2 )) ) ) { s = 1 ; }
             out << s ;
             if(j == cache.size()-1)
                 out << " ;" << std::endl ;

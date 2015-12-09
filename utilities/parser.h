@@ -50,6 +50,7 @@ protected:
 	bool commandLineConfiguration ;
 	bool forceUnrecognizedFlags ;
 	ConfigTreeItem * config ;
+	ConfigTreeItem * input ;
 	std::map<std::string, std::string> directConfig ;
 
 public:
@@ -73,12 +74,12 @@ public:
 	double getNumeralArgument( size_t i ) ;
 	Form * getBehaviour( std::string arg, Form * b, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 
-	void parseCommandLine( int argc, char *argv[], std::vector<std::string> sargs = std::vector<std::string>() ) ;
-	void parseConfigFile( std::string file, bool priority = false ) ;
+	ConfigTreeItem * parseCommandLine( int argc, char *argv[], std::vector<std::string> sargs = std::vector<std::string>() ) ;
+	ConfigTreeItem * parseConfigFile( std::string file, bool priority = false ) ;
 
 	std::vector<std::string> getActiveFlags() ;
 
-	ConfigTreeItem * getConfiguration() { return config ; }
+	ConfigTreeItem * getLocalConfiguration() { return config ; }
 	std::map<std::string, std::string> getDirectConfiguration() { return directConfig ; }
 
 	void setNumThreads(int n) ;

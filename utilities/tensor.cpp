@@ -498,6 +498,41 @@ Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double E_3, double
     return cg ;
 }
 
+Matrix Tensor::isotropicTransverseCauchyGreen(double E_1, double E_3, double G_1,  double nu_12, double nu_23, SpaceDimensionality dim, planeType pt) 
+{
+     if(dim == SPACE_TWO_DIMENSIONAL)
+        return orthotropicCauchyGreen(E_1, E_3, G_1, nu_12, pt) ;
+
+
+    Matrix cg(6,6) ;
+    double E_2 = E_1 ;
+    double G_2 = G_1 ;
+    double G_3 = E_3/(2.*(1.+nu_23)) ;
+    double nu_13 = nu_12 ;
+    double nu_21 = nu_12*E_2/E_1 ;
+    double nu_31 = nu_13*E_3/E_1 ;
+    double nu_32 = nu_23*E_3/E_2 ;
+    double gamma = 1./(1.-nu_12*nu_21-nu_23*nu_32-nu_13*nu_31-2.*nu_12*nu_32*nu_13) ;
+    cg[0][0] = E_1*(1.-nu_23*nu_32)*gamma ;
+    cg[1][1] = E_2*(1.-nu_13*nu_31)*gamma ;
+    cg[2][2] = E_3*(1.-nu_12*nu_21)*gamma ;
+
+    cg[0][1] = E_1*(nu_21+nu_31*nu_23)*gamma ;
+    cg[1][0] = cg[0][1] ;
+    cg[0][2] = E_1*(nu_31+nu_21*nu_32)*gamma ;
+
+    cg[2][0] = cg[0][2] ;
+    cg[1][2] = E_2*(nu_32+nu_12*nu_31)*gamma ;
+    cg[2][1] = cg[1][2] ;
+
+    cg[3][3] = G_1*0.5 ;
+    cg[4][4] = G_2*0.5 ;
+    cg[5][5] = G_3*0.5 ;
+
+    return cg ;
+}
+
+
 Vector Tensor::rotate2ndOrderTensor2D( Vector & tensor, double angle )
 {
     double c = cos ( angle ) ;
@@ -514,5 +549,144 @@ Vector Tensor::rotate2ndOrderTensor2D( Vector & tensor, double angle )
     nrot[2][2] = c*c-s*s ;
     return nrot*tensor ;
 }
+
+Matrix Tensor::to2D(Matrix & tensor, planeType pt, Variable var)
+{
+    Matrix ret(3,3) ;
+    if(tensor.numCols() != 6 || tensor.numRows() != 6)
+        return ret ;
+
+    int index = var-1 ;
+    int first = 0 ;
+    int second = 1 ;
+    if(index == 0)
+        first = 2 ;
+    if(index == 1)
+        second = 2 ; 
+
+    switch(pt)
+    {
+        case PLANE_STRESS:
+        {
+            ret[0][0] = tensor[first][first]-tensor[first][index]*tensor[first][index]/tensor[index][index] ;
+            ret[0][1] = tensor[first][second]-tensor[second][index]*tensor[first][index]/tensor[index][index] ;
+            ret[1][0] = tensor[second][first]-tensor[first][index]*tensor[second][index]/tensor[index][index] ;
+            ret[1][1] = tensor[second][second]-tensor[second][index]*tensor[second][index]/tensor[index][index] ;
+            ret[2][2] = tensor[index+3][index+3]*2 ;
+            ret[0][2] = 0 ; ret[1][2] = 0 ; ret[2][0] = 0 ; ret[2][1] = 0 ; 
+            break;
+        }
+        case PLANE_STRAIN:
+        {
+            ret[0][0] = tensor[first][first] ;
+            ret[0][1] = tensor[first][second] ;
+            ret[1][0] = tensor[second][first] ;
+            ret[1][1] = tensor[second][second] ;
+            ret[2][2] = tensor[index+3][index+3]*2 ;
+            ret[0][2] = 0 ; ret[1][2] = 0 ; ret[2][0] = 0 ; ret[2][1] = 0 ; 
+            break;
+        }
+        default:
+            ret = 0 ;
+    }
+    return ret ;
+}
+
+Matrix rotationMatrixX(double theta)
+{
+    Matrix ret(6,6) ; ret = 0 ;
+    double c = cos(theta) ;
+    double s = sin(theta) ;
+
+    ret[0][0] = 1 ;
+    ret[1][1] = c*c ; ret[1][2] = s*s ;
+    ret[2][1] = s*s ; ret[2][2] = c*c ;
+    ret[1][3] = 2*c*s ;
+    ret[2][3] = -2*c*s ;
+    ret[3][1] = -c*s ;
+    ret[3][2] = c*s ;
+    ret[3][3] = c*c-s*s ;
+    ret[4][4] = c ; ret[4][5] = -s ;
+    ret[5][5] = c ; ret[5][4] = s ;
+
+    return ret ;
+}
+
+Matrix rotationMatrixY(double theta)
+{
+    Matrix ret(6,6) ; ret = 0 ;
+    double c = cos(theta) ;
+    double s = sin(theta) ;
+
+    ret[0][0] = c*c ; ret[0][2] = s*s ;
+    ret[1][1] = 1 ;
+    ret[2][0] = s*s ; ret[2][2] = c*c ;
+    ret[0][4] = 2*c*s ;
+    ret[2][4] = -2*c*s ;
+    ret[4][0] = -c*s ;
+    ret[4][2] = c*s ;
+    ret[3][3] = c ; ret[3][5] = -s ;
+    ret[4][4] = c*c-s*s ;
+    ret[5][5] = c ; ret[5][3] = s ;
+
+    return ret ;
+}
+
+Matrix rotationMatrixZ(double theta)
+{
+    Matrix ret(6,6) ; ret = 0 ;
+    double c = cos(theta) ;
+    double s = sin(theta) ;
+
+    ret[0][0] = c*c ; ret[0][1] = s*s ;
+    ret[1][0] = s*s ; ret[1][1] = c*c ;
+    ret[2][2] = 1 ;
+    ret[0][5] = 2*c*s ;
+    ret[1][5] = -2*c*s ;
+    ret[5][0] = -c*s ;
+    ret[5][1] = c*s ;
+    ret[5][5] = c*c-s*s ;
+    ret[3][3] = c ; ret[4][3] = -s ;
+    ret[4][4] = c ; ret[3][4] = s ;
+
+    return ret ;
+}
+
+Matrix Tensor::rotate4thOrderTensor3D( Matrix & tensor, Point angle ) 
+{
+    Matrix ret(6,6) ;
+    if(tensor.numCols() != 6 || tensor.numRows() != 6)
+        return ret ;
+
+    Matrix K = rotationMatrixX( angle.getX() ) ; 
+    K *= rotationMatrixY( angle.getY() ) ;
+    K *= rotationMatrixZ( angle.getZ() ) ;
+
+//    Matrix K(6,6) ;
+/*    for(size_t i = 0 ; i < 3 ; i++)
+    {
+        for(size_t j = 0 ; j < 3 ; j++)
+        {
+            K[i+3][j+3] *= 2 ;
+        }
+    }*/
+    Matrix Kt = K.transpose() ;
+
+    K.print() ;
+
+    ret = (K*tensor)*Kt ;
+    for(size_t i = 0 ; i < 3 ; i++)
+    {
+        for(size_t j = 0 ; j < 3 ; j++)
+        {
+            ret[3+j][i] = 0 ; ret[i][3+j] = 0 ;
+            if( j != i ) 
+                ret[3+i][3+j] = 0 ;
+        }
+    }
+
+    return ret ;
+}
+
 
 
