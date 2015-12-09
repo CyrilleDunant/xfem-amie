@@ -143,15 +143,23 @@ struct EnumerationConstructor
 	std::vector<std::string> printStringConstructor()
 	{
 		std::vector<std::string> ret ;
-		ret.push_back( getStringDeclarationLine() ) ;
-		ret.push_back("    {") ;
-		ret.push_back("        switch(value)") ;
-		ret.push_back("        {") ;
-		for(size_t i = 0 ; i < values.size() ; i++)
-			ret.push_back( getStringConstructorLine(i)) ;
-		ret.push_back("        }") ;		
-		ret.push_back("        return \""+values[0]+"\" ;") ;
-		ret.push_back("    }") ;		
+		if(type != std::string("bool"))
+		{
+			ret.push_back( getStringDeclarationLine() ) ;
+			ret.push_back("    {") ;
+			ret.push_back("        switch(value)") ;
+			ret.push_back("        {") ;
+			for(size_t i = 0 ; i < values.size() ; i++)
+				ret.push_back( getStringConstructorLine(i)) ;
+			ret.push_back("        }") ;		
+			ret.push_back("        return \""+values[0]+"\" ;") ;
+			ret.push_back("    }") ;
+		}
+		else
+		{
+			ret.push_back("    static std::string frombool(bool value) { return ( value ? \"true\" : \"false\" ) ; }") ;
+
+		}
 		return ret ;
 	}
 

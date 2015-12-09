@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 1/11/2015 at 14:52  */
+/* this is an auto-generated file created on 9/11/2015 at 10:57  */
 
 #ifndef __ENUMERATION_TRANSLATOR_H__
 #define __ENUMERATION_TRANSLATOR_H__
@@ -1262,15 +1262,7 @@ struct Enum
         if(ok) { *ok = false ; }
         return false ;
     }
-    static std::string frombool(bool value)
-    {
-        switch(value)
-        {
-            case false: return "false" ;
-            case true: return "true" ;
-        }
-        return "false" ;
-    }
+    static std::string frombool(bool value) { return ( value ? "true" : "false" ) ; }
    
     // parsed from header file: ../utilities/granulo.h
     static TypeInclusion getTypeInclusion(std::string type, bool * ok = 0)
