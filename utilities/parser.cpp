@@ -659,6 +659,7 @@ CommandLineParser::CommandLineParser(std::string d, bool c, bool f) : descriptio
     addValue(std::string("--set-sampling-number"), -1, std::string("set the number of points on the edges of the sample")) ;
     addValue(std::string("--set-surface-sampling-factor"), -1, std::string("increases the number of points on boundaries")) ;
     addString(std::string("--set-order"), std::string(), std::string("set the order of the finite elements"), "-O") ;
+    addString(std::string("--input-file"), std::string(), std::string("path to a *.ini file containing the problem description"), "-i") ;
 }
 
 void setFeatureTree( FeatureTree * f, int argc, char *argv[], std::string description ) 
@@ -695,13 +696,14 @@ void CommandLineParser::parseConfigFile( std::string file, bool priority )
 		argc++ ;
 	}
 
-	parseCommandLine( argc, nullptr, args ) ;
+	if(args.size() > 0)
+		parseCommandLine( argc, nullptr, args ) ;
 
 }
 
 void CommandLineParser::parseCommandLine( int argc, char *argv[], std::vector<std::string> sargs )
 {
-	if(sargs.size() == 0)
+	if(argv != nullptr)
 		command = std::string(argv[0]) ;
 
 	config = nullptr ;
@@ -710,7 +712,7 @@ void CommandLineParser::parseCommandLine( int argc, char *argv[], std::vector<st
 	{
 		std::string test ; 
 		std::string follower ;
-		if(sargs.size() == 0)
+		if(argv != nullptr)
 		{
 			test = getCompleteString(std::string(argv[i])) ;
 			if(i+1 < (size_t) argc)
@@ -784,6 +786,11 @@ void CommandLineParser::parseCommandLine( int argc, char *argv[], std::vector<st
 
 	if(getFlag(std::string("--help")) || getFlag(std::string("--version")))
 		exit(0) ;
+
+	if(argv != nullptr && strings["--input-file"].length() > 0)
+	{
+		parseConfigFile( strings["--input-file"], false ) ;
+	}
 
 }
 

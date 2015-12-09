@@ -272,7 +272,7 @@ int main(int argc, char *argv[])
 		std::string command ;
 		if(timeout > 0)
 			command = "timeout "+itoa(timeout)+" ";
-		command += dir+"/check_behaviour " + testdir+"/"+inis[i] ;
+		command += dir+"/check_behaviour -i " + testdir+"/"+inis[i] ;
 		for(int j = 1 ; j < argc ; j++)
 			command += " " + std::string(argv[j]) ;
 		command += " 1>"+dir+"/test/"+inis[i]+".out 2>"+dir+"/"+inis[i]+".err" ;

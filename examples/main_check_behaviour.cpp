@@ -38,9 +38,9 @@ int main(int argc, char *argv[])
 	parser.addValue("--maximum-value", 0.001, "maximum value of the mechanical boundary condition","-m") ;
 	parser.addString("--output-directory","../examples/test/","directory where the results are stored", "-D") ;
 	parser.parseCommandLine(argc, argv) ;
-	std::string test = parser.getStringArgument("file_name") ;
-	Form * behaviour = parser.getBehaviour( "file_name" , new Stiffness(10e9, 0.2), SPACE_TWO_DIMENSIONAL ) ;
-	parser.parseConfigFile( test ) ;
+	std::string test = parser.getString("--input-file") ;
+	Form * behaviour = parser.getBehaviour( "--input-file" , new Stiffness(10e9, 0.2), SPACE_TWO_DIMENSIONAL ) ;
+//	parser.parseConfigFile( test ) ;
 
 	bool constant = parser.getFlag("--constant") ;
 	bool free = parser.getFlag("--free") ;
