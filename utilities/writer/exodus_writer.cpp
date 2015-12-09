@@ -115,7 +115,7 @@ void ExodusTriangleWriter::write()
     for(size_t i = 0 ; i < sides.size() ; i++)
     {
         out << "\tnum_side_ss" << itoa(i+1) << " = " << mesh->getCache(sides[i].second).size() << " ;" << std::endl ;
-        out << "\tnum_df_ss" << itoa(i+1) << " = " << mesh->getCache(sides[i].second).size()*2*n << " ;" << std::endl ;
+        out << "\tnum_df_ss" << itoa(i+1) << " = " << mesh->getCache(sides[i].second).size()*4 << " ;" << std::endl ;
     }
     
     out << std::endl ;
@@ -229,6 +229,9 @@ void ExodusTriangleWriter::write()
     out << " ss_names = \"top\", \"right\", \"bottom\", \"left\" ;" << std::endl ;
     out << std::endl ;
 
+    out << " ss_status = 1, 1, 1, 1 ;" << std::endl ;
+    out << std::endl ;
+
     for(size_t i = 0 ; i < sides.size() ; i++)
     {
         std::vector<int> cache = mesh->getCache( sides[i].second ) ;
@@ -271,7 +274,7 @@ void ExodusTriangleWriter::write()
         out << " dist_fact_ss" << i+1 << " = " ;
         for(size_t j = 0 ; j < cache.size() ; j++)
         {
-            out << "1, 1, 1" ;
+            out << "1, 1, 1, 1" ;
             if(j == cache.size()-1)
                 out << " ;" << std::endl ;
             else

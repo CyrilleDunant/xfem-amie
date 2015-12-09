@@ -668,55 +668,88 @@ void setFeatureTree( FeatureTree * f, int argc, char *argv[], std::string descri
     parser.setFeatureTree(f) ;
 }
 
-void CommandLineParser::parseConfigFile( std::string file )
+void CommandLineParser::parseConfigFile( std::string file, bool priority )
 {
 	ConfigTreeItem * tmp = ConfigParser::readFile( file, nullptr, false, false ) ;
-	if(tmp->hasChild( "define" ) )
+	if(!tmp->hasChild("arguments"))
+		return ;
+	int argc = 1 ;
+	std::vector<std::string>  args ;
+	args.push_back(file) ;
+	std::string read = tmp->getStringData("arguments") ;
+	size_t sep = read.find(' ') ;
+	while(sep < std::string::npos)
 	{
-		std::vector<ConfigTreeItem *> args = tmp->getChild( "define" )->getAllChildren() ;
-		for(size_t i = 0 ; i < args.size() ; i++)
+		std::string test = read.substr(0, sep) ;
+		if( std::find( parsed.begin(), parsed.end(), test ) == parsed.end() || priority)
 		{
-			if(flags.find( args[i]->getLabel() ) != flags.end() )
-				flags[ args[i]->getLabel() ] = true ;
-			if(values.find( args[i]->getLabel() ) != values.end() )
-				values[ args[i]->getLabel() ] = args[i]->getData() ;
-			if(strings.find( args[i]->getLabel() ) != strings.end() )
-				strings[ args[i]->getLabel() ] = args[i]->getStringData() ;
+			args.push_back(test) ;
+			argc++ ;
 		}
+		read = read.substr( sep+1, std::string::npos ) ;
+		sep = read.find(' ') ;
 	}
+	if( std::find( parsed.begin(), parsed.end(), read ) == parsed.end())
+	{
+		args.push_back(read) ;
+		argc++ ;
+	}
+
+	parseCommandLine( argc, nullptr, args ) ;
+
 }
 
-void CommandLineParser::parseCommandLine( int argc, char *argv[] )
+void CommandLineParser::parseCommandLine( int argc, char *argv[], std::vector<std::string> sargs )
 {
-	command = std::string(argv[0]) ;
+	if(sargs.size() == 0)
+		command = std::string(argv[0]) ;
 
 	config = nullptr ;
 	size_t i = 1 ;
 	while(i < (size_t) argc)
 	{
-		std::string test = getCompleteString(std::string(argv[i])) ;
+		std::string test ; 
+		std::string follower ;
+		if(sargs.size() == 0)
+		{
+			test = getCompleteString(std::string(argv[i])) ;
+			if(i+1 < (size_t) argc)
+				follower = getCompleteString(std::string(argv[i+1])) ;
+		}
+		else
+		{
+			test = getCompleteString(sargs[i]) ;
+			if(i+1 < (size_t) argc)
+				follower = getCompleteString(sargs[i+1]) ;
+		}
+
 		if(i-1 < arguments.size() && (test.length() < 2 || (test[0] != '-' || test[1] != '-')) )
 		{
 			arguments[i-1].str = test ;
 			arguments[i-1].val = atof(test.c_str()) ;
 		}
 		else if( flags.find( test ) != flags.end() )
+		{
 			flags[ test ] = true ;
+			parsed.push_back( test ) ;
+		}
 		else if( values.find( test ) != values.end()  )
 		{
-			values[ test ] = atof(argv[i+1]) ;
+			values[ test ] = atof(follower.c_str()) ;
+			parsed.push_back( test ) ;
 			i++ ;
 		}
 		else if( strings.find( test ) != strings.end()  )
 		{
-			strings[ test ] = std::string(argv[i+1]) ;
+			strings[ test ] = follower ;
+			parsed.push_back( test ) ;
 			i++ ;
 		}
 		else if(commandLineConfiguration && test[0] == '@')
 		{
 			if(!config)
 				config = new ConfigTreeItem(nullptr, std::string("define")) ;
-			std::string testval = std::string(argv[i+1]) ;
+			std::string testval = follower ;
 			bool isDouble = (testval.find_first_not_of("0123456789.e-") == std::string::npos ) ;
 			if(isDouble)
 				new ConfigTreeItem( config, test, atof(testval.c_str()) ) ;
@@ -726,12 +759,13 @@ void CommandLineParser::parseCommandLine( int argc, char *argv[] )
 		}
 		else if(commandLineConfiguration && test[0] == '.')
 		{
-			directConfig [test.substr(1)] = std::string (argv[i+1]) ;
+			directConfig [test.substr(1)] = follower ;
 			i++ ;
 		}
 		else if(forceUnrecognizedFlags && test.find(std::string("--")) == 0)
 		{
 			flags[test] = true ;
+			parsed.push_back( test ) ;
 		}
 		i++ ;
 	}
