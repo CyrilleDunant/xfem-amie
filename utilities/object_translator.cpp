@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 9/11/2015 at 10:57  */
+/* this is an auto-generated file created on 14/11/2015 at 11:9  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -843,7 +843,7 @@ namespace Amie
    
     }
 
-    InclusionFamily * Object::getInclusionFamily(std::string type, std::map<std::string, double> & values, std::map<std::string, ParticleSizeDistribution*> & particlesizedistributions, std::map<std::string, InclusionGenerator*> & inclusiongenerators)
+    InclusionFamily * Object::getInclusionFamily(std::string type, std::map<std::string, double> & values, std::map<std::string, ParticleSizeDistribution*> & particlesizedistributions, std::map<std::string, InclusionGenerator*> & inclusiongenerators, std::map<std::string, std::string> & strings)
     {
         // parsed from header file: ../utilities/inclusion_family.h
         if( type == "." ) { return new InclusionFamily(values["number"], values["radius_maximum"], values["surface"], particlesizedistributions["particle_size_distribution"], inclusiongenerators["geometry"]) ; }
@@ -855,6 +855,14 @@ namespace Amie
             if( values.find("maximum_vertex") == values.end() ) { values["maximum_vertex"] = 20 ; } ; 
             return new VoronoiInclusionFamily(values["radius"], values["surface_fraction"], values["correction_factor"], values["number_of_grains"], values["maximum_vertex"]) ;
         }
+        if( type == "FileDefinedCircle" )
+        { 
+            if( strings.find("column_1") == strings.end() ) { strings["column_1"] = "radius" ; } ; 
+            if( strings.find("column_2") == strings.end() ) { strings["column_2"] = "center_x" ; } ; 
+            if( strings.find("column_3") == strings.end() ) { strings["column_3"] = "center_y" ; } ; 
+            return new FileDefinedCircleInclusionFamily(values["number"], strings["file_name"], strings["column_1"], strings["column_2"], strings["column_3"]) ;
+        }
+        if( type == "FileDefinedPolygon" ) { return new FileDefinedPolygonInclusionFamily(values["number"], strings["file_name"]) ; }
    
         return nullptr ;
     }
@@ -867,6 +875,8 @@ namespace Amie
         if( type == "Masked" ) { return true ; }
         if( type == "Concentric" ) { return true ; }
         if( type == "Voronoi" ) { return true ; }
+        if( type == "FileDefinedCircle" ) { return true ; }
+        if( type == "FileDefinedPolygon" ) { return true ; }
    
         return false ;
     }

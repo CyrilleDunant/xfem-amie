@@ -3125,6 +3125,8 @@ Polygon Polygon::getConvexPolygon() const
 
 bool Polygon::in(const Point & v) const
 {
+    if(dist(v, getCenter()) > getRadius()*2.) { return false ; }
+
     Point out = center + Point(0, getRadius()*2.) ;
     Segment s(out, v+Point(POINT_TOLERANCE,-POINT_TOLERANCE)) ;
     Segment s0(out, v+Point(-POINT_TOLERANCE,-POINT_TOLERANCE)) ;
@@ -3148,36 +3150,32 @@ bool Polygon::in(const Point & v) const
         interCount += inter ;
         if(inter)
         {
-            Point intersec = seg.intersection(s) ;
-            if(intersec == seg.first() || intersec == seg.second())
+            if( s.on(seg.first()) || s.on(seg.second() ) )
                 interheadcount++ ;
         }
         inter = seg.intersects(s0);
         interCount0 += inter ;
         if(inter)
         {
-            Point intersec = seg.intersection(s0) ;
-            if(intersec == seg.first() || intersec == seg.second())
+            if( s0.on(seg.first()) || s0.on(seg.second() ) )
                 interheadcount0++ ;
         }
         inter = seg.intersects(s1);
         interCount1 += inter ;
         if(inter)
         {
-            Point intersec = seg.intersection(s1) ;
-            if(intersec == seg.first() || intersec == seg.second())
+            if( s1.on(seg.first()) || s1.on(seg.second() ) )
                 interheadcount1++ ;
         }
         inter = seg.intersects(s2);
         interCount2 += inter ;
         if(inter)
         {
-            Point intersec = seg.intersection(s2) ;
-            if(intersec == seg.first() || intersec == seg.second())
+            if( s2.on(seg.first()) || s2.on(seg.second() ) )
                 interheadcount2++ ;
         }
-
     }
+
     return (interCount-interheadcount/2)%2 && (interCount0-interheadcount0/2)%2 && (interCount1-interheadcount1/2)%2 && (interCount2-interheadcount2/2)%2;
 }
 

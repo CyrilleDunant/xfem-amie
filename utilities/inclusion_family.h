@@ -110,6 +110,41 @@ struct VoronoiInclusionFamily : public InclusionFamily
 
 } ;
 
+/*PARSE FileDefinedCircle InclusionFamily
+    @value[number] // maximum number of inclusions of the family
+    @string[file_name] // file in which the circles information are stored
+    @string[column_1] radius // description of the first column in the file
+    @string[column_2] center_x // description of the second column in the file
+    @string[column_3] center_y // description of the third column in the file
+*/
+struct FileDefinedCircleInclusionFamily : public InclusionFamily
+{
+	FileDefinedCircleInclusionFamily( size_t n, std::string file, std::string column_1 = "radius", std::string column_2 = "center_x", std::string column_3 = "center_y" ) ;
+
+	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed ) ;
+
+} ;
+
+/*PARSE FileDefinedPolygon InclusionFamily
+    @value[number] // maximum number of inclusions of the family
+    @string[file_name] // file in which the circles information are stored
+*/
+struct FileDefinedPolygonInclusionFamily : public InclusionFamily
+{
+	FileDefinedPolygonInclusionFamily( size_t n, std::string file) ;
+
+	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed ) ;
+
+} ;
+
+struct ConfigDefinedInclusionFamily : public InclusionFamily
+{
+	ConfigDefinedInclusionFamily( ConfigTreeItem * inc ) ;
+
+	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed ) ;
+
+} ;
+
 
 
 }

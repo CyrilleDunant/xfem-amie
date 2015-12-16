@@ -1113,26 +1113,26 @@ std::vector<double> GranuloFromFile::getFieldValues(int f)
     return val ;
 }
 
-std::vector<Feature *> GranuloFromFile::getFeatures(TypeInclusion type, int ninc)
+std::vector<Feature *> GranuloFromFile::getFeatures(GeometryType type, int ninc)
 {
     std::vector<Feature *> inc ;
     std::vector<std::string> columns ;
     switch(type)
     {
-    case 0:
+    case CIRCLE:
         // inclusions
         columns.push_back("radius") ;
         columns.push_back("center_x") ;
         columns.push_back("center_y") ;
         break ;
-    case 1:
+    case SPHERE:
         // inclusions 3D
         columns.push_back("radius") ;
         columns.push_back("center_x") ;
         columns.push_back("center_y") ;
         columns.push_back("center_z") ;
         break ;
-    case 2:
+    case ELLIPSE:
         // ellipses
         columns.push_back("radius_a") ;
         columns.push_back("radius_b") ;
@@ -1140,6 +1140,8 @@ std::vector<Feature *> GranuloFromFile::getFeatures(TypeInclusion type, int ninc
         columns.push_back("center_y") ;
         columns.push_back("axis_x") ;
         columns.push_back("axis_y") ;
+        break ;
+    default:
         break ;
     }
     std::vector< std::vector<double> > fieldvalues ;
@@ -1153,19 +1155,19 @@ std::vector<Feature *> GranuloFromFile::getFeatures(TypeInclusion type, int ninc
     std::cout << std::endl ;
     switch(type)
     {
-    case CIRCLE_INCLUSION:
+    case CIRCLE:
         // inclusions
         std::cout << "creating inclusions..." << std::endl ;
         for(size_t i = 0 ; i < fieldvalues[0].size() && (int)i < ninc+1 ; i++)
             inc.push_back(new Inclusion(fieldvalues[0][i], fieldvalues[1][i], fieldvalues[2][i])) ;
         break ;
-    case SPHERE_INCLUSION:
+    case SPHERE:
         // inclusions 3D
         std::cout << "creating 3D inclusions..." << std::endl ;
         for(size_t i = 0 ; i < fieldvalues[0].size() && (int)i < ninc+1 ; i++)
             inc.push_back(new Inclusion3D(fieldvalues[0][i], fieldvalues[1][i], fieldvalues[2][i], fieldvalues[3][i])) ;
         break ;
-    case ELLIPSE_INCLUSION:
+    case ELLIPSE:
         // ellipses
         std::cout << "creating ellipses..." << std::endl ;
         for(size_t i = 0 ; i < fieldvalues[0].size() && (int)i < ninc+1 ; i++)
@@ -1184,6 +1186,7 @@ std::vector<Feature *> GranuloFromFile::getFeatures(TypeInclusion type, int ninc
     inc.pop_back() ;
     return inc ;
 }
+
 
 std::vector<Inclusion3D *> GranuloFromFile::getInclusion3D(int ninc, double scale)
 {
@@ -1209,6 +1212,41 @@ std::vector<Inclusion3D *> GranuloFromFile::getInclusion3D(int ninc, double scal
     return inc ;
 }
 
+std::vector<Feature *> PolygonGranuloFromFile::getFeatures(SpaceDimensionality dim, Feature * father, int fields)
+{
+    std::vector<Feature *> ret ;
+    for(int j = 0 ; j < fields ; j++)
+        data.push_back( std::vector<double>() ) ;
+    size_t i = 0 ;
+    while(i < values.size())
+    {
+        int sides = values[i] ; if(sides < 0) { sides = 0 ; }
+        std::valarray<Point *> pts( sides ) ;
+        size_t ndim = (dim == SPACE_TWO_DIMENSIONAL ? 2 : 3) ;
+        bool valid = (sides>2) && i+fields+sides*ndim < values.size() ;
+        if(!valid)
+        {
+            i += fields+sides*ndim+1 ;
+            continue ;
+        }
+        for(int j = 0 ; j < fields ; j++)
+        {
+            data[j].push_back( values[i+j+1] ) ;
+        }
+        for(int j = 0 ; j < sides  ; j++)
+        {
+           if(dim == SPACE_TWO_DIMENSIONAL)
+               pts[j] = new Point( values[i+fields+j*ndim+1], values[i+fields+j*ndim+2] ) ;
+           else
+               pts[j] = new Point( values[i+fields+j*ndim+1], values[i+fields+j*ndim+2], values[i+fields+j*ndim+3] ) ;
+        }
+        if(dim == SPACE_TWO_DIMENSIONAL)
+            ret.push_back(new PolygonalSample( father, pts) ) ;
+        i += fields+sides*ndim+1 ;
+    }
+
+    return ret ;
+}
 
 
 GranuloFromCumulativePSD::GranuloFromCumulativePSD(const std::string & filename, PSDSpecificationType t, double factor, double cutOffUp, double cutOffDown)

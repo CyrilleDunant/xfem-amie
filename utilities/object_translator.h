@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 9/11/2015 at 10:57  */
+/* this is an auto-generated file created on 14/11/2015 at 11:9  */
 
 #ifndef __OBJECT_TRANSLATOR_H__
 #define __OBJECT_TRANSLATOR_H__
@@ -55,7 +55,7 @@ struct Object
     static void resetParticleSizeDistribution(ParticleSizeDistribution * target) ;
 
     // parsed from header file: ../utilities/inclusion_family.h
-    static InclusionFamily * getInclusionFamily(std::string type, std::map<std::string, double> & values, std::map<std::string, ParticleSizeDistribution*> & particlesizedistributions, std::map<std::string, InclusionGenerator*> & inclusiongenerators) ;
+    static InclusionFamily * getInclusionFamily(std::string type, std::map<std::string, double> & values, std::map<std::string, ParticleSizeDistribution*> & particlesizedistributions, std::map<std::string, InclusionGenerator*> & inclusiongenerators, std::map<std::string, std::string> & strings) ;
     static bool isInclusionFamily(std::string type) ;
     static void resetInclusionFamily(InclusionFamily * target) ;
 

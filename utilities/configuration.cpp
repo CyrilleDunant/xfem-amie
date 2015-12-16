@@ -875,7 +875,7 @@ InclusionFamily * ConfigTreeItem::getInclusionFamily(std::string type)
     }
     distribution["particle_size_distribution"] = Object::getParticleSizeDistribution( ptype, values, strings ) ;
 
-    return Object::getInclusionFamily( type, values, distribution, geometry ) ;
+    return Object::getInclusionFamily( type, values, distribution, geometry, strings ) ;
 }
 
 Point ConfigTreeItem::getPoint(Point def ) 

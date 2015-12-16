@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 9/11/2015 at 10:57  */
+/* this is an auto-generated file created on 14/11/2015 at 11:9  */
 
 #ifndef __ENUMERATION_TRANSLATOR_H__
 #define __ENUMERATION_TRANSLATOR_H__

@@ -1,5 +1,7 @@
 #include "inclusion_family.h"
 #include "placement.h"
+#include "configuration.h"
+#include "enumeration_translator.h"
 
 namespace Amie
 {
@@ -228,11 +230,71 @@ void VoronoiInclusionFamily::place( Rectangle * box, double spacing, size_t trie
 
 }
 
+FileDefinedCircleInclusionFamily::FileDefinedCircleInclusionFamily( size_t n, std::string file, std::string column_1, std::string column_2, std::string column_3 ) 
+{
+	std::vector<std::string> columns ;
+	columns.push_back(column_1) ;
+	columns.push_back(column_2) ;
+	columns.push_back(column_3) ;
+	GranuloFromFile reader( file, columns ) ;
+
+	size_t realn = std::min(n, reader.getFieldValues("radius").size()) ;
+	features.push_back( reader.getFeatures( CIRCLE, realn ) ) ;
+	rotations.push_back( 0 ) ;
+	factors.push_back(-1) ;
+
+}
+
+void FileDefinedCircleInclusionFamily::place( Rectangle * box, double spacing, size_t tries, size_t seed ) { } 
+
+FileDefinedPolygonInclusionFamily::FileDefinedPolygonInclusionFamily( size_t n, std::string file ) 
+{
+	PolygonGranuloFromFile reader( file ) ;
+
+	features.push_back( reader.getFeatures( SPACE_TWO_DIMENSIONAL, nullptr ) ) ;
+	while(features[0].size() > n)
+		features[0].pop_back() ;
+	rotations.push_back( 0 ) ;
+	factors.push_back(-1) ;
+
+}
+
+void FileDefinedPolygonInclusionFamily::place( Rectangle * box, double spacing, size_t tries, size_t seed ) { } 
+
+ConfigDefinedInclusionFamily::ConfigDefinedInclusionFamily( ConfigTreeItem * item ) 
+{
+	GeometryType geom = Enum::getGeometryType( item->getStringData("geometry", "CIRCLE") ) ;
+	std::vector<Feature *> feats ;
+	switch(geom)
+	{
+		case CIRCLE:
+			feats.push_back( new Inclusion( item->getData("radius",0.1), item->getData("center.x", 0), item->getData("center.y", 0) ) ) ;
+			break ;
+		case ELLIPSE:
+			feats.push_back( new EllipsoidalInclusion( Point(item->getData("center.x", 0), item->getData("center.y", 0)), Point(item->getData("major_axis.x", 0.1), item->getData("major_axis.y", 0)), item->getData("shape_factor",0.7) ) ) ;
+			break ;
+		case RECTANGLE:
+			feats.push_back(new Sample( item->getData("width",0.1), item->getData("height",0.1), item->getData("center.x",0), item->getData("center.y")) ) ;
+			break ;
+		case POLYGON:
+		{
+			std::vector<ConfigTreeItem *> all = item->getAllChildren("vertex") ;
+			std::valarray<Point *> pts(all.size()) ;
+			for(size_t i = 0 ; i < all.size() ; i++)
+				pts[i] = new Point( all[i]->getData("x",0), all[i]->getData("y",0) ) ;
+			feats.push_back(new PolygonalSample( nullptr, pts) ) ;
+			break ;
+		}
+		default:
+			break ;
+	}
+	features.push_back(feats) ;
+	rotations.push_back( 0 ) ;
+	factors.push_back(-1) ;
+}
 
 
-
-
-
+void ConfigDefinedInclusionFamily::place( Rectangle * box, double spacing, size_t tries, size_t seed ) { } 
 
 
 

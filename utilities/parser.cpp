@@ -662,7 +662,7 @@ CommandLineParser::CommandLineParser(std::string d, bool c, bool f) : descriptio
     addString(std::string("--input-file"), std::string(), std::string("path to a *.ini file containing the problem description"), "-i") ;
 }
 
-void setFeatureTree( FeatureTree * f, int argc, char *argv[], std::string description ) 
+void CommandLineParser::setFeatureTree( FeatureTree * f, int argc, char *argv[], std::string description ) 
 {
     CommandLineParser parser(description) ;
     parser.parseCommandLine( argc, argv ) ;

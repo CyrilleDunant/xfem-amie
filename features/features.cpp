@@ -7333,6 +7333,7 @@ void FeatureTree::generateElements()
             {
                 bool isIn = false ;
 
+
                 std::vector<const Geometry *> potentialFeaturestmp  ;
                 std::vector<Feature *> potentialFeatures ;
 
@@ -7885,7 +7886,6 @@ void FeatureTree::generateElements()
                 std::vector<Point> inter = tree[0]->intersection ( feature ) ;
                 if(inter.size() == 0)
                     inter = feature->intersection( tree[0] ) ;
-                std::cout << inter.size() << std::endl ;
                 std::vector<Feature *> descendants = feature->getDescendants() ;
                 std::vector<Feature *> fatherdescendants = tree[0]->getDescendants() ;
 

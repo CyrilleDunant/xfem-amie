@@ -5,7 +5,13 @@
 //
 
 #include "../main.h"
-#include "../../utilities/tensor.h"
+#include "../../features/features.h"
+#include "../../features/sample.h"
+#include "../../features/polygonSample.h"
+#include "../../physics/stiffness.h"
+#include "../../utilities/parser.h"
+#include "../../utilities/writer/triangle_writer.h"
+#include "../../geometry/level_set.h" 
 
 
 #include <fstream>
@@ -18,20 +24,50 @@
 
 using namespace Amie ;
 
+
 int main( int argc, char *argv[] )
 {
-    Matrix m3d = Tensor::isotropicTransverseCauchyGreen( 10e9, 25e9, 30e9, 0.2, 0.2, SPACE_THREE_DIMENSIONAL, PLANE_STRESS ) ;
-    Matrix rot = Tensor::rotate4thOrderTensor3D( m3d, Point(-0.1,0,M_PI*0.5) ) ;
-    Matrix C = Tensor::to2D(rot, PLANE_STRAIN, XI) ;
-    
-    std::cout << "----" << std::endl ;
-    m3d.print() ;
+    Sample box(0.064,0.04,0,0) ;
+    box.setBehaviour( new Stiffness( 10e9, 0.2 ) ) ;
 
-    std::cout << "----" << std::endl ;
-    rot.print() ;
+    FeatureTree F(&box) ;
 
-    std::cout << "----" << std::endl ;
-    C.print() ;
+    PolygonGranuloFromFile reader("/home/ag3/Code/cv/test.poly") ;
+    std::vector<Feature *> polys =  reader.getFeatures( SPACE_TWO_DIMENSIONAL, &box, 2 ) ;
+    for(size_t i = 0 ; i < polys.size() ; i++)
+    {
+        polys[i]->setBehaviour( new Stiffness( 20e9 + i*10e9, 0.2 ) ) ;
+        if(reader.getData( 1, i ) >= 0 && reader.getData( 1, i ) < polys.size() )
+            polys[i]->setFather( polys[ reader.getData( 1, i ) ] ) ;
+//	if(i == 11)
+            F.addFeature( polys[i]->getFather(), polys[i] ) ;
+    }
+
+    F.setSamplingNumber( 16 ) ;
+    F.setMinimumMeshDensity( 0.4 ) ;
+    CommandLineParser::setFeatureTree( &F, argc, argv ) ;
+    F.step() ;
+
+/*    int cache = F.get2DMesh()->generateCache( dynamic_cast<Geometry *>( polys[7] ) ) ;
+    std::vector<int> elements = F.get2DMesh()->getCache(cache) ;
+    Vector y(elements.size()) ;
+    for(size_t i = 0 ; i < elements.size() ; i++)
+    {
+	y[i] = F.get2DMesh()->getElement( cache, i )->getCenter().getY() ;
+    }
+    size_t j = 0 ;
+    while( y[j] > y.min() ) { j++ ; } 
+    std::cout << j << " " ; F.get2DMesh()->getElement( cache, j )->getCenter().print() ;
+
+    std::valarray<Point> pts = dynamic_cast<PolygonalSample *>(polys[7])->getOriginalPoints() ;
+    for(size_t i = 0 ; i < pts.size() ; i++)
+        pts[i].print() ;*/
+
+
+    TriangleWriter trg("test_poly", &F, 1) ;
+    trg.getField( TWFT_STIFFNESS) ; 
+    trg.write() ;
+
 
     return 0 ;
 }

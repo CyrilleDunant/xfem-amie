@@ -332,7 +332,7 @@ public:
 
 class GranuloFromFile
 {
-private:
+protected:
 	std::string filename;
 	std::vector<std::string> fields;
 	std::vector<double> values ;
@@ -344,12 +344,23 @@ public:
 	int getFieldNumber(std::string column) ;
 	std::vector<double> getFieldValues(std::string column) ;
 	std::vector<double> getFieldValues(int) ;
-	std::vector<Feature *> getFeatures(TypeInclusion type, int ninc) ;
+	std::vector<Feature *> getFeatures(GeometryType type, int ninc) ;
 	std::vector<Inclusion3D *> getInclusion3D(int ninc, double scale = 1) ;
-
-
 } ;
 
+
+class PolygonGranuloFromFile : public GranuloFromFile
+{
+      std::vector<std::vector<double> > data ;
+
+public:
+      PolygonGranuloFromFile(const std::string & file) : GranuloFromFile(file, std::vector<std::string>()) { } ;
+
+      std::vector<Feature *> getFeatures(SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, Feature * father = nullptr, int extrafields = 0) ;
+
+     double getData( size_t field, size_t index ) const { return data[field][index] ; }
+
+} ;
 
 
 
