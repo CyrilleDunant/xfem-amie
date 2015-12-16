@@ -6,7 +6,6 @@
 
 #ifndef __LEVEL_SET_H_
 #define __LEVEL_SET_H_
-#endif
 #include "../utilities/matrixops.h"
 #include "../polynomial/vm_function_base.h"
 #include "geometry_base.h"
@@ -85,3 +84,5 @@ class LevelSet : public Geometry
 } ;
 
 }
+
+#endif // __LEVEL_SET_H_
