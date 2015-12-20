@@ -403,7 +403,7 @@ public:
         std::vector<ETYPE *> elems = getConflictingElements ( source ) ;
         if(elems.empty())
             elems = getConflictingElements ( &source->getCenter() ) ;
-
+	
         for ( auto & element : elems ) {
             if(source->in(element->getCenter()) && element->getBehaviour() && element->getBehaviour()->getSource() == source)
             {
@@ -816,7 +816,29 @@ public:
     }
 
     //virtual void getAverageField( Amie::FieldType f, Vector& ret, Amie::VirtualMachine* vm = nullptr, int dummy = 0, double t = 0, std::vector< double > weights = std::vector<double>()) ;
-    virtual Vector getField ( FieldType f, int cacheID, int dummy = 0, double t = 0 ) {
+    virtual Vector getField ( FieldType f, int cacheID = -1, int dummy = 0, double t = 0 ) {
+        if(cacheID == -1 && allElementsCacheID == -1)
+        {
+            VirtualMachine vm ;
+            size_t blocks = 0 ;
+
+            std::vector<ETYPE *> elems = getElements() ;
+            for ( size_t i = 0 ; i < elems.size() && !blocks; i++ ) {
+                blocks = elems[i]->getBehaviour()->getNumberOfDegreesOfFreedom() /spaceDimensions ;
+            }
+            Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
+            Vector buffer ( ret ) ;
+            double w = 0 ;
+            for ( size_t i = 0 ; i < elems.size() ; i++ ) {
+
+                double v = elems[i]->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
+                ret += buffer * v ;
+                w +=v ;
+            }
+            return ret/w ;
+        }
+        if(cacheID != -1)
+	  cacheID = allElementsCacheID ;
         VirtualMachine vm ;
         size_t blocks = 0 ;
         for ( size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++ ) {
@@ -927,45 +949,45 @@ public:
         return v ;
     }
 
-    virtual Vector getField ( FieldType f, int dummy = 0, double t = 0 ) {
-        if(allElementsCacheID == -1)
-        {
-            VirtualMachine vm ;
-            size_t blocks = 0 ;
-
-            std::vector<ETYPE *> elems = getElements() ;
-            for ( size_t i = 0 ; i < elems.size() && !blocks; i++ ) {
-                blocks = elems[i]->getBehaviour()->getNumberOfDegreesOfFreedom() /spaceDimensions ;
-            }
-            Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
-            Vector buffer ( ret ) ;
-            double w = 0 ;
-            for ( size_t i = 0 ; i < elems.size() ; i++ ) {
-
-                double v = elems[i]->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
-                ret += buffer * v ;
-                w +=v ;
-            }
-            return ret/w ;
-        }
-
-        VirtualMachine vm ;
-        size_t blocks = 0 ;
-
-
-        for ( auto i = begin() ; i  != end() && !blocks; i++ ) {
-            blocks = i->getBehaviour()->getNumberOfDegreesOfFreedom() /spaceDimensions ;
-        }
-        Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
-        Vector buffer ( ret ) ;
-        double w = 0 ;
-        for ( auto i = begin() ; i  != end() ; i++ ) {
-            double v = i->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
-            ret += buffer * v ;
-            w +=v ;
-        }
-        return ret/w ;
-    }
+//     virtual Vector getField ( FieldType f, int dummy = 0, double t = 0 ) {
+//         if(allElementsCacheID == -1)
+//         {
+//             VirtualMachine vm ;
+//             size_t blocks = 0 ;
+// 
+//             std::vector<ETYPE *> elems = getElements() ;
+//             for ( size_t i = 0 ; i < elems.size() && !blocks; i++ ) {
+//                 blocks = elems[i]->getBehaviour()->getNumberOfDegreesOfFreedom() /spaceDimensions ;
+//             }
+//             Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
+//             Vector buffer ( ret ) ;
+//             double w = 0 ;
+//             for ( size_t i = 0 ; i < elems.size() ; i++ ) {
+// 
+//                 double v = elems[i]->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
+//                 ret += buffer * v ;
+//                 w +=v ;
+//             }
+//             return ret/w ;
+//         }
+// 
+//         VirtualMachine vm ;
+//         size_t blocks = 0 ;
+// 
+// 
+//         for ( auto i = begin() ; i  != end() && !blocks; i++ ) {
+//             blocks = i->getBehaviour()->getNumberOfDegreesOfFreedom() /spaceDimensions ;
+//         }
+//         Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
+//         Vector buffer ( ret ) ;
+//         double w = 0 ;
+//         for ( auto i = begin() ; i  != end() ; i++ ) {
+//             double v = i->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
+//             ret += buffer * v ;
+//             w +=v ;
+//         }
+//         return ret/w ;
+//     }
 
     virtual Vector getSmoothedField (  FieldType f0, int cacheID, IntegrableEntity * e,int dummy = 0, double t = 0, const std::vector<bool> & restrict = std::vector<bool>()) {
         int tsize = 3 ;
