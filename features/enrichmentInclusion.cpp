@@ -176,13 +176,13 @@ Function EnrichmentInclusion::getBlendingFunction(const std::map<const Point *, 
 
 void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
-     if(cache.empty()) // assume that this is the first step
-     {
-         DelaunayTriangle * tri = dtree->getUniqueConflictingElement(&getCenter()) ;
-         
-         if(tri)
-             setCenter(*tri->first);
-     }
+//      if(cache.empty()) // assume that this is the first step
+//      {
+//          DelaunayTriangle * tri = dtree->getUniqueConflictingElement(&getCenter()) ;
+//          
+//          if(tri)
+//              setCenter(*tri->first);
+//      }
     freeIds[dtree].clear();
     for(size_t i = 0 ; i < cache.size() ; i++)
     {
