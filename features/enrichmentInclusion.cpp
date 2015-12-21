@@ -181,7 +181,7 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
          DelaunayTriangle * tri = dtree->getUniqueConflictingElement(&getCenter()) ;
          
          if(tri)
-             setCenter(tri->getCenter());
+             setCenter(*tri->first);
      }
     freeIds[dtree].clear();
     for(size_t i = 0 ; i < cache.size() ; i++)
@@ -232,7 +232,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
     updated = false ;
     std::vector<DelaunayTriangle *> & disc  = cache;
 
-    if(disc.size() < 4)
+    if(disc.size() < 3)
     {
 
         DelaunayTriangle * toHomogenise = disc[0];
@@ -354,7 +354,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
             Point linter0 = ring[i]->inLocalCoordinates(inter[0]) ;
             Point linter1 = ring[i]->inLocalCoordinates(inter[1]) ;
 
-            double n  = 4 ;
+            double n  = 3 ;
             for(double j= 1./n ; j < .9999  ; j+=1./n)
             {
                 Point h0 = inter[0]*j+inter[1]*(1.-j) ;

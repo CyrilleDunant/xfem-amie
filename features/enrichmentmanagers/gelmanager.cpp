@@ -39,10 +39,11 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
     std::vector<ExpansiveZone *> zonesToPlace ;
 
     int trycount = 0 ;
+    std::srand(6) ;
     for( int i = 0 ; i < nzones && trycount < tries*nzones; i++ )
     {
         trycount++ ;
-        Point pos( ( ( double )rand() / RAND_MAX - .5 ) * ( xmax-xmin), ( ( double )rand() / RAND_MAX - .5 ) * ( ymax-ymin) ) ;
+        Point pos( ( ( double )std::rand() / RAND_MAX - .5 ) * ( xmax-xmin), ( ( double )std::rand() / RAND_MAX - .5 ) * ( ymax-ymin) ) ;
         pos += baseGeometry.getCenter() ;
         bool alone  = true ;
 

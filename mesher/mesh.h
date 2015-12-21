@@ -824,6 +824,9 @@ public:
 
             std::vector<ETYPE *> elems = getElements() ;
             for ( size_t i = 0 ; i < elems.size() && !blocks; i++ ) {
+                if(elems[i]->getBehaviour()->type == VOID_BEHAVIOUR)
+                    continue ;
+                
                 blocks = elems[i]->getBehaviour()->getNumberOfDegreesOfFreedom() /spaceDimensions ;
             }
             Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
@@ -837,8 +840,8 @@ public:
             }
             return ret/w ;
         }
-        if(cacheID != -1)
-	  cacheID = allElementsCacheID ;
+        if(cacheID == -1)
+            cacheID = allElementsCacheID ;
         VirtualMachine vm ;
         size_t blocks = 0 ;
         for ( size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++ ) {
