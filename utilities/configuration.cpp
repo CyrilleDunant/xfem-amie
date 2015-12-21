@@ -1178,6 +1178,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
         std::cout << F->getCurrentTime() << "\t" ;
         out << F->getCurrentTime() << "\t" ;
         std::string instant = getStringData("instant","NOW") ;
+        double time = (int) (instant == "AFTER") - (int) (instant == "BEFORE") ;
         std::vector<ConfigTreeItem *> fields = getAllChildren("field") ;
         for(size_t i = 0 ; i < fields.size() ; i++)
         {
@@ -1185,7 +1186,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
             FieldType ft = Enum::getFieldType( fields[i]->getStringData(), &isFieldType ) ;
             if(isFieldType)
             {
-                Vector f = F->getAverageField( ft, -1, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
+                Vector f = F->getAverageField( ft, -1, time ) ;
                 for(size_t j = 0 ; j < f.size() ; j++)
                 {
                     std::cout << f[j] << "\t" ;
@@ -1194,7 +1195,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
             }
             else
             {
-                double f = F->get2DMesh()->getField( fields[i]->getStringData(), 0, fields[i]->getStringData("correction_factor", "correction_factor") ) ;
+                double f = F->get2DMesh()->getField( fields[i]->getStringData(), -1, fields[i]->getStringData("correction_factor", "correction_factor") ) ;
                 std::cout << f << "\t" ;
                 out << f << "\t" ;
             }
@@ -1210,7 +1211,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
                 FieldType ft = Enum::getFieldType( ffields[i]->getStringData(), &isFieldType ) ;
                 if(isFieldType)
                 {
-                    Vector f = F->get2DMesh()->getField( ft, cacheIndex[index], -1, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
+                    Vector f = F->get2DMesh()->getField( ft, cacheIndex[index], (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
                     for(size_t j = 0 ; j < f.size() ; j++)
                     {
                         std::cout << f[j] << "\t" ;
@@ -1238,7 +1239,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
                 FieldType ft = Enum::getFieldType( ffields[i]->getStringData(), &isFieldType ) ;
                 if(isFieldType)
                 {
-                    Vector f = F->getAverageFieldOnBoundary( pos, ft, -1, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
+                    Vector f = F->getAverageFieldOnBoundary( pos, ft, (int) (instant == "AFTER") - (int) (instant == "BEFORE"), getData("field_index",0) ) ;
                     for(size_t j = 0 ; j < f.size() ; j++)
                     {
                         std::cout << f[j] << "\t" ;
@@ -1247,7 +1248,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
                 }
                 else
                 {
-                    double f = F->getAverageFieldOnBoundary( pos, ffields[i]->getStringData(), -1, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
+                    double f = F->getAverageFieldOnBoundary( pos, ffields[i]->getStringData(), (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
                     std::cout << f << "\t" ;
                     out << f << "\t" ;
                 }

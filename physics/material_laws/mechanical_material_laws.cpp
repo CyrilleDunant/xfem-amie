@@ -73,7 +73,7 @@ void BazantLoadNonLinearCreepMaterialLaw::preProcess(GeneralizedSpaceTimeViscoEl
 
     Vector stress(3) ;
     stress=0. ;
-    s.getAverageField(REAL_STRESS_FIELD, stress, nullptr, -1, 1.) ;
+    s.getAverageField(REAL_STRESS_FIELD, stress, nullptr, 1.) ;
     double pstress =  stress.max() ;
     double strength = s.get("tensile_strength", defaultValues) ;
     if(stress.min() < 0 && -stress.min() > stress.max())
@@ -123,7 +123,7 @@ void TensionCompressionCreepMaterialLaw::preProcess(GeneralizedSpaceTimeViscoEla
 
     Vector stress(2) ;
     stress=0. ;
-    s.getAverageField(PRINCIPAL_REAL_STRESS_FIELD, stress, nullptr, -1, 1.) ;
+    s.getAverageField(PRINCIPAL_REAL_STRESS_FIELD, stress, nullptr, 1.) ;
     double tstress =  stress.max() ;
     double cstress =  stress.min() ;
     if(tstress > 0 && tstress > std::abs(cstress))
@@ -147,7 +147,7 @@ void StrainRateDependentStrengthMaterialLaw::preProcess(GeneralizedSpaceTimeVisc
 
     Vector pstrain(2) ;
     pstrain=0. ;
-    s.getAverageField(PRINCIPAL_STRAIN_FIELD, pstrain, nullptr, -1, 1.) ;
+    s.getAverageField(PRINCIPAL_STRAIN_FIELD, pstrain, nullptr, 1.) ;
     if(std::abs(pstrain.max()) < POINT_TOLERANCE*dt && std::abs(pstrain.min()) < POINT_TOLERANCE*dt)
         return ;
 

@@ -1597,7 +1597,7 @@ void ElementState::getFieldAtGaussPoint ( FieldType f, size_t p, Vector & ret, V
     }
 }
 
-double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine * vm, int dummy, double t, const std::vector<double> & weights )
+double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine * vm, double time, const std::vector<double> & weights, int index )
 {
     while(true) {
 //         usleep(1) ;
@@ -2551,7 +2551,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
         {
 
-            getField ( f, gp.gaussPoints[i].first, tmp,true,  vm, dummy ) ;
+            getField ( f, gp.gaussPoints[i].first, tmp, true,  vm, index ) ;
 
             double w = 1 ;
             if(weighted)
@@ -2577,7 +2577,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
     }
 }
 
-double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, Vector & ret_, VirtualMachine * vm,  int dummy, double t, const std::vector<double> & weights )
+double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, Vector & ret_, VirtualMachine * vm,  double time, const std::vector<double> & weights, int index )
 {
     while(true) {
 //         usleep(1) ;
@@ -2810,8 +2810,8 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
     }
 
 
-    getAverageField ( f, ret,vm, dummy, t, weights ) ;
-    v = getAverageField ( f_, ret_,vm, dummy, t, weights );
+    getAverageField ( f, ret,vm, time, weights, index ) ;
+    v = getAverageField ( f_, ret_,vm, time, weights, index );
     if ( cleanup )
     {
         delete vm ;
@@ -3229,7 +3229,7 @@ std::vector<Point> ElementState::getPrincipalFrame ( const Point &p, bool local,
     if ( getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
     {
         Vector principalStresses ( 0., 2 ) ;
-        getAverageField ( principalStressFieldType ( m ), principalStresses, vm ) ;
+        getAverageField ( principalStressFieldType ( m ), principalStresses, vm, 0. ) ;
         double principalAngle = 0.5*atan2 ( principalStresses[0]-principalStresses[1], 2.*principalStresses[2] ) ;
         std::vector<Point> ret ;
         ret.push_back ( Point ( cos ( principalAngle ), -sin ( principalAngle ) ) );

@@ -87,8 +87,8 @@ void step ( size_t nsteps, std::string app = std::string() )
 //             loadr->setData(VirtualMachine().eval(loadfunc, 0,0,0, featureTree->getCurrentTime()));
 // 	}
 
-        Vector stemp = featureTree->getAverageField ( GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD,-1.,1. ) ;
-        Vector etemp = featureTree->getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD,-1.,1. ) ;
+        Vector stemp = featureTree->getAverageField ( GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD ) ;
+        Vector etemp = featureTree->getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD ) ;
         Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD) ;
 
         std::cout << "current time :" << featureTree->getCurrentTime() << std::endl ;

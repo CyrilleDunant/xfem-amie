@@ -144,8 +144,8 @@ int main(int argc, char *argv[])
 		double r = VirtualMachine().eval( radius, 0,0,0, nodes[ nodes.size()-1]->getT() ) ;
 		summary << r << "\t" << nzones*r*r*M_PI/aggregatesArea << "\t" ;
 		
-		Vector strain = F.getAverageField(STRAIN_FIELD, -1, 1) ;
-		Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
+		Vector strain = F.getAverageField(STRAIN_FIELD, 1) ;
+		Vector stress = F.getAverageField(REAL_STRESS_FIELD, 1) ;
 		summary << strain[0] << "\t" << strain[1] << "\t" << strain[2] << "\t" ;
 		summary << stress[0] << "\t" << stress[1] << "\t" << stress[2] << "\t" ;
 		summary << F.damageAreaInAggregates(F.get2DMesh()->begin(), F.get2DMesh()->end()) << "\t" << F.damageAreaInPaste(F.get2DMesh()->begin(), F.get2DMesh()->end()) << "\t" << F.averageDamage << "\t" << std::endl ;

@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
     F.step();
 
     std::ofstream fichier_data(test_data.c_str(), std::ios::out | std::ios::app);
-    fichier_data << F.getCurrentTime() << " ; " << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << " ; " << F.getAverageField( REAL_STRESS_FIELD, -1, 1.)[1] << std::endl ;
+    fichier_data << F.getCurrentTime() << " ; " << F.getAverageField( STRAIN_FIELD )[1] << " ; " << F.getAverageField( REAL_STRESS_FIELD )[1] << std::endl ;
     fichier_data.close();
 
     std::cout << "temps " <<  F.getCurrentTime() << std::endl ;

@@ -95,7 +95,7 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
 
         if( v%10 == 0)
         {
-            Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD, -1, 1 ) ;
+            Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD ) ;
 
             std::cout << std::endl ;
             std::cout << "average sigma11 : " << stemp[0]/1e6 << std::endl ;

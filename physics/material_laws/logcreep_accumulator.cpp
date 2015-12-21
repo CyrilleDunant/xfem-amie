@@ -29,7 +29,7 @@ void StrainConsolidationLogCreepAccumulator::preProcess( double timeStep, Elemen
 
     Vector pstr((2+(currentState.getParent()->spaceDimensions()==SPACE_THREE_DIMENSIONAL))) ;
     pstr = 0 ;
-    dynamic_cast<GeneralizedSpaceTimeViscoElasticElementState &>(currentState).getAverageField( PRINCIPAL_MECHANICAL_STRAIN_FIELD, pstr, nullptr, -1, 1 ) ;
+    dynamic_cast<GeneralizedSpaceTimeViscoElasticElementState &>(currentState).getAverageField( PRINCIPAL_MECHANICAL_STRAIN_FIELD, pstr, nullptr, 1 ) ;
     if(std::abs(pstr.min()) > std::abs(pstr.max()))
         currentStrain = pstr.min() ;
     else
@@ -37,7 +37,7 @@ void StrainConsolidationLogCreepAccumulator::preProcess( double timeStep, Elemen
 
     Vector gstr(pstr.size()*3) ;
     gstr = 0 ;
-    dynamic_cast<GeneralizedSpaceTimeViscoElasticElementState &>(currentState).getAverageField( GENERALIZED_VISCOELASTIC_PRINCIPAL_STRAIN_FIELD, gstr, nullptr, -1, 1 ) ;
+    dynamic_cast<GeneralizedSpaceTimeViscoElasticElementState &>(currentState).getAverageField( GENERALIZED_VISCOELASTIC_PRINCIPAL_STRAIN_FIELD, gstr, nullptr,  1 ) ;
     for(size_t i = 0 ; i < pstr.size() ; i++)
         pstr[i] = gstr[ pstr.size()+i ] ;
     
@@ -97,7 +97,7 @@ void TimeUnderLoadLogCreepAccumulator::preProcess( double timeStep, ElementState
     stress = 0 ;
     if(!currentState.getParent()->getBehaviour()->fractured())
     {
-        dynamic_cast<GeneralizedSpaceTimeViscoElasticElementState &>(currentState).getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress, nullptr, -1, 1.) ;
+        dynamic_cast<GeneralizedSpaceTimeViscoElasticElementState &>(currentState).getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress, nullptr, 1.) ;
 //		double bulk = 0.5*(stress[0]+stress[1]) ;
         double dt = (timeStep+previousTimeStep)*.5 ;
 //		stress -= bulk ;

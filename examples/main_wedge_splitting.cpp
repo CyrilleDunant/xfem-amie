@@ -211,8 +211,8 @@ int main(int argc, char *argv[])
 
 		if(goOn)
 		{
-	 		x = F.getAverageField(STRAIN_FIELD, -1, 1) ;
-	 		y = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
+	 		x = F.getAverageField(STRAIN_FIELD ) ;
+	 		y = F.getAverageField(REAL_STRESS_FIELD ) ;
 			out << F.get2DMesh()->begin()->getBoundingPoint(3).getT() << "\t" << (F.getCurrentTime()-totaltime/100.)*speed << "\t" << x[0] << "\t" << y[0] << "\t" << F.averageDamage << std::endl ;
 		}
 	}

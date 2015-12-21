@@ -1141,8 +1141,8 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < 30 ; i++)
 	{
 		F.step() ;
-		Vector strain = F.getAverageField(STRAIN_FIELD, -1, 0) ;
-		Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 0) ;
+		Vector strain = F.getAverageField(STRAIN_FIELD) ;
+		Vector stress = F.getAverageField(REAL_STRESS_FIELD) ;
 		double damage = getAverageDamage(F) ;
 		std::cout << strain[0] << "\t" << strain[1] << std::endl ;
 

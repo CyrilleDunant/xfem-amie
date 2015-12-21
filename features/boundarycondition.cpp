@@ -7706,7 +7706,7 @@ void GlobalForceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedro
 
 double LoadingCycle::getValue() 
 {
-    double teststate = (condition == ULTIMATE_STRESS) ? (ft->getAverageField(REAL_STRESS_FIELD, -1, 1.))[axisIndex] : (ft->getAverageField(STRAIN_FIELD, -1, 1.))[axisIndex];
+    double teststate = (condition == ULTIMATE_STRESS) ? (ft->getAverageField(REAL_STRESS_FIELD, 1., -1))[axisIndex] : (ft->getAverageField(STRAIN_FIELD, 1., -1))[axisIndex];
     if(!cycleStarted)
     {
        if(teststate > ultimate) 

@@ -5946,25 +5946,28 @@ std::vector<Point *> FeatureTree::getNodes ()
     return pts ;
 }
 
-Vector FeatureTree::getAverageField ( FieldType f, int grid , double t )
+Vector FeatureTree::getAverageField ( FieldType f, double t, int grid, int index )
 {
     if ( is2D() )
     {
-        Vector ret = dtree->getField ( f, -1, -1, t ) ;
+        if( layer2d.find( grid ) != layer2d.end() )
+             return layer2d[grid]->getField( f, -1, t, index ) ;
+
+        Vector ret = dtree->getField ( f, -1, t, index ) ;
         for ( auto layer = layer2d.begin() ; layer!=layer2d.end() ; layer++ )
         {
             if(layer->second != dtree)
-                ret += layer->second->getField ( f, -1, -1, t ) ;
+                ret += layer->second->getField ( f, -1, t, index ) ;
         }
         return ret ;
     }
 
 
-    return get3DMesh()->getField ( f, -1, t ) ;
+    return get3DMesh()->getField ( f, -1, t, index ) ;
 
 }
 
-Vector FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, FieldType f, int dummy, double t )
+Vector FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, FieldType f, double t, int index )
 {
     if(boundaryCache.find(edge) == boundaryCache.end())
     {
@@ -5987,7 +5990,7 @@ Vector FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, FieldT
                 break ;
             default:
                 std::cout << "cannot calculate field on selected boundary" << std::endl ;
-                return get2DMesh()->getField ( f, -1, -1, t ) ;
+                return get2DMesh()->getField ( f, -1, t ) ;
             }
             unsigned int id = get2DMesh()->generateCache( pos ) ;
             boundaryCache[ edge ] = std::make_pair( pos, id ) ;
@@ -5995,21 +5998,21 @@ Vector FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, FieldT
         else
         {
             std::cout << "cannot calculate field on selected boundary" << std::endl ;
-            return get3DMesh()->getField ( f, -1,-1, t ) ;
+            return get3DMesh()->getField ( f, -1, t ) ;
         }
     }
 
 
     if ( is2D() )
     {
-        return get2DMesh()->getField ( f, boundaryCache[edge].first, boundaryCache[edge].second, dummy, t ) ;
+        return get2DMesh()->getField ( f, boundaryCache[edge].first, boundaryCache[edge].second, index, t ) ;
     }
 
-    return get3DMesh()->getField ( f, boundaryCache[edge].first, boundaryCache[edge].second, dummy, t ) ;
+    return get3DMesh()->getField ( f, boundaryCache[edge].first, boundaryCache[edge].second, index, t ) ;
 
 }
 
-double FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, std::string f, int dummy, double t )
+double FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, std::string f, double t )
 {
     if(boundaryCache.find(edge) == boundaryCache.end())
     {
@@ -6034,6 +6037,8 @@ double FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, std::s
                 std::cout << "cannot calculate field on selected boundary" << std::endl ;
                 return get2DMesh()->getField ( f, -1 ) ;
             }
+            *(pos->getFirstT()) = t ;
+            *(pos->getSecondT()) = t ;
             unsigned int id = get2DMesh()->generateCache( pos ) ;
             boundaryCache[ edge ] = std::make_pair( pos, id ) ;
         }
@@ -6629,7 +6634,7 @@ std::vector<double> FeatureTree::getMedianMacroscopicStrain ( const Geometry * b
 //     return avg/volume ;
 // }
 
-std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, int grid, double t )
+std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, double t, int grid )
 {
     Vector min ;
     Vector max ;
@@ -6639,6 +6644,9 @@ std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, int grid, d
     {
         for ( auto layer = layer2d.begin() ; layer!=layer2d.end() ; layer++ )
         {
+            if(layer2d.find( grid ) != layer2d.end() && layer->first != grid)
+                continue ;
+
             size_t blocks = layer->second->begin()->getBehaviour()->getNumberOfDegreesOfFreedom() /2 ;
             min.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL, blocks ) ) ;
             max.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL, blocks ) ) ;
@@ -6649,7 +6657,7 @@ std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, int grid, d
             {
                 start++ ;
             }
-            start->getState().getAverageField ( f, buffer ) ;
+            start->getState().getAverageField ( f, buffer, &vm, t ) ;
             min = buffer ;
             max = buffer ;
             start++ ;
@@ -6657,7 +6665,7 @@ std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, int grid, d
             {
                 if ( start->getBehaviour()->type != VOID_BEHAVIOUR )
                 {
-                    start->getState().getAverageField ( f, buffer,&vm, -1, t ) ;
+                    start->getState().getAverageField ( f, buffer,&vm, t ) ;
                     for ( size_t j = 0 ; j < min.size() ; j++ )
                     {
                         min[j] = std::min ( min[j], buffer[j] ) ;
@@ -6679,14 +6687,14 @@ std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, int grid, d
         {
             start++ ;
         }
-        start->getState().getAverageField ( f, buffer ) ;
+        start->getState().getAverageField ( f, buffer, &vm, t ) ;
         min = buffer ;
         max = buffer ;
         for ( ; start != dtree3D->end() ; start++ )
         {
             if ( start->getBehaviour()->type != VOID_BEHAVIOUR )
             {
-                start->getState().getAverageField ( f, buffer,&vm, -1, t ) ;
+                start->getState().getAverageField ( f, buffer,&vm, t ) ;
                 for ( size_t j = 0 ; j < min.size() ; j++ )
                 {
                     min[j] = std::min ( min[j], buffer[j] ) ;
@@ -6699,7 +6707,7 @@ std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, int grid, d
 }
 
 
-std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, const std::vector<DelaunayTriangle *> & tri )
+std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, const std::vector<DelaunayTriangle *> & tri, double t )
 {
     Vector min ;
     Vector max ;
@@ -6707,12 +6715,13 @@ std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, const std::
     min.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL ) ) ;
     max.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL ) ) ;
     buffer.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL ) ) ;
-    tri[0]->getState().getAverageField ( f, buffer ) ;
+    VirtualMachine vm ;
+    tri[0]->getState().getAverageField ( f, buffer, &vm, t ) ;
     min = buffer ;
     max = buffer ;
     for ( size_t i = 1 ; i < tri.size() ; i++ )
     {
-        tri[i]->getState().getAverageField ( f, buffer ) ;
+        tri[i]->getState().getAverageField ( f, buffer, &vm, t ) ;
         for ( size_t j = 0 ; j < min.size() ; j++ )
         {
             min[j] = std::min ( min[j], buffer[j] ) ;
@@ -6722,20 +6731,21 @@ std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, const std::
     return std::make_pair ( min, max ) ;
 }
 
-std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, const std::vector<DelaunayTetrahedron *> & tet )
+std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, const std::vector<DelaunayTetrahedron *> & tet, double t )
 {
     Vector min ;
     Vector max ;
     Vector buffer ;
     min.resize ( fieldTypeElementarySize ( f, SPACE_THREE_DIMENSIONAL ) ) ;
     max.resize ( fieldTypeElementarySize ( f, SPACE_THREE_DIMENSIONAL ) ) ;
+    VirtualMachine vm ;
     buffer.resize ( fieldTypeElementarySize ( f, SPACE_THREE_DIMENSIONAL ) ) ;
-    tet[0]->getState().getAverageField ( f, buffer ) ;
+    tet[0]->getState().getAverageField ( f, buffer, &vm, t ) ;
     min = buffer ;
     max = buffer ;
     for ( size_t i = 1 ; i < tet.size() ; i++ )
     {
-        tet[i]->getState().getAverageField ( f, buffer ) ;
+        tet[i]->getState().getAverageField ( f, buffer, &vm, t ) ;
         for ( size_t j = 0 ; j < min.size() ; j++ )
         {
             min[j] = std::min ( min[j], buffer[j] ) ;
@@ -8360,7 +8370,7 @@ void FeatureTree::shuffleMeshPoints()
     std::random_shuffle ( meshPoints.begin(), meshPoints.end() ) ;
 }
 
-void FeatureTree::printReport(bool printHeader, bool vertical)
+void FeatureTree::printReport(bool printHeader, bool vertical, double t)
 {
     if(is2D())
     {
@@ -8392,8 +8402,8 @@ void FeatureTree::printReport(bool printHeader, bool vertical)
         std::pair<Vector, Vector> stempm = getFieldMinMax(REAL_STRESS_FIELD) ;
         std::pair<Vector, Vector> etempm = getFieldMinMax(STRAIN_FIELD) ;
         std::pair<Vector, Vector> vmm = getFieldMinMax(VON_MISES_REAL_STRESS_FIELD) ;
-        Vector stemp = getAverageField(REAL_STRESS_FIELD) ;
-        Vector etemp = getAverageField(STRAIN_FIELD) ;
+        Vector stemp = getAverageField(REAL_STRESS_FIELD, t) ;
+        Vector etemp = getAverageField(STRAIN_FIELD, t) ;
         reportValues.back()[0] = x.max() ;
         reportValues.back()[1] = x.min() ;
         reportValues.back()[2] = xavg    ;
@@ -8846,7 +8856,7 @@ void FeatureTree::printReport(bool printHeader, bool vertical)
     }
 }
 
-void FeatureTree::printReport(const std::vector<FieldType> & fields, bool vertical)
+void FeatureTree::printReport(const std::vector<FieldType> & fields, bool vertical, double t)
 {
 
     if(is2D())
@@ -8856,7 +8866,7 @@ void FeatureTree::printReport(const std::vector<FieldType> & fields, bool vertic
         {
             for(auto f : fields)
             {
-                Vector vals = get2DMesh()->getField(f) ;
+                Vector vals = get2DMesh()->getField(f, -1, t) ;
                 for(size_t i = 0 ; i < vals.size() ;  i++)
                     std::cout << vals[i] << std::endl ;
             }
@@ -8866,7 +8876,7 @@ void FeatureTree::printReport(const std::vector<FieldType> & fields, bool vertic
         {
             for(auto f : fields)
             {
-                Vector vals = get2DMesh()->getField(f) ;
+                Vector vals = get2DMesh()->getField(f, -1, t) ;
                 for(size_t i = 0 ; i < vals.size() ;  i++)
                     std::cout << vals[i] <<  "  " << std::flush ;
             }
@@ -8879,7 +8889,7 @@ void FeatureTree::printReport(const std::vector<FieldType> & fields, bool vertic
         {
             for(auto f : fields)
             {
-                Vector vals = get3DMesh()->getField(f) ;
+                Vector vals = get3DMesh()->getField(f, -1, t) ;
                 for(size_t i = 0 ; i < vals.size() ;  i++)
                     std::cout << vals[i] << std::endl ;
             }
@@ -8889,7 +8899,7 @@ void FeatureTree::printReport(const std::vector<FieldType> & fields, bool vertic
         {
             for(auto f : fields)
             {
-                Vector vals = get3DMesh()->getField(f) ;
+                Vector vals = get3DMesh()->getField(f, -1, t) ;
                 for(size_t i = 0 ; i < vals.size() ;  i++)
                     std::cout << vals[i] <<  "  " << std::flush ;
             }

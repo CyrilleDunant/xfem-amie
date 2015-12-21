@@ -97,8 +97,8 @@ Vector FractureCriterion::getSmoothedField(FieldType f0,  ElementState &s ,doubl
         initialiseCache(s) ;
 
     if(mesh2d)
-        return mesh2d->getSmoothedField(f0, cachecoreID, s.getParent(), -1., t, restriction) ;
-    return mesh3d->getSmoothedField(f0, cachecoreID, s.getParent(), -1., t, restriction) ;
+        return mesh2d->getSmoothedField(f0, cachecoreID, s.getParent(), t, restriction) ;
+    return mesh3d->getSmoothedField(f0, cachecoreID, s.getParent(), t, restriction) ;
 
 }
 
@@ -108,8 +108,8 @@ std::pair<Vector, Vector> FractureCriterion::getSmoothedFields( FieldType f0, Fi
         initialiseCache(s) ;
 
     if(mesh2d)
-        return mesh2d->getSmoothedFields(f0, f1, cachecoreID, s.getParent(), -1., t, restriction) ;
-    return mesh3d->getSmoothedFields(f0, f1, cachecoreID, s.getParent(), -1., t, restriction) ;
+        return mesh2d->getSmoothedFields(f0, f1, cachecoreID, s.getParent(),  t, restriction) ;
+    return mesh3d->getSmoothedFields(f0, f1, cachecoreID, s.getParent(), t, restriction) ;
 
 }
 

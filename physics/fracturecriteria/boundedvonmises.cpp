@@ -31,7 +31,7 @@ double BoundedVonMises::grade(ElementState &s)
         return -1. ;
 
     Vector v(0.,1) ;
-    s.getAverageField( VON_MISES_REAL_STRESS_FIELD, v) ;
+    s.getAverageField( VON_MISES_REAL_STRESS_FIELD, v, nullptr, 0) ;
     double maxStress = v[0] ;
 
     if(maxStress > threshold )

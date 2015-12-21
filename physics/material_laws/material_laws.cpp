@@ -688,7 +688,7 @@ GetFieldMaterialLaw::GetFieldMaterialLaw(std::string f, std::string args, char s
 void GetFieldMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
     Vector v( fieldTypeElementarySize(field, SPACE_TWO_DIMENSIONAL, 1) ) ;
-    s.getAverageField( field, v, nullptr, 0, 1.) ;
+    s.getAverageField( field, v, nullptr, 1.) ;
     for(size_t i = 0 ; i < v.size() ; i++)
     {
         s.set( getParameterName(i), v[i] ) ;

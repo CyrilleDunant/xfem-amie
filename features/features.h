@@ -855,16 +855,16 @@ public:
     std::pair<Vector , Vector > getStressAndStrainInLayer ( int layer, bool stepTree = true ) ;
 // 	std::pair<Vector , Vector > getStressAndStrainInAllLayers( bool stepTree = true) ;
 
-    Vector getAverageField ( FieldType f, int grid = -1, double t = 0 ) ;
+    Vector getAverageField ( FieldType f, double t = 1, int grid = -1, int index = 0 ) ;
 // 	Vector getAverageField( FieldType f, const std::vector<DelaunayTriangle *> & tri) ;
 // 	Vector getAverageField( FieldType f, const std::vector<DelaunayTetrahedron *> & tet) ;
 
-    Vector getAverageFieldOnBoundary( BoundingBoxPosition position, FieldType f, int dummy = 0, double t = 0) ;
-    double getAverageFieldOnBoundary( BoundingBoxPosition position, std::string f, int dummy = 0, double t = 0) ;
+    Vector getAverageFieldOnBoundary( BoundingBoxPosition position, FieldType f, double t = 0, int index = 0) ;
+    double getAverageFieldOnBoundary( BoundingBoxPosition position, std::string f, double t = 0) ;
 
-    std::pair<Vector, Vector> getFieldMinMax ( FieldType f, int grid = -1, double t = 0 ) ;
-    std::pair<Vector, Vector> getFieldMinMax ( FieldType f, const std::vector<DelaunayTriangle *> & tri ) ;
-    std::pair<Vector, Vector> getFieldMinMax ( FieldType f, const std::vector<DelaunayTetrahedron *> & tet ) ;
+    std::pair<Vector, Vector> getFieldMinMax ( FieldType f, double t = 1, int grid = -1 ) ;
+    std::pair<Vector, Vector> getFieldMinMax ( FieldType f, const std::vector<DelaunayTriangle *> & tri, double t = 0 ) ;
+    std::pair<Vector, Vector> getFieldMinMax ( FieldType f, const std::vector<DelaunayTetrahedron *> & tet, double t = 0 ) ;
 
     /** \brief Assuming the base sample is a rectangle, this computed the apparent macro strain based on the displacement along the border */
     std::vector<double> getMacroscopicStrain ( const Geometry * base, double tol = 0.001 )  ;
@@ -926,8 +926,8 @@ public:
     std::vector<DelaunayTriangle> getSnapshot2D() const ;
     void stepMesh();
     
-    void printReport(bool printHeader = true, bool vertical = true) ;
-    void printReport(const std::vector<FieldType> & fields, bool vertical = true) ;
+    void printReport(bool printHeader = true, bool vertical = true, double t = 1) ;
+    void printReport(const std::vector<FieldType> & fields, bool vertical = true, double t = 1) ;
 
 
 } ;

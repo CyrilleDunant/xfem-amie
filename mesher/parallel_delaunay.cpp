@@ -672,7 +672,7 @@ unsigned int ParallelDelaunayTree::generateCache ()
     return position ;
 }
 
-Vector ParallelDelaunayTree::getField( FieldType f, int cacheID, int dummy, double t) 
+Vector ParallelDelaunayTree::getField( FieldType f, int cacheID, double t, int index) 
 {
     VirtualMachine vm ;
     size_t blocks = 0 ;
@@ -687,14 +687,14 @@ Vector ParallelDelaunayTree::getField( FieldType f, int cacheID, int dummy, doub
     double w = 0 ;
     for(size_t i = 0 ; i < caches[cacheID].size() ; i++)
     {
-        double v = static_cast<DelaunayTriangle *>(meshes[elementMap[cacheID][i]]->getInTree(caches[cacheID][i]))->getState().getAverageField(f, buffer, nullptr, dummy, t, coefs[cacheID][i]) ;
+        double v = static_cast<DelaunayTriangle *>(meshes[elementMap[cacheID][i]]->getInTree(caches[cacheID][i]))->getState().getAverageField(f, buffer, nullptr, t, coefs[cacheID][i], index) ;
         ret += buffer * v ;
         w +=v ;
     }
     return ret/w ;
 }
 
-Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t) 
+Vector ParallelDelaunayTree::getField( FieldType f, double t, int index) 
 {
     VirtualMachine vm ;
     size_t blocks = 0 ;
@@ -707,16 +707,17 @@ Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t)
     Vector ret(0., fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks)) ;
     Vector buffer(ret) ;
     double w = 0 ;
+    std::vector<double> coeffs ;
     for(size_t i = 0 ; i < elems.size() ; i++)
     { 
-        double v = elems[i]->getState().getAverageField(f, buffer, nullptr, dummy, t) ;
+        double v = elems[i]->getState().getAverageField(f, buffer, nullptr, t, coeffs, index) ;
         ret += buffer * v ;
         w +=v ;
     }
     return ret/w ;
 }
 
-    Vector ParallelDelaunayTree::getSmoothedField (  FieldType f0, int cacheID, IntegrableEntity * e,int dummy, double t  , const std::vector<bool> & restrict ) {
+    Vector ParallelDelaunayTree::getSmoothedField (  FieldType f0, int cacheID, IntegrableEntity * e, double t  , const std::vector<bool> & restrict, int index ) {
     Vector first ;
     Vector strain ;
     Vector stress ;
@@ -735,7 +736,7 @@ Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t)
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 IntegrableEntity *ci = static_cast<DelaunayTriangle *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
 
-                double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, nullptr, 0, t, coefs[cacheID][i] );
+                double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, nullptr, t, coefs[cacheID][i] );
                 if ( !strain.size() ) {
                     strain.resize ( 0., buffer.size() );
                 }
@@ -752,7 +753,7 @@ Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t)
                 DelaunayTriangle *ci = static_cast<DelaunayTriangle *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
 
 
-                double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+                double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, t, coefs[cacheID][i] );
                 if ( !tmpstrain.size() ) {
                     tmpstrain.resize ( 0., buffer.size() );
                 }
@@ -761,7 +762,7 @@ Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t)
             }
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 DelaunayTriangle *ci = static_cast<DelaunayTriangle *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
-                double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+                double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, t, coefs[cacheID][i] );
                 if ( !tmpstrainrate.size() ) {
                     tmpstrainrate.resize ( 0., buffer.size() );
                 }
@@ -812,7 +813,7 @@ Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t)
         double sumFactors ( 0 ) ;
         for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
             DelaunayTriangle *ci = static_cast<DelaunayTriangle *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
-            double v = ci->getState().getAverageField ( f0, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+            double v = ci->getState().getAverageField ( f0, buffer, nullptr, t, coefs[cacheID][i], index );
             if ( first.size() != buffer.size()) {
                 first.resize ( buffer.size(), 0. );
             }
@@ -827,7 +828,7 @@ Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t)
     return first ;
 }
 
-std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0, FieldType f1, int cacheID, IntegrableEntity * e ,int dummy, double t ,  const std::vector<bool> & restrict ) {
+std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0, FieldType f1, int cacheID, IntegrableEntity * e , double t ,  const std::vector<bool> & restrict, int index0, int index1 ) {
     Vector first ;
     Vector second ;
     Vector strain ;
@@ -851,7 +852,7 @@ std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 IntegrableEntity *ci = static_cast<DelaunayTriangle *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
                 if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
-                    double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, nullptr, t, coefs[cacheID][i] );
                     strain += buffer*v ;
                     sumFactors += v ;
                 }
@@ -876,7 +877,7 @@ std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0
                 DelaunayTriangle *ci = static_cast<DelaunayTriangle *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
 
 
-                double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+                double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, t, coefs[cacheID][i] );
                 if ( !tmpstrain.size() ) {
                     tmpstrain.resize ( buffer.size(), 0. );
                 }
@@ -887,7 +888,7 @@ std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 DelaunayTriangle *ci = static_cast<DelaunayTriangle *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
 
-                double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, 0, t, coefs[cacheID][i] );
+                double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, t, coefs[cacheID][i] );
                 if ( !tmpstrainrate.size() ) {
                     tmpstrainrate.resize ( buffer.size(), 0. );
                 }
@@ -977,7 +978,7 @@ std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0
         for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
             DelaunayTriangle *ci = static_cast<DelaunayTriangle *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
 
-            double v = ci->getState().getAverageField ( f0, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+            double v = ci->getState().getAverageField ( f0, buffer, nullptr, t, coefs[cacheID][i], index0 );
             if ( !first.size() ) {
                 first.resize ( 0., buffer.size() );
             }
@@ -987,7 +988,7 @@ std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0
         for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
             DelaunayTriangle *ci = static_cast<DelaunayTriangle *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
             if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
-                double v = ci->getState().getAverageField ( f1, buffer, nullptr, dummy, t,coefs[cacheID][i] );
+                double v = ci->getState().getAverageField ( f1, buffer, nullptr,  t,coefs[cacheID][i], index1 );
                 if ( !second.size() ) {
                     second.resize ( 0., buffer.size() );
                 }

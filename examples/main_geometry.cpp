@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
 
   // write results in textfile
   
-  std::ofstream strain_file; strain_file.open("strain.getT()xt");
+  std::ofstream strain_file; strain_file.open("strain.txt");
   strain_file << "STRAIN_FIELD: " << std::endl;
 
   for (size_t i=0; i<strain.size(); ++i){
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 
   strain_file.close();
 
-  std::ofstream stress_file; stress_file.open("stress.getT()xt");
+  std::ofstream stress_file; stress_file.open("stress.txt");
   stress_file << "REAL_STRESS_FIELD: " << std::endl;
 
   for (size_t i=0; i<stress.size(); ++i){

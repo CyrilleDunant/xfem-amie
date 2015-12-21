@@ -100,9 +100,9 @@ void step (const Function & loadfunc)
     while ( true ) 
     {
         bool go_on = featureTree->stepToCheckPoint(1, 1e-4) ;
-        Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD,-1.,1. ) ;
-        Vector etemp = featureTree->getAverageField ( STRAIN_FIELD,-1.,1. ) ;
-        Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD,-1.,1.) ;
+        Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD ) ;
+        Vector etemp = featureTree->getAverageField ( STRAIN_FIELD  ) ;
+        Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD ) ;
         itcounter++ ;
 
         if(go_on/* && std::abs(sqrt(etemp[1]*etemp[1]/16e-10+stemp[1]*stemp[1]/2.25e12) - sqrt(displacements.back()*displacements.back()/16e-10+loads.back()*loads.back()/2.25e12)) > .01*/)

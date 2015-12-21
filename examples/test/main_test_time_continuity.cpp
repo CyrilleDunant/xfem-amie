@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	{
 		disp->setData( 0.00000075 + 0.00000075*i ) ;
 		f.step() ;
-		out << f.getCurrentTime() << "\t" << f.getAverageField( STRAIN_FIELD, -1,-1 )[1]*1e3 << "\t" << f.getAverageField( STRAIN_FIELD, -1,1 )[1]*1e3 << std::endl ;
+		out << f.getCurrentTime() << "\t" << f.getAverageField( STRAIN_FIELD, -1 )[1]*1e3 << "\t" << f.getAverageField( STRAIN_FIELD, 1 )[1]*1e3 << std::endl ;
 	}
 
 	return 0 ;

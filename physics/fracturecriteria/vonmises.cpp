@@ -25,7 +25,7 @@ VonMises::~VonMises()
 double VonMises::grade(ElementState &s)
 {
 	Vector maxStress(0.,1) ;
-	s.getAverageField(VON_MISES_REAL_STRESS_FIELD, maxStress) ;
+	s.getAverageField(VON_MISES_REAL_STRESS_FIELD, maxStress, nullptr, 0) ;
 
 	if(maxStress[0] > threshold )
 	{
@@ -56,7 +56,7 @@ VonMisesStrain::~VonMisesStrain()
 double VonMisesStrain::grade(ElementState &s)
 {
 	Vector maxStrain(0.,1) ;
-	s.getAverageField(VON_MISES_STRAIN_FIELD, maxStrain) ;
+	s.getAverageField(VON_MISES_STRAIN_FIELD, maxStrain, nullptr, 0) ;
 
 	if(maxStrain[0] > threshold )
 	{

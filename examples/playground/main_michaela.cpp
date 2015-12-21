@@ -302,10 +302,10 @@ int aggCachePosition = F.get2DMesh()->generateCache( allinc ) ;
         if(!F.solverConverged())
             break ;
 //saving to file
-        Vector strain = F.getAverageField(STRAIN_FIELD, -1, 1.) ;
-        Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1.) ;
-        Vector strainPaste = F.get2DMesh()->getField(STRAIN_FIELD, pasteCachePosition, -1, 1.) ;
-        Vector strainAgg = F.get2DMesh()->getField(STRAIN_FIELD, aggCachePosition, -1, 1.) ;
+        Vector strain = F.getAverageField(STRAIN_FIELD ) ;
+        Vector stress = F.getAverageField(REAL_STRESS_FIELD ) ;
+        Vector strainPaste = F.get2DMesh()->getField(STRAIN_FIELD, pasteCachePosition, 1. ) ;
+        Vector strainAgg = F.get2DMesh()->getField(STRAIN_FIELD, aggCachePosition, 1. ) ;
 
         double damagePaste = 0. ;
         double damageAggregates = 0. ;

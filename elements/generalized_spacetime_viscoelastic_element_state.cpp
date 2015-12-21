@@ -113,7 +113,7 @@ GaussPointArray  GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaus
     return gp ;
 }
 
-double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine * vm, int dummy , double t, const std::vector<double> & weights )
+double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine * vm, double t, const std::vector<double> & weights, int dummy )
 {
     #pragma omp critical
     while(true) {
@@ -138,7 +138,7 @@ double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType
     ret = 0 ;
 
     double total = 0. ;
-    if ( dummy<0 )
+    if ( true ) //dummy<0 )
     {
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
@@ -168,7 +168,7 @@ double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType
             w *= weights[i] ;
         bool cached = false ;
 
-        if(dummy < 0 && (f == GENERALIZED_VISCOELASTIC_STRAIN_FIELD || f == GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD || f == STRAIN_FIELD || f == PRINCIPAL_STRAIN_FIELD || f == STRAIN_RATE_FIELD || f == REAL_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD || f == EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == MECHANICAL_STRAIN_FIELD || f == PRINCIPAL_MECHANICAL_STRAIN_FIELD) )
+        if( (f == GENERALIZED_VISCOELASTIC_STRAIN_FIELD || f == GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD || f == STRAIN_FIELD || f == PRINCIPAL_STRAIN_FIELD || f == STRAIN_RATE_FIELD || f == REAL_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD || f == EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == MECHANICAL_STRAIN_FIELD || f == PRINCIPAL_MECHANICAL_STRAIN_FIELD) )
         {
             if(std::abs ( t-1 ) < POINT_TOLERANCE)
             {
@@ -929,15 +929,15 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields ( F
     }
 }
 
-double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType f1, FieldType f2, Vector & r1, Vector & r2, VirtualMachine * vm , int dummy , double t , const std::vector<double> & weights)
+double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType f1, FieldType f2, Vector & r1, Vector & r2, VirtualMachine * vm , double t , const std::vector<double> & weights, int dummy)
 {
     bool cleanup = !vm ;
     if ( !vm )
     {
         vm = new VirtualMachine() ;
     }
-    double r = getAverageField ( f1, r1, vm, dummy, t , weights) ;
-    getAverageField ( f2, r2, vm, dummy, t , weights) ;
+    double r = getAverageField ( f1, r1, vm, t , weights, dummy) ;
+    getAverageField ( f2, r2, vm, t , weights, dummy) ;
     if ( cleanup )
     {
         delete vm ;

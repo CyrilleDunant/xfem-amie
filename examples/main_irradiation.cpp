@@ -111,8 +111,8 @@ int main(int argc, char *argv[])
     {
 //        F.setDeltaTime(0.01*done);
         F.step() ;
-        Vector strain = F.getAverageField(STRAIN_FIELD, -1, 1.) ;
-        Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1.) ;
+        Vector strain = F.getAverageField(STRAIN_FIELD, 1.) ;
+        Vector stress = F.getAverageField(REAL_STRESS_FIELD, 1.) ;
 
         Vector strainAgg(3) ;
         Vector strainCem(3) ;
@@ -147,14 +147,14 @@ int main(int argc, char *argv[])
             if(iAgg[i.getPosition()])
             {
                 double a = i->area() ;
-                i->getState().getAverageField(STRAIN_FIELD, tmp, nullptr, -1, 1.) ;
+                i->getState().getAverageField(STRAIN_FIELD, tmp, nullptr, 1.) ;
                 strainAgg += tmp*a ;
                 for(size_t j = 0 ; j < 3 ; j++)
                 {
                     if(tmp[j] > strainMaxAgg[j])
                         strainMaxAgg[j] = tmp[j] ;
                 }
-                i->getState().getAverageField(REAL_STRESS_FIELD, tmp, nullptr, -1, 1.) ;
+                i->getState().getAverageField(REAL_STRESS_FIELD, tmp, nullptr, 1.) ;
                 stressAgg += tmp*a ;
                 for(size_t j = 0 ; j < 3 ; j++)
                 {
@@ -173,14 +173,14 @@ int main(int argc, char *argv[])
             if(iCem[i.getPosition()])
             {
                 double a = i->area() ;
-                i->getState().getAverageField(STRAIN_FIELD, tmp, nullptr, -1, 1.) ;
+                i->getState().getAverageField(STRAIN_FIELD, tmp, nullptr, 1.) ;
                 strainAgg += tmp*a ;
                 for(size_t j = 0 ; j < 3 ; j++)
                 {
                     if(tmp[j] > strainMaxAgg[j])
                         strainMaxAgg[j] = tmp[j] ;
                 }
-                i->getState().getAverageField(REAL_STRESS_FIELD, tmp, nullptr, -1, 1.) ;
+                i->getState().getAverageField(REAL_STRESS_FIELD, tmp, nullptr, 1.) ;
                 stressAgg += tmp*a ;
                 for(size_t j = 0 ; j < 3 ; j++)
                 {

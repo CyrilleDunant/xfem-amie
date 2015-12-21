@@ -149,11 +149,11 @@ int main(int argc, char *argv[])
 //	load->setData(0.0001*F.getCurrentTime()) ;
     F.step();
 	std::cout << "Pas de temps "<< i << std::endl ;
-	std::cout << "\n" << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField( REAL_STRESS_FIELD, -1, 1.)[1] << std::endl;
+	std::cout << "\n" << F.getAverageField( STRAIN_FIELD)[1] << "\t" << F.getAverageField( REAL_STRESS_FIELD )[1] << std::endl;
     std::ofstream fichier_data(test_data.c_str(), std::ios::out | std::ios::app);
     if(fichier_data.is_open())
     {
-        fichier_data << F.getCurrentTime() << " ; " << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << " ; " << F.getAverageField( REAL_STRESS_FIELD, -1, 1.)[1] << std::endl ;
+        fichier_data << F.getCurrentTime() << " ; " << F.getAverageField( STRAIN_FIELD )[1] << " ; " << F.getAverageField( REAL_STRESS_FIELD )[1] << std::endl ;
         fichier_data.close();
     }
     else
@@ -181,11 +181,11 @@ int main(int argc, char *argv[])
     //	load->setData(0.0001*F.getCurrentTime()) ;
         F.step();
         std::cout << "Pas de temps "<< i << std::endl ;
-        std::cout << "\n" << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField( REAL_STRESS_FIELD, -1, 1.)[1] << std::endl;
+        std::cout << "\n" << F.getAverageField( STRAIN_FIELD )[1] << "\t" << F.getAverageField( REAL_STRESS_FIELD )[1] << std::endl;
         std::ofstream fichier_data(test_data.c_str(), std::ios::out | std::ios::app);
             if(fichier_data.is_open())
             {
-                    fichier_data << F.getCurrentTime() << " ; " << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << " ; " << F.getAverageField( REAL_STRESS_FIELD, -1, 1.)[1] << std::endl ;
+                    fichier_data << F.getCurrentTime() << " ; " << F.getAverageField( STRAIN_FIELD )[1] << " ; " << F.getAverageField( REAL_STRESS_FIELD )[1] << std::endl ;
                     fichier_data.close();
             }
             else

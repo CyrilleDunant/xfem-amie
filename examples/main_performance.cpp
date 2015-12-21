@@ -124,18 +124,10 @@ int main( int argc, char *argv[] )
 
     F.step() ;
 
-   ExodusTriangleWriter exo("test.txt", &F, 1) ;
-   exo.setCache( incs ) ;
-   exo.finalizeCache() ;
-   exo.setncgen( "/home/ag3/Code/netcdf/netcdf-c-4.4.0-rc5/ncgen/ncgen" ) ;
-   exo.setUSDateFormat(true) ;
-   exo.getField( STRAIN_FIELD ) ;
-   exo.write() ;
-
 //    MeshWriter::exportExodus2D("test.e.txt", &F, all) ;
-    Vector strain = F.getAverageField( STRAIN_FIELD, -1, 1. ) ;
-    Vector stress = F.getAverageField( REAL_STRESS_FIELD, -1, 1. ) ;
-    Vector dmg = F.getAverageField( SCALAR_DAMAGE_FIELD , -1, 1. ) ;
+    Vector strain = F.getAverageField( STRAIN_FIELD ) ;
+    Vector stress = F.getAverageField( REAL_STRESS_FIELD ) ;
+    Vector dmg = F.getAverageField( SCALAR_DAMAGE_FIELD ) ;
 
     std::cout << std::endl ;
     std::cout << std::endl ;

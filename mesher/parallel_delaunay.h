@@ -90,13 +90,13 @@ public:
     
     virtual unsigned int generateCache () ;
     
-    Vector getField( FieldType f, int cacheID, int dummy = 0, double t = 0) ;
+    Vector getField( FieldType f, int cacheID, double t = 0, int index = 0) ;
 
-    Vector getField( Amie::FieldType f, int dummy = 0, double t = 0);
+    Vector getField( Amie::FieldType f, double t = 0, int index = 0);
     
-    Vector getSmoothedField (  FieldType f0, int cacheID, IntegrableEntity * e,int dummy = 0, double t = 0 , const std::vector<bool> & restrict = std::vector<bool>()) ;
+    Vector getSmoothedField (  FieldType f0, int cacheID, IntegrableEntity * e,double t = 0 , const std::vector<bool> & restrict = std::vector<bool>(), int index = 0) ;
     
-    std::pair<Vector, Vector> getSmoothedFields ( FieldType f0, FieldType f1, int cacheID, IntegrableEntity * e ,int dummy = 0, double t = 0,  const std::vector<bool> & restrict = std::vector<bool>()) ;  
+    std::pair<Vector, Vector> getSmoothedFields ( FieldType f0, FieldType f1, int cacheID, IntegrableEntity * e ,double t = 0,  const std::vector<bool> & restrict = std::vector<bool>(), int index0 = 0, int index1 = 1) ;  
       
 
     virtual const DelaunayTriangle * getElement(size_t cacheID, size_t position) const 

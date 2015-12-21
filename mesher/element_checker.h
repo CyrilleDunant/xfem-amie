@@ -104,7 +104,7 @@ struct FieldHigherThanElementChecker : public ElementChecker
 		{ 
 			size_t blocks = e->getBehaviour()->getNumberOfDegreesOfFreedom() / e->spaceDimensions() ;
 			Vector values ( 0., fieldTypeElementarySize ( field, e->spaceDimensions(), blocks ) ) ;
-			e->getState().getAverageField( field, values, nullptr, -1., 1.) ;
+			e->getState().getAverageField( field, values, nullptr, instant) ;
 			return values.max() > threshold ;
 		}
 		return false ;
@@ -123,7 +123,7 @@ struct FieldLowerThanElementChecker : public ElementChecker
 		{ 
 			size_t blocks = e->getBehaviour()->getNumberOfDegreesOfFreedom() / e->spaceDimensions() ;
 			Vector values ( 0., fieldTypeElementarySize ( field, e->spaceDimensions(), blocks ) ) ;
-			e->getState().getAverageField( field, values, nullptr, -1., 1.) ;
+			e->getState().getAverageField( field, values, nullptr, instant) ;
 			return values.min() < threshold ;
 		}
 		return false ;

@@ -1035,6 +1035,9 @@ public:
     double * getFirstZ() {
         return &f.getZ() ;
     }
+    double * getFirstT() {
+        return &f.getT() ;
+    }
     double * getSecondX() {
         return &s.getX() ;
     }
@@ -1043,6 +1046,9 @@ public:
     }
     double * getSecondZ() {
         return &s.getZ() ;
+    }
+    double * getSecondT() {
+        return &s.getT() ;
     }
 public:
 

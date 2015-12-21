@@ -816,13 +816,14 @@ public:
     }
 
     //virtual void getAverageField( Amie::FieldType f, Vector& ret, Amie::VirtualMachine* vm = nullptr, int dummy = 0, double t = 0, std::vector< double > weights = std::vector<double>()) ;
-    virtual Vector getField ( FieldType f, int cacheID = -1, int dummy = 0, double t = 0 ) {
+    virtual Vector getField ( FieldType f, int cacheID, double t, int index = 0 ) {
         if(cacheID == -1 && allElementsCacheID == -1)
         {
             VirtualMachine vm ;
             size_t blocks = 0 ;
 
             std::vector<ETYPE *> elems = getElements() ;
+            std::vector<double> coefs ;
             for ( size_t i = 0 ; i < elems.size() && !blocks; i++ ) {
                 if(elems[i]->getBehaviour()->type == VOID_BEHAVIOUR)
                     continue ;
@@ -834,7 +835,7 @@ public:
             double w = 0 ;
             for ( size_t i = 0 ; i < elems.size() ; i++ ) {
 
-                double v = elems[i]->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
+                double v = elems[i]->getState().getAverageField ( f, buffer, &vm, t, coefs, index ) ;
                 ret += buffer * v ;
                 w +=v ;
             }
@@ -853,24 +854,26 @@ public:
         Vector buffer ( ret ) ;
         double w = 0 ;
         for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
-            double v = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->getState().getAverageField ( f, buffer, nullptr, dummy, t, coefs[cacheID][i] ) ;
+            double v = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->getState().getAverageField ( f, buffer, &vm, t, coefs[cacheID][i], index ) ;
             ret += buffer * v ;
             w +=v ;
         }
         return ret/w ;
     }
     
-    virtual Vector getField ( FieldType f, const Point & p, Vector & ret, int dummy = 0, double t = 0 ) 
+    virtual Vector getField ( FieldType f, const Point & p, Vector & ret, double t = 1, int index = 0 ) 
     {
-        ETYPE * e = getUniqueConflictingElement(&p) ;
+        ETYPE * e = getUniqueConflictingElement(&p) ;        
+        Point p_ = p ;
+        p_.t = t ;
         if(e && e->state)
-            e->getState().getField(f, p, ret, false) ;
+            e->getState().getField(f, p_, ret, false, nullptr, index) ;
         else
             ret = 0 ;
         return ret ;
     }
 
-    virtual Vector getField( FieldType f, Segment * source, int cacheID = -1, int dummy = 0, double t = 0) {
+    virtual Vector getField( FieldType f, Segment * source, int cacheID , double t = 0, int index = 0) {
         int realCacheID = cacheID ;
         if(cacheID == -1)
             realCacheID = allElementsCacheID ;
@@ -895,7 +898,7 @@ public:
                 Segment local(inter[0], inter[1]) ;
                 Point mid = local.midPoint() ;
                 mid.setT( realT ) ;
-                static_cast<ETYPE *> ( getInTree ( caches[realCacheID][i] ) )->getState().getField ( f, mid, buffer, false, nullptr, dummy) ;
+                static_cast<ETYPE *> ( getInTree ( caches[realCacheID][i] ) )->getState().getField ( f, mid, buffer, false, nullptr, index) ;
                 ret += buffer * local.norm() ;
                 w += local.norm() ;
             }
@@ -903,7 +906,7 @@ public:
         return ret/w ;
     }
 
-    virtual double getField( std::string f, Segment * source, int cacheID = -1, int dummy = 0, double t = 0) {
+    virtual double getField( std::string f, Segment * source, int cacheID = -1, double t = 0) {
         int realCacheID = cacheID ;
         if(cacheID == -1)
             realCacheID = allElementsCacheID ;
@@ -992,7 +995,7 @@ public:
 //         return ret/w ;
 //     }
 
-    virtual Vector getSmoothedField (  FieldType f0, int cacheID, IntegrableEntity * e,int dummy = 0, double t = 0, const std::vector<bool> & restrict = std::vector<bool>()) {
+    virtual Vector getSmoothedField (  FieldType f0, int cacheID, IntegrableEntity * e, double t, const std::vector<bool> & restrict = std::vector<bool>(), int index = 0) {
         int tsize = 3 ;
         int psize = 2 ;
 
@@ -1028,7 +1031,7 @@ public:
                     double v = 0; 
 
                     if(e != ci  || restrict.empty()|| ( e == ci && (restrict.size() !=  coefs[cacheID][i].size())))
-                        v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                        v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, t, coefs[cacheID][i] );
                     else if(e == ci && restrict.size() ==  coefs[cacheID][i].size())
                     {
                         std::vector<double> effCoef = coefs[cacheID][i] ;
@@ -1036,7 +1039,7 @@ public:
                         for(size_t j = 0 ; j < restrict.size() ; j++)
                             effCoef[j] *= !restrict[j] ;
                         
-                        v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, dummy, t, effCoef ); 
+                        v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, t, effCoef ); 
                     }                   
 
                     strain += buffer*v ;
@@ -1054,7 +1057,7 @@ public:
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
 
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, &vm, t, coefs[cacheID][i] );
                     if ( !tmpstrain.size() ) {
                         tmpstrain.resize ( buffer.size(), 0. );
                     }                    
@@ -1062,7 +1065,7 @@ public:
                         tmpstrainrate.resize ( buffer.size(), 0. );
                     }
                     tmpstrain += buffer*v ;
-                    ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                    ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, &vm, t, coefs[cacheID][i] );
                     sumFactors += v ;
                     tmpstrainrate += buffer*v ;
                 }
@@ -1168,7 +1171,7 @@ public:
                 double v = 0 ;
                                
                 if(e != ci  || restrict.empty() || ( e == ci && (restrict.size() !=  coefs[cacheID][i].size())))
-                    v = ci->getState().getAverageField ( f0, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                    v = ci->getState().getAverageField ( f0, buffer, &vm, t, coefs[cacheID][i], index );
                 else if(e == ci && restrict.size() ==  coefs[cacheID][i].size())
                 {
                     std::vector<double> effCoef = coefs[cacheID][i] ;
@@ -1176,7 +1179,7 @@ public:
                     for(size_t j = 0 ; j < restrict.size() ; j++)
                         effCoef[j] *= !restrict[j] ;
                     
-                    v = ci->getState().getAverageField ( f0, buffer, &vm, dummy, t, effCoef ); 
+                    v = ci->getState().getAverageField ( f0, buffer, &vm, t, effCoef, index ); 
                 }
                     
                 if ( !first.size() ) {
@@ -1193,7 +1196,7 @@ public:
         return first ;
     }
 
-    virtual std::pair<Vector, Vector> getSmoothedFields ( FieldType f0, FieldType f1, int cacheID, IntegrableEntity * e ,int dummy = 0, double t = 0, const std::vector<bool> & restrict = std::vector<bool>()  ) {
+    virtual std::pair<Vector, Vector> getSmoothedFields ( FieldType f0, FieldType f1, int cacheID, IntegrableEntity * e , double t, const std::vector<bool> & restrict = std::vector<bool>(), int index0 = 0, int index1 = 1  ) {
         Vector first ;
         Vector second ;
         Vector strain ;
@@ -1245,7 +1248,7 @@ public:
                         double v = 0; 
 
                         if(e != ci  || restrict.empty()|| ( e == ci && (restrict.size() !=  coefs[cacheID][i].size())))
-                            v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                            v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, t, coefs[cacheID][i] );
                         else if(e == ci && restrict.size() ==  coefs[cacheID][i].size())
                         {
                             std::vector<double> effCoef = coefs[cacheID][i] ;
@@ -1253,7 +1256,7 @@ public:
                             for(size_t j = 0 ; j < restrict.size() ; j++)
                                 effCoef[j] *= !restrict[j] ;
                             
-                            v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, dummy, t, effCoef ); 
+                            v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, t, effCoef ); 
                         } 
 
                         strain += buffer*v ;
@@ -1281,7 +1284,7 @@ public:
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
 
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, &vm, t, coefs[cacheID][i] );
                     if ( !tmpstrain.size() ) {
                         tmpstrain.resize ( buffer.size(), 0. );
                     }
@@ -1292,7 +1295,7 @@ public:
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, &vm, t, coefs[cacheID][i] );
                     if ( !tmpstrainrate.size() ) {
                         tmpstrainrate.resize ( buffer.size(), 0. );
                     }
@@ -1496,7 +1499,7 @@ public:
 
                if(ci->getBehaviour()->fractured())
                         continue ;
-                double v = ci->getState().getAverageField ( f0, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                double v = ci->getState().getAverageField ( f0, buffer, &vm, t, coefs[cacheID][i], index0 );
                 if ( !first.size() ) {
                     first.resize ( 0., buffer.size() );
                 }
@@ -1508,7 +1511,7 @@ public:
                 if(ci->getBehaviour()->fractured())
                         continue ;                    
                 if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
-                    double v = ci->getState().getAverageField ( f1, buffer, &vm, dummy, t,coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( f1, buffer, &vm, t,coefs[cacheID][i], index1 );
                     if ( !second.size() ) {
                         second.resize ( 0., buffer.size() );
                     }

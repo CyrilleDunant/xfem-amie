@@ -54,7 +54,7 @@ std::pair<Vector, Vector> AnisotropicLinearDamage::computeDamageIncrement(Elemen
     else
     {
         Vector stress(0., 3+3*(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
-        s.getAverageField( REAL_STRESS_FIELD, stress) ;
+        s.getAverageField( REAL_STRESS_FIELD, stress, nullptr, 0) ;
 
         if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
         {
