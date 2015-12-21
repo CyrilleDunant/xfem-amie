@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
 				exec.push_back(test) ;
 			}
 		}
-		else if(test.find(".ini") == test.size()-4 && (regexp == "*" || test.find(regexp) != std::string::npos) )
+		else if(test.find(".ini") == test.size()-4 && (regexp == "*" || test.find(regexp) != std::string::npos) && exact == std::string("*" ) )
 		{
 			inis.push_back(test) ;
 		}
