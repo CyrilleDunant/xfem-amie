@@ -36,7 +36,7 @@ int main( int argc, char *argv[] )
     std::vector<Feature *> polys =  reader.getFeatures( SPACE_TWO_DIMENSIONAL, &box, 2 ) ;
     for(size_t i = 0 ; i < polys.size() ; i++)
     {
-        polys[i]->setBehaviour( new Stiffness( 20e9 + i*10e9, 0.2 ) ) ;
+        polys[i]->setBehaviour( new Stiffness( 20e9 + reader.getData( 0, i )*10e9, 0.2 ) ) ;
         if(reader.getData( 1, i ) >= 0 && reader.getData( 1, i ) < polys.size() )
             polys[i]->setFather( polys[ reader.getData( 1, i ) ] ) ;
 //	if(i == 11)

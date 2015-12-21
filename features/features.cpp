@@ -5950,11 +5950,11 @@ Vector FeatureTree::getAverageField ( FieldType f, int grid , double t )
 {
     if ( is2D() )
     {
-        Vector ret = dtree->getField ( f, -1, t ) ;
+        Vector ret = dtree->getField ( f, -1, -1, t ) ;
         for ( auto layer = layer2d.begin() ; layer!=layer2d.end() ; layer++ )
         {
             if(layer->second != dtree)
-                ret += layer->second->getField ( f, -1, t ) ;
+                ret += layer->second->getField ( f, -1, -1, t ) ;
         }
         return ret ;
     }
@@ -5987,7 +5987,7 @@ Vector FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, FieldT
                 break ;
             default:
                 std::cout << "cannot calculate field on selected boundary" << std::endl ;
-                return get2DMesh()->getField ( f, -1, t ) ;
+                return get2DMesh()->getField ( f, -1, -1, t ) ;
             }
             unsigned int id = get2DMesh()->generateCache( pos ) ;
             boundaryCache[ edge ] = std::make_pair( pos, id ) ;
@@ -5995,7 +5995,7 @@ Vector FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, FieldT
         else
         {
             std::cout << "cannot calculate field on selected boundary" << std::endl ;
-            return get3DMesh()->getField ( f, -1, t ) ;
+            return get3DMesh()->getField ( f, -1,-1, t ) ;
         }
     }
 
