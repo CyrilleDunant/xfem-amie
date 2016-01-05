@@ -185,6 +185,11 @@ void StrainRateDependentStrengthMaterialLaw::preProcess(GeneralizedSpaceTimeVisc
 
 }
 
+MineralMaterialLaw::MineralMaterialLaw( Mineral min, Variable cut, std::string args, char sep) : ExternalMaterialLaw( args, sep ), mineral(min ), cuttingPlane(cut)
+{
+
+}
+
 MineralMaterialLaw::MineralMaterialLaw( std::string filename, std::string sepstr, int index, double factor, bool force, Variable cut, std::string args, char sep) : ExternalMaterialLaw( args, sep ), mineral(filename, sepstr, index, factor, force ), cuttingPlane(cut)
 {
 

@@ -78,6 +78,7 @@ struct MineralMaterialLaw : public ExternalMaterialLaw
     Mineral mineral ;
     Variable cuttingPlane ;
 
+    MineralMaterialLaw( Mineral mineral, Variable cut = ZETA, std::string args = std::string(), char sep = ',' ) ;
     MineralMaterialLaw( std::string filename, std::string sepstr = ".-", int index = -1, double factor = 1, bool force = false, Variable cut = ZETA, std::string args = std::string(), char sep = ',' ) ;
     virtual ~MineralMaterialLaw() { } ;
 

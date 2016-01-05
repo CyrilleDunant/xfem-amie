@@ -21,14 +21,15 @@ public:
     Matrix stiffness ;
 
 public:
-    Mineral(SymmetryType sym, std::map<std::string, double> cij ) ;
+    Mineral(SymmetryType sym, std::map<std::string, double> cij = std::map<std::string, double>() ) ;
     Mineral(std::string file, std::string sep = ".-", int index = -1, double factor = 1., bool force = false) ;
 
     void set(std::string key, Vector val ) { components[key] = val ; }
     void set(std::string key, std::vector<double> v ) ;
-    void add(std::string key, double v ) ;
+    void set(std::string key, double v ) ;
 
     bool isValid() const { return valid ; }
+    bool check() ;
 
     double getElementaryComponent( std::string key, int index = -1 ) ;
     Vector getElementaryComponents( int index = -1 ) ;    
