@@ -76,6 +76,15 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 		double mu_inst = values["shear_modulus"] ;
 		C = Tensor::cauchyGreen( k_inst, mu_inst, false, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
 	}
+        Point angle ;
+        if(values.find("angle_x") != values.end())
+            angle.setX( values["angle_x"] ) ;
+        if(values.find("angle_y") != values.end())
+            angle.setY( values["angle_y"] ) ;
+        if(values.find("angle_z") != values.end())
+            angle.setZ( values["angle_z"] ) ;
+        for(size_t i = 0 ; i < relations.size() ; i++)
+            relations[i]->preProcess( C, angle, plane ) ;
 	param = 0. ;
 	placeMatrixInBlock( C, 0,0, param) ;
 

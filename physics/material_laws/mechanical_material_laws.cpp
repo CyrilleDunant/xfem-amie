@@ -185,6 +185,28 @@ void StrainRateDependentStrengthMaterialLaw::preProcess(GeneralizedSpaceTimeVisc
 
 }
 
+MineralMaterialLaw::MineralMaterialLaw( std::string filename, std::string sepstr, int index, double factor, bool force, Variable cut, std::string args, char sep) : ExternalMaterialLaw( args, sep ), mineral(filename, sepstr, index, factor, force ), cuttingPlane(cut)
+{
+
+}
+
+void MineralMaterialLaw::preProcess( Matrix & stiffness, Point angle, planeType plane ) 
+{
+    if(mineral.isValid())
+    {
+        Matrix C = Tensor::rotate4thOrderTensor3D(mineral.stiffness, angle ) ;
+        if( stiffness.numCols() == 3 )
+        {
+            stiffness = Tensor::to2D( C, plane, cuttingPlane ) ;
+        }
+        else
+        {
+             stiffness = C ;
+        }
+    }
+} 
+
+
 
 } 
 

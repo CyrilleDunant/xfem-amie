@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 14/11/2015 at 11:9  */
+/* this is an auto-generated file created on 5/0/2016 at 10:16  */
 
 #ifndef __ENUMERATION_TRANSLATOR_H__
 #define __ENUMERATION_TRANSLATOR_H__
@@ -1262,11 +1262,7 @@ struct Enum
         if(ok) { *ok = false ; }
         return false ;
     }
-    static std::string frombool(bool value)
-    {
-        return value?"true":"false" ;
-    }
-
+    static std::string frombool(bool value) { return ( value ? "true" : "false" ) ; }
    
     // parsed from header file: ../utilities/granulo.h
     static TypeInclusion getTypeInclusion(std::string type, bool * ok = 0)
@@ -1335,6 +1331,35 @@ struct Enum
             case PLANE_STRESS_FREE_G: return "PLANE_STRESS_FREE_G" ;
         }
         return "PLANE_STRESS" ;
+    }
+   
+    // parsed from header file: ../utilities/tensor.h
+    static SymmetryType getSymmetryType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "SYMMETRY_CUBIC") { return SYMMETRY_CUBIC ; }
+        if( type == "SYMMETRY_HEXAGONAL") { return SYMMETRY_HEXAGONAL ; }
+        if( type == "SYMMETRY_MONOCLINIC") { return SYMMETRY_MONOCLINIC ; }
+        if( type == "SYMMETRY_ORTHORHOMBIC") { return SYMMETRY_ORTHORHOMBIC ; }
+        if( type == "SYMMETRY_TETRAGONAL") { return SYMMETRY_TETRAGONAL ; }
+        if( type == "SYMMETRY_TRIGONAL") { return SYMMETRY_TRIGONAL ; }
+        if( type == "SYMMETRY_TRICLINIC") { return SYMMETRY_TRICLINIC ; }
+        if(ok) { *ok = false ; }
+        return SYMMETRY_CUBIC ;
+    }
+    static std::string fromSymmetryType(SymmetryType value)
+    {
+        switch(value)
+        {
+            case SYMMETRY_CUBIC: return "SYMMETRY_CUBIC" ;
+            case SYMMETRY_HEXAGONAL: return "SYMMETRY_HEXAGONAL" ;
+            case SYMMETRY_MONOCLINIC: return "SYMMETRY_MONOCLINIC" ;
+            case SYMMETRY_ORTHORHOMBIC: return "SYMMETRY_ORTHORHOMBIC" ;
+            case SYMMETRY_TETRAGONAL: return "SYMMETRY_TETRAGONAL" ;
+            case SYMMETRY_TRIGONAL: return "SYMMETRY_TRIGONAL" ;
+            case SYMMETRY_TRICLINIC: return "SYMMETRY_TRICLINIC" ;
+        }
+        return "SYMMETRY_CUBIC" ;
     }
    
 

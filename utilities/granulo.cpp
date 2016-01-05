@@ -331,10 +331,10 @@ std::vector<std::vector<PolygonalSample *> > PSDGenerator::get2DSourceVoronoiPol
     for(size_t i = 0 ; i < inclusions.size() ; i++)
         circles.push_back(inclusions[i]) ;
     double tries = 100 ;
-    if(morphology.size() == 1)
+/*    if(morphology.size() == 1)
     {
        tries *= 10 ;
-    }
+    }*/
     std::vector<Feature *> placed = placement2D(box, circles, 0,0, tries*truen, M_PI, std::vector<Geometry* >(), seed) ;
     std::random_shuffle( placed.begin(), placed.end() ) ;
 

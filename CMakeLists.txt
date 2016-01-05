@@ -199,6 +199,7 @@ utilities/writer/triangle_writer.cpp
 utilities/writer/voxel_writer.cpp
 utilities/writer/exodus_writer.cpp
 utilities/object_translator.cpp
+utilities/mineral.cpp
 )
 
 

@@ -13,6 +13,7 @@
 
 #include "triangle_writer.h"
 #include "voxel_writer.h"
+#include "../itoa.h"
 #include "../../physics/dual_behaviour.h"
 #include "../../physics/stiffness.h"
 #include "../../physics/materials/paste_behaviour.h"
@@ -915,7 +916,25 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
             std::map<std::string, double> empty ;
             for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
             {
-                if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR && dynamic_cast<LogarithmicCreepWithExternalParameters *>(i->getBehaviour()) )
+                if( fieldName.find("C") == 0 && fieldName.size() == 3 && i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+                {
+                    int r = ctoi( fieldName.at(1) ) -1 ;
+                    int c = ctoi( fieldName.at(2) ) -1 ;
+                    double v = (i->getBehaviour())->getTensor( Point(0,0,0) )[r][c] ;
+                    ret[0][iterator] = v ;
+                    ret[1][iterator] = v ;
+                    ret[2][iterator++] = v ;
+                }
+                else if( fieldName.find("E") == 0 && fieldName.size() == 3 && i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+                {
+                    int r = ctoi( fieldName.at(1) ) -1 ;
+                    int c = ctoi( fieldName.at(2) ) -1 ;
+                    double v = (i->getBehaviour())->getViscousTensor( Point(0,0,0) )[r][c] ;
+                    ret[0][iterator] = v ;
+                    ret[1][iterator] = v ;
+                    ret[2][iterator++] = v ;
+                }
+                else if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR && dynamic_cast<LogarithmicCreepWithExternalParameters *>(i->getBehaviour()) )
                 {
                     double v = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(i->getState()).get(fieldName, empty ) - offset;
                     ret[0][iterator] = v ;

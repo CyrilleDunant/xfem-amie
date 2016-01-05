@@ -9,9 +9,13 @@
 #include "../../features/sample.h"
 #include "../../features/polygonSample.h"
 #include "../../physics/stiffness.h"
+#include "../../physics/logarithmic_creep_with_external_parameters.h"
+#include "../../physics/material_laws/mechanical_material_laws.h"
+#include "../../physics/material_laws/material_laws.h"
 #include "../../utilities/parser.h"
 #include "../../utilities/writer/triangle_writer.h"
 #include "../../geometry/level_set.h" 
+#include "../../utilities/mineral.h" 
 
 
 #include <fstream>
@@ -27,47 +31,36 @@ using namespace Amie ;
 
 int main( int argc, char *argv[] )
 {
-    Sample box(0.064,0.04,0,0) ;
-    box.setBehaviour( new Stiffness( 10e9, 0.2 ) ) ;
 
-    FeatureTree F(&box) ;
+        Sample rect(nullptr, 0.1,0.1,0,0) ;
+	rect.setBehaviour(new Stiffness( 10e9, 0.2 ) ) ;
+        
+	std::vector<VoronoiGrain> grains ;
+	LogarithmicCreepWithExternalParameters test("young_modulus = 15e9, poisson_ratio = 0.2") ;
+	test.plane = PLANE_STRAIN ;
+        test.addMaterialLaw( new MineralMaterialLaw("/home/ag3/Code/amie-ornl/data_minerals/labradorite-elasticity.sci", "-", -1, 1e9 ) ) ;
+	test.addMaterialLaw( new GetParticleOrientationMaterialLaw("angle_z") ) ;
+	test.addMaterialLaw( new UniformDistributedPerParticleMaterialLaw("angle_x", -0.1*M_PI, 0.1*M_PI ) ) ;
+	test.addMaterialLaw( new UniformDistributedPerParticleMaterialLaw("angle_y", -0.1*M_PI, 0.1*M_PI ) ) ;
+	grains.push_back(VoronoiGrain(&test, 0.005, 1, 1) ) ;
 
-    PolygonGranuloFromFile reader("/home/ag3/Code/cv/test.poly") ;
-    std::vector<Feature *> polys =  reader.getFeatures( SPACE_TWO_DIMENSIONAL, &box, 2 ) ;
-    for(size_t i = 0 ; i < polys.size() ; i++)
-    {
-        polys[i]->setBehaviour( new Stiffness( 20e9 + reader.getData( 0, i )*10e9, 0.2 ) ) ;
-        if(reader.getData( 1, i ) >= 0 && reader.getData( 1, i ) < polys.size() )
-            polys[i]->setFather( polys[ reader.getData( 1, i ) ] ) ;
-//	if(i == 11)
-            F.addFeature( polys[i]->getFather(), polys[i] ) ;
-    }
+	FeatureTree f(&rect) ;
+	PSDGenerator::get2DVoronoiPolygons( &f, grains, 0, 0.005, 0.01, 32, true, 0) ;
+	f.setSamplingNumber( 64 ) ;
+	f.setSamplingRestriction(0.002) ;
+		
+	f.step() ;
 
-    F.setSamplingNumber( 16 ) ;
-    F.setMinimumMeshDensity( 0.4 ) ;
-    CommandLineParser::setFeatureTree( &F, argc, argv ) ;
-    F.step() ;
-
-/*    int cache = F.get2DMesh()->generateCache( dynamic_cast<Geometry *>( polys[7] ) ) ;
-    std::vector<int> elements = F.get2DMesh()->getCache(cache) ;
-    Vector y(elements.size()) ;
-    for(size_t i = 0 ; i < elements.size() ; i++)
-    {
-	y[i] = F.get2DMesh()->getElement( cache, i )->getCenter().getY() ;
-    }
-    size_t j = 0 ;
-    while( y[j] > y.min() ) { j++ ; } 
-    std::cout << j << " " ; F.get2DMesh()->getElement( cache, j )->getCenter().print() ;
-
-    std::valarray<Point> pts = dynamic_cast<PolygonalSample *>(polys[7])->getOriginalPoints() ;
-    for(size_t i = 0 ; i < pts.size() ; i++)
-        pts[i].print() ;*/
-
-
-    TriangleWriter trg("test_poly", &F, 1) ;
-    trg.getField( TWFT_STIFFNESS) ; 
-    trg.write() ;
-
+	std::string name = "toto" ;
+ 
+	TriangleWriter trg( name.c_str(), &f, 1. ) ;
+	trg.getField( "angle_x" ) ;
+	trg.getField( "angle_y" ) ;
+	trg.getField( "angle_z" ) ;
+	trg.getField( "E11" ) ;
+	trg.getField( "E22" ) ;
+	trg.getField( "E33" ) ;
+	trg.write() ;
 
     return 0 ;
 }

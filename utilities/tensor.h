@@ -15,6 +15,17 @@ typedef enum
 	PLANE_STRESS_FREE_G,
 } planeType ; 
 
+typedef enum
+{
+	SYMMETRY_CUBIC,
+	SYMMETRY_HEXAGONAL,
+	SYMMETRY_MONOCLINIC,
+	SYMMETRY_ORTHORHOMBIC,
+	SYMMETRY_TETRAGONAL,
+	SYMMETRY_TRIGONAL,
+	SYMMETRY_TRICLINIC,
+} SymmetryType ;
+
   
 class Tensor
 {
@@ -68,6 +79,7 @@ public:
 	static Matrix orthotropicCauchyGreen(double E_1, double E_2, double G,  double nu, planeType pt) ;
 	static Matrix orthotropicCauchyGreen(double E_1, double E_2, double G,  double nu, double angle, planeType pt) ;
 	static Matrix orthotropicCauchyGreen(double E_1, double E_2, double E_3, double G_1, double G_2, double G_3,  double nu) ;
+	static Matrix orthotropicCauchyGreen( Vector data, SymmetryType sym, bool force = false ) ;
 	static Matrix isotropicTransverseCauchyGreen(double E_1, double E_2, double G_12,  double nu_12, double nu_23, SpaceDimensionality dim, planeType pt) ;
 	static Vector rotate2ndOrderTensor2D( Vector & tensor, double angle ) ;
 	static Matrix rotate4thOrderTensor3D( Matrix & tensor, Point angle ) ;

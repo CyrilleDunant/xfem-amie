@@ -12,4 +12,6 @@
 
 std::string itoa(int value, int base = 10) ;
 
+int ctoi(char c) ;
+
 #endif

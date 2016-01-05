@@ -498,6 +498,162 @@ Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double E_3, double
     return cg ;
 }
 
+Matrix Tensor::orthotropicCauchyGreen( Vector data, SymmetryType sym, bool force ) 
+{
+    Matrix cg(6,6) ;
+    if(data.size() < 2)
+        return cg ;
+
+    switch(sym)
+    {
+        case SYMMETRY_CUBIC:
+        {
+            if(data.size() != 3 && !force) { return cg ; }
+            double C11 = data[0] ;
+            double C44 = data[1] ;
+            double C12 = data[2] ;
+            cg[0][0] = C11 ; cg[0][1] = C12 ; cg[0][2] = C12 ;
+            cg[1][0] = C12 ; cg[1][1] = C11 ; cg[1][2] = C12 ;
+            cg[2][0] = C12 ; cg[2][1] = C12 ; cg[2][2] = C11 ;
+            cg[3][3] = C44 ;
+            cg[4][4] = C44 ;
+            cg[5][5] = C44 ;
+            break ;
+        }
+        case SYMMETRY_HEXAGONAL:
+        {
+            if(data.size() != 5  && !force) { return cg ; }
+            double C11 = data[0] ;
+            double C33 = data[1] ;
+            double C44 = data[2] ;
+            double C12 = data[3] ;
+            double C13 = data[4] ;
+            double C66 = (C11-C12)*0.5 ;
+            cg[0][0] = C11 ; cg[0][1] = C12 ; cg[0][2] = C13 ;
+            cg[1][0] = C12 ; cg[1][1] = C11 ; cg[1][2] = C13 ;
+            cg[2][0] = C13 ; cg[2][1] = C13 ; cg[2][2] = C33 ;
+            cg[3][3] = C44 ;
+            cg[4][4] = C44 ;
+            cg[5][5] = C66 ;
+            break ;
+        }
+        case SYMMETRY_MONOCLINIC:
+        {
+            if(data.size() != 13 && !force) { return cg ; }
+            double C11 = data[0] ;
+            double C22 = data[1] ;
+            double C33 = data[2] ;
+            double C44 = data[3] ;
+            double C55 = data[4] ;
+            double C66 = data[5] ;
+            double C12 = data[6] ;
+            double C13 = data[7] ;
+            double C16 = data[8] ;
+            double C23 = data[9] ;
+            double C26 = data[10] ;
+            double C36 = data[11] ;
+            double C45 = data[12] ;
+            cg[0][0] = C11 ; cg[0][1] = C12 ; cg[0][2] = C13 ; cg[0][5] = C16 ;
+            cg[1][0] = C12 ; cg[1][1] = C22 ; cg[1][2] = C23 ; cg[1][5] = C26 ;
+            cg[2][0] = C13 ; cg[2][1] = C23 ; cg[2][2] = C33 ; cg[2][5] = C36 ;
+            cg[3][3] = C44 ; cg[3][4] = C45 ;
+            cg[4][3] = C45 ; cg[4][4] = C55 ;
+            cg[5][0] = C16 ; cg[5][1] = C26 ; cg[5][2] = C36 ; cg[5][5] = C66 ;
+            break ;
+        }
+        case SYMMETRY_ORTHORHOMBIC:
+        {
+            if(data.size() != 9 && !force) { return cg ; }
+            double C11 = data[0] ;
+            double C22 = data[1] ;
+            double C33 = data[2] ;
+            double C44 = data[3] ;
+            double C55 = data[4] ;
+            double C66 = data[5] ;
+            double C12 = data[6] ;
+            double C13 = data[7] ;
+            double C23 = data[8] ;
+            cg[0][0] = C11 ; cg[0][1] = C12 ; cg[0][2] = C13 ;
+            cg[1][0] = C12 ; cg[1][1] = C22 ; cg[1][2] = C23 ;
+            cg[2][0] = C13 ; cg[2][1] = C23 ; cg[2][2] = C33 ;
+            cg[3][3] = C44 ; 
+            cg[4][4] = C55 ;
+            cg[5][5] = C66 ;
+            break ;
+        }
+        case SYMMETRY_TETRAGONAL:
+        {
+            if(data.size() != 7 && !force) { return cg ; }
+            double C11 = data[0] ;
+            double C33 = data[1] ;
+            double C44 = data[2] ;
+            double C66 = data[3] ;
+            double C12 = data[4] ;
+            double C13 = data[5] ;
+            double C16 = data[6] ;
+            cg[0][0] = C11 ; cg[0][1] = C12 ; cg[0][2] = C13 ; cg[0][5] = C16 ;
+            cg[1][0] = C12 ; cg[1][1] = C11 ; cg[1][2] = C13 ; cg[1][5] = -C16 ;
+            cg[2][0] = C13 ; cg[2][1] = C13 ; cg[2][2] = C33 ;
+            cg[3][3] = C44 ;
+            cg[4][4] = C44 ;
+            cg[5][0] = C16 ; cg[1][5] = -C16 ; cg[5][5] = C66 ;
+            break ;
+        }
+        case SYMMETRY_TRIGONAL:
+        {
+            if(data.size() != 7 && !force) { return cg ; }
+            double C11 = data[0] ;
+            double C33 = data[1] ;
+            double C44 = data[2] ;
+            double C66 = data[3] ;
+            double C12 = data[4] ;
+            double C13 = data[5] ;
+            double C14 = data[6] ;
+            cg[0][0] = C11 ; cg[0][1] = C12 ; cg[0][2] = C13 ; cg[0][3] = C14 ;
+            cg[1][0] = C12 ; cg[1][1] = C11 ; cg[1][2] = C13 ; cg[1][3] = -C14 ;
+            cg[2][0] = C13 ; cg[2][1] = C13 ; cg[2][2] = C33 ;
+            cg[3][0] = C14 ; cg[3][1] = -C14 ; cg[3][3] = C44 ;
+            cg[4][4] = C44 ; cg[4][5] = C14 ;
+            cg[5][4] = C14 ; cg[5][5] = C66 ;
+            break ;
+        }
+        case SYMMETRY_TRICLINIC:
+        {
+            if(data.size() != 21 && !force) { return cg ; }
+            double C11 = data[0] ;
+            double C22 = data[1] ;
+            double C33 = data[2] ;
+            double C44 = data[3] ;
+            double C55 = data[4] ;
+            double C66 = data[5] ;
+            double C12 = data[6] ;
+            double C13 = data[7] ;
+            double C14 = data[8] ;
+            double C15 = data[9] ;
+            double C16 = data[10] ;
+            double C23 = data[11] ;
+            double C24 = data[12] ;
+            double C25 = data[13] ;
+            double C26 = data[14] ;
+            double C34 = data[15] ;
+            double C35 = data[16] ;
+            double C36 = data[17] ;
+            double C45 = data[18] ;
+            double C46 = data[19] ;
+            double C56 = data[20] ;
+            cg[0][0] = C11 ; cg[0][1] = C12 ; cg[0][2] = C13 ; cg[0][3] = C14 ; cg[0][4] = C15 ; cg[0][5] = C16 ;
+            cg[1][0] = C12 ; cg[1][1] = C22 ; cg[1][2] = C23 ; cg[1][3] = C24 ; cg[1][4] = C25 ; cg[1][5] = C26 ;
+            cg[2][0] = C13 ; cg[2][1] = C23 ; cg[2][2] = C33 ; cg[2][3] = C34 ; cg[2][4] = C35 ; cg[2][5] = C36 ;
+            cg[3][0] = C14 ; cg[3][1] = C24 ; cg[3][2] = C34 ; cg[3][3] = C44 ; cg[3][4] = C45 ; cg[3][5] = C46 ;
+            cg[4][0] = C15 ; cg[4][1] = C25 ; cg[4][2] = C35 ; cg[4][3] = C45 ; cg[4][4] = C55 ; cg[4][5] = C56 ;
+            cg[5][0] = C16 ; cg[5][1] = C26 ; cg[5][2] = C36 ; cg[5][3] = C46 ; cg[5][4] = C56 ; cg[5][5] = C66 ;
+            break ;
+        }
+    }
+
+    return cg ;
+}
+
 Matrix Tensor::isotropicTransverseCauchyGreen(double E_1, double E_3, double G_1,  double nu_12, double nu_23, SpaceDimensionality dim, planeType pt) 
 {
      if(dim == SPACE_TWO_DIMENSIONAL)
@@ -568,12 +724,37 @@ Matrix Tensor::to2D(Matrix & tensor, planeType pt, Variable var)
     {
         case PLANE_STRESS:
         {
-            ret[0][0] = tensor[first][first]-tensor[first][index]*tensor[first][index]/tensor[index][index] ;
+            Matrix K11(3,3) ;
+            Matrix K12(3,3) ;
+            Matrix K21(3,3) ;
+            Matrix K22(3,3) ;
+
+            K11[0][0] = tensor[first][first] ; K11[0][1] = tensor[first][second] ; K11[0][2] = tensor[first][index+3] ;
+            K11[1][0] = tensor[second][first] ; K11[1][1] = tensor[second][second] ; K11[1][2] = tensor[second][index+3] ;
+            K11[2][0] = tensor[index+3][first] ; K11[2][1] = tensor[index+3][second] ; K11[2][2] = tensor[index+3][index+3] ;
+
+            K12[0][0] = tensor[first][index] ; K12[0][1] = tensor[first][first+3] ; K12[0][2] = tensor[first][second+3] ;
+            K12[1][0] = tensor[second][index] ; K12[1][1] = tensor[second][first+3] ; K12[1][2] = tensor[second][second+3] ;
+            K12[2][0] = tensor[index+3][index] ; K12[2][1] = tensor[index+3][first+3] ; K12[2][2] = tensor[index+3][second+3] ;
+            K21 = K12.transpose() ;
+
+
+            K22[0][0] = tensor[index][index] ; K22[0][1] = tensor[index][first+3] ; K22[0][2] = tensor[index][second+3] ;
+            K22[1][0] = tensor[first+3][index] ; K22[1][1] = tensor[first+3][first+3] ; K22[1][2] = tensor[first+3][second+3] ;
+            K22[2][0] = tensor[second+3][index] ; K22[2][1] = tensor[second+3][first+3] ; K22[2][2] = tensor[second+3][second+3] ;
+
+            invert3x3Matrix(K22) ;
+
+            ret = K11-K12*K22*K21 ;
+            ret[2][2] *= 2 ;
+
+
+/*            ret[0][0] = tensor[first][first]-tensor[first][index]*tensor[first][index]/tensor[index][index] ;
             ret[0][1] = tensor[first][second]-tensor[second][index]*tensor[first][index]/tensor[index][index] ;
             ret[1][0] = tensor[second][first]-tensor[first][index]*tensor[second][index]/tensor[index][index] ;
             ret[1][1] = tensor[second][second]-tensor[second][index]*tensor[second][index]/tensor[index][index] ;
             ret[2][2] = tensor[index+3][index+3]*2 ;
-            ret[0][2] = 0 ; ret[1][2] = 0 ; ret[2][0] = 0 ; ret[2][1] = 0 ; 
+            ret[0][2] = 0 ; ret[1][2] = 0 ; ret[2][0] = 0 ; ret[2][1] = 0 ; */
             break;
         }
         case PLANE_STRAIN:
@@ -583,7 +764,10 @@ Matrix Tensor::to2D(Matrix & tensor, planeType pt, Variable var)
             ret[1][0] = tensor[second][first] ;
             ret[1][1] = tensor[second][second] ;
             ret[2][2] = tensor[index+3][index+3]*2 ;
-            ret[0][2] = 0 ; ret[1][2] = 0 ; ret[2][0] = 0 ; ret[2][1] = 0 ; 
+            ret[0][2] = tensor[first][index+3] ; 
+            ret[1][2] = tensor[second][index+3] ; 
+            ret[2][0] = tensor[index+3][first] ;
+            ret[2][1] = tensor[index+3][second] ; 
             break;
         }
         default:
@@ -672,10 +856,10 @@ Matrix Tensor::rotate4thOrderTensor3D( Matrix & tensor, Point angle )
     }*/
     Matrix Kt = K.transpose() ;
 
-    K.print() ;
+//    K.print() ;
 
     ret = (K*tensor)*Kt ;
-    for(size_t i = 0 ; i < 3 ; i++)
+/*    for(size_t i = 0 ; i < 3 ; i++)
     {
         for(size_t j = 0 ; j < 3 ; j++)
         {
@@ -683,7 +867,7 @@ Matrix Tensor::rotate4thOrderTensor3D( Matrix & tensor, Point angle )
             if( j != i ) 
                 ret[3+i][3+j] = 0 ;
         }
-    }
+    }*/
 
     return ret ;
 }

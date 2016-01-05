@@ -43,6 +43,7 @@ struct ExternalMaterialLaw
     ExternalMaterialLaw(const ExternalMaterialLaw & law) : defaultValues(law.defaultValues) { } 
     virtual ~ExternalMaterialLaw() { } ;
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s , double dt) { }
+    virtual void preProcess( Matrix & stiffness, Point angle, planeType pt ) { } 
     virtual void step( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt) { }
     void setDefaultValue(std::string str, double v) ;
 
@@ -387,6 +388,25 @@ struct WeibullDistributedMaterialLaw : public ExternalMaterialLaw
     
 
 } ;
+
+/*PARSE UniformDistributedPerParticle ExternalMaterialLaw
+    @string[parameter] // name of the parameter set to a random value
+    @value[minimum] 0 // minimum value of the distribution
+    @value[maximum] 1 // minimum value of the distribution
+*/
+struct UniformDistributedPerParticleMaterialLaw : public ExternalMaterialLaw
+{
+    std::string variable ;
+    std::map<const Geometry *, double> values ;
+    double minimum ;
+    double maximum ;
+
+    UniformDistributedPerParticleMaterialLaw( std::string aff, double min, double max, std::string args = std::string(), char sep = ',') ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+    virtual ~UniformDistributedPerParticleMaterialLaw() { } ;
+} ;
+
 
 } 
 

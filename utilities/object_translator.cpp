@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 14/11/2015 at 11:9  */
+/* this is an auto-generated file created on 5/0/2016 at 10:16  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -108,12 +108,26 @@ namespace Amie
             if( strings.find("weibull_variable") == strings.end() ) { strings["weibull_variable"] = "weibull_variable" ; } ; 
             return new WeibullDistributedMaterialLaw(stringlists["parameters"], strings["weibull_variable"]) ;
         }
+        if( type == "UniformDistributedPerParticle" )
+        { 
+            if( values.find("minimum") == values.end() ) { values["minimum"] = 0 ; } ; 
+            if( values.find("maximum") == values.end() ) { values["maximum"] = 1 ; } ; 
+            return new UniformDistributedPerParticleMaterialLaw(strings["parameter"], values["minimum"], values["maximum"]) ;
+        }
    
         // parsed from header file: ../physics/material_laws/mechanical_material_laws.h
         if( type == "BulkShearConversion" ) { return new BulkShearConversionMaterialLaw() ; }
         if( type == "AdjustStrainStressCurve" ) { return new AdjustStrainStressCurveMaterialLaw() ; }
         if( type == "BazantLoadNonLinearCreep" ) { return new BazantLoadNonLinearCreepMaterialLaw() ; }
         if( type == "TensionCompressionCreep" ) { return new TensionCompressionCreepMaterialLaw() ; }
+        if( type == "Mineral" )
+        { 
+            if( values.find("index") == values.end() ) { values["index"] = -1 ; } ; 
+            if( values.find("factor") == values.end() ) { values["factor"] = 1 ; } ; 
+            if( strings.find("force") == strings.end() ) { strings["force"] = "false" ; } ; 
+            if( strings.find("cutting_plane") == strings.end() ) { strings["cutting_plane"] = "ZETA" ; } ; 
+            return new MineralMaterialLaw(strings["filename"], strings["sep"], values["index"], values["factor"], Enum::getbool(strings["force"]), Enum::getVariable(strings["cutting_plane"])) ;
+        }
    
         // parsed from header file: ../physics/material_laws/temperature_material_laws.h
         if( type == "ThermalExpansion" ) { return new ThermalExpansionMaterialLaw() ; }
@@ -160,12 +174,14 @@ namespace Amie
         if( type == "ExponentialDecay" ) { return true ; }
         if( type == "GetField" ) { return true ; }
         if( type == "WeibullDistributed" ) { return true ; }
+        if( type == "UniformDistributedPerParticle" ) { return true ; }
    
         // parsed from header file: ../physics/material_laws/mechanical_material_laws.h
         if( type == "BulkShearConversion" ) { return true ; }
         if( type == "AdjustStrainStressCurve" ) { return true ; }
         if( type == "BazantLoadNonLinearCreep" ) { return true ; }
         if( type == "TensionCompressionCreep" ) { return true ; }
+        if( type == "Mineral" ) { return true ; }
    
         // parsed from header file: ../physics/material_laws/temperature_material_laws.h
         if( type == "ThermalExpansion" ) { return true ; }
