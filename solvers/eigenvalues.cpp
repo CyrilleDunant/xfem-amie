@@ -6,7 +6,6 @@
 #include <numeric>
 #include <valarray>
 
-// using namespace Mu ;
 
 namespace Amie
 {

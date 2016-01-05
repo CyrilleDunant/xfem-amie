@@ -3019,7 +3019,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             Point C(1,0) ;
             TriElement father (LINEAR) ;
             TriangularInclusion trg(A,B,C) ;
-            srand(0) ;
+
             trg.sample(1./16., 1.) ;
             DelaunayTree * dt = new DelaunayTree(&A,&B,&C) ;
 
@@ -3082,7 +3082,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
         else
         {
 
-            if( true )
+            if( false )
             {
                 if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
                     return *getCachedGaussPoints() ;
@@ -3100,14 +3100,14 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             std::vector<DelaunayTriangle *> tri ;
 
             DelaunayTree * dt = new DelaunayTree(to_add[0], to_add[1], to_add[2]) ;
-            std::cout << "renew" << std::endl ;
+            
             TriElement f(QUADRATIC) ;
             if(to_add.size() > 4)
                 std::random_shuffle(to_add.begin()+3, to_add.end()) ;
 
             for(size_t i = 3 ; i < to_add.size() ; i++)
             {
-                dt->insert(to_add[i], 0) ;
+                dt->insert(to_add[i], .05) ;
             }
 
             dt->setElementOrder(QUADRATIC); 
@@ -3135,11 +3135,10 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             }
             if(tri.size() < 3 || std::abs(parentArea - 0.5) > 1e-4)
             {
-
-//                 if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
-//                     return *getCachedGaussPoints() ;
+                if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
+                    return *getCachedGaussPoints() ;
                 delete cachedGps ;
-                cachedGps = new GaussPointArray(/*TriElement(CUBIC).getGaussPoints()*/monteCarloGaussPoints(256, this)) ;
+                cachedGps = new GaussPointArray(monteCarloGaussPoints(128, this)) ;
                 cachedGps->getId() = REGULAR_GRID ;
                 return *getCachedGaussPoints() ;
             }

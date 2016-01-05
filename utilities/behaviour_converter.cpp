@@ -18,7 +18,7 @@
 #include "behaviour_converter.h"
 
 
-using namespace Amie ;
+namespace Amie {
 
 bool BehaviourConverter::toSpaceTimeBehaviour( Feature * f, int maxBlocks ) 
 {
@@ -141,4 +141,6 @@ bool BehaviourConverter::toSpaceTimeBehaviour( Feature * f, int maxBlocks )
      }
 
      return false ; 
+}
+
 }

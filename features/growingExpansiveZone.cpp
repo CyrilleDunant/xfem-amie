@@ -12,7 +12,7 @@
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/materials/aggregate_behaviour.h"
 
-using namespace Amie ;
+namespace Amie {
 
 GrowingExpansiveZone::GrowingExpansiveZone(Feature* father, const Function & g, double x, double y, Form* i, double start) : TimeDependentEnrichmentInclusion(father,g,x,y), imp(i)
 {
@@ -237,5 +237,5 @@ void GrowingExpansiveZone::step(double dt, std::valarray< double >* results, Ami
     }
 }
 
-
+}
 

@@ -13,7 +13,7 @@
 #include "polygonSample.h"
 #include "../physics/void_form.h"
 
-using namespace Amie ;
+namespace Amie {
 
 PolygonalSample::PolygonalSample(Feature *father, const std::valarray<Point *> & points) : Polygon(points), Feature(father)
 {
@@ -51,4 +51,6 @@ bool PolygonalSample::interacts(Feature * f, double d) const
 		if(f->inBoundary(*(*i), d))
 			return true ;
 	return false ;
+}
+
 }

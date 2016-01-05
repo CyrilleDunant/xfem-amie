@@ -13,7 +13,7 @@
 #include "stiffness_with_imposed_deformation.h"
 #include "../features/boundarycondition.h"
 
-using namespace Amie ;
+namespace Amie {
 
 StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(const Matrix & rig, const Vector & imposedDef) : LinearForm(rig, false, false, rig.numRows()/3+1) , imposed(imposedDef)
 {
@@ -104,4 +104,4 @@ std::vector<BoundaryCondition * > StiffnessWithImposedDeformation::getBoundaryCo
     return ret ;
 }
 
-
+}

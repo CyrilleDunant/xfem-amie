@@ -143,19 +143,17 @@ int main( int argc, char *argv[] )
     double fact  = atof( argv[3] )*2.*restraintDepth/basesize  ;
     double fact0 = atof( argv[4] )*2.*restraintDepth/basesize  ;
 
-    
-
     Sample sample( nullptr, basesize + restraintDepth, basesize + restraintDepth, 0, 0 ) ;
 
     FeatureTree F( &sample ) ;
     featureTree = &F ;
 
     double itzSize = 0.00005;
-    int inclusionNumber = 1500 ;  1 ; 2500 ;
+    int inclusionNumber = 1 ; 1500 ; 2500 ;
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
 
-    std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, new /*ElasticOnly*/AggregateBehaviour(),  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), nullptr, 100000, 0.8, &placeGeometry) ;
+    std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, new AggregateBehaviour(),  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), nullptr, 100000, 0.8, &placeGeometry) ;
 
     double volume = 0 ;
 
@@ -168,7 +166,7 @@ int main( int argc, char *argv[] )
                   << ", smallest r =" <<  feats.back()->getRadius()  - itzSize 
                   << ", ratio = "     << (feats.front()->getRadius() - itzSize) / (feats.back()->getRadius() - itzSize) <<std::endl ;
 
-    sample.setBehaviour( new /*ElasticOnly*/PasteBehaviour()) ;
+    sample.setBehaviour( new PasteBehaviour()) ;
 
     std::vector<Feature *> blocks ;
 
@@ -212,7 +210,7 @@ int main( int argc, char *argv[] )
     //length are 1220000000 2180000000  3400000000      next: 
 
     Sample *blocktop = new Sample( nullptr, basesize, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() + basesize*.5 + restraintDepth * .25 ) ;
-    double Emin = std::max(std::max(fact, fact0)*sqrt(POINT_TOLERANCE),1e5) ;
+    double Emin = std::max(std::max(fact, fact0)*sqrt(POINT_TOLERANCE),1e4) ;
     fact = std::max(fact, Emin) ;
     fact0 = std::max(fact0, Emin) ;
 

@@ -4,7 +4,7 @@
 
 #include "enrichmentRing.h"
 #include "../polynomial/vm_function_extra.h"
-using namespace Amie ;
+namespace Amie {
 
 EnrichmentRing::EnrichmentRing(Feature *father, double radius, double inradius, double x, double y) : EnrichmentFeature(father), Circle(radius, x, y), self(inradius, x, y)
 {
@@ -368,4 +368,5 @@ void EnrichmentRing::setInRadius(double newR)
 double EnrichmentRing::getInRadius() const
 {
 	return self.getRadius() ;
+}
 }

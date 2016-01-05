@@ -1262,7 +1262,11 @@ struct Enum
         if(ok) { *ok = false ; }
         return false ;
     }
-    static std::string frombool(bool value) { return ( value ? "true" : "false" ) ; }
+    static std::string frombool(bool value)
+    {
+        return value?"true":"false" ;
+    }
+
    
     // parsed from header file: ../utilities/granulo.h
     static TypeInclusion getTypeInclusion(std::string type, bool * ok = 0)

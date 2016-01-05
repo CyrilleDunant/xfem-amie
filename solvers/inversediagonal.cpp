@@ -14,7 +14,7 @@
 #include <limits>
 #include <iostream>
 
-using namespace Amie ;
+namespace Amie {
 
 InverseLumpedDiagonal::InverseLumpedDiagonal(const CoordinateIndexedSparseMatrix &A) : diagonal(0., A.row_size.size()*A.stride)
 {
@@ -132,3 +132,4 @@ void  Inverse2x2Diagonal::precondition(const Vector &v, Vector & t)
 	}
 }
 
+}

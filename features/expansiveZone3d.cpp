@@ -9,7 +9,7 @@
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 
 
-using namespace Amie ;
+namespace Amie {
 
 ExpansiveZone3D::ExpansiveZone3D(Feature *father, double radius, double x, double y, double z, const Matrix & tensor, Vector def) : EnrichmentInclusion3D(father, radius, x, y, z),  imposedDef(def),cgTensor(tensor)
 {
@@ -132,4 +132,4 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 
 }
 
-
+}

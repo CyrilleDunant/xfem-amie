@@ -24,13 +24,15 @@
 #include "../geometry/geometry_2D.h"
 
 
+
+
+namespace Amie
+{
+    
 double sign(const double t) ;
 double positivity(const double t) ;
 double negativity(const double t) ;
 double interpolate(const double a, const double b) ;
-
-namespace Amie
-{
 
 typedef double (*unaryFunctionPointer)(const double) ;
 typedef double (*binaryFunctionPointer)(const double, double) ;

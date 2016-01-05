@@ -13,7 +13,7 @@
 #include "layeredinclusion.h"
 
 
-using namespace Amie ;
+namespace Amie {
 
 std::vector<DelaunayTriangle *> LayeredInclusion::getElements2D( FeatureTree * dt) 
 {
@@ -249,5 +249,5 @@ Feature * VirtualLayer::getSource()
 	return source ;
 }
 
-
+}
 

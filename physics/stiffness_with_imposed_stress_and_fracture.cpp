@@ -20,7 +20,7 @@
 #include "damagemodels/plasticstrain.h"
 
 
-using namespace Amie ;
+namespace Amie {
 
 StiffnessWithImposedStressAndFracture::StiffnessWithImposedStressAndFracture(const Matrix & rig, Vector imposedStress, FractureCriterion * c, DamageModel * d) : LinearForm(rig, false, false, rig.numRows()/3+1) , imposed(imposedStress)
 {
@@ -141,3 +141,4 @@ void StiffnessWithImposedStressAndFracture::addImposedStress(Vector beta)
 }
 
 
+}

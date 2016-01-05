@@ -17,7 +17,7 @@
 #include "../geometry/geometry_base.h"
 
 
-using namespace Amie ;
+namespace Amie {
 
 std::vector<DelaunayTriangle *> Inclusion::getElements2D( FeatureTree* dt) 
 {
@@ -370,5 +370,5 @@ Form * ITZFeature::getBehaviour( const Point & p) const
  	return ret ;
 }
 
-
+}
 

@@ -14,7 +14,7 @@
 #include "../physics/void_form.h"
 
 
-using namespace Amie ;
+namespace Amie {
 
 Inclusion3D::Inclusion3D(Feature *father, double r, double x, double y, double z) : Sphere(r, x, y,z ), Feature(father)
 {
@@ -255,4 +255,6 @@ std::vector<DelaunayTetrahedron *> VirtualInclusion3D::getElements3D( FeatureTre
 
 void VirtualInclusion3D::sample(double linearDensity, double surfaceDensityFactor)
 {
+}
+
 }

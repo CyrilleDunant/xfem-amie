@@ -9,7 +9,7 @@
 #include "../polynomial/vm_base.h"
 #include "../features/boundarycondition.h"
 
-using namespace Amie ;
+namespace Amie {
 
 
 
@@ -203,6 +203,6 @@ bool TwoDCohesiveForces::isActive() const
 }
 
 
-
+}
 
 

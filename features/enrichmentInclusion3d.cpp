@@ -8,7 +8,7 @@
 
 
 
-using namespace Amie ;
+namespace Amie {
 
 
 
@@ -420,4 +420,6 @@ void EnrichmentInclusion3D::setRadius(double newR)
 {
     Sphere::setRadius(newR) ;
     updated = true ;
+}
+
 }

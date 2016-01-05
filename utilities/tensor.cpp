@@ -1,6 +1,6 @@
 #include "tensor.h"
 
-using namespace Amie ;
+ namespace Amie {
 
 Tensor::Tensor(size_t o, size_t d) : order(o), dim(d)
 {
@@ -688,5 +688,5 @@ Matrix Tensor::rotate4thOrderTensor3D( Matrix & tensor, Point angle )
     return ret ;
 }
 
-
+ }
 

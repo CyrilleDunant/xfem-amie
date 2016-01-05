@@ -15,7 +15,7 @@
 #include "../physics/void_form.h"
 #include "pore.h"
 
-using namespace Amie ;
+ namespace Amie {
 
 
 Pore3D::Pore3D(Feature *father, double r, double x, double y, double z) : Feature(father), Sphere(r, x, y, z)
@@ -112,3 +112,5 @@ void Pore3D::sample(double linearDensity, double surfaceDensityFactor) {
 // 	this->inPoints->resize(1) ;
 // 	(*this->inPoints)[0] = new Point(this->center.getX(), this->center.getY(), this->center.getZ()) ;
 }
+
+ }

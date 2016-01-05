@@ -10,7 +10,7 @@
 
 #include <fstream>
 
-using namespace Amie ;
+namespace Amie {
 
 BranchedCrack::BranchedCrack(Feature *father, Point * a, Point * b) : EnrichmentFeature(father), SegmentedLine(std::valarray<Point * >(2))
 {
@@ -1668,4 +1668,5 @@ void BranchedCrack::step(double dt, Vector* v, Mesh< DelaunayTriangle, DelaunayT
 bool BranchedCrack::moved() const
 {
 	return changed ;
+}
 }

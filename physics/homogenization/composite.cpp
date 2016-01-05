@@ -1,7 +1,7 @@
 #include "composite.h"
 #include "../../utilities/matrixops.h"
 
-using namespace Amie ;
+namespace Amie {
 
 Composite::Composite( DelaunayTriangle *tri, std::vector<Feature *> feats ) : Phase( tri )
 {
@@ -714,4 +714,6 @@ bool GeneralizedSelfConsistentComposite::converged()
     double rmax = std::abs( r.max() ) ;
     double rmin = std::abs( r.min() ) ;
     return std::max( rmax, rmin ) < POINT_TOLERANCE ;
+}
+
 }

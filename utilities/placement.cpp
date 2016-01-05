@@ -10,7 +10,7 @@
 #include "../geometry/geometry_base.h"
 
 
-using namespace Amie ;
+namespace Amie {
 
 
 bool intersections( Feature * feat, const std::vector<Geometry *> & exclusionZones)
@@ -84,7 +84,7 @@ void transform3D( Feature * inc, double x, double y, double z)
     inc->setCenter( c ) ;
 }
 
-std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones, size_t seed)
+std::vector<Feature *> placement2D(const Geometry* box, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones, size_t seed)
 {
     std::vector<Feature *> ret ;
     int tries = 0 ;
@@ -161,7 +161,7 @@ std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Featur
     return ret ;
 }
 
-std::vector<Feature *> Amie::placement3D(const Geometry* box, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones, size_t seed)
+std::vector<Feature *> placement3D(const Geometry* box, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones, size_t seed)
 {
     std::vector<Feature *> ret ;
     int tries = 0 ;
@@ -271,7 +271,7 @@ std::vector<Feature *> Amie::placement3D(const Geometry* box, std::vector<Featur
 }
 
 
-std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::vector<Geometry *> base, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones, size_t seed)
+std::vector<Feature *> placement2DInInclusions(const Geometry* box, std::vector<Geometry *> base, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones, size_t seed)
 {
     std::vector<Feature *> ret ;
     int tries = 0 ;
@@ -346,7 +346,7 @@ std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::v
     return ret ;
 }
 
-std::vector<Feature *> Amie::placement2DOnEdge(const Geometry* box, std::vector<Geometry *> base, std::vector<Feature *> inclusions, bool vertex, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones, size_t seed)
+std::vector<Feature *> placement2DOnEdge(const Geometry* box, std::vector<Geometry *> base, std::vector<Feature *> inclusions, bool vertex, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones, size_t seed)
 {
     std::vector<Feature *> ret ;
     int tries = 0 ;
@@ -425,4 +425,4 @@ std::vector<Feature *> Amie::placement2DOnEdge(const Geometry* box, std::vector<
     return ret ;
 }
 
-
+}

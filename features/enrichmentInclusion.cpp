@@ -12,7 +12,7 @@
 #include "../physics/void_form.h"
 #include "../polynomial/vm_function_extra.h"
 
-using namespace Amie ;
+namespace Amie {
 
 EnrichmentInclusion::EnrichmentInclusion(Feature *father, double radius, double x, double y) : EnrichmentFeature(father), Circle(radius, x, y)
 {
@@ -480,3 +480,4 @@ void EnrichmentInclusion::setRadius(double newR)
     updated = true ;
 }
 
+}

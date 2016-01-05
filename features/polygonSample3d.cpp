@@ -13,7 +13,7 @@
 #include "polygonSample3d.h"
 #include "../physics/void_form.h"
 
-using namespace Amie ;
+namespace Amie {
 
 PolygonalSample3D::PolygonalSample3D(Feature *father, const std::valarray<Point *> & points, const Point & vector, const Point & origin) : PolygonPrism(points,vector, origin), Feature(father)
 {
@@ -53,3 +53,4 @@ bool PolygonalSample3D::interacts(Feature * f, double d) const
 	return false ;
 }
 
+}

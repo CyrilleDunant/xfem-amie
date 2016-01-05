@@ -46,7 +46,7 @@
 #include "fstream"
 
 
-using namespace Amie ;
+namespace Amie {
 
 ConfigTreeItem::ConfigTreeItem() : father(nullptr), label("trunk"), data(0.), str("")
 {
@@ -1412,3 +1412,4 @@ void ConfigTreeItem::makeWindowsPath()
 }
 #endif
 
+}

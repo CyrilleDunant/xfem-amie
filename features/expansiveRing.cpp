@@ -7,7 +7,7 @@
 #include "../physics/triple_behaviour.h"
 #include "../physics/dual_behaviour.h"
 
-using namespace Amie ;
+namespace Amie {
 
 ExpansiveRing::ExpansiveRing(Feature *father, double radius,double inradius, double x, double y, const Matrix & tensor, Vector def) : EnrichmentRing(father, radius, inradius, x, y),  imposedDef(def),cgTensor(tensor)
 {
@@ -91,5 +91,6 @@ void ExpansiveRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTree
 	interfaced = newInterfaced ;
 	expansive = newExpansive ;
 }
-	
+
+}
 

@@ -11,7 +11,7 @@
 #include "../mesher/delaunay_3d.h"
 #include "features.h"
 
-using namespace Amie ;
+namespace Amie {
 
 
 Feature::Feature(Feature * father) :  m_f(father), behaviour(nullptr)
@@ -416,3 +416,4 @@ std::vector<DelaunayTetrahedron *> Feature::getBoundingElements3D( FeatureTree *
 
 }
 
+}

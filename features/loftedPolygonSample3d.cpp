@@ -13,7 +13,7 @@
 #include "loftedPolygonSample3d.h"
 #include "../physics/void_form.h"
 
-using namespace Amie ;
+namespace Amie {
 
 LoftedPolygonalSample3D::LoftedPolygonalSample3D(Feature *father, const std::valarray<Point *> & points, const std::vector<Point> & interpolationPoints) : LoftedPolygonPrism(points,  interpolationPoints), Feature(father)
 {
@@ -53,3 +53,4 @@ bool LoftedPolygonalSample3D::interacts(Feature * f, double d) const
 	return false ;
 }
 
+}

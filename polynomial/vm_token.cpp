@@ -15,7 +15,7 @@
 #include "vm_token.h"
 #include "../elements/elements.h"
 
-using namespace Amie ;
+namespace Amie {
 
 
 void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c ) const
@@ -869,4 +869,4 @@ int HatEnrichment3D::adressOffset() const
     return 0 ;
 }
 
-
+}

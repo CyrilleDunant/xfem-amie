@@ -16,7 +16,7 @@
 #include "../physics/physics_base.h"
 #include "../physics/void_form.h"
 
-using namespace Amie ;
+namespace Amie {
 
 std::vector<DelaunayTriangle *> Pore::getElements2D( FeatureTree * dt) 
 {
@@ -179,3 +179,4 @@ bool TriangularPore::interacts(Feature * f, double d) const
 
 }
 
+}
