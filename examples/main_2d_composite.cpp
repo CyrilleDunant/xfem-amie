@@ -146,11 +146,12 @@ int main(int argc, char *argv[])
         F.setSamplingFactor( F.getFeature(0), problem->getData("sample.sampling_number", 1.) ) ;
     F.setDiscretizationParameters(problem->getChild("discretization")) ;
     Vector instants = F.setSteppingParameters(problem->getChild("stepping")) ;
-    InclusionFamily * allFeatures = nullptr ;
+    InclusionFamilyTree * allFeatures = nullptr ;
     if(problem->hasChild("inclusions"))
-        allFeatures = problem->getChild("inclusions")->makeInclusionFamily( &F ) ;
+        allFeatures = problem->getChild("inclusions")->makeInclusionFamilyTree( &F ) ;
     else
-        allFeatures = new InclusionFamily( ) ;
+        allFeatures = new InclusionFamilyTree( ) ;
+    allFeatures->concatenate() ;
 
     parser.setFeatureTree( &F ) ;
 

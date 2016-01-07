@@ -40,9 +40,9 @@ int main(int argc, char *argv[])
 	rect.setBehaviour(new Stiffness( 10e9, 0.2 ) ) ;
         
 	std::vector<VoronoiGrain> grains ;
-	grains.push_back(VoronoiGrain(new WeibullDistributedElasticStiffness( 15e9, 0.2, 0.3), 0.01, 0.6, 0.55) ) ;
-	grains.push_back(VoronoiGrain(new WeibullDistributedElasticStiffness( 20e9, 0.2, 0.3), 0.005, 0.3, 0.75) ) ;
-	grains.push_back(VoronoiGrain(new WeibullDistributedElasticStiffness( 25e9, 0.2, 0.3), 0.003, 0.1) ) ;
+	grains.push_back(VoronoiGrain(new WeibullDistributedElasticStiffness( 15e9, 0.2, 0.3), 0.01, 0.6, 5, 0.55) ) ;
+	grains.push_back(VoronoiGrain(new WeibullDistributedElasticStiffness( 20e9, 0.2, 0.3), 0.005, 0.3, 10, 0.75) ) ;
+	grains.push_back(VoronoiGrain(new WeibullDistributedElasticStiffness( 25e9, 0.2, 0.3), 0.003, 0.1, 25) ) ;
 
 	FeatureTree f(&rect) ;
 	PSDGenerator::get2DVoronoiPolygons( &f, grains, 0, 0.003, 0.01, 32, true, 0) ;

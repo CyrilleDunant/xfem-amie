@@ -186,7 +186,7 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
     previousSamplingNumber = 0 ;
     samplingRestriction = 0 ;
     surfaceSamplingFactor = 2. ;
-    minimumMeshDensity = 0.005 ;
+    minimumMeshDensity =  0.005 ;
 
 
     lastNodeId = 0;
@@ -7216,6 +7216,22 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTetrahedron
     }
 }
 
+std::vector<Feature *> FeatureTree::getCoOccuringFeatures( Feature * f ) 
+{
+    std::vector<const Geometry *> potentialFeaturestmp  ;
+    std::vector<Feature *> potentialFeatures ;
+
+    if ( is2D() )
+        potentialFeaturestmp = grid->coOccur ( f ) ;
+    else
+        potentialFeaturestmp = grid3d->coOccur ( f ) ;
+
+    for ( size_t l = 0 ; l < potentialFeaturestmp.size() ; l++ )
+        potentialFeatures.push_back ( const_cast<Feature *> ( dynamic_cast<const Feature *> ( potentialFeaturestmp[l] ) ) ) ;
+
+    return potentialFeatures ;
+}
+
 void FeatureTree::generateElements()
 {
 
@@ -7517,7 +7533,7 @@ void FeatureTree::generateElements()
                             && !potentialFeatures[l]->isEnrichmentFeature
                             && std::binary_search ( descendants.begin(), descendants.end(), potentialFeatures[l] ) )
                     {
-                        if(potentialFeatures[l]->getFather() == tree[i])
+                        if(potentialFeatures[l]->getFather() == tree[i] || tree[i]->isChild(potentialFeatures[l] ) )
                             potentialChildren.push_back ( potentialFeatures[l] ) ;
                     }
                 }
@@ -7533,8 +7549,10 @@ void FeatureTree::generateElements()
                             && !potentialFeatures[l]->isEnrichmentFeature
                             && potentialFeatures[l]->isMaskedBy( tree[i] ) )
                     {
-                        if(potentialFeatures[l]->getFather() == tree[i])
+                        if(potentialFeatures[l]->getFather() == tree[i]  || tree[i]->isChild(potentialFeatures[l] ))
+                        {
                             potentialChildren.push_back ( potentialFeatures[l] ) ;
+                        }
                     }
                 }
 
@@ -7661,7 +7679,7 @@ void FeatureTree::generateElements()
                                 && !potentialFeatures[l]->isEnrichmentFeature
                                 && std::binary_search ( descendants.begin(), descendants.end(), potentialFeatures[l] ) )
                         {
-                            if(potentialFeatures[l]->getFather() == tree[i])
+                            if(potentialFeatures[l]->getFather() == tree[i] || tree[i]->isChild( potentialFeatures[l] ) )
                                 potentialChildren.push_back ( potentialFeatures[l] ) ;
                         }
                     }
@@ -7677,7 +7695,7 @@ void FeatureTree::generateElements()
                                 && !potentialFeatures[l]->isEnrichmentFeature
                                 && potentialFeatures[l]->isMaskedBy( tree[i] ) )
                         {
-                            if(potentialFeatures[l]->getFather() == tree[i])
+                            if(potentialFeatures[l]->getFather() == tree[i] )
                                 potentialChildren.push_back ( potentialFeatures[l] ) ;
                         }
                     }
@@ -7713,12 +7731,14 @@ void FeatureTree::generateElements()
                         }
                     }
     
-                    if ( i && !inRoot (  sh->second[j] ) )
+                    for(size_t k = 0 ; k < potentialFeatures.size() ; k++)
                     {
-                        isIn = true ;
+                        if( sh->first != tree[0] && potentialFeatures[k] != tree[i] && potentialFeatures[k]->inBoundary( sh->second[j], POINT_TOLERANCE ) )
+                        {
+                             isIn = true ;
+                             break ;
+                        }
                     }
-    
-    
     
 
                     if ( tree[i]->getFather() && tree[i]->getFather()->onBoundary (  sh->second[j], pointDensity*0.7 ) && ! tree[i]->isMaskedBy( tree[i]->getFather() ) )
@@ -7768,9 +7788,15 @@ void FeatureTree::generateElements()
                             break ;
                         }
                     }
+
+                    if ( sh->first != tree[0] && !inRoot (  sh->second[j] ) )
+                    {
+                        isIn = true ;
+                    }
     
                     if ( !isIn )
                     {
+
                         meshShellPoints.push_back ( std::pair<Point *, Feature *> ( new Point( sh->second[j]), tree[i] ) ) ;
     
                         if ( i == 0 )
@@ -7790,7 +7816,7 @@ void FeatureTree::generateElements()
 
     size_t count  = 0 ;
 
-    if ( computeIntersections )
+    if (  computeIntersections )
     {
         std::set< std::pair<const Feature*, const Feature*> > done ;
         for ( size_t i = 1 ;  i < tree.size() ; i++ )

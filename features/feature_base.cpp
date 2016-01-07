@@ -294,6 +294,17 @@ std::vector<Feature *> Feature::getDescendants() const
     return ret ;
 }
 
+bool Feature::isDescendant( Feature * f ) const 
+{
+    std::vector<Feature *> descendants = getDescendants() ;
+    return std::find( descendants.begin(), descendants.end(), f ) != descendants.end() ;
+}
+
+bool Feature::isChild( Feature * f ) const 
+{
+    return std::find( m_c.begin(), m_c.end(), f ) != m_c.end() ;
+}
+
 std::map<Feature *, std::vector<Point> > Feature::sampleOuterShells(double linearDensity, double distance, bool in) 
 {
     std::map<Feature *, std::vector<Point> > ret ;

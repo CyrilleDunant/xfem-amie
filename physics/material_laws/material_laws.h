@@ -390,9 +390,10 @@ struct WeibullDistributedMaterialLaw : public ExternalMaterialLaw
 } ;
 
 /*PARSE UniformDistributedPerParticle ExternalMaterialLaw
-    @string[parameter] // name of the parameter set to a random value
+    @string[output] // name of the parameter set to a random value
     @value[minimum] 0 // minimum value of the distribution
     @value[maximum] 1 // minimum value of the distribution
+    @string<EMLOperation>[operation] SET // operation to apply
 */
 struct UniformDistributedPerParticleMaterialLaw : public ExternalMaterialLaw
 {
@@ -400,8 +401,9 @@ struct UniformDistributedPerParticleMaterialLaw : public ExternalMaterialLaw
     std::map<const Geometry *, double> values ;
     double minimum ;
     double maximum ;
+    EMLOperation op ;
 
-    UniformDistributedPerParticleMaterialLaw( std::string aff, double min, double max, std::string args = std::string(), char sep = ',') ;
+    UniformDistributedPerParticleMaterialLaw( std::string aff, double min, double max, EMLOperation o = SET, std::string args = std::string(), char sep = ',') ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
     virtual ~UniformDistributedPerParticleMaterialLaw() { } ;

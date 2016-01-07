@@ -98,16 +98,16 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
         zones[z].first->setRadius( deltaRadius*4 ) ;
 }
 
-GelManager::GelManager( FeatureTree * f, InclusionFamily * inc, int gel, double rf, double dr)  : deltaRadius(dr), reactedArea(0), aggregateArea(0), reactiveFraction(rf), ftree(f)
+GelManager::GelManager( FeatureTree * f, InclusionFamily * inc, double rf, double dr)  : deltaRadius(dr), reactedArea(0), aggregateArea(0), reactiveFraction(rf), ftree(f)
 {
     aggregateArea = 0 ;
     reactedArea = 0 ;
 
     std::vector<Feature *> found ;
-    for(size_t i = 0 ; i < inc->features[gel].size() ; i++)
+    for(size_t i = 0 ; i < inc->features.size() ; i++)
     {
-        ExpansiveZone * test = dynamic_cast<ExpansiveZone *>( inc->features[gel][i] ) ;
-        Feature * agg = inc->features[gel][i]->getFather() ;
+        ExpansiveZone * test = dynamic_cast<ExpansiveZone *>( inc->features[i] ) ;
+        Feature * agg = inc->features[i]->getFather() ;
         if( test != nullptr && agg != nullptr )
         {
             zones.push_back( std::make_pair( test, agg ) ) ;
@@ -202,7 +202,7 @@ void GelManager::setDeltaRadius(double dr)
     deltaRadius = dr ;
 }
 
-FunctionBasedGelManager::FunctionBasedGelManager( FeatureTree * f, InclusionFamily * inc, int gel, std::string function, double rf) : GelManager(f, inc, gel, rf, -1), radius(function)
+FunctionBasedGelManager::FunctionBasedGelManager( FeatureTree * f, InclusionFamily * inc, std::string function, double rf) : GelManager(f, inc, rf, -1), radius(function)
 {
     reactiveFraction = rf ;
     aggregateArea = 0 ;
@@ -210,10 +210,10 @@ FunctionBasedGelManager::FunctionBasedGelManager( FeatureTree * f, InclusionFami
     deltaRadius = 0 ;
 
     std::vector<Feature *> found ;
-    for(size_t i = 0 ; i < inc->features[gel].size() ; i++)
+    for(size_t i = 0 ; i < inc->features.size() ; i++)
     {
-        ExpansiveZone * test = dynamic_cast<ExpansiveZone *>( inc->features[gel][i] ) ;
-        Feature * agg = inc->features[gel][i]->getFather() ;
+        ExpansiveZone * test = dynamic_cast<ExpansiveZone *>( inc->features[i] ) ;
+        Feature * agg = inc->features[i]->getFather() ;
         if( test != nullptr && agg != nullptr )
         {
             zones.push_back( std::make_pair( test, agg ) ) ;
@@ -237,7 +237,7 @@ bool FunctionBasedGelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle
     return GelManager::step( dt, v, dtree ) ;
 }
 
-SpaceTimeGelManager::SpaceTimeGelManager( FeatureTree * f, InclusionFamily * inc, int gel, std::string r, double rf)  : GelManager(f, inc, gel, rf, -1)
+SpaceTimeGelManager::SpaceTimeGelManager( FeatureTree * f, InclusionFamily * inc, std::string r, double rf)  : GelManager(f, inc, rf, -1)
 {
     Function radius(r) ;
 
@@ -245,10 +245,10 @@ SpaceTimeGelManager::SpaceTimeGelManager( FeatureTree * f, InclusionFamily * inc
     reactedArea = 0 ;
 
     std::vector<Feature *> found ;
-    for(size_t i = 0 ; i < inc->features[gel].size() ; i++)
+    for(size_t i = 0 ; i < inc->features.size() ; i++)
     {
-        GrowingExpansiveZone * test = dynamic_cast<GrowingExpansiveZone *>( inc->features[gel][i] ) ;
-        Feature * agg = inc->features[gel][i]->getFather() ;
+        GrowingExpansiveZone * test = dynamic_cast<GrowingExpansiveZone *>( inc->features[i] ) ;
+        Feature * agg = inc->features[i]->getFather() ;
         if( test != nullptr && agg != nullptr )
         {
             stzones.push_back( std::make_pair( test, agg ) ) ;

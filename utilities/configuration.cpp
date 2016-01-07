@@ -661,13 +661,32 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw()
                 size_t next = args.find(",",start+1) ;
                 while( next < std::string::npos )
                 {
-                    params.push_back( args.substr( start+(start > 0), next-start-(start > 0) ) ) ;
+                    std::string tmp = args.substr( start+(start > 0), next-start-(start > 0) ) ;
+                    if(tmp.find("=") == std::string::npos)
+                        params.push_back( tmp ) ;
+                    else
+                    {
+                        std::string arg = tmp.substr(0, tmp.find("=") ) ;
+                        double val = atof( tmp.substr(tmp.find("=")+1 ).c_str() ) ;
+                        values[arg] = val ;
+                        strings[arg] = tmp.substr(tmp.find("=")+1 ) ;
+                    }
                     start = next ;
                     next = args.find(",",start+1) ;
                 }
-                params.push_back( args.substr( start+1 ) ) ;
+                std::string tmp = args.substr( start+1 ) ;
+                if(tmp.find("=") == std::string::npos)
+                    params.push_back( tmp ) ;
+                else
+                {
+                    std::string arg = tmp.substr(0, tmp.find("=") ) ;
+                    double val = atof( tmp.substr(tmp.find("=")+1 ).c_str() ) ;
+                    values[arg] = val ;
+                    strings[arg] = tmp.substr(tmp.find("=")+1 ) ;
+                }
                 stringlists["parameters"] = params ;
-                strings["parameter"] = params[0] ;
+                if(params.size() > 0)
+                    strings["parameter"] = params[0] ;
             }
             else
             {
@@ -883,9 +902,11 @@ Point ConfigTreeItem::getPoint(Point def )
     return Point( getData("x", def.getX()), getData("y", def.getY()), getData("z", def.getZ()), getData("t", def.getT()) ) ;
 }
 
-InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, InclusionFamily * father, int index )
+InclusionFamilyTree * ConfigTreeItem::makeInclusionFamilyTree( FeatureTree * F, InclusionFamily * father )
 {
     SpaceDimensionality dim = F->is2D() ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ;
+
+    InclusionFamilyTree * tree = new InclusionFamilyTree( father ) ;
 
     if(!hasChild("family"))
     {
@@ -904,12 +925,11 @@ InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, Inclusio
 
         InclusionFamily * inc = getInclusionFamily() ;
         if(hasChild("behaviour"))
-            inc->setBehaviour( getChild("behaviour")->getBehaviour( dim ), 0, getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
-        if( father )
-            inc->setFather( father, index ) ;
-        inc->place( placement, getData("placement.spacing", 0), getData("placement.tries", 1000), getData("placement.random_seed", 1) ) ;
+            inc->setBehaviour( getChild("behaviour")->getBehaviour( dim ), getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
+	tree->insert( inc ) ;
+        tree->place( placement, getData("placement.spacing", 0), getData("placement.tries", 1000), getData("placement.random_seed", 1) ) ;
         if( hasChild("sampling_factor" ) )
-            inc->setSamplingFactor(0, getData("sampling_factor" ,1.) ) ;
+            inc->setSamplingFactor( getData("sampling_factor" ,1.) ) ;
         inc->addToFeatureTree(F) ;
         if(hasChild("enrichment") && Object::isEnrichmentManager( getStringData("enrichment", "NoEnrichment" ) ) )
         {
@@ -935,10 +955,10 @@ InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, Inclusio
         }
         if(hasChild("inclusions"))
         {
-            InclusionFamily * son = getChild("inclusions")->makeInclusionFamily( F, inc, 0 ) ;
-            inc->concatenate(son) ;
+            InclusionFamilyTree * son = getChild("inclusions")->makeInclusionFamilyTree( F, inc ) ;
+            inc->sons = son ;
         }
-        return inc ;
+        return tree ;
     }
 
     Rectangle * placement = dynamic_cast<Rectangle *>(F->getFeature(0)) ;
@@ -951,31 +971,23 @@ InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, Inclusio
     }
 
     std::vector<ConfigTreeItem *> all = getAllChildren("family") ;
-    InclusionFamily * ret = nullptr ;
     for(size_t i = 0 ; i < all.size() ; i++)
     {
         if(all[i]->hasChild("surface_fraction"))
             all[i]->addChild( new ConfigTreeItem( nullptr, "surface", all[i]->getData("surface_fraction")*placement->area() ) ) ; 
         InclusionFamily * current = all[i]->getInclusionFamily( str ) ;
         if(all[i]->hasChild("behaviour"))
-            current->setBehaviour( all[i]->getChild("behaviour")->getBehaviour( dim ), 0, getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
-        if( father )
-            current->setFather( father, index ) ;
-
+            current->setBehaviour( all[i]->getChild("behaviour")->getBehaviour( dim ), getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
+	tree->insert( current ) ;
         if(all[i]->hasChild("sampling_factor"))
-            current->setSamplingFactor( 0, getData("sampling_factor",-1) ) ;
-
-        if(!ret)
-            ret = current ;
-        else
-            ret->concatenate(current) ;
+            current->setSamplingFactor( getData("sampling_factor",-1) ) ;
     }
 
-    ret->place( placement, getData("placement.spacing", 0), getData("placement.tries", 1000), getData("placement.random_seed", 1) ) ;
-    ret->addToFeatureTree( F ) ;
+    tree->place( placement, getData("placement.spacing", 0), getData("placement.tries", 1000), getData("placement.random_seed", 1) ) ;
 
     for(size_t i = 0 ; i < all.size() ; i++)
     {
+        tree->brothers[i]->addToFeatureTree(F) ;
         if(all[i]->hasChild("enrichment") && Object::isEnrichmentManager( all[i]->getStringData("enrichment", "NoEnrichment" ) ) )
         {
             std::map<std::string, double> values ;
@@ -993,7 +1005,7 @@ InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, Inclusio
                     strings[ current[j]->getLabel() ] = current[j]->getStringData() ;
             }
             trees["feature_tree"] = F ;
-            families["zones"] = ret ;
+            families["zones"] = tree->brothers[i] ;
             values["index"] = i ;
             EnrichmentManager * manager = Object::getEnrichmentManager( getStringData("enrichment", "NoEnrichment" ), trees, families, values, strings ) ;
             if(manager != nullptr)
@@ -1002,12 +1014,12 @@ InclusionFamily * ConfigTreeItem::makeInclusionFamily( FeatureTree * F, Inclusio
 
         if(all[i]->hasChild("inclusions"))
         {
-            InclusionFamily * son = getChild("inclusions")->makeInclusionFamily( F, ret, i ) ;
-            ret->concatenate(son) ;
+            InclusionFamilyTree * son = all[i]->getChild("inclusions")->makeInclusionFamilyTree( F, tree->brothers[i] ) ;
+            tree->brothers[i]->sons = son ;
         }
     }
 
-    return ret ;
+    return tree ;
 }
 
 std::vector<BoundaryCondition *> ConfigTreeItem::getAllBoundaryConditions(FeatureTree * F) const 

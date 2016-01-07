@@ -242,17 +242,25 @@ Feature * PolygonalInclusionGenerator::convert( Inclusion * inc)
 	return ret ;
 }
 
-VoronoiPolygonalInclusionGenerator::VoronoiPolygonalInclusionGenerator( double box, size_t seed, double minDist, double o, double ov, double rot, bool force) : PolygonalInclusionGenerator(5, o, ov, 0, rot, force)
+VoronoiPolygonalInclusionGenerator::VoronoiPolygonalInclusionGenerator( double box, size_t seed, double minDist, double s, double o, double ov, double sv, double rot, bool force) : PolygonalInclusionGenerator(5, o, ov, 0, rot, force)
 {
 	Rectangle rect( box, box, 0,0 ) ;
 	std::vector<VoronoiGrain> morphology ;
-	morphology.push_back( VoronoiGrain( nullptr, minDist, 1., 1.) ) ;
+	morphology.push_back( VoronoiGrain( nullptr, minDist, 1., seed, 1.) ) ;
 	source = PSDGenerator::get2DSourceVoronoiPolygons(&rect, morphology, seed, minDist)[0] ;
         index = std::uniform_int_distribution< size_t >(0,source.size()-1) ;
 	if(source.size() == 0)
 	{
 		std::cout << "no polygons available after Voronoi tesselation, exiting now" << std::endl ;
 		exit(0) ;
+	}
+	std::uniform_real_distribution< double > shape(s-sv,s+sv) ;
+        for(size_t i = 0 ; i < source.size() ; i++)
+	{
+		std::valarray<Point> pts = source[i]->getOriginalPoints() ;
+		for(size_t j = 0 ; j < pts.size() ; j++)
+			pts[j].getX() *= shape( rng ) ;
+		source[i]->setOriginalPoints( pts, true ) ;
 	}
 }
 

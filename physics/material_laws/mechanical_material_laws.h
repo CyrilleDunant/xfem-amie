@@ -66,7 +66,7 @@ struct StrainRateDependentStrengthMaterialLaw : public ExternalMaterialLaw
 } ;
 
 /*PARSE Mineral ExternalMaterialLaw
-    @string[filename] // path to the file containing the mineral data
+    @string[file_name] // path to the file containing the mineral data
     @string[separators] .- // separator to find the name of the mineral from the filename
     @value[index] -1 // index of the source of data (if several references exist)
     @value[factor] 1 // factor by which the stiffness matrix will be multiplied

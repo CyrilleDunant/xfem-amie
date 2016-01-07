@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 			if(compare)
 			{
 				std::string viewerCommand = viewer + " "+basedir+files[i]+"_base | "+viewer+" "+outdir+files[i]+"_current" ;
-				std::cout << viewerCommand << std::endl ;
+//				std::cout << viewerCommand << std::endl ;
 				std::system( viewerCommand.c_str()  ) ;
 			}
 

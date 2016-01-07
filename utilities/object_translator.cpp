@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 5/0/2016 at 10:16  */
+/* this is an auto-generated file created on 6/0/2016 at 13:28  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -112,7 +112,8 @@ namespace Amie
         { 
             if( values.find("minimum") == values.end() ) { values["minimum"] = 0 ; } ; 
             if( values.find("maximum") == values.end() ) { values["maximum"] = 1 ; } ; 
-            return new UniformDistributedPerParticleMaterialLaw(strings["parameter"], values["minimum"], values["maximum"]) ;
+            if( strings.find("operation") == strings.end() ) { strings["operation"] = "SET" ; } ; 
+            return new UniformDistributedPerParticleMaterialLaw(strings["output"], values["minimum"], values["maximum"], Enum::getEMLOperation(strings["operation"])) ;
         }
    
         // parsed from header file: ../physics/material_laws/mechanical_material_laws.h
@@ -122,11 +123,12 @@ namespace Amie
         if( type == "TensionCompressionCreep" ) { return new TensionCompressionCreepMaterialLaw() ; }
         if( type == "Mineral" )
         { 
+            if( strings.find("separators") == strings.end() ) { strings["separators"] = ".-" ; } ; 
             if( values.find("index") == values.end() ) { values["index"] = -1 ; } ; 
             if( values.find("factor") == values.end() ) { values["factor"] = 1 ; } ; 
             if( strings.find("force") == strings.end() ) { strings["force"] = "false" ; } ; 
             if( strings.find("cutting_plane") == strings.end() ) { strings["cutting_plane"] = "ZETA" ; } ; 
-            return new MineralMaterialLaw(strings["filename"], strings["sep"], values["index"], values["factor"], Enum::getbool(strings["force"]), Enum::getVariable(strings["cutting_plane"])) ;
+            return new MineralMaterialLaw(strings["file_name"], strings["separators"], values["index"], values["factor"], Enum::getbool(strings["force"]), Enum::getVariable(strings["cutting_plane"])) ;
         }
    
         // parsed from header file: ../physics/material_laws/temperature_material_laws.h
@@ -755,10 +757,12 @@ namespace Amie
         }
         if( type == "VoronoiPolygonal" )
         { 
+            if( values.find("shape_factor") == values.end() ) { values["shape_factor"] = 1 ; } ; 
             if( values.find("orientation") == values.end() ) { values["orientation"] = 0 ; } ; 
             if( values.find("orientation_variability") == values.end() ) { values["orientation_variability"] = 3.141592 ; } ; 
+            if( values.find("shape_factor_variability") == values.end() ) { values["shape_factor_variability"] = 0 ; } ; 
             if( values.find("placement_rotation") == values.end() ) { values["placement_rotation"] = 0 ; } ; 
-            return new VoronoiPolygonalInclusionGenerator(values["box_width"], values["grains"], values["spacing"], values["orientation"], values["orientation_variability"], values["placement_rotation"]) ;
+            return new VoronoiPolygonalInclusionGenerator(values["box_width"], values["grains"], values["spacing"], values["shape_factor"], values["orientation"], values["orientation_variability"], values["shape_factor_variability"], values["placement_rotation"]) ;
         }
         if( type == "GravelPolygonal" )
         { 
@@ -868,8 +872,10 @@ namespace Amie
         if( type == "Concentric" ) { return new ConcentricInclusionFamily(values["layer_width"]) ; }
         if( type == "Voronoi" )
         { 
+            if( values.find("outside_layer") == values.end() ) { values["outside_layer"] = -1 ; } ; 
+            if( values.find("interface") == values.end() ) { values["interface"] = 0 ; } ; 
             if( values.find("maximum_vertex") == values.end() ) { values["maximum_vertex"] = 20 ; } ; 
-            return new VoronoiInclusionFamily(values["radius"], values["surface_fraction"], values["correction_factor"], values["number_of_grains"], values["maximum_vertex"]) ;
+            return new VoronoiInclusionFamily(values["radius"], values["surface_fraction"], values["correction_factor"], values["number_of_grains"], values["outside_layer"], values["interface"], values["maximum_vertex"]) ;
         }
         if( type == "FileDefinedCircle" )
         { 
@@ -910,17 +916,17 @@ namespace Amie
         { 
             if( values.find("reactive_fraction") == values.end() ) { values["reactive_fraction"] = 0.1 ; } ; 
             if( values.find("radius_increment") == values.end() ) { values["radius_increment"] = -1 ; } ; 
-            return new GelManager(featuretrees["feature_tree"], inclusionfamilys["zones"], values["index"], values["reactive_fraction"], values["radius_increment"]) ;
+            return new GelManager(featuretrees["feature_tree"], inclusionfamilys["zones"], values["reactive_fraction"], values["radius_increment"]) ;
         }
         if( type == "FunctionBasedGel" )
         { 
             if( values.find("reactive_fraction") == values.end() ) { values["reactive_fraction"] = 0.1 ; } ; 
-            return new FunctionBasedGelManager(featuretrees["feature_tree"], inclusionfamilys["zones"], values["index"], strings["radius"], values["reactive_fraction"]) ;
+            return new FunctionBasedGelManager(featuretrees["feature_tree"], inclusionfamilys["zones"], strings["radius"], values["reactive_fraction"]) ;
         }
         if( type == "SpaceTimeGel" )
         { 
             if( values.find("reactive_fraction") == values.end() ) { values["reactive_fraction"] = 0.1 ; } ; 
-            return new SpaceTimeGelManager(featuretrees["feature_tree"], inclusionfamilys["zones"], values["index"], strings["radius"], values["reactive_fraction"]) ;
+            return new SpaceTimeGelManager(featuretrees["feature_tree"], inclusionfamilys["zones"], strings["radius"], values["reactive_fraction"]) ;
         }
    
         return nullptr ;

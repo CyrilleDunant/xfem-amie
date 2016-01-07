@@ -155,8 +155,10 @@ struct PolygonalInclusionGenerator : public InclusionGenerator
     @value[box_width] // width of the box in which the Voronoi distribution is generated
     @value[grains] // number of points from which the Voronoi distribution is generated
     @value[spacing] // distance between two different points of the Voronoi distribution
+    @value[shape_factor] 1 // elongation of the particles
     @value[orientation] 0 // default angle of the major axis
     @value[orientation_variability] 3.141592 // extent of the random uniform distribution of the angles of the major axis
+    @value[shape_factor_variability] 0 // extent of the random uniform distribution of the shape factor
     @value[placement_rotation] 0 // maximum angle of the rotation authorized during placement (if 0, the inclusion will keep its generated orientation)
 */
 struct VoronoiPolygonalInclusionGenerator : public PolygonalInclusionGenerator
@@ -164,7 +166,7 @@ struct VoronoiPolygonalInclusionGenerator : public PolygonalInclusionGenerator
     std::vector<PolygonalSample *> source ;
     std::uniform_int_distribution< size_t > index ;
 
-    VoronoiPolygonalInclusionGenerator( double box, size_t seed, double minDist, double o = 0., double ov = M_PI, double rot = 0., bool force = true) ;
+    VoronoiPolygonalInclusionGenerator( double box, size_t seed, double minDist, double shape = 1., double o = 0., double ov = M_PI, double sv = 0., double rot = 0., bool force = true) ;
 
     virtual PolygonalSample * generatePolygon(double radius) ;
 } ; 

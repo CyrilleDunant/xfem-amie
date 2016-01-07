@@ -106,15 +106,37 @@ struct PSDEndCriteria
 
 class ParticleSizeDistribution ;
 
+typedef enum
+{
+    VORONOI_CONSTANT,
+    VORONOI_RADIUS,
+    VORONOI_RANDOM,
+} VoronoiWeight ;
+
 struct VoronoiGrain
 {
     Form * behaviour ;
     double radius ;
     double fraction ;
+    size_t n ;
     double correctionFactor ;
+    VoronoiWeight method ;
 
-    VoronoiGrain(Form * b, double r, double f, double c = 1.) : behaviour(b), radius(r), fraction(f), correctionFactor(c) { } ;
+    VoronoiGrain(Form * b, double r, double f, size_t n_, double c = 1., VoronoiWeight w = VORONOI_RADIUS) : behaviour(b), radius(r), fraction(f), n(n_), correctionFactor(c), method(w) { } ;
 
+    double weight(double w, Point test, Point center) const
+    {
+        switch(method)
+        {
+            case VORONOI_CONSTANT:
+                return w ;
+            case VORONOI_RADIUS:
+                return radius ;
+            case VORONOI_RANDOM:
+                return (double) std::rand()/RAND_MAX ;
+        }
+        return w ;
+    }
 } ;
 
 /**

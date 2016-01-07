@@ -753,29 +753,43 @@ std::pair<std::string, double> WeibullDistributedMaterialLaw::getWeibullVariable
 	return std::make_pair( weib, std::max(0., 1. - var + var*distribution(generator)) ) ;
 }
 
-UniformDistributedPerParticleMaterialLaw::UniformDistributedPerParticleMaterialLaw( std::string str, double min, double max, std::string args, char sep) : ExternalMaterialLaw(args, sep), variable(str), minimum(min), maximum(max)
+UniformDistributedPerParticleMaterialLaw::UniformDistributedPerParticleMaterialLaw( std::string str, double min, double max, EMLOperation o, std::string args, char sep) : ExternalMaterialLaw(args, sep), variable(str), minimum(min), maximum(max), op(o)
 {
 
 }
 
 void UniformDistributedPerParticleMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
-    if(s.has(variable))
-        return ;
-
     const Geometry * source = s.getParent()->getBehaviour()->getSource() ;
-    if( values.find(source) != values.end() )
-        s.set( variable, values[source] ) ;
-    else
+    if( values.find(source) == values.end() )
     {
         std::default_random_engine generator(std::rand());
         std::uniform_real_distribution< double > distribution(minimum, maximum);
         double v = distribution(generator) ;
         values[source] = v ;
-        s.set( variable, v ) ;
     }
-  
-
+    double v = values[source] ;
+    switch(op)
+    {
+        case SET:
+            s.set(variable, v) ;
+            break ;
+        case ADD:
+            s.add(variable, v) ;
+            break ;
+        case MULTIPLY:
+            s.multiply(variable, v) ;
+            break ;
+        case SUBSTRACT:
+            s.add(variable, -1.*v) ;
+            break ;
+        case DIVIDE:
+            s.multiply(variable, 1./v) ;
+            break ;
+        default:
+            s.set(variable, v) ;
+            break ;
+    }
 }
 
 

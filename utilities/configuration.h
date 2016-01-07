@@ -208,7 +208,7 @@ public:
     /** Translates the current item in a material law for log-creep behaviour*/
     ExternalMaterialLaw * getExternalMaterialLaw() ;
 
-    InclusionFamily * makeInclusionFamily( FeatureTree * f, InclusionFamily * father = nullptr, int index = 0) ;
+    InclusionFamilyTree * makeInclusionFamilyTree( FeatureTree * f, InclusionFamily * father = nullptr) ;
 
     /** Translates the current item in a boundary condition*/
     BoundaryCondition * getBoundaryCondition(FeatureTree * f) const ;

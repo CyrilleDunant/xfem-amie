@@ -326,7 +326,7 @@ std::vector<std::vector<PolygonalSample *> > PSDGenerator::get2DSourceVoronoiPol
 
     double r0 = (minDist < 0 ? morphology[morphology.size()-1].radius : minDist) ;
 
-    std::vector<Inclusion *> inclusions = PSDGenerator::get2DInclusions( r0, box->area()*0.9, new ConstantSizeDistribution(), PSDEndCriteria( r0*0.25, box->area(), truen) ) ;
+    std::vector<Inclusion *> inclusions = PSDGenerator::get2DInclusions( r0*0.5, box->area(), new ConstantSizeDistribution(), PSDEndCriteria( r0*0.25, box->area(), truen) ) ;
     std::vector<Feature *> circles ;
     for(size_t i = 0 ; i < inclusions.size() ; i++)
         circles.push_back(inclusions[i]) ;
@@ -346,7 +346,7 @@ std::vector<std::vector<PolygonalSample *> > PSDGenerator::get2DSourceVoronoiPol
     double correctionFactor = morphology[i].correctionFactor ;
     double area = box->area()*morphology[i].fraction ;
     size_t count = 0 ;
-    double target_count = morphology[i].fraction*placed.size() ;
+    double target_count = morphology[i].n ; 
 
     while(j < index.size())
     {
@@ -364,7 +364,7 @@ std::vector<std::vector<PolygonalSample *> > PSDGenerator::get2DSourceVoronoiPol
         {
             for(size_t k = 0 ; k < index.size() ; k++)
             {
-                if( dist(p, placed[k]->getCenter()) < radius )
+                if( dist(p,placed[k]->getCenter()) < radius )
                 {
                     if(index[k] > -1)
                         count_out++ ;
@@ -375,6 +375,7 @@ std::vector<std::vector<PolygonalSample *> > PSDGenerator::get2DSourceVoronoiPol
                     }
                 }
             }
+            count++ ;
         }
         else
         {
@@ -385,14 +386,14 @@ std::vector<std::vector<PolygonalSample *> > PSDGenerator::get2DSourceVoronoiPol
 
         if(radius > r0)
         {
-            double totalcount = correctionFactor*radius*radius*M_PI/(4*r0*r0) ;
-            current += c.area()*((double) count_in)/((double) totalcount) ;
+            double totalcount = /*correctionFactor*/(count_in+count_out) ;
+            current += c.area()*correctionFactor*((double) count_in)/((double) totalcount) ;
         }
 //        else
 //            current += c.area() ;
         grains.push_back( std::make_pair( p, i ) ) ;
         j++ ;
-
+       
 
         if( (morphology.size() > 1) && ((radius > r0 && current > area ) || (count > target_count) ))
         {
@@ -404,13 +405,15 @@ std::vector<std::vector<PolygonalSample *> > PSDGenerator::get2DSourceVoronoiPol
                 area = box->area()*morphology[i].fraction ;
                 current = 0. ;
                 count = 0 ;
-                target_count = morphology[i].fraction*placed.size() ;
+                target_count = morphology[i].fraction*placed.size()*r0/(radius) ; 
             }
             else
             {
                 break ;
             }
         }
+        else if(morphology.size() == 1 && grains.size() > target_count)
+            break ;
 
 
     }
@@ -455,7 +458,7 @@ std::vector<std::vector<PolygonalSample *> > PSDGenerator::get2DSourceVoronoiPol
         for(size_t j = 0 ; j < connectivity[i]->getBoundingPoints().size() ; j++)
         {
             int k = -1 ;
-            wk[j] = sqrt(n) ;
+            wk[j] = r0 ;
             for(size_t l = 0 ; l < nodes.size() ; l++)
             {
                 if( dist(connectivity[i]->getBoundingPoint(j), *(nodes[l])) < POINT_TOLERANCE )
@@ -465,7 +468,7 @@ std::vector<std::vector<PolygonalSample *> > PSDGenerator::get2DSourceVoronoiPol
                 }
             }
             if(k > -1)
-                 wk[j] = morphology[grains[k].second].radius ;
+                 wk[j] = morphology[grains[k].second].weight(r0, connectivity[i]->getBoundingPoint(j), connectivity[i]->getCenter() ) ;
             w += wk[j] ;
         }
         double rw = 0 ;
@@ -625,6 +628,7 @@ std::vector<std::vector<Feature *> > PSDGenerator::get2DVoronoiPolygons(FeatureT
             ret[i].push_back(poly[i][j]) ;
         }
     }
+    delete placement ;
     return ret ;
 }
 
@@ -633,8 +637,9 @@ std::vector<std::vector<Feature *> > PSDGenerator::get2DVoronoiPolygons(Rectangl
     double r0 = minDist ;
     if(r0 < 0)
         r0 = grains[grains.size()-1].radius ;
-    double realn = placement->area()/(r0*r0*M_PI) ;
-    std::vector<std::vector<PolygonalSample *> > poly = PSDGenerator::get2DSourceVoronoiPolygons( placement, grains, (n==0?realn : n), minDist, delta, seed) ;
+    Rectangle * realplacement = new Rectangle( placement->width()+r0*2.+border*2., placement->height()+r0*2.+border*2., placement->getCenter().getX(), placement->getCenter().getY() ) ;
+    double realn = realplacement->area()/(r0*r0*M_PI) ;
+    std::vector<std::vector<PolygonalSample *> > poly = PSDGenerator::get2DSourceVoronoiPolygons( realplacement, grains, (n==0?realn : n), minDist, delta, seed) ;
     std::vector<std::vector<Feature *> > ret( std::max(1, (int) grains.size()) ) ;
 
     for(size_t i = 0 ; i < poly.size() ; i++)
@@ -646,6 +651,7 @@ std::vector<std::vector<Feature *> > PSDGenerator::get2DVoronoiPolygons(Rectangl
             ret[i].push_back(poly[i][j]) ;
         }
     }
+    delete realplacement ;
     return ret ;
 }
 

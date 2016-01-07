@@ -59,7 +59,7 @@ protected:
          *  does not go beyond the boundaries of its mask.
          */
         std::vector<Feature *> mask ;
-	
+
 	double now ;
 	
 	int layer ;
@@ -171,6 +171,9 @@ public:
 	 * @return all descendants
 	 */
 	virtual std::vector<Feature *> getDescendants() const ;
+
+	virtual bool isDescendant( Feature * f ) const ;
+	virtual bool isChild( Feature * f ) const ;
 	
 	/** \brief Reparent the feature.
 	 * 

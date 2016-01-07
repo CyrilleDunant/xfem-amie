@@ -32,7 +32,7 @@ using namespace Amie ;
 int main( int argc, char *argv[] )
 {
 
-        Sample rect(nullptr, 0.1,0.1,0,0) ;
+        Sample rect(nullptr, 0.04,0.04,0,0) ;
 	rect.setBehaviour(new Stiffness( 10e9, 0.2 ) ) ;
         
 	std::vector<VoronoiGrain> grains ;
@@ -57,9 +57,9 @@ int main( int argc, char *argv[] )
 	trg.getField( "angle_x" ) ;
 	trg.getField( "angle_y" ) ;
 	trg.getField( "angle_z" ) ;
-	trg.getField( "E11" ) ;
-	trg.getField( "E22" ) ;
-	trg.getField( "E33" ) ;
+	trg.getField( "C11" ) ;
+	trg.getField( "C22" ) ;
+	trg.getField( "C33" ) ;
 	trg.write() ;
 
     return 0 ;

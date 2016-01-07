@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 5/0/2016 at 10:16  */
+/* this is an auto-generated file created on 6/0/2016 at 13:28  */
 
 #ifndef __ENUMERATION_TRANSLATOR_H__
 #define __ENUMERATION_TRANSLATOR_H__
@@ -1310,6 +1310,27 @@ struct Enum
             case CUMULATIVE_ABSOLUTE_REVERSE: return "CUMULATIVE_ABSOLUTE_REVERSE" ;
         }
         return "CUMULATIVE_PERCENT" ;
+    }
+   
+    // parsed from header file: ../utilities/granulo.h
+    static VoronoiWeight getVoronoiWeight(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "VORONOI_CONSTANT") { return VORONOI_CONSTANT ; }
+        if( type == "VORONOI_RADIUS") { return VORONOI_RADIUS ; }
+        if( type == "VORONOI_RANDOM") { return VORONOI_RANDOM ; }
+        if(ok) { *ok = false ; }
+        return VORONOI_CONSTANT ;
+    }
+    static std::string fromVoronoiWeight(VoronoiWeight value)
+    {
+        switch(value)
+        {
+            case VORONOI_CONSTANT: return "VORONOI_CONSTANT" ;
+            case VORONOI_RADIUS: return "VORONOI_RADIUS" ;
+            case VORONOI_RANDOM: return "VORONOI_RANDOM" ;
+        }
+        return "VORONOI_CONSTANT" ;
     }
    
     // parsed from header file: ../utilities/tensor.h

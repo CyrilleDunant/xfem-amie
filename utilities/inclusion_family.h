@@ -7,6 +7,23 @@
 namespace Amie
 {
 
+struct InclusionFamily ;
+struct InclusionFamilyTree
+{
+	std::vector<std::vector< Feature *> > features ;
+	std::vector<InclusionFamily *> brothers ;
+	InclusionFamily * father ;
+
+	InclusionFamilyTree( InclusionFamily * f = nullptr ) : father(f) { } ;
+
+	void insert( InclusionFamily * family ) ; 
+	std::vector<size_t> getAllVoronoiFamilies() ;
+	void place( Rectangle * box, double spacing, size_t tries, size_t seed ) ;
+	void concatenate() ;
+	std::vector<Geometry *> getFeaturesAsGeometry(size_t index) ;
+} ;
+
+
 /*PARSE . InclusionFamily 
     @value[number] // number of inclusions in the family
     @value[radius_maximum] // maximum radius in the family
@@ -17,32 +34,27 @@ namespace Amie
 struct InclusionFamily
 {
 	bool keepNoFatherFeatures ;
-	std::vector<std::vector<Feature *> > features ;
-	std::vector<double> rotations ;
-	std::vector<double> factors ;
-	size_t fatherIndex ;
-	InclusionFamily * father = nullptr ;
+	bool placed ;
+	std::vector<Feature *> features ;
+	std::vector<bool> added ;
+	double rotations ;
+	double factors ;
+	InclusionFamilyTree * brothers ;
+	InclusionFamilyTree * sons ;
 
-	InclusionFamily() { keepNoFatherFeatures = true ; } 
+	InclusionFamily() ; 
 	InclusionFamily( size_t n, double rmax, double surface, ParticleSizeDistribution * type = nullptr, InclusionGenerator * geometry = nullptr) ;
         InclusionFamily(Feature * matrix) ;
-        InclusionFamily(std::vector<Feature *> inclusions, InclusionFamily * father = nullptr, int index = 0) ;
 
-	void setFather( InclusionFamily * f, size_t i ) { father = f ; fatherIndex = i ; }
-
-	std::vector<Feature *> getFeatures(size_t i) ;
-
-	std::vector<Geometry *> getFeaturesAsGeometry(size_t i) ;
-
-	virtual void setBehaviour( Form * behaviour, int i = -1, bool copy = false) ;
-
-	virtual void concatenate( InclusionFamily * brother ) ;
-
-	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed ) ;
-
+	InclusionFamily * getFather() ;
+	std::vector<Geometry *> getFeaturesAsGeometry() ;
+	std::vector<Feature *> getAddedFeatures() ;
+	size_t size() const { return features.size() ; }
+	virtual void setBehaviour( Form * behaviour, bool copy = false) ;
+	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed, std::vector<Geometry *> & placedFeatures ) ;
 	virtual void addToFeatureTree( FeatureTree * f) ;
-
-	void setSamplingFactor(size_t i, double f) { factors[i] = f ; }
+	void setSamplingFactor(double f) { factors = f ; }
+	virtual bool inNeighbours( Feature * f ) ;
 } ;
 
 /*PARSE Embedded InclusionFamily 
@@ -56,7 +68,7 @@ struct EmbeddedInclusionFamily : public InclusionFamily
 {
 	EmbeddedInclusionFamily( size_t n, double rmax, double surface, ParticleSizeDistribution * type = nullptr, InclusionGenerator * geometry = nullptr ) ;
 
-	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed ) ;
+	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed, std::vector<Geometry *> & placed ) ;
 } ;
 
 /*PARSE Masked InclusionFamily 
@@ -70,7 +82,7 @@ struct MaskedInclusionFamily : public InclusionFamily
 {
 	MaskedInclusionFamily( size_t n, double rmax, double surface, ParticleSizeDistribution * type = nullptr, InclusionGenerator * geometry = nullptr ) ;
 
-	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed ) ;
+	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed, std::vector<Geometry *> & placed ) ;
 } ;
 
 /*PARSE Concentric InclusionFamily 
@@ -82,7 +94,7 @@ struct ConcentricInclusionFamily : public InclusionFamily
 
 	ConcentricInclusionFamily( double width ) ;
 
-	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed ) ;
+	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed, std::vector<Geometry *> & placed ) ;
 } ;
 
 /*PARSE Voronoi InclusionFamily 
@@ -90,23 +102,23 @@ struct ConcentricInclusionFamily : public InclusionFamily
     @value[surface_fraction] // target fraction of the current phase
     @value[correction_factor] // correction_factor of the current phase
     @value[number_of_grains] // number of grains in the Voronoi diagram
+    @value[outside_layer] -1 // width of the layer outside of the box
+    @value[interface] 0 // width of the interface between the grains
     @value[maximum_vertex] 20 // maximum number of vertexes of the polygons
 */
 struct VoronoiInclusionFamily : public InclusionFamily
 {
-	std::vector<VoronoiGrain> grains ;
-	size_t n ;
+	VoronoiGrain grains ;
 	size_t nmax ;
+	double outside ;
+	double interface ;
 	bool copy ;
-	bool generated ;
 
-	VoronoiInclusionFamily( double radius, double fraction, double correction, size_t n, size_t maxvertex = 20) ;
+	VoronoiInclusionFamily( double radius, double fraction, double correction, size_t n, double out = -1, double width = 0, size_t maxvertex = 20) ;
 
-	virtual void concatenate( InclusionFamily * brothers ) ;
-
-	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed ) ;
-
-	virtual void setBehaviour( Form * behaviour, int i = 0, bool c = false) { grains[i].behaviour = behaviour ; copy = c ; } 
+	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed, std::vector<Geometry *> & placed ) ;
+	virtual void setBehaviour( Form * behaviour, bool c = false) { grains.behaviour = behaviour ; copy = c ; } 
+	virtual bool inNeighbours( Feature * f ) ;
 
 } ;
 
@@ -119,9 +131,9 @@ struct VoronoiInclusionFamily : public InclusionFamily
 */
 struct FileDefinedCircleInclusionFamily : public InclusionFamily
 {
-	FileDefinedCircleInclusionFamily( size_t n, std::string file, std::string column_1 = "radius", std::string column_2 = "center_x", std::string column_3 = "center_y" ) ;
+	FileDefinedCircleInclusionFamily( int n, std::string file, std::string column_1 = "radius", std::string column_2 = "center_x", std::string column_3 = "center_y" ) ;
 
-	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed ) ;
+	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed, std::vector<Geometry *> & placed ) ;
 
 } ;
 
@@ -131,17 +143,9 @@ struct FileDefinedCircleInclusionFamily : public InclusionFamily
 */
 struct FileDefinedPolygonInclusionFamily : public InclusionFamily
 {
-	FileDefinedPolygonInclusionFamily( size_t n, std::string file) ;
+	FileDefinedPolygonInclusionFamily( int n, std::string file) ;
 
-	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed ) ;
-
-} ;
-
-struct ConfigDefinedInclusionFamily : public InclusionFamily
-{
-	ConfigDefinedInclusionFamily( ConfigTreeItem * inc ) ;
-
-	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed ) ;
+	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed, std::vector<Geometry *> & placed ) ;
 
 } ;
 

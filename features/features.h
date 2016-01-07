@@ -374,6 +374,8 @@ public:
         return tree ;
     }
 
+    std::vector<Feature *> getCoOccuringFeatures( Feature * f ) ;
+
     void setElementGenerationMethod ( size_t correctionSteps_ = 0, bool computeIntersections_ = true ) {
         correctionSteps = correctionSteps_ ;
         computeIntersections = computeIntersections_ ;
