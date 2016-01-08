@@ -483,6 +483,7 @@ class Polygon :  public NonConvexGeometry
 protected:
     
     virtual void computeCenter() ;
+    double cachedArea = -1 ;
 
     std::valarray<Point> originalPoints ;
 public:
@@ -491,7 +492,7 @@ public:
 
     std::valarray<Point> getOriginalPoints() const { return originalPoints ; } ;
 
-    void setOriginalPoints( std::valarray<Point> p, bool check = false) { if(check) { originalPoints = p ; } } ;
+    void setOriginalPoints( std::valarray<Point> p, bool check = false) { if(check) { originalPoints = p ; cachedArea = area() ; } } ;
 
     virtual ~Polygon() ;
 

@@ -141,6 +141,38 @@ std::vector<ConfigTreeItem *> ConfigTreeItem::getAllChildren() const
     return children ;
 }
 
+std::map<std::string, double> ConfigTreeItem::getDataMap( std::vector<std::string> except ) 
+{
+    std::map<std::string, double> ret ;
+    for(size_t i = 0 ; i < children.size() ; i++)
+    {
+        bool good = true ;
+        for(size_t j = 0 ; good && j < except.size() ; j++)
+        {
+             if(children[i]->is( except[j] )) { good = false ; }
+        }
+        if(good)
+            ret[ children[i]->getLabel() ] = children[i]->getData() ;
+    }
+    return ret ;
+}
+
+std::map<std::string, std::string> ConfigTreeItem::getStringDataMap( std::vector<std::string> except ) 
+{
+    std::map<std::string, std::string> ret ;
+    for(size_t i = 0 ; i < children.size() ; i++)
+    {
+        bool good = true ;
+        for(size_t j = 0 ; good && j < except.size() ; j++)
+        {
+             if(children[i]->is( except[j] )) { good = false ; }
+        }
+        if(good)
+            ret[ children[i]->getLabel() ] = children[i]->getStringData() ;
+    }
+    return ret ;
+}
+
 ConfigTreeItem * ConfigTreeItem::getChild(std::vector<std::string> childLabelDecomposed) const
 {
     if(childLabelDecomposed.size() == 0)
@@ -869,8 +901,13 @@ InclusionFamily * ConfigTreeItem::getInclusionFamily(std::string type)
     for(size_t i = 0 ; i < children.size() ; i++)
     {
         if(children[i]->is("particle_size_distribution") || children[i]->is("geometry") || children[i]->is("behaviour") || children[i]->is("manager"))
-            continue ;
-        if(children[i]->getStringData().length() == 0)
+        {
+            std::map<std::string, double> cval = children[i]->getDataMap() ;
+            std::map<std::string, std::string> cstr = children[i]->getStringDataMap() ;
+            values.insert( cval.begin(), cval.end() ) ;
+            strings.insert( cstr.begin(), cstr.end() ) ;
+        }
+        else if(children[i]->getStringData().length() == 0)
             values[ children[i]->getLabel() ] = children[i]->getData() ;
         else
             strings[ children[i]->getLabel() ] = children[i]->getStringData() ;

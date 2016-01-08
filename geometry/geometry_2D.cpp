@@ -2416,6 +2416,7 @@ Polygon::Polygon(const std::valarray<Point *> & points) : NonConvexGeometry(0), 
     }
 
     computeCenter();
+    cachedArea = area() ;
 }
 
 Polygon::Polygon(const std::valarray<Point> & points) : NonConvexGeometry(0), originalPoints(points.size())
@@ -2430,6 +2431,7 @@ Polygon::Polygon(const std::valarray<Point> & points) : NonConvexGeometry(0), or
     }
 
     computeCenter();
+    cachedArea = area() ;
 }
 
 Polygon::~Polygon() { }
@@ -3006,9 +3008,10 @@ void Polygon::sampleSurface(double linearDensity, double surfaceDensityFactor)
 
     }
 
-    inPoints.resize(newPoints.size());
+    inPoints.resize(newPoints.size()+1);
     for(size_t i = 0 ; i < newPoints.size() ; i++ )
-        inPoints[i] = new Point(newPoints[i]) ;
+        inPoints[i+1] = new Point(newPoints[i]) ;
+    inPoints[0] = new Point( getCenter() ) ;
 }
 
 Point Polygon::getOrientation() const
@@ -3181,6 +3184,9 @@ bool Polygon::in(const Point & v) const
 
 double Polygon::area() const
 {
+    if(cachedArea > 0)
+        return cachedArea ;
+
     std::vector<Point> bb = getBoundingBox() ;
     double maxx = bb[1].getX() ;
     double minx = bb[0].getX() ;
@@ -3198,7 +3204,6 @@ double Polygon::area() const
             incount++ ;
     }
     return (maxx-minx)*(maxy-miny)*(incount/1024.) ;
-
 }
 
 double Polygon::volume() const {

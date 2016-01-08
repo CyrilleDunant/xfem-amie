@@ -591,6 +591,7 @@ Matrix Tensor::orthotropicCauchyGreen( Vector data, SymmetryType sym, bool force
             double C12 = data[4] ;
             double C13 = data[5] ;
             double C16 = data[6] ;
+            if( std::abs(C66) < POINT_TOLERANCE ) { C66 = (C11-C12)/2 ; } 
             cg[0][0] = C11 ; cg[0][1] = C12 ; cg[0][2] = C13 ; cg[0][5] = C16 ;
             cg[1][0] = C12 ; cg[1][1] = C11 ; cg[1][2] = C13 ; cg[1][5] = -C16 ;
             cg[2][0] = C13 ; cg[2][1] = C13 ; cg[2][2] = C33 ;
@@ -609,6 +610,7 @@ Matrix Tensor::orthotropicCauchyGreen( Vector data, SymmetryType sym, bool force
             double C12 = data[4] ;
             double C13 = data[5] ;
             double C14 = data[6] ;
+            if( std::abs(C66) < POINT_TOLERANCE ) { C66 = (C11-C12)/2 ; } 
             cg[0][0] = C11 ; cg[0][1] = C12 ; cg[0][2] = C13 ; cg[0][3] = C14 ;
             cg[1][0] = C12 ; cg[1][1] = C11 ; cg[1][2] = C13 ; cg[1][3] = -C14 ;
             cg[2][0] = C13 ; cg[2][1] = C13 ; cg[2][2] = C33 ;
@@ -836,15 +838,49 @@ Matrix rotationMatrixZ(double theta)
     return ret ;
 }
 
+Matrix rotationMatrixXYZ( double phi, double theta, double psi)
+{
+    Matrix Om(3,3) ;
+    Om[0][0] =  cos(psi)*cos(theta)*cos(phi)-sin(psi)*sin(phi) ;
+    Om[0][1] = -sin(psi)*cos(theta)*cos(phi)-cos(psi)*sin(phi) ;
+    Om[0][2] =  sin(theta)*cos(phi) ;
+    Om[1][0] =  cos(psi)*cos(theta)*sin(phi)+sin(psi)*cos(phi) ;
+    Om[1][1] = -sin(psi)*cos(theta)*sin(phi)+cos(psi)*cos(phi) ;
+    Om[1][2] =  sin(theta)*sin(phi) ;
+    Om[2][0] = -cos(psi)*sin(theta) ;
+    Om[2][1] =  sin(psi)*sin(theta) ;
+    Om[2][2] =  cos(theta) ;
+    return Om ;
+}
+
 Matrix Tensor::rotate4thOrderTensor3D( Matrix & tensor, Point angle ) 
 {
     Matrix ret(6,6) ;
     if(tensor.numCols() != 6 || tensor.numRows() != 6)
         return ret ;
 
-    Matrix K = rotationMatrixX( angle.getX() ) ; 
-    K *= rotationMatrixY( angle.getY() ) ;
-    K *= rotationMatrixZ( angle.getZ() ) ;
+    Matrix Om = rotationMatrixXYZ( angle.getX(), angle.getY(), angle.getZ() ) ; 
+
+    Matrix K(6,6) ;
+    Matrix K1(3,3) ;
+    Matrix K2(3,3) ;
+    Matrix K3(3,3) ;
+    Matrix K4(3,3) ;
+    for(size_t i = 0 ; i < 3 ; i++)
+    {
+        for(size_t j = 0 ; j < 3 ; j++)
+        {
+            size_t i1 = (i+1)%3 ;
+            size_t i2 = (i+2)%3 ;
+            size_t j1 = (j+1)%3 ;
+            size_t j2 = (j+2)%3 ;
+            K[i][j] = Om[i][j]*Om[i][j] ;
+            K[i][j+3] = Om[i][j1]*Om[i][j2] ;
+            K[i+3][j] = Om[i1][j]*Om[i2][j] ;
+            K[i+3][j+3] = Om[i1][j1]*Om[i2][j2] + Om[i1][j2]*Om[i2][j1] ;
+        }
+    }
+
 
 //    Matrix K(6,6) ;
 /*    for(size_t i = 0 ; i < 3 ; i++)

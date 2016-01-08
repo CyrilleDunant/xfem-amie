@@ -171,6 +171,9 @@ public:
         return str ;
     }
 
+    std::map<std::string, double> getDataMap( std::vector<std::string> except = std::vector<std::string>() ) ;
+    std::map<std::string, std::string> getStringDataMap( std::vector<std::string> except = std::vector<std::string>() ) ;
+
     /** Returns the string data of the descendent indexed by path, or the default value if no descendent with the appropriate path is found */
     std::string getStringData(std::string path, std::string defaultValue = std::string()) const ;
 

@@ -211,6 +211,10 @@ void MineralMaterialLaw::preProcess( Matrix & stiffness, Point angle, planeType 
     }
 } 
 
+void SetStiffnessMatrixMaterialLaw::preProcess( Matrix & stiffness, Point angle, planeType plane ) 
+{
+    stiffness = localStiffness ;
+} 
 
 
 } 

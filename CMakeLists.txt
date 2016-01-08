@@ -629,3 +629,5 @@ mesh/polygon_sample_intersection
 mesh/sample
 )
 
+include(local.cmake)
+

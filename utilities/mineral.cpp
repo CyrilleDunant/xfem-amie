@@ -36,7 +36,7 @@ Mineral::Mineral( std::string path, std::string sep, int index, double factor, b
         {
             if(line.find( name ) == 0)
             {
-                std::string key = line.substr( line.find(".")+1, line.find(" ")-line.find(".")-1) ;
+                std::string key = line.substr( line.find(".")+1, line.find_first_of(" =")-line.find(".")-1) ;
                 if(line.find("\"") != std::string::npos)
                 {
                     size_t start = line.find("\"") ;
@@ -46,7 +46,7 @@ Mineral::Mineral( std::string path, std::string sep, int index, double factor, b
                 }
                 else if(line.find("[") != std::string::npos)
                 {
-                    if( key[0] == 'c' ) { key[0] = 'C' ; }
+                    if( key[0] == 'c' && key.size() == 3 ) { key[0] = 'C' ; }
                     size_t start = line.find("[") ;
                     size_t end = line.find("]", start+1) ;
                     std::string all = line.substr( start+1, end-start-1 ) ;
@@ -68,7 +68,27 @@ Mineral::Mineral( std::string path, std::string sep, int index, double factor, b
                         }
                         data.push_back( atof(token.c_str() ) ) ;
                     }
-                    set( key, data ) ;
+                    components[key] = data ;
+                }
+                else if( line.find("list(") != std::string::npos)
+                {
+                    size_t start = line.find("(") ;
+                    size_t end = line.find(")") ;
+                    std::vector<std::string> list ;
+                    std::string current ;
+                    for(size_t i = start+1 ; i < end ; i++)
+                    {
+                        if( line[i] == ' ' ) { continue ; }
+                        if( line[i] == ',' ) 
+                        {
+                            list.push_back( current ) ;
+                            current = std::string() ;
+                        }
+                        else
+                            current.append(1, line[i] ) ;
+                    }
+                    list.push_back(current) ;
+                    lists[key] = list ;
                 }
             }
         }
@@ -87,6 +107,10 @@ Mineral::Mineral( std::string path, std::string sep, int index, double factor, b
             }
         }
     }
+    else
+    {
+        std::cout << "file " << path << " not found!" << std::endl ;
+    }
 }
 
 bool Mineral::check()
@@ -98,37 +122,50 @@ bool Mineral::check()
     return valid ;
 }
 
-void Mineral::set(std::string key, std::vector<double> v ) 
-{
-    Vector val(v.size()) ;
-    for(size_t i = 0 ; i < v.size() ; i++)
-       val[i] = v[i] ;
-    set( key, val ) ;
-}
-
 void Mineral::set(std::string key, double v ) 
 {
-    Vector val ;
     if(components.find(key) == components.end())
     {
-        val.resize( 1 ) ;
+        std::vector<double> val ;
+        val.push_back(v) ;
+        components[key] = val ;
     }
     else
     {
-        val.resize( components[key].size()+1 ) ;
-        for(size_t i = 0 ; i < components[key].size() ; i++)
-            val[i] = components[key][i] ;
+        components[key].push_back(v) ;
     }
-    val[val.size()-1] = v ;
-    set( key, val ) ;
 }
 
+void Mineral::reset(std::string key, double v ) 
+{
+    std::vector<double> val ;
+    val.push_back(v) ;
+    components[key] = val ;
+}
 
+void Mineral::multiply(std::string key, double v, int index ) 
+{
+    if( components.find(key) == components.end() ) { return ; }
+    if(index < 0 || (size_t) index >= components[key].size() )
+    {
+        for(size_t i = 0 ; i < components[key].size() ; i++)
+            components[key][i] *= v ;
+    }
+    else
+        components[key][index] *= v ;
+}
 
-double Mineral::getElementaryComponent( std::string key, int index ) 
+double Mineral::get( std::string key, int index ) 
 {
     if( components.find( key) == components.end() ) { return 0 ; }
-    if(index < 0 || index >= (int) components[key].size() ) { return components[key].sum()/components[key].size() ; }
+    if(index < 0 || index >= (int) components[key].size() ) 
+    {
+        if(components[key].size() == 0) { return 0 ; }
+        double sum = 0 ;
+        for(size_t i = 0 ; i < components[key].size() ; i++)
+            sum += components[key][i] ;
+        return sum/components[key].size() ; 
+    }
     return components[key][index] ;
 }
 
@@ -140,101 +177,101 @@ Vector Mineral::getElementaryComponents( int index )
         case SYMMETRY_CUBIC:
         {
              c.resize(3) ;
-             c[0] = getElementaryComponent("C11", index) ;
-             c[1] = getElementaryComponent("C44", index) ;
-             c[2] = getElementaryComponent("C12", index) ;
+             c[0] = get("C11", index) ;
+             c[1] = get("C44", index) ;
+             c[2] = get("C12", index) ;
              break ;
         }
         case SYMMETRY_HEXAGONAL:
         {
              c.resize(5) ;
-             c[0] = getElementaryComponent("C11", index) ;
-             c[1] = getElementaryComponent("C33", index) ;
-             c[2] = getElementaryComponent("C44", index) ;
-             c[3] = getElementaryComponent("C12", index) ;
-             c[4] = getElementaryComponent("C13", index) ;
+             c[0] = get("C11", index) ;
+             c[1] = get("C33", index) ;
+             c[2] = get("C44", index) ;
+             c[3] = get("C12", index) ;
+             c[4] = get("C13", index) ;
              break ;
         }
         case SYMMETRY_MONOCLINIC:
         {
              c.resize(13) ;
-             c[0] = getElementaryComponent("C11", index) ;
-             c[1] = getElementaryComponent("C22", index) ;
-             c[2] = getElementaryComponent("C33", index) ;
-             c[3] = getElementaryComponent("C44", index) ;
-             c[4] = getElementaryComponent("C55", index) ;
-             c[5] = getElementaryComponent("C66", index) ;
-             c[6] = getElementaryComponent("C12", index) ;
-             c[7] = getElementaryComponent("C13", index) ;
-             c[8] = getElementaryComponent("C16", index) ;
-             c[9] = getElementaryComponent("C23", index) ;
-             c[10] = getElementaryComponent("C26", index) ;
-             c[11] = getElementaryComponent("C36", index) ;
-             c[12] = getElementaryComponent("C45", index) ;
+             c[0] = get("C11", index) ;
+             c[1] = get("C22", index) ;
+             c[2] = get("C33", index) ;
+             c[3] = get("C44", index) ;
+             c[4] = get("C55", index) ;
+             c[5] = get("C66", index) ;
+             c[6] = get("C12", index) ;
+             c[7] = get("C13", index) ;
+             c[8] = get("C16", index) ;
+             c[9] = get("C23", index) ;
+             c[10] = get("C26", index) ;
+             c[11] = get("C36", index) ;
+             c[12] = get("C45", index) ;
              break ;
         }
         case SYMMETRY_ORTHORHOMBIC:
         {
              c.resize(9) ;
-             c[0] = getElementaryComponent("C11", index) ;
-             c[1] = getElementaryComponent("C22", index) ;
-             c[2] = getElementaryComponent("C33", index) ;
-             c[3] = getElementaryComponent("C44", index) ;
-             c[4] = getElementaryComponent("C55", index) ;
-             c[5] = getElementaryComponent("C66", index) ;
-             c[6] = getElementaryComponent("C12", index) ;
-             c[7] = getElementaryComponent("C13", index) ;
-             c[8] = getElementaryComponent("C23", index) ;
+             c[0] = get("C11", index) ;
+             c[1] = get("C22", index) ;
+             c[2] = get("C33", index) ;
+             c[3] = get("C44", index) ;
+             c[4] = get("C55", index) ;
+             c[5] = get("C66", index) ;
+             c[6] = get("C12", index) ;
+             c[7] = get("C13", index) ;
+             c[8] = get("C23", index) ;
              break ;
         }
         case SYMMETRY_TETRAGONAL:
         {
              c.resize(7) ;
-             c[0] = getElementaryComponent("C11", index) ;
-             c[1] = getElementaryComponent("C33", index) ;
-             c[2] = getElementaryComponent("C44", index) ;
-             c[3] = getElementaryComponent("C66", index) ;
-             c[4] = getElementaryComponent("C12", index) ;
-             c[5] = getElementaryComponent("C13", index) ;
-             c[6] = getElementaryComponent("C16", index) ;
+             c[0] = get("C11", index) ;
+             c[1] = get("C33", index) ;
+             c[2] = get("C44", index) ;
+             c[3] = get("C66", index) ;
+             c[4] = get("C12", index) ;
+             c[5] = get("C13", index) ;
+             c[6] = get("C16", index) ;
              break ;
         }
         case SYMMETRY_TRIGONAL:
         {
              c.resize(7) ;
-             c[0] = getElementaryComponent("C11", index) ;
-             c[1] = getElementaryComponent("C33", index) ;
-             c[2] = getElementaryComponent("C44", index) ;
-             c[3] = getElementaryComponent("C66", index) ;
-             c[4] = getElementaryComponent("C12", index) ;
-             c[5] = getElementaryComponent("C13", index) ;
-             c[6] = getElementaryComponent("C14", index) ;
+             c[0] = get("C11", index) ;
+             c[1] = get("C33", index) ;
+             c[2] = get("C44", index) ;
+             c[3] = get("C66", index) ;
+             c[4] = get("C12", index) ;
+             c[5] = get("C13", index) ;
+             c[6] = get("C14", index) ;
              break ;
         }
         case SYMMETRY_TRICLINIC:
         {
              c.resize(21) ;
-             c[0] = getElementaryComponent("C11", index) ;
-             c[1] = getElementaryComponent("C22", index) ;
-             c[2] = getElementaryComponent("C33", index) ;
-             c[3] = getElementaryComponent("C44", index) ;
-             c[4] = getElementaryComponent("C55", index) ;
-             c[5] = getElementaryComponent("C66", index) ;
-             c[6] = getElementaryComponent("C12", index) ;
-             c[7] = getElementaryComponent("C13", index) ;
-             c[8] = getElementaryComponent("C14", index) ;
-             c[9] = getElementaryComponent("C15", index) ;
-             c[10] = getElementaryComponent("C16", index) ;
-             c[11] = getElementaryComponent("C23", index) ;
-             c[12] = getElementaryComponent("C24", index) ;
-             c[13] = getElementaryComponent("C25", index) ;
-             c[14] = getElementaryComponent("C26", index) ;
-             c[15] = getElementaryComponent("C34", index) ;
-             c[16] = getElementaryComponent("C35", index) ;
-             c[17] = getElementaryComponent("C36", index) ;
-             c[18] = getElementaryComponent("C45", index) ;
-             c[19] = getElementaryComponent("C46", index) ;
-             c[20] = getElementaryComponent("C56", index) ;
+             c[0] = get("C11", index) ;
+             c[1] = get("C22", index) ;
+             c[2] = get("C33", index) ;
+             c[3] = get("C44", index) ;
+             c[4] = get("C55", index) ;
+             c[5] = get("C66", index) ;
+             c[6] = get("C12", index) ;
+             c[7] = get("C13", index) ;
+             c[8] = get("C14", index) ;
+             c[9] = get("C15", index) ;
+             c[10] = get("C16", index) ;
+             c[11] = get("C23", index) ;
+             c[12] = get("C24", index) ;
+             c[13] = get("C25", index) ;
+             c[14] = get("C26", index) ;
+             c[15] = get("C34", index) ;
+             c[16] = get("C35", index) ;
+             c[17] = get("C36", index) ;
+             c[18] = get("C45", index) ;
+             c[19] = get("C46", index) ;
+             c[20] = get("C56", index) ;
              break ;
         }
    }
