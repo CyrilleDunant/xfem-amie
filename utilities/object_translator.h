@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 6/0/2016 at 13:28  */
+/* this is an auto-generated file created on 12/0/2016 at 13:56  */
 
 #ifndef __OBJECT_TRANSLATOR_H__
 #define __OBJECT_TRANSLATOR_H__
@@ -12,6 +12,7 @@
 #include "../utilities/granulo.h"
 #include "../utilities/inclusion_family.h"
 #include "../features/features.h"
+#include "../geometry/sampler/sampler.h"
 
 namespace Amie
 {
@@ -63,6 +64,11 @@ struct Object
     static EnrichmentManager * getEnrichmentManager(std::string type, std::map<std::string, FeatureTree*> & featuretrees, std::map<std::string, InclusionFamily*> & inclusionfamilys, std::map<std::string, double> & values, std::map<std::string, std::string> & strings) ;
     static bool isEnrichmentManager(std::string type) ;
     static void resetEnrichmentManager(EnrichmentManager * target) ;
+
+    // parsed from header file: ../geometry/sampler/sampler.h
+    static Sampler * getSampler(std::string type, std::map<std::string, Point> & points, std::map<std::string, double> & values, std::map<std::string, std::string> & strings) ;
+    static bool isSampler(std::string type) ;
+    static void resetSampler(Sampler * target) ;
 
 } ;
 

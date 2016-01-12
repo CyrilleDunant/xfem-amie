@@ -197,6 +197,8 @@ void InclusionFamily::addToFeatureTree(FeatureTree * f)
 			f->addFeature( f->getFeature(0), features[i] ) ;
 		if(factors > 0)
 			f->setSamplingFactor( features[i], factors ) ;
+		if(sampler != nullptr)
+			f->setSampler( features[i], sampler ) ;
 	}
 }
 

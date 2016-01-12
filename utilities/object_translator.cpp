@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 6/0/2016 at 13:28  */
+/* this is an auto-generated file created on 12/0/2016 at 13:56  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -40,6 +40,9 @@
 #include "../utilities/granulo.h"
 #include "../utilities/inclusion_family.h"
 #include "../features/enrichmentmanagers/gelmanager.h"
+#include "../geometry/sampler/gradient_sampler.h"
+#include "../geometry/sampler/regular_sampler.h"
+#include "../geometry/sampler/sampler.h"
 
 namespace Amie
 {
@@ -945,6 +948,48 @@ namespace Amie
     void Object::resetEnrichmentManager(EnrichmentManager * target)
     {
         // parsed from header file: ../features/enrichmentmanagers/gelmanager.h
+   
+    }
+
+    Sampler * Object::getSampler(std::string type, std::map<std::string, Point> & points, std::map<std::string, double> & values, std::map<std::string, std::string> & strings)
+    {
+        // parsed from header file: ../geometry/sampler/gradient_sampler.h
+        if( type == "Gradient" ) { return new GradientSampler(points["start_point"], points["end_point"], values["start_factor"], values["end_factor"]) ; }
+   
+        // parsed from header file: ../geometry/sampler/regular_sampler.h
+        if( type == "Regular" )
+        { 
+            if( strings.find("force") == strings.end() ) { strings["force"] = "false" ; } ; 
+            return new RegularSampler(Enum::getbool(strings["force"])) ;
+        }
+   
+        // parsed from header file: ../geometry/sampler/sampler.h
+        if( type == "." ) { return new Sampler() ; }
+   
+        return nullptr ;
+    }
+
+    bool Object::isSampler(std::string type)
+    {
+        // parsed from header file: ../geometry/sampler/gradient_sampler.h
+        if( type == "Gradient" ) { return true ; }
+   
+        // parsed from header file: ../geometry/sampler/regular_sampler.h
+        if( type == "Regular" ) { return true ; }
+   
+        // parsed from header file: ../geometry/sampler/sampler.h
+        if( type == "." ) { return true ; }
+   
+        return false ;
+    }
+
+    void Object::resetSampler(Sampler * target)
+    {
+        // parsed from header file: ../geometry/sampler/gradient_sampler.h
+   
+        // parsed from header file: ../geometry/sampler/regular_sampler.h
+   
+        // parsed from header file: ../geometry/sampler/sampler.h
    
     }
 

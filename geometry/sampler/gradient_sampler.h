@@ -7,6 +7,12 @@
 namespace Amie
 {
 
+/*PARSE Gradient Sampler 
+    @point[start_point] // left side of the gradient
+    @point[end_point] // end side of the gradient
+    @value[start_factor] // factor at the left of the gradient
+    @value[end_factor] // factor at the left of the gradient
+*/
 class GradientSampler : public Sampler
 {
     Segment direction ;

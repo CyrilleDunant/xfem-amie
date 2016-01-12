@@ -112,9 +112,12 @@ std::vector<Point> GradientSampler::sampleRectangleInnerSurface( const Rectangle
                  if(!geom->in(localStart + norm*localNext))
                      up = -1. ;
                  localStart += norm*(localNext*up) ;
-                 while( geom->in(localStart) && dist(localStart, local[1-index]) > next*0.75 )
+                 while( geom->in(localStart) && dist(localStart, local[1-index]) > next*0.5 )
                  {
-                     pts.push_back( localStart ) ;
+                     Point test( localStart ) ;
+                     geom->project( &test ) ;
+                     if(dist(test, localStart) > localNext*0.5 )
+                         pts.push_back( localStart ) ;
                      localNext = getLinearDensity( localStart ) / linearDensity ;
                      localStart += norm*(localNext*up) ;
                  }

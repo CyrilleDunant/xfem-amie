@@ -458,6 +458,7 @@ struct AMIEConstructorParser
 		if(natural == "stringlist") { return "std::vector<std::string>" ; } 
 		if(natural == "char") { return "char" ; } 
 		if(natural == "bool") { return "bool" ; } 
+		if(natural == "point") { return "Point" ; } 
 		if(natural == "value") { return "double" ; } 
 		if(natural == "vector") { return "std::vector<double>" ; } 
 		if(natural.find("*") < std::string::npos) { return natural ; }
@@ -712,6 +713,12 @@ int main(int argc, char *argv[])
 	enrichment.parseFolder("../features/enrichmentmanagers/") ;
 
 	all.push_back(enrichment) ;
+
+	std::vector<std::string> samplerReq ; samplerReq.push_back("../geometry/sampler/sampler.h") ;
+	AMIEConstructorParser sampler("Sampler","Sampler","sampler", samplerReq) ;
+        sampler.parseFolder("../geometry/sampler/") ;
+
+	all.push_back(sampler) ;
 
 	std::vector<std::string> req ;
 	for(size_t i = 0 ; i < all.size() ; i++)

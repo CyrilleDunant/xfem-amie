@@ -41,6 +41,7 @@ struct InclusionFamily
 	double factors ;
 	InclusionFamilyTree * brothers ;
 	InclusionFamilyTree * sons ;
+	Sampler * sampler ;
 
 	InclusionFamily() ; 
 	InclusionFamily( size_t n, double rmax, double surface, ParticleSizeDistribution * type = nullptr, InclusionGenerator * geometry = nullptr) ;
@@ -53,7 +54,7 @@ struct InclusionFamily
 	virtual void setBehaviour( Form * behaviour, bool copy = false) ;
 	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed, std::vector<Geometry *> & placedFeatures ) ;
 	virtual void addToFeatureTree( FeatureTree * f) ;
-	void setSamplingFactor(double f) { factors = f ; }
+	void setSamplingFactor(double f, Sampler * s = nullptr) { factors = f ; sampler = s ; }
 	virtual bool inNeighbours( Feature * f ) ;
 } ;
 

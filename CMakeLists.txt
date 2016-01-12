@@ -597,6 +597,9 @@ target_link_libraries( mesh/polygon_sample_intersection Amie ${ALL_LINK_FLAGS})
 add_executable( mesh/sample EXCLUDE_FROM_ALL examples/mesh/main_mesh_sample.cpp )
 target_link_libraries( mesh/sample Amie ${ALL_LINK_FLAGS})
 
+add_executable( mesh/sample_gradient EXCLUDE_FROM_ALL examples/mesh/main_mesh_sample_gradient.cpp )
+target_link_libraries( mesh/sample_gradient Amie ${ALL_LINK_FLAGS})
+
 ADD_CUSTOM_TARGET(meshTests)
 ADD_DEPENDENCIES(meshTests 
 check_mesh 
@@ -630,7 +633,13 @@ mesh/polygon_regular
 mesh/polygon_sample_edge
 mesh/polygon_sample_intersection
 mesh/sample
+mesh/sample_gradient
 )
 
-include(local.cmake)
+if(EXISTS ${CMAKE_SOURCE_DIR}/local.cmake )
+    message( STATUS "found local.cmake" )
+    include(local.cmake)
+else()
+    message( STATUS "file local.cmake not found" )
+endif()
 

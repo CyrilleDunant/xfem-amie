@@ -1016,8 +1016,10 @@ InclusionFamilyTree * ConfigTreeItem::makeInclusionFamilyTree( FeatureTree * F, 
         if(all[i]->hasChild("behaviour"))
             current->setBehaviour( all[i]->getChild("behaviour")->getBehaviour( dim ), getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
 	tree->insert( current ) ;
-        if(all[i]->hasChild("sampling_factor"))
-            current->setSamplingFactor( getData("sampling_factor",-1) ) ;
+        Sampler * sampler = nullptr ;
+        if(all[i]->hasChild("sampler"))
+            sampler = all[i]->getChild("sampler")->getSampler() ;
+        current->setSamplingFactor( getData("sampling_factor",-1), sampler ) ;
     }
 
     tree->place( placement, getData("placement.spacing", 0), getData("placement.tries", 1000), getData("placement.random_seed", 1) ) ;
@@ -1059,6 +1061,31 @@ InclusionFamilyTree * ConfigTreeItem::makeInclusionFamilyTree( FeatureTree * F, 
     return tree ;
 }
 
+Sampler * ConfigTreeItem::getSampler() const 
+{
+    std::map<std::string, Point> points ;
+    std::map<std::string, double> values ;
+    std::map<std::string, std::string> strings ;
+
+    std::string type = "." ;
+    if( str.length() > 0) { type = str ; }
+
+    for(size_t i = 0 ; i < children.size() ; i++)
+    {
+        if(children[i]->getLabel().find("point") != std::string::npos)
+            points[ children[i]->getLabel() ] = children[i]->getPoint() ;
+        else if(children[i]->getStringData().length() > 0)
+            strings[ children[i]->getLabel() ] = children[i]->getStringData() ;
+        else
+            values[ children[i]->getLabel() ] = children[i]->getData() ;
+    }
+
+    if( Object::isSampler(type) )
+       return Object::getSampler( type, points, values, strings ) ;
+
+    return nullptr ;
+}
+
 std::vector<BoundaryCondition *> ConfigTreeItem::getAllBoundaryConditions(FeatureTree * F) const 
 {
     std::vector<BoundaryCondition *> cond ;
@@ -1070,7 +1097,6 @@ std::vector<BoundaryCondition *> ConfigTreeItem::getAllBoundaryConditions(Featur
     }
     return cond ;
 }
-
 
 BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
 {

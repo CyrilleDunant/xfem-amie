@@ -12,6 +12,7 @@
 #include "../features/boundarycondition.h"
 #include "../features/microstructuregenerator.h"
 #include "../geometry/geometry_base.h"
+#include "../geometry/sampler/sampler.h"
 #include "../elements/integrable_entity.h"
 #include "../solvers/assembly.h"
 #include "../physics/material_laws/material_laws.h"
@@ -199,6 +200,9 @@ public:
 
     /** Translates the current item in a 2D sample*/
     Sample * getSample( std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>() ) ;
+
+    /** Translates the current item in a Sampler*/
+    Sampler * getSampler() const ;
 
     /** Translates the current item in a mechanical behaviour*/
     Form * getBehaviour(SpaceDimensionality dim, std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>() ) ;

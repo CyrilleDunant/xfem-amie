@@ -142,8 +142,10 @@ int main(int argc, char *argv[])
     }
 
     FeatureTree F(problem->getChild("sample")->getSample( )) ;
-    if(problem->hasChildFromFullLabel("sample.sampling_number"))
-        F.setSamplingFactor( F.getFeature(0), problem->getData("sample.sampling_number", 1.) ) ;
+    if(problem->hasChildFromFullLabel("sample.sampling_factor"))
+        F.setSamplingFactor( F.getFeature(0), problem->getData("sample.sampling_factor", 1.) ) ;
+    if(problem->hasChildFromFullLabel("sample.sampler"))
+        F.setSampler( F.getFeature(0), problem->getChildFromFullLabel("sample.sampler")->getSampler() ) ;
     F.setDiscretizationParameters(problem->getChild("discretization")) ;
     Vector instants = F.setSteppingParameters(problem->getChild("stepping")) ;
     InclusionFamilyTree * allFeatures = nullptr ;

@@ -9,6 +9,9 @@
 namespace Amie
 {
 
+/*SOURCE Sampler */
+
+/*PARSE . Sampler */
 class Sampler
 {
 public:

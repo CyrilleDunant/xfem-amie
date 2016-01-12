@@ -7,6 +7,9 @@
 namespace Amie
 {
 
+/*PARSE Regular Sampler 
+   @string<bool>[force] false // use the sampler for non-rectangular geometries
+*/
 class RegularSampler : public Sampler
 {
 protected:
