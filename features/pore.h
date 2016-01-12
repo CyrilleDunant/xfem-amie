@@ -90,7 +90,7 @@ public:
      *
      * @param n number of points for the sampling.
      */
-    virtual void sample(double linearDensity, double surfaceDensityFactor) ;
+    virtual void sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr) ;
 
 
 } ;
@@ -148,7 +148,7 @@ public:
      *
      * @param n number of points for the sampling.
      */
-    virtual void sample(double linearDensity, double surfaceDensityFactor) ;
+    virtual void sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr) ;
 
 
 } ;

@@ -1235,7 +1235,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
             FieldType ft = Enum::getFieldType( fields[i]->getStringData(), &isFieldType ) ;
             if(isFieldType)
             {
-                Vector f = F->getAverageField( ft, -1, time ) ;
+                Vector f = F->getAverageField( ft, time ) ;
                 for(size_t j = 0 ; j < f.size() ; j++)
                 {
                     std::cout << f[j] << "\t" ;

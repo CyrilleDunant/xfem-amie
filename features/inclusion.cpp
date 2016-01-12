@@ -74,9 +74,9 @@ Inclusion::Inclusion(Circle c) : Circle(c.getRadius(), c.getCenter()), Feature(n
 }
 
 
-void Inclusion::sample(double linearDensity, double surfaceDensityFactor)
+void Inclusion::sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
-	this->sampleSurface(linearDensity, surfaceDensityFactor) ;
+	this->sampleSurface(linearDensity, surfaceDensityFactor, sampler) ;
 }
 
 
@@ -136,11 +136,11 @@ TriangularInclusion::TriangularInclusion(const Point & a, const Point & b, const
 }
 
 
-void TriangularInclusion::sample(double linearDensity, double surfaceDensityFactor)
+void TriangularInclusion::sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
 // 	delete this->boundary ;
 // 	this->boundary = new Circle(radius + radius/(0.25*n), this->Circle::getCenter()) ;
-	this->sampleSurface(linearDensity, surfaceDensityFactor) ;
+	this->sampleSurface(linearDensity, surfaceDensityFactor, sampler) ;
 }
 
 std::vector<Geometry *> TriangularInclusion::getRefinementZones(size_t level) const
@@ -205,9 +205,9 @@ RectangularInclusion::RectangularInclusion(const Point & a, const Point & b, con
 }
 
 
-void RectangularInclusion::sample(double linearDensity, double surfaceDensityFactor)
+void RectangularInclusion::sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
-	this->sampleSurface(linearDensity, surfaceDensityFactor) ;
+	this->sampleSurface(linearDensity, surfaceDensityFactor, sampler) ;
 }
 
 std::vector<Geometry *> RectangularInclusion::getRefinementZones(size_t level) const
@@ -305,9 +305,9 @@ std::vector<DelaunayTriangle *> EllipsoidalInclusion::getElements2D( FeatureTree
 	return ret ;
 }
 
-void EllipsoidalInclusion::sample(double linearDensity, double surfaceDensityFactor)
+void EllipsoidalInclusion::sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
-	this->sampleSurface(linearDensity, surfaceDensityFactor) ;
+	this->sampleSurface(linearDensity, surfaceDensityFactor, sampler) ;
 
 }
 

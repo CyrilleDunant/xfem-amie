@@ -96,7 +96,7 @@ public:
 	
 	GEO_DERIVED_OBJECT(LayeredCircle) ;
 
-	virtual void sample(double linearDensity, double surfaceDensityFactor) ;
+	virtual void sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr) ;
 	
 } ;
 
@@ -130,7 +130,7 @@ public:
 	
 	GEO_DERIVED_OBJECT(Circle) ;
 
-	virtual void sample(double linearDensity, double surfaceDensityFactor) ;
+	virtual void sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr) ;
 	
 	
 } ;

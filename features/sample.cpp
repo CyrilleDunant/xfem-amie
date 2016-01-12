@@ -58,9 +58,9 @@ bool Sample::interacts(Feature * f, double d) const
 	return false ;
 }
 
-void Sample::sample(double linearDensity, double surfaceDensityFactor)
+void Sample::sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
-    this->sampleSurface(linearDensity, surfaceDensityFactor) ;
+    this->sampleSurface(linearDensity, surfaceDensityFactor, sampler) ;
 }
 
 

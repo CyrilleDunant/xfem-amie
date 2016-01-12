@@ -5904,7 +5904,7 @@ void OrientableCircle::sampleBoundingSurface(double linearDensity)
 
 }
 
-void OrientableCircle::sampleSurface(double linearDensity, double surfaceDensityFactor)
+void OrientableCircle::sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
     size_t num_points = round(2.*M_PI*getRadius()*linearDensity) ;
     if(num_points == 0)

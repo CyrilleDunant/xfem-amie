@@ -4,6 +4,7 @@
 // Copyright: See COPYING file that comes with this distribution
 
 #include "geometry_2D.h"
+#include "sampler/sampler.h"
 #include "../polynomial/vm_base.h"
 
 namespace Amie
@@ -433,7 +434,7 @@ void OrientedRectangle::sampleBoundingSurface(double linearDensity)
 
 }
 
-void OrientedRectangle::sampleSurface(double linearDensity, double surfaceDensityFactor)
+void OrientedRectangle::sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
 //	size_t n = 2*num_points ;
     sampleBoundingSurface(linearDensity*surfaceDensityFactor*1.2) ;
@@ -808,8 +809,25 @@ void Triangle::sampleBoundingSurface(double linearDensity)
 
 }
 
-void Triangle::sampleSurface(double linearDensity, double surfaceDensityFactor)
+void Triangle::sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
+    if(sampler)
+    {
+        std::vector<Point> bounds = sampler->sampleBoundingSurface( this, linearDensity*surfaceDensityFactor ) ;
+        std::vector<Point> ins = sampler->sampleInnerSurface( this, linearDensity ) ;
+        if(bounds.size() > 0 && ins.size() > 0)
+        {
+            boundingPoints.resize( bounds.size() ) ;
+            for(size_t i = 0 ; i < bounds.size() ; i++)
+                boundingPoints[i] = new Point( bounds[i] ) ;
+            inPoints.resize( ins.size() ) ;
+            for(size_t i = 0 ; i < ins.size() ; i++)
+                inPoints[i] = new Point( ins[i] ) ;
+            return ;
+        }
+    }
+
+
     size_t num_points = round((dist(boundingPoints[0], boundingPoints[boundingPoints.size()/3]) + 
                          dist(boundingPoints[boundingPoints.size()/3],boundingPoints[2*boundingPoints.size()/3]) +
                          dist(boundingPoints[0], boundingPoints[2*boundingPoints.size()/3]) )*linearDensity) ;
@@ -1121,8 +1139,24 @@ void Rectangle::sampleBoundingSurface(double linearDensity)
 //    numberOfPointsAlongX *= .5 ;
 }
 
-void Rectangle::sampleSurface(double linearDensity, double surfaceDensityFactor)
+void Rectangle::sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
+
+    if(sampler)
+    {
+        std::vector<Point> bounds = sampler->sampleBoundingSurface( this, linearDensity*surfaceDensityFactor ) ;
+        std::vector<Point> ins = sampler->sampleInnerSurface( this, linearDensity ) ;
+        if(bounds.size() > 0 && ins.size() > 0)
+        {
+            boundingPoints.resize( bounds.size() ) ;
+            for(size_t i = 0 ; i < bounds.size() ; i++)
+                boundingPoints[i] = new Point( bounds[i] ) ;
+            inPoints.resize( ins.size() ) ;
+            for(size_t i = 0 ; i < ins.size() ; i++)
+                inPoints[i] = new Point( ins[i] ) ;
+            return ;
+        }
+    }
 
 //     if(std::max(size_x/size_y, size_y/size_x) < 10)
 //     {
@@ -1325,11 +1359,27 @@ void Circle::sampleBoundingSurface(double linearDensity)
     }
 }
 
-void Circle::sampleSurface(double linearDensity, double surfaceDensityFactor)
+void Circle::sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
     
     if(!sampled)
     {
+        if(sampler)
+        {
+            std::vector<Point> bounds = sampler->sampleBoundingSurface( this, linearDensity*surfaceDensityFactor ) ;
+            std::vector<Point> ins = sampler->sampleInnerSurface( this, linearDensity ) ;
+            if(bounds.size() > 0 && ins.size() > 0)
+            {
+                boundingPoints.resize( bounds.size() ) ;
+                for(size_t i = 0 ; i < bounds.size() ; i++)
+                    boundingPoints[i] = new Point( bounds[i] ) ;
+                inPoints.resize( ins.size() ) ;
+                for(size_t i = 0 ; i < ins.size() ; i++)
+                    inPoints[i] = new Point( ins[i] ) ;
+                sampled = true ;
+                return ;
+            }
+        }
         sampleBoundingSurface(linearDensity*2.*surfaceDensityFactor) ;
         sampled = true ;
 /*        size_t numberOfRings = static_cast<size_t>((double)getBoundingPoints().size()/(3. * M_PI )) ;
@@ -1623,7 +1673,7 @@ void SegmentedLine::project(Point *p) const
     p->getY() = projections.begin()->second.getY() ;
 }
 
-void SegmentedLine::sampleSurface(double linearDensity, double surfaceDensityFactor)
+void SegmentedLine::sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
 
 }
@@ -2084,11 +2134,28 @@ std::vector<Point> Ellipse::sampleOuterShell (double linearDensity, double dista
     return ell.getSamplingBoundingPoints(linearDensity*b/a*0.5) ;
 }
 
-void Ellipse::sampleSurface (double linearDensity, double surfaceDensityFactor)
+void Ellipse::sampleSurface (double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
     size_t num_points = round(linearDensity*getPerimeter()) ;
     if( getMinorAxis().norm() < POINT_TOLERANCE || getMajorAxis().norm() < POINT_TOLERANCE )
         return ;
+
+    if(sampler)
+    {
+        std::vector<Point> bounds = sampler->sampleBoundingSurface( this, linearDensity*surfaceDensityFactor ) ;
+        std::vector<Point> ins = sampler->sampleInnerSurface( this, linearDensity ) ;
+        if(bounds.size() > 0 && ins.size() > 0)
+        {
+            boundingPoints.resize( bounds.size() ) ;
+            for(size_t i = 0 ; i < bounds.size() ; i++)
+                boundingPoints[i] = new Point( bounds[i] ) ;
+            inPoints.resize( ins.size() ) ;
+            for(size_t i = 0 ; i < ins.size() ; i++)
+                inPoints[i] = new Point( ins[i] ) ;
+            return ;
+        }
+    }
+
 
     if(num_points < 3)
         num_points = 4 ;
@@ -2921,12 +2988,29 @@ std::vector<Polygon> Polygon::getInscribedPolygons( double delta ) const
 }
 
 
-void Polygon::sampleSurface(double linearDensity, double surfaceDensityFactor)
+void Polygon::sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
     for(size_t i = 0 ; i < boundingPoints.size() ; i++)
         delete boundingPoints[i] ;
     for(size_t i = 0 ; i < inPoints.size() ; i++)
         delete inPoints[i] ;
+
+    if(sampler)
+    {
+        std::vector<Point> bounds = sampler->sampleBoundingSurface( this, linearDensity*surfaceDensityFactor ) ;
+        std::vector<Point> ins = sampler->sampleInnerSurface( this, linearDensity ) ;
+        if(bounds.size() > 0 && ins.size() > 0)
+        {
+            boundingPoints.resize( bounds.size() ) ;
+            for(size_t i = 0 ; i < bounds.size() ; i++)
+                boundingPoints[i] = new Point( bounds[i] ) ;
+            inPoints.resize( ins.size() ) ;
+            for(size_t i = 0 ; i < ins.size() ; i++)
+                inPoints[i] = new Point( ins[i] ) ;
+            return ;
+        }
+    }
+
 
 //    num_points *= 2 ;
 //    double real_num = num_points*2. ;//std::sqrt((getRadius()*2.*M_PI/getPerimeter())) ; //*M_PI*(getRadius())/std::sqrt(area()) ;

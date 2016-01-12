@@ -90,7 +90,7 @@ public:
 
     GEO_DERIVED_OBJECT(Sphere) ;
 
-    virtual void sample(double linearDensity, double surfaceDensityFactor) ;
+    virtual void sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr) ;
 
 } ;
 
@@ -165,7 +165,7 @@ public:
 
     GEO_DERIVED_OBJECT(RegularOctahedron) ;
 
-    virtual void sample(double linearDensity, double surfaceDensityFactor) ;
+    virtual void sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr) ;
 
 } ;
 
@@ -248,7 +248,7 @@ public:
 
     GEO_DERIVED_OBJECT(Sphere) ;
 
-    virtual void sample(double linearDensity, double surfaceDensityFactor) ;
+    virtual void sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr) ;
 
 } ;
 

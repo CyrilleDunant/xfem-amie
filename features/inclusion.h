@@ -88,7 +88,7 @@ public:
 	
 	GEO_DERIVED_OBJECT(Circle) ;
 
-	virtual void sample(double linearDensity,double surfaceDensityFactor) ;
+	virtual void sample(double linearDensity,double surfaceDensityFactor, Sampler * sampler = nullptr) ;
 	
 } ;
 
@@ -140,7 +140,7 @@ public:
 	
 	GEO_DERIVED_OBJECT(Triangle) ;
 
-	virtual void sample(double linearDensity,double surfaceDensityFactor) ;
+	virtual void sample(double linearDensity,double surfaceDensityFactor, Sampler * sampler = nullptr) ;
 	
 } ;
 
@@ -194,7 +194,7 @@ public:
 	
 	GEO_DERIVED_OBJECT(Ellipse) ;
 
-	virtual void sample(double linearDensity,double surfaceDensityFactor) ;
+	virtual void sample(double linearDensity,double surfaceDensityFactor, Sampler * sampler = nullptr) ;
 	
 } ;
 
@@ -248,7 +248,7 @@ public:
 	
 	GEO_DERIVED_OBJECT(OrientedRectangle) ;
 	
-	virtual void sample(double linearDensity,double surfaceDensityFactor) ;
+	virtual void sample(double linearDensity,double surfaceDensityFactor, Sampler * sampler = nullptr) ;
 	
 } ;
 
@@ -283,7 +283,7 @@ public:
 	virtual Point* pointAfter(size_t) {return nullptr ;}
 	virtual std::vector<Amie::Geometry*> getRefinementZones(size_t) const {return std::vector<Amie::Geometry*>() ;}
 	virtual void print() const {std::cout << "ITZ !" << std::endl;}
-	virtual void sample(double, double) {} ;
+	virtual void sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr) {} ;
 	virtual bool isVoid(const Amie::Point&) const {return false ;}
 
 	virtual std::vector<DelaunayTriangle *> getElements2D( FeatureTree * dt)  { return std::vector<Amie::DelaunayTriangle*>() ;} ;

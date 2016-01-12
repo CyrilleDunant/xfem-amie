@@ -4,6 +4,7 @@
 
 #include "geometry_3D.h"
 #include "geometry_2D.h"
+#include "sampler/sampler.h"
 #include "../utilities/itoa.h"
 #include <fstream>
 #include <iomanip>
@@ -131,7 +132,7 @@ std::vector<Point> RegularOctahedron::getSamplingBoundingPoints(double linearDen
     return samplingPoints ;
 }
 
-void RegularOctahedron::sampleSurface(double linearDensity, double surfaceDensityFactor)
+void RegularOctahedron::sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
 
     sampleBoundingSurface(linearDensity*surfaceDensityFactor) ;
@@ -441,7 +442,7 @@ const Amie::Point& Tetrahedron::getCircumCenter() const
     return circumCenter ;
 }
 
-void Tetrahedron::sampleSurface(double linearDensity, double surfaceDensityFactor)
+void Tetrahedron::sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
     //! \todo make it do something
     return ;
@@ -951,7 +952,7 @@ double Hexahedron::getRadius() const
     return dist(getCenter(), getCenter()+Point(size_x, size_y, size_z)*.5) ;
 }
 
-void Hexahedron::sampleSurface(double linearDensity, double surfaceDensityFactor)
+void Hexahedron::sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
     Point point000_(*boundingPoints[0]) ;
 
@@ -1488,7 +1489,7 @@ void Sphere::sampleBoundingSurface(double linearDensity)
 
 }
 
-void Sphere::sampleSurface(double linearDensity, double surfaceDensityFactor)
+void Sphere::sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
 
     sampleBoundingSurface(linearDensity*surfaceDensityFactor) ;

@@ -58,7 +58,7 @@ public:
     virtual void sampleBoundingSurface(double linearDensity)  ;
 
     /** \brief sample the triangle surface*/
-    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor)  ;
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr)  ;
 
     /** \brief return true if the argument is in the triangle*/
     virtual bool in(const Point & p) const ;
@@ -131,7 +131,7 @@ public:
     virtual void sampleBoundingSurface(double linearDensity) ;
 
     /** \brief Sample the surface with a given number of sampling points. the points are stored as inPoints*/
-    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor) ;
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr) ;
 
     /** \brief get points sampling the bounding surface*/
     virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const ;
@@ -217,7 +217,7 @@ public:
     virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const ;
 
     /** \brief sample the surface of the rectangle*/
-    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor)  ;
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr)  ;
 
     /** \brief return false*/
     virtual bool is1D() const ;
@@ -303,7 +303,7 @@ public:
      *
      * @param num_points number of points <b>on the boundary</b>.
      */
-    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor);
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr);
 
     virtual std::vector<Point> sampleOuterShell(double linearDensity, double distance);
 
@@ -390,7 +390,7 @@ public:
      */
     virtual void sampleSurface(size_t num_points);
 
-    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor) { sampleSurface( getRadius()/linearDensity ) ; }
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr) { sampleSurface( getRadius()/linearDensity ) ; }
 
     /** \brief Set the external radius, all the other radii are scale accordingly*/
     virtual void setRadius(double newr);
@@ -428,7 +428,7 @@ public:
      *
      * @param num_points number of points to use for the sampling.
      */
-    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor) ;
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr) ;
 
 
     /** \brief Is point in ?
@@ -502,7 +502,7 @@ public:
 
     virtual std::vector<Point> sampleOuterShell(double linearDensity, double distance);
 
-    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor) ;
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr) ;
 
     virtual bool in(const Point & v) const ;
 
@@ -701,7 +701,7 @@ public:
      *
      * @param num_points number of points <b>on the boundary</b>.
      */
-    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor) ;
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr) ;
     virtual bool in(const Point &v) const ;
 
     /** \brief Calculate the area.

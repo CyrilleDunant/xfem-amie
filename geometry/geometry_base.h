@@ -72,9 +72,9 @@ virtual void sampleBoundingSurface(double linearDensity)               \
 {                                                          \
 this->__geo_type__::sampleBoundingSurface(linearDensity) ;             \
 }                                                          \
-virtual void sampleSurface(double linearDensity, double surfaceDensityFactor)                       \
+virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr)                       \
 {                                                          \
-this->__geo_type__::sampleSurface(linearDensity, surfaceDensityFactor) ;                     \
+this->__geo_type__::sampleSurface(linearDensity, surfaceDensityFactor, sampler) ;                     \
 }                                                          \
 virtual std::vector<Point> sampleOuterShell(double linearDensity, double distance) \
 {                                                          \
@@ -286,6 +286,8 @@ return this->LevelSet::timePlanes() ;                 \
 
 namespace Amie
 {
+
+class Sampler ;
 
 static const double POINT_TOLERANCE =  1e-12 ;//std::numeric_limits<double>::epsilon() ;
 
@@ -838,7 +840,7 @@ public:
     virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const = 0 ;
 
     /** \brief Sample the bounding surface and the surface of the Geometry. The points are stored as inpoints and bounding points */
-    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor) = 0 ;
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr) = 0 ;
 
     /** \brief Return true  if the argument is in the geometry*/
     virtual bool in(const Point & p)const  = 0;
@@ -1477,7 +1479,7 @@ public:
     virtual void sampleBoundingSurface(double linearDensity) ;
 
     /** \brief sample the circle surface*/
-    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor);
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr);
 
     /** \brief return true if the argument lies in the circle*/
     virtual bool in(const Point & v) const ;

@@ -67,6 +67,9 @@ geometry/geometry_2D.cpp
 geometry/geometry_3D.cpp 
 geometry/geometry_with_exclusion.cpp 
 geometry/level_set.cpp
+geometry/sampler/sampler.cpp
+geometry/sampler/gradient_sampler.cpp
+geometry/sampler/regular_sampler.cpp
 mesher/delaunay_3d.cpp 
 mesher/delaunay.cpp 
 mesher/element_checker.cpp 

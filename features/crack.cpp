@@ -1577,7 +1577,7 @@ void BranchedCrack::print() const
 
 }
 
-void BranchedCrack::sample(double linearDensity, double surfaceDensityFactor)
+void BranchedCrack::sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
 	return ;
 }

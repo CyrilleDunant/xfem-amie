@@ -305,7 +305,7 @@ bool Feature::isChild( Feature * f ) const
     return std::find( m_c.begin(), m_c.end(), f ) != m_c.end() ;
 }
 
-std::map<Feature *, std::vector<Point> > Feature::sampleOuterShells(double linearDensity, double distance, bool in) 
+std::map<Feature *, std::vector<Point> > Feature::sampleOuterShells(double linearDensity, double distance, bool in, Sampler * sampler) 
 {
     std::map<Feature *, std::vector<Point> > ret ;
     for(size_t i = 0 ; i < m_c.size() ; i++)

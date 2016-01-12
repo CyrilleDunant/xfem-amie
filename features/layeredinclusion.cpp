@@ -88,7 +88,7 @@ LayeredInclusion::LayeredInclusion(double r, Point center) : CompositeFeature(nu
 }
 
 
-void LayeredInclusion::sample(double linearDensity, double surfaceDensityFactor)
+void LayeredInclusion::sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
 	this->sampleSurface(linearDensity, surfaceDensityFactor) ;
 
@@ -239,7 +239,7 @@ Form * VirtualLayer::getBehaviour(const Point & p) const
 	return source->getBehaviour(p) ;
 }
 
-void VirtualLayer::sample(double linearDensity, double surfaceDensityFactor)
+void VirtualLayer::sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
 
 }

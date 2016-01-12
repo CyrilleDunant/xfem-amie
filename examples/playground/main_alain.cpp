@@ -15,7 +15,8 @@
 #include "../../utilities/parser.h"
 #include "../../utilities/itoa.h"
 #include "../../utilities/writer/triangle_writer.h"
-#include "../../geometry/level_set.h" 
+#include "../../geometry/sampler/gradient_sampler.h" 
+#include "../../geometry/sampler/regular_sampler.h" 
 #include "../../utilities/mineral.h" 
 
 
@@ -33,15 +34,24 @@ using namespace Amie ;
 
 int main( int argc, char *argv[] )
 {
-	timeval time0, time1 ;
-	gettimeofday ( &time0, nullptr );
+        Sample rect(nullptr, 0.04,0.04,0,0) ;
+	rect.setBehaviour(new Stiffness( 10e9, 0.2 ) ) ;
+        
+	FeatureTree f(&rect) ;
+	f.setSamplingNumber(16) ;
 
-	CommandLineParser parser("Runs a series of elastic test on a rock sample defined in a *.sci file", false, false) ;
-	parser.addArgument("rock","granite_1","name of the rock to be tested") ;
-	parser.addString("--directory","/home/ag3/Code/denisov/","path to the mineral and rock database", "-D") ;
-	parser.addValue("--seed", 20, "random seed for the microstructure generation", "-s") ;
-	parser.addValue("--show-microstructure", -1, "index of the microstructure to print", "-m") ;
-	parser.parseCommandLine( argc, argv ) ;
+	Inclusion * inc = new Inclusion( 0.01,0,0 ) ;
+	inc->setBehaviour(new Stiffness( 20e9, 0.2 ) ) ;
+//	f.addFeature( &rect, inc ) ;
+
+	f.setSampler( &rect, new GradientSampler( Point(0.02,0.01), Point(-0.02,0), 0.5, 2.) ) ;
+	
+	f.step() ;
+
+	TriangleWriter trg( "toto", &f, 1. ) ;
+	trg.getField( "C11" ) ;
+	trg.write() ;
+
 	
 	return 0 ;
 }

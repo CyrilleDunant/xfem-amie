@@ -57,7 +57,7 @@ public:
     virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const ;
 
     /** \brief sample the volume of the tetrahedron*/
-    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor);
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr);
 
     /** \brief return in if the argument lies in the tetrahedron, as defined by its four vertices.*/
     virtual bool in(const Point &v) const ;
@@ -143,7 +143,7 @@ public:
     virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const ;
 
     /** \brief sample the volume of the tetrahedron*/
-    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor);
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr);
 
     /** \brief return true if the argument lies in the geometry*/
     virtual bool in(const Point &v) const ;
@@ -209,7 +209,7 @@ public:
     virtual std::vector<Point> getSamplingBoundingPoints(double linearDensity) const ;
 
     /** \brief sample the volume of the tetrahedron*/
-    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor);
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr);
 
     /** \brief return true if the argument lies in the geometry*/
     virtual bool in(const Point &v) const ;
@@ -257,7 +257,7 @@ public:
     
     virtual void sampleSurface(size_t num_points) ;
 
-    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor) { this->sampleSurface( volume()/(linearDensity*linearDensity*linearDensity) ) ; }
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr) { this->sampleSurface( volume()/(linearDensity*linearDensity*linearDensity) ) ; }
     
     virtual bool in(const Point & v) const ;
     
@@ -310,7 +310,7 @@ public:
     virtual void sampleBoundingSurface(size_t num_points) ; 
     virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ; 
     virtual void sampleSurface(size_t num_points) ;   
-    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor) { this->sampleSurface( volume()/(linearDensity*linearDensity*linearDensity) ) ; }
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr) { this->sampleSurface( volume()/(linearDensity*linearDensity*linearDensity) ) ; }
     virtual bool in(const Point & v) const ;  
     virtual double area() const ;  
     virtual double volume() const ;
@@ -410,7 +410,7 @@ public:
     std::vector<Point> getStandardSamplingBoundingPointsOnSphere(size_t n)	const ;
 
     /** \brief sample the volume of the sphere*/
-    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor);
+    virtual void sampleSurface(double linearDensity, double surfaceDensityFactor, Sampler * sampler = nullptr);
 
     /** \brief return true if the argument lies in the sphere*/
     virtual bool in(const Point &v) const ;

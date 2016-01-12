@@ -190,6 +190,7 @@ protected:
     std::deque<std::pair<Point *, const Feature *> > meshShellPoints;
     std::vector<Point *> additionalPoints ;
     std::map<Feature *, double> samplingFactors ;
+    std::map<Feature *, Sampler *> samplers ;
     std::map<int, double > scalingFactors ;
 
     /** \brief  Assembly used for the generation of the stiffness matrix and the solving of the problem.
@@ -409,6 +410,17 @@ public:
 
     void setSamplingFactor ( Feature * f, double a ) {
         samplingFactors[f] = a ;
+    }
+
+    void setSampler( Feature * f, Sampler * s)
+    {
+        samplers[f] = s ;
+    }
+
+    Sampler * getSampler( Feature * f )
+    {
+        if(samplers.find(f) == samplers.end()) { return nullptr ; }
+        return samplers[f] ;
     }
 
 

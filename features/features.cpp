@@ -1705,7 +1705,7 @@ void FeatureTree::sample()
             {
                 correctionfactor =  samplingFactors[tree[0]] ;
             }
-            tree[0]->sample ( linearDensity*correctionfactor, surfaceSamplingFactor ) ;
+            tree[0]->sample ( linearDensity*correctionfactor, surfaceSamplingFactor, getSampler( tree[0] ) ) ;
             int count = 0 ;
 
 //             #pragma omp parallel for reduction(+:count) schedule(auto)
@@ -1740,7 +1740,7 @@ void FeatureTree::sample()
                 if( !tree[i]->isVirtualFeature && tree[i]->getRadius()*correctionfactor > samplingRestriction)
                 {
                     count++ ;
-                    tree[i]->sample ( linearDensity*correctionfactor, surfaceSamplingFactor ) ;
+                    tree[i]->sample ( linearDensity*correctionfactor, surfaceSamplingFactor, getSampler( tree[i] ) ) ;
                 }
 
                 if ( !tree[i]->isVirtualFeature )
@@ -1775,7 +1775,7 @@ void FeatureTree::sample()
 
                 if( !tree[i]->isVirtualFeature && tree[i]->getRadius()*factor > samplingRestriction)
                 {
-                    tree[i]->sample ( linearDensity*factor, surfaceSamplingFactor ) ;
+                    tree[i]->sample ( linearDensity*factor, surfaceSamplingFactor, getSampler( tree[i] ) ) ;
                 }
 
 
@@ -1810,7 +1810,7 @@ void FeatureTree::sample()
 
             if ( tree[0]->isUpdated )
             {
-                tree[0]->sample ( linearDensity, surfaceSamplingFactor ) ;
+                tree[0]->sample ( linearDensity, surfaceSamplingFactor, getSampler( tree[0] ) ) ;
             }
 
             #pragma omp parallel for schedule(runtime)
@@ -1837,7 +1837,7 @@ void FeatureTree::sample()
                     }
                     if ( !tree[i]->isVirtualFeature && tree[i]->getRadius()*factor > samplingRestriction )
                     {
-                        tree[i]->sample ( linearDensity*factor, surfaceSamplingFactor ) ;
+                        tree[i]->sample ( linearDensity*factor, surfaceSamplingFactor, getSampler( tree[i] ) ) ;
                     }
                 }
             }
@@ -1868,7 +1868,7 @@ void FeatureTree::sample()
                     }
                     if ( !tree[i]->isVirtualFeature && tree[i]->getRadius()*factor > samplingRestriction )
                     {
-                        tree[i]->sample ( linearDensity*factor, surfaceSamplingFactor ) ;
+                        tree[i]->sample ( linearDensity*factor, surfaceSamplingFactor, getSampler( tree[i] ) ) ;
                     }
 
                     count++ ;
@@ -7344,7 +7344,6 @@ void FeatureTree::generateElements()
             }
         }
     }
-
 
     for ( size_t i  = 0 ; i < tree.size() ; i++ )
     {
