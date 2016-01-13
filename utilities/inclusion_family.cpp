@@ -88,6 +88,7 @@ InclusionFamily::InclusionFamily()
 	placed = false ;
 	brothers = nullptr ;
 	sons = nullptr ;
+	sampler = nullptr ;
 	rotations = 0 ;	
 	factors = -1 ;
 }
@@ -109,6 +110,7 @@ InclusionFamily::InclusionFamily( size_t n, double rmax, double fraction, Partic
 
 	brothers = nullptr ;
 	sons = nullptr ;
+	sampler = nullptr ;
 }
 
 InclusionFamily::InclusionFamily(Feature * matrix) 
@@ -119,6 +121,10 @@ InclusionFamily::InclusionFamily(Feature * matrix)
 	features.push_back(matrix) ;
 	rotations = 0 ;
 	factors = -1 ;
+
+	brothers = nullptr ;
+	sons = nullptr ;
+	sampler = nullptr ;
 }
 
 std::vector<Geometry *> InclusionFamily::getFeaturesAsGeometry() 

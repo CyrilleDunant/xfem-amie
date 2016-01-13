@@ -27,7 +27,6 @@ std::vector<Point> GradientSampler::sampleRectangleBoundingSurface( const Rectan
 
     pts.push_back( Point( c.getX()-0.5*size_x, c.getY()-0.5*size_y ) ) ;
     double next = getLinearDensity( pts[0] )  / linearDensity ;
-    std::cout << next << std::endl ;
     while( pts[ pts.size()-1 ].getX() < c.getX()+0.5*size_x - next*1.5 )
     {
         double nextx = pts[ pts.size()-1 ].getX() + next ;
@@ -38,7 +37,6 @@ std::vector<Point> GradientSampler::sampleRectangleBoundingSurface( const Rectan
 
     pts.push_back( Point( c.getX()+0.5*size_x, c.getY()-0.5*size_y ) ) ;
     next = getLinearDensity( pts[ pts.size()-1 ] )  / linearDensity ;
-    std::cout << next << std::endl ;
     while( pts[ pts.size()-1 ].getY() < c.getY()+0.5*size_y - next*1.5 )
     {
         double nextx = pts[ pts.size()-1 ].getX() ;
@@ -49,7 +47,6 @@ std::vector<Point> GradientSampler::sampleRectangleBoundingSurface( const Rectan
 
     pts.push_back( Point( c.getX()+0.5*size_x, c.getY()+0.5*size_y ) ) ;
     next = getLinearDensity( pts[ pts.size()-1 ] )  / linearDensity ;
-    std::cout << next << std::endl ;
     while( pts[ pts.size()-1 ].getX() > c.getX()-0.5*size_x + next*1.5 )
     {
         double nextx = pts[ pts.size()-1 ].getX() - next ;
@@ -60,7 +57,6 @@ std::vector<Point> GradientSampler::sampleRectangleBoundingSurface( const Rectan
 
     pts.push_back( Point( c.getX()-0.5*size_x, c.getY()+0.5*size_y ) ) ;
     next = getLinearDensity( pts[ pts.size()-1 ] )  / linearDensity ;
-    std::cout << next << std::endl ;
     while( pts[ pts.size()-1 ].getY() > c.getY()-0.5*size_y + next*1.5 )
     {
         double nextx = pts[ pts.size()-1 ].getX() ;
@@ -96,7 +92,6 @@ std::vector<Point> GradientSampler::sampleRectangleInnerSurface( const Rectangle
     double next = getLinearDensity( start ) / linearDensity ;
     bool in = true ;
     int index = 0 ;
-    start.print() ;
     start += dir*next ;
     while(in)
     {

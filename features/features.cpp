@@ -7265,6 +7265,20 @@ void FeatureTree::generateElements()
         pointDensity = pow ( tree[0]->volume() / ( tree[0]->getBoundingPoints().size() + tree[0]->getInPoints().size() ), .33333333333 ) ;
     }
 
+    if( samplers.size() > 0)
+    {
+        double samplingDensity = samplingNumber/sqrt(tree[0]->area()) ;
+        if ( samplingFactors.find ( tree[0] ) != samplingFactors.end() )
+            samplingDensity *=  samplingFactors[tree[0]] ;
+        for(auto s = samplers.begin() ; s != samplers.end() ; s++)
+        {
+             double testDensity = s->second->getEquivalentDensity( tree[0], samplingDensity, surfaceSamplingFactor ) ;
+             if( testDensity > 0 && testDensity < pointDensity )
+                 pointDensity = testDensity ;
+        }
+    }
+
+
     std::cerr << "space meshed with " << pointDensity << " points per unit length" << std::endl ;
 
     std::vector<Point> bbox = tree[0]->getBoundingBox() ;

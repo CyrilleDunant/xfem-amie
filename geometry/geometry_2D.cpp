@@ -1368,6 +1368,7 @@ void Circle::sampleSurface(double linearDensity, double surfaceDensityFactor, Sa
         {
             std::vector<Point> bounds = sampler->sampleBoundingSurface( this, linearDensity*surfaceDensityFactor ) ;
             std::vector<Point> ins = sampler->sampleInnerSurface( this, linearDensity ) ;
+		std::cout << bounds.size() << " " << ins.size() << std::endl ;
             if(bounds.size() > 0 && ins.size() > 0)
             {
                 boundingPoints.resize( bounds.size() ) ;

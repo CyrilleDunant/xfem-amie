@@ -9,6 +9,8 @@
 namespace Amie
 {
 
+class Feature ; 
+
 /*SOURCE Sampler */
 
 /*PARSE . Sampler */
@@ -16,6 +18,8 @@ class Sampler
 {
 public:
     Sampler() { } ;
+
+    virtual double getEquivalentDensity( Feature * f, double density, double surface ) const ;
 
     virtual std::vector<Point> sampleBoundingSurface( const Geometry * geom, double linearDensity ) ;
     virtual std::vector<Point> sampleInnerSurface( const Geometry * geom, double linearDensity ) ;

@@ -5,9 +5,31 @@
 // Copyright: See COPYING file that comes with this distribution
 
 #include "sampler.h"
+#include "../../features/feature_base.h"
 
 namespace Amie
 {
+
+double Sampler::getEquivalentDensity( Feature * f, double linearDensity, double surfaceDensityFactor ) const 
+{
+    if(f->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+    {
+        Rectangle * box ;
+        if(dynamic_cast<Rectangle *>(f))
+            box = new Rectangle( dynamic_cast<Rectangle *>(f)->width(), dynamic_cast<Rectangle *>(f)->height(), f->getCenter() ) ;
+        else
+            box = new Rectangle( f->getBoundingBox() ) ;
+        if(box == nullptr || box->area() < 0)
+            return -1 ;
+
+        box->sampleSurface( linearDensity, surfaceDensityFactor ) ;
+        double factor = sqrt( box->area() / ( box->getBoundingPoints().size() + box->getInPoints().size() ) ) ;
+        delete box ;
+        return factor ;
+    }
+    return -1 ;
+}
+
 
 std::vector<Point> Sampler::sampleBoundingSurface( const Geometry * geom, double linearDensity ) 
 {
