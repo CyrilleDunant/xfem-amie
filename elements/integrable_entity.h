@@ -423,7 +423,6 @@ struct IntegrableEntity : public Geometry
 // 	virtual Function & getEnrichmentFunction(size_t i) = 0;
     virtual Order getOrder() const  = 0 ;
 
-    virtual void compileAndPrecalculate() = 0 ;
     virtual std::vector<size_t> clearEnrichment ( const Geometry * g ) = 0 ;
     virtual std::vector<size_t> clearAllEnrichment() = 0;
     virtual const std::vector< size_t > getDofIds() const = 0;

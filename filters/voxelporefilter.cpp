@@ -189,7 +189,6 @@ void VoxelPoreFilter::read(const char * filename)
 	index = 0 ;
 
 	TetrahedralElement * father = new TetrahedralElement(LINEAR_TIME_LINEAR) ;
-	father->compileAndPrecalculate() ;
 	
 	std::vector<std::vector<std::vector<int> > > phase ;
 	

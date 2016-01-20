@@ -448,6 +448,11 @@ DDtF DoubleDifferential::operator *(const Function & f) const
     return DDtF(*this, f) ;
 }
 
+DDtDD DoubleDifferential::operator *(const DoubleDifferential & d) const
+{
+    return DDtDD(*this, d) ;
+}
+
 DtD Differential::operator *(const Differential & f) const
 {
     return DtD(*this, f) ;

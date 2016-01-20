@@ -37,7 +37,8 @@ double RuptureEnergy::grade(ElementState &s)
 	{
 		E[j] = pstrain[j*3] + pstrain[j*3+1] + pstrain[j*3+2] ;
 	}
-	double enr = VirtualMachine().ieval(E, s.getParent())/s.getParent()->area() ;
+	
+	double enr = VirtualMachine().ieval(E, s.getParent()->getGaussPoints())/s.getParent()->area() ;
 	if( enr > energy )
 	{
 		return 1. - std::abs(energy/enr) ;

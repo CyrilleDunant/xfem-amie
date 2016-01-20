@@ -33,6 +33,7 @@ struct DdGtMtG ;
 struct DdGtMtGD ;
 struct DdGtMLtG ;
 struct DdGtMLtGD ;
+struct DDtDD ;
 struct DdGtMLtG ;
 struct DdGtMLtGD ;
 struct GDtMtGD ;
@@ -278,13 +279,6 @@ public:
     */
     Vector deval(const Function&f, const Variable v_, const GaussPointArray & gp, const double eps= default_derivation_delta) ;
 
-    /** \brief Compute the numerical integration of function f over the IntegrableEntity e.
-    The function is assumed to be expressed in the local coordinates of e.
-    @param f Function to integrate.
-    @param e IntegrableEntity on which to integrate
-    */
-    double ieval(const Function &f, IntegrableEntity *e)  ;
-
     Matrix ieval(const FtF & f, const GaussPointArray &gp, const std::valarray<Matrix> & Jinv) ;
 
     /** \brief Compute the numerical integration of function f using the GaussPointArray to perform the quadrature.
@@ -292,62 +286,7 @@ public:
     @param gp GaussPointArray defining the quadrature.
     */
     double ieval(const Function &f, const GaussPointArray &gp)  ;
-
-    /** \brief Compute the sum of the values of f, weighted by the quadrature given by the IntegrableEntity e.
-    The function is assumed to be expressed in the local coordinates of e.
-    @param f Vector of values to sum.
-    @param e IntegrableEntity on which to integrate
-    */
-    double ieval(Vector &f, IntegrableEntity *e) ;
-
-    /** \brief Compute the sum of the values of f, weighted by the quadrature given by the IntegrableEntity e.
-    The function is assumed to be expressed in the local coordinates of e.
-    @param f Vector of values to sum.
-    @param e IntegrableEntity on which to integrate
-    */
-    Vector ieval(const std::vector<Vector> &f, IntegrableEntity *e) ;
-
-
-    /** \brief Compute the numerical integration of FunctionMatrix f over the IntegrableEntity e.
-    The function is assumed to be expressed in the local coordinates of e.
-    @param f FunctionMatrix to integrate.
-    @param e IntegrableEntity on which to integrate
-    */
-    Matrix ieval(const FunctionMatrix &f, IntegrableEntity *e)  ;
-
-    /** \brief Overloaded function to compute the integral of a FunctionMatrix times a Matrix times a second FunctionMatrix over the IntegrableEntity e.
-    The function is assumed to be expressed in the local coordinates of e.
-    @param f FMtMtFM to integrate.
-    @param e IntegrableEntity on which to integrate
-    */
-    Matrix ieval(const FMtMtFM &f, IntegrableEntity *e) ;
-
-    /** \brief Overloaded function to compute the integral of a Gradient times a Matrix  over the IntegrableEntity e, with variables defined by vars.
-    @param f GtM to integrate.
-    @param e IntegrableEntity on which to integrate
-    @param vars std::vector of space Variable s
-    The function is assumed to be expressed in the local coordinates of e.
-    */
-    Matrix ieval(const GtM &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
-
-    Matrix ieval(const GtML &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
-
-    Vector ieval(const GtVL &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
-
-    Vector ieval(const GtV &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
-
-    Vector ieval(const GDtV &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
-
-    Vector ieval(const GDtVL &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
-
-    /** \brief Overloaded function to compute the integral of a Gradient times a Matrix times a Gradient over the IntegrableEntity e, with variables defined by vars.
-    The function is assumed to be expressed in the local coordinates of e.
-    Gradient is the usual \f$ \nabla\otimes \f$ operator.
-    @param f GtMtG to integrate.
-    @param e IntegrableEntity on which to integrate
-    @param vars std::vector of space Variable s
-    */
-    Matrix ieval(const GtMtG &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
+    double ieval(Vector& v, const Amie::GaussPointArray& gp) ;
 
     /** \brief Overloaded function to compute the integral of a Gradient times a Matrix times a Gradient using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars.
     Gradient is the usual \f$ \nabla\otimes \f$ operator.
@@ -407,14 +346,6 @@ public:
 
     Vector ieval(const GDtV &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
 
-    /** \brief Overloaded function to compute the integral of a Gradient times a FunctionMatrix times a Gradient over the IntegrableEntity e, with variables defined by vars.
-    Gradient is the usual \f$ \nabla\otimes \f$ operator.
-    @param f GtFMtG to integrate.
-    @param e IntegrableEntity on which to integrate
-    @param vars std::vector of space Variable s
-    */
-    Matrix ieval(const GtFMtG &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
-
     /** \brief Overloaded function to compute the integral of a Gradient times a FunctionMatrix times a Gradient using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars.
     Gradient is the usual \f$ \nabla\otimes \f$ operator.
     @param f GtV to integrate.
@@ -435,22 +366,6 @@ public:
     */
     void ieval(const GtFMtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
 
-    /** \brief Overloaded function to compute the integral of a GradientDot times a Matrix times a Gradient over the IntegrableEntity e, with variables defined by vars.
-    Gradient is the usual \f$ \nabla\otimes \f$ operator.
-    @param f GDtMtG to integrate.
-    @param e IntegrableEntity on which to integrate
-    @param vars std::vector of space Variable s
-    */
-    Matrix ieval(const GDtMtG & f, IntegrableEntity * e , const std::vector<Variable> & vars) ;
-
-
-    /** \brief Overloaded function to compute the integral of a Gradient times a Matrix times a GradientDot over the IntegrableEntity e, with variables defined by vars.
-    Gradient is the usual \f$ \nabla\otimes \f$ operator.
-    @param f GtMtGD to integrate.
-    @param e IntegrableEntity on which to integrate
-    @param vars std::vector of space Variable s
-    */
-    Matrix ieval(const GtMtGD & f, IntegrableEntity * e , const std::vector<Variable> & vars) ;
 
     /** \brief Overloaded function to compute the integral of a GradientDot times a FunctionMatrix times a GradientDot using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars.
      * The result is stored in ret. The version of the function can be used to minimise initialisation of memory.
@@ -527,23 +442,8 @@ public:
     @param vars std::vector of space Variable s
     */
     Matrix ieval(const GtMtGD &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
-
-    /** \brief Overloaded function to compute the integral of a VectorGradient times a FunctionMatrix using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars.
-     The function is assumed to be expressed in the local coordinates of e.
-    	VectorGradient is the usual \f$ \nabla \cdot \f$ operator.
-    @param f VGtM to integrate.
-    @param e IntegrableEntity on which to integrate
-    @param vars std::vector of space Variable s
-    */
-    Matrix ieval(const VGtM &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
-
-    /** \brief Overloaded function to compute the integral of a Differential times a Gradient times a Matrix times a Gradient over the IntegrableEntity e, with variables defined by vars.
-    The function is assumed to be expressed in the local coordinates of e.
-    @param f DtGtMtG to integrate.
-    @param e IntegrableEntity on which to integrate
-    @param var std::vector of space Variable s
-    */
-    Matrix ieval(const DtGtMtG & d, IntegrableEntity *e, const std::vector<Variable> & var) ;
+    
+//     Matrix ieval(const DtGtMtG & d, IntegrableEntity *e, const std::vector<Variable> & var) ;
 
     /** \brief Overloaded function to compute the integral of a Differential times a Gradient times a Matrix times a Gradient using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars.
     Gradient is the usual \f$ \nabla\otimes \f$ operator, and Differential is the derivative of a function.
@@ -565,21 +465,6 @@ public:
     void ieval(const DdGtMLtG & d, const std::vector<Matrix> & dmat, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
 
     void ieval(const DdGtMLtGD & d, const std::vector<Matrix> & dmat, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
-
-    /** \brief Overloaded function to compute the integral of a VectorGradient times a Matrix times a VectorGradient over the IntegrableEntity e, with variables defined by vars.
-    The function is assumed to be expressed in the local coordinates of e.
-    VectorGradient is the usual \f$ \nabla\ \cdot \f$ operator.
-    @param f VGtMtVG to integrate.
-    @param e IntegrableEntity on which to integrate
-    @param vars std::vector of space Variable s
-    */
-    double ieval(const VGtMtVG &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
-
-    /** \brief Overloaded function to compute the line integral of a function, on the seg of Segment supported by the corresponding IntegrableEntity defined by Gamma.
-    @param f Function to integrate.
-    @param gamma std::vector of pairs of Segment *, IntegrableEntity * defining a support on which to integrate.
-    */
-    double ieval(const Function &f, const std::vector<std::pair<Segment *, IntegrableEntity *> > & gamma) ;
 
     /** \brief Overloaded function to compute the integral of a VectorGradient times a Matrix times a VectorGradient using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars.
     VectorGradient is the usual \f$ \nabla \cdot \f$ operator.
@@ -631,59 +516,6 @@ public:
     double ieval(const DtD & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
 
     double ieval(const DDtF & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
-
-    /** \brief Overloaded function to compute the integral of a Differential over the IntegrableEntity e, with variables defined by vars.
-    Differential is the usual \f$ d \cdot \f$ operator.
-    @param d Differential to integrate.
-    @param e IntegrableEntity on which to integrate
-    @param var std::vector of space Variable s
-    */
-    double ieval(const Differential & d, IntegrableEntity *e, const std::vector<Variable> & var) ;
-
-    /** \brief Overloaded function to compute the integral of a Differential time a Function over the IntegrableEntity e, with variables defined by vars.
-    The function is assumed to be expressed in the local coordinates of e.
-    Differential is the usual \f$ d \cdot \f$ operator.
-    @param d DtF to integrate.
-    @param e IntegrableEntity on which to integrate
-    @param var std::vector of space Variable s
-    */
-    double ieval(const DtF & d, IntegrableEntity *e, const std::vector<Variable> & var) ;
-
-    /** \brief Overloaded function to compute the integral of a Differential time a Differential over the IntegrableEntity e, with variables defined by vars.
-    The function is assumed to be expressed in the local coordinates of e.
-    Differential is the usual \f$ d \cdot \f$ operator.
-    @param d DtD to integrate.
-    @param e IntegrableEntity on which to integrate
-    @param var std::vector of space Variable s
-    */
-    double ieval(const DtD & d, IntegrableEntity *e, const std::vector<Variable> & var) ;
-
-    /** \brief Overloaded function to compute the value of the gradient of the Function f in the IntegrableEntity e, with variables defined by vars, at point x, y, z, t.
-    The function is assumed to be expressed in the local coordinates of e.
-    @param f Function the gradient of which should be computed.
-    @param e IntegrableEntity on which to perform the computation
-    @param vars std::vector of space Variable s
-    @param x coordinate at which to evaluate.
-    @param y coordinate at which to evaluate.
-    @param z coordinate at which to evaluate.
-    @param t coordinate at which to evaluate.
-    @param transpose transpose the result if true.
-    */
-    Matrix geval(const Function &f, IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0, bool transpose = false) ;
-
-    /** \brief Overloaded function to compute the value of the Gradient f in the IntegrableEntity e, with variables defined by vars, at point x, y, z, t.
-    The function is assumed to be expressed in the local coordinates of e.
-    Gradient is the usual \f$ \nabla\otimes \f$ operator.
-    @param f Gradient to evaluate.
-    @param e IntegrableEntity on which to perform the computation
-    @param vars std::vector of space Variable s
-    @param x coordinate at which to evaluate.
-    @param y coordinate at which to evaluate.
-    @param z coordinate at which to evaluate.
-    @param t coordinate at which to evaluate.
-    @param transpose transpose the result if true.
-    */
-    Matrix geval(const Gradient &f, IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0) ;
 
     /** \brief Overloaded function to compute the value of the gradient of the Function f using the Matrix m as an inverse Jacobian, with variables defined by vars, at point x, y, z, t.
     Gradient is the usual \f$ \nabla\otimes \f$ operator.
@@ -744,33 +576,6 @@ public:
     */
     Matrix geval(const Gradient &f, const Matrix & m, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0) ;
 
-    /** \brief Overloaded function to compute the value of the vector gradient of the function f in the IntegrableEntity e, with variables defined by vars, at point x, y, z, t.
-    The function is assumed to be expressed in the local coordinates of e.
-    VectorGradient is the usual \f$ \nabla \cdot \f$ operator.
-    @param f Function the vector gradient of which should be computed.
-    @param e IntegrableEntity on which to perform the computation
-    @param vars std::vector of space Variable s
-    @param x coordinate at which to evaluate.
-    @param y coordinate at which to evaluate.
-    @param z coordinate at which to evaluate.
-    @param t coordinate at which to evaluate.
-    @param transpose transpose the result if true.
-    */
-    Matrix gveval(const Function &f, IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0, bool transpose = false) ;
-
-    /** \brief Overloaded function to compute the value of the VectorGradient f in the IntegrableEntity e, with variables defined by vars, at point x, y, z, t.
-    The function is assumed to be expressed in the local coordinates of e.
-    VectorGradient is the usual \f$ \nabla \cdot \f$ operator.
-    @param f VectorGradient which should be computed.
-    @param e IntegrableEntity on which to perform the computation
-    @param vars std::vector of space Variable s
-    @param x coordinate at which to evaluate.
-    @param y coordinate at which to evaluate.
-    @param z coordinate at which to evaluate.
-    @param t coordinate at which to evaluate.
-    */
-    Matrix gveval(const VectorGradient &f, IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0) ;
-
     /** \brief Overloaded function to compute the value of the vector gradient of Function f using the Matrix m as the inverse Jacobian, with variables defined by vars, at point x, y, z, t.
     VectorGradient is the usual \f$ \nabla \cdot \f$ operator.
     @param f Function the vector gradient of which should be computed.
@@ -813,11 +618,7 @@ public:
     */
     Matrix gdeval(const Function &f, const Matrix & m, const std::vector<Variable> & var, const double x, const double y, const double  z, const double  t, bool transpose ) ;
 
-    Matrix gdeval(const Function &f, IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0, bool transpose = false) ;
-
     void gdeval(const Function &f, const Matrix & m, const std::vector<Variable> & var, const double x, const double y, const double  z, const double  t, bool transpose, Matrix & ret ) ;
-
-    Matrix gdeval(const GradientDot &f, IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0) ;
 
     /** \brief Overloaded function to compute the values of the GradientDot f using the array of Matrix m as the inverse Jacobian, with variables defined by vars, at points defined by the GaussPointArray gp.
     GradientDot is the usual \f$ \dot{\nabla}\otimes(\cdot) \f$ operator.

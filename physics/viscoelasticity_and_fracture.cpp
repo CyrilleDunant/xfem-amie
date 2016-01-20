@@ -149,7 +149,7 @@ Vector ViscoelasticityAndFracture::getForcesFromAppliedStress( const Function & 
     std::vector<Vector> g(e->getGaussPoints().gaussPoints.size(), Vector(0., externaldofs)) ;
     e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
 
-    Vector f = vm.ieval( GradientDot( shape ) * g, e, v) ;
+    Vector f = vm.ieval( GradientDot( shape ) * g, gp, Jinv, v) ;
 
     field = 0 ;
     for(size_t i = 0 ; i < n ; i++)
@@ -157,7 +157,7 @@ Vector ViscoelasticityAndFracture::getForcesFromAppliedStress( const Function & 
 
     e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
 
-    f += vm.ieval( Gradient( shape ) * g, e, v) ;
+    f += vm.ieval( Gradient( shape ) * g, gp, Jinv, v) ;
 
     return f ;
 }

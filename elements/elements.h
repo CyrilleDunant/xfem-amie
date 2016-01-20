@@ -111,13 +111,90 @@ public:
     Order getOrder() const final;
     void setOrder(Order) ;
 
-    virtual void compileAndPrecalculate();
     virtual std::vector<size_t> clearEnrichment(const Geometry * g) final;
     virtual std::vector<size_t> clearAllEnrichment() final;
 
     virtual std::valarray<std::valarray<Matrix> > & getCachedElementaryMatrix() = 0 ;
     virtual std::valarray<std::valarray<Matrix> > & getCachedViscousElementaryMatrix() = 0 ;
 } ;
+
+/*class BeamElement: public IntegrableEntity, public Segment
+{
+protected:
+    std::valarray<std::valarray<Matrix> > cachedElementaryMatrix ;
+    std::valarray<std::valarray<Matrix> > cachedViscousElementaryMatrix ;
+    std::valarray< Function > * shapefunc ;
+    std::vector< Function > enrichfunc ;
+    
+public:
+    GEO_DERIVED_OBJECT(Segment) ;
+    BeamElement(const Point &p0, const Point &p1) : Segment(p0,p1) { };
+    
+    virtual void getInverseJacobianMatrix ( const Point &p, Matrix & ret ) = 0 ;
+    virtual ~BeamElement() { };
+    virtual const GaussPointArray & getGaussPoints() = 0;
+    virtual Point inLocalCoordinates ( const Point & p ) const  = 0;
+    virtual Function getXTransform() const = 0;
+    virtual Function getYTransform() const = 0;
+    virtual Function getXTransformAtCentralNodalTime() const ;// { return getXTransform() ; }
+    virtual Function getYTransformAtCentralNodalTime() const ;//{ return getYTransform() ; }
+
+
+    virtual	const std::valarray< Function >  & getShapeFunctions() const 
+    {
+        return *shapefunc ; 
+    }
+    virtual	std::valarray< Function >  & getShapeFunctions() 
+    {
+        return *shapefunc ; 
+    }
+    virtual	Function & getShapeFunction ( size_t i )  
+    {
+        return *shapefunc[i]; 
+    }
+    virtual	const Function & getShapeFunction ( size_t i ) const 
+    {
+        return *shapefunc[i]; 
+    }
+
+    virtual const std::vector< Function> & getEnrichmentFunctions() const
+    {
+        return enrichfunc ;
+    }
+    
+    virtual const Function & getEnrichmentFunction ( size_t i ) const
+    {
+        return enrichfunc[i] ;
+    }
+
+    virtual Order getOrder() const
+    {
+        return LINEAR ;
+    }
+
+    virtual std::vector<size_t> clearEnrichment ( const Geometry * g ) = 0 ;
+    virtual std::vector<size_t> clearAllEnrichment() = 0;
+    virtual const std::vector< size_t > getDofIds() const = 0;
+
+    virtual Form * getBehaviour() const = 0;
+    virtual NonLinearForm * getNonLinearBehaviour() const = 0;
+    
+    virtual bool matrixUpdated() const = 0 ;
+    
+    virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix( VirtualMachine * vm = nullptr)  = 0 ;
+    virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr)  = 0 ;
+    virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix()  = 0 ;
+    virtual Vector getNonLinearForces() = 0 ;
+
+    virtual bool isMoved() const = 0 ;
+    virtual void print() const = 0;
+
+    virtual Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh() const = 0 ;
+    virtual Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * get3DMesh() const = 0 ;
+    virtual void setOrder ( Order o ) = 0;
+
+    
+} ;*/
 
 class TriElement : public Triangle, public ElementarySurface
 {
@@ -282,7 +359,6 @@ public:
     virtual Order getOrder() const final;
     virtual void setOrder(Order) final;
 
-    virtual void compileAndPrecalculate();
     virtual std::vector<size_t> clearEnrichment(const Geometry * g) ;
     virtual std::vector<size_t> clearAllEnrichment() ;
 

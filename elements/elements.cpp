@@ -3365,32 +3365,6 @@ Function &  ElementarySurface::getShapeFunction(size_t i)
     return getShapeFunctions()[i] ;
 }
 
-void ElementarySurface::compileAndPrecalculate()
-{
-    for(size_t k = 0 ; k < getShapeFunctions().size() ; k++)
-    {
-        std::vector<Variable> vars ;
-        vars.push_back(XI) ;
-        vars.push_back(ETA) ;
-        if(order > CONSTANT_TIME_LINEAR)
-            vars.push_back(TIME_VARIABLE) ;
-        (*static_cast<TriElement *>(this)->shapefunc)[k].preCalculate(getGaussPoints(), vars) ;
-    }
-}
-
-void ElementaryVolume::compileAndPrecalculate()
-{
-    for(size_t k = 0 ; k < getShapeFunctions().size() ; k++)
-    {
-        std::vector<Variable> vars ;
-        vars.push_back(XI) ;
-        vars.push_back(ETA) ;
-        vars.push_back(ZETA) ;
-        if(order > CONSTANT_TIME_LINEAR)
-            vars.push_back(TIME_VARIABLE) ;
-        (*static_cast<TetrahedralElement *>(this)->shapefunc)[k].preCalculate(getGaussPoints(), vars) ;
-    }
-}
 
 // Function & ElementarySurface::getShapeFunction(size_t i)
 // {

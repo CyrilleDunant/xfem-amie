@@ -978,6 +978,7 @@ struct Differential {
 
 } ;
 
+struct DDtDD ;
 struct DoubleDifferential {
     const Function & f ;
     const Variable & v1 ;
@@ -986,6 +987,15 @@ struct DoubleDifferential {
     DoubleDifferential ( const Function & u, const Variable & v1_, const Variable & v2_ ) : f ( u ), v1 ( v1_ ), v2 ( v2_ ) { } ;
 
     DDtF operator* ( const Function & f ) const ;
+    DDtDD operator* (const DoubleDifferential & d) const ;
+} ;
+
+struct DDtDD{
+    const DoubleDifferential & d0 ;
+    const DoubleDifferential & d1 ;
+    
+    DDtDD( const DoubleDifferential & d0_, const DoubleDifferential & d1_) : d0(d0_), d1(d1_) { } ;
+
 } ;
 
 /** \brief Create a structure for the lazy evaluation of a Gradient

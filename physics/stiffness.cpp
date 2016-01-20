@@ -18,7 +18,7 @@
 #include <valarray>
 
 
-using namespace Amie ;
+namespace Amie {
 
 Stiffness::Stiffness(const Matrix & rig) : LinearForm(rig, false, false, rig.numRows()/3+1)
 {
@@ -187,4 +187,5 @@ Form * PseudoPlastic::getCopy() const
 
 }
 
+}
 

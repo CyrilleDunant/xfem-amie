@@ -1019,7 +1019,7 @@ public:
 };
 
 /** \brief Helper class used to compute geometry-geometry intersections*/
-class Segment final
+class Segment 
 {
 protected:
     Point f ;
