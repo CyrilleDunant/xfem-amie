@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 12/0/2016 at 13:56  */
+/* this is an auto-generated file created on 21/0/2016 at 12:25  */
 
 #ifndef __OBJECT_TRANSLATOR_H__
 #define __OBJECT_TRANSLATOR_H__
@@ -26,7 +26,7 @@ struct Object
     static void resetExternalMaterialLaw(ExternalMaterialLaw * target) ;
 
     // parsed from header file: ../elements/integrable_entity.h
-    static Form * getForm(std::string type, std::map<std::string, double> & values, std::map<std::string, LogCreepAccumulator*> & logcreepaccumulators, std::map<std::string, std::string> & strings, std::map<std::string, FractureCriterion*> & fracturecriterions, std::map<std::string, DamageModel*> & damagemodels, std::map<std::string, ExternalMaterialLawList*> & externalmateriallawlists) ;
+    static Form * getForm(std::string type, std::map<std::string, double> & values, std::map<std::string, std::string> & strings, std::map<std::string, ExternalMaterialLawList*> & externalmateriallawlists, std::map<std::string, FractureCriterion*> & fracturecriterions, std::map<std::string, DamageModel*> & damagemodels, std::map<std::string, LogCreepAccumulator*> & logcreepaccumulators) ;
     static bool isForm(std::string type) ;
     static void resetForm(Form * target) ;
 
@@ -66,7 +66,7 @@ struct Object
     static void resetEnrichmentManager(EnrichmentManager * target) ;
 
     // parsed from header file: ../geometry/sampler/sampler.h
-    static Sampler * getSampler(std::string type, std::map<std::string, Point> & points, std::map<std::string, double> & values, std::map<std::string, std::string> & strings) ;
+    static Sampler * getSampler(std::string type, std::map<std::string, std::string> & strings, std::map<std::string, Point> & points, std::map<std::string, double> & values) ;
     static bool isSampler(std::string type) ;
     static void resetSampler(Sampler * target) ;
 

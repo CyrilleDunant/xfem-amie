@@ -378,7 +378,7 @@ Pixel::~Pixel()
 bool Pixel::coOccur(const Geometry * const inc) const
 {
     std::vector<Point> bbox = inc->getBoundingBox() ;
-    Rectangle test((tl.getX()+br.getX())*.5, (tl.getY()+br.getY())*.5, tr.getX()-bl.getX(), tr.getY()-bl.getY()) ;
+    Rectangle test( tr.getX()-bl.getX(), tr.getY()-bl.getY(), (tl.getX()+br.getX())*.5, (tl.getY()+br.getY())*.5) ;
     bool ret = inc->in(tl)
                || inc->in(tr)
                || inc->in(br)
@@ -948,6 +948,10 @@ Grid::Grid(double sizeX, double sizeY, int div, const Point & center ) : x(sizeX
                                            y*(double)(j)/(double)lengthY+psize*.5+center.getY()-.5*y, psize) ;
         }
     }
+
+    x = psize*lengthX ;
+    y = psize*lengthY ;
+
 }
 
 std::vector<const Geometry *> Grid::coOccur(const Geometry * geo) const
@@ -966,7 +970,6 @@ std::vector<const Geometry *> Grid::coOccur(const Geometry * geo) const
     int endJ = std::min(endY/psize + 2, (double)lengthY);
 
 
-
     for(int i = startI ; i < endI ; i++)
     {
         for(int j = startJ ; j < endJ ; j++)
@@ -981,6 +984,7 @@ std::vector<const Geometry *> Grid::coOccur(const Geometry * geo) const
     std::stable_sort(ret.begin(), ret.end());
     auto e = std::unique(ret.begin(), ret.end()) ;
     ret.erase(e, ret.end()) ;
+
     return ret ;
 }
 
@@ -1048,7 +1052,9 @@ void Grid::forceAdd(const Geometry * inc)
 
 
     if(!done)
+    {
         pixels[0][0]->forceAdd(inc) ;
+    }
 }
 
 bool Grid::remove(const Geometry * inc)

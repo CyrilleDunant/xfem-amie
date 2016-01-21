@@ -738,6 +738,8 @@ public:
 
     void removeFeature ( Feature * f ) ;
 
+    void removeUnmeshedFeatures ( ) ;
+
     void addPoint ( Point * p ) ;
 
     void twineFeature ( CompositeFeature * const father, CompositeFeature * const f ) ;

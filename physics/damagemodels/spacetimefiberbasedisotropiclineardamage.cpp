@@ -61,6 +61,8 @@ Matrix SpaceTimeFiberBasedIsotropicLinearDamage::apply(const Matrix & m, const P
 {
 // return m;
 
+//    std::cout << residualStiffnessFraction << std::endl ;
+
     if(state.max() < POINT_TOLERANCE)
         return m ;
     if(fractured())

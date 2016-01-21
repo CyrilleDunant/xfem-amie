@@ -93,6 +93,8 @@ std::vector<Point> GradientSampler::sampleRectangleInnerSurface( const Rectangle
     bool in = true ;
     int index = 0 ;
     start += dir*next ;
+    std::default_random_engine generator(std::rand());
+    std::uniform_real_distribution< double > distribution(-randomize, randomize);
     while(in)
     {
         Line current( start, norm ) ;
@@ -112,7 +114,12 @@ std::vector<Point> GradientSampler::sampleRectangleInnerSurface( const Rectangle
                      Point test( localStart ) ;
                      geom->project( &test ) ;
                      if(dist(test, localStart) > localNext*0.5 )
-                         pts.push_back( localStart ) ;
+                     {
+                         test = localStart ;
+                         if(randomize > POINT_TOLERANCE) 
+                             test = localStart + Point( distribution(generator), distribution(generator) ) ;
+                         pts.push_back( test ) ;
+                     }
                      localNext = getLinearDensity( localStart ) / linearDensity ;
                      localStart += norm*(localNext*up) ;
                  }

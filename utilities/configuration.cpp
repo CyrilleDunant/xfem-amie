@@ -577,7 +577,7 @@ bool ConfigTreeItem::bindInput( std::vector<std::string> & callers, std::string 
                     else
                         found |= (flags[f] == flag) ;
                 }
-                if(!found)
+                if(found == invert)
                 {
                     std::cout << "flag " << flag << " not activated!" << std::endl ;
                     continue ;
@@ -812,7 +812,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, std::vector<Externa
              acc[ "accumulator" ] = Object::getLogCreepAccumulator( atype, values ) ;
     }
 
-    return Object::getForm( type, values, acc, strings, frac, dam, law ) ;
+    return Object::getForm( type, values, strings, law, frac, dam, acc ) ;
 }
 
 Vector ConfigTreeItem::readVectorFromFile() const
@@ -1081,7 +1081,7 @@ Sampler * ConfigTreeItem::getSampler() const
     }
 
     if( Object::isSampler(type) )
-       return Object::getSampler( type, points, values, strings ) ;
+       return Object::getSampler( type, strings, points, values ) ;
 
     return nullptr ;
 }

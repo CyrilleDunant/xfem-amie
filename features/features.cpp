@@ -1750,6 +1750,8 @@ void FeatureTree::sample()
             }
 
             std::cerr << count << " particles meshed" << std::endl ;
+
+            removeUnmeshedFeatures() ;
         }
         else if ( is3D() )
         {
@@ -1787,6 +1789,8 @@ void FeatureTree::sample()
             }
 
             std::cerr << "\r 3D features... sampling feature " << tree.size() << "/" << tree.size() << " ...done" << std::endl ;
+
+            removeUnmeshedFeatures() ;
         }
         
     }
@@ -2317,11 +2321,12 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
         for ( size_t i = 0 ; i < targetstmp.size() ; i++ )
         {
             const Feature * tmp = dynamic_cast<const Feature *> ( targetstmp[i] ) ;
-            if ( tmp->getLayer() == layer && ( (tmp->getBoundingPoints().size()  && tmp->getInPoints().size()) || tmp->isVirtualFeature || samplingRestriction < POINT_TOLERANCE ) )
+            if ( tmp->getLayer() == layer && ( (tmp->getBoundingPoints().size() > 0  && tmp->getInPoints().size() > 0) || tmp->isVirtualFeature || samplingRestriction < POINT_TOLERANCE ) )
             {
                 targets.push_back ( const_cast<Feature *> ( tmp ) ) ;
             }
         }
+
     }
     else
     {
@@ -2515,6 +2520,50 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
     return new VoidForm() ;
 
 }
+
+void FeatureTree::removeFeature ( Feature * f ) 
+{
+    std::vector<Feature *> all ;
+    all.insert( all.end(), tree.begin(), tree.end() ) ;
+
+    tree.resize(0) ;
+    tree.push_back( all[0] ) ;
+    for(size_t i = 1 ; i < all.size() ; i++)
+    {
+        if( all[i] != f )
+            tree.push_back( all[i] ) ;
+        else
+        {
+            if( is2D() ) { grid->remove( all[i] ) ; }
+            else if( is3D() ) { grid3d->remove( all[i] ) ; }
+        }
+    }
+
+}
+
+void FeatureTree::removeUnmeshedFeatures ( ) 
+{
+    if(tree[0]->getInPoints().size() == 0)
+        return ;
+
+    std::vector<Feature *> all ;
+    all.insert( all.end(), tree.begin(), tree.end() ) ;
+    tree.resize(0) ;
+    tree.push_back( all[0] ) ;
+
+    for(size_t i = 1 ; i < all.size() ; i++)
+    {
+        if(all[i] != tree[0] && !all[i]->isVirtualFeature && all[i]->getBoundingPoints().size() == 0 && all[i]->getInPoints().size() == 0 )
+        {
+            if( is2D() ) { grid->remove( all[i] ) ; }
+            else if( is3D() ) { grid3d->remove( all[i] ) ; }
+        }
+        else
+            tree.push_back( all[i] ) ;
+    }
+
+}
+
 
 Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>::iterator & t, int layer,  bool onlyUpdate ) const
 {
