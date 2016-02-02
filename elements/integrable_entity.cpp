@@ -44,6 +44,7 @@ size_t fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t bl
     case MECHANICAL_STRAIN_FIELD:
     case EFFECTIVE_STRESS_FIELD:
     case IMPOSED_STRESS_FIELD:    
+    case IMPOSED_STRAIN_FIELD:    
     case REAL_STRESS_FIELD:
     case NON_ENRICHED_STRAIN_FIELD:
     case NON_ENRICHED_STRAIN_RATE_FIELD:
@@ -1089,6 +1090,30 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         }
 
         ret = parent->getBehaviour()->getImposedStress ( *p_, parent ) ;
+
+        if ( cleanup )
+        {
+            delete vm ;
+        }
+        if(cleanupp)
+            delete p_ ;
+        return ;
+    }
+    case IMPOSED_STRAIN_FIELD:
+    {
+        if ( parent->getBehaviour()->getTensor ( *p_, parent ).numCols() != ret.size() )
+        {
+            ret = 0 ;
+            if ( cleanup )
+            {
+                delete vm ;
+            }
+            if(cleanupp)
+                delete p_ ;
+            return ;
+        }
+
+        ret = parent->getBehaviour()->getImposedStrain ( *p_, parent ) ;
 
         if ( cleanup )
         {

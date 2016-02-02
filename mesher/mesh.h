@@ -30,6 +30,7 @@
 #include "../elements/integrable_entity.h"
 #include "../elements/generalized_spacetime_viscoelastic_element_state.h"
 #include "../physics/dual_behaviour.h"
+#include "../physics/viscoelasticity.h"
 
 //     inline Vector operator*(const Vector &v , const Amie::Matrix &m ) ;
 //     inline Amie::MtV operator*(const Amie::Matrix& mm, const Vector& v) ;
@@ -1307,14 +1308,15 @@ public:
                 double sum = 0 ; 
                 strain.resize ( tsize, 0. ) ;
                 stress.resize ( tsize, 0. ) ;
+                Viscoelasticity * v = dynamic_cast<Viscoelasticity *>(e->getBehaviour()) ;
                 for ( int i = 0 ; i < tsize ; i++ ) {
-                        strain[i] = tmpstrain[i] ;
-                        if(f0 == MECHANICAL_STRAIN_FIELD || f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD || f1 == MECHANICAL_STRAIN_FIELD || f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD)
-                        {
-                            for(size_t j = 1 ; j < tmpstrain.size()/strain.size() ; j++)
-                                strain[i] -= tmpstrain[ j*tsize + i ] ;
-                        } 
-                    }
+                     strain[i] = tmpstrain[i] ;
+                     if( v->model >= MAXWELL && (f0 == MECHANICAL_STRAIN_FIELD || f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD || f1 == MECHANICAL_STRAIN_FIELD || f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD) )
+                          {
+                              for(size_t j = 1 ; j < tmpstrain.size()/strain.size() ; j++)
+                                  strain[i] -= tmpstrain[ j*tsize + i ] ;
+                          } 
+                     }
                 Point p ;
                 for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                 {

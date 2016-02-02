@@ -341,6 +341,40 @@ LinearInterpolatedMaterialLaw::LinearInterpolatedMaterialLaw(std::string out, st
 
 }
 
+LinearBiInterpolatedExternalMaterialLaw::LinearBiInterpolatedExternalMaterialLaw(std::string out, std::string datafile, std::string col, std::string colfile, std::string row, std::string rowfile, EMLOperation o, std::string args, char sep) : ExternalMaterialLaw(args, sep), input(std::make_pair(col, row)), output(out), op(o)
+{
+    Vector cols = ConfigTreeItem(nullptr,"column",colfile).readVectorFromFile() ;
+    Vector rows = ConfigTreeItem(nullptr,"row",rowfile).readVectorFromFile() ;
+
+    values = std::make_pair(cols, rows) ;
+
+    data.resize( values.first.size(), values.second.size() ) ;
+    data = 0. ;
+
+    std::fstream in(datafile) ;
+    if(!in.is_open())
+    {
+        std::cout << "file " << datafile << " doesn't exist!" << std::endl ;
+        exit(0) ;
+    }
+
+    double buffer ;
+
+    size_t i = 0 ;
+    size_t j = 0 ;
+    do {
+        in >> buffer ;
+        data[i][j] = buffer ; 
+        j++ ;
+        if(j == data.numCols())
+        {
+            i++ ;
+            j = 0 ;
+        }
+    } while(!in.eof() && i < data.numRows()) ;
+
+}
+
 LinearBiInterpolatedExternalMaterialLaw::LinearBiInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e, std::string out, std::pair<Vector, Vector> v, std::string file, EMLOperation o, std::string args, char sep) : ExternalMaterialLaw(args, sep), input(e), output(out), values(v), op(o)
 {
     data.resize( values.first.size(), values.second.size() ) ;
@@ -433,6 +467,7 @@ void LinearBiInterpolatedExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVi
     else
         y = s.get(input.second, defaultValues) ;
 
+
     double v = get(x,y) ;
 
     switch(op)
@@ -505,6 +540,8 @@ double LinearBiInterpolatedExternalMaterialLaw::get(double x, double y) const
         if(!at)
             coef = (x-values.first[i-1])/(values.first[i]-values.first[i-1]) ;
     }
+
+//    std::cout << x << "/" << y << "/" << index << "/" << coef << "   " ;
 
     for(size_t i = 0 ; i < current.size() ; i++)
     {

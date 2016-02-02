@@ -1022,6 +1022,22 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             delete vm ;
         return ;
     }
+    case IMPOSED_STRAIN_FIELD:
+    {
+        if ( parent->getBehaviour()->getTensor ( p_, parent ).numCols() != ret.size()*blocks )
+        {
+            ret = 0 ;
+            if ( cleanup )
+                delete vm ;
+            return ;
+        }
+
+        ret = parent->getBehaviour()->getImposedStrain ( p_, parent ) ;
+
+        if ( cleanup )
+            delete vm ;
+        return ;
+    }
     case GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD:
     {
 
@@ -1268,11 +1284,14 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     case MECHANICAL_STRAIN_FIELD:
     {
         getField( STRAIN_FIELD, p_, ret, true, vm ) ;
-        getField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, p_, generalizedBuffer, true, vm ) ;
-        for(size_t j = 1 ; j < generalizedBuffer.size() / ret.size() ; j++)
+        if(visco->model >= MAXWELL)
         {
-            for(size_t n = 0 ; n < ret.size() ; n++)
-                ret[n] -= generalizedBuffer[j*ret.size()+n] ;
+            getField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, p_, generalizedBuffer, true, vm ) ;
+            for(size_t j = 1 ; j < generalizedBuffer.size() / ret.size() ; j++)
+            {
+                for(size_t n = 0 ; n < ret.size() ; n++)
+                   ret[n] -= generalizedBuffer[j*ret.size()+n] ;
+            }
         }
         
         if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())

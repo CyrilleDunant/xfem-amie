@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 21/0/2016 at 12:25  */
+/* this is an auto-generated file created on 2/1/2016 at 10:19  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -56,6 +56,7 @@ namespace Amie
             return new EvalMaterialLaw(strings["output"], strings["function"], Enum::getEMLOperation(strings["operation"])) ;
         }
         if( type == "LinearInterpolated" ) { return new LinearInterpolatedMaterialLaw(strings["output"], strings["input"], strings["file_name"], Enum::getEMLOperation(strings["operation"])) ; }
+        if( type == "LinearBiInterpolatedExternal" ) { return new LinearBiInterpolatedExternalMaterialLaw(strings["output"], strings["file_name"], strings["column_name"], strings["column_file"], strings["row_name"], strings["row_file"], Enum::getEMLOperation(strings["operation"])) ; }
         if( type == "TimeDerivative" ) { return new TimeDerivativeMaterialLaw(strings["parameter"]) ; }
         if( type == "TimeIntegral" ) { return new TimeIntegralMaterialLaw(strings["parameter"]) ; }
         if( type == "Minimum" )
@@ -152,6 +153,7 @@ namespace Amie
         // parsed from header file: ../physics/material_laws/material_laws.h
         if( type == "Eval" ) { return true ; }
         if( type == "LinearInterpolated" ) { return true ; }
+        if( type == "LinearBiInterpolatedExternal" ) { return true ; }
         if( type == "TimeDerivative" ) { return true ; }
         if( type == "TimeIntegral" ) { return true ; }
         if( type == "Minimum" ) { return true ; }
@@ -872,6 +874,7 @@ namespace Amie
         if( type == "." ) { return new InclusionFamily(values["number"], values["radius_maximum"], values["surface"], particlesizedistributions["particle_size_distribution"], inclusiongenerators["geometry"]) ; }
         if( type == "Embedded" ) { return new EmbeddedInclusionFamily(values["number"], values["radius_maximum"], values["surface"], particlesizedistributions["particle_size_distribution"], inclusiongenerators["geometry"]) ; }
         if( type == "Masked" ) { return new MaskedInclusionFamily(values["number"], values["radius_maximum"], values["surface"], particlesizedistributions["particle_size_distribution"], inclusiongenerators["geometry"]) ; }
+        if( type == "Replacement" ) { return new ReplacementInclusionFamily(values["chance"]) ; }
         if( type == "Concentric" ) { return new ConcentricInclusionFamily(values["layer_width"]) ; }
         if( type == "Voronoi" )
         { 
@@ -898,6 +901,7 @@ namespace Amie
         if( type == "." ) { return true ; }
         if( type == "Embedded" ) { return true ; }
         if( type == "Masked" ) { return true ; }
+        if( type == "Replacement" ) { return true ; }
         if( type == "Concentric" ) { return true ; }
         if( type == "Voronoi" ) { return true ; }
         if( type == "FileDefinedCircle" ) { return true ; }

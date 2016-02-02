@@ -1339,6 +1339,8 @@ std::vector<Point> Circle::getSamplingBoundingPointsOnArc(size_t num_points, con
 
 std::vector<Point> Circle::sampleOuterShell(double linearDensity, double distance)
 {
+    if(getRadius()+distance < POINT_TOLERANCE)
+        return std::vector<Point>() ;
     Circle c( getRadius()+distance, getCenter() ) ;
     return c.getSamplingBoundingPoints(linearDensity) ;
 }

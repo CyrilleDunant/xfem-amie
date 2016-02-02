@@ -141,6 +141,16 @@ void InclusionFamily::setBehaviour( Form * behaviour, bool copy)
 		features[k]->setBehaviour( copy ? behaviour->getCopy() : behaviour ) ;
 }
 
+void InclusionFamily::setBehaviour( std::vector<Form *> behaviours, bool copy)
+{
+	std::default_random_engine generator(std::rand());
+	std::uniform_int_distribution< int > distribution(0, behaviours.size()-1);
+	int i = distribution(generator) ;
+	
+	for(size_t k = 0 ; k < features.size() ; k++)
+		features[k]->setBehaviour( copy ? behaviours[i]->getCopy() : behaviours[i] ) ;
+}
+
 void InclusionFamily::place( Rectangle * box, double spacing, size_t tries, size_t seed, std::vector<Geometry *> & placedFeatures )
 {
 	if(placed)
@@ -155,6 +165,17 @@ InclusionFamily * InclusionFamily::getFather()
 	if( brothers )
 		return brothers->father ;
 	return nullptr ;
+}
+
+void InclusionFamily::removeFeatures( std::vector<Feature *> feats )
+{
+	std::vector<Feature *> all = features ;
+	features.clear() ;
+	for(size_t i = 0 ; i < all.size() ; i++)
+	{
+		if( std::find( feats.begin(), feats.end(), all[i] ) == feats.end() )
+			features.push_back( all[i] ) ;
+	}
 }
 
 void InclusionFamily::addToFeatureTree(FeatureTree * f)
@@ -179,13 +200,13 @@ void InclusionFamily::addToFeatureTree(FeatureTree * f)
 
 		if( features[i]->getFather() != nullptr || keepNoFatherFeatures )
 		{
-			std::vector<Feature *> feats = f->getCoOccuringFeatures( features[i] ) ;
+/*			std::vector<Feature *> feats = f->getCoOccuringFeatures( features[i] ) ;
 			for(size_t j = 0 ; j < feats.size() ; j++)
 			{
 				if( this->inNeighbours( feats[j] ) )
 					continue ;
 
-				if( feats[j] != f->getFeature(0) && (feats[j]->intersects( features[i] ) || features[i]->in(feats[j]->getCenter()) || feats[j]->in(features[i]->getCenter()) ) && feats[j]->getFather() != features[i] )
+				if( feats[j] != f->getFeature(0) && (feats[j]->intersects( features[i] ) || features[i]->in(feats[j]->getCenter()) || feats[j]->in(features[i]->getCenter()) ) && (feats[j]->getFather() != features[i] && features[i]->getFather() != feats[j]) )
 				{
 					features[i]->addChild( feats[j] ) ;
 					if(feats[j]->getFather() == f->getFeature(0) || feats[j]->getFather() == nullptr)
@@ -194,17 +215,17 @@ void InclusionFamily::addToFeatureTree(FeatureTree * f)
 						f->getFeature(0)->removeChild( features[i] ) ;
 					}
 				}
-			}
+			}*/
 			added[i] = true ;
+			if( features[i]->getFather() != nullptr)
+				f->addFeature( features[i]->getFather(), features[i] ) ;
+			else if( keepNoFatherFeatures )
+				f->addFeature( f->getFeature(0), features[i] ) ;
+			if(factors > 0)
+				f->setSamplingFactor( features[i], factors ) ;
+			if(sampler != nullptr)
+				f->setSampler( features[i], sampler ) ;
 		}
-		if( features[i]->getFather() != nullptr)
-			f->addFeature( features[i]->getFather(), features[i] ) ;
-		else if( keepNoFatherFeatures )
-			f->addFeature( f->getFeature(0), features[i] ) ;
-		if(factors > 0)
-			f->setSamplingFactor( features[i], factors ) ;
-		if(sampler != nullptr)
-			f->setSampler( features[i], sampler ) ;
 	}
 }
 
@@ -263,6 +284,7 @@ void MaskedInclusionFamily::place( Rectangle * box, double spacing, size_t tries
 			{
 				features[j]->addToMask( father->features[k] ) ;
 				features[j]->setFather( father->features[k] ) ;
+                                father->features[k]->addChild( features[j] ) ;
 				found = false ;
 			}
 		}
@@ -270,9 +292,35 @@ void MaskedInclusionFamily::place( Rectangle * box, double spacing, size_t tries
 	placed = true ;
 }
 
+ReplacementInclusionFamily::ReplacementInclusionFamily( double c) : InclusionFamily(), chance(c)
+{
+	behaviour = new VoidForm() ;
+}
+
+void ReplacementInclusionFamily::place( Rectangle * box, double spacing, size_t tries, size_t seed, std::vector<Geometry *> & placedFeatures )
+{
+	InclusionFamily * father = getFather() ;
+	if(placed || father == nullptr)
+		return ;
+
+	std::default_random_engine generator(seed) ;
+	std::uniform_real_distribution<double> distribution( 0, 1. ) ;
+
+	for(size_t j = 0 ; j < father->size() ; j++)
+	{
+		if( distribution(generator) < chance )
+		{
+			features.push_back( father->features[j] ) ;
+			features[features.size() - 1]->setBehaviour( behaviour ) ;
+		}
+	}
+	father->removeFeatures( features ) ;
+	placed = true ;
+}
+
 ConcentricInclusionFamily::ConcentricInclusionFamily( double r) : InclusionFamily(), width(r)
 {
-
+	behaviour = new VoidForm() ;
 }
 
 void ConcentricInclusionFamily::place( Rectangle * box, double spacing, size_t tries, size_t seed, std::vector<Geometry *> & placedFeatures )
@@ -286,6 +334,8 @@ void ConcentricInclusionFamily::place( Rectangle * box, double spacing, size_t t
 		if(father->features[j]->getRadius() > width && dynamic_cast<Inclusion *>(father->features[j]) )
 			features.push_back( new Inclusion( father->features[j], father->features[j]->getRadius() - width, father->features[j]->getCenter() ) ) ;
 	}
+	for(size_t j = 0 ; j < features.size() ; j++)
+		features[j]->setBehaviour( behaviour ) ;
 	placed = true ;
 }
 

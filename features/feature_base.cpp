@@ -284,8 +284,13 @@ std::vector<Feature *> Feature::getDescendants() const
 
         for(size_t i = 0 ; i< childrenToCheck.size() ; i++)
         {
+            if( std::find( ret.begin(), ret.end(), childrenToCheck[i]) != ret.end() )
+                continue ;
             ret.push_back(childrenToCheck[i]) ;
-            newChildren.insert(newChildren.end(), childrenToCheck[i]->getChildren().begin(), childrenToCheck[i]->getChildren().end()) ;
+            if(childrenToCheck[i]->getChildren().size() > 0)
+            {
+                newChildren.insert(newChildren.end(), childrenToCheck[i]->getChildren().begin(), childrenToCheck[i]->getChildren().end()) ;
+            }
         }
 
         childrenToCheck = newChildren ;

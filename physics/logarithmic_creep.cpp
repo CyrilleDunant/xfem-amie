@@ -187,6 +187,7 @@ Vector LogarithmicCreepWithImposedDeformation::getImposedStrain(const Point & p,
         				p_ = e->getGaussPoints().gaussPoints[g].first ;
         			return prevImposed*VirtualMachine().eval(f1, p_) + imposed*VirtualMachine().eval(f2, p_) ;
         		}*/
+//        std::cout << imposed[0]*(p.getT()+1)*0.5 + prevImposed[0]*(1-p.getT())*0.5 << std::endl ;
 	return imposed*(p.getT()+1)*0.5 + prevImposed*(1-p.getT())*0.5 ;
     }
     return Vector(0., C.numCols()) ;

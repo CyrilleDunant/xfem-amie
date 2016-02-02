@@ -741,7 +741,13 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw()
         strings["function"] = str ;
 
     for(size_t i = 0 ; i < children.size() ; i++)
-        values[ children[i]->getLabel() ] = children[i]->getData() ;
+    {
+        if( children[i]->getStringData().length() == 0)
+            values[ children[i]->getLabel() ] = children[i]->getData() ;
+        else
+            strings[ children[i]->getLabel() ] = children[i]->getStringData() ;
+    }
+
 
     return Object::getExternalMaterialLaw( type, strings, stringlists, values ) ;
 }
@@ -962,7 +968,18 @@ InclusionFamilyTree * ConfigTreeItem::makeInclusionFamilyTree( FeatureTree * F, 
 
         InclusionFamily * inc = getInclusionFamily() ;
         if(hasChild("behaviour"))
-            inc->setBehaviour( getChild("behaviour")->getBehaviour( dim ), getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
+        {
+            std::vector<ConfigTreeItem *> forms = getAllChildren("behaviour") ;
+            if(forms.size() == 1)
+                inc->setBehaviour( getChild("behaviour")->getBehaviour( dim ), getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
+            else
+            {
+                std::vector<Form *> behaviours ;
+                for(size_t i = 0 ; i < forms.size() ; i++)
+                    behaviours.push_back( forms[i]->getBehaviour( dim ) ) ;
+                inc->setBehaviour( behaviours, getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
+            }
+        }
 	tree->insert( inc ) ;
         tree->place( placement, getData("placement.spacing", 0), getData("placement.tries", 1000), getData("placement.random_seed", 1) ) ;
         if( hasChild("sampling_factor" ) )

@@ -20,6 +20,7 @@ struct InclusionFamilyTree
 	std::vector<size_t> getAllVoronoiFamilies() ;
 	void place( Rectangle * box, double spacing, size_t tries, size_t seed ) ;
 	void concatenate() ;
+	void divide( InclusionFamily * bro ) ;
 	std::vector<Geometry *> getFeaturesAsGeometry(size_t index) ;
 } ;
 
@@ -51,7 +52,9 @@ struct InclusionFamily
 	std::vector<Geometry *> getFeaturesAsGeometry() ;
 	std::vector<Feature *> getAddedFeatures() ;
 	size_t size() const { return features.size() ; }
+	void removeFeatures( std::vector<Feature *> feats ) ;
 	virtual void setBehaviour( Form * behaviour, bool copy = false) ;
+	virtual void setBehaviour( std::vector<Form *> behaviours, bool copy = false) ;
 	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed, std::vector<Geometry *> & placedFeatures ) ;
 	virtual void addToFeatureTree( FeatureTree * f) ;
 	void setSamplingFactor(double f, Sampler * s = nullptr) { factors = f ; sampler = s ; }
@@ -86,16 +89,33 @@ struct MaskedInclusionFamily : public InclusionFamily
 	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed, std::vector<Geometry *> & placed ) ;
 } ;
 
+/*PARSE Replacement InclusionFamily 
+    @value[chance] // random chance for the replacement to occur (use > 1 for all)
+*/
+struct ReplacementInclusionFamily : public InclusionFamily
+{
+	double chance ;
+	Form * behaviour ;
+
+	ReplacementInclusionFamily( double c ) ;
+
+	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed, std::vector<Geometry *> & placed ) ;
+	virtual void setBehaviour( Form * b, bool copy = false) { behaviour = b ; }
+} ;
+
+
 /*PARSE Concentric InclusionFamily 
     @value[layer_width] // width of the layer between the different inclusions
 */
 struct ConcentricInclusionFamily : public InclusionFamily
 {
 	size_t width ;
+	Form * behaviour ;
 
 	ConcentricInclusionFamily( double width ) ;
 
 	virtual void place( Rectangle * box, double spacing, size_t tries, size_t seed, std::vector<Geometry *> & placed ) ;
+	virtual void setBehaviour( Form * b, bool copy = false) { behaviour = b ; }
 } ;
 
 /*PARSE Voronoi InclusionFamily 

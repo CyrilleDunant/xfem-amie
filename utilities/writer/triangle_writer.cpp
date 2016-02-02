@@ -1539,6 +1539,8 @@ std::string nameOfField(FieldType field)
         return std::string("Stress") ;
     case REAL_STRESS_FIELD :
         return std::string("Stress") ;
+    case IMPOSED_STRAIN_FIELD :
+        return std::string("Imposed Strain") ;
     case IMPOSED_STRESS_FIELD :
         return std::string("Imposed Stress") ;
     case PRINCIPAL_STRAIN_FIELD :
@@ -1624,6 +1626,8 @@ int numberOfFields( FieldType field )
     case STRAIN_RATE_FIELD :
         return 9 ;
     case EFFECTIVE_STRESS_FIELD :
+        return 9 ;
+    case IMPOSED_STRAIN_FIELD :
         return 9 ;
     case IMPOSED_STRESS_FIELD :
         return 9 ;

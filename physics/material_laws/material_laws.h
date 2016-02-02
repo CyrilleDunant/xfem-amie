@@ -175,6 +175,15 @@ struct LinearInterpolatedMaterialLaw : public ExternalMaterialLaw
  * "data" is the table of output values at each pair of input variable
  * The interpolation does not extrapolate outside the given bounds: the bounding values are used instead
  */
+/*PARSE LinearBiInterpolatedExternal ExternalMaterialLaw
+    @string[output] // output parameter
+    @string[file_name] // table were the data is stored
+    @string[column_name] // parameter to use as columns
+    @string[column_file] // file where the values of the columns are stored
+    @string[row_name] // parameter to use as rows
+    @string[row_file] // file where the values of the rows are stored
+    @string<EMLOperation>[operation] // operation to apply
+*/
 struct LinearBiInterpolatedExternalMaterialLaw : public ExternalMaterialLaw
 {
     std::pair<std::string, std::string> input ;
@@ -185,6 +194,7 @@ struct LinearBiInterpolatedExternalMaterialLaw : public ExternalMaterialLaw
 
     LinearBiInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e, std::string out, std::pair<Vector, Vector> v, Matrix & dat, EMLOperation o = SET, std::string args = std::string(), char sep = ',' ) : ExternalMaterialLaw(args, sep), input(e), output(out), values(v), data(dat), op(o) { }
     LinearBiInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e, std::string out, std::pair<Vector, Vector> v, std::string datafile, EMLOperation o = SET, std::string args = std::string(), char sep = ',' ) ;
+    LinearBiInterpolatedExternalMaterialLaw(std::string out, std::string datafile, std::string col, std::string colfile, std::string row, std::string rowfile, EMLOperation o = SET, std::string args = std::string(), char sep = ',' ) ;
     virtual ~LinearBiInterpolatedExternalMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;

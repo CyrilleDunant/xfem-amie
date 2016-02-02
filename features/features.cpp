@@ -477,8 +477,6 @@ void FeatureTree::addFeature ( Feature *father, Feature *f, int layer, double fr
     }
 
     this->tree.push_back ( f ) ;
-
-
 }
 
 void FeatureTree::addManager ( EnrichmentManager * fm)
@@ -2344,7 +2342,6 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
 
     if ( !targets.empty() )
     {
-
         for ( int i = targets.size() - 1 ; i >= 0  ; i-- )
         {
             if ( !targets[i]->isEnrichmentFeature && targets[i]->in( t->getCenter() ) && targets[i]->inMask( t->getCenter(), 0. ) && ( !onlyUpdate || (onlyUpdate && targets[i]->isUpdated) ) )
@@ -7408,14 +7405,17 @@ void FeatureTree::generateElements()
         }
     }
 
+
     for ( size_t i  = 0 ; i < tree.size() ; i++ )
     {
         std::cerr << "\r getting mesh points... feature " << i << "/" << tree.size() << std::flush ;
+
 
         if ( !tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature && tree[i]->getInPoints().size() )
         {
             std::vector<Feature *> descendants = tree[i]->getDescendants() ;
             std::stable_sort ( descendants.begin(), descendants.end() ) ;
+
 
             for ( size_t j  =  0 ; j <  tree[i]->getBoundingPoints().size() ; j++ )
             {
@@ -7565,6 +7565,7 @@ void FeatureTree::generateElements()
                     }
                 }
             }
+
 
             for ( size_t j  =  0 ; j <  tree[i]->getInPoints().size() ; j++ )
             {
@@ -7868,8 +7869,6 @@ void FeatureTree::generateElements()
                     }
                 }
             }
-
-
 
         }
     }
