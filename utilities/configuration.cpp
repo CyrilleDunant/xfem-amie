@@ -738,7 +738,9 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw()
     else if( Object::isExternalMaterialLaw(str))
         type = str ;
     if(type == "Eval")
+    {
         strings["function"] = str ;
+    }
 
     for(size_t i = 0 ; i < children.size() ; i++)
     {

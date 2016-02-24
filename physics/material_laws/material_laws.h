@@ -119,7 +119,7 @@ struct AssignExternalMaterialLaw: public ExternalMaterialLaw
 struct EvalMaterialLaw: public SpaceTimeDependentExternalMaterialLaw
 {
     std::map<char, std::string> coordinates ;
-    bool useSpaceTimeCoordinates ;
+    bool useSpaceTimeCoordinates = true ;
     EvalMaterialLaw( std::string e, const char *f_, EMLOperation a = SET, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_,a, args, sep), useSpaceTimeCoordinates(u) { }
     EvalMaterialLaw( std::string e, Function & f_, EMLOperation a = SET, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_, a, args, sep), useSpaceTimeCoordinates(u) { }
     EvalMaterialLaw( std::string e, const char *f_, std::map<char, std::string> c, EMLOperation a = SET, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_, a, args, sep), coordinates(c),useSpaceTimeCoordinates(u) { }
