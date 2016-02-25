@@ -811,12 +811,15 @@ ConfigTreeItem * CommandLineParser::parseCommandLine( int argc, char *argv[], st
 	return input ;
 }
 
-void CommandLineParser::sendEmail( std::string subject, std::string body)
+void CommandLineParser::sendEmail( std::string subject, std::string body, std::string attachment)
 {
 	if( strings["--send-email"].find("@") == std::string::npos)
 		std::cerr << "improper email address, can't send email to "+strings["--send-email"] << std::endl ;
 
-	std::string command = "echo \""+body+"\" > amie_message.tmp & mail -s \""+subject+"\" "+strings["--send-email"]+" < amie_message.tmp" ;
+	std::string command = "echo \""+body+"\" > .amie_message.tmp & mail -s \""+subject+"\" " ;
+	if(attachment.length() > 0)
+		command += "-a " + attachment + " ";
+	command += strings["--send-email"]+" < .amie_message.tmp" ;
 
 	std::system(command.c_str()) ;
 }

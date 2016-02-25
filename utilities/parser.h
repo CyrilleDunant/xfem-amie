@@ -85,7 +85,7 @@ public:
 	std::map<std::string, std::string> getDirectConfiguration() { return directConfig ; }
 
 	void setNumThreads(int n) ;
-	void sendEmail( std::string subject, std::string body ) ;
+	void sendEmail( std::string subject, std::string body, std::string attachment = std::string() ) ;
 
 	void printStatus() ;
 	void printHelp() ;
