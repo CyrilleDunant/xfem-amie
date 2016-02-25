@@ -45,6 +45,7 @@ protected:
 	std::map<std::string, std::string> aliases ;
 	std::vector<std::string> parsed ;
 	std::string command ;
+	std::string commandLine ;
 	std::string description ;
 
 	bool commandLineConfiguration ;
@@ -78,11 +79,13 @@ public:
 	ConfigTreeItem * parseConfigFile( std::string file, bool priority = false ) ;
 
 	std::vector<std::string> getActiveFlags() ;
+	std::string getCommandLine() const { return commandLine ; }
 
 	ConfigTreeItem * getLocalConfiguration() { return config ; }
 	std::map<std::string, std::string> getDirectConfiguration() { return directConfig ; }
 
 	void setNumThreads(int n) ;
+	void sendEmail( std::string subject, std::string body ) ;
 
 	void printStatus() ;
 	void printHelp() ;

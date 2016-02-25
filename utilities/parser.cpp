@@ -660,6 +660,7 @@ CommandLineParser::CommandLineParser(std::string d, bool c, bool f) : descriptio
     addValue(std::string("--set-surface-sampling-factor"), -1, std::string("increases the number of points on boundaries")) ;
     addString(std::string("--set-order"), std::string(), std::string("set the order of the finite elements"), "-O") ;
     addString(std::string("--input-file"), std::string(), std::string("path to a *.ini file containing the problem description"), "-i") ;
+    addString(std::string("--send-email"), std::string(), std::string("email address to send system messages"), "-m") ;
 }
 
 void CommandLineParser::setFeatureTree( FeatureTree * f, int argc, char *argv[], std::string description ) 
@@ -709,7 +710,12 @@ ConfigTreeItem * CommandLineParser::parseConfigFile( std::string file, bool prio
 ConfigTreeItem * CommandLineParser::parseCommandLine( int argc, char *argv[], std::vector<std::string> sargs )
 {
 	if(argv != nullptr)
+	{
 		command = std::string(argv[0]) ;
+		commandLine = "";
+		for(int i = 0 ; i < argc ; i++)
+			commandLine += std::string(argv[i])+"  " ;
+	}
 
 	config = nullptr ;
 	size_t i = 1 ;
@@ -797,7 +803,22 @@ ConfigTreeItem * CommandLineParser::parseCommandLine( int argc, char *argv[], st
 		parseConfigFile( strings["--input-file"], false ) ;
 	}
 
+	if(argv != nullptr && strings["--send-email"].find("@") != std::string::npos)
+	{
+		sendEmail( "AMIE - Execution started", commandLine ) ;
+	}
+
 	return input ;
+}
+
+void CommandLineParser::sendEmail( std::string subject, std::string body)
+{
+	if( strings["--send-email"].find("@") == std::string::npos)
+		std::cerr << "improper email address, can't send email to "+strings["--send-email"] << std::endl ;
+
+	std::string command = "echo \""+body+"\" > amie_message.tmp & mail -s \""+subject+"\" "+strings["--send-email"]+" < amie_message.tmp" ;
+
+	std::system(command.c_str()) ;
 }
 
 void CommandLineParser::setNumThreads( int n )
