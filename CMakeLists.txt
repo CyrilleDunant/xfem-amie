@@ -483,9 +483,6 @@ target_link_libraries( test/stxfem Amie ${ALL_LINK_FLAGS})
 add_executable( test/time_continuity EXCLUDE_FROM_ALL examples/test/main_test_time_continuity.cpp )
 target_link_libraries( test/time_continuity Amie ${ALL_LINK_FLAGS})
 
-add_executable( test/weibull EXCLUDE_FROM_ALL examples/test/main_test_weibull.cpp )
-target_link_libraries( test/weibull Amie ${ALL_LINK_FLAGS})
-
 ADD_CUSTOM_TARGET(unitTests)
 ADD_DEPENDENCIES(unitTests 
 check_test 
@@ -499,7 +496,6 @@ test/viscodamage_multilinearsoftening
 test/viscoelasticity_imposed_deformation 
 test/viscoelasticity_kv 
 test/xfem 
-test/weibull
 )
 
 # mesh
@@ -600,6 +596,9 @@ target_link_libraries( mesh/sample Amie ${ALL_LINK_FLAGS})
 add_executable( mesh/sample_gradient EXCLUDE_FROM_ALL examples/mesh/main_mesh_sample_gradient.cpp )
 target_link_libraries( mesh/sample_gradient Amie ${ALL_LINK_FLAGS})
 
+add_executable( mesh/sample_weibull EXCLUDE_FROM_ALL examples/mesh/main_mesh_sample_weibull.cpp )
+target_link_libraries( mesh/sample_weibull Amie ${ALL_LINK_FLAGS})
+
 ADD_CUSTOM_TARGET(meshTests)
 ADD_DEPENDENCIES(meshTests 
 check_mesh 
@@ -634,6 +633,7 @@ mesh/polygon_sample_edge
 mesh/polygon_sample_intersection
 mesh/sample
 mesh/sample_gradient
+mesh/sample_weibull
 )
 
 if(EXISTS ${CMAKE_SOURCE_DIR}/local.cmake )

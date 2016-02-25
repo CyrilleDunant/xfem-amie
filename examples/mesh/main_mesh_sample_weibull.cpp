@@ -9,6 +9,7 @@
 #include "../../physics/stiffness.h"
 #include "../../features/sample.h"
 #include "../../utilities/parser.h"
+#include "../../utilities/writer/triangle_writer.h"
 
 #include <fstream>
 #ifdef HAVE_OPENMP
@@ -27,13 +28,12 @@ int main(int argc, char *argv[])
 {
 	CommandLineParser parser("Test the randomness of a weibull-distributed stiffness") ;
 	parser.addFlag("--renew-base", "renew the base of results") ;
-	parser.addString("--output-directory","../examples/test/","directory where the results are stored", "-D") ;
+	parser.addString("--output-directory","../examples/mesh/","directory where the results are stored", "-D") ;
 	parser.addValue("--seed", 1, "random seed") ;
 	parser.parseCommandLine(argc, argv) ;
 	bool renew = parser.getFlag("--renew-base") ;
 	std::srand( parser.getValue("--seed") ) ;
 	std::string outdir = parser.getString("--output-directory") ;
-
 
         Sample rect(nullptr, 0.04,0.04,0,0) ;
 	rect.setBehaviour(new WeibullDistributedElasticStiffness(20e9, 0.2, 0.2) ) ;
@@ -41,6 +41,8 @@ int main(int argc, char *argv[])
 	FeatureTree f(&rect) ;
 	f.setSamplingNumber(64) ;
         f.setDeltaTime(1) ;
+
+	parser.setFeatureTree(&f) ;
 	
 	f.step() ;
 
@@ -71,9 +73,9 @@ int main(int argc, char *argv[])
 
 	std::ofstream out ;
 	if(renew)
-		out.open(outdir+"/test_weibull_base", std::ios::out) ;
+		out.open(outdir+"/test_sample_weibull_base", std::ios::out) ;
 	else
-		out.open(outdir+"/test_weibull_current", std::ios::out) ;
+		out.open(outdir+"/test_sample_weibull_current", std::ios::out) ;
 
 
 	out << min << "\t" << max << std::endl ;
@@ -91,6 +93,17 @@ int main(int argc, char *argv[])
 
 	for(size_t j = 0 ; j < histogram.size() ; j++)
 		out << 16e9+j*1e9 << "\t" << histogram[j]/total << std::endl ;
+
+
+	std::string name = outdir+"/mesh_sample_weibull_" ;
+	if(renew)
+		name += "base" ;
+	else
+		name += "current" ;
+
+	TriangleWriter writer( name.c_str(), &f, 1. ) ;
+	writer.getField( TWFT_STIFFNESS ) ;
+	writer.write() ;
 
 	return 0 ;
 }
