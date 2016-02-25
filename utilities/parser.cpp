@@ -814,14 +814,17 @@ ConfigTreeItem * CommandLineParser::parseCommandLine( int argc, char *argv[], st
 void CommandLineParser::sendEmail( std::string subject, std::string body, std::string attachment)
 {
 	if( strings["--send-email"].find("@") == std::string::npos)
+	{
 		std::cerr << "improper email address, can't send email to "+strings["--send-email"] << std::endl ;
+		return ;
+	}
 
-	std::string command = "echo \""+body+"\" > .amie_message.tmp & mail -s \""+subject+"\" " ;
+	std::string mail = "echo \""+body+"\" > .amie_message.tmp & mail -s \""+subject+"\" " ;
 	if(attachment.length() > 0)
-		command += "-a " + attachment + " ";
-	command += strings["--send-email"]+" < .amie_message.tmp" ;
+		mail += "-a " + attachment + " ";
+	mail += strings["--send-email"]+" < .amie_message.tmp" ;
 
-	std::system(command.c_str()) ;
+	std::system(mail.c_str()) ;
 }
 
 void CommandLineParser::setNumThreads( int n )
