@@ -109,6 +109,30 @@ namespace Amie
 
         virtual Vector postProcess( FeatureTree * F ) ;
     } ;
+
+/*PARSE ProfileField PostProcessor
+        @string[field] // name of the field to consider
+        @value[x1] // X-coordinate of the first point in the line
+        @value[y1] // Y-coordinate of the first point in the line
+        @value[x2] // X-coordinate of the last point in the line
+        @value[y2] // Y-coordinate of the last point in the line
+        @value[divisions] 10 // number of points where the value is captured
+        @value[instant] 1 // instant at which the values are captured
+*/
+    struct ProfileFieldPostProcessor : public FieldPostProcessor
+    {
+        Point start ;
+        Point end ;
+        size_t div ;
+        std::vector<PostProcessor *> gauges ;
+
+        ProfileFieldPostProcessor( std::string var, double x1, double y1, double x2, double y2, size_t d = 10, double t = 0) : FieldPostProcessor( var, -1, t ), start(x1,y1), end(x2,y2), div(d) { } ;
+        ProfileFieldPostProcessor( FieldType f, double x1, double y1, double x2, double y2, size_t d = 10, double t = 0) : FieldPostProcessor( f, -1, t ), start(x1,y1), end(x2,y2), div(d) { } ;
+        
+        virtual Vector postProcess( FeatureTree * F ) ;
+
+        PostProcessor * getPostProcessor(size_t i) ;
+    } ;
  
 /*PARSE LinearStrainGauge PostProcessor
         @value[x1] // X-coordinate of the first anchor point 

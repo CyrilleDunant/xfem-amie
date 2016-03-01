@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 29/1/2016 at 12:39  */
+/* this is an auto-generated file created on 1/2/2016 at 16:1  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -1029,6 +1029,12 @@ namespace Amie
             if( values.find("instant") == values.end() ) { values["instant"] = 1 ; } ; 
             return new LocalFieldPostProcessor(strings["field"], values["x"], values["y"], values["instant"]) ;
         }
+        if( type == "ProfileField" )
+        { 
+            if( values.find("divisions") == values.end() ) { values["divisions"] = 10 ; } ; 
+            if( values.find("instant") == values.end() ) { values["instant"] = 1 ; } ; 
+            return new ProfileFieldPostProcessor(strings["field"], values["x1"], values["y1"], values["x2"], values["y2"], values["divisions"], values["instant"]) ;
+        }
         if( type == "LinearStrainGauge" )
         { 
             if( values.find("instant") == values.end() ) { values["instant"] = 1 ; } ; 
@@ -1057,6 +1063,7 @@ namespace Amie
         if( type == "MinimumField" ) { return true ; }
         if( type == "MaximumField" ) { return true ; }
         if( type == "LocalField" ) { return true ; }
+        if( type == "ProfileField" ) { return true ; }
         if( type == "LinearStrainGauge" ) { return true ; }
         if( type == "MacroscopicStrain" ) { return true ; }
         if( type == "MaximumMacroscopicStrain" ) { return true ; }

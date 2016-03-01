@@ -154,10 +154,11 @@ Vector LocalFieldPostProcessor::postProcess( FeatureTree * F )
     if( trg == nullptr )
     {
         std::vector<DelaunayTriangle *> candidates = F->get2DMesh()->getConflictingElements( &p ) ;
+	if(candidates.size() > 0) { trg = candidates[0] ; }
         for(size_t i = 0 ; i < candidates.size() ; i++)
         {
             if(candidates[i]->in(p)) { trg = candidates[i] ; }
-        } 
+        }
     }
     
     Vector ret(0) ;
@@ -176,6 +177,39 @@ Vector LocalFieldPostProcessor::postProcess( FeatureTree * F )
     if(! state->has( variable )) { return ret ; } 
     ret[0] = state->get( variable, dummy ) ; 
     return ret ;
+}
+
+PostProcessor * ProfileFieldPostProcessor::getPostProcessor(size_t i) 
+{
+    Point p = start ;
+    if(i >= div) { p = end ; }
+    else if(i > 0) { p = start + (end-start)*((double) i)/((double) div ) ; }
+    if(variable.length() == 0)
+        return new LocalFieldPostProcessor( field, p.x, p.y, instant ) ;
+    else
+        return new LocalFieldPostProcessor( variable, p.x, p.y, instant ) ;
+    return new DoNothingPostProcessor() ;
+}
+
+Vector ProfileFieldPostProcessor::postProcess( FeatureTree * F )
+{
+    if(gauges.size() == 0)
+    {
+        for(size_t i = 0 ; i < div+1 ; i++)
+            gauges.push_back( getPostProcessor(i) ) ;
+    }
+
+    std::vector<double> tmp ;
+    for(size_t i = 0 ; i < gauges.size() ; i++)
+    {
+        Vector v = gauges[i]->postProcess(F) ;
+        for(size_t j = 0 ; j < v.size() ; j++)
+            tmp.push_back(v[j]) ;
+    }
+    Vector ret(tmp.size()) ; ret = 0 ;
+    for(size_t j = 0 ; j < tmp.size() ; j++)
+        ret[j] = tmp[j] ;
+    return ret ;    
 }
 
 Vector LinearStrainGaugePostProcessor::postProcess( FeatureTree * F ) 
