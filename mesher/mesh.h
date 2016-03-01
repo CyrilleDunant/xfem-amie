@@ -55,6 +55,7 @@ public:
     virtual std::vector<int> & getCache ( int cacheID ) {
         return caches[cacheID] ;
     } ;
+    int getAllElementsCacheID() const { return allElementsCacheID ; }
     virtual int addToTree ( EABSTRACTTYPE * toAdd ) = 0 ;
     virtual EABSTRACTTYPE * getInTree ( int index ) const = 0 ;
     virtual std::vector<Point * > & getAdditionalPoints() = 0 ;

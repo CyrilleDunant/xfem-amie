@@ -22,6 +22,7 @@
 #include "../physics/finite_difference_viscoelasticity.h"
 #include "matrixops.h"
 #include "granulo.h"
+#include "postprocessor.h"
 #include "inclusion_family.h"
 #include "writer/triangle_writer.h"
 
@@ -219,6 +220,10 @@ public:
 
     /** Translates the current item in a boundary condition*/
     BoundaryCondition * getBoundaryCondition(FeatureTree * f) const ;
+
+    PostProcessor * getPostProcessor(double t = 1, std::vector<unsigned int> index = std::vector<unsigned int>()) const ;
+
+    std::vector<PostProcessor *> getAllPostProcessors(std::vector<unsigned int> index = std::vector<unsigned int>()) const ;
 
     Point getPoint(Point def = Point(0,0,0,0)) ;
 

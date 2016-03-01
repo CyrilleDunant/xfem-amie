@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 	while((dirp = readdir(dp)) != NULL)
 	{
 		std::string test = dirp->d_name ;
-		if(test.find(".cpp") == test.size()-4 )
+		if(test.find(".cpp") == test.size()-4 && test.find("main_") == 0)
 		{
 			test.erase(test.begin(), test.begin()+5) ;
 			test.erase(test.end()-4, test.end()) ;
@@ -219,11 +219,17 @@ int main(int argc, char *argv[])
 		std::system(rm.c_str()) ;
 	}
 
+	int succeeded = 0 ;
+	int failed = 0 ;
+	int timedout = 0 ;
+	int skipped = 0 ;
+
 	for(size_t i = 0 ; i < exec.size() && cpp ; i++)
 	{
 		if(isDeprecated(files[i]))
 		{
 			std::cout << exec[i] << Font(BOLD, BLUE) << " skipped" << Font() <<  std::endl ;
+			skipped++ ;
 			continue ;
 		}
 
@@ -247,13 +253,25 @@ int main(int argc, char *argv[])
 		{
 			int delta = getDelta( basedir+"/"+files[i]+"_base", outdir+"/"+files[i]+"_current", tol, thr) ;
 			if(delta == 0 && r == 0)
+			{
+				succeeded++ ;
 				std::cout << Font(BOLD, GREEN) << " SUCCESS" << Font() << std::endl ;
+			}
 			else if( r == 0 && delta > 0)
+			{
+				failed++ ;
 				std::cout << Font(BOLD, RED) << " FAIL " << Font() << delta << " error(s) found" << std::endl ;
+			}
 			else if( r == 0 && delta < 0)
+			{
+				timedout++ ;
 				std::cout << Font(BOLD, RED) << " FAIL " << Font() << Font(BLUE) << "file not found: " << outdir+"/"+files[i] + (r==-1 ? "_base" : "_current") << Font() <<  std::endl ;
+			}
 			else
+			{
+				failed++ ;
 				std::cout << Font(BOLD, RED) << " FAIL " << Font() << "return value " << r << std::endl ;
+			}
 		}
 		else
 		{
@@ -286,13 +304,25 @@ int main(int argc, char *argv[])
 			std::string name = inis[i].substr(0,inis[i].length()-4) ;
 			int delta = getDelta( basedir+"/check_behaviour_"+name+"_base", outdir+"/check_behaviour_"+name+"_current", tol, thr) ;
 			if(delta == 0 && r == 0)
+			{
+				succeeded++ ;
 				std::cout << Font(BOLD, GREEN) << " SUCCESS" << Font() << std::endl ;
+			}
 			else if( r == 0 && delta > 0)
+			{
+				failed++ ;
 				std::cout << Font(BOLD, RED) << " FAIL " << Font() << delta << " error(s) found" << std::endl ;
+			}
 			else if( r == 0 && delta < 0)
+			{
+				timedout++ ;
 				std::cout << Font(BOLD, RED) << " FAIL " << Font() << Font(BLUE) << "file not found: " << outdir+"/"+files[i] + (r==-1 ? "_base" : "_current") << Font() <<  std::endl ;
+			}
 			else
+			{
+				failed++ ;
 				std::cout << Font(BOLD, RED) << " FAIL " << Font() << "return value " << r << std::endl ;
+			}
 		}
 		else
 		{
@@ -304,6 +334,13 @@ int main(int argc, char *argv[])
 
 
 	}
+
+	std::cout << Font(BOLD) << succeeded+failed+timedout+skipped << " tests run: " << succeeded << " SUCCESS; " << Font() << skipped << " SKIPPED; " ;
+	if( failed+timedout > 0 )
+	{
+		std::cout << Font(BOLD, RED) ;
+	}
+	std::cout << failed+timedout << " FAILED (including " << timedout << " interrupted)" << Font() << std::endl ;
 
 	return 0 ;
 }

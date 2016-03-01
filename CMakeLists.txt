@@ -196,6 +196,7 @@ utilities/pid.cpp
 utilities/itoa.cpp
 utilities/placement.cpp
 utilities/behaviour_converter.cpp
+utilities/postprocessor.cpp
 utilities/samplingcriterion.cpp
 features/microstructuregenerator.cpp
 utilities/writer/triangle_writer.cpp
@@ -640,6 +641,6 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/local.cmake )
     message( STATUS "found local.cmake" )
     include(local.cmake)
 else()
-    message( STATUS "file local.cmake not found" )
+    message( STATUS "file local.cmake not found, nothing to do" )
 endif()
 

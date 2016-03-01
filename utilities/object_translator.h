@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 2/1/2016 at 10:19  */
+/* this is an auto-generated file created on 29/1/2016 at 12:39  */
 
 #ifndef __OBJECT_TRANSLATOR_H__
 #define __OBJECT_TRANSLATOR_H__
@@ -13,6 +13,7 @@
 #include "../utilities/inclusion_family.h"
 #include "../features/features.h"
 #include "../geometry/sampler/sampler.h"
+#include "../utilities/postprocessor.h"
 
 namespace Amie
 {
@@ -26,7 +27,7 @@ struct Object
     static void resetExternalMaterialLaw(ExternalMaterialLaw * target) ;
 
     // parsed from header file: ../elements/integrable_entity.h
-    static Form * getForm(std::string type, std::map<std::string, double> & values, std::map<std::string, std::string> & strings, std::map<std::string, ExternalMaterialLawList*> & externalmateriallawlists, std::map<std::string, FractureCriterion*> & fracturecriterions, std::map<std::string, DamageModel*> & damagemodels, std::map<std::string, LogCreepAccumulator*> & logcreepaccumulators) ;
+    static Form * getForm(std::string type, std::map<std::string, double> & values, std::map<std::string, LogCreepAccumulator*> & logcreepaccumulators, std::map<std::string, std::string> & strings, std::map<std::string, FractureCriterion*> & fracturecriterions, std::map<std::string, DamageModel*> & damagemodels, std::map<std::string, ExternalMaterialLawList*> & externalmateriallawlists) ;
     static bool isForm(std::string type) ;
     static void resetForm(Form * target) ;
 
@@ -66,9 +67,14 @@ struct Object
     static void resetEnrichmentManager(EnrichmentManager * target) ;
 
     // parsed from header file: ../geometry/sampler/sampler.h
-    static Sampler * getSampler(std::string type, std::map<std::string, std::string> & strings, std::map<std::string, Point> & points, std::map<std::string, double> & values) ;
+    static Sampler * getSampler(std::string type, std::map<std::string, Point> & points, std::map<std::string, double> & values, std::map<std::string, std::string> & strings) ;
     static bool isSampler(std::string type) ;
     static void resetSampler(Sampler * target) ;
+
+    // parsed from header file: ../utilities/postprocessor.h
+    static PostProcessor * getPostProcessor(std::string type, std::map<std::string, std::string> & strings, std::map<std::string, double> & values) ;
+    static bool isPostProcessor(std::string type) ;
+    static void resetPostProcessor(PostProcessor * target) ;
 
 } ;
 

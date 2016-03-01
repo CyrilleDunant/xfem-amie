@@ -819,7 +819,7 @@ void CommandLineParser::sendEmail( std::string subject, std::string body, std::s
 		return ;
 	}
 
-	std::string mail = "echo \""+body+"\" > .amie_message.tmp & mail -s \""+subject+"\" " ;
+	std::string mail = "(hostname & pwd & echo \""+body+"\") > .amie_message.tmp & mail -s \""+subject+"\" " ;
 	if(attachment.length() > 0)
 		mail += "-a " + attachment + " ";
 	mail += strings["--send-email"]+" < .amie_message.tmp" ;
@@ -907,7 +907,7 @@ void CommandLineParser::printHelp( )
 	for(size_t i = 0 ; i < arguments.size() ; i++)
 		std::cout << arguments[i].name << "  " ;
 	if(commandLineConfiguration)
-		std::cout << "[@argument (value) ...]  " ;
+		std::cout << "[@variable (value) ...]  " ;
 	std::cout << "[options...]" << std::endl ;
 
 	std::cout << std::endl ;

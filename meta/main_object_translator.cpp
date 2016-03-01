@@ -720,6 +720,12 @@ int main(int argc, char *argv[])
 
 	all.push_back(sampler) ;
 
+	std::vector<std::string> postproReq ; postproReq.push_back("../utilities/postprocessor.h") ;
+	AMIEConstructorParser postpro("PostProcessor","PostProcessor","post_processor", postproReq) ;
+	postpro.parseFolder("../utilities/") ;
+
+	all.push_back(postpro) ;
+
 	std::vector<std::string> req ;
 	for(size_t i = 0 ; i < all.size() ; i++)
 		req = all[i].getAllRequirements( req ) ;

@@ -7,6 +7,7 @@
 #include "main.h"
 #include "../utilities/configuration.h"
 #include "../utilities/parser.h"
+#include "../utilities/postprocessor.h"
 
 #ifdef HAVE_OMP
 #include <omp>
@@ -194,6 +195,12 @@ int main(int argc, char *argv[])
         std::string headerFileName = trgFileName + "_header" ;
         trg = new MultiTriangleWriter( headerFileName, trgFileName, &F, 1.) ;
     }
+    std::vector<PostProcessor *> posts ; std::string postProcessFile = "file_not_found" ;
+    if(problem->hasChild("post_processor"))
+    {
+        posts = problem->getChild("post_processor")->getAllPostProcessors(cacheIndex) ;
+        postProcessFile = problem->getStringData("post_processor.file_name","file_not_found") ;
+    }
 
     bool next = true ;
     for(size_t i = 1 ; i < instants.size() ; i++)
@@ -208,6 +215,8 @@ int main(int argc, char *argv[])
             problem->getChild("output")->writeOutput(&F, i, instants.size(), cacheIndex, flags) ;
         if(problem->hasChild("export"))
             problem->getChild("export")->exportSvgTriangles(trg, &F, i, instants.size(), flags) ;
+        if(problem->hasChild("post_processor") && postProcessFile != std::string("file_not_found"))
+            PostProcessor::write( postProcessFile, &F, posts, true, i==1 ) ;
     }
 
     gettimeofday ( &time1, nullptr );

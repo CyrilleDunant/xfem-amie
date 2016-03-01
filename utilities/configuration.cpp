@@ -820,7 +820,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, std::vector<Externa
              acc[ "accumulator" ] = Object::getLogCreepAccumulator( atype, values ) ;
     }
 
-    return Object::getForm( type, values, strings, law, frac, dam, acc ) ;
+    return Object::getForm( type, values, acc, strings, frac, dam, law ) ;
 }
 
 Vector ConfigTreeItem::readVectorFromFile() const
@@ -1100,7 +1100,7 @@ Sampler * ConfigTreeItem::getSampler() const
     }
 
     if( Object::isSampler(type) )
-       return Object::getSampler( type, strings, points, values ) ;
+       return Object::getSampler( type, points, values, strings ) ;
 
     return nullptr ;
 }
@@ -1217,6 +1217,44 @@ bool ConfigTreeItem::isAtTimeStep(int i, int nsteps) const
         return i%((int) getData("every", 2)) == 0 ;
     return false ;
 }
+
+PostProcessor * ConfigTreeItem::getPostProcessor(double instant, std::vector<unsigned int> index) const 
+{
+    std::string type = label ;
+    std::map<std::string, std::string> strings ;
+    std::map<std::string, double> values ; values["instant"] = instant ;
+    if(str.length() > 0) { strings["field"]=str ; }
+    for(size_t i = 0 ; i < children.size() ; i++)
+    {
+        if(children[i]->getStringData().length() > 0)
+            strings[ children[i]->getLabel() ] = children[i]->getStringData() ;
+        else
+        {
+            if( children[i]->is("index") && index.size() > 0)
+                values[ children[i]->getLabel() ] = index[children[i]->getData()] ;
+            else
+                values[ children[i]->getLabel() ] = children[i]->getData() ;
+        }
+    }
+
+    if( !Object::isPostProcessor( type ) )
+        type = "DoNothing" ;
+
+    return Object::getPostProcessor( type, strings, values ) ;
+}
+
+std::vector<PostProcessor *> ConfigTreeItem::getAllPostProcessors(std::vector<unsigned int> index) const 
+{
+    std::vector<PostProcessor *> ret ;
+    double instant = (getStringData("instant","AFTER")=="AFTER")-(getStringData("instant","AFTER")=="BEFORE") ;
+    for(size_t i = 0 ; i < children.size() ; i++)
+    {
+        if( Object::isPostProcessor( children[i]->getLabel() ) )
+            ret.push_back( children[i]->getPostProcessor( instant, index ) ) ;
+    }
+    return ret ;
+}
+
 
 
 ConfigTreeItem * ConfigTreeItem::makeTemplate()
@@ -1431,7 +1469,7 @@ void ConfigTreeItem::exportTriangles(FeatureTree * F, int i, int nsteps, std::ve
         {
             bool isFieldType = true ;
             FieldType f = Enum::getFieldType( fields[i]->getStringData(), &isFieldType ) ;
-            bool isTWFieldType = false ;
+            bool isTWFieldType = false  ;
             TWFieldType g = Enum::getTWFieldType( fields[i]->getStringData(), &isTWFieldType ) ;
             if(isFieldType)
                 trg.getField( f ) ;
