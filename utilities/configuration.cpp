@@ -518,19 +518,40 @@ Function ConfigTreeItem::getFunction() const
     return f ;
 }
 
-Vector ConfigTreeItem::readLineAsVector(std::string line, char s)
+Vector ConfigTreeItem::readLineAsVector(std::string line, char s, char t)
 {
     std::vector<double> v ;
     std::string next = line ;
     int sep = next.find(s) ;
-    while(sep != (int)std::string::npos)
+    size_t tab = next.find(t) ;
+    if(tab != std::string::npos)
     {
-        std::string current = next.substr(0, sep) ;
-        v.push_back( atof(current.c_str() ) ) ;
-        next = next.substr(sep+1) ;
-        sep = next.find(s) ;
+        std::string left = next.substr(0, tab) ;
+        size_t end = next.rfind(t) ;
+        std::string right = next.substr( end+1 ) ;
+        std::string middle = next.substr(tab+1, end-tab-1) ;
+        double dleft = std::atof( left.c_str() ) ;
+        double dright = std::atof( right.c_str() ) ;
+        double incr = std::abs(std::atof( middle.c_str() )) ;
+        double current = std::min(dleft, dright) ;
+        v.push_back( current ) ;
+        while(current < std::max( dleft, dright) )
+        {
+            current += incr ;
+            v.push_back( current ) ;
+        }
     }
-    v.push_back( atof( next.c_str() ) ) ;
+    else
+    {
+        while(sep != (int)std::string::npos)
+        {
+            std::string current = next.substr(0, sep) ;
+            v.push_back( atof(current.c_str() ) ) ;
+            next = next.substr(sep+1) ;
+            sep = next.find(s) ;
+        }
+        v.push_back( atof( next.c_str() ) ) ;
+    }
     Vector ret(v.size()) ;
     for(size_t i = 0 ; i < v.size() ; i++)
         ret[i] = v[i] ;

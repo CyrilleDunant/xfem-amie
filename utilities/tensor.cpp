@@ -1,4 +1,6 @@
 #include "tensor.h"
+#include "enumeration_translator.h"
+#include "../physics/homogenization/composite.h"
 
  namespace Amie {
 
@@ -714,13 +716,28 @@ Matrix Tensor::to2D(Matrix & tensor, planeType pt, Variable var)
     if(tensor.numCols() != 6 || tensor.numRows() != 6)
         return ret ;
 
-    int index = var-1 ;
+    Matrix moved = tensor ;
+    switch(var)
+    {
+        case XI:
+            moved = Tensor::rotate4thOrderTensor3D( tensor, Point(0,M_PI*0.5,0) ) ; 
+            break ;
+        case ETA:
+            moved = Tensor::rotate4thOrderTensor3D( tensor, Point(M_PI*0.5,M_PI*0.5,0) ) ; 
+            break ;
+        case ZETA:
+            break ;
+        default:
+            break ;
+    }
+
+    int index = 2 ;// if(index < 0) { index = 0 ; } if(index > 2) { index = 2 ; }
     int first = 0 ;
     int second = 1 ;
-    if(index == 0)
+/*    if(index == 0)
         first = 2 ;
     if(index == 1)
-        second = 2 ; 
+        second = 2 ; */
 
     switch(pt)
     {
@@ -731,25 +748,24 @@ Matrix Tensor::to2D(Matrix & tensor, planeType pt, Variable var)
             Matrix K21(3,3) ;
             Matrix K22(3,3) ;
 
-            K11[0][0] = tensor[first][first] ; K11[0][1] = tensor[first][second] ; K11[0][2] = tensor[first][index+3] ;
-            K11[1][0] = tensor[second][first] ; K11[1][1] = tensor[second][second] ; K11[1][2] = tensor[second][index+3] ;
-            K11[2][0] = tensor[index+3][first] ; K11[2][1] = tensor[index+3][second] ; K11[2][2] = tensor[index+3][index+3] ;
+            K11[0][0] = moved[first][first] ; K11[0][1] = moved[first][second] ; K11[0][2] = moved[first][index+3] ;
+            K11[1][0] = moved[second][first] ; K11[1][1] = moved[second][second] ; K11[1][2] = moved[second][index+3] ;
+            K11[2][0] = moved[index+3][first] ; K11[2][1] = moved[index+3][second] ; K11[2][2] = moved[index+3][index+3] ;
 
-            K12[0][0] = tensor[first][index] ; K12[0][1] = tensor[first][first+3] ; K12[0][2] = tensor[first][second+3] ;
-            K12[1][0] = tensor[second][index] ; K12[1][1] = tensor[second][first+3] ; K12[1][2] = tensor[second][second+3] ;
-            K12[2][0] = tensor[index+3][index] ; K12[2][1] = tensor[index+3][first+3] ; K12[2][2] = tensor[index+3][second+3] ;
+            K12[0][0] = moved[first][index] ; K12[0][1] = moved[first][first+3] ; K12[0][2] = moved[first][second+3] ;
+            K12[1][0] = moved[second][index] ; K12[1][1] = moved[second][first+3] ; K12[1][2] = moved[second][second+3] ;
+            K12[2][0] = moved[index+3][index] ; K12[2][1] = moved[index+3][first+3] ; K12[2][2] = moved[index+3][second+3] ;
             K21 = K12.transpose() ;
 
 
-            K22[0][0] = tensor[index][index] ; K22[0][1] = tensor[index][first+3] ; K22[0][2] = tensor[index][second+3] ;
-            K22[1][0] = tensor[first+3][index] ; K22[1][1] = tensor[first+3][first+3] ; K22[1][2] = tensor[first+3][second+3] ;
-            K22[2][0] = tensor[second+3][index] ; K22[2][1] = tensor[second+3][first+3] ; K22[2][2] = tensor[second+3][second+3] ;
+            K22[0][0] = moved[index][index] ; K22[0][1] = moved[index][first+3] ; K22[0][2] = moved[index][second+3] ;
+            K22[1][0] = moved[first+3][index] ; K22[1][1] = moved[first+3][first+3] ; K22[1][2] = moved[first+3][second+3] ;
+            K22[2][0] = moved[second+3][index] ; K22[2][1] = moved[second+3][first+3] ; K22[2][2] = moved[second+3][second+3] ;
 
             invert3x3Matrix(K22) ;
 
             ret = K11-K12*K22*K21 ;
             ret[2][2] *= 2 ;
-
 
 /*            ret[0][0] = tensor[first][first]-tensor[first][index]*tensor[first][index]/tensor[index][index] ;
             ret[0][1] = tensor[first][second]-tensor[second][index]*tensor[first][index]/tensor[index][index] ;
@@ -761,15 +777,15 @@ Matrix Tensor::to2D(Matrix & tensor, planeType pt, Variable var)
         }
         case PLANE_STRAIN:
         {
-            ret[0][0] = tensor[first][first] ;
-            ret[0][1] = tensor[first][second] ;
-            ret[1][0] = tensor[second][first] ;
-            ret[1][1] = tensor[second][second] ;
-            ret[2][2] = tensor[index+3][index+3]*2 ;
-            ret[0][2] = tensor[first][index+3] ; 
-            ret[1][2] = tensor[second][index+3] ; 
-            ret[2][0] = tensor[index+3][first] ;
-            ret[2][1] = tensor[index+3][second] ; 
+            ret[0][0] = moved[first][first] ;
+            ret[0][1] = moved[first][second] ;
+            ret[1][0] = moved[second][first] ;
+            ret[1][1] = moved[second][second] ;
+            ret[2][2] = moved[index+3][index+3]*2 ;
+            ret[0][2] = moved[first][index+3] ; 
+            ret[1][2] = moved[second][index+3] ; 
+            ret[2][0] = moved[index+3][first] ;
+            ret[2][1] = moved[index+3][second] ; 
             break;
         }
         default:
@@ -800,7 +816,7 @@ Matrix rotationMatrixX(double theta)
 
 Matrix rotationMatrixY(double theta)
 {
-    Matrix ret(6,6) ; ret = 0 ;
+    Matrix ret(3,3) ; ret = 0 ;
     double c = cos(theta) ;
     double s = sin(theta) ;
 
@@ -820,7 +836,7 @@ Matrix rotationMatrixY(double theta)
 
 Matrix rotationMatrixZ(double theta)
 {
-    Matrix ret(6,6) ; ret = 0 ;
+    Matrix ret(3,3) ; ret = 0 ;
     double c = cos(theta) ;
     double s = sin(theta) ;
 
@@ -842,24 +858,25 @@ Matrix rotationMatrixXYZ( double phi, double theta, double psi)
 {
     Matrix Om(3,3) ;
     Om[0][0] =  cos(psi)*cos(theta)*cos(phi)-sin(psi)*sin(phi) ;
-    Om[0][1] = -sin(psi)*cos(theta)*cos(phi)-cos(psi)*sin(phi) ;
-    Om[0][2] =  sin(theta)*cos(phi) ;
-    Om[1][0] =  cos(psi)*cos(theta)*sin(phi)+sin(psi)*cos(phi) ;
+    Om[1][0] = -sin(psi)*cos(theta)*cos(phi)-cos(psi)*sin(phi) ;
+    Om[2][0] =  sin(theta)*cos(phi) ;
+    Om[0][1] =  cos(psi)*cos(theta)*sin(phi)+sin(psi)*cos(phi) ;
     Om[1][1] = -sin(psi)*cos(theta)*sin(phi)+cos(psi)*cos(phi) ;
-    Om[1][2] =  sin(theta)*sin(phi) ;
-    Om[2][0] = -cos(psi)*sin(theta) ;
-    Om[2][1] =  sin(psi)*sin(theta) ;
+    Om[2][1] =  sin(theta)*sin(phi) ;
+    Om[0][2] = -cos(psi)*sin(theta) ;
+    Om[1][2] =  sin(psi)*sin(theta) ;
     Om[2][2] =  cos(theta) ;
-    return Om ;
+    return Om.transpose() ;
 }
 
-Matrix Tensor::rotate4thOrderTensor3D( Matrix & tensor, Point angle ) 
+Matrix Tensor::rotate4thOrderTensor3D( Matrix & tensor, Point angle, double tol ) 
 {
     Matrix ret(6,6) ;
     if(tensor.numCols() != 6 || tensor.numRows() != 6)
         return ret ;
 
     Matrix Om = rotationMatrixXYZ( angle.getX(), angle.getY(), angle.getZ() ) ; 
+
 
     Matrix K(6,6) ;
     Matrix K1(3,3) ;
@@ -880,6 +897,7 @@ Matrix Tensor::rotate4thOrderTensor3D( Matrix & tensor, Point angle )
             K[i+3][j+3] = Om[i1][j1]*Om[i2][j2] + Om[i1][j2]*Om[i2][j1] ;
         }
     }
+
 
 
 //    Matrix K(6,6) ;
@@ -905,8 +923,74 @@ Matrix Tensor::rotate4thOrderTensor3D( Matrix & tensor, Point angle )
         }
     }*/
 
+    for(size_t i = 0 ; i < ret.numCols() ; i++)
+    {
+        for(size_t j = 0 ; j < ret.numCols() ; j++)
+            if(std::abs(ret[i][j]) < tol) { ret[i][j] = 0 ; }
+    }
+
     return ret ;
 }
 
- }
+Matrix Tensor::invert4thOrderTensor3D( Matrix & tensor, SymmetryType sym)
+{
+    Matrix ret(6,6) ;
+    if(tensor.numCols() != 6 || tensor.numRows() != 6)
+        return ret ;
+
+    switch(sym)
+    {
+        case SYMMETRY_CUBIC:
+        {
+            ret = tensor ;
+            Composite::invertTensor(ret) ;
+            break ;  
+        }
+        case SYMMETRY_TRIGONAL:
+        {
+            double c11 = tensor[0][0] ;
+            double c12 = tensor[0][1] ;
+            double c13 = tensor[0][2] ;
+            double c33 = tensor[2][2] ;
+            double c14 = tensor[0][3] ;
+            double c44 = tensor[3][3] ;
+            double c66 = tensor[5][5] ;
+
+            double det4466 = c44*c66-c14*c14 ;
+   
+            double s44 = c66/(det4466) ;
+            double s66 = c44/(det4466) ;
+            double s14 = -c14/(2*det4466) ;
+
+            double det3313 = 2*c13*c13-c33*(c11+c12) ;
+            double s33 = -(c11+c12)/det3313 ;
+            double s13 = c13/det3313 ;
+
+            double det1112 = c11*c11-c12*c12 ; 
+            double d1 = 1-c13*s13-c14*s14 ;
+            double d0 = 0-c13*s13+c14*s14 ;
+            double s11 = (c11*d1 - c12*d0)/det1112 ;
+            double s12 = (-c12*d1 + c11*d0)/det1112 ;
+
+            Vector s(7) ; 
+            s[0] = s11 ;
+            s[1] = s33 ;
+            s[2] = s44 ;
+            s[3] = s66 ;
+            s[4] = s12 ;
+            s[5] = s13 ;
+            s[6] = s14 ;
+           
+            ret = Tensor::orthotropicCauchyGreen( s, sym ) ;
+            break ;
+        }
+        default:
+            std::cout << "warning: tensor inversion not implemented for specificied symmetry" << std::endl ;
+            break ;
+    }
+    return ret ;
+}
+
+
+}
 

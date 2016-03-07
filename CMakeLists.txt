@@ -448,18 +448,22 @@ target_link_libraries( alain Amie ${ALL_LINK_FLAGS})
 add_executable(michaela EXCLUDE_FROM_ALL examples/playground/main_michaela.cpp )
 target_link_libraries( michaela Amie ${ALL_LINK_FLAGS})
 
+add_executable(function_test EXCLUDE_FROM_ALL examples/playground/main_function_test.cpp )
+target_link_libraries( function_test Amie ${ALL_LINK_FLAGS})
+
 add_executable(get_fields_from_trg EXCLUDE_FROM_ALL examples/playground/main_get_fields_from_trg.cpp )
 target_link_libraries( get_fields_from_trg Amie ${ALL_LINK_FLAGS} )
 
-add_executable(function_test EXCLUDE_FROM_ALL examples/playground/main_function_test.cpp )
-target_link_libraries( function_test Amie ${ALL_LINK_FLAGS})
+add_executable(homogenization EXCLUDE_FROM_ALL examples/playground/main_homogenization.cpp )
+target_link_libraries( homogenization Amie ${ALL_LINK_FLAGS})
 
 ADD_CUSTOM_TARGET(playground)
 ADD_DEPENDENCIES(playground 
 alain 
 michaela 
-get_fields_from_trg 
 function_test
+get_fields_from_trg 
+homogenization
 )
 
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/test ${CMAKE_BINARY_DIR}/mesh)

@@ -133,7 +133,7 @@ void Phase::apply()
 
 }
 
-Form *Phase::getBehaviour()
+Form * Phase::getBehaviour()
 {
 	apply() ;
 	Matrix S = C ;

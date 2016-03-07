@@ -253,7 +253,7 @@ public:
     /** Decomposes a path as father.current.child into a vector of strings {father, current, child} */
     static std::vector<std::string> decompose(std::string path) ;
 
-    static Vector readLineAsVector(std::string line, char sep = ',') ;
+    static Vector readLineAsVector(std::string line, char sep = ',', char tab= ':') ;
 
     static std::vector<double> readLineAsStdVector(std::string line, char sep = ',') ;
 

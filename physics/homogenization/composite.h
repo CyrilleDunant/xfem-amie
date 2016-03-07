@@ -96,7 +96,7 @@ public:
 	BiphasicSelfConsistentComposite(DelaunayTriangle * tri, Feature * inc) ;
 	BiphasicSelfConsistentComposite(DelaunayTetrahedron * tet, Feature * inc) ;
 	BiphasicSelfConsistentComposite(Phase mat, Phase inc) ;
-    BiphasicSelfConsistentComposite(Phase mat, Phase inc, BiphasicSelfConsistentComposite hint) ;
+        BiphasicSelfConsistentComposite(Phase mat, Phase inc, BiphasicSelfConsistentComposite hint) ;
 
 	virtual void getStrainConcentrationTensor() ;
 };
