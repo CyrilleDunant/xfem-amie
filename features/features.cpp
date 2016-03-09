@@ -3994,6 +3994,12 @@ Vector FeatureTree::setSteppingParameters ( ConfigTreeItem * config, ConfigTreeI
             }
         }
     }
+    double f = config->getData("factor", def->getData ( "factor", 1. )) ;
+    double g = config->getData("divide", def->getData ( "divide", 1. )) ;
+    if(f != 1. && f > POINT_TOLERANCE)
+        cinstants *= f ;
+    if(g != 1. && g > POINT_TOLERANCE)
+        cinstants /= g ;
     return cinstants ;
 }
 

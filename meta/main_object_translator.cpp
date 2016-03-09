@@ -726,6 +726,12 @@ int main(int argc, char *argv[])
 
 	all.push_back(postpro) ;
 
+/*	std::vector<std::string> stepsReq ; stepsReq.push_back("../utilities/time_step_manager.h") ;
+	AMIEConstructorParser steps("TimeStepManager","TimeStepManager","time_step_manager", stepsReq) ;
+	steps.parseFolder("../utilities/") ;
+
+	all.push_back(steps) ;*/
+
 	std::vector<std::string> req ;
 	for(size_t i = 0 ; i < all.size() ; i++)
 		req = all[i].getAllRequirements( req ) ;
