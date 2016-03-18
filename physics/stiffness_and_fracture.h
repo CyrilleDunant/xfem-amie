@@ -35,6 +35,7 @@ namespace Amie
     @object<DamageModel>[damage_model] nullptr // algorithm to compute the damage
     @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
     @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+    @string<IsotropicMaterialParameters>[material_parameters] YOUNG_POISSON // describes how to build the stiffness matrix
  */
 struct StiffnessAndFracture : public LinearForm
 {
@@ -51,7 +52,7 @@ struct StiffnessAndFracture : public LinearForm
     */
     StiffnessAndFracture(const Matrix & rig, FractureCriterion * c, DamageModel * d = nullptr)  ;
 
-    StiffnessAndFracture(double E, double nu, FractureCriterion * c, DamageModel * d = nullptr, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS)  ;
+    StiffnessAndFracture(double E, double nu, FractureCriterion * c, DamageModel * d = nullptr, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, IsotropicMaterialParameters hooke = YOUNG_POISSON)  ;
 
     virtual ~StiffnessAndFracture();
 

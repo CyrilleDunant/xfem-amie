@@ -19,7 +19,7 @@
 
 using namespace Amie ;
 
-PasteBehaviour::PasteBehaviour(bool e, bool st, double E, double nu, double up, double e10, double e300, SpaceDimensionality dim, planeType pt, double r, double var, int b) : WeibullDistributedStiffness(E,nu, dim, -8000.*up, up, pt, var, r), spaceTime(st), elastic(e), freeblocks(b), eta10(e10), eta300(e300)
+PasteBehaviour::PasteBehaviour(bool e, bool st, double E, double nu, double up, double e10, double e300, SpaceDimensionality dim, planeType pt, double r, double var, int b) : WeibullDistributedStiffness(E,nu, dim, -8000.*up, up, pt, var, r, YOUNG_POISSON), spaceTime(st), elastic(e), freeblocks(b), eta10(e10), eta300(e300)
 {
 
 }
@@ -111,7 +111,7 @@ LogCreepPasteBehaviour::LogCreepPasteBehaviour(bool e, double E, double nu, doub
 
 
 
-HydratingMechanicalCementPaste::HydratingMechanicalCementPaste(FeatureTree * diffusionTree) :LinearForm(Tensor::cauchyGreen(std::make_pair(1,0.2), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS), true, true, 2),  diffusionTree(diffusionTree)
+HydratingMechanicalCementPaste::HydratingMechanicalCementPaste(FeatureTree * diffusionTree) :LinearForm(Tensor::cauchyGreen(1., 0.2,SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON), true, true, 2),  diffusionTree(diffusionTree)
 {
     v.push_back(XI);
     v.push_back(ETA);
@@ -197,7 +197,7 @@ Matrix HydratingMechanicalCementPaste::getMechanicalProperties(double effectiveS
     double nu = (3.*bulk-E)/(6.*bulk) ;
 
 
-    return Tensor::cauchyGreen(std::make_pair(E,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
+    return Tensor::cauchyGreen(E, nu, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;
 }
 
 double HydratingMechanicalCementPaste::getCapillaryPressure(double saturation, double doh)

@@ -39,7 +39,7 @@ StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion
 // 	v.push_back(TIME_VARIABLE);
 }
 
-StiffnessAndFracture::StiffnessAndFracture(double E, double nu, FractureCriterion * crit, DamageModel * d, SpaceDimensionality dim, planeType pt) : LinearForm(Tensor::cauchyGreen(E, nu, true, dim, pt), false, true, dim)
+StiffnessAndFracture::StiffnessAndFracture(double E, double nu, FractureCriterion * crit, DamageModel * d, SpaceDimensionality dim, planeType pt, IsotropicMaterialParameters hooke) : LinearForm(Tensor::cauchyGreen(E, nu, dim, pt, hooke), false, true, dim)
 {
     if(!d)
         dfunc = new FiberBasedIsotropicLinearDamage() ;

@@ -30,7 +30,7 @@ Stiffness::Stiffness(const Matrix & rig) : LinearForm(rig, false, false, rig.num
     }
 }
 
-Stiffness::Stiffness(double E, double nu, SpaceDimensionality dim, planeType pt) : LinearForm( Tensor::cauchyGreen(E, nu, true, dim, pt), false, false, dim)
+Stiffness::Stiffness(double E, double nu, SpaceDimensionality dim, planeType pt, IsotropicMaterialParameters hooke) : LinearForm( Tensor::cauchyGreen(E, nu, dim, pt, hooke), false, false, dim)
 {
     v.push_back(XI);
     v.push_back(ETA);

@@ -14,7 +14,7 @@
 
 using namespace Amie ;
 
-ConcreteBehaviour::ConcreteBehaviour(double E, double nu, double compressive, planeType pt, RedistributionType rtype, SpaceDimensionality dim, MirrorState mirroring , double dx ,double  dy, double dz) : WeibullDistributedStiffness(E,nu, dim, compressive,0, pt, 0.05, 0.064, mirroring, dx , dy , dz ), rtype(rtype)
+ConcreteBehaviour::ConcreteBehaviour(double E, double nu, double compressive, planeType pt, RedistributionType rtype, SpaceDimensionality dim, MirrorState mirroring , double dx ,double  dy, double dz) : WeibullDistributedStiffness(E,nu, dim, compressive,0, pt, 0.05, 0.064, YOUNG_POISSON, mirroring, dx , dy , dz ), rtype(rtype)
 {
 
 }

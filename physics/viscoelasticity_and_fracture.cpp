@@ -36,7 +36,7 @@ ViscoelasticityAndFracture::ViscoelasticityAndFracture(ViscoelasticModel m, cons
     setElasticAndViscousStiffnessMatrix() ;
 }
 
-ViscoelasticityAndFracture::ViscoelasticityAndFracture( ViscoelasticModel model, double young, double poisson, FractureCriterion * c, DamageModel * d, double tau, std::string file, SpaceDimensionality dim, planeType pt, bool hooke, int b, int a) : Viscoelasticity(model, young, poisson, tau, file, dim, pt, hooke, b, a), dfunc(d), criterion(c)
+ViscoelasticityAndFracture::ViscoelasticityAndFracture( ViscoelasticModel model, double young, double poisson, FractureCriterion * c, DamageModel * d, double tau, std::string file, SpaceDimensionality dim, planeType pt, IsotropicMaterialParameters hooke, int b, int a) : Viscoelasticity(model, young, poisson, tau, file, dim, pt, hooke, b, a), dfunc(d), criterion(c)
 {
     setElasticAndViscousStiffnessMatrix() ;
 }

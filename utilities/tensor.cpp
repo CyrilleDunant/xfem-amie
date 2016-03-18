@@ -174,7 +174,7 @@ Matrix Tensor::toMatrix(int d1, int d2) const
 
 }
 
-Matrix Tensor::cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimensionality dim, planeType pt)
+/*Matrix Tensor::cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimensionality dim, planeType pt)
 {
     double E = prop.first ;
     double nu = prop.second ;
@@ -363,7 +363,7 @@ Matrix Tensor::cauchyGreen(double p1, double p2, bool hooke, SpaceDimensionality
     }
     }
     return Matrix(0,0) ;
-}
+}*/
 
 Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double G,  double nu, double angle, planeType pt)
 {
@@ -987,6 +987,169 @@ Matrix Tensor::invert4thOrderTensor3D( Matrix & tensor, SymmetryType sym)
         default:
             std::cout << "warning: tensor inversion not implemented for specificied symmetry" << std::endl ;
             break ;
+    }
+    return ret ;
+}
+
+Matrix Tensor::cauchyGreen( std::pair<double, double> props, SpaceDimensionality dim, planeType pt, IsotropicMaterialParameters param ) 
+{
+   return Tensor::cauchyGreen( props.first, props.second, dim, pt, param ) ;
+}
+
+Matrix Tensor::cauchyGreen( double p1, double p2, SpaceDimensionality dim, planeType pt, IsotropicMaterialParameters param ) 
+{
+    Matrix ret( 3+3*(dim==SPACE_THREE_DIMENSIONAL), 3+3*(dim==SPACE_THREE_DIMENSIONAL)) ;
+    double Ciiii = 0. ;
+    double Ciijj = 0. ;
+    double Cijij = 0. ;
+
+    switch( param )
+    {
+        case YOUNG_POISSON:
+        {
+            if(dim == SPACE_THREE_DIMENSIONAL || pt == PLANE_STRAIN)
+            {
+                double C = p1/((1.+p2)*(1.-2.*p2)) ;
+                Ciiii = C*(1.-p2) ;
+                Ciijj = C*p2 ;
+                Cijij = C*(1.-2.*p2) ;
+            }
+            else if(pt == PLANE_STRESS)
+            {
+                double C = p1/(1.-p2*p2) ;
+                Ciiii = C ;
+                Ciijj = C*p2 ;
+                Cijij = C*(1.-p2) ;
+            }
+
+            break ;
+        }
+        case BULK_SHEAR:
+        {
+            if(dim == SPACE_THREE_DIMENSIONAL || pt == PLANE_STRAIN)
+            {
+                Ciiii = p1+4.*p2/3. ;
+                Ciijj = p1-2.*p2/3. ;
+                Cijij = 2.*p2 ;
+            }
+            else if(pt == PLANE_STRESS)
+            {
+                Ciiii = 4.*p2*(1.-p2/(p1+4.*p2/3)) ;
+                Ciijj = 2.*p2*(1.-2.*p2/(p1+4.*p2/3.)) ;
+                Cijij = 2.*p2 ;
+            }
+
+            break ;
+        }
+        case YOUNG_SHEAR:
+        {
+            if(dim == SPACE_THREE_DIMENSIONAL || pt == PLANE_STRAIN)
+            {
+                Ciiii = (4.*p2-p1)/(3.-p1/p2) ;
+                Ciijj = (p1-2.*p2)/(3.-p1/p2) ;
+                Cijij = 2.*p2 ;
+            }
+            else if(pt == PLANE_STRESS)
+            {
+                Ciiii = p2/(1.-p1/(4.*p2)) ;
+                Ciijj = p1/(4.-p1/p2)-p2 ;
+                Cijij = 2.*p2 ;
+            }
+
+            break ;
+        }
+        default:
+            break ;
+    }
+
+    if(dim == SPACE_THREE_DIMENSIONAL)
+    {
+       ret[0][0] = Ciiii ; ret[0][1] = Ciijj ; ret[0][2] = Ciijj ;
+       ret[1][0] = Ciijj ; ret[1][1] = Ciiii ; ret[1][2] = Ciijj ;
+       ret[2][0] = Ciijj ; ret[2][1] = Ciijj ; ret[2][2] = Ciiii ;
+       ret[3][3] = Cijij ;
+       ret[4][4] = Cijij ;
+       ret[6][5] = Cijij ;
+    }
+    else
+    {
+       ret[0][0] = Ciiii ; ret[0][1] = Ciijj ;
+       ret[1][0] = Ciijj ; ret[1][1] = Ciiii ;
+       ret[2][2] = Cijij ;
+    }
+
+    return ret ;
+
+
+}
+
+
+std::pair<double, double> Tensor::getIsotropicMaterialParameters( const Matrix & C, IsotropicMaterialParameters param, planeType pt ) 
+{
+    std::pair<double, double> ret = std::make_pair(0,0) ;
+    if( pt == PLANE_STRAIN || C.numCols() == 6)
+    {
+        switch(param)
+        {
+            case YOUNG_POISSON:
+            {
+                double nu = C[0][1]/(C[0][0]+C[0][1]) ;
+                double E = C[0][0]*(1.+nu)*(1.-2.*nu)/(1.-nu) ;
+                ret.first = E ;
+                ret.second = nu ;
+                break ;
+            }
+            case BULK_SHEAR:
+            {
+                double G = C[ C.numRows()-1 ][ C.numRows()-1 ]*0.5 ;
+                double K = C[0][0] - G*4./3. ;
+                ret.first = K ;
+                ret.second = G ;
+                break ;
+            }
+            case YOUNG_SHEAR:
+            {
+                double G = C[ C.numRows()-1 ][ C.numRows()-1 ]*0.5 ;
+                double E = (4.*G-3.*C[0][0]) / (1.-C[0][0]/G) ;
+                ret.first = E ;
+                ret.second = G ;
+                break ;
+            }
+            default:
+                break ;
+        }
+    }
+    else
+    {
+        switch(param)
+        {
+            case YOUNG_POISSON:
+            {
+                double nu = C[0][1]/C[0][0] ;
+                double E = C[0][0]*(1.-nu*nu) ;
+                ret.first = E ;
+                ret.second = nu ;
+                break ;
+            }
+            case BULK_SHEAR:
+            {
+                double G = C[ C.numRows()-1 ][ C.numRows()-1 ]*0.5 ;
+                double K = 4.*G*G/(4.*G-C[0][0]) - G*4./3. ;
+                ret.first = K ;
+                ret.second = G ;
+                break ;
+            }
+            case YOUNG_SHEAR:
+            {
+                double G = C[ C.numRows()-1 ][ C.numRows()-1 ]*0.5 ;
+                double E = 4.*G*(1.-G/C[0][0]) ;
+                ret.first = E ;
+                ret.second = G ;
+                break ;
+            }
+            default:
+                break ;
+        }
     }
     return ret ;
 }

@@ -462,7 +462,7 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, const M
     makeBlockConnectivity() ;
 }
 
-Viscoelasticity::Viscoelasticity( ViscoelasticModel m, double young, double poisson, double tau, std::string file, SpaceDimensionality dim, planeType pt, bool hooke, int b, int a) : LinearForm(Tensor::cauchyGreen(young, poisson, hooke, dim, pt), false, false, dim), model(m), blocks(1+a+b), effblocks(1)
+Viscoelasticity::Viscoelasticity( ViscoelasticModel m, double young, double poisson, double tau, std::string file, SpaceDimensionality dim, planeType pt, IsotropicMaterialParameters hooke, int b, int a) : LinearForm(Tensor::cauchyGreen(young, poisson, dim, pt, hooke), false, false, dim), model(m), blocks(1+a+b), effblocks(1)
 {
     v.push_back(XI);
     v.push_back(ETA);
@@ -502,13 +502,13 @@ Viscoelasticity::Viscoelasticity( ViscoelasticModel m, double young, double pois
 
      }
 
-     Matrix C = Tensor::cauchyGreen(young, poisson, hooke, dim, pt) ;
+     Matrix C = Tensor::cauchyGreen(young, poisson, dim, pt, hooke) ;
      Matrix E = C*tau ;
      std::vector<std::pair<Matrix, Matrix> > branches ;
      for(size_t i = 0 ; i < modulus.size() && i < ratio.size() && i < time.size() ; i++)
      {
          double current = (modulus[i] > 0 ? modulus[i] : young) ;
-         Matrix Ci = Tensor::cauchyGreen( modulus[i], ratio[i], hooke, dim, pt) ;
+         Matrix Ci = Tensor::cauchyGreen( modulus[i], ratio[i], dim, pt, hooke) ;
          Matrix Ei = Ci*time[i] ;
          if(current != modulus[i]) { Ci *= 0 ; }
          branches.push_back(std::make_pair(Ci, Ei) ) ;
@@ -1097,7 +1097,7 @@ std::vector< std::pair<Matrix, Matrix> > ViscoelasticKelvinVoigtChainGenerator::
         if(L > POINT_TOLERANCE)
         {
             E /= L ;
-            Matrix C = Tensor::cauchyGreen( E, nu_creep, true, dim, pt) ;
+            Matrix C = Tensor::cauchyGreen( E, nu_creep, dim, pt, YOUNG_POISSON) ;
             Matrix eta = C*tau ;
             branches.push_back(std::make_pair(C, eta)) ;
         }
@@ -1123,7 +1123,7 @@ std::string toArguments(std::map<std::string, double> args)
     return ret ;
 }
 
-StandardViscoelasticity::StandardViscoelasticity( CreepComplianceModel model, double young, double poisson, double creep_modulus, double creep_poisson, double tau0, int branches, std::map<std::string, double> args, SpaceDimensionality dim, planeType pt) : Viscoelasticity( GENERALIZED_KELVIN_VOIGT, Tensor::cauchyGreen( young, poisson, true, dim, pt ), ViscoelasticKelvinVoigtChainGenerator::getKelvinVoigtChain( creep_modulus, creep_poisson, model, toArguments( args ), tau0, branches, dim, pt),false ) 
+StandardViscoelasticity::StandardViscoelasticity( CreepComplianceModel model, double young, double poisson, double creep_modulus, double creep_poisson, double tau0, int branches, std::map<std::string, double> args, SpaceDimensionality dim, planeType pt) : Viscoelasticity( GENERALIZED_KELVIN_VOIGT, Tensor::cauchyGreen( young, poisson, dim, pt, YOUNG_POISSON ), ViscoelasticKelvinVoigtChainGenerator::getKelvinVoigtChain( creep_modulus, creep_poisson, model, toArguments( args ), tau0, branches, dim, pt),false ) 
 {
  } 
 

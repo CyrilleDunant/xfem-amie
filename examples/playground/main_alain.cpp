@@ -31,41 +31,41 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
-	CommandLineParser parser("Builds a sample with a concrete-like microstructure with circular aggregates") ;
-	parser.addValue("--inclusions", 100, "number of inclusions (default: 100)") ;
-	parser.parseCommandLine(argc, argv) ;
+	double E = 10e9 ;
+	double nu = 0.2 ;
+	double K = E/(3*(1.-2.*nu)) ;
+	double G = E/(2*(1.+nu)) ;
 
-        Sample rect(nullptr, 0.1,0.1,0,0) ;
-//	rect.setBehaviour(new LogarithmicCreepWithExternalParameters( "young_modulus = 10e9, poisson_ratio = 0.2, density = 2.2" ) ) ;
-	rect.setBehaviour(new Stiffness( 10e9, 0.2 ) ) ;
-        
-	FeatureTree f(&rect) ;
-//        Form * agg = new LogarithmicCreepWithExternalParameters( "young_modulus = 20e9, poisson_ratio = 0.2, density = 2.7") ;
-        Form * agg = new Stiffness( 20e9, 0.2 ) ;
-	std::vector<Feature *> aggs = PSDGenerator::get2DConcrete( &f, agg , parser.getValue("--inclusions"), 0.008, 0.00001, new PSDBolomeA(), new CircularInclusionGenerator(), 100000, 0.7, nullptr, std::vector<Geometry *>(), 1) ;
-	f.setSamplingNumber( 24 ) ;
-	f.setSamplingRestriction(0.002) ;
-	f.setDeltaTime(1) ;
-        f.setOrder( LINEAR ) ;	
+	std::cout << E << "\t" << nu <<  "\t" << K <<  "\t" << G << std::endl ;
 
-	parser.setFeatureTree(&f) ;
-	
-	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT_AFTER ) ) ;
-	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER ) ) ;
-	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_ETA, TOP_AFTER, 0.1 ) ) ;
+	Matrix C_strain = Tensor::cauchyGreen( E, nu, SPACE_TWO_DIMENSIONAL, PLANE_STRAIN, YOUNG_POISSON) ;
+	Matrix C_stress = Tensor::cauchyGreen( E, nu, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;
 
-	f.step() ;
+	C_strain.print() ;
+	C_stress.print() ;
 
-	std::vector<Geometry *> geoms ;
-        for(size_t i = 0 ; i < aggs.size() ; i++) { geoms.push_back( dynamic_cast<Geometry *>( aggs[i] ) ) ; }
-        unsigned int aggIndex = f.get2DMesh()->generateCache( geoms ) ;
-        std::vector<unsigned int> aggIndexes ; aggIndexes.push_back( aggIndex ) ;
-        unsigned int cemIndex = f.get2DMesh()->generateCacheOut( aggIndexes ) ;
+	std::pair<double,double> e_nu_strain = Tensor::getIsotropicMaterialParameters( C_strain, YOUNG_POISSON, PLANE_STRAIN ) ;
+	std::pair<double,double> e_nu_stress = Tensor::getIsotropicMaterialParameters( C_stress, YOUNG_POISSON, PLANE_STRESS ) ;
+	std::pair<double,double> k_g_strain = Tensor::getIsotropicMaterialParameters( C_strain, BULK_SHEAR, PLANE_STRAIN ) ;
+	std::pair<double,double> k_g_stress = Tensor::getIsotropicMaterialParameters( C_stress, BULK_SHEAR, PLANE_STRESS ) ;
+	std::pair<double,double> e_g_strain = Tensor::getIsotropicMaterialParameters( C_strain, YOUNG_SHEAR, PLANE_STRAIN ) ;
+	std::pair<double,double> e_g_stress = Tensor::getIsotropicMaterialParameters( C_stress, YOUNG_SHEAR, PLANE_STRESS ) ;
 
-        MacroscopicStrainPostProcessor macro(0,0,1) ;
-	Vector maxStr = macro.postProcess( &f ) ;         
+	std::cout << E << "\t" << e_nu_strain.first << std::endl ;
+	std::cout << nu << "\t" << e_nu_strain.second << std::endl ;
+	std::cout << E << "\t" << e_nu_stress.first << std::endl ;
+	std::cout << nu << "\t" << e_nu_stress.second << std::endl ;
+	std::cout << K << "\t" << k_g_strain.first << std::endl ;
+	std::cout << G << "\t" << k_g_strain.second << std::endl ;
+	std::cout << K << "\t" << k_g_stress.first << std::endl ;
+	std::cout << G << "\t" << k_g_stress.second << std::endl ;
+	std::cout << E << "\t" << e_g_strain.first << std::endl ;
+	std::cout << G << "\t" << e_g_strain.second << std::endl ;
+	std::cout << E << "\t" << e_g_stress.first << std::endl ;
+	std::cout << G << "\t" << e_g_stress.second << std::endl ;
 
-        std::cout << maxStr[0] << " " << maxStr[1] << " " << maxStr[2] << std::endl ;
+
+
 
 	return 0 ;
 }

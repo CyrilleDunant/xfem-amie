@@ -40,7 +40,7 @@ ViscoelasticityAndImposedDeformation::ViscoelasticityAndImposedDeformation( cons
     makeImposedStress() ;
 }
 
-ViscoelasticityAndImposedDeformation::ViscoelasticityAndImposedDeformation( ViscoelasticModel model, double young, double poisson, double alpha, double tau, std::string file, SpaceDimensionality dim, planeType pt, bool hooke, int b, int a) : Viscoelasticity(model, young, poisson, tau, file, dim, pt, hooke, b, a)
+ViscoelasticityAndImposedDeformation::ViscoelasticityAndImposedDeformation( ViscoelasticModel model, double young, double poisson, double alpha, double tau, std::string file, SpaceDimensionality dim, planeType pt, IsotropicMaterialParameters hooke, int b, int a) : Viscoelasticity(model, young, poisson, tau, file, dim, pt, hooke, b, a)
 {
     imposedStrain.resize( tensors[0].numCols() ) ;
     for(size_t i = 0 ; i < dim ; i++)

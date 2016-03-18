@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 8/2/2016 at 15:10  */
+/* this is an auto-generated file created on 18/2/2016 at 13:26  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -239,7 +239,8 @@ namespace Amie
             if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
             if( values.find("variability") == values.end() ) { values["variability"] = 0.2 ; } ; 
             if( values.find("material_characteristic_radius") == values.end() ) { values["material_characteristic_radius"] = 0.001 ; } ; 
-            return new WeibullDistributedStiffness(values["young_modulus"], values["poisson_ratio"], Enum::getSpaceDimensionality(strings["dimension"]), values["compressive_strength"], values["tensile_strength"], Enum::getplaneType(strings["plane_type"]), values["variability"], values["material_characteristic_radius"]) ;
+            if( strings.find("material_parameters") == strings.end() ) { strings["material_parameters"] = "YOUNG_POISSON" ; } ; 
+            return new WeibullDistributedStiffness(values["young_modulus"], values["poisson_ratio"], Enum::getSpaceDimensionality(strings["dimension"]), values["compressive_strength"], values["tensile_strength"], Enum::getplaneType(strings["plane_type"]), values["variability"], values["material_characteristic_radius"], Enum::getIsotropicMaterialParameters(strings["material_parameters"])) ;
         }
    
         // parsed from header file: ../physics/stiffness.h
@@ -247,13 +248,15 @@ namespace Amie
         { 
             if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
             if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
-            return new Stiffness(values["young_modulus"], values["poisson_ratio"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
+            if( strings.find("material_parameters") == strings.end() ) { strings["material_parameters"] = "YOUNG_POISSON" ; } ; 
+            return new Stiffness(values["young_modulus"], values["poisson_ratio"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"]), Enum::getIsotropicMaterialParameters(strings["material_parameters"])) ;
         }
         if( type == "WeibullDistributedElasticStiffness" )
         { 
             if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
             if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
-            return new WeibullDistributedElasticStiffness(values["young_modulus"], values["poisson_ratio"], values["variability"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
+            if( strings.find("material_parameters") == strings.end() ) { strings["material_parameters"] = "YOUNG_POISSON" ; } ; 
+            return new WeibullDistributedElasticStiffness(values["young_modulus"], values["poisson_ratio"], values["variability"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"]), Enum::getIsotropicMaterialParameters(strings["material_parameters"])) ;
         }
    
         // parsed from header file: ../physics/stiffness_and_fracture.h
@@ -262,7 +265,8 @@ namespace Amie
             if( damagemodels.find("damage_model") == damagemodels.end() ) { damagemodels["damage_model"] = nullptr ; } ; 
             if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
             if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
-            return new StiffnessAndFracture(values["young_modulus"], values["poisson_ratio"], fracturecriterions["fracture_criterion"], damagemodels["damage_model"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
+            if( strings.find("material_parameters") == strings.end() ) { strings["material_parameters"] = "YOUNG_POISSON" ; } ; 
+            return new StiffnessAndFracture(values["young_modulus"], values["poisson_ratio"], fracturecriterions["fracture_criterion"], damagemodels["damage_model"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"]), Enum::getIsotropicMaterialParameters(strings["material_parameters"])) ;
         }
    
         // parsed from header file: ../physics/void_form.h
@@ -273,7 +277,8 @@ namespace Amie
         { 
             if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
             if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
-            return new StiffnessWithImposedDeformation(values["young_modulus"], values["poisson_ratio"], values["imposed_deformation"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
+            if( strings.find("material_parameters") == strings.end() ) { strings["material_parameters"] = "YOUNG_POISSON" ; } ; 
+            return new StiffnessWithImposedDeformation(values["young_modulus"], values["poisson_ratio"], values["imposed_deformation"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"]), Enum::getIsotropicMaterialParameters(strings["material_parameters"])) ;
         }
    
         // parsed from header file: ../physics/viscoelasticity_and_fracture.h
@@ -284,7 +289,8 @@ namespace Amie
             if( values.find("creep_characteristic_time") == values.end() ) { values["creep_characteristic_time"] = 1 ; } ; 
             if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
             if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
-            return new ViscoelasticityAndFracture(Enum::getViscoelasticModel(strings["model"]), values["young_modulus"], values["poisson_ratio"], fracturecriterions["fracture_criterion"], damagemodels["damage_model"], values["creep_characteristic_time"], strings["file_name"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
+            if( strings.find("material_parameters") == strings.end() ) { strings["material_parameters"] = "YOUNG_POISSON" ; } ; 
+            return new ViscoelasticityAndFracture(Enum::getViscoelasticModel(strings["model"]), values["young_modulus"], values["poisson_ratio"], fracturecriterions["fracture_criterion"], damagemodels["damage_model"], values["creep_characteristic_time"], strings["file_name"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"]), Enum::getIsotropicMaterialParameters(strings["material_parameters"])) ;
         }
    
         // parsed from header file: ../physics/stiffness_with_imposed_stress.h
@@ -292,7 +298,8 @@ namespace Amie
         { 
             if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
             if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
-            return new StiffnessWithImposedStress(values["young_modulus"], values["poisson_ratio"], values["imposed_stress"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
+            if( strings.find("material_parameters") == strings.end() ) { strings["material_parameters"] = "YOUNG_POISSON" ; } ; 
+            return new StiffnessWithImposedStress(values["young_modulus"], values["poisson_ratio"], values["imposed_stress"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"]), Enum::getIsotropicMaterialParameters(strings["material_parameters"])) ;
         }
    
         // parsed from header file: ../physics/viscoelasticity.h
@@ -301,7 +308,8 @@ namespace Amie
             if( values.find("creep_characteristic_time") == values.end() ) { values["creep_characteristic_time"] = 1 ; } ; 
             if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
             if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
-            return new Viscoelasticity(Enum::getViscoelasticModel(strings["model"]), values["young_modulus"], values["poisson_ratio"], values["creep_characteristic_time"], strings["file_name"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
+            if( strings.find("material_parameters") == strings.end() ) { strings["material_parameters"] = "YOUNG_POISSON" ; } ; 
+            return new Viscoelasticity(Enum::getViscoelasticModel(strings["model"]), values["young_modulus"], values["poisson_ratio"], values["creep_characteristic_time"], strings["file_name"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"]), Enum::getIsotropicMaterialParameters(strings["material_parameters"])) ;
         }
         if( type == "StandardViscoelasticity" )
         { 
@@ -316,7 +324,8 @@ namespace Amie
             if( values.find("creep_characteristic_time") == values.end() ) { values["creep_characteristic_time"] = 1 ; } ; 
             if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
             if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
-            return new ViscoelasticityAndImposedDeformation(Enum::getViscoelasticModel(strings["model"]), values["young_modulus"], values["poisson_ratio"], values["imposed_deformation"], values["creep_characteristic_time"], strings["file_name"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
+            if( strings.find("material_parameters") == strings.end() ) { strings["material_parameters"] = "YOUNG_POISSON" ; } ; 
+            return new ViscoelasticityAndImposedDeformation(Enum::getViscoelasticModel(strings["model"]), values["young_modulus"], values["poisson_ratio"], values["imposed_deformation"], values["creep_characteristic_time"], strings["file_name"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"]), Enum::getIsotropicMaterialParameters(strings["material_parameters"])) ;
         }
    
         // parsed from header file: ../physics/logarithmic_creep_with_external_parameters.h

@@ -352,9 +352,6 @@ target_link_libraries( single_2d_inclusion Amie ${ALL_LINK_FLAGS} )
 add_executable(single_2d_viscoelasticity examples/main_single_2d_viscoelasticity.cpp )
 target_link_libraries( single_2d_viscoelasticity Amie ${ALL_LINK_FLAGS} )
 
-add_executable(visu_behavior examples/main_visu_behavior.cpp )
-target_link_libraries(visu_behavior Amie ${ALL_LINK_FLAGS} )
-
 add_executable(3d_asr  examples/main_3d_asr.cpp  )
 target_link_libraries( 3d_asr Amie  ${ALL_LINK_FLAGS})
 
@@ -476,11 +473,8 @@ target_link_libraries( check_test Amie ${ALL_LINK_FLAGS} )
 add_executable(check_behaviour EXCLUDE_FROM_ALL examples/main_check_behaviour.cpp )
 target_link_libraries( check_behaviour Amie ${ALL_LINK_FLAGS} )
 
-add_executable( test/viscodamage_multilinearsoftening EXCLUDE_FROM_ALL examples/test/main_test_viscodamage_multilinearsoftening.cpp )
-target_link_libraries( test/viscodamage_multilinearsoftening Amie ${ALL_LINK_FLAGS})
-
-add_executable( test/xfem EXCLUDE_FROM_ALL examples/test/main_test_xfem.cpp )
-target_link_libraries( test/xfem Amie ${ALL_LINK_FLAGS})
+add_executable( test/cauchy_green EXCLUDE_FROM_ALL examples/test/main_test_cauchy_green.cpp )
+target_link_libraries( test/cauchy_green Amie ${ALL_LINK_FLAGS})
 
 add_executable( test/stxfem EXCLUDE_FROM_ALL examples/test/main_test_stxfem.cpp )
 target_link_libraries( test/stxfem Amie ${ALL_LINK_FLAGS})
@@ -488,18 +482,21 @@ target_link_libraries( test/stxfem Amie ${ALL_LINK_FLAGS})
 add_executable( test/time_continuity EXCLUDE_FROM_ALL examples/test/main_test_time_continuity.cpp )
 target_link_libraries( test/time_continuity Amie ${ALL_LINK_FLAGS})
 
+add_executable( test/viscodamage_multilinearsoftening EXCLUDE_FROM_ALL examples/test/main_test_viscodamage_multilinearsoftening.cpp )
+target_link_libraries( test/viscodamage_multilinearsoftening Amie ${ALL_LINK_FLAGS})
+
+add_executable( test/xfem EXCLUDE_FROM_ALL examples/test/main_test_xfem.cpp )
+target_link_libraries( test/xfem Amie ${ALL_LINK_FLAGS})
+
+
 ADD_CUSTOM_TARGET(unitTests)
 ADD_DEPENDENCIES(unitTests 
 check_test 
 check_behaviour 
-test/imposed_deformation 
-test/logcreep 
-test/logcreep_imposed_deformation 
+test/cauchy_green
 test/stxfem 
 test/time_continuity
 test/viscodamage_multilinearsoftening 
-test/viscoelasticity_imposed_deformation 
-test/viscoelasticity_kv 
 test/xfem 
 )
 

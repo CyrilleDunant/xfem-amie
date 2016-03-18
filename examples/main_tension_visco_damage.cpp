@@ -153,7 +153,7 @@ int main ( int argc, char *argv[] )
     // Beton
     double k_elas = 40.4e9;
     double nu_elas = 0.2 ;
-    Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas, true,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
+    Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON ) ;
     std::vector<std::pair<Matrix, Matrix> > branches ;
     std::vector<std::pair<Matrix, Matrix> > branches_mx ;
     double factor_k = 1.;
@@ -161,19 +161,19 @@ int main ( int argc, char *argv[] )
     for(size_t i = 0 ; i < K_chaine_cp.size() ; i++)
     {
         double tau = 5*std::pow(10., (double) i - 2 );
-        Matrix K_i = Tensor::cauchyGreen(K_chaine_cp[i], nu_elas, true,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS )  ;
-        Matrix Am_i = Tensor::cauchyGreen( K_chaine_cp[i]*tau, nu_elas, true,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
+        Matrix K_i = Tensor::cauchyGreen(K_chaine_cp[i], nu_elas,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON )  ;
+        Matrix Am_i = Tensor::cauchyGreen( K_chaine_cp[i]*tau, nu_elas,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON ) ;
         branches.push_back(std::make_pair(K_i, Am_i)) ;
     }
     std::vector<double> K_chaine_mx_cp = {1.861269605473859118073396e10, 2.8823932807429079935446e9, 3.4017749304038078634156e9,
                                           5.3973666770458357270061e9, 1.01057690570688572352998e10
                                          } ;
     std::vector<double> tau_chaine_mx_cp = {0.04647627034132179101144053, 0.4553612767686235043851535, 4.242249572847878343173296, 32.07187552289942944803857} ;
-    Matrix K_mx_0 = Tensor::cauchyGreen(K_chaine_mx_cp[0], nu_elas, true,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS )  ;
+    Matrix K_mx_0 = Tensor::cauchyGreen(K_chaine_mx_cp[0], nu_elas,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS , YOUNG_POISSON)  ;
     for(size_t i = 0 ; i < K_chaine_mx_cp.size()-1 ; i++)
     {
-        Matrix K_mx_i = Tensor::cauchyGreen(K_chaine_mx_cp[i+1], nu_elas, true,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS )  ;
-        Matrix Am_mx_i = Tensor::cauchyGreen( K_chaine_mx_cp[i+1]*tau_chaine_mx_cp[i], nu_elas, true,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
+        Matrix K_mx_i = Tensor::cauchyGreen(K_chaine_mx_cp[i+1], nu_elas,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON )  ;
+        Matrix Am_mx_i = Tensor::cauchyGreen( K_chaine_mx_cp[i+1]*tau_chaine_mx_cp[i], nu_elas,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON ) ;
         branches_mx.push_back(std::make_pair(K_mx_i, Am_mx_i)) ;
     }
     Viscoelasticity * paste = new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches) ;

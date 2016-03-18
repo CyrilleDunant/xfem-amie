@@ -56,6 +56,7 @@ struct BlockConnectivity
     @string[file_name] // name of the file containing the modulus of the different branches
     @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
     @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+    @string<IsotropicMaterialParameters>[material_parameters] YOUNG_POISSON // describes how to build the stiffness matrix
  */
 struct Viscoelasticity : public LinearForm
 {
@@ -99,7 +100,7 @@ struct Viscoelasticity : public LinearForm
 	Young's modulus of the spring | dashpot of the spring | characteristic time of the dasahpot (in days)
 	Springs or dashpots that are alone in the assembly are described by young, poisson and tau
 	*/
-	Viscoelasticity( ViscoelasticModel model, double young, double poisson, double tau = 1, std::string file = std::string(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, bool hooke = true, int additionnalBlocksBefore = 0, int additionnalBlocksAfter = 0) ;
+	Viscoelasticity( ViscoelasticModel model, double young, double poisson, double tau = 1, std::string file = std::string(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, IsotropicMaterialParameters hooke = YOUNG_POISSON, int additionnalBlocksBefore = 0, int additionnalBlocksAfter = 0) ;
 
 	virtual ~Viscoelasticity() ;
 

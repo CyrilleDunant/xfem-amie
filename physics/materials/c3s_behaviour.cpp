@@ -11,7 +11,7 @@
 
 using namespace Amie ;
 
-C3SBehaviour::C3SBehaviour(double E, double nu, SpaceDimensionality dim) : Stiffness(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim, PLANE_STRESS))
+C3SBehaviour::C3SBehaviour(double E, double nu, SpaceDimensionality dim) : Stiffness(E, nu ,dim, PLANE_STRESS, YOUNG_POISSON)
 {
 }
 

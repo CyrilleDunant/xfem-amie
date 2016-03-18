@@ -293,13 +293,13 @@ int main ( int argc, char *argv[] )
 
     double halfSampleOffset = sampleLength*.25 ;
 
-    Matrix m0_paste = Tensor::cauchyGreen ( std::make_pair ( E_paste,nu ), true, SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
+    Matrix m0_paste = Tensor::cauchyGreen ( E_paste, nu, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON ) ;
 
 // 	//redimensionned so that we get in shear the right moment of inertia
 // 	Matrix m0_steel = Tensor::orthothropicCauchyGreen(E_steel, E_steel, E_steel*(1.-nu_steel)*.5*.13/(1.-nu_steel*nu_steel), nu_steel,PLANE_STRESS_FREE_G) ;
 //
-    Matrix m0_steel = Tensor::cauchyGreen ( std::make_pair ( E_steel,nu_steel ), true, SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
-    Matrix m0_steel_effective = Tensor::cauchyGreen ( std::make_pair ( E_steel_effective,nu_steel ), true, SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
+    Matrix m0_steel = Tensor::cauchyGreen ( E_steel,nu_steel, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON ) ;
+    Matrix m0_steel_effective = Tensor::cauchyGreen ( E_steel_effective,nu_steel, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON ) ;
 
 
     Sample sample ( nullptr, sampleLength*.5, sampleHeight+2.*plateHeight, halfSampleOffset, 0 ) ;

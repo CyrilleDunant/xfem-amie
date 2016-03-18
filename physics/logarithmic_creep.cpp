@@ -17,16 +17,16 @@ LogarithmicCreep::LogarithmicCreep(const Matrix & rig, const Matrix & vs, const 
     makeBlockConnectivity() ;
 }
 
-LogarithmicCreep::LogarithmicCreep(double young, double poisson, double E_creep, double nu_creep, double t, double E_recovery, double nu_recovery, LogCreepAccumulator * acc, SpaceDimensionality dim, planeType pt) : Viscoelasticity(PURE_ELASTICITY, Tensor::cauchyGreen(young, poisson, true, dim, pt), 2), tau(t), reducedTimeStep(-1.), accumulator(acc), updated(true), timeDependentIntegration(true),fixCreepVariable(false), prevParam(param), prevEta(eta)
+LogarithmicCreep::LogarithmicCreep(double young, double poisson, double E_creep, double nu_creep, double t, double E_recovery, double nu_recovery, LogCreepAccumulator * acc, SpaceDimensionality dim, planeType pt) : Viscoelasticity(PURE_ELASTICITY, Tensor::cauchyGreen(young, poisson, dim, pt, YOUNG_POISSON), 2), tau(t), reducedTimeStep(-1.), accumulator(acc), updated(true), timeDependentIntegration(true),fixCreepVariable(false), prevParam(param), prevEta(eta)
 {
-    C = Tensor::cauchyGreen(young, poisson, true, dim, pt) ;
+    C = Tensor::cauchyGreen(young, poisson, dim, pt, YOUNG_POISSON) ;
     double nu = poisson ;
     if(nu_creep > 0 && E_creep > 0) { nu = nu_creep ; }
-    E = Tensor::cauchyGreen(E_creep, nu, true, dim, pt) ; if(E_creep < 0) { E = 0 ; }
+    E = Tensor::cauchyGreen(E_creep, nu, dim, pt, YOUNG_POISSON) ; if(E_creep < 0) { E = 0 ; }
     if(nu_recovery > 0 && tau > 0) { nu = nu_recovery ; }
     double y = E_creep ;
     if(E_recovery > 0) { y = E_recovery ; }
-    R = Tensor::cauchyGreen(y, nu, true, dim, pt) ; if(y < 0) { R = 0 ; }
+    R = Tensor::cauchyGreen(y, nu, dim, pt, YOUNG_POISSON) ; if(y < 0) { R = 0 ; }
 
     if(tau < 0 || E_creep < 0) 
     { 

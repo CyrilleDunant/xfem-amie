@@ -30,6 +30,7 @@ namespace Amie
     @string[file_name] // name of the file containing the modulus of the different branches
     @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
     @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+    @string<IsotropicMaterialParameters>[material_parameters] YOUNG_POISSON // describes how to build the stiffness matrix
  */
 struct ViscoelasticityAndFracture : public Viscoelasticity
 {	
@@ -53,7 +54,7 @@ struct ViscoelasticityAndFracture : public Viscoelasticity
 	// constructor for general viscoelasticity (rig and eta are supposed symmetric)
 	ViscoelasticityAndFracture( const Matrix & rig, const Matrix & eta, int blocks, FractureCriterion * c, DamageModel * d, int additionnalBlocksAfter = 0, double r = 0) ; 
 
-	ViscoelasticityAndFracture( ViscoelasticModel model, double young, double poisson, FractureCriterion * c, DamageModel * d, double tau = 1, std::string file = std::string(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, bool hooke = true, int additionnalBlocksBefore = 0, int additionnalBlocksAfter = 0) ;
+	ViscoelasticityAndFracture( ViscoelasticModel model, double young, double poisson, FractureCriterion * c, DamageModel * d, double tau = 1, std::string file = std::string(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, IsotropicMaterialParameters hooke = YOUNG_POISSON, int additionnalBlocksBefore = 0, int additionnalBlocksAfter = 0) ;
 
 	virtual ~ViscoelasticityAndFracture() ;
 

@@ -61,20 +61,27 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 	prevImposed = imposed ;
 	bool modelChange = false ;
 
-	if(values.find("young_modulus") != values.end())
+	if(values.find("young_modulus") != values.end() && values.find("poisson_ratio") != values.end())
 	{
 		double E_inst = values["young_modulus"] ;
 		double nu_inst = values["poisson_ratio"] ;
                 if(values.find("angle") != values.end() && values.find("young_modulus_anisotropy_coefficient") != values.end())
 			C = Tensor::orthotropicCauchyGreen( E_inst, E_inst*values["young_modulus_anisotropy_coefficient"], E_inst, nu_inst, values["angle"], plane) ;
 		else
-			C = Tensor::cauchyGreen( E_inst, nu_inst, true, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+			C = Tensor::cauchyGreen( E_inst, nu_inst, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane, YOUNG_POISSON) ;
 	}
-	else
+	else if(values.find("young_modulus") != values.end() && values.find("shear_modulus") != values.end())
+	{
+		double E_inst = values["young_modulus"] ;
+		double G_inst = values["shear_modulus"] ;
+		C = Tensor::cauchyGreen( E_inst, G_inst, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane, YOUNG_SHEAR) ;
+	}
+	else 
+
 	{
 		double k_inst = values["bulk_modulus"] ;
 		double mu_inst = values["shear_modulus"] ;
-		C = Tensor::cauchyGreen( k_inst, mu_inst, false, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+		C = Tensor::cauchyGreen( k_inst, mu_inst, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane, BULK_SHEAR) ;
 	}
         Point angle ;
         if(values.find("angle_x") != values.end())
@@ -94,36 +101,69 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 		if(values.find("creep_modulus") != values.end())
 		{
 			double E_visc = values["creep_modulus"] ;
-			double nu_visc = values["creep_poisson"] ;
-			E = Tensor::cauchyGreen( E_visc, nu_visc, true, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+			if(values.find("creep_poisson") != values.end())
+			{
+				double nu_visc = values["creep_poisson"] ;
+				E = Tensor::cauchyGreen( E_visc, nu_visc, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane, YOUNG_POISSON) ;
+			}
+			else if(values.find("creep_shear") != values.end())
+			{
+				double G_visc = values["creep_shear"] ;
+				E = Tensor::cauchyGreen( E_visc, G_visc, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane, YOUNG_SHEAR) ;
+			}
+			else if(values.find("poisson_ratio") != values.end())
+			{
+				double nu_visc = values["poisson_ratio"] ;
+				E = Tensor::cauchyGreen( E_visc, nu_visc, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane, YOUNG_POISSON) ;
+			}
+			else if(values.find("shear_modulus") != values.end())
+			{
+				double G_visc = values["shear_modulus"] ;
+				E = Tensor::cauchyGreen( E_visc, G_visc, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane, YOUNG_SHEAR) ;
+			}
 		}
 		else
 		{
 			double k_visc = values["creep_bulk"] ;
 			double mu_visc = values["creep_shear"] ;
-			E = Tensor::cauchyGreen( k_visc, mu_visc, false, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+			E = Tensor::cauchyGreen( k_visc, mu_visc, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane, BULK_SHEAR) ;
 		}
 		double a = 0. ;
 		if(values.find("recoverable_modulus") != values.end())
 		{
 			double E_rec = values["recoverable_modulus"] ;
-			double nu_rec = 0.2 ;
 			if(values.find("recoverable_poisson") != values.end())
 			{
-				nu_rec = values["recoverable_poisson"] ;
+				double nu_visc = values["recoverable_poisson"] ;
+				R = Tensor::cauchyGreen( E_rec, nu_visc, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane, YOUNG_POISSON) ;
+			}
+			else if(values.find("recoverable_shear") != values.end())
+			{
+				double G_visc = values["recoverable_shear"] ;
+				R = Tensor::cauchyGreen( E_rec, G_visc, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane, YOUNG_SHEAR) ;
 			}
 			else if(values.find("creep_poisson") != values.end())
 			{
-				nu_rec = values["creep_poisson"] ;
+				double nu_visc = values["creep_poisson"] ;
+				R = Tensor::cauchyGreen( E_rec, nu_visc, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane, YOUNG_POISSON) ;
 			}
-			else
+			else if(values.find("creep_shear") != values.end())
 			{
-				nu_rec = values["poisson_ratio"] ;
-//					double k_visc = values["creep_bulk"] ;
-//					double mu_visc = values["creep_shear"] ;
-//					nu_rec = (3.*k_visc-2.*mu_visc)/(2.*(3*k_visc+mu_visc)) ;
+				double G_visc = values["creep_shear"] ;
+				R = Tensor::cauchyGreen( E_rec, G_visc, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane, YOUNG_SHEAR) ;
 			}
-			R = Tensor::cauchyGreen( E_rec, nu_rec, true, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+			else if(values.find("poisson_ratio") != values.end())
+			{
+				double nu_visc = values["poisson_ratio"] ;
+				R = Tensor::cauchyGreen( E_rec, nu_visc, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane, YOUNG_POISSON) ;
+			}
+			else if(values.find("shear_modulus") != values.end())
+			{
+				double G_visc = values["shear_modulus"] ;
+				R = Tensor::cauchyGreen( E_rec, G_visc, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane, YOUNG_SHEAR) ;
+			}
+                        else
+				R = E ;
 		}
 		else
 		{
@@ -131,14 +171,10 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 			{
 				double k_rec = values["recoverable_bulk"] ;
 				double mu_rec = values["recoverable_shear"] ;
-				R = Tensor::cauchyGreen( k_rec, mu_rec, false, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+				R = Tensor::cauchyGreen( k_rec, mu_rec, ((int) param.numCols()==3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane, BULK_SHEAR) ;
 			}
 			else
-			{
-				values["recoverable_modulus"] = values["creep_modulus"] ;
-				values["recoverable_poisson"] = values["creep_poisson"] ;
 				R = E ;
-			}
 		}
 		a = R[1][1]/E[1][1] ;
 		tau = values["creep_characteristic_time"]/exp(-a) ;

@@ -33,6 +33,7 @@ namespace Amie
     @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
     @value[variability] 0.2 // variability of the mechanical properties
     @value[material_characteristic_radius] 0.001 // radius of the non-local damage model
+    @string<IsotropicMaterialParameters>[material_parameters] YOUNG_POISSON // describes how to build the stiffness matrix
  */
 struct WeibullDistributedStiffness : public LinearForm
 {
@@ -55,7 +56,7 @@ struct WeibullDistributedStiffness : public LinearForm
     * @param rig Complete expression of the Cauchy-Green Strain Tensor
     * @param cri stress limit for the Mohr - Coulomb criterion to use
     */
-    WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt = PLANE_STRESS, double var = 0.2, double radius = 0.001, MirrorState mirroring = NO_MIRROR, double dx = 0, double dy = 0, double dz = 0)  ;
+    WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt = PLANE_STRESS, double var = 0.2, double radius = 0.001, IsotropicMaterialParameters hooke = YOUNG_POISSON, MirrorState mirroring = NO_MIRROR, double dx = 0, double dy = 0, double dz = 0)  ;
 
     void setNeighbourhoodRadius(double r) {
         materialRadius = r ;

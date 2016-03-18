@@ -11,7 +11,7 @@
 
 using namespace Amie ;
 
-RebarBehaviour::RebarBehaviour(double E, double nu, double tensile, SpaceDimensionality dim) : WeibullDistributedStiffness(E,nu, dim, -8*tensile,tensile)
+RebarBehaviour::RebarBehaviour(double E, double nu, double tensile, SpaceDimensionality dim) : WeibullDistributedStiffness(E,nu, dim, -8*tensile,tensile, PLANE_STRESS, 0.2, 0.0002, YOUNG_POISSON)
 {
 	materialRadius = 0.0002 ;
 }

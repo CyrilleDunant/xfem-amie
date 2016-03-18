@@ -25,7 +25,7 @@ StiffnessWithImposedStress::StiffnessWithImposedStress(const Matrix & rig, const
     this->time_d = false ;
 }
 
-StiffnessWithImposedStress::StiffnessWithImposedStress(double E, double nu, double alpha, SpaceDimensionality dim, planeType pt) : LinearForm(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim,pt), false, false, dim),v(2)
+StiffnessWithImposedStress::StiffnessWithImposedStress(double E, double nu, double alpha, SpaceDimensionality dim, planeType pt, IsotropicMaterialParameters hooke) : LinearForm(Tensor::cauchyGreen(E, nu,dim,pt, hooke), false, false, dim),v(2)
 {
     v.push_back(XI) ;
     v.push_back(ETA) ;

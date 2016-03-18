@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 8/2/2016 at 15:10  */
+/* this is an auto-generated file created on 18/2/2016 at 13:26  */
 
 #ifndef __ENUMERATION_TRANSLATOR_H__
 #define __ENUMERATION_TRANSLATOR_H__
@@ -1383,6 +1383,27 @@ struct Enum
             case SYMMETRY_TRICLINIC: return "SYMMETRY_TRICLINIC" ;
         }
         return "SYMMETRY_CUBIC" ;
+    }
+   
+    // parsed from header file: ../utilities/tensor.h
+    static IsotropicMaterialParameters getIsotropicMaterialParameters(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "YOUNG_POISSON") { return YOUNG_POISSON ; }
+        if( type == "BULK_SHEAR") { return BULK_SHEAR ; }
+        if( type == "YOUNG_SHEAR") { return YOUNG_SHEAR ; }
+        if(ok) { *ok = false ; }
+        return YOUNG_POISSON ;
+    }
+    static std::string fromIsotropicMaterialParameters(IsotropicMaterialParameters value)
+    {
+        switch(value)
+        {
+            case YOUNG_POISSON: return "YOUNG_POISSON" ;
+            case BULK_SHEAR: return "BULK_SHEAR" ;
+            case YOUNG_SHEAR: return "YOUNG_SHEAR" ;
+        }
+        return "YOUNG_POISSON" ;
     }
    
 

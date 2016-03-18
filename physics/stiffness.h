@@ -29,6 +29,7 @@ namespace Amie
     @value[poisson_ratio] // value of the Poisson ratio
     @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
     @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+    @string<IsotropicMaterialParameters>[material_parameters] YOUNG_POISSON // describes how to build the stiffness matrix
  */
 struct Stiffness : public LinearForm
 {
@@ -38,7 +39,7 @@ struct Stiffness : public LinearForm
     * @param rig Complete expression of the Cauchy-Green Strain Tensor
     */
     Stiffness(const Matrix & rig) ;
-    Stiffness(double E, double nu, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS) ;
+    Stiffness(double E, double nu, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, IsotropicMaterialParameters hooke = YOUNG_POISSON) ;
 
     virtual ~Stiffness() ;
 
@@ -68,12 +69,13 @@ struct Stiffness : public LinearForm
     @value[variability] // value of the Poisson ratio
     @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
     @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+    @string<IsotropicMaterialParameters>[material_parameters] YOUNG_POISSON // describes how to build the stiffness matrix
  */
 struct WeibullDistributedElasticStiffness : public Stiffness 
 {
     double variability ;
     WeibullDistributedElasticStiffness(const Matrix & rig, double v) : Stiffness(rig), variability(v) { }
-    WeibullDistributedElasticStiffness(double E, double nu, double v, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS) : Stiffness(E, nu, dim, pt), variability(v) { } 
+    WeibullDistributedElasticStiffness(double E, double nu, double v, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, IsotropicMaterialParameters hooke = YOUNG_POISSON) : Stiffness(E, nu, dim, pt, hooke), variability(v) { } 
 
     virtual Form * getCopy() const ;
 

@@ -19,7 +19,7 @@
 
 using namespace Amie ;
 
-AggregateBehaviour::AggregateBehaviour(bool e, bool st, double E, double nu, double up, double r, SpaceDimensionality dim, planeType pt, double var, int blocks)  : WeibullDistributedStiffness(E,nu, dim, -8000.*up,up, pt, var, r), freeblocks(blocks), spaceTime(st), elastic(e)
+AggregateBehaviour::AggregateBehaviour(bool e, bool st, double E, double nu, double up, double r, SpaceDimensionality dim, planeType pt, double var, int blocks)  : WeibullDistributedStiffness(E,nu, dim, -8000.*up,up, pt, var, r, YOUNG_POISSON), freeblocks(blocks), spaceTime(st), elastic(e)
 {
 
 }

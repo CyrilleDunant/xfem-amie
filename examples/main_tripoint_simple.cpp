@@ -153,14 +153,14 @@ int main ( int argc, char *argv[] )
     planeType pt = PLANE_STRESS;
     double k_elas = 40.4e9;
     double nu_elas = 0.3 ;
-    Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas, true,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
+    Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON ) ;
     std::vector<std::pair<Matrix, Matrix> > branches ;
     std::vector<double> K_chaine_cp = { 5.4e11,  3.9e11, 2.02e11, 5.1e10 } ;
     for(size_t i = 0 ; i < K_chaine_cp.size() ; i++)
     {
         double tau = 5.*std::pow(10., (double) i - 2 ); std::cerr << "TAU "<< tau << std::endl ;
-        Matrix K_i = Tensor::cauchyGreen(K_chaine_cp[i], nu_elas,  true,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS )  ; 
-        Matrix Am_i = Tensor::cauchyGreen( K_chaine_cp[i]*tau, nu_elas, true,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
+        Matrix K_i = Tensor::cauchyGreen(K_chaine_cp[i], nu_elas,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON )  ; 
+        Matrix Am_i = Tensor::cauchyGreen( K_chaine_cp[i]*tau, nu_elas,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON ) ;
         branches.push_back(std::make_pair(K_i, Am_i)) ;
     }    
     

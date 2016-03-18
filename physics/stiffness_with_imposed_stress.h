@@ -30,6 +30,7 @@ namespace Amie
     @value[imposed_stress] // value of the linear imposed stress
     @string<SpaceDimensionality>[dimension] SPACE_TWO_DIMENSIONAL // number of dimensions of the current simulation
     @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
+    @string<IsotropicMaterialParameters>[material_parameters] YOUNG_POISSON // describes how to build the stiffness matrix
 */
 struct StiffnessWithImposedStress : public LinearForm
 {
@@ -44,7 +45,7 @@ struct StiffnessWithImposedStress : public LinearForm
     */
     StiffnessWithImposedStress(const Matrix & rig, const Vector & imposedDef) ;
 
-    StiffnessWithImposedStress(double E, double nu, double alpha, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS) ;
+    StiffnessWithImposedStress(double E, double nu, double alpha, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, IsotropicMaterialParameters hooke = YOUNG_POISSON) ;
 
     virtual ~StiffnessWithImposedStress() ;
 
