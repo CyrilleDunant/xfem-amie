@@ -54,9 +54,9 @@ namespace Amie {
 		double cstrain; 
 		double cstress;
 		planeType pt;
-		virtual bool directionInTension(size_t direction) {return ismet ;}
-		virtual bool directionInCompression(size_t direction) {return ismet ;}
-		virtual bool directionMet(size_t direction) {return ismet;}
+		virtual bool directionInTension(size_t direction, double t = 0) {return ismet ;}
+		virtual bool directionInCompression(size_t direction, double t = 0) {return ismet ;}
+		virtual bool directionMet(size_t direction, double t = 0) {return ismet;}
 	public:
 	/** \brief Constructor 
 	 * @param thres Set the maximum equivalent Mazars strain. 

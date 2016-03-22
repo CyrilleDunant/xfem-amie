@@ -61,7 +61,7 @@ public:
     double strain_te ;
 
 
-    virtual bool directionInTension(size_t direction)
+    virtual bool directionInTension(size_t direction, double t = 0)
     {
         if(direction == 0)
             return firstTension ;
@@ -69,7 +69,7 @@ public:
             return secondTension ;
         return false ;
     }
-    virtual bool directionInCompression(size_t direction)
+    virtual bool directionInCompression(size_t direction, double t = 0)
     {
         if(direction == 0)
             return firstCompression ;
@@ -77,7 +77,7 @@ public:
             return secondCompression ;
         return false ;
     }
-    virtual bool directionMet(size_t direction)
+    virtual bool directionMet(size_t direction, double t = 0)
     {
         if(direction == 0)
             return firstMet ;

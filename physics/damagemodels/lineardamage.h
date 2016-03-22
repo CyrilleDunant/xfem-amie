@@ -54,7 +54,7 @@ public:
 
     /** \brief return true is the element concerned is fractured
     	*/
-    virtual bool fractured() const ;
+    virtual bool fractured(int direction = -1) const ;
 
     virtual DamageModel * getCopy() const ;
 

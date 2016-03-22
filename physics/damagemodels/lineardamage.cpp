@@ -102,7 +102,7 @@ Matrix LinearDamage::apply(const Matrix & m, const Point & p , const IntegrableE
 
 
 
-bool LinearDamage::fractured() const
+bool LinearDamage::fractured(int direction) const
 {
 	if (fraction < 0)
 		return false ;

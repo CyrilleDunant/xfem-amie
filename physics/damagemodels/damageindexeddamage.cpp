@@ -205,7 +205,7 @@ Matrix IndexedLinearDamage::apply(const Matrix & m, const Point & p , const Inte
 }
 
 
-bool IndexedLinearDamage::fractured() const 
+bool IndexedLinearDamage::fractured(int direction) const 
 {
 // 	if(fraction < 0)
 		return false ;

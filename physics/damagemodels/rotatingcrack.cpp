@@ -387,7 +387,7 @@ void  RotatingCrack::computeDelta ( ElementState &s )
 }
 
 
-bool RotatingCrack::fractured() const
+bool RotatingCrack::fractured(int direction) const
 {
 //     return state.max() >= .95 ;
 // 	if ( fraction < 0 )
@@ -613,7 +613,7 @@ void  FixedCrack::computeDelta ( ElementState &s )
     delta = ( range-state ).max() ;
 }
 
-bool FixedCrack::fractured() const
+bool FixedCrack::fractured(int direction) const
 {
 // 	if ( fraction < 0 )
     return false ;

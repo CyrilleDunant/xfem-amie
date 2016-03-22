@@ -229,12 +229,42 @@ void ViscoelasticityAndFracture::setElasticAndViscousStiffnessMatrix()
 
 Matrix ViscoelasticityAndFracture::getTensor(const Point & p, IntegrableEntity * e, int g) const
 {
-    return  dfunc->apply(elasticParam, p) + dfunc->applyViscous(viscousParam, p) ;
+    if(dfunc->getState().size() == 1)
+        return  dfunc->apply(elasticParam, p) + dfunc->applyViscous(viscousParam, p) ;
+
+    Matrix ret = param ;
+    Matrix tmpParam( tensors[0].numRows(), tensors[0].numCols() ) ;
+
+    for(size_t i = 0 ; i < connectivity.size() ; i++)
+    {
+        getBlockInMatrix(param, connectivity[i].xplus[0], connectivity[i].yplus[0], tmpParam) ;
+        tmpParam = dfunc->apply( tmpParam ) ;
+        for(size_t j = 0 ; j < connectivity[i].xplus.size() ; j++)
+            placeMatrixInBlock( tmpParam, connectivity[i].xplus[j], connectivity[i].yplus[j], ret ) ;
+        for(size_t j = 0 ; j < connectivity[i].xminus.size() ; j++)
+            placeMatrixInBlock( -tmpParam , connectivity[i].xminus[j], connectivity[i].yminus[j], ret ) ;
+    }
+    return ret ;
 }
 
 Matrix ViscoelasticityAndFracture::getViscousTensor(const Point & p, IntegrableEntity * e, int g) const
 {
-    return dfunc->apply( eta, p ) ;
+    if(dfunc->getState().size() == 1)
+        return  dfunc->apply(eta, p)  ;
+
+    Matrix ret = eta ;
+    Matrix tmpParam( tensors[0].numRows(), tensors[0].numCols() ) ;
+
+    for(size_t i = 0 ; i < connectivityViscous.size() ; i++)
+    {
+        getBlockInMatrix(eta, connectivityViscous[i].xplus[0], connectivityViscous[i].yplus[0], tmpParam) ;
+        tmpParam = dfunc->apply( tmpParam ) ;
+        for(size_t j = 0 ; j < connectivityViscous[i].xplus.size() ; j++)
+            placeMatrixInBlock( tmpParam, connectivityViscous[i].xplus[j], connectivityViscous[i].yplus[j], ret ) ;
+        for(size_t j = 0 ; j < connectivityViscous[i].xminus.size() ; j++)
+            placeMatrixInBlock( -tmpParam , connectivityViscous[i].xminus[j], connectivityViscous[i].yminus[j], ret ) ;
+    }
+    return ret ;
 }
 
 void ViscoelasticityAndFracture::setFractureCriterion(FractureCriterion * frac)

@@ -83,7 +83,7 @@ public:
 
     /** \brief return true is the element concerned is fractured
     	*/
-    virtual bool fractured() const  ;
+    virtual bool fractured(int direction = -1) const  ;
 
     virtual void postProcess() ;
 
@@ -151,7 +151,7 @@ public:
     virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
     /** \brief return true is the element concerned is fractured
     	*/
-    virtual bool fractured() const  ;
+    virtual bool fractured(int direction = -1) const  ;
 
     virtual void postProcess() ;
 

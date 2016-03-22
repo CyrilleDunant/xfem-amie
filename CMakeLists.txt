@@ -84,6 +84,8 @@ physics/fracturecriteria/confinedvonmises.cpp
 physics/fracturecriteria/nonlocalvonmises.cpp 
 physics/fracturecriteria/mazars.cpp 
 physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.cpp 
+#physics/fracturecriteria/spacetimemultisurfacefracturecriterion.cpp 
+physics/fracturecriteria/spacetimelimitsurfacefracturecriterion.cpp 
 physics/fracturecriteria/spacetimeflowrule.cpp 
 physics/fracturecriteria/druckerprager.cpp 
 physics/fracturecriteria/boundedvonmises.cpp 
@@ -93,6 +95,7 @@ physics/damagemodels/isotropiclineardamage.cpp
 physics/damagemodels/nonlocalisotropiclineardamage.cpp 
 physics/damagemodels/fiberbasedisotropiclineardamage.cpp 
 physics/damagemodels/spacetimefiberbasedisotropiclineardamage.cpp 
+#physics/damagemodels/spacetimefiberbasedtensileshearlineardamage.cpp 
 physics/damagemodels/spacetimeratebasedisotropiclineardamage.cpp 
 physics/damagemodels/spacetimeisotropiclineardamage.cpp 
 physics/damagemodels/anisotropicdamage.cpp

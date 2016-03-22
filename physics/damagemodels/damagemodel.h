@@ -186,7 +186,7 @@ public:
 
     /** \brief return true is the element concerned is fractured
     	*/
-    virtual bool fractured() const = 0 ;
+    virtual bool fractured(int direction = -1) const = 0 ;
 
     /** \brief Modify the rigidity matrix according to the damage model
      *
@@ -283,7 +283,7 @@ public:
         return m ;
     } ;
 
-    virtual bool fractured() const {
+    virtual bool fractured(int direction = -1) const {
         return false ;
     } ;
 

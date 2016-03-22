@@ -31,16 +31,16 @@ public:
     double friction ;
     double modulus ;
     double cap ;
-    virtual bool directionInTension(size_t direction)
+    virtual bool directionInTension(size_t direction, double t = 0)
     {
         return inTension ;
     }
-    virtual bool directionInCompression(size_t direction)
+    virtual bool directionInCompression(size_t direction, double t = 0)
     {
         return !inTension ;
 
     }
-    virtual bool directionMet(size_t direction)
+    virtual bool directionMet(size_t direction, double t = 0)
     {
         if(direction == 0)
             return metInTension ;

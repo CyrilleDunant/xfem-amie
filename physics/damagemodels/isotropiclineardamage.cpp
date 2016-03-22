@@ -48,7 +48,7 @@ Matrix IsotropicLinearDamage::applyViscous(const Matrix & m, const Point & p,con
     return m*(1.-getState()[0]) ;
 }
 
-bool IsotropicLinearDamage::fractured() const
+bool IsotropicLinearDamage::fractured(int direction) const
 {
     if(fraction < 0)
         return false ;
@@ -102,7 +102,7 @@ Matrix IsotropicLinearDamageRate::applyViscous(const Matrix & m, const Point & p
     return m*(1.-std::min(initalState[0] + ratio*getState()[0], 1.)) ;
 }
 
-bool IsotropicLinearDamageRate::fractured() const
+bool IsotropicLinearDamageRate::fractured(int direction) const
 {
     if(fraction < 0)
         return false ;

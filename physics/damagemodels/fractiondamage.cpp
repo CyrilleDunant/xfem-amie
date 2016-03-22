@@ -106,7 +106,7 @@ Matrix FractionLinearDamage::apply(const Matrix & m, const Point & p , const Int
 }
 
 
-bool FractionLinearDamage::fractured() const
+bool FractionLinearDamage::fractured(int direction) const
 {
     if (fraction < 0)
         return false ;

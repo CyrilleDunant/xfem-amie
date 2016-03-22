@@ -16,16 +16,12 @@
 
 namespace Amie {
 
-/** \brief Linear Damage model, with different compressive and tensile damage effects
- * This damage allows a better simulation of materials exhibitng different failure behaviour in traction and compression.
-	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
-*/
 /*PARSE SpaceTimeFiberBasedIsotropic DamageModel
     @value[damage_increment] 0.1 // damage increment which is applied at each step of the damage algorithm
     @value[time_tolerance] 0.001 // minimum time between two successive damage events
     @value[maximum_damage] 0.6 // damage above which an element is considered broken
 */
-class SpaceTimeFiberBasedIsotropicLinearDamage final: public DamageModel
+class SpaceTimeFiberBasedIsotropicLinearDamage : public DamageModel
 {
 protected:
     double fibreFraction ;
@@ -69,7 +65,7 @@ public:
 
     /** \brief return true is the element concerned is fractured
     	*/
-    virtual bool fractured() const  ;
+    virtual bool fractured(int direction = -1) const  ;
 
     virtual DamageModel * getCopy() const ;
 };

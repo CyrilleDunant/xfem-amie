@@ -35,8 +35,8 @@ public:
 	double strainLimit ;
 	bool metInCompression  ;
 	bool metInTension  ;
-	virtual bool directionInTension(size_t direction) {return metInCompression ;}
-	virtual bool directionInCompression(size_t direction) {return metInTension ;}
+	virtual bool directionInTension(size_t direction, double t = 0) {return metInCompression ;}
+	virtual bool directionInCompression(size_t direction, double t = 0) {return metInTension ;}
 	
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)

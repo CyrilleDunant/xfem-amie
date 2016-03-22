@@ -279,7 +279,7 @@ double PlasticStrain::getPlasticity() const
     return currentPlaticVariable ;
 }
 
-bool PlasticStrain::fractured() const
+bool PlasticStrain::fractured(int direction) const
 {
     if(fraction < 0)
         return false ;

@@ -34,8 +34,8 @@ public:
 	bool metInCompression  ;
 	bool metInTension  ;
 	
-	virtual bool directionInTension(size_t direction) {return metInCompression ;}
-	virtual bool directionInCompression(size_t direction) {return metInTension ;}
+	virtual bool directionInTension(size_t direction, double t = 0) {return metInCompression ;}
+	virtual bool directionInCompression(size_t direction, double t = 0) {return metInTension ;}
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
@@ -73,9 +73,9 @@ public:
 	bool metInCompression  ;
 	bool metInTension  ;
 	
-	virtual bool directionInTension(size_t direction) {return true ;}
-	virtual bool directionInCompression(size_t direction) {return true ;}
-	virtual bool directionMet(size_t direction) 
+	virtual bool directionInTension(size_t direction, double t = 0) {return true ;}
+	virtual bool directionInCompression(size_t direction, double t = 0) {return true ;}
+	virtual bool directionMet(size_t direction, double t = 0) 
 	{
 		if(direction == 0)
 			return metInTension ;
@@ -155,9 +155,9 @@ public:
 	bool metInCompression  ;
 	bool metInTension  ;
 	
-	virtual bool directionInTension(size_t direction) {return !metInCompression ;}
-	virtual bool directionInCompression(size_t direction) {return !metInTension ;}
-	virtual bool directionMet(size_t direction) 
+	virtual bool directionInTension(size_t direction, double t = 0) {return !metInCompression ;}
+	virtual bool directionInCompression(size_t direction, double t = 0) {return !metInTension ;}
+	virtual bool directionMet(size_t direction, double t = 0) 
 	{
 		if(direction == 0)
 			return metInTension ;
@@ -208,18 +208,18 @@ public:
 	bool metInCompression  ;
 	bool metInTension  ;
 	
-	virtual bool directionInTension(size_t direction) 
+	virtual bool directionInTension(size_t direction, double t = 0) 
 	{
 		if(direction == 1)
 			return false ;
 		return true ;
 		
 	}
-	virtual bool directionInCompression(size_t direction) 
+	virtual bool directionInCompression(size_t direction, double t = 0) 
 	{
 		return false ;
 	}
-	virtual bool directionMet(size_t direction) 
+	virtual bool directionMet(size_t direction, double t = 0) 
 	{
 		if(direction == 0)
 			return metInTension ;
@@ -268,9 +268,9 @@ public:
 	double c ;
 	bool metInTension  ;
 	
-	virtual bool directionInTension(size_t direction) {return true ;}
-	virtual bool directionInCompression(size_t direction) {return false ;}
-	virtual bool directionMet(size_t direction) 
+	virtual bool directionInTension(size_t direction, double t = 0) {return true ;}
+	virtual bool directionInCompression(size_t direction, double t = 0) {return false ;}
+	virtual bool directionMet(size_t direction, double t = 0) 
 	{
 		if(direction == 0)
 			return true ;

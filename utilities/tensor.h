@@ -83,7 +83,7 @@ public:
 
 	static Matrix cauchyGreen( double p1, double p2, SpaceDimensionality = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, IsotropicMaterialParameters param = YOUNG_POISSON ) ;
 	static Matrix cauchyGreen( std::pair<double, double> props, SpaceDimensionality = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, IsotropicMaterialParameters param = YOUNG_POISSON ) ;
-	static std::pair<double, double> getIsotropicMaterialParameters( const Matrix & C, IsotropicMaterialParameters param, planeType pt = PLANE_STRESS ) ;
+	static std::pair<double, double> getIsotropicMaterialParameters( const Matrix & C, IsotropicMaterialParameters param, planeType pt ) ;
 	static Matrix orthotropicCauchyGreen(double E_1, double E_2, double G,  double nu, planeType pt) ;
 	static Matrix orthotropicCauchyGreen(double E_1, double E_2, double G,  double nu, double angle, planeType pt) ;
 	static Matrix orthotropicCauchyGreen(double E_1, double E_2, double E_3, double G_1, double G_2, double G_3,  double nu) ;

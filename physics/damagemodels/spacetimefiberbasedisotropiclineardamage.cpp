@@ -81,7 +81,7 @@ Matrix SpaceTimeFiberBasedIsotropicLinearDamage::apply(const Matrix & m, const P
 }
 
 
-bool SpaceTimeFiberBasedIsotropicLinearDamage::fractured() const
+bool SpaceTimeFiberBasedIsotropicLinearDamage::fractured(int direction) const
 {
     if(fraction < 0)
         return false ;

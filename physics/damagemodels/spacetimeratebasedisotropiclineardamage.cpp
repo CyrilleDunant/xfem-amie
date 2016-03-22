@@ -62,7 +62,7 @@ Matrix SpaceTimeRateBasedIsotropicLinearDamage::apply(const Matrix & m, const Po
 }
 
 
-bool SpaceTimeRateBasedIsotropicLinearDamage::fractured() const
+bool SpaceTimeRateBasedIsotropicLinearDamage::fractured(int direction) const
 {
     if(fraction < 0)
         return false ;

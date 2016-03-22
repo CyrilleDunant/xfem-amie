@@ -47,7 +47,7 @@ Matrix FiberBasedIsotropicLinearDamage::apply(const Matrix & m, const Point & p,
 
 
 
-bool FiberBasedIsotropicLinearDamage::fractured() const
+bool FiberBasedIsotropicLinearDamage::fractured(int direction) const
 {
     if(fraction < 0)
         return false ;

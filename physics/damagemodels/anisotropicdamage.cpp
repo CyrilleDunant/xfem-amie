@@ -163,7 +163,7 @@ Matrix AnisotropicLinearDamage::apply(const Matrix & m, const Point & p, const I
 }
 
 
-bool AnisotropicLinearDamage::fractured() const
+bool AnisotropicLinearDamage::fractured(int direction) const
 {
     if (fraction < 0)
         return false ;

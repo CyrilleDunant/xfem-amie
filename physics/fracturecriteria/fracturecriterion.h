@@ -93,13 +93,13 @@ protected:
 public:
     bool inIteration ;
 
-    virtual bool directionInTension(size_t direction) {
+    virtual bool directionInTension(size_t direction, double t = 0) {
         return true ;
     }
-    virtual bool directionInCompression(size_t direction) {
+    virtual bool directionInCompression(size_t direction, double t = 0) {
         return true ;
     }
-    virtual bool directionMet(size_t direction) {
+    virtual bool directionMet(size_t direction, double t = 0) {
         return metAtStep ;
     }
 
@@ -156,7 +156,7 @@ public:
 
     /** \brief Return true if the fracture criterion is met
      *
-     * @param s ElementState ton consider
+     * @param s ElementState to consider
      * @return true if the fracture criterion is met
      */
     virtual bool met() const ;

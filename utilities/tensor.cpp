@@ -1078,6 +1078,7 @@ Matrix Tensor::cauchyGreen( double p1, double p2, SpaceDimensionality dim, plane
        ret[2][2] = Cijij ;
     }
 
+
     return ret ;
 
 

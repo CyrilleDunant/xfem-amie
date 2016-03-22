@@ -60,7 +60,7 @@ Matrix StrainBrokenIsotropicLinearDamage::apply(const Matrix & m, const Point & 
 }
 
 
-bool StrainBrokenIsotropicLinearDamage::fractured() const 
+bool StrainBrokenIsotropicLinearDamage::fractured(int direction) const 
 {
 	if(fraction < 0)
 		return false ;
