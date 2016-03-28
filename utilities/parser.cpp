@@ -1190,6 +1190,11 @@ void FunctionParser::link()
 				case TOKEN_OPERATION_SQRT:
 					roots[i+1] = i ;
 					break ;
+				case TOKEN_OPERATION_MIN:
+				case TOKEN_OPERATION_MAX:
+					roots[i+1] = i ;
+					roots[i+2] = i ;
+					break ;
 				default:
 					break ;
 			}
@@ -1203,6 +1208,8 @@ void FunctionParser::link()
 	linkLeftAndRightToken( TOKEN_OPERATION_DIVIDES ) ;
 	linkLeftAndRightToken( TOKEN_OPERATION_MINUS ) ;
 	linkLeftAndRightToken( TOKEN_OPERATION_PLUS ) ;
+
+//	printRoots() ;
 
 //	for(size_t i = 0 ; i < tokens.size() ; i++)
 //		std::cout << roots[i] << std::endl ;
@@ -1339,6 +1346,10 @@ Function FunctionParser::getFunction( size_t i ) const
 				return f_log( getLeftFunction(i) ) ;
 			case TOKEN_OPERATION_SQRT:
 				return f_sqrt( getLeftFunction(i) ) ;
+			case TOKEN_OPERATION_MIN:
+				return f_min( getLeftFunction(i), getRightFunction(i) ) ;
+			case TOKEN_OPERATION_MAX:
+				return f_max( getLeftFunction(i), getRightFunction(i) ) ;
 			default:
 				return Function("0") ;
 		}

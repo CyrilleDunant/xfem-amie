@@ -200,6 +200,16 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
                 REG_C = atan2(REG_B, REG_A) ;
                 break ;
             }
+            case TOKEN_OPERATION_MIN:
+            {
+                REG_C = std::min(REG_B, REG_A) ;
+                break ;
+            }
+            case TOKEN_OPERATION_MAX:
+            {
+                REG_C = std::max(REG_B, REG_A) ;
+                break ;
+            }
             default:
             {
                 break ;
@@ -484,6 +494,18 @@ void VirtualMachine::print(const Function &f) const
         case TOKEN_OPERATION_ATAN2:
         {
             std::cout << "sto " << " atan2 " << "@" << f.adress_a[i*4+1]+100 << "    @" << f.adress_a[i*4]+100 << "    : @"<< f.adress_a[i*4+2]+100 << std::endl ;
+
+            break ;
+        }
+        case TOKEN_OPERATION_MIN:
+        {
+            std::cout << "sto " << " min " << "@" << f.adress_a[i*4+1]+100 << "    @" << f.adress_a[i*4]+100 << "    : @"<< f.adress_a[i*4+2]+100 << std::endl ;
+
+            break ;
+        }
+        case TOKEN_OPERATION_MAX:
+        {
+            std::cout << "sto " << " max " << "@" << f.adress_a[i*4+1]+100 << "    @" << f.adress_a[i*4]+100 << "    : @"<< f.adress_a[i*4+2]+100 << std::endl ;
 
             break ;
         }

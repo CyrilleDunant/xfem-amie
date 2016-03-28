@@ -54,6 +54,10 @@ Function f_log(const Function &f) ;
  */
 Function f_atan2(const Function &f0, const Function &f1) ;
 
+Function f_min(const Function &f0, const Function &f1) ;
+
+Function f_max(const Function &f0, const Function &f1) ;
+
 /** \brief Helper function to create a Function which is the sine of the argument
  * 
  * @param f Function

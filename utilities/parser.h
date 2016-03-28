@@ -343,6 +343,7 @@ struct FunctionParser
 
 	void link() ;
 	void linkLeftAndRightToken( TokenOperationType op) ;
+//	void linkBinaryToken( TokenOperationType op) ;
 
 	int getLeftTokenIndex( size_t i ) const ;
 	int getRightTokenIndex( size_t i ) const ;

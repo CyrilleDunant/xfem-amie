@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 18/2/2016 at 13:26  */
+/* this is an auto-generated file created on 23/2/2016 at 11:3  */
 
 #ifndef __ENUMERATION_TRANSLATOR_H__
 #define __ENUMERATION_TRANSLATOR_H__
@@ -7,6 +7,7 @@
 #include "../features/boundarycondition.h"
 #include "../geometry/geometry_base.h"
 #include "../physics/material_laws/material_laws.h"
+#include "../physics/fracturecriteria/spacetimelimitsurfacefracturecriterion.h"
 #include "../physics/fracturecriteria/mcft.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
 #include "../physics/materials/csh_behaviour.h"
@@ -619,6 +620,33 @@ struct Enum
         return "SET" ;
     }
    
+    // parsed from header file: ../physics/fracturecriteria/spacetimelimitsurfacefracturecriterion.h
+    static StressMeasurementMethod getStressMeasurementMethod(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "ALL") { return ALL ; }
+        if( type == "ALL_POSITIVE") { return ALL_POSITIVE ; }
+        if( type == "ALL_NEGATIVE") { return ALL_NEGATIVE ; }
+        if( type == "PRINCIPAL") { return PRINCIPAL ; }
+        if( type == "PRINCIPAL_POSITIVE") { return PRINCIPAL_POSITIVE ; }
+        if( type == "PRINCIPAL_NEGATIVE") { return PRINCIPAL_NEGATIVE ; }
+        if(ok) { *ok = false ; }
+        return ALL ;
+    }
+    static std::string fromStressMeasurementMethod(StressMeasurementMethod value)
+    {
+        switch(value)
+        {
+            case ALL: return "ALL" ;
+            case ALL_POSITIVE: return "ALL_POSITIVE" ;
+            case ALL_NEGATIVE: return "ALL_NEGATIVE" ;
+            case PRINCIPAL: return "PRINCIPAL" ;
+            case PRINCIPAL_POSITIVE: return "PRINCIPAL_POSITIVE" ;
+            case PRINCIPAL_NEGATIVE: return "PRINCIPAL_NEGATIVE" ;
+        }
+        return "ALL" ;
+    }
+   
     // parsed from header file: ../physics/fracturecriteria/mcft.h
     static RedistributionType getRedistributionType(std::string type, bool * ok = 0)
     {
@@ -905,6 +933,10 @@ struct Enum
         if( type == "TOKEN_OPERATION_INPLACE_SQRT") { return TOKEN_OPERATION_INPLACE_SQRT ; }
         if( type == "TOKEN_OPERATION_BESSEL") { return TOKEN_OPERATION_BESSEL ; }
         if( type == "TOKEN_OPERATION_INPLACE_BESSEL") { return TOKEN_OPERATION_INPLACE_BESSEL ; }
+        if( type == "TOKEN_OPERATION_MIN") { return TOKEN_OPERATION_MIN ; }
+        if( type == "TOKEN_OPERATION_INPLACE_MIN") { return TOKEN_OPERATION_INPLACE_MIN ; }
+        if( type == "TOKEN_OPERATION_MAX") { return TOKEN_OPERATION_MAX ; }
+        if( type == "TOKEN_OPERATION_INPLACE_MAX") { return TOKEN_OPERATION_INPLACE_MAX ; }
         if( type == "TOKEN_OPERATION_ATAN2") { return TOKEN_OPERATION_ATAN2 ; }
         if( type == "TOKEN_OPERATION_INPLACE_ATAN2") { return TOKEN_OPERATION_INPLACE_ATAN2 ; }
         if( type == "TOKEN_OPERATION_INTERPOLATE") { return TOKEN_OPERATION_INTERPOLATE ; }
@@ -963,6 +995,10 @@ struct Enum
             case TOKEN_OPERATION_INPLACE_SQRT: return "TOKEN_OPERATION_INPLACE_SQRT" ;
             case TOKEN_OPERATION_BESSEL: return "TOKEN_OPERATION_BESSEL" ;
             case TOKEN_OPERATION_INPLACE_BESSEL: return "TOKEN_OPERATION_INPLACE_BESSEL" ;
+            case TOKEN_OPERATION_MIN: return "TOKEN_OPERATION_MIN" ;
+            case TOKEN_OPERATION_INPLACE_MIN: return "TOKEN_OPERATION_INPLACE_MIN" ;
+            case TOKEN_OPERATION_MAX: return "TOKEN_OPERATION_MAX" ;
+            case TOKEN_OPERATION_INPLACE_MAX: return "TOKEN_OPERATION_INPLACE_MAX" ;
             case TOKEN_OPERATION_ATAN2: return "TOKEN_OPERATION_ATAN2" ;
             case TOKEN_OPERATION_INPLACE_ATAN2: return "TOKEN_OPERATION_INPLACE_ATAN2" ;
             case TOKEN_OPERATION_INTERPOLATE: return "TOKEN_OPERATION_INTERPOLATE" ;

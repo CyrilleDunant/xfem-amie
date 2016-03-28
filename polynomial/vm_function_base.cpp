@@ -753,6 +753,14 @@ functionParseElement FunctionParserHelper::toToken(const std::string & str, int 
     {
         return {TOKEN_OPERATION_ATAN2, 0., ""} ;
     }
+    else if(str == std::string("min"))
+    {
+        return {TOKEN_OPERATION_MIN, 0., ""} ;
+    }
+    else if(str == std::string("max"))
+    {
+        return {TOKEN_OPERATION_MAX, 0., ""} ;
+    }
     else if(str == std::string("sign"))
     {
         return {TOKEN_OPERATION_SIGN, 0., ""} ;
@@ -1068,6 +1076,22 @@ void Function::initialiseAdresses(size_t offset)
             break ;
         }
         case TOKEN_OPERATION_ATAN2:
+        {
+            adress_a[4*counter] = da-2 ;
+            adress_a[4*counter+1] = da-1 ;
+            adress_a[4*counter++] = da-2 ;
+            --da ;
+            break ;
+        }
+        case TOKEN_OPERATION_MIN:
+        {
+            adress_a[4*counter] = da-2 ;
+            adress_a[4*counter+1] = da-1 ;
+            adress_a[4*counter++] = da-2 ;
+            --da ;
+            break ;
+        }
+        case TOKEN_OPERATION_MAX:
         {
             adress_a[4*counter] = da-2 ;
             adress_a[4*counter+1] = da-1 ;
@@ -2856,6 +2880,8 @@ bool Function::isBinaryOperator(TokenOperationType t) const
              t== TOKEN_OPERATION_DIVIDES ||
              t== TOKEN_OPERATION_POWER ||
              t== TOKEN_OPERATION_INTERPOLATE ||
+             t== TOKEN_OPERATION_MIN ||
+             t== TOKEN_OPERATION_MAX ||
              t== TOKEN_OPERATION_ATAN2) ;
 }
 

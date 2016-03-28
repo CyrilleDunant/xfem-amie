@@ -212,6 +212,36 @@ Function f_atan2(const Function &f0, const Function &f1)
     return ret ;
 }
 
+Function f_min(const Function &f0, const Function &f1)
+{
+    Function ret ;
+    concatenateFunctions(f0, f1, ret);
+    ret.byteCode.push_back(TOKEN_OPERATION_MIN);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
+    ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
+    ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
+    return ret ;
+}
+
+Function f_max(const Function &f0, const Function &f1)
+{
+    Function ret ;
+    concatenateFunctions(f0, f1, ret);
+    ret.byteCode.push_back(TOKEN_OPERATION_MAX);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a.push_back(0);
+    ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
+    ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
+    ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
+    return ret ;
+}
+
 Function f_sin(const Function &f)
 {
     Function ret = f ;
