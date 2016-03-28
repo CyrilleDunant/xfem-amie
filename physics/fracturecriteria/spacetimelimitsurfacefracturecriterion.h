@@ -28,6 +28,12 @@ typedef enum {
 
 
 
+/*PARSE SpaceTimeLimitSurfaceFractureCriterion FractureCriterion
+	@string[stress_measure] // function used to get a scalar measure of the stress
+	@string[failure_surface] // function representing the stress-strain curve
+	@string[requirements] // defines internal variables required by the failure surface
+	@string<StressMeasurementMethod>[method] ALL // defines which stress components are used
+*/
 class SpaceTimeLimitSurfaceFractureCriterion : public FractureCriterion
 {
 protected:
@@ -45,6 +51,7 @@ protected:
 	std::string surfaceWCoordinate ;
 
 	std::map<std::string, double> values ;
+
 
 
 public:

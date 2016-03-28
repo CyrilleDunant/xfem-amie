@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 23/2/2016 at 11:3  */
+/* this is an auto-generated file created on 28/2/2016 at 11:10  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -30,6 +30,7 @@
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/confinedvonmises.h"
 #include "../physics/fracturecriteria/spacetimeflowrule.h"
+#include "../physics/fracturecriteria/spacetimelimitsurfacefracturecriterion.h"
 #include "../physics/fracturecriteria/limitstrains.h"
 #include "../physics/fracturecriteria/maxstrain.h"
 #include "../physics/fracturecriteria/mcft.h"
@@ -562,6 +563,13 @@ namespace Amie
         // parsed from header file: ../physics/fracturecriteria/spacetimeflowrule.h
         if( type == "SpaceTimeNonLocalDamageFlowRule" ) { return new SpaceTimeNonLocalDamageFlowRule(strings["file_name"]) ; }
    
+        // parsed from header file: ../physics/fracturecriteria/spacetimelimitsurfacefracturecriterion.h
+        if( type == "SpaceTimeLimitSurfaceFractureCriterion" )
+        { 
+            if( strings.find("method") == strings.end() ) { strings["method"] = "ALL" ; } ; 
+            return new SpaceTimeLimitSurfaceFractureCriterion(strings["stress_measure"], strings["failure_surface"], strings["requirements"], Enum::getStressMeasurementMethod(strings["method"])) ;
+        }
+   
         // parsed from header file: ../physics/fracturecriteria/limitstrains.h
         if( type == "LimitStrains" ) { return new LimitStrains(values["tensile_strain"], values["compressive_strain"]) ; }
    
@@ -637,6 +645,9 @@ namespace Amie
         // parsed from header file: ../physics/fracturecriteria/spacetimeflowrule.h
         if( type == "SpaceTimeNonLocalDamageFlowRule" ) { return true ; }
    
+        // parsed from header file: ../physics/fracturecriteria/spacetimelimitsurfacefracturecriterion.h
+        if( type == "SpaceTimeLimitSurfaceFractureCriterion" ) { return true ; }
+   
         // parsed from header file: ../physics/fracturecriteria/limitstrains.h
         if( type == "LimitStrains" ) { return true ; }
    
@@ -676,6 +687,8 @@ namespace Amie
         // parsed from header file: ../physics/fracturecriteria/confinedvonmises.h
    
         // parsed from header file: ../physics/fracturecriteria/spacetimeflowrule.h
+   
+        // parsed from header file: ../physics/fracturecriteria/spacetimelimitsurfacefracturecriterion.h
    
         // parsed from header file: ../physics/fracturecriteria/limitstrains.h
    

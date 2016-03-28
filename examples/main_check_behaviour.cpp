@@ -32,6 +32,7 @@ int main(int argc, char *argv[])
 	parser.addFlag("--renew-base", "renew the base of results") ;
 	parser.addFlag("--constant","sets a constant boundary condition", "-c") ;
 	parser.addFlag("--free","sets no boundary condition", "-f") ;
+	parser.addFlag("--shear","sets boundary consition in shear instead of in tension") ;
 	parser.addFlag("--stress","sets the mechanical boundary condition in stress instead of imposed displacements", "-S") ;
 	parser.addFlag("--incremental-delta-time","progressively increments the time step" ) ;
 	parser.addValue("--steps", 10, "number of loading steps","-s") ;
@@ -39,11 +40,13 @@ int main(int argc, char *argv[])
 	parser.addString("--output-directory","../examples/test/","directory where the results are stored", "-D") ;
 	parser.parseCommandLine(argc, argv) ;
 	std::string test = parser.getString("--input-file") ;
+	std::cout << test << std::endl ;
 	Form * behaviour = parser.getBehaviour( "--input-file" , new Stiffness(10e9, 0.2), SPACE_TWO_DIMENSIONAL ) ;
 //	parser.parseConfigFile( test ) ;
 
 	bool constant = parser.getFlag("--constant") ;
 	bool free = parser.getFlag("--free") ;
+	bool shear = parser.getFlag("--shear") ;
 	bool stress = parser.getFlag("--stress") ;
 	bool renew = parser.getFlag("--renew-base") ;
 	bool incr = parser.getFlag("--incremental-delta-time") ;
@@ -66,15 +69,21 @@ int main(int argc, char *argv[])
 	std::cout << F.getCurrentTime() << "\t" << F.getAverageField(STRAIN_FIELD)[1]*1e3 << "\t" << F.getAverageField(REAL_STRESS_FIELD)[1]/1e6 << std::endl ;
 	double dt = F.getDeltaTime() ;
 
+	LagrangeMultiplierType bc = SET_ALONG_ETA ;
+	int direction = 1 ;
+	if(shear) { bc = SET_ALONG_XI ; direction = 0 ; }
+	if(stress)
+	{
+     		if(shear) { bc = SET_STRESS_XI ; }
+		else { bc = SET_STRESS_ETA ; }
+	}
+	
 	BoundingBoxDefinedBoundaryCondition * up ;	
 	if(F.getOrder() < CONSTANT_TIME_LINEAR)
 	{
 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM ) ) ;
 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT ) ) ;
-		if(stress)
-			up = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, init) ;
-		else
-			up = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, init) ;
+		up = new BoundingBoxDefinedBoundaryCondition(bc, TOP, init) ;
 		if(!free)
 			F.addBoundaryCondition(up) ;
 	}
@@ -82,10 +91,7 @@ int main(int argc, char *argv[])
 	{
 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER ) ) ;
 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT_AFTER ) ) ;
-		if(stress)
-			up = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, init) ;
-		else
-			up = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP_AFTER, init) ;
+		up = new BoundingBoxDefinedBoundaryCondition(bc, TOP_AFTER, init) ;
 		if(!free)
 			F.addBoundaryCondition(up) ;
 	}
@@ -107,8 +113,8 @@ int main(int argc, char *argv[])
 		if(incr)
 			F.setDeltaTime( F.getDeltaTime()+dt ) ;
 		F.step() ;
-		std::cout << F.getCurrentTime()  << "\t" << F.getAverageField(STRAIN_FIELD)[1]*1e3 << "\t" << F.getAverageField(REAL_STRESS_FIELD)[1]/1e6 << std::endl ;
-		out << F.getCurrentTime() << "\t" << F.getAverageField(STRAIN_FIELD)[1]*1e3 << "\t" << F.getAverageField(REAL_STRESS_FIELD)[1]/1e6 << std::endl ;
+		std::cout << F.getCurrentTime()  << "\t" << F.getAverageField(STRAIN_FIELD)[direction]*1e3 << "\t" << F.getAverageField(REAL_STRESS_FIELD)[direction]/1e6 << std::endl ;
+		out << F.getCurrentTime() << "\t" << F.getAverageField(STRAIN_FIELD)[direction]*1e3 << "\t" << F.getAverageField(REAL_STRESS_FIELD)[direction]/1e6 << std::endl ;
 	}		
 
 	F.getAssembly()->print() ;

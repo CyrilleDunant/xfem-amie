@@ -294,6 +294,7 @@ int main(int argc, char *argv[])
 		for(int j = 1 ; j < argc ; j++)
 			command += " " + std::string(argv[j]) ;
 		command += " 1>"+dir+"/test/"+inis[i]+".out 2>"+dir+"/"+inis[i]+".err" ;
+//		std::cout << command << std::endl ;
 		int r = std::system(command.c_str()) ;
 		gettimeofday ( &time1, nullptr );
 		double dt = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
@@ -316,7 +317,7 @@ int main(int argc, char *argv[])
 			else if( r == 0 && delta < 0)
 			{
 				timedout++ ;
-				std::cout << Font(BOLD, RED) << " FAIL " << Font() << Font(BLUE) << "file not found: " << outdir+"/"+files[i] + (r==-1 ? "_base" : "_current") << Font() <<  std::endl ;
+				std::cout << Font(BOLD, RED) << " FAIL " << Font() << Font(BLUE) << "file not found: " << outdir+"/"+name + (r==-1 ? "_base" : "_current") << Font() <<  std::endl ;
 			}
 			else
 			{

@@ -19,7 +19,7 @@ namespace Amie {
 
 SpaceTimeLimitSurfaceFractureCriterion::SpaceTimeLimitSurfaceFractureCriterion( Function m, Function s, StressMeasurementMethod mth, std::string y, std::string z, std::string t, std::string u, std::string v, std::string w, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z), measure(m), surface(s), method(mth), needStringVariable(false), surfaceYCoordinate(y), surfaceZCoordinate(z), surfaceTCoordinate(t), surfaceUCoordinate(u), surfaceVCoordinate(v), surfaceWCoordinate(w)
 {
-   if( surfaceZCoordinate.length() > 0 || surfaceTCoordinate.length() > 0 || surfaceUCoordinate.length() > 0 || surfaceVCoordinate.length() > 0 || surfaceWCoordinate.length() > 0 )
+   if( surfaceYCoordinate.length() > 0 || surfaceZCoordinate.length() > 0 || surfaceTCoordinate.length() > 0 || surfaceUCoordinate.length() > 0 || surfaceVCoordinate.length() > 0 || surfaceWCoordinate.length() > 0 )
        needStringVariable = true ;
 }
 
@@ -47,6 +47,8 @@ SpaceTimeLimitSurfaceFractureCriterion::SpaceTimeLimitSurfaceFractureCriterion( 
         }
        req.push_back( reqs.substr(i, reqs.length() ) ) ;
     }
+/*    for(size_t i = 0 ; i < req.size() ; i++)
+	std::cout << "---" << req[i] << "---" << std::endl;*/
 
     std::map<std::string, char> coordLimit ;
     coordLimit["strain"] = 'x' ;
@@ -64,21 +66,25 @@ SpaceTimeLimitSurfaceFractureCriterion::SpaceTimeLimitSurfaceFractureCriterion( 
     }
     if(req.size() > 2)
     {
+        needStringVariable = true ;
         coordLimit[ req[2] ] = 't' ;
         surfaceTCoordinate = req[2] ;
     }
     if(req.size() > 3)
     {
+        needStringVariable = true ;
         coordLimit[ req[3] ] = 'u' ;
         surfaceUCoordinate = req[3] ;
     }
     if(req.size() > 4)
     {
+        needStringVariable = true ;
         coordLimit[ req[4] ] = 'v' ;
         surfaceVCoordinate = req[4] ;
     }
     if(req.size() > 5)
     {
+        needStringVariable = true ;
         coordLimit[ req[5] ] = 'w' ;
         surfaceWCoordinate = req[5] ;
     }
@@ -208,7 +214,7 @@ double SpaceTimeLimitSurfaceFractureCriterion::gradeAtTime(ElementState &s, doub
 
     double limit = std::max(0., vm.eval( surface, strain, ycoor, zcoor, tcoor, ucoor, vcoor, wcoor )) ;
 
-//    std::cout << strain << "\t" << stress << "\t" << limit << std::endl ;
+/*    std::cout << strain << "\t" << stress << "\t" << limit << std::endl ;*/
 
     if( stress > limit )
         return std::min( 1., 1.-limit/stress ) ;
