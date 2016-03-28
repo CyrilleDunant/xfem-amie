@@ -29,6 +29,7 @@
 #include "../physics/damagemodels/isotropiclineardamage.h"
 #include "../physics/damagemodels/plasticstrain.h"
 #include "../physics/fracturecriteria/maxstrain.h"
+#include "../physics/fracturecriteria/spacetimemultisurfacefracturecriterion.h"
 #include "../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
 #include "../physics/fracturecriteria/spacetimeflowrule.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
@@ -824,6 +825,27 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, std::vector<Externa
             frac[ "fracture_criterion" ] = Object::getFractureCriterion( ctype, values, strings ) ;
             if( values.find( "material_characteristic_radius" ) != values.end() )
                 frac[ "fracture_criterion" ]->setMaterialCharacteristicRadius( values["material_characteristic_radius"] ) ;
+        }
+        if(ctype == "SpaceTimeMultiSurfaceFractureCriterion")
+        {
+            std::vector<ConfigTreeItem *> crits = getChild("fracture_criterion")->getAllChildren("fracture_criterion") ;
+            for(size_t i = 0 ; i < crits.size() ; i++)
+            {
+                if( crits[i]->is("fracture_criterion") )
+                {
+                    std::string cctype = crits[i]->getStringData() ;
+                    if(Object::isFractureCriterion(cctype))
+                    {
+                         std::map<std::string, double> vals = crits[i]->getDataMap( ) ;
+                         std::map<std::string, std::string> strs = crits[i]->getStringDataMap(  ) ;
+
+                         FractureCriterion * test = Object::getFractureCriterion( cctype, vals, strs ) ;
+                         if(test != nullptr)
+                             dynamic_cast<SpaceTimeMultiSurfaceFractureCriterion *>(frac["fracture_criterion"])->add( test ) ;
+                    }
+
+                }
+            }
         }
     }
     if(hasChild("damage_model"))

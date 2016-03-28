@@ -84,7 +84,7 @@ physics/fracturecriteria/confinedvonmises.cpp
 physics/fracturecriteria/nonlocalvonmises.cpp 
 physics/fracturecriteria/mazars.cpp 
 physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.cpp 
-#physics/fracturecriteria/spacetimemultisurfacefracturecriterion.cpp 
+physics/fracturecriteria/spacetimemultisurfacefracturecriterion.cpp 
 physics/fracturecriteria/spacetimelimitsurfacefracturecriterion.cpp 
 physics/fracturecriteria/spacetimeflowrule.cpp 
 physics/fracturecriteria/druckerprager.cpp 
@@ -488,6 +488,9 @@ target_link_libraries( test/time_continuity Amie ${ALL_LINK_FLAGS})
 add_executable( test/viscodamage_multilinearsoftening EXCLUDE_FROM_ALL examples/test/main_test_viscodamage_multilinearsoftening.cpp )
 target_link_libraries( test/viscodamage_multilinearsoftening Amie ${ALL_LINK_FLAGS})
 
+add_executable( test/viscodamage_multisurface_criterion EXCLUDE_FROM_ALL examples/test/main_test_viscodamage_multisurface_criterion.cpp )
+target_link_libraries( test/viscodamage_multisurface_criterion Amie ${ALL_LINK_FLAGS})
+
 add_executable( test/xfem EXCLUDE_FROM_ALL examples/test/main_test_xfem.cpp )
 target_link_libraries( test/xfem Amie ${ALL_LINK_FLAGS})
 
@@ -500,6 +503,7 @@ test/cauchy_green
 test/stxfem 
 test/time_continuity
 test/viscodamage_multilinearsoftening 
+test/viscodamage_multisurface_criterion
 test/xfem 
 )
 

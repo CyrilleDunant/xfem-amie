@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 28/2/2016 at 11:10  */
+/* this is an auto-generated file created on 28/2/2016 at 15:24  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -26,6 +26,7 @@
 #include "../physics/fracturecriteria/boundedvonmises.h"
 #include "../physics/fracturecriteria/vonmises.h"
 #include "../physics/fracturecriteria/confinedmohrcoulomb.h"
+#include "../physics/fracturecriteria/spacetimemultisurfacefracturecriterion.h"
 #include "../physics/fracturecriteria/confinedmohrcoulombwithstrain.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/confinedvonmises.h"
@@ -546,6 +547,9 @@ namespace Amie
         // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulomb.h
         if( type == "ConfinedMohrCoulomb" ) { return new ConfinedMohrCoulomb(values["tensile_strength"], values["compressive_strength"]) ; }
    
+        // parsed from header file: ../physics/fracturecriteria/spacetimemultisurfacefracturecriterion.h
+        if( type == "SpaceTimeMultiSurfaceFractureCriterion" ) { return new SpaceTimeMultiSurfaceFractureCriterion() ; }
+   
         // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulombwithstrain.h
         if( type == "ConfinedMohrCoulombWithStrainLimit" ) { return new ConfinedMohrCoulombWithStrainLimit(values["tensile_strength"], values["compressive_strength"], values["tensile_strain"]) ; }
    
@@ -628,6 +632,9 @@ namespace Amie
         // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulomb.h
         if( type == "ConfinedMohrCoulomb" ) { return true ; }
    
+        // parsed from header file: ../physics/fracturecriteria/spacetimemultisurfacefracturecriterion.h
+        if( type == "SpaceTimeMultiSurfaceFractureCriterion" ) { return true ; }
+   
         // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulombwithstrain.h
         if( type == "ConfinedMohrCoulombWithStrainLimit" ) { return true ; }
    
@@ -679,6 +686,8 @@ namespace Amie
         // parsed from header file: ../physics/fracturecriteria/vonmises.h
    
         // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulomb.h
+   
+        // parsed from header file: ../physics/fracturecriteria/spacetimemultisurfacefracturecriterion.h
    
         // parsed from header file: ../physics/fracturecriteria/confinedmohrcoulombwithstrain.h
    
