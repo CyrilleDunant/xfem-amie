@@ -46,17 +46,13 @@ struct WeibullDistributedStiffness : public LinearForm
     double nu ;
     SpaceDimensionality dim ;
 
-    MirrorState mirroring;
-    double dx ;
-    double dy ;
-    double dz ;
     DamageModel * damageModel ;
     /** Constructor
     *
     * @param rig Complete expression of the Cauchy-Green Strain Tensor
     * @param cri stress limit for the Mohr - Coulomb criterion to use
     */
-    WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt = PLANE_STRESS, double var = 0.2, double radius = 0.001, IsotropicMaterialParameters hooke = YOUNG_POISSON, MirrorState mirroring = NO_MIRROR, double dx = 0, double dy = 0, double dz = 0)  ;
+    WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt = PLANE_STRESS, double var = 0.2, double radius = 0.001, IsotropicMaterialParameters hooke = YOUNG_POISSON)  ;
 
     void setNeighbourhoodRadius(double r) {
         materialRadius = r ;

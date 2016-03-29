@@ -34,9 +34,9 @@ public:
 	SegmentedLine * stressStrainCurve ;
 	Line * asymptote ;
 
-	SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( std::string file, double E_, double strain = 1e4, double stress = 1e-6, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
-	SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( const std::vector<Point> & p, double E_, double strain = 1e4, double stress = 1e-6, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
-	SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( SegmentedLine * s, Line * l, double E_, double strain = 1e4, double stress = 1e-6, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
+	SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( std::string file, double E_, double strain = 1e4, double stress = 1e-6) ;
+	SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( const std::vector<Point> & p, double E_, double strain = 1e4, double stress = 1e-6) ;
+	SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( SegmentedLine * s, Line * l, double E_, double strain = 1e4, double stress = 1e-6) ;
 
 	virtual ~SpaceTimeNonLocalMultiLinearSofteningFractureCriterion() { delete stressStrainCurve ; delete asymptote ; } ;
 
@@ -68,8 +68,8 @@ public:
 	SegmentedLine * compressiveStressStrainCurve ;
 	Line * compressiveAsymptote ;
 
-	AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( std::string ftension, std::string fcompression, double E_, double strain = 1e4, double stress = 1e-6, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
-	AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( const std::vector<Point> & ptension, const std::vector<Point> & pcompression, double E_, double strain = 1e4, double stress = 1e-6, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
+	AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( std::string ftension, std::string fcompression, double E_, double strain = 1e4, double stress = 1e-6) ;
+	AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( const std::vector<Point> & ptension, const std::vector<Point> & pcompression, double E_, double strain = 1e4, double stress = 1e-6) ;
 
 	virtual ~AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion() ; //{ delete tensileStressStrainCurve ; delete tensileAsymptote ; delete compressiveStressStrainCurve ; delete compressiveAsymptote ; } ;
 

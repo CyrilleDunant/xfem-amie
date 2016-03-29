@@ -394,7 +394,7 @@ int main ( int argc, char *argv[] )
 // 	samplestirrupbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 
 
-    samplebulk.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
+    samplebulk.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
     dynamic_cast<ConcreteBehaviour *> ( samplebulk.getBehaviour() )->variability = 0.00 ;
     dynamic_cast<ConcreteBehaviour *> ( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar0.getCenter().getY(),rebarDiametre ) );
     dynamic_cast<ConcreteBehaviour *> ( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar1.getCenter().getY(),rebarDiametre ) );
@@ -402,7 +402,7 @@ int main ( int argc, char *argv[] )
 // 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar3.getCenter().getY(),rebarDiametre));
     samplebulk.getBehaviour()->setSource ( sample.getPrimitive() );
 
-    sample.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
+    sample.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
     sample.isVirtualFeature = true ;
     dynamic_cast<ConcreteBehaviour *> ( sample.getBehaviour() )->variability = 0.00 ;
     dynamic_cast<ConcreteBehaviour *> ( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar0.getCenter().getY(),rebarDiametre ) );
@@ -411,7 +411,7 @@ int main ( int argc, char *argv[] )
 // 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar3.getCenter().getY(),rebarDiametre));
 
 
-    samplestirrupbulk.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
+    samplestirrupbulk.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
     samplestirrupbulk.isVirtualFeature = true ;
     dynamic_cast<ConcreteBehaviour *> ( samplestirrupbulk.getBehaviour() )->variability = 0.00 ;
     dynamic_cast<ConcreteBehaviour *> ( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar0.getCenter().getY(),rebarDiametre ) );

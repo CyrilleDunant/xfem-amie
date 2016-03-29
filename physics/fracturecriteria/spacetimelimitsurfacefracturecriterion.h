@@ -56,8 +56,8 @@ protected:
 
 public:
 
-	SpaceTimeLimitSurfaceFractureCriterion( Function m, Function s, StressMeasurementMethod mth = ALL, std::string surface_y = std::string(), std::string surface_z = std::string(), std::string surface_t = std::string(), std::string surface_u = std::string(), std::string surface_v = std::string(), std::string surface_w = std::string(), MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0 ) ;
-	SpaceTimeLimitSurfaceFractureCriterion( std::string m, std::string f, std::string requirements, StressMeasurementMethod mth = ALL, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0 ) ;
+	SpaceTimeLimitSurfaceFractureCriterion( Function m, Function s, StressMeasurementMethod mth = ALL, std::string surface_y = std::string(), std::string surface_z = std::string(), std::string surface_t = std::string(), std::string surface_u = std::string(), std::string surface_v = std::string(), std::string surface_w = std::string()) ;
+	SpaceTimeLimitSurfaceFractureCriterion( std::string m, std::string f, std::string requirements, StressMeasurementMethod mth = ALL) ;
 
 	virtual ~SpaceTimeLimitSurfaceFractureCriterion() {  } ;
 

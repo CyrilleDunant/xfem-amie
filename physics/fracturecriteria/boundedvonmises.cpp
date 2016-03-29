@@ -13,8 +13,7 @@
 #include "boundedvonmises.h"
 namespace Amie {
 
-BoundedVonMises::BoundedVonMises(double thres, double damageThreshold, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
-    , threshold(thres), damageThreshold(damageThreshold), dmodel(nullptr)
+BoundedVonMises::BoundedVonMises(double thres, double damageThreshold) : threshold(thres), damageThreshold(damageThreshold), dmodel(nullptr)
 {
 
 }

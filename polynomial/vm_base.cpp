@@ -4152,6 +4152,81 @@ double VirtualMachine::ieval(const DDtF & d, const GaussPointArray &gp, const st
     return ret ;
 }
 
+double VirtualMachine::ieval(const DDtDD & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & var)
+{
+    double ret = 0 ;
+    size_t var1_line = 0 ;
+    size_t var2_line = 0 ;
+    size_t var1_line0 = 0 ;
+    size_t var2_line0 = 0 ;
+    for(size_t i = 0 ; i < var.size() ; i++)
+    {
+        if(var[i] == d.d0.v1)
+        {
+            var1_line = i ;
+            break ;
+        }
+    }
+    
+    for(size_t i = 0 ; i < var.size() ; i++)
+    {
+        if(var[i] == d.d0.v2)
+        {
+            var2_line = i ;
+            break ;
+        }
+    }
+    
+    for(size_t i = 0 ; i < var.size() ; i++)
+    {
+        if(var[i] == d.d1.v1)
+        {
+            var1_line0 = i ;
+            break ;
+        }
+    }
+    
+    for(size_t i = 0 ; i < var.size() ; i++)
+    {
+        if(var[i] == d.d1.v2)
+        {
+            var2_line0 = i ;
+            break ;
+        }
+    }
+    
+    if(var1_line == var2_line && var1_line0 == var2_line0)
+    {
+        for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+        {
+            for(size_t j = 0 ; j < Jinv[i].numCols() ; j++)
+            {
+
+                ret += ddeval(d.d0.f, var[j], var[j], gp.gaussPoints[i].first, default_derivation_delta*100.)
+                       *ddeval(d.d1.f, var[j], var[j], gp.gaussPoints[i].first, default_derivation_delta*100.)
+                       *Jinv[i][var1_line][j]*Jinv[i][var1_line][j]*Jinv[i][var1_line0][j]*Jinv[i][var1_line0][j]*gp.gaussPoints[i].second ;
+            }
+        }
+    }
+    else
+    {
+        for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+        {
+            for(size_t j = 0 ; j < Jinv[i].numCols() ; j++)
+            {
+                for(size_t k = 0 ; k < Jinv[i].numCols() ; k++)
+                {
+                    ret += ddeval(d.d0.f, var[j], var[k], gp.gaussPoints[i].first)
+                           *ddeval(d.d1.f, var[j], var[k], gp.gaussPoints[i].first)
+                           *Jinv[i][var1_line][j]*Jinv[i][var2_line][j]*Jinv[i][var1_line0][j]*Jinv[i][var2_line0][j]*gp.gaussPoints[i].second ;
+                }
+            }
+        }
+    }
+
+    return ret ;
+}
+
 // double VirtualMachine::ieval(const Differential & d, IntegrableEntity *e, const std::vector<Variable> & var)
 // {
 //     GaussPointArray gp = e->getGaussPoints() ;

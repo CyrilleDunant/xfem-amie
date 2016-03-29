@@ -21,7 +21,7 @@
 namespace Amie
 {
 
-NonLocalMCFT::NonLocalMCFT( double down, double youngModulus,  double charRad, RedistributionType r, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z ),
+NonLocalMCFT::NonLocalMCFT( double down, double youngModulus,  double charRad, RedistributionType r) : 
     rtype(r), upVal( /*0.66*1e6*pow(std::abs(down*1e-6),.33)*/ .33e6*sqrt(-down*1e-6)*0.9),  downVal( down ), youngModulus(youngModulus)
 {
     physicalCharacteristicRadius = charRad ;
@@ -568,7 +568,7 @@ FractureCriterion *NonLocalMCFT::getCopy() const
     return new NonLocalMCFT( *this ) ;
 }
 
-NonLocalSpaceTimeMCFT::NonLocalSpaceTimeMCFT(double down, double youngModulus, double charDistance, RedistributionType r, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : NonLocalMCFT(down, youngModulus, charDistance, r , mirroring, delta_x, delta_y, delta_z) { }
+NonLocalSpaceTimeMCFT::NonLocalSpaceTimeMCFT(double down, double youngModulus, double charDistance, RedistributionType r) : NonLocalMCFT(down, youngModulus, charDistance, r ) { }
 
 NonLocalSpaceTimeMCFT::~NonLocalSpaceTimeMCFT() { }
 

@@ -29,10 +29,10 @@ public:
 	LinearInterpolatedMaterialLaw * ruleData ;
 	Function ruleFunction ;
 
-	SpaceTimeNonLocalDamageFlowRule( const Function & f, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
-	SpaceTimeNonLocalDamageFlowRule( LinearInterpolatedMaterialLaw * data, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
-	SpaceTimeNonLocalDamageFlowRule( std::pair<Vector, Vector> data, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
-	SpaceTimeNonLocalDamageFlowRule( std::string file, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
+	SpaceTimeNonLocalDamageFlowRule( const Function & f) ;
+	SpaceTimeNonLocalDamageFlowRule( LinearInterpolatedMaterialLaw * data) ;
+	SpaceTimeNonLocalDamageFlowRule( std::pair<Vector, Vector> data) ;
+	SpaceTimeNonLocalDamageFlowRule( std::string file) ;
 
 	virtual ~SpaceTimeNonLocalDamageFlowRule() { } ;
 

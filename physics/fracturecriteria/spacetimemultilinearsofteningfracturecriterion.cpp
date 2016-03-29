@@ -15,7 +15,7 @@
 
 namespace Amie {
 
-SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( std::string file, double E_, double e, double s_, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain(E_, mirroring, delta_x, delta_y, delta_z), E(E_), renormStrain(e), renormStress(s_)
+SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( std::string file, double E_, double e, double s_) : MaximumStrain(0), E(E_), renormStrain(e), renormStress(s_)
 {
     std::fstream input(file) ;
     if(!input.is_open())
@@ -60,7 +60,7 @@ SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLi
 
 }
 
-SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( const std::vector<Point> & p, double E_, double e, double s_, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain( p[0].getX(), mirroring, delta_x, delta_y, delta_z), E(E_), renormStrain(e), renormStress(s_)
+SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( const std::vector<Point> & p, double E_, double e, double s_) : MaximumStrain( p[0].getX()), E(E_), renormStrain(e), renormStress(s_)
 {
 	double e1 = p[0].getX()*renormStrain ;
 	upVal = e1 ;
@@ -84,7 +84,7 @@ SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLi
 	asymptote = new Line( *curve[p.size()], horizontal ) ;
 }
 
-SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( SegmentedLine * s, Line * l, double E_, double e, double s_, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain(E_, mirroring, delta_x, delta_y, delta_z), E(E_), renormStrain(e), renormStress(s_), stressStrainCurve(s), asymptote(l)
+SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( SegmentedLine * s, Line * l, double E_, double e, double s_) : MaximumStrain(0), E(E_), renormStrain(e), renormStress(s_), stressStrainCurve(s), asymptote(l)
 {
 
 }
@@ -231,7 +231,7 @@ void SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximumStrain(do
 	}
 }
 
-AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( std::string ftension, std::string fcompression, double E_, double e, double s, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain(E_, mirroring, delta_x, delta_y, delta_z), E(E_), renormStrain(e), renormStress(s)
+AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( std::string ftension, std::string fcompression, double E_, double e, double s) : MaximumStrain(E_), E(E_), renormStrain(e), renormStress(s)
 {
 	tensileStressStrainCurve = nullptr ;
 	compressiveStressStrainCurve = nullptr ;
@@ -326,7 +326,7 @@ AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpac
 	}
 }
 
-AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( const std::vector<Point> & ptension, const std::vector<Point> & pcompression, double E_, double e, double s, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain( 0., mirroring, delta_x, delta_y, delta_z), E(E_), renormStrain(e), renormStress(s)
+AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( const std::vector<Point> & ptension, const std::vector<Point> & pcompression, double E_, double e, double s) : MaximumStrain( 0.), E(E_), renormStrain(e), renormStress(s)
 {
 	tensileStressStrainCurve = nullptr ;
 	compressiveStressStrainCurve = nullptr ;

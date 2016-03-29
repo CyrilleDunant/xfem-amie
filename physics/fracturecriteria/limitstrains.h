@@ -39,7 +39,7 @@ public:
 	/** \brief Constructor 
 	 * @param up Set the maximum strain. 
 	 */
-	LimitStrains(double maxdown, double maxup, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+	LimitStrains(double maxdown, double maxup);
 
 	virtual ~LimitStrains();
 

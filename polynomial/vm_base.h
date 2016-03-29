@@ -516,6 +516,8 @@ public:
     double ieval(const DtD & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
 
     double ieval(const DDtF & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+    
+    double ieval(const DDtDD & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
 
     /** \brief Overloaded function to compute the value of the gradient of the Function f using the Matrix m as an inverse Jacobian, with variables defined by vars, at point x, y, z, t.
     Gradient is the usual \f$ \nabla\otimes \f$ operator.

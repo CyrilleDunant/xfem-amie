@@ -42,7 +42,7 @@ public:
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
 */
-	ConfinedMohrCoulombWithStrainLimit(double up, double down, double strainLimit, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+	ConfinedMohrCoulombWithStrainLimit(double up, double down, double strainLimit);
 
 	virtual ~ConfinedMohrCoulombWithStrainLimit();
 

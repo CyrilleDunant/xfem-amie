@@ -38,14 +38,7 @@ namespace Amie {
 		double B_t;
 		double B_c ;
 	public:
-	/** \brief  
-	 *   @param threshold Maximum strain (tension)
-	 *   @param E Young modulus
-	 *   @param Gf Fracture energy (J.m^-2)
-	 *   @param nu Poisson coefficient
-	 *   @param cstrain strain at stress peak (compression)
-	 *   @param cstress peak stress  (compression)
-	 */ 
+
 		double threshold ;
 		double E ;
 		double Gf ;
@@ -58,12 +51,17 @@ namespace Amie {
 		virtual bool directionInCompression(size_t direction, double t = 0) {return ismet ;}
 		virtual bool directionMet(size_t direction, double t = 0) {return ismet;}
 	public:
-	/** \brief Constructor 
-	 * @param thres Set the maximum equivalent Mazars strain. 
-	 */
-		NonLocalMazars(double thres, double E, double nu, double Gf, double cstress, double cstrain, double radius, planeType pt, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+	/** \brief  
+	 *   @param threshold Maximum strain (tension)
+	 *   @param E Young modulus
+	 *   @param Gf Fracture energy (J.m^-2)
+	 *   @param nu Poisson coefficient
+	 *   @param cstrain strain at stress peak (compression)
+	 *   @param cstress peak stress  (compression)
+	 */ 
+		NonLocalMazars(double thres, double E, double nu, double Gf, double cstress, double cstrain, double radius, planeType pt);
 
-		NonLocalMazars(double thres, double E, double nu, double Gf, double radius, planeType pt, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+		NonLocalMazars(double thres, double E, double nu, double Gf, double radius, planeType pt);
 
 		virtual ~NonLocalMazars();
 
@@ -102,8 +100,8 @@ namespace Amie {
 class NonLocalSpaceTimeMazars : public NonLocalMazars
 {
 public:
-	NonLocalSpaceTimeMazars(double thres, double E, double nu, double Gf, double cstress, double cstrain, double radius, planeType pt,  MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
-	NonLocalSpaceTimeMazars(double thres, double E, double nu, double Gf, double radius, planeType pt,  MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+	NonLocalSpaceTimeMazars(double thres, double E, double nu, double Gf, double cstress, double cstrain, double radius, planeType pt);
+	NonLocalSpaceTimeMazars(double thres, double E, double nu, double Gf, double radius, planeType pt);
 	virtual ~NonLocalSpaceTimeMazars();
 	virtual double grade(ElementState &s)  ;
 	virtual FractureCriterion * getCopy() const;

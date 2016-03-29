@@ -23,7 +23,7 @@
 
 using namespace Amie ;
 
-WeibullDistributedStiffness::WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt , double var, double r, IsotropicMaterialParameters hooke, MirrorState mirroring, double dx, double dy, double dz) : LinearForm(Tensor::cauchyGreen(E, nu,dim, pt, hooke), true, true, dim), variability(var), down(down), up(up), E(E), nu(nu), dim(dim), mirroring(mirroring), dx(dx), dy(dy), dz(dz)
+WeibullDistributedStiffness::WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt , double var, double r, IsotropicMaterialParameters hooke) : LinearForm(Tensor::cauchyGreen(E, nu,dim, pt, hooke), true, true, dim), variability(var), down(down), up(up), E(E), nu(nu), dim(dim)
 {
     materialRadius = r;
 
@@ -57,8 +57,7 @@ Form * WeibullDistributedStiffness::getCopy() const
         new NonLocalMCFT(
             down*factor ,
             E,
-            materialRadius, UPPER_BOUND,
-            mirroring, dx, dy, dz)
+            materialRadius, UPPER_BOUND)
     ) ;
     if(damageModel)
     {

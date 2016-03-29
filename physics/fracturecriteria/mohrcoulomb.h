@@ -40,7 +40,7 @@ public:
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
 */
-	MohrCoulomb(double up, double down, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+	MohrCoulomb(double up, double down);
 
 	virtual ~MohrCoulomb();
 
@@ -89,7 +89,7 @@ public:
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
 */
-	NonLocalMohrCoulomb(double up, double down, double E, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+	NonLocalMohrCoulomb(double up, double down, double E);
 
 	virtual ~NonLocalMohrCoulomb();
 
@@ -123,8 +123,9 @@ public:
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
+ * @param E young's Modulus
 */
-	SpaceTimeNonLocalMohrCoulomb(double up, double down, double E, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) : NonLocalMohrCoulomb(up, down, E, mirroring, delta_x, delta_y, delta_z) { } ;
+	SpaceTimeNonLocalMohrCoulomb(double up, double down, double E) : NonLocalMohrCoulomb(up, down, E) { } ;
 
 	virtual ~SpaceTimeNonLocalMohrCoulomb() { } ;
 
@@ -171,7 +172,7 @@ public:
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
 */
-	NonLocalLinearlyDecreasingMohrCoulomb(double up, double down, double limittstrain, double limitcstrain,  double E, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+	NonLocalLinearlyDecreasingMohrCoulomb(double up, double down, double limittstrain, double limitcstrain,  double E);
 
 	virtual ~NonLocalLinearlyDecreasingMohrCoulomb();
 
@@ -233,7 +234,7 @@ public:
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
 */
-	NonLocalExponentiallyDecreasingMohrCoulomb(double up, double down, double limittstrain, double limitcstrain,  double E, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+	NonLocalExponentiallyDecreasingMohrCoulomb(double up, double down, double limittstrain, double limitcstrain,  double E);
 
 	virtual ~NonLocalExponentiallyDecreasingMohrCoulomb();
 
@@ -279,10 +280,12 @@ public:
 	}
 	
 /** \brief Constructor, set the maximum and minimum strain
- * @param up Maximum stress (tension)
- * @param down Minimum stress (compression)
+ * @param limitstrain Maximum strain (tension) for elastic behaviour
+ * @param limitystrain maximum strain before failure
+ * @param E initial Young's modulus
+ * @param c in 1/(sqrt(c epsilon))
 */
-	NonLocalInverseRootMohrCoulomb(double limitstrain, double limitystrain,  double E, double c, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+	NonLocalInverseRootMohrCoulomb(double limitstrain, double limitystrain,  double E, double c);
 
 	virtual ~NonLocalInverseRootMohrCoulomb();
 

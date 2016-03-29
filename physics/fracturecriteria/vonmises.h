@@ -31,7 +31,7 @@ public:
     /** \brief Constructor
      * @param thres Set the maximum stress.
      */
-    VonMises(double thres, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+    VonMises(double thres);
 
     virtual ~VonMises();
 

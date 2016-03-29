@@ -15,8 +15,7 @@
 #include "../damagemodels/damagemodel.h"
 namespace Amie {
 
-NonLocalMazars::NonLocalMazars(double thresh, double E, double nu, double Gf, double cstress, double cstrain, double radius, planeType pt, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
-    , threshold(std::abs(thresh)), E(E), Gf(Gf), nu(nu), cstrain(cstrain), cstress(cstress), pt(pt)
+NonLocalMazars::NonLocalMazars(double thresh, double E, double nu, double Gf, double cstress, double cstrain, double radius, planeType pt) :  threshold(std::abs(thresh)), E(E), Gf(Gf), nu(nu), cstrain(cstrain), cstress(cstress), pt(pt)
 {
     setMaterialCharacteristicRadius(radius);
     ismet = false ;
@@ -26,8 +25,7 @@ NonLocalMazars::NonLocalMazars(double thresh, double E, double nu, double Gf, do
     tensionOnly = (cstress > 0 || cstrain > 0) ;
 }
 
-NonLocalMazars::NonLocalMazars(double thresh, double E, double nu, double Gf, double radius, planeType pt, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
-    , threshold(std::abs(thresh)), E(E), Gf(Gf), nu(nu), cstrain(-1), cstress(-1), pt(pt)
+NonLocalMazars::NonLocalMazars(double thresh, double E, double nu, double Gf, double radius, planeType pt) : threshold(std::abs(thresh)), E(E), Gf(Gf), nu(nu), cstrain(-1), cstress(-1), pt(pt)
 {
     setMaterialCharacteristicRadius(radius);
     ismet = false ;
@@ -165,9 +163,9 @@ FractureCriterion * NonLocalMazars::getCopy() const
 }
 
 
-NonLocalSpaceTimeMazars::NonLocalSpaceTimeMazars(double thresh, double E, double nu, double Gf, double cstress, double cstrain, double radius, planeType pt, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : NonLocalMazars(thresh,  E,  nu,  Gf,  cstress,  cstrain,   radius, pt,  mirroring,  delta_x,  delta_y,  delta_z) { }
+NonLocalSpaceTimeMazars::NonLocalSpaceTimeMazars(double thresh, double E, double nu, double Gf, double cstress, double cstrain, double radius, planeType pt) : NonLocalMazars(thresh,  E,  nu,  Gf,  cstress,  cstrain,   radius, pt) { }
 
-NonLocalSpaceTimeMazars::NonLocalSpaceTimeMazars(double thresh, double E, double nu, double Gf, double radius, planeType pt, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : NonLocalMazars(thresh,  E,  nu,  Gf,   radius, pt,  mirroring,  delta_x,  delta_y,  delta_z) { }
+NonLocalSpaceTimeMazars::NonLocalSpaceTimeMazars(double thresh, double E, double nu, double Gf, double radius, planeType pt) : NonLocalMazars(thresh,  E,  nu,  Gf,   radius, pt) { }
 
 NonLocalSpaceTimeMazars::~NonLocalSpaceTimeMazars() { }
 

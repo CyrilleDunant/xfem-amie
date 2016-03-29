@@ -34,10 +34,6 @@ struct FractionStiffnessAndFracture : public LinearForm
     double eps ;
     FractureCriterion * criterion ;
     std::vector<Variable> v ;
-    MirrorState mirroring ;
-    double dx;
-    double dy ;
-    double dz ;
 
     /** \brief Constructor
     *

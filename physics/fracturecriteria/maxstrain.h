@@ -39,7 +39,7 @@ public:
 	/** \brief Constructor 
 	 * @param up Set the maximum strain. 
 	 */
-	MaximumStrain(double up, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
+	MaximumStrain(double up) ;
 
 	virtual ~MaximumStrain();
 
@@ -70,7 +70,7 @@ public:
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
 */
-	SpaceTimeNonLocalMaximumStrain(double up, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) : MaximumStrain(up, mirroring, delta_x, delta_y, delta_z) { } ;
+	SpaceTimeNonLocalMaximumStrain(double up) : MaximumStrain(up) { } ;
 
 	virtual ~SpaceTimeNonLocalMaximumStrain() { } ;
 
@@ -94,7 +94,7 @@ public:
 	double yieldstrain ;
 	double maxstress ;
 	
-	SpaceTimeNonLocalLinearSofteningMaximumStrain(double up, double mstr, double lim, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) : SpaceTimeNonLocalMaximumStrain(up, mirroring, delta_x, delta_y, delta_z),yieldstrain(lim),maxstress(mstr) { } ;
+	SpaceTimeNonLocalLinearSofteningMaximumStrain(double up, double mstr, double lim) : SpaceTimeNonLocalMaximumStrain(up),yieldstrain(lim),maxstress(mstr) { } ;
 
 	void reset(double up, double mstr, double lim) { upVal = up; maxstress = mstr; yieldstrain = lim ; }
 
@@ -118,11 +118,10 @@ protected:
 public:
 	double maxstress ;
 	
-/** \brief Constructor, set the maximum and minimum strain
- * @param up Maximum stress (tension)
- * @param down Minimum stress (compression)
+/** \brief Constructor, set the maximum strain
+ * @param mstr Maximum stress (tension)
 */
-	SpaceTimeNonLocalMaximumStress(double mstr, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) : MaximumStrain(mstr, mirroring, delta_x, delta_y, delta_z),maxstress(mstr) { } ;
+	SpaceTimeNonLocalMaximumStress(double mstr) : MaximumStrain(mstr),maxstress(mstr) { } ;
 
 	virtual ~SpaceTimeNonLocalMaximumStress() { } ;
 
@@ -150,7 +149,7 @@ public:
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
 */
-	SpaceTimeNonLocalEllipsoidalMixedCriterion(double up, double mstr, double E0, double Einf, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
+	SpaceTimeNonLocalEllipsoidalMixedCriterion(double up, double mstr, double E0, double Einf) ;
 
 	virtual ~SpaceTimeNonLocalEllipsoidalMixedCriterion() { delete surface ; } ;
 

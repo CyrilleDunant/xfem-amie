@@ -17,13 +17,13 @@
 namespace Amie {
 
 
-SpaceTimeLimitSurfaceFractureCriterion::SpaceTimeLimitSurfaceFractureCriterion( Function m, Function s, StressMeasurementMethod mth, std::string y, std::string z, std::string t, std::string u, std::string v, std::string w, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z), measure(m), surface(s), method(mth), needStringVariable(false), surfaceYCoordinate(y), surfaceZCoordinate(z), surfaceTCoordinate(t), surfaceUCoordinate(u), surfaceVCoordinate(v), surfaceWCoordinate(w)
+SpaceTimeLimitSurfaceFractureCriterion::SpaceTimeLimitSurfaceFractureCriterion( Function m, Function s, StressMeasurementMethod mth, std::string y, std::string z, std::string t, std::string u, std::string v, std::string w) : measure(m), surface(s), method(mth), needStringVariable(false), surfaceYCoordinate(y), surfaceZCoordinate(z), surfaceTCoordinate(t), surfaceUCoordinate(u), surfaceVCoordinate(v), surfaceWCoordinate(w)
 {
    if( surfaceYCoordinate.length() > 0 || surfaceZCoordinate.length() > 0 || surfaceTCoordinate.length() > 0 || surfaceUCoordinate.length() > 0 || surfaceVCoordinate.length() > 0 || surfaceWCoordinate.length() > 0 )
        needStringVariable = true ;
 }
 
-SpaceTimeLimitSurfaceFractureCriterion::SpaceTimeLimitSurfaceFractureCriterion( std::string m, std::string f, std::string reqs, StressMeasurementMethod mth, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion(mirroring, delta_x, delta_y, delta_z), method(mth), needStringVariable(false)
+SpaceTimeLimitSurfaceFractureCriterion::SpaceTimeLimitSurfaceFractureCriterion( std::string m, std::string f, std::string reqs, StressMeasurementMethod mth ) : method(mth), needStringVariable(false)
 {
     std::map<std::string, char> coordMeasures ; 
     coordMeasures["stress_1"] = 'x' ;

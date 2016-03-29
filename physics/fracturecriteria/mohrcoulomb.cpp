@@ -17,8 +17,7 @@
 namespace Amie
 {
 
-MohrCoulomb::MohrCoulomb( double up, double down, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
-    , upVal( up ), downVal( down )
+MohrCoulomb::MohrCoulomb( double up, double down) :  upVal( up ), downVal( down )
 {
     metInTension = false ;
     metInCompression = false ;
@@ -88,8 +87,7 @@ FractureCriterion *MohrCoulomb::getCopy() const
     return new MohrCoulomb( *this ) ;
 }
 
-NonLocalMohrCoulomb::NonLocalMohrCoulomb( double up, double down, double E, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
-    , upVal( up ), downVal( down ), stiffness(E)
+NonLocalMohrCoulomb::NonLocalMohrCoulomb( double up, double down, double E) : upVal( up ), downVal( down ), stiffness(E)
 {
     metInTension = false ;
     metInCompression = false ;
@@ -206,8 +204,7 @@ FractureCriterion *NonLocalMohrCoulomb::getCopy() const
 
 
 
-NonLocalLinearlyDecreasingMohrCoulomb::NonLocalLinearlyDecreasingMohrCoulomb( double up, double down,double limittstrain, double limitcstrain, double E, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
-    , upVal( up ), downVal( down ), stiffness(E),limittstrain(limittstrain),limitcstrain(limitcstrain)
+NonLocalLinearlyDecreasingMohrCoulomb::NonLocalLinearlyDecreasingMohrCoulomb( double up, double down,double limittstrain, double limitcstrain, double E ) : upVal( up ), downVal( down ), stiffness(E),limittstrain(limittstrain),limitcstrain(limitcstrain)
 {
     metInTension = false ;
     metInCompression = false ;
@@ -291,8 +288,7 @@ FractureCriterion *NonLocalLinearlyDecreasingMohrCoulomb::getCopy() const
     return new NonLocalLinearlyDecreasingMohrCoulomb( *this ) ;
 }
 
-NonLocalExponentiallyDecreasingMohrCoulomb::NonLocalExponentiallyDecreasingMohrCoulomb( double up, double down,double limittstrain, double limitcstrain, double E, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
-    , upVal( up ), downVal( down ), stiffness(E),limittstrain(limittstrain),limitcstrain(limitcstrain)
+NonLocalExponentiallyDecreasingMohrCoulomb::NonLocalExponentiallyDecreasingMohrCoulomb( double up, double down,double limittstrain, double limitcstrain, double E ) :  upVal( up ), downVal( down ), stiffness(E),limittstrain(limittstrain),limitcstrain(limitcstrain)
 {
     metInTension = false ;
     metInCompression = false ;
@@ -350,7 +346,7 @@ FractureCriterion *NonLocalExponentiallyDecreasingMohrCoulomb::getCopy() const
 
 
 
-NonLocalInverseRootMohrCoulomb::NonLocalInverseRootMohrCoulomb(double limitstrain, double limitystrain, double E,double c, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z ), stiffness(E)
+NonLocalInverseRootMohrCoulomb::NonLocalInverseRootMohrCoulomb(double limitstrain, double limitystrain, double E,double c) : stiffness(E)
     ,limitstrain(limitstrain),limitystrain(std::max(limitystrain,limitstrain)), c(c)
 {
     metInTension = false ;

@@ -15,8 +15,7 @@
 
 namespace Amie {
 
-MaximumStrain::MaximumStrain(double up, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
-	, upVal(up)
+MaximumStrain::MaximumStrain(double up) :  upVal(up)
 {
 	metInCompression = false ;
 	metInTension = false ;
@@ -179,7 +178,7 @@ double SpaceTimeNonLocalMaximumStress::grade(ElementState &s)
 
 
 
-SpaceTimeNonLocalEllipsoidalMixedCriterion::SpaceTimeNonLocalEllipsoidalMixedCriterion(double up, double mstr, double E0, double Einf, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain(up, mirroring, delta_x, delta_y, delta_z),maxstress(mstr), E_inst(E0), E_relaxed(Einf)
+SpaceTimeNonLocalEllipsoidalMixedCriterion::SpaceTimeNonLocalEllipsoidalMixedCriterion(double up, double mstr, double E0, double Einf) : MaximumStrain(up),maxstress(mstr), E_inst(E0), E_relaxed(Einf)
 {
 	double strainrelaxed = maxstress/E_relaxed ;
 	double stressinst = upVal*E_inst ;

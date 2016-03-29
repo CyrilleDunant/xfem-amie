@@ -35,7 +35,7 @@ public:
     /** \brief Constructor
      * @param thres Set the maximum stress.
      */
-    BoundedVonMises(double thres, double damageThreshold, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+    BoundedVonMises(double thres, double damageThreshold);
 
     virtual ~BoundedVonMises();
 

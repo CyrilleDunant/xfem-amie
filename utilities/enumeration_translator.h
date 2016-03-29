@@ -670,35 +670,7 @@ struct Enum
         return "UPPER_BOUND" ;
     }
    
-    // parsed from header file: ../physics/fracturecriteria/fracturecriterion.h
-    static MirrorState getMirrorState(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "NO_MIRROR") { return NO_MIRROR ; }
-        if( type == "MIRROR_X") { return MIRROR_X ; }
-        if( type == "MIRROR_Y") { return MIRROR_Y ; }
-        if( type == "MIRROR_Z") { return MIRROR_Z ; }
-        if( type == "MIRROR_XY") { return MIRROR_XY ; }
-        if( type == "MIRROR_XZ") { return MIRROR_XZ ; }
-        if( type == "MIRROR_YZ") { return MIRROR_YZ ; }
-        if(ok) { *ok = false ; }
-        return NO_MIRROR ;
-    }
-    static std::string fromMirrorState(MirrorState value)
-    {
-        switch(value)
-        {
-            case NO_MIRROR: return "NO_MIRROR" ;
-            case MIRROR_X: return "MIRROR_X" ;
-            case MIRROR_Y: return "MIRROR_Y" ;
-            case MIRROR_Z: return "MIRROR_Z" ;
-            case MIRROR_XY: return "MIRROR_XY" ;
-            case MIRROR_XZ: return "MIRROR_XZ" ;
-            case MIRROR_YZ: return "MIRROR_YZ" ;
-        }
-        return "NO_MIRROR" ;
-    }
-   
+
     // parsed from header file: ../physics/fracturecriteria/fracturecriterion.h
     static SmoothingFunctionType getSmoothingFunctionType(std::string type, bool * ok = 0)
     {

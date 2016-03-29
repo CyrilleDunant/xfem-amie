@@ -34,7 +34,7 @@ public:
 	virtual bool directionInTension(size_t direction, double t = 0) {return metInCompression ;}
 	virtual bool directionInCompression(size_t direction, double t = 0) {return metInTension ;}
 
-	CreepRupture(double maxStress, double limStress, double limStrain, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+	CreepRupture(double maxStress, double limStress, double limStrain);
 
 	virtual ~CreepRupture();
 

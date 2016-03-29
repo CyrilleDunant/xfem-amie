@@ -47,15 +47,12 @@ Function getSmoothingKernelFunction( SmoothingFunctionType type, Function & rrn 
     return Function("1") ;
 }
 
-FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, double delta_y, double delta_z) :
+FractureCriterion::FractureCriterion() :
     restrictionSource(nullptr),
     initialScore(1),
     physicalCharacteristicRadius(.008),
     scoreAtState(-1),
     deltaScoreAtState(0),
-    criterionDamageDifferential(0),
-    mirroring(mirroring),
-    delta_x(delta_x), delta_y(delta_y), delta_z(delta_z),
     metAtStep(false),
     stable(true),
     minDeltaInNeighbourhood(1),

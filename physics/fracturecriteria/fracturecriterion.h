@@ -22,16 +22,6 @@ namespace Amie {
 class DelaunayTriangle ;
 class DelaunayTetrahedron ;
 
-typedef enum {
-    NO_MIRROR,
-    MIRROR_X,
-    MIRROR_Y,
-    MIRROR_Z,
-    MIRROR_XY,
-    MIRROR_XZ,
-    MIRROR_YZ
-} MirrorState ;
-
 // typedef enum {
 //     NULL_SMOOTH,
 //     MAX_PROXIMITY_SMOOTH,
@@ -64,12 +54,6 @@ protected:
     double scoreAtState ;
     double deltaScoreAtState ;
     double scoreAtTimeStepEnd = -2 ;
-
-    double criterionDamageDifferential ;
-    MirrorState mirroring ;
-    double delta_x ;
-    double delta_y ;
-    double delta_z ;
 
     bool metAtStep ;
     bool stable ;
@@ -114,10 +98,6 @@ public:
     Mesh<DelaunayTriangle, DelaunayTreeItem>  *mesh2d ;
     Mesh<DelaunayTetrahedron,DelaunayTreeItem3D>  *mesh3d ;
 
-    double getCriterionDamageDifferential()  const {
-        return criterionDamageDifferential ;
-    }
-
     SmoothingFunctionType getSmoothingFunctionType() const { return smoothingType ; }
     void setSmoothingFunctionType( SmoothingFunctionType smooth, bool over = true ) ;// { smoothingType = smooth ; }
     void setSmoothingFunctionOverlap( double d ) { overlap = d ; }
@@ -131,7 +111,7 @@ public:
     }
     double getMaxScoreInNeighbourhood( ElementState& s ) ;
 
-    FractureCriterion(MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
+    FractureCriterion() ;
 
 
     virtual void initialiseCache( ElementState& s ) ;

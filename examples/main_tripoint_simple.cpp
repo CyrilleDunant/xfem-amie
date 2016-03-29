@@ -164,7 +164,7 @@ int main ( int argc, char *argv[] )
         branches.push_back(std::make_pair(K_i, Am_i)) ;
     }    
     
-    FractureCriterion * mcft = new NonLocalSpaceTimeMCFT(cstress,k_elas, 0.032,UPPER_BOUND,MIRROR_Y) ;
+    FractureCriterion * mcft = new NonLocalSpaceTimeMCFT(cstress,k_elas, 0.032,UPPER_BOUND) ;
     FractureCriterion * mazar = new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 0.032, pt ) ;
     DamageModel * linear = new SpaceTimeIsotropicLinearDamage(1.0) ;
  

@@ -15,23 +15,23 @@
 
 namespace Amie {
 
-SpaceTimeNonLocalDamageFlowRule::SpaceTimeNonLocalDamageFlowRule( const Function & f, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain( 0., mirroring, delta_x, delta_y, delta_z), ruleData(nullptr), ruleFunction(f)
+SpaceTimeNonLocalDamageFlowRule::SpaceTimeNonLocalDamageFlowRule( const Function & f) : MaximumStrain( 0.), ruleData(nullptr), ruleFunction(f)
 {
 
 }
 
-SpaceTimeNonLocalDamageFlowRule::SpaceTimeNonLocalDamageFlowRule( LinearInterpolatedMaterialLaw * data, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain( 0., mirroring, delta_x, delta_y, delta_z), ruleData(data), ruleFunction("0")
+SpaceTimeNonLocalDamageFlowRule::SpaceTimeNonLocalDamageFlowRule( LinearInterpolatedMaterialLaw * data) : MaximumStrain( 0.), ruleData(data), ruleFunction("0")
 {
 
 }
 
-SpaceTimeNonLocalDamageFlowRule::SpaceTimeNonLocalDamageFlowRule( std::pair<Vector, Vector> data, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain( 0., mirroring, delta_x, delta_y, delta_z), ruleData(nullptr), ruleFunction("0")
+SpaceTimeNonLocalDamageFlowRule::SpaceTimeNonLocalDamageFlowRule( std::pair<Vector, Vector> data) : MaximumStrain( 0.), ruleData(nullptr), ruleFunction("0")
 {
    std::pair<std::string, std::string> tmp = std::make_pair( "strain", "damage") ;
    ruleData = new LinearInterpolatedMaterialLaw( tmp, data ) ;
 }
 
-SpaceTimeNonLocalDamageFlowRule::SpaceTimeNonLocalDamageFlowRule( std::string file, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain( 0., mirroring, delta_x, delta_y, delta_z), ruleData(nullptr), ruleFunction("0")
+SpaceTimeNonLocalDamageFlowRule::SpaceTimeNonLocalDamageFlowRule( std::string file) : MaximumStrain( 0.), ruleData(nullptr), ruleFunction("0")
 {
    std::pair<std::string, std::string> tmp = std::make_pair( "strain", "damage") ;
    ruleData = new LinearInterpolatedMaterialLaw( tmp, file ) ;

@@ -5,7 +5,7 @@
 namespace Amie
 {
 
-CreepRupture::CreepRupture(double max, double lim, double strain, MirrorState mirroring, double delta_x, double delta_y, double delta_z): FractureCriterion( mirroring, delta_x, delta_y, delta_z ), maxStress(max), limStress(lim), limStrain(strain)
+CreepRupture::CreepRupture(double max, double lim, double strain):  maxStress(max), limStress(lim), limStrain(strain)
 {
 	metInCompression = false ;
 	metInTension = false ;
