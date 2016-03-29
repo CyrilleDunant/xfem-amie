@@ -72,13 +72,13 @@ int main(int argc, char *argv[])
 	{
 		disp->setData( 0.0000009 + 0.0000001*i ) ;
 		f.step() ;
-		std::cout << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, 1. )[1]/1e6 << "\t" << f.getAverageField( STRAIN_FIELD, 1. )[1]*1e3 << "\t" << f.getAverageField( SCALAR_DAMAGE_FIELD, 1. )[0]*1e2 << std::endl ;
+		out << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, 1. )[1]/1e6 << "\t" << f.getAverageField( STRAIN_FIELD, 1. )[1]*1e3 << "\t" << f.getAverageField( SCALAR_DAMAGE_FIELD, 1. )[0]*1e2 << std::endl ;
 	}
 	for(size_t i = 0 ; i < 20 ; i++)
 	{
 		disp->setData( 0.000001 - 0.000002*i ) ;
 		f.step() ;
-		std::cout << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, 1. )[1]/1e6 << "\t" << f.getAverageField( STRAIN_FIELD, 1. )[1]*1e3 << "\t" << f.getAverageField( SCALAR_DAMAGE_FIELD, 1. )[0]*1e2 << std::endl ;
+		out << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, 1. )[1]/1e6 << "\t" << f.getAverageField( STRAIN_FIELD, 1. )[1]*1e3 << "\t" << f.getAverageField( SCALAR_DAMAGE_FIELD, 1. )[0]*1e2 << std::endl ;
 	}
 
 	return 0 ;

@@ -37,6 +37,7 @@ size_t fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t bl
     case PRINCIPAL_MECHANICAL_STRAIN_FIELD:
     case PRINCIPAL_EFFECTIVE_STRESS_FIELD:
     case PRINCIPAL_REAL_STRESS_FIELD:
+    case TENSOR_DAMAGE_FIELD:
         return (dim == SPACE_THREE_DIMENSIONAL) ? 3 : 2 ;
 
     case STRAIN_FIELD:
@@ -689,6 +690,25 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             ret[0] = parent->getBehaviour()->getDamageModel()->getState().max() ;
         else
             ret[0] = 0. ;
+        if ( cleanup )
+        {
+            delete vm ;
+        }
+        if(cleanupp)
+            delete p_ ;
+        return ;
+    }
+    case TENSOR_DAMAGE_FIELD:
+    {
+        if(parent->getBehaviour()->getDamageModel())
+        {
+            Vector d = parent->getBehaviour()->getDamageModel()->getState() ;
+            ret = 0. ;
+            for(size_t i = 0 ; i < std::min( ret.size(), d.size() ) ; i++)
+               ret[i] = d[i] ;
+        }
+        else
+            ret = 0. ;
         if ( cleanup )
         {
             delete vm ;

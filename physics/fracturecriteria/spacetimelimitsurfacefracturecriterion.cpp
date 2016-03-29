@@ -214,7 +214,7 @@ double SpaceTimeLimitSurfaceFractureCriterion::gradeAtTime(ElementState &s, doub
 
     double limit = std::max(0., vm.eval( surface, strain, ycoor, zcoor, tcoor, ucoor, vcoor, wcoor )) ;
 
-/*    std::cout << strain << "\t" << stress << "\t" << limit << std::endl ;*/
+//    std::cout << strain << "\t" << stress << "\t" << limit << std::endl ;
 
     if( stress > limit )
         return std::min( 1., 1.-limit/stress ) ;

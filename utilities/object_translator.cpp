@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 28/2/2016 at 15:24  */
+/* this is an auto-generated file created on 28/2/2016 at 16:44  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -21,6 +21,7 @@
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/materials/gel_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
+#include "../physics/damagemodels/spacetimefiberbasedbilineardamage.h"
 #include "../physics/damagemodels/isotropiclineardamage.h"
 #include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include "../physics/fracturecriteria/boundedvonmises.h"
@@ -499,8 +500,20 @@ namespace Amie
    
     }
 
-    DamageModel * Object::getDamageModel(std::string type, std::map<std::string, double> & values)
+    DamageModel * Object::getDamageModel(std::string type, std::map<std::string, double> & values, std::map<std::string, std::string> & strings)
     {
+        // parsed from header file: ../physics/damagemodels/spacetimefiberbasedbilineardamage.h
+        if( type == "SpaceTimeFiberBasedBilateral" )
+        { 
+            if( values.find("damage_increment") == values.end() ) { values["damage_increment"] = 0.1 ; } ; 
+            if( values.find("time_tolerance") == values.end() ) { values["time_tolerance"] = 0.001 ; } ; 
+            if( values.find("maximum_damage") == values.end() ) { values["maximum_damage"] = 0.6 ; } ; 
+            if( values.find("secondary_maximum_damage") == values.end() ) { values["secondary_maximum_damage"] = -1 ; } ; 
+            if( strings.find("@string<IsotropicMaterialParameters>") == strings.end() ) { strings["@string<IsotropicMaterialParameters>"] = "BULK_SHEAR" ; } ; 
+            if( strings.find("@string<planeType>") == strings.end() ) { strings["@string<planeType>"] = "PLANE_STRESS" ; } ; 
+            return new SpaceTimeFiberBasedBilateralLinearDamage(values["damage_increment"], values["time_tolerance"], values["maximum_damage"], values["secondary_maximum_damage"], Enum::getIsotropicMaterialParameters(strings["@string<IsotropicMaterialParameters>"]), Enum::getplaneType(strings["@string<planeType>"])) ;
+        }
+   
         // parsed from header file: ../physics/damagemodels/isotropiclineardamage.h
         if( type == "Isotropic" ) { return new IsotropicLinearDamage() ; }
    
@@ -518,6 +531,9 @@ namespace Amie
 
     bool Object::isDamageModel(std::string type)
     {
+        // parsed from header file: ../physics/damagemodels/spacetimefiberbasedbilineardamage.h
+        if( type == "SpaceTimeFiberBasedBilateral" ) { return true ; }
+   
         // parsed from header file: ../physics/damagemodels/isotropiclineardamage.h
         if( type == "Isotropic" ) { return true ; }
    
@@ -529,6 +545,8 @@ namespace Amie
 
     void Object::resetDamageModel(DamageModel * target)
     {
+        // parsed from header file: ../physics/damagemodels/spacetimefiberbasedbilineardamage.h
+   
         // parsed from header file: ../physics/damagemodels/isotropiclineardamage.h
    
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h

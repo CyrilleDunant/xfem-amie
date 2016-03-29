@@ -982,6 +982,23 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         }
         return ;
     }
+    case TENSOR_DAMAGE_FIELD:
+    {
+        if(parent->getBehaviour()->getDamageModel())
+        {
+            Vector d = parent->getBehaviour()->getDamageModel()->getState() ;
+            ret = 0. ;
+            for(size_t i = 0 ; i < std::min( ret.size(), d.size() ) ; i++)
+               ret[i] = d[i] ;
+        }
+        else
+            ret = 0. ;
+        if ( cleanup )
+        {
+            delete vm ;
+        }
+        return ;
+    }
     case DISPLACEMENT_FIELD:
     {
         for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )

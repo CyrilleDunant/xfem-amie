@@ -1571,6 +1571,8 @@ std::string nameOfField(FieldType field)
         return std::string("Principal Stress Angle") ;
     case SCALAR_DAMAGE_FIELD :
         return std::string("Scalar Damage") ;
+    case TENSOR_DAMAGE_FIELD :
+        return std::string("Tensor Damage") ;
     case INTERNAL_VARIABLE_FIELD :
         return std::string("") ;
     case GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD :
@@ -1661,6 +1663,8 @@ int numberOfFields( FieldType field )
         return 3 ;
     case SCALAR_DAMAGE_FIELD :
         return 3 ;
+    case TENSOR_DAMAGE_FIELD :
+        return 6 ;
     case INTERNAL_VARIABLE_FIELD :
         return 3 ;
     case GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD :

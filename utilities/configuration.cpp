@@ -852,7 +852,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, std::vector<Externa
     {
         std::string dtype = getStringData("damage_model") ;
         if(Object::isDamageModel(dtype))
-             dam[ "damage_model" ] = Object::getDamageModel( dtype, values ) ;
+             dam[ "damage_model" ] = Object::getDamageModel( dtype, values, strings ) ;
             if( values.find( "residual_stiffness_fraction" ) != values.end() )
                 dam[ "damage_model" ]->setResidualStiffnessFraction( values["residual_stiffness_fraction"] ) ;
     }

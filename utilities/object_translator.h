@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 28/2/2016 at 15:24  */
+/* this is an auto-generated file created on 28/2/2016 at 16:44  */
 
 #ifndef __OBJECT_TRANSLATOR_H__
 #define __OBJECT_TRANSLATOR_H__
@@ -32,7 +32,7 @@ struct Object
     static void resetForm(Form * target) ;
 
     // parsed from header file: ../physics/damagemodels/damagemodel.h
-    static DamageModel * getDamageModel(std::string type, std::map<std::string, double> & values) ;
+    static DamageModel * getDamageModel(std::string type, std::map<std::string, double> & values, std::map<std::string, std::string> & strings) ;
     static bool isDamageModel(std::string type) ;
     static void resetDamageModel(DamageModel * target) ;
 
