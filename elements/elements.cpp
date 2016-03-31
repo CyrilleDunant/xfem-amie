@@ -3501,7 +3501,6 @@ std::vector<size_t> ElementaryVolume::clearEnrichment(const Geometry * g)
         else
             ret.push_back(enrichfunc[i].getDofID());
     }
-    blendfunc.clear();
     enrichfunc = newFunc ;
     enrichmentSource = newSource ;
 
@@ -3560,7 +3559,6 @@ std::vector<size_t> ElementarySurface::clearEnrichment(const Geometry * g)
             ret.push_back(enrichfunc[i].getDofID());
     }
     enrichfunc.clear() ;
-    blendfunc.clear();
     enrichfunc = newFunc ;
     enrichmentSource = newSource ;
 

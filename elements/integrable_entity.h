@@ -357,7 +357,6 @@ struct IntegrableEntity : public Geometry
         return cachedGps ;
     };
     void setCachedGaussPoints ( GaussPointArray * gp ) ;
-    std::vector<Function> blendfunc ;
 
     bool enrichmentUpdated ;
     bool behaviourUpdated ;
@@ -408,21 +407,6 @@ struct IntegrableEntity : public Geometry
     virtual	const std::vector< Function> & getEnrichmentFunctions() const = 0 ;
     virtual const Function & getEnrichmentFunction ( size_t i ) const = 0;
 
-    virtual	const std::vector< Function >  & getBlendingFunctions() const {
-        return blendfunc ;
-    } ;
-    virtual	const  Function  & getBlendingFunction ( size_t i ) const {
-        return blendfunc[i] ;
-    } ;
-    virtual void addBlendingFunction ( const Function & f ) {
-        blendfunc.push_back ( f );
-    }
-
-// 	virtual	std::vector< Function> & getEnrichmentFunctions() = 0 ;
-
-
-
-// 	virtual Function & getEnrichmentFunction(size_t i) = 0;
     virtual Order getOrder() const  = 0 ;
 
     virtual std::vector<size_t> clearEnrichment ( const Geometry * g ) = 0 ;
