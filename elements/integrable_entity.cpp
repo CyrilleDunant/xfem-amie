@@ -390,76 +390,9 @@ const Vector &ElementState::getDisplacements() const
     return this->displacements ;
 }
 
-Vector &ElementState::getDisplacements()
-{
-    return this->displacements ;
-}
-
 const Vector &ElementState::getEnrichedDisplacements() const
 {
     return this->enrichedDisplacements ;
-}
-
-Vector &ElementState::getEnrichedDisplacements()
-{
-    return this->enrichedDisplacements ;
-}
-
-
-ElementState &ElementState::operator = ( ElementState &s )
-{
-    JinvCache = nullptr ;
-    displacements.resize ( s.getDisplacements().size() ) ;
-    displacements = s.getDisplacements() ;
-    enrichedDisplacements.resize ( s.getEnrichedDisplacements().size() ) ;
-    enrichedDisplacements  = s.getEnrichedDisplacements();
-
-    buffer.resize ( s.getBuffer().size() ) ;
-    buffer = s.getBuffer() ;
-
-    timePos = s.getTime();
-    previousTimePos = s.getTime() - s.getDeltaTime();
-
-    parent = s.getParent();
-    mesh2d = s.getMesh2D() ;
-    mesh3d = s.getMesh3D() ;
-
-    strainAtGaussPointsSet = false ;
-    stressAtGaussPointsSet = false ;
-    pstrainAtGaussPointsSet = false ;
-    pstressAtGaussPointsSet = false ;
-    return *this ;
-}
-
-ElementState::ElementState ( ElementState &s )
-{
-    lock = false ;
-    JinvCache = nullptr ;
-    strainAtGaussPoints.resize ( 0 ) ;
-    stressAtGaussPoints.resize ( 0 ) ;
-    pstrainAtGaussPoints.resize ( 0 ) ;
-    pstressAtGaussPoints.resize ( 0 ) ;
-
-    displacements.resize ( s.getDisplacements().size() ) ;
-    displacements = s.getDisplacements() ;
-    enrichedDisplacements.resize ( s.getEnrichedDisplacements().size() ) ;
-    enrichedDisplacements  = s.getEnrichedDisplacements();
-
-
-    buffer.resize ( s.getBuffer().size() ) ;
-    buffer = s.getBuffer() ;
-
-    timePos = s.getTime();
-    previousTimePos = s.getTime() - s.getDeltaTime();
-
-    parent = s.getParent();
-    mesh2d = s.getMesh2D() ;
-    mesh3d = s.getMesh3D() ;
-
-    strainAtGaussPointsSet = false ;
-    stressAtGaussPointsSet = false ;
-    pstrainAtGaussPointsSet = false ;
-    pstressAtGaussPointsSet = false ;
 }
 
 
@@ -3064,25 +2997,6 @@ std::vector<double> ElementState::getEnrichedInterpolatingFactors ( const Point 
     return ret;
 }
 
-std::vector<double> ElementState::getNonEnrichedInterpolatingFactors ( const Point &p, bool local ) const
-{
-
-    std::vector<double> ret ( parent->getBoundingPoints().size() ) ;
-    VirtualMachine vm ;
-    Point p_ ( p ) ;
-
-    if ( !local )
-    {
-        p_ = parent->inLocalCoordinates ( p ) ;
-    }
-
-    for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
-    {
-        ret[j] = vm.eval ( parent->getShapeFunction ( j ), p_ ) ;
-    }
-
-    return ret;
-}
 
 std::vector<double> ElementState::getInterpolatingFactors ( const Point &p, bool local ) const
 {
@@ -3119,9 +3033,6 @@ void ElementState::initialize ( Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * m
     }
     displacements.resize ( parent->getBoundingPoints().size() *ndofs, 0. ) ;
 
-
-    buffer.resize ( displacements.size() , 0.) ;
-
     if ( std::abs ( timePos - previousTimePos ) < POINT_TOLERANCE && std::abs ( timePos ) < POINT_TOLERANCE )
     {
         timePos = -0.1 ;
@@ -3145,9 +3056,6 @@ void ElementState::initialize ( Mesh<DelaunayTriangle,DelaunayTreeItem> * msh)
     displacements.resize ( parent->getBoundingPoints().size() *ndofs, 0. ) ;
     displacements = 0 ;
 
-    buffer.resize ( displacements.size() ) ;
-    buffer = 0 ;
-
     if ( std::abs ( timePos - previousTimePos ) < POINT_TOLERANCE && std::abs ( timePos ) < POINT_TOLERANCE )
     {
         timePos = -0.1 ;
@@ -3158,16 +3066,6 @@ void ElementState::initialize ( Mesh<DelaunayTriangle,DelaunayTreeItem> * msh)
     stressAtGaussPointsSet = false ;
     pstrainAtGaussPointsSet = false ;
     pstressAtGaussPointsSet = false ;
-}
-
-const Vector &ElementState::getBuffer() const
-{
-    return buffer ;
-}
-
-Vector &ElementState::getBuffer()
-{
-    return buffer ;
 }
 
 void ElementState::step ( double dt, const Vector *d )
@@ -3191,9 +3089,14 @@ void ElementState::step ( double dt, const Vector *d )
             return ;
         }
 
-        if ( buffer.size() != parent->getBoundingPoints().size() *ndofs + parent->getEnrichmentFunctions().size() *ndofs )
+        if ( displacements.size() != parent->getBoundingPoints().size() *ndofs)
         {
-            buffer.resize ( parent->getBoundingPoints().size() *ndofs + parent->getEnrichmentFunctions().size() *ndofs ) ;
+            displacements.resize ( parent->getBoundingPoints().size() *ndofs) ;
+        }
+        
+        if ( enrichedDisplacements.size() != parent->getEnrichmentFunctions().size() *ndofs )
+        {
+            enrichedDisplacements.resize ( parent->getEnrichmentFunctions().size() *ndofs ) ;
         }
 
         for ( size_t i = 0 ; i < parent->getShapeFunctions().size() ; i++ )
@@ -3202,11 +3105,11 @@ void ElementState::step ( double dt, const Vector *d )
             {
                 if ( ids[i] * ndofs + j < d->size() )
                 {
-                    buffer[i * ndofs + j] = ( *d ) [ids[i] * ndofs + j] ;
+                    displacements[i * ndofs + j] = ( *d ) [ids[i] * ndofs + j] ;
                 }
                 else
                 {
-                    buffer[i * ndofs + j] = 0 ;
+                    displacements[i * ndofs + j] = 0 ;
                 }
             }
         }
@@ -3219,11 +3122,11 @@ void ElementState::step ( double dt, const Vector *d )
             {
                 if ( ids[i + nbp] * ndofs + j < d->size() )
                 {
-                    buffer[i * ndofs + nbp * ndofs + j] = ( *d ) [ids[i + nbp] * ndofs + j] ;
+                    enrichedDisplacements[i * ndofs  + j] = ( *d ) [ids[i + nbp] * ndofs + j] ;
                 }
                 else
                 {
-                    buffer[i * ndofs + nbp * ndofs + j] = 0 ;
+                    enrichedDisplacements[i * ndofs + j] = 0 ;
                 }
             }
         }
@@ -3374,91 +3277,11 @@ std::vector<Point> ElementState::getPrincipalFrame ( const Point &p, bool local,
 }
 
 
-
-double ElementState::elasticEnergy()
-{
-    Vector strain ( 0., parent->getGaussPoints().gaussPoints.size() * ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
-    Vector stress ( 0., strain.size() ) ;
-    getField ( STRAIN_FIELD, REAL_STRESS_FIELD, parent->getGaussPoints().gaussPoints , strain, stress, true ) ;
-    size_t stresscomponents = stress.size() / parent->getGaussPoints().gaussPoints.size() ;
-    double e = 0 ;
-
-    for ( size_t i = 0 ; i < parent->getGaussPoints().gaussPoints.size() ; i++ )
-    {
-        double le = 0 ;
-
-        for ( size_t j = 0 ; j < stresscomponents ; j++ )
-        {
-            le += strain[i * stresscomponents + j] * stress[i * stresscomponents + j] ;
-        }
-
-        e += le * parent->getGaussPoints().gaussPoints[i].second ;
-    }
-
-    return .5 * e ;
-
-}
-
 ElementStateWithInternalVariables::ElementStateWithInternalVariables ( IntegrableEntity * e, int n_, int p_ ) : ElementState ( e ), n ( n_ ), p ( p_ )
 {
 
 }
 
-ElementStateWithInternalVariables::ElementStateWithInternalVariables ( ElementStateWithInternalVariables &s )  : ElementState ( dynamic_cast<ElementState &> ( s ) )
-{
-    n = s.numberOfInternalVariables() ;
-    p = s.sizeOfInternalVariable() ;
-
-    internalVariablesAtGaussPoints.resize ( parent->getGaussPoints().gaussPoints.size() ) ;
-
-    for ( size_t g = 0 ; g < internalVariablesAtGaussPoints.size() ; g++ )
-    {
-        internalVariablesAtGaussPoints[g].resize ( n ) ;
-        for ( int k = 0 ; k < n ; k++ )
-        {
-            internalVariablesAtGaussPoints[g][k].resize ( p ) ;
-        }
-    }
-
-}
-
-ElementStateWithInternalVariables & ElementStateWithInternalVariables::operator = ( ElementStateWithInternalVariables & s )
-{
-    strainAtGaussPoints.resize ( 0 );
-    stressAtGaussPoints.resize ( 0 );
-    displacements.resize ( s.getDisplacements().size() ) ;
-    displacements = s.getDisplacements() ;
-    enrichedDisplacements.resize ( s.getEnrichedDisplacements().size() ) ;
-    enrichedDisplacements  = s.getEnrichedDisplacements();
-
-    buffer.resize ( s.getBuffer().size() ) ;
-    buffer = s.getBuffer() ;
-
-    timePos = s.getTime();
-    previousTimePos = s.getTime() - s.getDeltaTime();
-
-    parent = s.getParent();
-
-    n = s.numberOfInternalVariables() ;
-    p = s.sizeOfInternalVariable() ;
-    internalVariablesAtGaussPoints.resize ( parent->getGaussPoints().gaussPoints.size() ) ;
-
-    for ( size_t g = 0 ; g < internalVariablesAtGaussPoints.size() ; g++ )
-    {
-        internalVariablesAtGaussPoints[g].resize ( n ) ;
-        for ( int k = 0 ; k < n ; k++ )
-        {
-            internalVariablesAtGaussPoints[g][k].resize ( p ) ;
-        }
-    }
-
-    strainAtGaussPointsSet = false ;
-    stressAtGaussPointsSet = false ;
-    pstrainAtGaussPointsSet = false ;
-    pstressAtGaussPointsSet = false ;
-
-    return *this ;
-}
 
 void ElementStateWithInternalVariables::getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm, int i ) 
 {

@@ -38,8 +38,6 @@ namespace Amie
 		
 		virtual void step(double timestep, ElementState & s, double maxScore) ;
 		
-		virtual void updateElementState(double timestep, ElementState & currentState) const ;
-		
 	} ;
 	
 	/** A Non-Linear Form 
@@ -61,8 +59,6 @@ namespace Amie
 		virtual void setIntegrationHints(std::vector<Point> h) ;
 		
 		virtual void step(double timestep, ElementState & s, double MaxScore) ;
-		
-		virtual void updateElementState(double timestep, ElementState & currentState) const ;
 		
 		virtual bool isActive() const = 0 ;
 		

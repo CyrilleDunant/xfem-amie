@@ -356,7 +356,6 @@ void FiniteDifferenceViscoelasticity::preProcess( double timeStep, ElementState 
 
 void FiniteDifferenceViscoelasticity::updateElementState(double timeStep, ElementState & currentState) const 
 {
-    LinearForm::updateElementState(timeStep, currentState) ;
     if(timeStep < POINT_TOLERANCE)
         return ;
     VirtualMachine vm ;

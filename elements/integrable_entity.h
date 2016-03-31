@@ -18,6 +18,8 @@
 namespace Amie
 {
 
+class LinearForm;
+
 class DelaunayTriangle;
 class DelaunayTetrahedron;
 class DelaunayTreeItem3D;
@@ -116,6 +118,7 @@ typedef enum : char {
 
 class Form ;
 class NonLinearForm ;
+class LinearForm ;
 class Function ;
 class DelaunayTriangle ;
 class ElementarySurface ;
@@ -127,6 +130,8 @@ class VirtualMachine ;
 class BoundaryCondition ;
 template<class A, class B>
 class Mesh  ;
+class TwoDCohesiveForces ;
+
 
 
 size_t fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t blocks = 0 ) ;
@@ -137,6 +142,9 @@ size_t fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t bl
  */
 class ElementState
 {
+  friend TwoDCohesiveForces ;
+  friend LinearForm ;
+  friend NonLinearForm ;
 protected:
 
     Vector strainAtGaussPoints ;
@@ -147,9 +155,6 @@ protected:
 
     Vector displacements ;
     Vector enrichedDisplacements ;
-
-    
-    Vector buffer ;
     
     bool strainAtGaussPointsSet ;
     bool stressAtGaussPointsSet ;
@@ -170,12 +175,8 @@ public:
     Matrix * JinvCache ;
     /** \brief Construct the state of the argument*/
     ElementState ( IntegrableEntity * ) ;
-    /** \brief Copy-constructor*/
-    ElementState ( ElementState &s ) ;
     
     virtual ~ElementState() { if(JinvCache) delete JinvCache ;} ;
-
-    ElementState & operator = ( ElementState& s ) ;
 
     virtual void getExternalField ( Vector & nodalValues, int externaldofs, const Point & p, Vector & ret, bool local, VirtualMachine * vm = nullptr )  ;
 
@@ -204,14 +205,8 @@ public:
     /** \brief return displacements at the nodes of the element*/
     const Vector & getDisplacements() const;
 
-    /** \brief return displacements at the nodes of the element*/
-    Vector & getDisplacements() ;
-
     /** \brief return enriched displacements at the nodes of the element*/
     const Vector & getEnrichedDisplacements() const;
-
-    /** \brief return enriched displacements at the nodes of the element*/
-    Vector & getEnrichedDisplacements() ;
 
     /** \brief Return the set of eigenvector forming the reference frame of the principal stresses*/
     std::vector<Point> getPrincipalFrame ( const Point &p, bool local = false, VirtualMachine * vm = nullptr, StressCalculationMethod m = REAL_STRESS )  ;
@@ -221,12 +216,6 @@ public:
 
     /** \brief return the linear enrichment interpolating factors for the displacement field at the given point*/
     std::vector<double> getEnrichedInterpolatingFactors ( const Point & p, bool local = false ) const ;
-
-    /** \brief return the linear non-enrichment interpolating factors for the displacement field at the given point*/
-    std::vector<double> getNonEnrichedInterpolatingFactors ( const Point & p, bool local = false ) const ;
-
-    /** \brief Return the elastic energy of this element*/
-    double elasticEnergy() ;
 
     virtual void step ( double dt, const Vector* d ) ;
     virtual void elasticStep ( double dt, const Vector* d ) { } ;
@@ -257,9 +246,6 @@ public:
         return  mesh3d ;
     } ;
 
-    const Vector & getBuffer() const ;
-    Vector & getBuffer()  ;
-
 } ;
 
 class ElementStateWithInternalVariables : public ElementState
@@ -271,10 +257,6 @@ protected:
 
 public:
     ElementStateWithInternalVariables ( IntegrableEntity *, int n, int p ) ;
-
-    ElementStateWithInternalVariables ( ElementStateWithInternalVariables &s ) ;
-
-    ElementStateWithInternalVariables & operator = ( ElementStateWithInternalVariables & ) ;
 
     int numberOfInternalVariables() const {
         return n ;
@@ -522,7 +504,6 @@ public:
      * @param currentState State of the element with this behaviour
      */
     virtual void step ( double timestep, ElementState & currentState, double maxScore ) = 0;
-    virtual void updateElementState ( double timestep, ElementState & currentState ) const = 0;
 
     virtual bool fractured() const = 0 ;
     virtual bool changed() const {

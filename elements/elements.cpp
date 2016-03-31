@@ -193,40 +193,23 @@ void ElementarySurface::setNonLinearBehaviour(NonLinearForm * f)
 void ElementarySurface::step(double dt, const Vector * displacements)
 {
     getState().step(dt, displacements) ;
-    if(getBehaviour())
-    {
-        getBehaviour()->updateElementState(dt, getState()) ;
-    }
-
 }
 
 
 void ElementarySurface::nonLinearStep(double dt, const Vector *displacements)
 {
     getState().step(dt, displacements) ;
-
-    if(getNonLinearBehaviour())
-        getNonLinearBehaviour()->step(dt,getState(), -1) ;
 }
 
 void ElementaryVolume::step(double dt, const Vector *displacements)
 {
     getState().step(dt, displacements) ;
-    if(getBehaviour())
-    {
-        getBehaviour()->updateElementState(dt, getState()) ;
-    }
 }
 
 
 void ElementaryVolume::nonLinearStep(double dt, const Vector * displacements)
 {
-
     this->getState().step(dt, displacements) ;
-
-    if(getNonLinearBehaviour())
-        getNonLinearBehaviour()->step(dt, getState(), -1) ;
-
 }
 
 // const std::vector<std::pair<size_t,const Function &> > ElementarySurface::getDofs() const
@@ -1218,7 +1201,7 @@ TriElement::TriElement(Order order_ ): moved(false)
         t0.setDerivative( ZETA, zero) ;
         t0.setDerivative( TIME_VARIABLE, halfm) ;
 
- 			Function t0m = t0 * -1. ;
+ 			Function t0m("t 0.5 * 0.5 -") ;
  			t0m.setNumberOfDerivatives(4) ;
  			t0m.setDerivative( XI, zero) ;
  			t0m.setDerivative( ETA, zero) ;
@@ -1233,7 +1216,7 @@ TriElement::TriElement(Order order_ ): moved(false)
         t1.setDerivative( ZETA, zero) ;
         t1.setDerivative( TIME_VARIABLE, half) ;
 
- 			Function t1m = t1 * -1. ;
+ 			Function t1m("-0.5 t 0.5 * -") ;
  			t1m.setNumberOfDerivatives(4) ;
  			t1m.setDerivative( XI, zero) ;
  			t1m.setDerivative( ETA, zero) ;
@@ -2812,8 +2795,23 @@ TetrahedralElement::TetrahedralElement(Order order ): moved(false)
         s3.setDerivative( TIME_VARIABLE, zero) ;
 
         //0
-        (*shapefunc)[0] = s0*t0 ;
-        (*shapefunc)[1] = s1*t0 ;
+        (*shapefunc)[0] = s0*t0 ; // z * 0.5 * (t-1)
+	(*shapefunc)[0].setNumberOfDerivatives(4) ;
+	(*shapefunc)[0].setDerivative( XI, zero) ;
+        (*shapefunc)[0].setDerivative( ETA, zero) ;
+        (*shapefunc)[0].setDerivative( ZETA, t0) ;
+	Function dum("z 0.5 *") ;
+        (*shapefunc)[0].setDerivative( TIME_VARIABLE, dum) ;
+	
+        (*shapefunc)[1] = s1*t0 ; //(1-x-y-z)*0.5*(t-1)
+	(*shapefunc)[1].setNumberOfDerivatives(4) ;
+	dum = Function("1 t - 0.5 *") ;
+	(*shapefunc)[1].setDerivative( XI, dum) ;
+        (*shapefunc)[1].setDerivative( ETA, dum) ;
+        (*shapefunc)[1].setDerivative( ZETA, dum) ;
+	dum = Function("1 x - y - z - 0.5 *") ;
+        (*shapefunc)[1].setDerivative( TIME_VARIABLE, dum) ;
+	
         (*shapefunc)[2] = s2*t0 ;
         (*shapefunc)[3] = s3*t0 ;
         (*shapefunc)[4] = s0*t1 ;

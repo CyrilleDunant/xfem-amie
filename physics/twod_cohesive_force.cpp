@@ -163,27 +163,7 @@ std::vector<BoundaryCondition * > TwoDCohesiveForces::getBoundaryConditions( con
 
 void TwoDCohesiveForces::step(double timestep, ElementState & s, double maxscore)
 {
-// 		this->state = currentState ;
 
-
-    size_t ndofs = s.getParent()->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-    int offset = ndofs-1 ;
-
-    if(s.getEnrichedDisplacements().size() != s.getParent()->getEnrichmentFunctions().size()*ndofs)
-        s.getEnrichedDisplacements().resize(s.getParent()->getEnrichmentFunctions().size()*ndofs) ;
-
-    for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
-    {
-        s.getDisplacements()[i*ndofs] = s.getBuffer()[i*ndofs] ;
-        s.getDisplacements()[i*ndofs+offset] = s.getBuffer()[i*ndofs+offset] ;
-    }
-
-    for(size_t i = 0 ; i < s.getParent()->getEnrichmentFunctions().size() ; i++)
-    {
-        std::cout << i*ndofs << " vs " << s.getEnrichedDisplacements().size() << std::endl ;
-        s.getEnrichedDisplacements()[i*ndofs] = s.getBuffer()[(i+s.getParent()->getBoundingPoints().size())*ndofs] ;
-        s.getEnrichedDisplacements()[i*ndofs+offset] = s.getBuffer()[(i+s.getParent()->getBoundingPoints().size())*ndofs+offset] ;
-    }
 }
 
 bool TwoDCohesiveForces::isActive() const
