@@ -29,6 +29,21 @@ double VirtualMachine::ieval(Vector& v, const Amie::GaussPointArray& gp)
 double VirtualMachine::eval(const Function &f, const double x, const double y, const double z, const double t, const double u, const double v, const double w)
 {
     size_t size = f.byteCode.size() ;
+    
+    if(size == 1)
+    {
+	if (f.byteCode[0] == TOKEN_OPERATION_CONSTANT)
+	  return f.values[0] ;
+	if (f.byteCode[0] == TOKEN_OPERATION_X)
+	  return x ;
+	if (f.byteCode[0] == TOKEN_OPERATION_Y)
+	  return y ;
+	if (f.byteCode[0] == TOKEN_OPERATION_Z)
+	  return z ;
+	if (f.byteCode[0] == TOKEN_OPERATION_T)
+	  return t ;
+    }
+    
     stack.memory.heap[1] = x ;
     stack.memory.heap[2] = y ;
     stack.memory.heap[3] = z ;
@@ -44,8 +59,7 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 
     for(size_t i = 0 ; i < f.values.size(); i++)
         stack.memory.heap[HEAP_SIZE-f.values.size()+i] = f.values[f.values.size()-1-i] ;
-// 	if(f.values.size())
-// 		std::reverse_copy(f.values.begin(),f.values.end(),&stack.memory.heap[HEAP_SIZE-f.values.size()] ) ;
+
 
     for(size_t i = 0 ; i < size  ; ++i)
     {
