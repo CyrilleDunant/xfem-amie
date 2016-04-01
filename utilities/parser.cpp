@@ -829,9 +829,10 @@ void CommandLineParser::sendEmail( std::string subject, std::string body, std::s
 
 void CommandLineParser::setNumThreads( int n )
 {
-#ifdef HAVE_OMP
+//#ifdef HAVE_OMP
+	std::cout << "dafuq" << std::endl ;
 	omp_set_num_threads(std::max(n,1)) ;
-#endif
+//#endif
 }
 
 void CommandLineParser::printStatus( )

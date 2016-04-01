@@ -424,3 +424,10 @@ std::vector<BoundaryCondition * > LogarithmicCreepWithImposedDeformationAndFract
     return ret ;
 
 }
+
+void LogarithmicCreepWithImposedDeformationAndFracture::preProcess( double timeStep, ElementState & currentState )
+{
+    if(dfunc) { dfunc->prepare() ; }
+    LogarithmicCreepWithImposedDeformation::preProcess(timeStep, currentState) ;
+}
+

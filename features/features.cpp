@@ -3935,14 +3935,17 @@ Vector FeatureTree::setSteppingParameters ( ConfigTreeItem * config, ConfigTreeI
         def->addChild ( new ConfigTreeItem ( def, "number_of_time_steps", 1 ) ) ;
         def->addChild ( new ConfigTreeItem ( def, "first_time_step", 0.1 ) ) ;
         def->addChild ( new ConfigTreeItem ( def, "logarithmic", "FALSE" ) ) ;
+        def->addChild ( new ConfigTreeItem ( def, "space_time_fixed", "FALSE" ) ) ;
     }
     double deltaTime = config->getData ( "time_step", def->getData ( "time_step" ) ) ;
     double minDeltaTime = config->getData ( "minimum_time_step", def->getData ( "minimum_time_step" ) ) ;
     int maxIter = config->getData ( "maximum_iterations_per_step", def->getData ( "maximum_iterations_per_step" ) ) ;
     int nSteps = config->getData ( "number_of_time_steps", def->getData ( "number_of_time_steps" ) ) ;
+    bool space = config->getStringData("space_time_fixed", def->getStringData("space_time_fixed")) == "TRUE" ;
     setDeltaTime ( deltaTime ) ;
     setMinDeltaTime ( minDeltaTime ) ;
     setMaxIterationsPerStep ( maxIter ) ;
+    setSpaceTimeFixed( space ) ;
     Vector cinstants ( nSteps+1 ) ;
     if( config->hasChild( "solver_precision" ) )
         setSolverPrecision( config->getData ( "solver_precision", -1 ) ) ;
@@ -4967,7 +4970,7 @@ bool FeatureTree::stepElements()
                     std::cerr << maxScore << "]" << std::flush ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
-                        if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE  && solverConverged() )
+                        if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE  && solverConverged() && !spaceTimeFixed)
                         {
                             std::cerr << "adjusting time step..." << std::endl ;
                             double begin = j->second->cbegin()->getBoundingPoint ( 0 ).getT() ;
@@ -4982,7 +4985,7 @@ bool FeatureTree::stepElements()
                             }
                             else
                             {
-                                std::cerr << "time step too small: setting to " << minDeltaTime << std::endl ;
+                                std::cerr << "time step too small: setting to " << std::min(minDeltaTime,realDeltaTime) << std::endl ;
                                 moveFirstTimePlanes ( 0., j->second->begin(), j->second->end() ) ;
                             }
                         }
@@ -5219,7 +5222,7 @@ bool FeatureTree::stepElements()
 // 				}
 
                 std::cerr << maxScore << "]" << std::flush ;
-                if ( dtree3D->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0. && maxScore < 1. )
+                if ( dtree3D->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0. && maxScore < 1. && !spaceTimeFixed)
                 {
                     std::cerr << "adjusting time step..." << std::endl ;
                     double begin = dtree3D->begin()->getBoundingPoint ( 0 ).getT() ;
@@ -5234,7 +5237,7 @@ bool FeatureTree::stepElements()
                     }
                     else
                     {
-                        std::cerr << "time step too small: setting to " << minDeltaTime << std::endl ;
+                        std::cerr << "time step too small: setting to " << std::min(minDeltaTime,realDeltaTime) << std::endl ;
                         this->moveFirstTimePlanes ( 0., dtree3D->begin(), dtree3D->end() ) ;
                     }
                 }

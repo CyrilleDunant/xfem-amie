@@ -174,6 +174,7 @@ protected:
     bool stateConverged ;
     bool damageConverged ;
     bool resetcalcul  = false; 
+    bool spaceTimeFixed = false ;
 
     bool elastic ;
     bool projectOnBoundaries ;
@@ -363,6 +364,8 @@ public:
     bool getElastic() const {
         return elastic ;
     }
+
+    void setSpaceTimeFixed( bool f ) { spaceTimeFixed = f ; std::cout << "warning! disabling space-time damage adaptativity..." << std::endl ; }
 
     void setProjectionOnBoundaries ( bool p ) {
         projectOnBoundaries = p ;

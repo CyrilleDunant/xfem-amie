@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 29/2/2016 at 9:31  */
+/* this is an auto-generated file created on 1/3/2016 at 16:33  */
 
 #ifndef __ENUMERATION_TRANSLATOR_H__
 #define __ENUMERATION_TRANSLATOR_H__
@@ -670,7 +670,6 @@ struct Enum
         return "UPPER_BOUND" ;
     }
    
-
     // parsed from header file: ../physics/fracturecriteria/fracturecriterion.h
     static SmoothingFunctionType getSmoothingFunctionType(std::string type, bool * ok = 0)
     {

@@ -50,6 +50,7 @@ public:
     virtual DamageModel * getCopy() const ;
 };
 
+
 }
 
 #endif

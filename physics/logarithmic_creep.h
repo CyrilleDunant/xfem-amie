@@ -143,6 +143,8 @@ struct LogarithmicCreepWithImposedDeformationAndFracture : public LogarithmicCre
     }
     virtual void setFractureCriterion(FractureCriterion *frac) ;
 
+    virtual void preProcess( double timeStep, ElementState & currentState ) ;
+
     virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
     virtual Matrix getViscousTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 

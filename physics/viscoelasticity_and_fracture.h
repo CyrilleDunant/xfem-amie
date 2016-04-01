@@ -85,6 +85,8 @@ struct ViscoelasticityAndFracture : public Viscoelasticity
 		param *= d ;
 		eta *= d ;
 	}
+
+	virtual void  preProcess(double timeStep, ElementState & currentState ) { dfunc->prepare() ; }
 	
 	virtual Vector getForcesFromAppliedStress( const Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic = false, const Vector & normal = Vector()) ;
 

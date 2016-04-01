@@ -445,6 +445,8 @@ void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, Elemen
 
         #pragma omp critical(logcreep)
         {
+		if(dfunc) { dfunc->prepare() ; }
+
 		dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState).synchronize(external) ;
 		for(size_t i = 0 ; i < relations.size() ; i++)
 		{

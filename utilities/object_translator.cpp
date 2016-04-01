@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 29/2/2016 at 9:31  */
+/* this is an auto-generated file created on 1/3/2016 at 16:33  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -23,6 +23,7 @@
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/damagemodels/spacetimefiberbasedbilineardamage.h"
 #include "../physics/damagemodels/isotropiclineardamage.h"
+#include "../physics/damagemodels/spacetimebadisotropiclineardamage.h"
 #include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include "../physics/fracturecriteria/boundedvonmises.h"
 #include "../physics/fracturecriteria/vonmises.h"
@@ -517,6 +518,21 @@ namespace Amie
         // parsed from header file: ../physics/damagemodels/isotropiclineardamage.h
         if( type == "Isotropic" ) { return new IsotropicLinearDamage() ; }
    
+        // parsed from header file: ../physics/damagemodels/spacetimebadisotropiclineardamage.h
+        if( type == "SpaceTimeFixedPointIsotropic" )
+        { 
+            if( values.find("damage_increment") == values.end() ) { values["damage_increment"] = 0.1 ; } ; 
+            if( values.find("maximum_damage") == values.end() ) { values["maximum_damage"] = 0.6 ; } ; 
+            return new SpaceTimeFixedPointIsotropicLinearDamage(values["damage_increment"], values["maximum_damage"]) ;
+        }
+        if( type == "SpaceTimeSequentialIsotropic" )
+        { 
+            if( values.find("damage_increment") == values.end() ) { values["damage_increment"] = 0.1 ; } ; 
+            if( values.find("time_tolerance") == values.end() ) { values["time_tolerance"] = 1e-9 ; } ; 
+            if( values.find("maximum_damage") == values.end() ) { values["maximum_damage"] = 0.6 ; } ; 
+            return new SpaceTimeSequentialIsotropicLinearDamage(values["damage_increment"], values["time_tolerance"], values["maximum_damage"]) ;
+        }
+   
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h
         if( type == "SpaceTimeFiberBasedIsotropic" )
         { 
@@ -537,6 +553,10 @@ namespace Amie
         // parsed from header file: ../physics/damagemodels/isotropiclineardamage.h
         if( type == "Isotropic" ) { return true ; }
    
+        // parsed from header file: ../physics/damagemodels/spacetimebadisotropiclineardamage.h
+        if( type == "SpaceTimeFixedPointIsotropic" ) { return true ; }
+        if( type == "SpaceTimeSequentialIsotropic" ) { return true ; }
+   
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h
         if( type == "SpaceTimeFiberBasedIsotropic" ) { return true ; }
    
@@ -548,6 +568,8 @@ namespace Amie
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedbilineardamage.h
    
         // parsed from header file: ../physics/damagemodels/isotropiclineardamage.h
+   
+        // parsed from header file: ../physics/damagemodels/spacetimebadisotropiclineardamage.h
    
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h
    

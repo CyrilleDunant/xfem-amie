@@ -145,5 +145,4 @@ void SpaceTimeFiberBasedBilateralLinearDamage::step( ElementState &s , double ma
 }
 
 
-
 }
