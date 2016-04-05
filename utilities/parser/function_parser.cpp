@@ -22,16 +22,25 @@ FunctionParser::FunctionParser(std::string f, std::map<std::string, char> coordi
 	renewExpression( FunctionParser::breakString(f), coordinates) ;
 }
 
-std::vector<std::string> FunctionParser::breakString(std::string f)
+std::vector<std::string> FunctionParser::breakString(std::string f, std::string tokens )
 {
 	std::string current ;
 	std::vector<std::string> str ;
 	size_t i = 0 ;
+        bool open = false ;
 	while(i < f.length())
 	{
 		bool cut = false ;
 		char test = f[i] ;
-		if(test == ' ' || test == '\t')
+                if( tokens.length() > 0 && tokens.find( f[i] ) < std::string::npos )
+                {
+                    if(open)
+                        open = false ;
+                    else
+                        open = true ;
+                }
+
+		if(((test == ' ') || (test == '\t')) && (!open))
 			cut = true ;
 		else
 			current += test ;

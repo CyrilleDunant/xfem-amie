@@ -20,7 +20,7 @@
 #include "../../features/sample.h"
 #include "../../features/polygonSample.h"
 #include "../../features/inclusion.h"
-#include "../../utilities/parser/command_line_parser.h"
+#include "../../utilities/parser/config_parser.h"
 #include "../../utilities/postprocessor.h"
 #include "../../utilities/itoa.h"
 
@@ -39,40 +39,8 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
-	CommandLineParser parser("Makes a tensile test on a 2 elements sample at a constant imposed displacement rate") ;
-	parser.parseCommandLine(argc, argv) ;
-	
-	Sample sample(0.01,0.01,0,0) ;
-	FeatureTree F(&sample) ;
-	F.setSamplingNumber(0) ;
-
-	Matrix C = Tensor::cauchyGreen( 10e9, 0.2, SPACE_TWO_DIMENSIONAL, PLANE_STRAIN, YOUNG_POISSON ) ;
-	DamageModel * dam = new SpaceTimeFixedPointIsotropicLinearDamage( 0.01, 1. ) ;
-	FractureCriterion * crit = new SpaceTimeLimitSurfaceFractureCriterion( "sqrt ( stress_1 * stress_1 + stress_2 * stress_2 )", "2e6", "", PRINCIPAL_POSITIVE  ) ; 
-	ViscoelasticityAndFracture * frac = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, C, C*2, C*10, crit, dam ) ;
-	LogarithmicCreepWithExternalParameters * creep = new LogarithmicCreepWithExternalParameters("young_modulus = 10e9, poisson_ratio = 0.2, creep_modulus = 20e9, creep_characteristic_time = 1, tensile_strain = 0.0001, fracture_energy = 1500", crit, dam ) ;
-	Viscoelasticity * visc = new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, C, C*2, C*10 ) ;
-	sample.setBehaviour( frac ) ;
-
-	F.setDeltaTime(1.) ;
-	F.setMinDeltaTime(1e-9) ;
-	F.setSpaceTimeFixed(true) ;
-	F.setMaxIterationsPerStep( 100000 ) ;
-	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER ) ) ;
-	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT_AFTER ) ) ;
-	BoundingBoxDefinedBoundaryCondition * up ;	
-	up = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP_AFTER, 0) ;
-	F.addBoundaryCondition( up ) ;
-
-	F.step() ;
-
-	for(size_t i = 0 ; i < 100 ; i++)
-	{
-		up->setData( 0.0000001*(i+1)) ;
-		F.step() ;
-		std::cout << F.getCurrentTime()  << "\t" << F.getAverageField(MECHANICAL_STRAIN_FIELD)[1]*1e3 << "\t" << F.getAverageField(PRINCIPAL_REAL_STRESS_FIELD).max()/1e6 << std::endl ;		
-	}
-
+	ConfigXMLParser test("amie_sensitivity_2016_02_26.xml") ;
+	test.readData() ;
 
 	return 0 ;
 }

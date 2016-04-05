@@ -25,6 +25,19 @@ using namespace Amie ;
 
 //#define DEBUG 
 
+typedef enum
+{
+    XML_OPEN_COMMENT,
+    XML_CLOSE_COMMENT,
+    XML_INLINE_COMMENT,
+    XML_OPEN,
+    XML_CLOSE,
+    XML_INLINE,
+    XML_VALUE,
+    XML_INVALID,
+    XML_HEADER,
+} XMLTokenType ;
+
 
 
 class ConfigParser : public Parser
@@ -45,11 +58,34 @@ public:
 	ConfigTreeItem * getData() { return trunk; }
 
 	static ConfigTreeItem * readFile(std::string f, ConfigTreeItem * def, bool define = true, bool bind = false, std::vector<std::string> flags = std::vector<std::string>(), std::string path = std::string()) ;
+	static ConfigTreeItem * readXMLFile(std::string f, ConfigTreeItem * def, bool define = true, bool bind = false, std::vector<std::string> flags = std::vector<std::string>(), std::string path = std::string()) ;
 	static std::vector<BoundaryCondition *> getBoundaryConditions( std::string filename, FeatureTree * F) ;
 
 	static Form * getBehaviour( std::string filename, Form * def = new VoidForm(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL ) ;
 
 } ;
+
+
+class ConfigXMLParser : public ConfigParser
+{
+public:
+	ConfigXMLParser(std::string f, bool a = true) : ConfigParser(f,a) { }
+	ConfigXMLParser(const char * f, bool a = true) : ConfigParser(f,a) { }
+	ConfigXMLParser() : ConfigParser() { }
+
+	virtual ~ConfigXMLParser() { } ;
+	virtual void readData() ;
+
+	static std::vector<std::string> breakLine( std::string line, std::string ignore = "\"\'" ) ;
+	static XMLTokenType getTokenType( std::string test ) ;
+	static std::string cropToken(std::string token, XMLTokenType type ) ;
+	
+	ConfigTreeItem * parseXMLToken( std::string xml ) ;
+	ConfigTreeItem * parseXMLAttribute( std::string attr ) ;
+
+
+} ;
+
 
 
 

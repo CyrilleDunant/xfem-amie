@@ -58,7 +58,7 @@ struct FunctionParser
 	Function getRightFunction( size_t i ) const ;
 
 	static Function getFunction( std::string f,  std::map<std::string, char> coordinates = std::map<std::string, char>() ) ;
-	static std::vector<std::string> breakString( std::string f ) ;
+	static std::vector<std::string> breakString( std::string f, std::string tokens = std::string() ) ;
 } ;
 
 struct FunctionParserToken : public FunctionParser

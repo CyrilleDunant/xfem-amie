@@ -330,7 +330,7 @@ std::vector<std::string> ConfigTreeItem::decompose(std::string full)
 void ConfigTreeItem::print() const
 {
     std::cout << getFullLabel() ;
-    if(isLeaf())
+    if( isLeaf() || data != 0 || str.length() > 0 )
     {
         std::cout << " = " ;
         if(str.size() > 0 && str[0] != '@')
