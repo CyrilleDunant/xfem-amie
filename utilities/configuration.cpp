@@ -42,7 +42,7 @@
 #include "enumeration_translator.h"
 #include "object_translator.h"
 #include "writer/triangle_writer.h"
-#include "parser.h"
+#include "parser/config_parser.h"
 #include "iostream"
 #include "fstream"
 

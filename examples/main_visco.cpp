@@ -36,7 +36,8 @@
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 #include "../utilities/itoa.h"
-#include "../utilities/parser.h"
+#include "../utilities/parser/command_line_parser.h"
+#include "../utilities/parser/config_parser.h"
 #include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include "../physics/fracturecriteria/maxstrain.h"
 

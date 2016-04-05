@@ -11,7 +11,7 @@
 //
 #include "spacetimelimitsurfacefracturecriterion.h"
 #include "../damagemodels/damagemodel.h"
-#include "../../utilities/parser.h"
+#include "../../utilities/parser/function_parser.h"
 #include <fstream>
 
 namespace Amie {

@@ -12,7 +12,7 @@
 #include "../../physics/viscoelasticity.h"
 #include "../../physics/viscoelasticity_and_imposed_deformation.h"
 #include "../../utilities/writer/triangle_writer.h"
-#include "../../utilities/parser.h"
+#include "../../utilities/parser/command_line_parser.h"
 
 
 #include <fstream>

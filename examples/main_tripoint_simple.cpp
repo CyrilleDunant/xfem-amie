@@ -9,14 +9,13 @@
 #include "../physics/fracturecriteria/mazars.h"
 #include "../physics/damagemodels/spacetimeisotropiclineardamage.h"
 #include "../polynomial/vm_function_extra.h"
-
 #include "../physics/stiffness.h"
 #include "../physics/stiffness_and_fracture.h"
 #include "../physics/viscoelasticity_and_fracture.h"
 #include "../physics/void_form.h"
 #include "../features/sample.h"
 #include "../utilities/itoa.h"
-#include "../utilities/parser.h"
+#include "../utilities/parser/command_line_parser.h"
 #include "../utilities/writer/triangle_writer.h"
 #include "../physics/materials/concrete_behaviour.h"
 

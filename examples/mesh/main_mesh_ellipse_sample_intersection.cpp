@@ -10,7 +10,7 @@
 #include "../../utilities/writer/triangle_writer.h"
 #include "../../features/sample.h"
 #include "../../features/inclusion.h"
-#include "../../utilities/parser.h"
+#include "../../utilities/parser/command_line_parser.h"
 #include "../../utilities/itoa.h"
 
 #include <fstream>

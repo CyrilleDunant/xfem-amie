@@ -195,7 +195,10 @@ utilities/optimizer.cpp
 utilities/granulo.cpp
 utilities/inclusion_family.cpp
 utilities/tensor.cpp
-utilities/parser.cpp
+utilities/parser/command_line_parser.cpp
+utilities/parser/config_parser.cpp
+utilities/parser/function_parser.cpp
+utilities/parser/parser.cpp
 utilities/pid.cpp
 utilities/itoa.cpp
 utilities/placement.cpp
@@ -452,9 +455,6 @@ target_link_libraries( michaela Amie ${ALL_LINK_FLAGS})
 add_executable(function_test EXCLUDE_FROM_ALL examples/playground/main_function_test.cpp )
 target_link_libraries( function_test Amie ${ALL_LINK_FLAGS})
 
-add_executable(get_fields_from_trg EXCLUDE_FROM_ALL examples/playground/main_get_fields_from_trg.cpp )
-target_link_libraries( get_fields_from_trg Amie ${ALL_LINK_FLAGS} )
-
 add_executable(homogenization EXCLUDE_FROM_ALL examples/playground/main_homogenization.cpp )
 target_link_libraries( homogenization Amie ${ALL_LINK_FLAGS})
 
@@ -463,7 +463,6 @@ ADD_DEPENDENCIES(playground
 alain 
 michaela 
 function_test
-get_fields_from_trg 
 homogenization
 )
 

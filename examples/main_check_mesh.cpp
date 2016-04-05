@@ -12,7 +12,7 @@
 #include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../utilities/writer/triangle_writer.h"
-#include "../utilities/parser.h"
+#include "../utilities/parser/command_line_parser.h"
 #include "../utilities/font.h"
 #include "../features/sample.h"
 

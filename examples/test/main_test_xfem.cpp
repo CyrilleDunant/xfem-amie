@@ -11,7 +11,7 @@
 #include "../../features/expansiveZone.h"
 #include "../../physics/stiffness.h"
 #include "../../physics/stiffness_with_imposed_deformation.h"
-#include "../../utilities/parser.h"
+#include "../../utilities/parser/command_line_parser.h"
 
 #include <fstream>
 #include <cmath>

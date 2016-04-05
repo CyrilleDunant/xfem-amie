@@ -10,7 +10,7 @@
 #include "./../physics/materials/paste_behaviour.h"
 #include "./../physics/materials/aggregate_behaviour.h"
 #include "./../utilities/granulo.h"
-#include "./../utilities/parser.h"
+#include "./../utilities/parser/command_line_parser.h"
 #include "./../utilities/writer/triangle_writer.h"
 #include "./../utilities/writer/exodus_writer.h"
 

@@ -8,7 +8,7 @@
 #include "../../features/features.h"
 #include "../../physics/stiffness.h"
 #include "../../features/sample.h"
-#include "../../utilities/parser.h"
+#include "../../utilities/parser/command_line_parser.h"
 #include "../../utilities/writer/triangle_writer.h"
 
 #include <fstream>

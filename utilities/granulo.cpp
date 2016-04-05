@@ -19,7 +19,7 @@
 #include <fstream>   // file I/O
 #include "placement.h"
 #include "configuration.h"
-#include "parser.h"
+#include "parser/parser.h"
 #include "../geometry/geometry_base.h"
 #include "../features/sample.h"
 #include "../features/microstructuregenerator.h"
