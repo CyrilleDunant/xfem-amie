@@ -26,9 +26,6 @@ PlasticStrain::PlasticStrain(double c_psi, double eps_f, double kappa_0) : impos
     tensilePlasticVariable = 0 ;
     inCompression = false ;
     inTension = false ;
-    c_psi = 0.05 ;
-    eps_f = 0.0057; //0.0057 ;
-    kappa_0 = 0 ; //3.350e-3 ;  //3.350e-3 ; // ; //3.350e-3 ; //5 up ; 4 down
     es = nullptr ;
     broken = false ;
     factor = 1 ;
