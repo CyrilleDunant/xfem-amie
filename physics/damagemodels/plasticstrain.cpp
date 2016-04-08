@@ -15,7 +15,7 @@
 
 namespace Amie {
 
-PlasticStrain::PlasticStrain() : imposedStrain(0.,3), previousCompressiveImposedStrain(0.,3),  previousTensileImposedStrain(0.,3)
+PlasticStrain::PlasticStrain(double c_psi, double eps_f, double kappa_0) : imposedStrain(0.,3), previousCompressiveImposedStrain(0.,3),  previousTensileImposedStrain(0.,3),c_psi(c_psi), eps_f(eps_f), kappa_0(kappa_0)
 {
     getState(true).resize(1, 0.);
     isNull = false ;

@@ -37,10 +37,10 @@ Matrix SpaceTimeIsotropicLinearDamage::applyViscous(const Matrix & m, const Poin
     if(state.max() < POINT_TOLERANCE&& accelerate < POINT_TOLERANCE)
         return m ;
     if(fractured())
-        return m*1e-6 ;
+        return m*residualStiffnessFraction ;
     
     double factor = (p.getT()+1.)*.5 ;
-    double d = std::min(state[0]+factor*accelerate, 1.) ;
+    double d = std::min(state[0]+1e-3*(accelerate > 0)+factor*accelerate, 1.) ;
     return m*(1.-d) ;
 
 
@@ -53,10 +53,10 @@ Matrix SpaceTimeIsotropicLinearDamage::apply(const Matrix & m, const Point & p,c
     if(state.max() < POINT_TOLERANCE && accelerate < POINT_TOLERANCE)
         return m ;
     if(fractured())
-        return m*1e-6 ;
+        return m*residualStiffnessFraction ;
     
     double factor = (p.getT()+1.)*.5 ;
-    double d = std::min(state[0]+factor*accelerate, 1.) ;
+    double d = std::min(state[0]+1e-3*(accelerate > 0)+factor*accelerate, 1.) ;
     return m*(1.-d) ;
 
 }
@@ -93,9 +93,9 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
     if(accelerate > 0)
     {
         if(maxscore > 0 && maxscore < 1)
-            state[0] = std::min(state[0]+(1.-maxscore)*accelerate, 1.) ;
+            state[0] = std::min(state[0]+1e-3+(1.-maxscore)*accelerate, 1.) ;
         else if (maxscore < 0)
-            state[0] = std::min(state[0]+accelerate, 1.) ;
+            state[0] = std::min(state[0]+1e-3+accelerate, 1.) ;
         change = true ;
     }
     
@@ -115,9 +115,8 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
     }
     else if(!fractured() && score > maxscore-timetol)
     {
-        
         double originalState = state[0] ;
-        accelerate = 0 ;
+
         double downDamage = originalState ;
         double upDamage = 1 ;
 
@@ -147,8 +146,11 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
         state[0] = upDamage ;
 
         double downAccelerate = 0 ;
-        double upAccelerate =  (state[0]-originalState)/(timetol/score) ;
-        while(upAccelerate-downAccelerate > 1e-6)
+	double delta = timetol/score ;
+	if(score < 1e-6)
+	  delta = timetol / 1e-6 ;
+        double upAccelerate =  (state[0]-originalState)/(delta) ;
+        while(upAccelerate-downAccelerate > 1e-6 )
         {
             accelerate = (downAccelerate+upAccelerate)*.5 ;
             double scoreAtEnd = s.getParent()->getBehaviour()->getFractureCriterion()->gradeAtTime( s, 1) ;
@@ -157,7 +159,7 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
             else
                 upAccelerate = accelerate ;
         }
-        accelerate = downAccelerate*.1 ;
+        accelerate = downAccelerate*.8 ;
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
     }
 

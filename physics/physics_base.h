@@ -66,7 +66,7 @@ namespace Amie
 		
 		virtual bool hasInducedMatrix() const = 0;
 		
-		virtual Form * getCopy() const =0 ;
+		virtual Form * getCopy() const = 0 ;
 		
 	} ;
 	

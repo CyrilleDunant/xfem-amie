@@ -129,16 +129,37 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
 int main ( int argc, char *argv[] )
 {
 
+  
+//     Function base("1 x - y -") ;
+//     Function mone("-1") ;
+//     base.setNumberOfDerivatives(2) ;
+//     base.setDerivative(XI, mone);
+//     base.setDerivative(ETA, mone);
+//     double p = 0 ;
+//     VirtualMachine vm ;
+//     vm.print(mone);
+//     for(size_t i = 1 ; i < 20000 ; i++)
+//     {
+//       p += vm.deval(base, XI, 0,0,0) ;
+//     }
+//     std::cout << p << std::endl ;
+//     p = 0 ;
+//     for(size_t i = 1 ; i < 20000 ; i++)
+//     {
+//       p += i ;
+//     }
+//     std::cout << p << std::endl ;
+//     
+//     exit(0) ;
+    
     // Beton
 
     CommandLineParser parser("Make a tri-point bending test on an homogeneous concrete sample") ;
-    parser.addArgument("sampling_number", 8, "number of sampling points on the boundary of the sample (default 16)") ;
-    parser.addArgument("length", .48, "length of the sample (default 3.9)") ;
-    parser.addArgument("height", .12, "height of the sample (default 1.2)") ;
-    parser.addArgument("speed", -0.00144, "loading speed (default -0.144 (1 mm / 60000 s))") ;
+    parser.addArgument("length", .195, "length of the sample (default 3.9)") ;
+    parser.addArgument("height", .06, "height of the sample (default 1.2)") ;
+    parser.addArgument("speed", -0.00000144, "loading speed (default -0.144 (1 mm / 60000 s))") ;
     parser.parseCommandLine(argc, argv) ;
 
-    double samplingNumber   = parser.getNumeralArgument( "sampling_number") ;
     double sampleLength     = parser.getNumeralArgument( "length") ;
     double sampleHeight     = parser.getNumeralArgument( "height") ;
     double loadingSpeed     = parser.getNumeralArgument( "speed") ;
@@ -170,7 +191,7 @@ int main ( int argc, char *argv[] )
     Sample sample ( nullptr, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;   
     
 //     sample.setBehaviour (new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mcft->getCopy(), linear->getCopy() )); 
-    sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mazar->getCopy(), linear->getCopy())); 
+    sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mcft->getCopy(), linear->getCopy())); 
 
     FeatureTree F ( &sample ) ;
 
@@ -180,9 +201,7 @@ int main ( int argc, char *argv[] )
     F.addRefinementZone ( &fineZone );
     F.addRefinementZone ( &finerZone );
 
-    F.setSamplingNumber ( samplingNumber ) ;
-
-    F.setSamplingRestriction ( 0 );
+    parser.setFeatureTree(&F) ;
 
     F.setMaxIterationsPerStep ( 1600 );
 
@@ -198,7 +217,7 @@ int main ( int argc, char *argv[] )
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT_AFTER ) ) ;
     F.addBoundaryCondition ( new BoundingBoxNearestNodeDefinedBoundaryCondition ( FIX_ALONG_ETA, BOTTOM_AFTER, Point ( supportLever, -sampleHeight*.5 ) ) ) ;
     F.setOrder ( LINEAR_TIME_LINEAR ) ;
-    F.setDeltaTime(0.00002);
+    F.setDeltaTime(0.02);
     F.setMinDeltaTime(1e-12);
 
     step(&F, supportLever, sampleHeight, load, loadingSpeed) ;

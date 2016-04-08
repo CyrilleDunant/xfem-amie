@@ -597,6 +597,125 @@ void ElementState::getExternalFieldAtGaussPoints ( Vector & nodalValues, int ext
     }
 }
 
+//helper function: be a bit faster
+// void getStrainField ( const Point & p, Matrix * JinvCache, IntegrableEntity * parent,  const Vector & displacements, const Vector & enrichedDisplacements,  Vector & ret, VirtualMachine * vm ) 
+// {
+//   if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+//         {
+//             double x_xi = 0;
+//             double x_eta = 0;
+//             double y_xi = 0;
+//             double y_eta = 0;
+// 
+//             for ( size_t j = 0 ; j < parent->getShapeFunctions().size(); j++ )
+//             {
+//                 if(j*2 >= displacements.size())
+//                 {
+//                     std::cerr << "displacement size mismatch" << std::endl ;
+//                     break ;
+//                 }
+//                 double f_xi  = vm ->deval ( parent->getShapeFunction ( j ), XI , p ) ;
+//                 double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, p ) ;
+//                 
+//                 x_xi  += f_xi * displacements[j * 2] ;
+//                 x_eta += f_eta * displacements[j * 2] ;
+//                 y_xi  += f_xi * displacements[j * 2 + 1] ;
+//                 y_eta += f_eta * displacements[j * 2 + 1] ;
+//             }
+//             for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+//             {
+//                 double f_xi  = vm ->deval ( parent->getEnrichmentFunction ( j ), XI , p ) ;
+//                 double f_eta = vm ->deval ( parent->getEnrichmentFunction ( j ), ETA, p ) ;
+// 
+//                 x_xi  += f_xi * enrichedDisplacements[j * 2] ;
+//                 x_eta += f_eta * enrichedDisplacements[j * 2] ;
+//                 y_xi  += f_xi * enrichedDisplacements[j * 2 +1] ;
+//                 y_eta += f_eta * enrichedDisplacements[j * 2 + 1] ;
+//             }
+//             
+//             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
+//             ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;
+//             ret[2] = ( ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( y_xi ) * (*JinvCache)[0][0] + ( y_eta ) * (*JinvCache)[0][1] );
+//         }
+//         else if ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+//         {
+//             double x_xi = 0;
+//             double x_eta = 0;
+//             double x_zeta = 0;
+//             double y_xi = 0;
+//             double y_eta = 0;
+//             double y_zeta = 0;
+//             double z_xi = 0;
+//             double z_eta = 0;
+//             double z_zeta = 0;
+// 
+//             for ( size_t j = 0 ; j < parent->getShapeFunctions().size() ; j++ )
+//             {
+//                 double f_xi = vm ->deval ( parent->getShapeFunction ( j ), XI, *p_ ) ;
+//                 double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, *p_ ) ;
+//                 double f_zeta = vm ->deval ( parent->getShapeFunction ( j ), ZETA, *p_ ) ;
+//                 double x = displacements[j * 3] ;
+//                 double y = displacements[j * 3 + 1] ;
+//                 double z = displacements[j * 3 + 2] ;
+// 
+//                 x_xi   += f_xi   * x ;
+//                 x_eta  += f_eta  * x ;
+//                 x_zeta += f_zeta * x ;
+//                 y_xi   += f_xi   * y ;
+//                 y_eta  += f_eta  * y ;
+//                 y_zeta += f_zeta * y ;
+//                 z_xi   += f_xi   * z ;
+//                 z_eta  += f_eta  * z ;
+//                 z_zeta += f_zeta * z ;
+//             }
+// 
+//             for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+//             {
+//                 double f_xi = vm ->deval ( parent->getEnrichmentFunction ( j ), XI, *p_ ) ;
+//                 double f_eta = vm ->deval ( parent->getEnrichmentFunction ( j ), ETA, *p_ ) ;
+//                 double f_zeta = vm ->deval ( parent->getEnrichmentFunction ( j ), ZETA, *p_ ) ;
+//                 double x = enrichedDisplacements[j * 3] ;
+//                 double y = enrichedDisplacements[j * 3 + 1] ;
+//                 double z = enrichedDisplacements[j * 3 + 2] ;
+// 
+//                 x_xi += f_xi * x;
+//                 x_eta += f_eta * x ;
+//                 x_zeta += f_zeta * x ;
+//                 y_xi += f_xi * y ;
+//                 y_eta += f_eta * y ;
+//                 y_zeta += f_zeta * y ;
+//                 z_xi += f_xi * z ;
+//                 z_eta += f_eta * z ;
+//                 z_zeta += f_zeta * z ;
+//             }
+// 
+//             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
+//             ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1]  + ( y_zeta ) * (*JinvCache)[1][2];
+//             ret[2] = ( z_xi ) * (*JinvCache)[2][0] + ( z_eta ) * (*JinvCache)[2][1]  + ( z_zeta ) * (*JinvCache)[2][2];
+// 
+//             ret[3] = ( ( y_xi ) * (*JinvCache)[2][0] +
+//                        ( y_eta ) * (*JinvCache)[2][1] +
+//                        ( y_zeta ) * (*JinvCache)[2][2] +
+//                        ( z_xi ) * (*JinvCache)[1][0] +
+//                        ( z_eta ) * (*JinvCache)[1][1] +
+//                        ( z_zeta ) * (*JinvCache)[1][2] );
+// 
+//             ret[4] = ( ( x_xi ) * (*JinvCache)[2][0] +
+//                        ( x_eta ) * (*JinvCache)[2][1] +
+//                        ( x_zeta ) * (*JinvCache)[2][2] +
+//                        ( z_xi ) * (*JinvCache)[0][0] +
+//                        ( z_eta ) * (*JinvCache)[0][1] +
+//                        ( z_zeta ) * (*JinvCache)[0][2] );
+// 
+//             ret[5] = ( ( y_xi )   * (*JinvCache)[0][0] +
+//                        ( y_eta )  * (*JinvCache)[0][1] +
+//                        ( y_zeta ) * (*JinvCache)[0][2] +
+//                        ( x_xi )   * (*JinvCache)[1][0] +
+//                        ( x_eta )  * (*JinvCache)[1][1] +
+//                        ( x_zeta ) * (*JinvCache)[1][2] );
+//         }
+// }
+
 void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm, int ) 
 {
     ret = 0 ;
