@@ -71,7 +71,7 @@ class ConfigXMLParser : public ConfigParser
 public:
 	ConfigXMLParser(std::string f, bool a = true) : ConfigParser(f,a) { }
 	ConfigXMLParser(const char * f, bool a = true) : ConfigParser(f,a) { }
-	ConfigXMLParser() : ConfigParser() { }
+	ConfigXMLParser() : ConfigParser("input.xml") { }
 
 	virtual ~ConfigXMLParser() { } ;
 	virtual void readData() ;

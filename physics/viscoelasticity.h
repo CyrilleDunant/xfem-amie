@@ -137,6 +137,8 @@ struct Viscoelasticity : public LinearForm
 	
 	virtual void print() const ;
 	
+	virtual Matrix getElasticTensor(const Point & p) const { return tensors[0] ; }
+
 //	static Viscoelasticity * serialAssembly( Viscoelasticity * v1, Viscoelasticity * v2) ;
 //	static Viscoelasticity * parallelAssembly( Viscoelasticity * v1, Viscoelasticity * v2) ;
 

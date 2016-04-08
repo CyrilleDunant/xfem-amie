@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 1/3/2016 at 16:33  */
+/* this is an auto-generated file created on 8/3/2016 at 9:50  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -22,6 +22,8 @@
 #include "../physics/materials/gel_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/damagemodels/spacetimefiberbasedbilineardamage.h"
+#include "../physics/damagemodels/spacetimefiberbasedplasticstrain.h"
+#include "../physics/damagemodels/plasticstrain.h"
 #include "../physics/damagemodels/isotropiclineardamage.h"
 #include "../physics/damagemodels/spacetimebadisotropiclineardamage.h"
 #include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
@@ -515,6 +517,33 @@ namespace Amie
             return new SpaceTimeFiberBasedBilateralLinearDamage(values["damage_increment"], values["time_tolerance"], values["maximum_damage"], values["secondary_maximum_damage"], Enum::getIsotropicMaterialParameters(strings["@string<IsotropicMaterialParameters>"]), Enum::getplaneType(strings["@string<planeType>"])) ;
         }
    
+        // parsed from header file: ../physics/damagemodels/spacetimefiberbasedplasticstrain.h
+        if( type == "SpaceTimeFiberBasedPlasticStrain" )
+        { 
+            if( values.find("damage_increment") == values.end() ) { values["damage_increment"] = 1e-6 ; } ; 
+            if( values.find("time_tolerance") == values.end() ) { values["time_tolerance"] = 1e-5 ; } ; 
+            if( values.find("maximum_damage") == values.end() ) { values["maximum_damage"] = 0.999 ; } ; 
+            if( strings.find("fixed_orientation") == strings.end() ) { strings["fixed_orientation"] = "false" ; } ; 
+            return new SpaceTimeFiberBasedPlasticStrain(values["damage_increment"], values["time_tolerance"], values["maximum_damage"], Enum::getbool(strings["fixed_orientation"])) ;
+        }
+        if( type == "SpaceTimeFiberBasedPlasticDamage" )
+        { 
+            if( values.find("damage_increment") == values.end() ) { values["damage_increment"] = 1e-6 ; } ; 
+            if( values.find("time_tolerance") == values.end() ) { values["time_tolerance"] = 1e-5 ; } ; 
+            if( values.find("maximum_damage") == values.end() ) { values["maximum_damage"] = 0.999 ; } ; 
+            if( strings.find("fixed_orientation") == strings.end() ) { strings["fixed_orientation"] = "false" ; } ; 
+            return new SpaceTimeFiberBasedPlasticDamage(strings["damage_function"], strings["requirements"], values["damage_increment"], values["time_tolerance"], values["maximum_damage"], Enum::getbool(strings["fixed_orientation"])) ;
+        }
+   
+        // parsed from header file: ../physics/damagemodels/plasticstrain.h
+        if( type == "PlasticStrain" )
+        { 
+            if( values.find("compressibility") == values.end() ) { values["compressibility"] = 0.05 ; } ; 
+            if( values.find("limit_strain") == values.end() ) { values["limit_strain"] = 0.0057 ; } ; 
+            if( values.find("initial_plastic_variable") == values.end() ) { values["initial_plastic_variable"] = 0 ; } ; 
+            return new PlasticStrain(values["compressibility"], values["limit_strain"], values["initial_plastic_variable"]) ;
+        }
+   
         // parsed from header file: ../physics/damagemodels/isotropiclineardamage.h
         if( type == "Isotropic" ) { return new IsotropicLinearDamage() ; }
    
@@ -550,6 +579,13 @@ namespace Amie
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedbilineardamage.h
         if( type == "SpaceTimeFiberBasedBilateral" ) { return true ; }
    
+        // parsed from header file: ../physics/damagemodels/spacetimefiberbasedplasticstrain.h
+        if( type == "SpaceTimeFiberBasedPlasticStrain" ) { return true ; }
+        if( type == "SpaceTimeFiberBasedPlasticDamage" ) { return true ; }
+   
+        // parsed from header file: ../physics/damagemodels/plasticstrain.h
+        if( type == "PlasticStrain" ) { return true ; }
+   
         // parsed from header file: ../physics/damagemodels/isotropiclineardamage.h
         if( type == "Isotropic" ) { return true ; }
    
@@ -566,6 +602,10 @@ namespace Amie
     void Object::resetDamageModel(DamageModel * target)
     {
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedbilineardamage.h
+   
+        // parsed from header file: ../physics/damagemodels/spacetimefiberbasedplasticstrain.h
+   
+        // parsed from header file: ../physics/damagemodels/plasticstrain.h
    
         // parsed from header file: ../physics/damagemodels/isotropiclineardamage.h
    

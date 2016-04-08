@@ -1051,9 +1051,19 @@ public:
                 if(sumFactors > POINT_TOLERANCE)
                     strain /= sumFactors ;
             } else {
-                double sumFactors ( 0 ) ;
+                size_t blocks = 0 ;
+                for ( size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++ ) {
+                    ETYPE *ci  = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
+                    blocks = ci->getBehaviour()->getNumberOfDegreesOfFreedom() / spaceDimensions  ;
+                }
                 Vector tmpstrain ;
                 Vector tmpstrainrate ;
+
+                tmpstrain.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, spaceDimensions, blocks ), 0. ) ;
+                buffer.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, spaceDimensions, blocks ), 0. );
+                tmpstrainrate.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, spaceDimensions, blocks ), 0. ) ;
+                double sumFactors ( 0 ) ;
+
 
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
@@ -1062,35 +1072,43 @@ public:
                     double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, &vm, t, coefs[cacheID][i] );
                     if ( !tmpstrain.size() ) {
                         tmpstrain.resize ( buffer.size(), 0. );
-                    }                    
+                    }
+                    tmpstrain += buffer*v ;
+                    sumFactors += v ;
+                }
+                buffer.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD,spaceDimensions, blocks ), 0. );
+                for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+                    ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
+
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, &vm, t, coefs[cacheID][i] );
                     if ( !tmpstrainrate.size() ) {
                         tmpstrainrate.resize ( buffer.size(), 0. );
                     }
-                    tmpstrain += buffer*v ;
-                    ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, &vm, t, coefs[cacheID][i] );
-                    sumFactors += v ;
                     tmpstrainrate += buffer*v ;
                 }
-
                 tmpstrain /= sumFactors ;
                 tmpstrainrate /=sumFactors ;
-                
+
                 double sum = 0 ; 
                 strain.resize ( tsize, 0. ) ;
+                stress.resize ( tsize, 0. ) ;
+                Viscoelasticity * v = dynamic_cast<Viscoelasticity *>(e->getBehaviour()) ;
                 for ( int i = 0 ; i < tsize ; i++ ) {
-                        strain[i] = tmpstrain[i] ;
-                    }
+                     strain[i] = tmpstrain[i] ;
+                     if( v->model >= MAXWELL && (f0 == MECHANICAL_STRAIN_FIELD || f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) )
+                          {
+                              for(size_t j = 1 ; j < tmpstrain.size()/strain.size() ; j++)
+                                  strain[i] -= tmpstrain[ j*tsize + i ] ;
+                          } 
+                     }
                 Point p ;
                 for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                 {
-                    
-                    if(!restrict.empty() && restrict.size() == e->getGaussPoints().gaussPoints.size())
-                        if(restrict[j] )
+                    if(!restrict.empty()&& restrict.size() == e->getGaussPoints().gaussPoints.size())
+                        if(restrict[j])
                             continue ;
                     p.set(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
                     Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( p ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( p ) ) ;
-                    stress.resize ( tsize, 0. ) ;
-                   
                     Vector imposed = e->getBehaviour()->getImposedStress( p ) ;
                     for ( int i = 0 ; i < tsize ; i++ ) {
                         stress[i] += (tmpstress[i]-imposed[i])*e->getGaussPoints().gaussPoints[j].second ;
@@ -1099,6 +1117,9 @@ public:
                 }
                 stress /= sum ;
             }
+
+
+
 //            std::cout << "here" << strain.size() << std::endl ;
 
             if ( f0 == PRINCIPAL_STRAIN_FIELD ) {

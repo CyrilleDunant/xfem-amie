@@ -304,15 +304,26 @@ void LogarithmicCreepWithImposedDeformationAndFracture::setFractureCriterion(Fra
     }
 }
 
+Vector LogarithmicCreepWithImposedDeformationAndFracture::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
+{
+    Vector epsilon = LogarithmicCreepWithImposedDeformation::getImposedStrain(p,e,g) ;
+    if( dfunc && dfunc->hasInducedForces() ) { epsilon += dfunc->getImposedStrain(p) ; }
+    return epsilon ;
+}
+
 Vector LogarithmicCreepWithImposedDeformationAndFracture::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
-    if(imposed.size() && !fractured())
+    Vector ret = LogarithmicCreepWithImposedDeformation::getImposedStrain(p,e,g) ;
+    if(dfunc)
     {
-        if(dfunc)
-            return (dfunc->apply(C))*getImposedStrain(p,e,g) ;
-        return C*getImposedStrain(p,e,g) ;
+        ret = dfunc->apply(C)*ret ;
+        if(dfunc->hasInducedForces())
+            ret += dfunc->getImposedStress(p) ;
     }
-    return Vector(0., C.numCols()) ;
+    else
+        ret = C*ret ;
+
+    return ret ;
 }
 
 Matrix LogarithmicCreep::getTensor(const Point & p, IntegrableEntity * e, int g) const
@@ -405,11 +416,15 @@ LogarithmicCreepWithImposedDeformationAndFracture::~LogarithmicCreepWithImposedD
 std::vector<BoundaryCondition * > LogarithmicCreepWithImposedDeformationAndFracture::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
     std::vector<BoundaryCondition * > ret = LogarithmicCreep::getBoundaryConditions(s, id, p_i, gp, Jinv ) ;
-    if(imposed.size() == 0 || fractured())
+    if((imposed.size() == 0 && !(dfunc && dfunc->hasInducedForces())) || fractured())
         return ret ;
     Vector istress = C*imposed ;
     if(dfunc)
+    {
         istress = dfunc->apply(C) * imposed   ;
+        if(dfunc->hasInducedForces())
+            istress += dfunc->getImposedStrain( gp.gaussPoints[0].first ) ;
+    }
     if(v.size() == 3)
     {
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[0]));
@@ -418,8 +433,8 @@ std::vector<BoundaryCondition * > LogarithmicCreepWithImposedDeformationAndFract
     if(v.size() == 4)
     {
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[0]));
-        ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[1]));
-        ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[2]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[1]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[2]));
     }
     return ret ;
 
@@ -427,7 +442,7 @@ std::vector<BoundaryCondition * > LogarithmicCreepWithImposedDeformationAndFract
 
 void LogarithmicCreepWithImposedDeformationAndFracture::preProcess( double timeStep, ElementState & currentState )
 {
-    if(dfunc) { dfunc->prepare() ; }
     LogarithmicCreepWithImposedDeformation::preProcess(timeStep, currentState) ;
+    if(dfunc) { dfunc->prepare() ; }
 }
 

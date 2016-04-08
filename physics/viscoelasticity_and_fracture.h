@@ -95,6 +95,13 @@ struct ViscoelasticityAndFracture : public Viscoelasticity
 private:
 	void setElasticAndViscousStiffnessMatrix() ;
 
+    virtual bool hasInducedForces() const {
+        return dfunc && dfunc->hasInducedForces() ;
+    }
+
+    virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+
+    virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
   
 } ;
 

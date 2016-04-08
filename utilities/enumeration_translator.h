@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 1/3/2016 at 16:33  */
+/* this is an auto-generated file created on 8/3/2016 at 9:50  */
 
 #ifndef __ENUMERATION_TRANSLATOR_H__
 #define __ENUMERATION_TRANSLATOR_H__
@@ -19,6 +19,7 @@
 #include "../polynomial/variable.h"
 #include "../polynomial/typeref.h"
 #include "../solvers/assembly.h"
+#include "../utilities/parser/config_parser.h"
 #include "../utilities/writer/voxel_writer.h"
 #include "../utilities/writer/triangle_writer.h"
 #include "../utilities/configuration.h"
@@ -1152,6 +1153,39 @@ struct Enum
             case SET_GLOBAL_FORCE_VECTOR: return "SET_GLOBAL_FORCE_VECTOR" ;
         }
         return "GENERAL" ;
+    }
+   
+    // parsed from header file: ../utilities/parser/config_parser.h
+    static XMLTokenType getXMLTokenType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "XML_OPEN_COMMENT") { return XML_OPEN_COMMENT ; }
+        if( type == "XML_CLOSE_COMMENT") { return XML_CLOSE_COMMENT ; }
+        if( type == "XML_INLINE_COMMENT") { return XML_INLINE_COMMENT ; }
+        if( type == "XML_OPEN") { return XML_OPEN ; }
+        if( type == "XML_CLOSE") { return XML_CLOSE ; }
+        if( type == "XML_INLINE") { return XML_INLINE ; }
+        if( type == "XML_VALUE") { return XML_VALUE ; }
+        if( type == "XML_INVALID") { return XML_INVALID ; }
+        if( type == "XML_HEADER") { return XML_HEADER ; }
+        if(ok) { *ok = false ; }
+        return XML_OPEN_COMMENT ;
+    }
+    static std::string fromXMLTokenType(XMLTokenType value)
+    {
+        switch(value)
+        {
+            case XML_OPEN_COMMENT: return "XML_OPEN_COMMENT" ;
+            case XML_CLOSE_COMMENT: return "XML_CLOSE_COMMENT" ;
+            case XML_INLINE_COMMENT: return "XML_INLINE_COMMENT" ;
+            case XML_OPEN: return "XML_OPEN" ;
+            case XML_CLOSE: return "XML_CLOSE" ;
+            case XML_INLINE: return "XML_INLINE" ;
+            case XML_VALUE: return "XML_VALUE" ;
+            case XML_INVALID: return "XML_INVALID" ;
+            case XML_HEADER: return "XML_HEADER" ;
+        }
+        return "XML_OPEN_COMMENT" ;
     }
    
     // parsed from header file: ../utilities/writer/voxel_writer.h

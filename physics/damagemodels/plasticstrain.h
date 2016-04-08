@@ -19,6 +19,13 @@ namespace Amie {
 /** \brief Isotropic linear damage model. The stifness of an affected element is scaled by a factor between 1 and 1 - .9999999
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 */
+
+
+/*PARSE PlasticStrain DamageModel --no-suffix 
+    @value[compressibility] 0.05 // 
+    @value[limit_strain] 0.0057 //
+    @value[initial_plastic_variable] 0 // 
+*/
 class PlasticStrain final: public DamageModel
 {
 public:

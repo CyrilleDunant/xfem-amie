@@ -971,8 +971,9 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     {
         if(parent->getBehaviour()->getDamageModel())
         {
-            Matrix trueParam = parent->getBehaviour()->getTensor( p_ ) ;
-            ret[0] = 1. - trueParam[0][0]/parent->getBehaviour()->param[0][0] ;
+            ret[0] = parent->getBehaviour()->getDamageModel()->getState().max() ;
+/*            Matrix trueParam = parent->getBehaviour()->getTensor( p_ ) ;
+            ret[0] = 1. - trueParam[0][0]/parent->getBehaviour()->param[0][0] ;*/
         }
         else
             ret[0] = 0. ;

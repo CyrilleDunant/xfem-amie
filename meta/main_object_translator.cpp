@@ -51,6 +51,7 @@ struct ObjectConstructor
 	std::map<std::string, std::string> preprocessor ;
 	std::map<std::string, std::string> defaultValues ;
 	bool reset ;
+	bool noSuffix ;
 
 	ObjectConstructor( std::string current ) 
 	{
@@ -58,10 +59,13 @@ struct ObjectConstructor
 		token = command[1] ;
 		father = command[2] ;
 		reset = false ;
+		noSuffix = false ;
 		for(size_t i = 3 ; i < command.size()-1 ; i++)
 		{
 			if(command[i] == "--has-reset")
 				reset = true ;
+			if(command[i] == "--no-suffix")
+				noSuffix = true ;
 			if(command[i].find('@') == 0)
 			{
 				size_t pre = command[i].find('<') ;
@@ -134,6 +138,7 @@ struct ObjectConstructor
 	std::string getClassName(std::string suffix)  
 	{
 		if(token == ".") { return suffix ; }
+		if(noSuffix) { return token ; }
 		return token+suffix ; 
 	}
 

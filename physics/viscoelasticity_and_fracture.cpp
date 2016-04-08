@@ -276,3 +276,16 @@ void ViscoelasticityAndFracture::setFractureCriterion(FractureCriterion * frac)
 
 }
 
+Vector ViscoelasticityAndFracture::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
+{
+    if(dfunc && dfunc->hasInducedForces()) { return dfunc->getImposedStress(p) ; }
+    return Vector(double(0), getTensor(p, e).numCols()/blocks) ;
+}
+
+Vector ViscoelasticityAndFracture::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
+{
+    if(dfunc && dfunc->hasInducedForces()) { return dfunc->getImposedStrain(p) ; }
+    return Vector(double(0), getTensor(p).numCols()/blocks) ;
+}
+
+

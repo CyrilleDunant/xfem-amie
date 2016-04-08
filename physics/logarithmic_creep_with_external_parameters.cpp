@@ -445,7 +445,6 @@ void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, Elemen
 
         #pragma omp critical(logcreep)
         {
-		if(dfunc) { dfunc->prepare() ; }
 
 		dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState).synchronize(external) ;
 		for(size_t i = 0 ; i < relations.size() ; i++)
@@ -455,6 +454,8 @@ void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, Elemen
 		accumulator->preProcess(timeStep, currentState) ;
 		std::map<std::string, double> prop = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState).getVariables() ;
 		makeProperties( prop, accumulator->getKelvinVoigtSpringReduction(), accumulator->getKelvinVoigtDashpotReduction() ) ;
+
+		if(dfunc) { dfunc->prepare() ; }
         }
 	currentState.getParent()->behaviourUpdated = true ;
 }
@@ -479,6 +480,33 @@ std::vector<BoundaryCondition * > LogarithmicCreepWithExternalParameters::getBou
     if(!noFracture && fractured())
         return ret ;
 
+    return LogarithmicCreepWithImposedDeformationAndFracture::getBoundaryConditions( s, id, p_i, gp, Jinv ) ;
+
+/*    std::vector<BoundaryCondition * > ret = LogarithmicCreep::getBoundaryConditions(s, id, p_i, gp, Jinv ) ;
+    if((imposed.size() == 0 && !(dfunc && dfunc->hasInducedForces()) || fractured())
+        return ret ;
+    Vector istress = C*imposed ;
+    if(dfunc)
+    {
+        istress = dfunc->apply(C) * imposed   ;
+        if(dfunc->hasInducedForces())
+            istress += dfunc->getImposedStrain( ) ;
+    }
+    if(v.size() == 3)
+    {
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[0]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[1]));
+    }
+    if(v.size() == 4)
+    {
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[0]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[1]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[2]));
+    }
+    return ret ;
+
+    return 
+
     ret = LogarithmicCreep::getBoundaryConditions(s, id, p_i, gp, Jinv ) ;
     if(imposed.size() == 0 || ((imposed.max() < POINT_TOLERANCE) && (imposed.min() > -POINT_TOLERANCE)) || fractured())
         return ret ;
@@ -498,6 +526,6 @@ std::vector<BoundaryCondition * > LogarithmicCreepWithExternalParameters::getBou
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, static_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[1]));
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ZETA, static_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[2]));
     }
-    return ret ;
+    return ret ;*/
 
 }

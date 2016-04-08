@@ -95,6 +95,7 @@ physics/damagemodels/isotropiclineardamage.cpp
 physics/damagemodels/nonlocalisotropiclineardamage.cpp 
 physics/damagemodels/fiberbasedisotropiclineardamage.cpp 
 physics/damagemodels/spacetimefiberbasedisotropiclineardamage.cpp 
+physics/damagemodels/spacetimefiberbasedplasticstrain.cpp 
 physics/damagemodels/spacetimebadisotropiclineardamage.cpp 
 physics/damagemodels/spacetimefiberbasedbilineardamage.cpp 
 physics/damagemodels/spacetimeratebasedisotropiclineardamage.cpp 
