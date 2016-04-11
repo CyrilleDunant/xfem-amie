@@ -1470,7 +1470,7 @@ void FeatureTree::stitch()
 
 }
 
-void FeatureTree::setSamplingNumber ( size_t news )
+void FeatureTree::setSamplingNumber ( double news )
 {
     samplingNumber = news ;
     needMeshing = true ;

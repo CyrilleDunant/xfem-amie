@@ -158,7 +158,7 @@ protected:
     double epsilonA ;
 
     size_t numdofs ;
-    size_t samplingNumber ;
+    double samplingNumber ;
     size_t previousSamplingNumber ;
     size_t maxitPerStep ;
     size_t lastNodeId ;
@@ -837,7 +837,7 @@ public:
 
     /** \brief  set Sampling parameter
     */
-    void setSamplingNumber ( size_t news );
+    void setSamplingNumber ( double news );
     double getSamplingNumber ( ) const { return samplingNumber ; } 
 
     /**  \brief  Postprocess the result.

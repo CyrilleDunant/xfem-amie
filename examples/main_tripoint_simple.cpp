@@ -157,7 +157,7 @@ int main ( int argc, char *argv[] )
     CommandLineParser parser("Make a tri-point bending test on an homogeneous concrete sample") ;
     parser.addArgument("length", .195, "length of the sample (default 3.9)") ;
     parser.addArgument("height", .06, "height of the sample (default 1.2)") ;
-    parser.addArgument("speed", -0.00000144, "loading speed (default -0.144 (1 mm / 60000 s))") ;
+    parser.addArgument("speed", -0.0000144, "loading speed (default -0.144 (1 mm / 60000 s))") ;
     parser.parseCommandLine(argc, argv) ;
 
     double sampleLength     = parser.getNumeralArgument( "length") ;
