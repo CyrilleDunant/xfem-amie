@@ -174,215 +174,55 @@ Matrix Tensor::toMatrix(int d1, int d2) const
 
 }
 
-/*Matrix Tensor::cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimensionality dim, planeType pt)
+std::pair<Matrix, Matrix> rotationMatrix2D(double angle) 
 {
-    double E = prop.first ;
-    double nu = prop.second ;
-    if(!hooke)
-    {
-        double k = prop.first ;
-        double mu = prop.second ;
-        E = 9.*k*mu / (3.*k+mu) ;
-        nu = (3.*k-2.*mu) / (6.*k+2.*mu) ;
-    }
-    switch(dim)
-    {
-    case SPACE_ONE_DIMENSIONAL:
-    {
-        Matrix m(1,1) ;
-        m[0][0] = E ;
-        return m ;
-    }
-
-    case SPACE_TWO_DIMENSIONAL:
-    {
-        Matrix cg(3,3) ;
-
-        if(pt == PLANE_STRESS)
-        {
-            cg[0][0] = 1. ;
-            cg[0][1] = nu ;
-            cg[0][2] = 0 ;
-            cg[1][0] = nu ;
-            cg[1][1] = 1. ;
-            cg[1][2] = 0 ;
-            cg[2][0] = 0 ;
-            cg[2][1] = 0 ;
-            cg[2][2] = (1.-nu) ;
-            cg *= E/(1.-nu*nu) ;
-        }
-        else
-        {
-            cg[0][0] = 1.-nu ;
-            cg[0][1] = nu ;
-            cg[0][2] = 0 ;
-            cg[1][0] = nu ;
-            cg[1][1] = 1.-nu ;
-            cg[1][2] = 0 ;
-            cg[2][0] = 0 ;
-            cg[2][1] = 0 ;
-            cg[2][2] = (1-2.*nu)  ;
-            cg *= E/((1.+nu)*(1.-2.*nu)) ;
-        }
-        return cg ;
-    }
-    case SPACE_THREE_DIMENSIONAL:
-    {
-        Matrix cgg(6,6) ;
-        cgg[0][0] = 1. - nu ;
-        cgg[0][1] = nu ;
-        cgg[0][2] = nu ;
-        cgg[1][0] = nu ;
-        cgg[1][1] = 1. - nu ;
-        cgg[1][2] = nu ;
-        cgg[2][0] = nu ;
-        cgg[2][1] = nu ;
-        cgg[2][2] = 1. - nu ;
-        cgg[3][3] = (0.5 - nu)*.5 ;
-        cgg[4][4] = (0.5 - nu)*.5 ;
-        cgg[5][5] = (0.5 - nu)*.5 ;
-        cgg *= E/((1.+nu)*(1.-2.*nu)) ;
-        return cgg ;
-    }
-    }
-    return Matrix(0,0) ;
-}
-
-Matrix Tensor::cauchyGreen(double p1, double p2, bool hooke, SpaceDimensionality dim, planeType pt)
-{
-    double E = p1 ;
-    double nu = p2 ;
-    if(!hooke)
-    {
-        double k = p1 ;
-        double mu = p2 ;
-        if(mu < POINT_TOLERANCE)
-        {
-            switch(dim)
-            {
-            case SPACE_ONE_DIMENSIONAL:
-            {
-                Matrix m(1,1) ;
-                m[0][0] = k ;
-                return m ;
-            }
-            case SPACE_TWO_DIMENSIONAL:
-            {
-                Matrix cg(3,3) ;
-
-                cg[0][0] = k ;
-                cg[0][1] = k ;
-                cg[0][2] = 0 ;
-                cg[1][0] = k ;
-                cg[1][1] = k ;
-                cg[1][2] = 0 ;
-                cg[2][0] = 0 ;
-                cg[2][1] = 0 ;
-                cg[2][2] = 0 ;
-                return cg ;
-            }
-            case SPACE_THREE_DIMENSIONAL:
-            {
-                Matrix cgg(6,6) ;
-                cgg[0][0] = k ;
-                cgg[0][1] = k ;
-                cgg[0][2] = k ;
-                cgg[1][0] = k ;
-                cgg[1][1] = k ;
-                cgg[1][2] = k ;
-                cgg[2][0] = k ;
-                cgg[2][1] = k ;
-                cgg[2][2] = k ;
-                cgg[3][3] = 0 ;
-                cgg[4][4] = 0 ;
-                cgg[5][5] = 0 ;
-                return cgg ;
-            }
-            }
-        }
-        E = 9*k*mu / (3*k+mu) ;
-        nu = (3*k-2*mu) / (6*k+2*mu) ;
-    }
-    switch(dim)
-    {
-    case SPACE_ONE_DIMENSIONAL:
-    {
-        Matrix m(1,1) ;
-        m[0][0] = E ;
-        return m ;
-    }
-    case SPACE_TWO_DIMENSIONAL:
-    {
-        Matrix cg(3,3) ;
-
-        if(pt == PLANE_STRESS)
-        {
-            cg[0][0] = 1. ;
-            cg[0][1] = nu ;
-            cg[0][2] = 0 ;
-            cg[1][0] = nu ;
-            cg[1][1] = 1. ;
-            cg[1][2] = 0 ;
-            cg[2][0] = 0 ;
-            cg[2][1] = 0 ;
-            cg[2][2] = (1.-nu) ;
-            cg *= E/(1.-nu*nu) ;
-        }
-        else
-        {
-            cg[0][0] = 1.-nu ;
-            cg[0][1] = nu ;
-            cg[0][2] = 0 ;
-            cg[1][0] = nu ;
-            cg[1][1] = 1.-nu ;
-            cg[1][2] = 0 ;
-            cg[2][0] = 0 ;
-            cg[2][1] = 0 ;
-            cg[2][2] = (1-2.*nu) ;
-            cg *= E/((1.+nu)*(1.-2.*nu)) ;
-        }
-        return cg ;
-    }
-    case SPACE_THREE_DIMENSIONAL:
-    {
-        Matrix cgg(6,6) ;
-        cgg[0][0] = 1. - nu ;
-        cgg[0][1] = nu ;
-        cgg[0][2] = nu ;
-        cgg[1][0] = nu ;
-        cgg[1][1] = 1. - nu ;
-        cgg[1][2] = nu ;
-        cgg[2][0] = nu ;
-        cgg[2][1] = nu ;
-        cgg[2][2] = 1. - nu ;
-        cgg[3][3] = 0.5 - nu ;
-        cgg[4][4] = 0.5 - nu ;
-        cgg[5][5] = 0.5 - nu ;
-        cgg *= E/((1.+nu)*(1.-2.*nu)) ;
-        return cgg ;
-    }
-    }
-    return Matrix(0,0) ;
-}*/
-
-Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double G,  double nu, double angle, planeType pt)
-{
-    Matrix cg = Tensor::orthotropicCauchyGreen(E_1, E_2, G, nu, pt ) ;
     Matrix transform(3,3) ;
     Matrix transformt(3,3) ;
     double c = cos(angle) ;
     double s = sin(angle) ;
     transform[0][0] =  c*c ;
     transform[0][1] = s*s ;
-    transform[0][2] =  2.*s*c ;
+    transform[0][2] =  s*c ;
     transform[1][0] =  s*s ;
     transform[1][1] = c*c ;
-    transform[1][2] = -2.*s*c ;
+    transform[1][2] = -s*c ;
     transform[2][0] = -s*c ;
     transform[2][1] = s*c ;
     transform[2][2] =     c*c - s*s ;
     transformt = transform.transpose() ;
-    return (transform*cg)*transformt ;
+
+    transform[0][2] *= 2. ;
+    transform[1][2] *= 2. ;
+    transformt[0][2] *= 2 ;
+    transformt[1][2] *= 2 ;
+
+    return std::make_pair( transform, transformt ) ;
+}
+
+
+
+Matrix Tensor::rotate4thOrderTensor2D( Matrix & tensor, double angle, double tol ) 
+{
+    std::pair<Matrix, Matrix> transformation = rotationMatrix2D(angle) ;
+
+    Matrix ret = (transformation.first*tensor)*transformation.second ;
+    for(size_t i = 0 ; i < 3 ; i++)
+    {
+        for(size_t j = 0 ; j < 3 ; j++)
+        {
+            if( std::abs( ret[i][j] ) < tol )
+                ret[i][j] = 0 ;
+        }
+    }
+
+    return ret ;
+}
+
+Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double G,  double nu, double angle, planeType pt)
+{
+    Matrix cg = Tensor::orthotropicCauchyGreen(E_1, E_2, G, nu, pt ) ;
+    std::pair<Matrix, Matrix> transformation = rotationMatrix2D(angle) ;
+    return (transformation.first*cg)*transformation.second;
 }
 
 Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double G,  double nu, planeType pt)
@@ -452,7 +292,7 @@ Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double G,  double 
             double nupe = 1.-nu21*nu12-nu23*nu32-nu13*nu31-nu12*nu23*nu31-nu21*nu32*nu13 ;
 
             cg[0][0] = E_1*(1.-nu32*nu23)/nupe ;
-            cg[0][1] = (nu21-nu23*nu31)*E_1/nupe;
+            cg[0][1] = (nu21-nu23*nu31)*E_1/nupe ;
             cg[1][0] = cg[0][1] ;
             cg[1][1] = E_2*(1.-nu32*nu23)/nupe ;
             cg[2][2] = E_1*E_2/(E_2*(1.+nu12)*(1.-2.*nu12)+E_1*(1.+nu21)*(1.-2.*nu21)) ;
@@ -1069,7 +909,7 @@ Matrix Tensor::cauchyGreen( double p1, double p2, SpaceDimensionality dim, plane
        ret[2][0] = Ciijj ; ret[2][1] = Ciijj ; ret[2][2] = Ciiii ;
        ret[3][3] = Cijij ;
        ret[4][4] = Cijij ;
-       ret[6][5] = Cijij ;
+       ret[5][5] = Cijij ;
     }
     else
     {
@@ -1114,7 +954,7 @@ std::pair<double, double> Tensor::getIsotropicMaterialParameters( const Matrix &
                 double E = (4.*G-3.*C[0][0]) / (1.-C[0][0]/G) ;
                 ret.first = E ;
                 ret.second = G ;
-                break ;
+                break ; 
             }
             default:
                 break ;
