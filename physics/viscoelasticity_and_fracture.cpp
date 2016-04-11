@@ -229,10 +229,13 @@ void ViscoelasticityAndFracture::setElasticAndViscousStiffnessMatrix()
 
 Matrix ViscoelasticityAndFracture::getTensor(const Point & p, IntegrableEntity * e, int g) const
 {
+    if(dfunc->getState().max() < POINT_TOLERANCE)
+        return param ;
+
     if(dfunc->getState().size() == 1)
         return  dfunc->apply(elasticParam, p) + dfunc->applyViscous(viscousParam, p) ;
 
-    Matrix ret = param ;
+    Matrix ret = param*0 ;
     Matrix tmpParam( tensors[0].numRows(), tensors[0].numCols() ) ;
 
     for(size_t i = 0 ; i < connectivity.size() ; i++)

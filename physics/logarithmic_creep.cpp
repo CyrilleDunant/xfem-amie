@@ -351,29 +351,36 @@ Matrix LogarithmicCreepWithImposedDeformationAndFracture::getTensor(const Point 
     if(noFracture)
         return param*(p.getT()+1.)*0.5 + prevParam*(1.-p.getT())*0.5 ;
     Matrix realParam = param*(p.getT()+1.)*0.5 + prevParam*(1.-p.getT())*0.5 ;
+
+    if(dfunc->getState().max() < POINT_TOLERANCE)
+        return realParam ;
+
     if(dfunc->getState().size() == 1)
         return  dfunc->apply(realParam, p,e,g) ;
 
     Matrix Ctemp( C.numRows(), C.numCols() ) ;
     Matrix Etemp( C.numRows(), C.numCols() ) ;
     Matrix Rtemp( C.numRows(), C.numCols() ) ;
-    getBlockInMatrix( param, 0,0, Ctemp ) ;
-    getBlockInMatrix( param, 1,2, Etemp ) ; 
-    getBlockInMatrix( param, 2,2, Rtemp ) ; 
+    getBlockInMatrix( realParam, 0,0, Ctemp ) ;
+    getBlockInMatrix( realParam, 1,1, Etemp ) ; 
+    getBlockInMatrix( realParam, 2,2, Rtemp ) ; 
     Ctemp = dfunc->apply( Ctemp, p,e,g ) ;
     Etemp = dfunc->apply( Etemp, p,e,g ) ;
     Rtemp = dfunc->apply( Rtemp, p,e,g ) ;
 
     realParam = 0 ;
     placeMatrixInBlock(Ctemp,0,0,realParam) ;
-    placeMatrixInBlock(-Ctemp,0,1,realParam) ;
-    placeMatrixInBlock(-Ctemp,0,2,realParam) ;
-    placeMatrixInBlock(-Ctemp,1,0,realParam) ;
-    placeMatrixInBlock(-Ctemp,2,0,realParam) ;
-    placeMatrixInBlock(Ctemp,1,2,realParam) ;
-    placeMatrixInBlock(Ctemp,2,1,realParam) ;
-    placeMatrixInBlock(Etemp, 1,1, realParam) ;
-    placeMatrixInBlock(Rtemp, 2,2, realParam) ;
+    if(!isPurelyElastic)
+    {
+        placeMatrixInBlock(-Ctemp,0,1,realParam) ;
+        placeMatrixInBlock(-Ctemp,0,2,realParam) ;
+        placeMatrixInBlock(-Ctemp,1,0,realParam) ;
+        placeMatrixInBlock(-Ctemp,2,0,realParam) ;
+        placeMatrixInBlock(Ctemp,1,2,realParam) ;
+        placeMatrixInBlock(Ctemp,2,1,realParam) ;
+        placeMatrixInBlock(Etemp, 1,1, realParam) ;
+        placeMatrixInBlock(Rtemp, 2,2, realParam) ;
+    }
 
     return realParam ;
 }
@@ -383,12 +390,16 @@ Matrix LogarithmicCreepWithImposedDeformationAndFracture::getViscousTensor(const
     if(noFracture)
         return eta*(p.getT()+1.)*0.5 + prevEta*(1.-p.getT())*0.5 ;
     Matrix realeta = eta*(p.getT()+1.)*0.5 + prevEta*(1.-p.getT())*0.5 ;
+
+    if(dfunc->getState().max() < POINT_TOLERANCE)
+        return realeta ;
+
     if(dfunc->getState().size() == 1)
         return dfunc->applyViscous(realeta, p,e,g) ;
 
     Matrix Etemp( C.numRows(), C.numCols() ) ;
     Matrix Rtemp( C.numRows(), C.numCols() ) ;
-    getBlockInMatrix( eta, 1,2, Etemp ) ; 
+    getBlockInMatrix( eta, 1,1, Etemp ) ; 
     getBlockInMatrix( eta, 2,2, Rtemp ) ; 
     Etemp = dfunc->apply( Etemp, p,e,g ) ;
     Rtemp = dfunc->apply( Rtemp, p,e,g ) ;

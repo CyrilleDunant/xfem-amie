@@ -1068,7 +1068,6 @@ public:
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
-
                     double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, &vm, t, coefs[cacheID][i] );
                     if ( !tmpstrain.size() ) {
                         tmpstrain.resize ( buffer.size(), 0. );
@@ -1108,7 +1107,7 @@ public:
                         if(restrict[j])
                             continue ;
                     p.set(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
-                    Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( p ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( p ) ) ;
+                    Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( p )  + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( p ) ) ;
                     Vector imposed = e->getBehaviour()->getImposedStress( p ) ;
                     for ( int i = 0 ; i < tsize ; i++ ) {
                         stress[i] += (tmpstress[i]-imposed[i])*e->getGaussPoints().gaussPoints[j].second ;
@@ -1119,8 +1118,6 @@ public:
             }
 
 
-
-//            std::cout << "here" << strain.size() << std::endl ;
 
             if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
                 first.resize ( psize );

@@ -535,19 +535,32 @@ Matrix Tensor::isotropicTransverseCauchyGreen(double E_1, double E_3, double G_1
 
 Vector Tensor::rotate2ndOrderTensor2D( Vector & tensor, double angle )
 {
-    double c = cos ( angle ) ;
-    double s = sin ( angle ) ;
-    Matrix nrot ( 3,3 ) ;
-    nrot[0][0] = c*c ;
-    nrot[0][1] = s*s ;
-    nrot[0][2] = -2.*s*c ;
-    nrot[1][0] = s*s ;
-    nrot[1][1] = c*c ;
-    nrot[1][2] = 2.*s*c ;
-    nrot[2][0] = s*c ;
-    nrot[2][1] = -s*c ;
-    nrot[2][2] = c*c-s*s ;
-    return nrot*tensor ;
+    Matrix t(2,2) ;
+    t[0][0] = tensor[0] ;
+    t[1][1] = tensor[1] ;
+    t[0][1] = tensor[2] ;
+    t[1][0] = tensor[2] ;
+
+    Matrix r(2,2) ;
+    r[0][0] = cos(angle) ; r[1][1] = r[0][0] ;
+    r[1][0] = sin(angle) ; r[0][1] = -r[1][0] ;
+    Matrix rt = r ;
+    rt[1][0] = r[0][1] ;
+    rt[0][1] = r[1][0] ;
+
+    r[0][1] *= 0.5 ;
+    r[1][0] *= 1 ;
+    rt[0][1] *= 0.5 ;
+    rt[1][0] *= 1 ;
+
+    Matrix tmp = (r*t)*rt ;
+
+    Vector ret(3) ;
+    ret[0] = tmp[0][0] ;
+    ret[1] = tmp[1][1] ;
+    ret[2] = (tmp[0][1]+tmp[1][0])*0.5 ;
+
+    return ret ;
 }
 
 Matrix Tensor::to2D(Matrix & tensor, planeType pt, Variable var)
