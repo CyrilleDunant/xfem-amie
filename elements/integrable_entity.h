@@ -108,10 +108,6 @@ typedef enum : char {
     GENERALIZED_VISCOELASTIC_NON_ENRICHED_REAL_STRESS_FIELD,
 } FieldType ;
 
-typedef enum : char {
-  SINGLE_OFF_DIAGONAL_VALUES,
-  DOUBLE_OFF_DIAGONAL_VALUES,  
-} CompositionType ;
 
 
 

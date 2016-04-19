@@ -487,6 +487,12 @@ target_link_libraries( test/spacetime_bilateral_damage Amie ${ALL_LINK_FLAGS})
 add_executable( test/stxfem EXCLUDE_FROM_ALL examples/test/main_test_stxfem.cpp )
 target_link_libraries( test/stxfem Amie ${ALL_LINK_FLAGS})
 
+add_executable( test/tensor_rotation_3D EXCLUDE_FROM_ALL examples/test/main_test_tensor_rotation_3D.cpp )
+target_link_libraries( test/tensor_rotation_3D Amie ${ALL_LINK_FLAGS})
+
+add_executable( test/tensor_rotation_2D EXCLUDE_FROM_ALL examples/test/main_test_tensor_rotation_2D.cpp )
+target_link_libraries( test/tensor_rotation_2D Amie ${ALL_LINK_FLAGS})
+
 add_executable( test/time_continuity EXCLUDE_FROM_ALL examples/test/main_test_time_continuity.cpp )
 target_link_libraries( test/time_continuity Amie ${ALL_LINK_FLAGS})
 
@@ -507,6 +513,8 @@ check_behaviour
 test/cauchy_green
 test/spacetime_bilateral_damage
 test/stxfem 
+test/tensor_rotation_2D
+test/tensor_rotation_3D
 test/time_continuity
 test/viscodamage_multilinearsoftening 
 test/viscodamage_multisurface_criterion

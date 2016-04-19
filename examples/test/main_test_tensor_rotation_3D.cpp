@@ -54,25 +54,31 @@ void printVector(std::vector<int> v)
 
 double invariant_1( Vector & v ) 
 {
-	return v[0]+v[1] ; 
+	return v[0]+v[1]+v[2] ; 
 }
 
 double invariant_2( Vector & v ) 
 {
-	return v[0]*v[1] - v[2]*v[2] ; 
+	return v[0]*v[1] + v[1]*v[2] + v[2]*v[0] - v[3]*v[3] - v[4]*v[4] - v[5]*v[5] ; 
+}
+
+double invariant_3( Vector & v ) 
+{
+	return v[0]*v[1]*v[2]+2.*v[3]*v[4]*v[5]-v[5]*v[5]*v[2]-v[3]*v[3]*v[0]-v[4]*v[4]*v[1] ;
 }
 
 Vector invariant( Vector & v ) 
 {
-	Vector ret(2) ;
+	Vector ret(3) ;
 	ret[0] = invariant_1(v) ;
 	ret[1] = invariant_2(v) ;
+	ret[2] = invariant_3(v) ;
 	return ret ;
 }
 
 int main(int argc, char *argv[])
 {
-/*	CommandLineParser parser("Test the 3D rotation of 4th-order tensors") ;
+	CommandLineParser parser("Test the 3D rotation of 4th-order tensors") ;
 	parser.addFlag("--renew-base", "renew the base of results") ;
 	parser.addString("--output-directory","../examples/test/","directory where the results are stored", "-D") ;
 	parser.parseCommandLine(argc, argv) ;
@@ -81,69 +87,70 @@ int main(int argc, char *argv[])
 
 	std::ofstream out ;
 	if(renew)
-		out.open(outdir+"/test_tensor_rotation_3d_base", std::ios::out) ;
+		out.open(outdir+"/test_tensor_rotation_3D_base", std::ios::out) ;
 	else
-		out.open(outdir+"/test_tensor_rotation_3d_current", std::ios::out) ;*/
+		out.open(outdir+"/test_tensor_rotation_3D_current", std::ios::out) ;
 
-	Vector eigen(3) ; eigen[0] = 2e6 ; eigen[1] = -1e6 ; eigen[2] = 1e6 ;
+	Vector eigen(6) ; eigen[0] = 1e6 ; eigen[1] = -1e6 ; eigen[2] = 1e6 ; eigen[3] = 0.5e6 ; eigen[4] = 0 ; eigen[5] = 0.5e6 ;
 	Vector reference = invariant(eigen) ;
-	Vector eigenRotated(3) ;
-	Vector invar(2) ;
+	Vector eigenRotated(6) ;
+	Vector invar(3) ;
 	for(double theta = 0 ; theta < 2.01 ; theta += 0.1)
 	{
-		eigenRotated = Tensor::rotate2ndOrderTensor2D( eigen, theta*M_PI ) ;
+		Point p( theta*M_PI, 0, 0 ) ;
+		eigenRotated = Tensor::rotate2ndOrderTensor3D( eigen, p, 1. ) ;
 
 		invar = invariant( eigenRotated) - reference ;
 
-		std::cout << theta ;
-		for(size_t i = 0 ; i < 2 ; i++)
-			std::cout << "\t" << invar[i]/reference[i] ;
-		std::cout << std::endl ;
+		out << theta ;
+		for(size_t i = 0 ; i < 3 ; i++)
+			out << "\t" << invar[i]/reference[i] ;
+		out << std::endl ;
 
 
 	}
 
-	Matrix stiffness2D = Tensor::cauchyGreen( 10e9, 0.25, SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
-	Vector shear(6) ; shear[0] = 2e-4 ; shear[1] = -1e-4 ; shear[2] = 1e-4 ;
+
+
+	Matrix stiffness3D = Tensor::cauchyGreen( 10e9, 0.25, SPACE_THREE_DIMENSIONAL ) ;
+	Vector shear(6) ; shear[0] = 0 ; shear[1] = 0 ; shear[2] = 0 ; shear[3] = 1e-4 ; shear[4] = 1e-4 ; shear[5] = 1e-4 ;
 	double lastTheta = 0. ;
-	double dtheta = 0. ;
 
-	Matrix incrementalStiffnessRotated(3,3) ;
-	Matrix stiffnessRotated(3,3) ;
+	Matrix incrementalStiffnessRotated(6,6) ;
+	Matrix stiffnessRotated(6,6) ;
 
-	Vector shearRotated(3) ;
-	Vector stressRotated(3) ;
-	Vector stressFromRotated(3) ;
-	Vector stressUnRotated(3) ;
+	Vector shearRotated(6) ;
+	Vector stressRotated(6) ;
+	Vector stressFromRotated(6) ;
+	Vector stressUnRotated(6) ;
 
-	Vector difference(3) ;
+	Vector difference(6) ;
 
 	for(double theta = 0 ; theta < 2.01 ; theta += 0.1 )
 	{
-		dtheta = theta-lastTheta ;		
-
-		stiffnessRotated = Tensor::rotate4thOrderTensor2D( stiffness2D, theta*M_PI, 1 ) ;
-		if( theta == 0 )
-			incrementalStiffnessRotated = Tensor::rotate4thOrderTensor2D( stiffness2D, dtheta*M_PI, 1 ) ;
-		else
-			incrementalStiffnessRotated = Tensor::rotate4thOrderTensor2D( incrementalStiffnessRotated, dtheta*M_PI, 1 ) ;
+		Point p( theta*M_PI, 0, 0 ) ;
+		Point q( (theta-lastTheta)*M_PI, 0, 0 ) ;
 		lastTheta = theta ;
 
-//		stiffnessRotated.print() ;
+		stiffnessRotated = Tensor::rotate4thOrderTensor3D( stiffness3D, p, 1 ) ;
+		if( theta == 0 )
+			incrementalStiffnessRotated = Tensor::rotate4thOrderTensor3D( stiffness3D, q, 1 ) ;
+		else
+			incrementalStiffnessRotated = Tensor::rotate4thOrderTensor3D( incrementalStiffnessRotated, q, 1 ) ;
 
-		shearRotated = Tensor::rotate2ndOrderTensor2D( shear, -theta*M_PI ) ;
+		shearRotated = Tensor::rotate2ndOrderTensor3D( shear, -p, -1. ) ;
 
 		stressRotated = stiffnessRotated * shear ;
-		stressUnRotated = Tensor::rotate2ndOrderTensor2D( stressRotated, -theta*M_PI ) ;
+		stressUnRotated = Tensor::rotate2ndOrderTensor3D( stressRotated, -p, 1.) ;
 
-		stressFromRotated = stiffness2D * shearRotated ;
+		stressFromRotated = stiffness3D * shearRotated ;
 
 		difference = stressUnRotated -  stressFromRotated ;
 
-		std::cout << theta << "\t" << abs((stiffnessRotated-incrementalStiffnessRotated).array()).max()/1e9 ;
-		for(size_t i = 0 ; i < 3 ; i++)
-			std::cout << "\t" << difference[i]/1e6 ;
-		std::cout << std::endl ;
+		out << theta << "\t" << abs((stiffnessRotated-incrementalStiffnessRotated).array()).max()/1e9 ;
+		for(size_t i = 0 ; i < 6 ; i++)
+			out << "\t" << difference[i]/1e6 ;
+		out << std::endl ;
 	}
 
 
@@ -172,42 +179,45 @@ int main(int argc, char *argv[])
 	components[19] = -2e9 ;
 	components[20] = 0.5e9 ;
 
-	Matrix stiffness3D = Tensor::orthotropicCauchyGreen( components, SYMMETRY_TRICLINIC, true ) ;
-	stiffness2D = Tensor::to2D( stiffness3D, PLANE_STRAIN, XI ) ;
+	stiffness3D = Tensor::orthotropicCauchyGreen( components, SYMMETRY_TRICLINIC, true ) ;
 	lastTheta = 0. ;
 
 	for(double theta = 0 ; theta < 2.01 ; theta += 0.1 )
 	{
-		dtheta = theta-lastTheta ;		
-
-		stiffnessRotated = Tensor::rotate4thOrderTensor2D( stiffness2D, theta*M_PI, 1 ) ;
-		if( theta == 0 )
-			incrementalStiffnessRotated = Tensor::rotate4thOrderTensor2D( stiffness2D, dtheta*M_PI, 1 ) ;
-		else
-			incrementalStiffnessRotated = Tensor::rotate4thOrderTensor2D( incrementalStiffnessRotated, dtheta*M_PI, 1 ) ;
+		Point p( theta*M_PI, 0, 0 ) ;
+		Point q( (theta-lastTheta)*M_PI, 0, 0 ) ;
 		lastTheta = theta ;
 
-		shearRotated = Tensor::rotate2ndOrderTensor2D( shear, -theta*M_PI ) ;
+		stiffnessRotated = Tensor::rotate4thOrderTensor3D( stiffness3D, p, -1 ) ;
+		if( theta == 0 )
+			incrementalStiffnessRotated = Tensor::rotate4thOrderTensor3D( stiffness3D, q, -1 ) ;
+		else
+			incrementalStiffnessRotated = Tensor::rotate4thOrderTensor3D( incrementalStiffnessRotated, q, -1 ) ;
 
 		Matrix realStiffnessRotated = stiffnessRotated ;
-		Matrix realStiffness = stiffness2D ;
-		realStiffnessRotated[2][0] *= 0.5 ;
-		realStiffnessRotated[2][1] *= 0.5 ;
-		realStiffness[2][0] *= 0.5 ;
-		realStiffness[2][1] *= 0.5 ;
-		
+		Matrix realStiffness = stiffness3D ;
+		for(size_t i = 0 ; i < 3 ; i++)
+		{
+			for(size_t j = 0 ; j < 3 ; j++)
+			{
+				realStiffnessRotated[i+3][j] *= 0.5 ;
+				realStiffness[i+3][j] *= 0.5 ;
+			}
+
+		}
+
+		shearRotated = Tensor::rotate2ndOrderTensor3D( shear, -p, -1. ) ;
 
 		stressRotated = realStiffnessRotated * shear ;
-		stressUnRotated = Tensor::rotate2ndOrderTensor2D( stressRotated, -theta*M_PI ) ;
+		stressUnRotated = Tensor::rotate2ndOrderTensor3D( stressRotated, -p , -1.) ;
 
 		stressFromRotated = realStiffness * shearRotated ;
 
 		difference = stressUnRotated -  stressFromRotated ;
-
-		std::cout << theta << "\t" << abs((stiffnessRotated-incrementalStiffnessRotated).array()).max()/1e9 ;
-		for(size_t i = 0 ; i < 3 ; i++)
-			std::cout << "\t" << difference[i]/1e6 ;
-		std::cout << std::endl ;
+		out << theta << "\t" << abs((stiffnessRotated-incrementalStiffnessRotated).array()).max()/1e9 ;
+		for(size_t i = 0 ; i < 6 ; i++)
+			out << "\t" << difference[i]/1e6 ;
+		out << std::endl ;
 	}
 
 

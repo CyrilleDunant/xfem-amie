@@ -1056,6 +1056,7 @@ public:
                     ETYPE *ci  = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
                     blocks = ci->getBehaviour()->getNumberOfDegreesOfFreedom() / spaceDimensions  ;
                 }
+
                 Vector tmpstrain ;
                 Vector tmpstrainrate ;
 

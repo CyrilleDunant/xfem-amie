@@ -33,6 +33,10 @@ typedef enum
 	YOUNG_SHEAR,
 } IsotropicMaterialParameters ;
 
+typedef enum : char {
+  SINGLE_OFF_DIAGONAL_VALUES,
+  DOUBLE_OFF_DIAGONAL_VALUES,  
+} CompositionType ;
   
 class Tensor
 {
@@ -48,6 +52,8 @@ public:
 	
 	size_t getOrder() const { return order ; }
 	size_t getDimensions() const { return dim ; }
+	std::vector<int> getIndex( size_t position ) const ;
+	void swap( int i, int j ) ;
 
 	size_t index( std::vector<int> indexes ) const ;
 	size_t index( int i ) const ;
@@ -76,7 +82,14 @@ public:
 	double operator() (int i, int j, int k, int l, int m, int n) const { return components[ index(i,j,k,l,m,n) ] ; }
 	
 	Matrix toMatrix(int d1, int d2) const ;
-	
+
+	static Tensor dotProduct( Tensor t1, Tensor t2, double tol = -1  ) ;
+	static Tensor dotProduct( Tensor t1, Tensor t2, int i1, int i2, double tol = -1  ) ;
+	static Tensor chainedDotProduct( Tensor tmi, Tensor tnj, Tensor tok, Tensor tpl, Tensor tijkl, double tol = -1 ) ;
+	static Tensor chainedDotProduct( Tensor tmi, Tensor tnj, Tensor tij, double tol = -1 ) ;
+	static Tensor dotdotProduct( Tensor t1, Tensor t2, double tol = -1  ) ;
+	static Tensor crossProduct( Tensor t1, Tensor t2, double tol = -1  ) ;
+
 	void print() const ;
 	
 	void threshold(double thr) ;
@@ -90,8 +103,9 @@ public:
 	static Matrix orthotropicCauchyGreen( Vector data, SymmetryType sym, bool force = false ) ;
 	static Matrix isotropicTransverseCauchyGreen(double E_1, double E_2, double G_12,  double nu_12, double nu_23, SpaceDimensionality dim, planeType pt) ;
 	static Vector rotate2ndOrderTensor2D( Vector & tensor, double angle ) ;
+	static Vector rotate2ndOrderTensor3D( Vector & tensor, Point angle, double tol = 1, bool tensorial = false ) ;
 	static Matrix rotate4thOrderTensor2D( Matrix & tensor, double angle, double tol = 1 ) ;
-	static Matrix rotate4thOrderTensor3D( Matrix & tensor, Point angle, double tol = 1 ) ;
+	static Matrix rotate4thOrderTensor3D( Matrix & tensor, Point angle, double tol = 1, bool tensorial = true ) ;
 	static Matrix to2D( Matrix & tensor, planeType pt, Variable var = ZETA) ;
 	static Matrix invert4thOrderTensor3D( Matrix & tensor, SymmetryType sym = SYMMETRY_CUBIC ) ;
 		

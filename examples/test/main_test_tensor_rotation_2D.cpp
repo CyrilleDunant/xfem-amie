@@ -72,7 +72,7 @@ Vector invariant( Vector & v )
 
 int main(int argc, char *argv[])
 {
-/*	CommandLineParser parser("Test the 3D rotation of 4th-order tensors") ;
+	CommandLineParser parser("Test the 2D rotation of 4th-order tensors") ;
 	parser.addFlag("--renew-base", "renew the base of results") ;
 	parser.addString("--output-directory","../examples/test/","directory where the results are stored", "-D") ;
 	parser.parseCommandLine(argc, argv) ;
@@ -81,9 +81,9 @@ int main(int argc, char *argv[])
 
 	std::ofstream out ;
 	if(renew)
-		out.open(outdir+"/test_tensor_rotation_3d_base", std::ios::out) ;
+		out.open(outdir+"/test_tensor_rotation_2D_base", std::ios::out) ;
 	else
-		out.open(outdir+"/test_tensor_rotation_3d_current", std::ios::out) ;*/
+		out.open(outdir+"/test_tensor_rotation_2D_current", std::ios::out) ;
 
 	Vector eigen(3) ; eigen[0] = 2e6 ; eigen[1] = -1e6 ; eigen[2] = 1e6 ;
 	Vector reference = invariant(eigen) ;
@@ -95,10 +95,10 @@ int main(int argc, char *argv[])
 
 		invar = invariant( eigenRotated) - reference ;
 
-		std::cout << theta ;
+		out << theta ;
 		for(size_t i = 0 ; i < 2 ; i++)
-			std::cout << "\t" << invar[i]/reference[i] ;
-		std::cout << std::endl ;
+			out << "\t" << invar[i]/reference[i] ;
+		out << std::endl ;
 
 
 	}
@@ -140,10 +140,10 @@ int main(int argc, char *argv[])
 
 		difference = stressUnRotated -  stressFromRotated ;
 
-		std::cout << theta << "\t" << abs((stiffnessRotated-incrementalStiffnessRotated).array()).max()/1e9 ;
+		out << theta << "\t" << abs((stiffnessRotated-incrementalStiffnessRotated).array()).max()/1e9 ;
 		for(size_t i = 0 ; i < 3 ; i++)
-			std::cout << "\t" << difference[i]/1e6 ;
-		std::cout << std::endl ;
+			out << "\t" << difference[i]/1e6 ;
+		out << std::endl ;
 	}
 
 
@@ -195,7 +195,6 @@ int main(int argc, char *argv[])
 		realStiffnessRotated[2][1] *= 0.5 ;
 		realStiffness[2][0] *= 0.5 ;
 		realStiffness[2][1] *= 0.5 ;
-		
 
 		stressRotated = realStiffnessRotated * shear ;
 		stressUnRotated = Tensor::rotate2ndOrderTensor2D( stressRotated, -theta*M_PI ) ;
@@ -204,10 +203,10 @@ int main(int argc, char *argv[])
 
 		difference = stressUnRotated -  stressFromRotated ;
 
-		std::cout << theta << "\t" << abs((stiffnessRotated-incrementalStiffnessRotated).array()).max()/1e9 ;
+		out << theta << "\t" << abs((stiffnessRotated-incrementalStiffnessRotated).array()).max()/1e9 ;
 		for(size_t i = 0 ; i < 3 ; i++)
-			std::cout << "\t" << difference[i]/1e6 ;
-		std::cout << std::endl ;
+			out << "\t" << difference[i]/1e6 ;
+		out << std::endl ;
 	}
 
 

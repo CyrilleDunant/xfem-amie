@@ -4,6 +4,7 @@
 
  namespace Amie {
 
+
 Tensor::Tensor(size_t o, size_t d) : order(o), dim(d)
 {
     size_t s = 1 ;
@@ -73,6 +74,19 @@ size_t Tensor::index( std::vector<int> indexes ) const
         s *= dim ;
     }
     return i ;
+}
+
+std::vector<int> Tensor::getIndex( size_t position ) const 
+{
+    std::vector<int> ret( order ) ;
+    size_t next = position ;
+    for(size_t i = 0 ; i < order ; i++)
+    {
+        size_t frac = std::pow( dim, order-i-1 ) ;
+        ret[i] = next / frac ;
+        next = next - ret[i]*frac ;
+    }
+    return ret ;
 }
 
 size_t Tensor::index( int i ) const
@@ -152,6 +166,280 @@ void Tensor::threshold(double thr)
 
 }
 
+Tensor Tensor::crossProduct( Tensor t1, Tensor t2, double tol ) 
+{
+    Tensor ret( t1.getOrder()+t2.getOrder(), t1.getDimensions()) ;
+
+    std::vector<int> index1 = t1.getIndex( 0 ) ;
+    std::vector<int> index2 = t2.getIndex( 0 ) ;
+    std::vector<int> index3 = ret.getIndex( 0 ) ;
+
+    for(size_t i = 0 ; i < t1.size() ; i++)
+    {
+        index1 = t1.getIndex( i ) ;
+        for(size_t ord = 0 ; ord < t1.getOrder() ; ord++)
+            index3[ ord ] = index1[ ord ] ;
+
+        for(size_t j = 0 ; j < t2.size() ; j++)
+        {
+            index2 = t2.getIndex( j ) ;
+            for(size_t ord = 0 ; ord < t2.getOrder() ; ord++)
+                index3[ ord + t1.getOrder() ] = index2[ ord ] ;
+
+            ret.getComponent( index3 ) += t1.getComponent( index1 ) * t2.getComponent( index2 ) ;
+        }
+    }
+
+    if(tol > 0) { ret.threshold( tol ) ; }
+
+    return ret ;
+}
+
+void Tensor::swap( int i, int j )
+{
+    Vector keep = components ;
+    std::vector<int> idx = getIndex(0) ;
+
+    for(size_t pos = 0 ; pos < components.size() ; pos++)
+    {
+        idx = getIndex( pos ) ;
+        int tmp = idx[i] ;
+        idx[i] = idx[j] ;
+        idx[j] = tmp ;
+        components[pos] = keep[ index( idx ) ] ;
+    }
+}
+
+Tensor Tensor::dotProduct( Tensor t1, Tensor t2, int i1, int i2, double tol ) 
+{
+    Tensor ret(t1.getOrder()+t2.getOrder()-2, t1.getDimensions()) ;
+    Tensor f1( t1.getOrder()-1, t1.getDimensions()) ;
+    Tensor f2( t2.getOrder()-1, t2.getDimensions()) ;
+
+
+    std::vector<int> index1 = t1.getIndex( 0 ) ;
+    std::vector<int> index2 = t2.getIndex( 0 ) ;
+    std::vector<int> indexf1 = f1.getIndex( 0 ) ;
+    std::vector<int> indexf2 = f2.getIndex( 0 ) ;
+    std::vector<int> index3 = ret.getIndex( 0 ) ;
+
+    for(size_t i = 0 ; i < f1.size() ; i++)
+    {
+        indexf1 = f1.getIndex( i ) ;
+        bool found1 = false ;
+        for(size_t k = 0 ; k < index1.size() ; k++)
+        {
+            if(k == (size_t) i1)
+                found1 = true ;
+            else
+            {
+                index1[k] = indexf1[k-found1] ;
+                index3[k-found1] = indexf1[k-found1] ; 
+            }
+        }
+
+
+        for(size_t j = 0 ; j < f2.size() ; j++)
+        {
+            indexf2 = f2.getIndex( j ) ;
+            bool found2 = false ;
+            for(size_t k = 0 ; k < index2.size() ; k++)
+            {
+                if(k == (size_t) i2)
+                    found2 = true ;
+                else
+                {
+                    index2[k] = indexf2[k-found2] ;
+                    index3[k-found2+indexf1.size()] = indexf2[k-found2] ;  
+                }
+            }
+
+            for( size_t k = 0 ; k < ret.getDimensions() ; k++)
+            {
+                index1[ i1 ] = k ;
+                index2[ i2 ] = k ;
+                ret.getComponent( index3 ) += t1.getComponent( index1 )*t2.getComponent( index2 ) ;
+            }
+        }
+    }
+
+    if(tol > 0) { ret.threshold( tol ) ; }
+
+    return ret ;    
+}
+
+Tensor Tensor::chainedDotProduct( Tensor tmi, Tensor tnj, Tensor tok, Tensor tpl, Tensor tijkl, double tol  ) 
+{
+    size_t dim = tijkl.getDimensions() ;
+    Tensor ret(4, dim) ;
+
+    for(size_t i = 0 ; i < dim ; i++)
+    {
+    for(size_t j = 0 ; j < dim ; j++)
+    {
+    for(size_t k = 0 ; k < dim ; k++)
+    {
+    for(size_t l = 0 ; l < dim ; l++)
+    {
+    for(size_t m = 0 ; m < dim ; m++)
+    {
+    for(size_t n = 0 ; n < dim ; n++)
+    {
+    for(size_t o = 0 ; o < dim ; o++)
+    {
+    for(size_t p = 0 ; p < dim ; p++)
+    {
+        ret(m,n,o,p) += tmi(m,i)*tnj(n,j)*tok(o,k)*tpl(p,l)*tijkl(i,j,k,l) ;
+    }
+
+    }
+
+    }
+
+    }
+
+    }
+
+    }
+
+    }
+
+    }
+
+
+
+    if(tol > 0) { ret.threshold( tol ) ; }
+
+    return ret ;    
+}
+
+Tensor Tensor::chainedDotProduct( Tensor tmi, Tensor tnj, Tensor tij, double tol  ) 
+{
+    size_t dim = tij.getDimensions() ;
+    Tensor ret(2, dim) ;
+
+    for(size_t i = 0 ; i < dim ; i++)
+    {
+    for(size_t j = 0 ; j < dim ; j++)
+    {
+    for(size_t m = 0 ; m < dim ; m++)
+    {
+    for(size_t n = 0 ; n < dim ; n++)
+    {
+        ret(m,n) += tmi(m,i)*tnj(n,j)*tij(i,j) ;
+    }
+
+    }
+
+    }
+
+    }
+
+    if(tol > 0) { ret.threshold( tol ) ; }
+
+    return ret ;    
+}
+
+
+Tensor Tensor::dotProduct( Tensor t1, Tensor t2, double tol ) 
+{
+    Tensor ret(t1.getOrder()+t2.getOrder()-2, t1.getDimensions()) ;
+    Tensor f1( t1.getOrder()-1, t1.getDimensions()) ;
+    Tensor f2( t2.getOrder()-1, t2.getDimensions()) ;
+
+
+    std::vector<int> index1 = t1.getIndex( 0 ) ;
+    std::vector<int> index2 = t2.getIndex( 0 ) ;
+    std::vector<int> indexf1 = f1.getIndex( 0 ) ;
+    std::vector<int> indexf2 = f2.getIndex( 0 ) ;
+    std::vector<int> index3 = ret.getIndex( 0 ) ;
+
+    for(size_t i = 0 ; i < f1.size() ; i++)
+    {
+        indexf1 = f1.getIndex( i ) ;
+        for(size_t k = 0 ; k < indexf1.size() ; k++)
+        {
+            index1[k] = indexf1[k] ;
+            index3[k] = indexf1[k] ; 
+        }
+
+
+        for(size_t j = 0 ; j < f2.size() ; j++)
+        {
+            indexf2 = f2.getIndex( j ) ;
+            for(size_t k = 0 ; k < indexf2.size() ; k++)
+            {
+                index2[k+1] = indexf2[k] ;
+                index3[k+indexf1.size()] = indexf2[k] ; 
+            }
+
+            for( size_t k = 0 ; k < ret.getDimensions() ; k++)
+            {
+                index1[ indexf1.size() ] = k ;
+                index2[ 0 ] = k ;
+                ret.getComponent( index3 ) += t1.getComponent( index1 )*t2.getComponent( index2 ) ;
+            }
+        }
+    }
+
+    if(tol > 0) { ret.threshold( tol ) ; }
+
+    return ret ;    
+}
+
+Tensor Tensor::dotdotProduct( Tensor t1, Tensor t2, double tol ) 
+{
+    Tensor ret(t1.getOrder()+t2.getOrder()-4, t1.getDimensions()) ;
+    Tensor f1( t1.getOrder()-2, t1.getDimensions()) ;
+    Tensor f2( t2.getOrder()-2, t2.getDimensions()) ;
+
+
+    std::vector<int> index1 = t1.getIndex( 0 ) ;
+    std::vector<int> index2 = t2.getIndex( 0 ) ;
+    std::vector<int> indexf1 = f1.getIndex( 0 ) ;
+    std::vector<int> indexf2 = f2.getIndex( 0 ) ;
+    std::vector<int> index3 = ret.getIndex( 0 ) ;
+
+    for(size_t i = 0 ; i < f1.size() ; i++)
+    {
+        indexf1 = f1.getIndex( i ) ;
+        for(size_t k = 0 ; k < indexf1.size() ; k++)
+        {
+            index1[k] = indexf1[k] ;
+            index3[k] = indexf1[k] ; 
+        }
+
+
+        for(size_t j = 0 ; j < f2.size() ; j++)
+        {
+            indexf2 = f2.getIndex( j ) ;
+            for(size_t k = 0 ; k < indexf2.size() ; k++)
+            {
+                index2[k+2] = indexf2[k] ;
+                index3[k+indexf1.size()] = indexf2[k] ; 
+            }
+
+            for( size_t k = 0 ; k < ret.getDimensions() ; k++)
+            {
+                for( size_t l = 0 ; l < ret.getDimensions() ; l++)
+                {
+                    index1[ indexf1.size() ] = k ;
+                    index1[ indexf1.size()+1 ] = l ;
+                    index2[ 0 ] = l ;
+                    index2[ 1 ] = k ;
+
+                    ret.getComponent( index3 ) += t1.getComponent( index1 )*t2.getComponent( index2 ) ;
+                }
+            }
+        }
+    }
+
+    if(tol > 0) { ret.threshold( tol ) ; }
+
+    return ret ;    
+}
+
+
 Matrix Tensor::toMatrix(int d1, int d2) const
 {
     Matrix ret ;
@@ -182,19 +470,19 @@ std::pair<Matrix, Matrix> rotationMatrix2D(double angle)
     double s = sin(angle) ;
     transform[0][0] =  c*c ;
     transform[0][1] = s*s ;
-    transform[0][2] =  s*c ;
+    transform[0][2] = 2.* s*c ;
     transform[1][0] =  s*s ;
     transform[1][1] = c*c ;
-    transform[1][2] = -s*c ;
+    transform[1][2] = -2.*s*c ;
     transform[2][0] = -s*c ;
     transform[2][1] = s*c ;
     transform[2][2] =     c*c - s*s ;
     transformt = transform.transpose() ;
 
-    transform[0][2] *= 2. ;
+/*    transform[0][2] *= 2. ;
     transform[1][2] *= 2. ;
     transformt[0][2] *= 2 ;
-    transformt[1][2] *= 2 ;
+    transformt[1][2] *= 2 ;*/
 
     return std::make_pair( transform, transformt ) ;
 }
@@ -203,9 +491,61 @@ std::pair<Matrix, Matrix> rotationMatrix2D(double angle)
 
 Matrix Tensor::rotate4thOrderTensor2D( Matrix & tensor, double angle, double tol ) 
 {
-    std::pair<Matrix, Matrix> transformation = rotationMatrix2D(angle) ;
+    Tensor stiff(4,2) ;
+    stiff(0,0,0,0) = tensor[0][0] ;
+    stiff(1,1,1,1) = tensor[1][1] ;
+    stiff(0,0,1,1) = tensor[0][1] ;
+    stiff(1,1,0,0) = tensor[1][0] ;
 
-    Matrix ret = (transformation.first*tensor)*transformation.second ;
+    stiff(0,0,0,1) = tensor[0][2]*0.5 ;
+    stiff(0,0,1,0) = tensor[0][2]*0.5 ;
+    stiff(1,1,0,1) = tensor[1][2]*0.5 ;
+    stiff(1,1,1,0) = tensor[1][2]*0.5 ;
+
+    stiff(1,0,0,0) = tensor[2][0]*0.5 ;
+    stiff(0,1,0,0) = tensor[2][0]*0.5 ;
+    stiff(1,0,1,1) = tensor[2][1]*0.5 ;
+    stiff(0,1,1,1) = tensor[2][1]*0.5 ;
+
+    stiff(0,1,0,1) = tensor[2][2]*0.5 ;
+    stiff(0,1,1,0) = tensor[2][2]*0.5 ;
+    stiff(1,0,0,1) = tensor[2][2]*0.5 ;
+    stiff(1,0,1,0) = tensor[2][2]*0.5 ;
+
+    Tensor rot(2,2) ;
+    rot(0,0) =  cos(angle) ;
+    rot(0,1) = -sin(angle) ;
+    rot(1,0) =  sin(angle) ;
+    rot(1,1) =  cos(angle) ;
+
+    Tensor rotated = Tensor::chainedDotProduct( rot, rot, rot, rot, stiff ) ;
+    if(tol > 0) { rotated.threshold( tol ) ; }
+
+    Matrix ret(3,3) ;
+    ret[0][0] = rotated(0,0,0,0) ;
+    ret[1][1] = rotated(1,1,1,1) ;
+    ret[0][1] = rotated(0,0,1,1) ;
+    ret[1][0] = rotated(1,1,0,0) ;
+
+    ret[0][2] = (rotated(0,0,0,1)+rotated(0,0,1,0)) ;//*0.5 ;
+    ret[1][2] = (rotated(1,1,0,1)+rotated(1,1,1,0)) ;//*0.5 ;
+    ret[2][0] = (rotated(0,1,0,0)+rotated(1,0,0,0)) ;//*0.5 ;
+    ret[2][1] = (rotated(0,1,1,1)+rotated(1,0,1,1)) ;//*0.5 ;
+
+    ret[2][2] = (rotated(0,1,0,1)+rotated(0,1,1,0)+rotated(1,0,0,1)+rotated(1,0,1,0))*0.5 ;
+
+    return ret ;
+
+/*    std::pair<Matrix, Matrix> transformation = rotationMatrix2D(angle) ;
+
+    Matrix tmp = tensor ;
+    tmp[0][2] *= 0.5 ;
+    tmp[1][2] *= 0.5 ;
+    tmp[2][2] *= 0.5 ;
+    tmp[2][1] *= 0.5 ;
+    tmp[2][0] *= 0.5 ;
+
+    Matrix ret = (transformation.first*tmp)*transformation.second ;
     for(size_t i = 0 ; i < 3 ; i++)
     {
         for(size_t j = 0 ; j < 3 ; j++)
@@ -214,8 +554,13 @@ Matrix Tensor::rotate4thOrderTensor2D( Matrix & tensor, double angle, double tol
                 ret[i][j] = 0 ;
         }
     }
+    ret[0][2] /= 0.5 ;
+    ret[1][2] /= 0.5 ;
+    ret[2][2] /= 0.5 ;
+    ret[2][1] /= 0.5 ;
+    ret[2][0] /= 0.5 ;
 
-    return ret ;
+    return ret ;*/
 }
 
 Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double G,  double nu, double angle, planeType pt)
@@ -403,7 +748,8 @@ Matrix Tensor::orthotropicCauchyGreen( Vector data, SymmetryType sym, bool force
             cg[5][0] = C16 ; cg[5][1] = C26 ; cg[5][2] = C36 ; cg[5][5] = C66 ;
             break ;
         }
-        case SYMMETRY_ORTHORHOMBIC:
+        case SYMMETRY_ORTHORHOMBIC:	
+
         {
             if(data.size() != 9 && !force) { return cg ; }
             double C11 = data[0] ;
@@ -548,11 +894,6 @@ Vector Tensor::rotate2ndOrderTensor2D( Vector & tensor, double angle )
     rt[1][0] = r[0][1] ;
     rt[0][1] = r[1][0] ;
 
-    r[0][1] *= 0.5 ;
-    r[1][0] *= 1 ;
-    rt[0][1] *= 0.5 ;
-    rt[1][0] *= 1 ;
-
     Matrix tmp = (r*t)*rt ;
 
     Vector ret(3) ;
@@ -618,7 +959,7 @@ Matrix Tensor::to2D(Matrix & tensor, planeType pt, Variable var)
             invert3x3Matrix(K22) ;
 
             ret = K11-K12*K22*K21 ;
-            ret[2][2] *= 2 ;
+//            ret[2][2] *= 2 ;
 
 /*            ret[0][0] = tensor[first][first]-tensor[first][index]*tensor[first][index]/tensor[index][index] ;
             ret[0][1] = tensor[first][second]-tensor[second][index]*tensor[first][index]/tensor[index][index] ;
@@ -707,22 +1048,90 @@ Matrix rotationMatrixZ(double theta)
     return ret ;
 }
 
-Matrix rotationMatrixXYZ( double phi, double theta, double psi)
+Matrix rotationMatrixXYZ( double psi, double theta, double phi)
 {
     Matrix Om(3,3) ;
     Om[0][0] =  cos(psi)*cos(theta)*cos(phi)-sin(psi)*sin(phi) ;
-    Om[1][0] = -sin(psi)*cos(theta)*cos(phi)-cos(psi)*sin(phi) ;
-    Om[2][0] =  sin(theta)*cos(phi) ;
-    Om[0][1] =  cos(psi)*cos(theta)*sin(phi)+sin(psi)*cos(phi) ;
-    Om[1][1] = -sin(psi)*cos(theta)*sin(phi)+cos(psi)*cos(phi) ;
+    Om[1][0] =  sin(psi)*cos(theta)*cos(phi)+cos(psi)*sin(phi) ;
+    Om[2][0] =  -sin(theta)*cos(phi) ;
+
+    Om[0][1] =  -cos(psi)*cos(theta)*sin(phi)-sin(psi)*cos(phi) ;
+    Om[1][1] =  -sin(psi)*cos(theta)*sin(phi)+cos(psi)*cos(phi) ;
     Om[2][1] =  sin(theta)*sin(phi) ;
-    Om[0][2] = -cos(psi)*sin(theta) ;
+
+    Om[0][2] =  cos(psi)*sin(theta) ;
     Om[1][2] =  sin(psi)*sin(theta) ;
     Om[2][2] =  cos(theta) ;
-    return Om.transpose() ;
+    return Om ;
 }
 
-Matrix Tensor::rotate4thOrderTensor3D( Matrix & tensor, Point angle, double tol ) 
+Vector Tensor::rotate2ndOrderTensor3D( Vector & tensor, Point angle, double tol, bool tensorial ) 
+{
+    Matrix Om = rotationMatrixXYZ( angle.getX(), angle.getY(), angle.getZ() ) ; 
+
+    if(tensorial)
+    {
+        Tensor rot(2,3) ;
+        for(size_t i = 0 ; i < 3 ; i++)
+        {
+            for(size_t j = 0 ; j < 3 ; j++)
+            {
+                rot(i,j) = Om[i][j] ;
+            }
+        }
+
+        Tensor data(2,3) ;
+        data(0,0) = tensor[0] ;
+        data(1,1) = tensor[1] ;
+        data(2,2) = tensor[2] ;
+        data(0,1) = tensor[5] ;
+        data(1,0) = tensor[5] ;
+        data(0,2) = tensor[4] ;
+        data(2,0) = tensor[4] ;
+        data(2,1) = tensor[3] ;
+        data(1,2) = tensor[3] ;
+
+        Tensor rotated = Tensor::chainedDotProduct( rot, rot, data, -1. ) ;
+	if(tol > 0) { rotated.threshold(tol) ; }
+
+        Vector ret(6) ;
+        ret[0] = rotated(0,0) ;
+        ret[1] = rotated(1,1) ;
+        ret[2] = rotated(2,2) ;
+        ret[3] = (rotated(1,2)+rotated(2,1))*0.5 ;
+        ret[4] = (rotated(0,2)+rotated(2,0))*0.5 ;
+        ret[5] = (rotated(1,0)+rotated(0,1))*0.5 ;
+
+        return ret ;
+    }
+
+    Matrix tr = Om.transpose() ;
+
+    Matrix ten(3,3) ;
+    ten[0][0] = tensor[0] ; ten[0][1] = tensor[5] ; ten[0][2] = tensor[4] ;
+    ten[1][0] = tensor[5] ; ten[1][1] = tensor[1] ; ten[1][2] = tensor[3] ;
+    ten[2][0] = tensor[4] ; ten[2][1] = tensor[3] ; ten[2][2] = tensor[2] ;
+
+    ten = (Om*ten)*tr ;
+
+    Vector ret(6) ;
+    ret[0] = ten[0][0] ;
+    ret[1] = ten[1][1] ;
+    ret[2] = ten[2][2] ;
+    ret[3] = (ten[1][2]+ten[2][1])*0.5 ;
+    ret[4] = (ten[0][2]+ten[2][0])*0.5 ;
+    ret[5] = (ten[1][0]+ten[0][1])*0.5 ;
+
+    if(tol > 0)
+    {
+        for(size_t i = 0 ; i < 6 ; i++)
+            if( std::abs( ret[i] ) < tol ) { ret[i] = 0 ; }
+    }
+
+    return ret ;
+}
+
+Matrix Tensor::rotate4thOrderTensor3D( Matrix & tensor, Point angle, double tol, bool tensorial ) 
 {
     Matrix ret(6,6) ;
     if(tensor.numCols() != 6 || tensor.numRows() != 6)
@@ -730,12 +1139,177 @@ Matrix Tensor::rotate4thOrderTensor3D( Matrix & tensor, Point angle, double tol 
 
     Matrix Om = rotationMatrixXYZ( angle.getX(), angle.getY(), angle.getZ() ) ; 
 
+    if(tensorial)
+    {
+        Tensor rot(2,3) ;
+        Tensor trs(2,3) ;
+        for(size_t i = 0 ; i < 3 ; i++)
+        {
+            for(size_t j = 0 ; j < 3 ; j++)
+            {
+                rot(i,j) = Om[i][j] ;
+                trs(i,j) = Om[j][i] ;
+            }
+        }
+
+        Tensor stiff(4,3) ;
+	double v = 0.5 ;
+	double w = 0.5 ;
+	double z = 0.5 ;
+
+        stiff(0,0,0,0) = tensor[0][0] ;
+        stiff(1,1,1,1) = tensor[1][1] ;
+        stiff(2,2,2,2) = tensor[2][2] ;
+    
+        stiff(0,0,1,1) = tensor[0][1] ;
+        stiff(1,1,0,0) = tensor[1][0] ;
+        stiff(0,0,2,2) = tensor[0][2] ;
+        stiff(2,2,0,0) = tensor[2][0] ;
+        stiff(1,1,2,2) = tensor[1][2] ;
+        stiff(2,2,1,1) = tensor[2][1] ;
+    
+        stiff(0,0,1,2) = tensor[0][3]*w ;
+        stiff(0,0,2,1) = tensor[0][3]*w ;
+        stiff(0,0,2,0) = tensor[0][4]*w ;
+        stiff(0,0,0,2) = tensor[0][4]*w ;
+        stiff(0,0,0,1) = tensor[0][5]*w ;
+        stiff(0,0,1,0) = tensor[0][5]*w ;
+    
+        stiff(1,1,1,2) = tensor[1][3]*w ;
+        stiff(1,1,2,1) = tensor[1][3]*w ;
+        stiff(1,1,2,0) = tensor[1][4]*w ;
+        stiff(1,1,0,2) = tensor[1][4]*w ;
+        stiff(1,1,0,1) = tensor[1][5]*w ;
+        stiff(1,1,1,0) = tensor[1][5]*w ;
+
+        stiff(2,2,1,2) = tensor[2][3]*w ;
+        stiff(2,2,2,1) = tensor[2][3]*w ;
+        stiff(2,2,2,0) = tensor[2][4]*w ;
+        stiff(2,2,0,2) = tensor[2][4]*w ;
+        stiff(2,2,0,1) = tensor[2][5]*w ;
+        stiff(2,2,1,0) = tensor[2][5]*w ;
+    
+        stiff(1,2,0,0) = tensor[3][0]*w ;
+        stiff(2,1,0,0) = tensor[3][0]*w ;
+        stiff(2,0,0,0) = tensor[4][0]*w ;
+        stiff(0,2,0,0) = tensor[4][0]*w ;
+        stiff(0,1,0,0) = tensor[5][0]*w ;    
+        stiff(1,0,0,0) = tensor[5][0]*w ;
+
+        stiff(1,2,1,1) = tensor[3][1]*w ;
+        stiff(2,1,1,1) = tensor[3][1]*w ;
+        stiff(2,0,1,1) = tensor[4][1]*w ;
+        stiff(0,2,1,1) = tensor[4][1]*w ;    
+        stiff(0,1,1,1) = tensor[5][1]*w ;
+        stiff(1,0,1,1) = tensor[5][1]*w ;
+
+        stiff(1,2,2,2) = tensor[3][2]*w ;
+        stiff(2,1,2,2) = tensor[3][2]*w ;
+        stiff(2,0,2,2) = tensor[4][2]*w ;
+        stiff(0,2,2,2) = tensor[4][2]*w ;
+        stiff(0,1,2,2) = tensor[5][2]*w ;
+        stiff(1,0,2,2) = tensor[5][2]*w ;
+
+        stiff(1,2,1,2) = tensor[3][3]*z ;
+        stiff(1,2,2,1) = tensor[3][3]*z ;
+        stiff(2,1,1,2) = tensor[3][3]*z ;
+        stiff(2,1,2,1) = tensor[3][3]*z ;
+        stiff(1,2,2,0) = tensor[3][4]*z ;
+        stiff(1,2,0,2) = tensor[3][4]*z ;
+        stiff(2,1,2,0) = tensor[3][4]*z ;
+        stiff(2,1,0,2) = tensor[3][4]*z ;
+        stiff(1,2,0,1) = tensor[3][5]*z ;
+        stiff(1,2,1,0) = tensor[3][5]*z ;
+        stiff(2,1,0,1) = tensor[3][5]*z ;
+        stiff(2,1,1,0) = tensor[3][5]*z ;
+
+        stiff(2,0,1,2) = tensor[4][3]*z ;
+        stiff(2,0,2,1) = tensor[4][3]*z ;
+        stiff(0,2,1,2) = tensor[4][3]*z ;
+        stiff(0,2,2,1) = tensor[4][3]*z ;
+        stiff(2,0,2,0) = tensor[4][4]*z ;
+        stiff(2,0,0,2) = tensor[4][4]*z ;
+        stiff(0,2,2,0) = tensor[4][4]*z ;
+        stiff(0,2,0,2) = tensor[4][4]*z ;
+        stiff(2,0,0,1) = tensor[4][5]*z ;
+        stiff(2,0,1,0) = tensor[4][5]*z ;
+        stiff(0,2,0,1) = tensor[4][5]*z ;
+        stiff(0,2,1,0) = tensor[4][5]*z ;
+
+        stiff(0,1,1,2) = tensor[5][3]*z ;
+        stiff(0,1,2,1) = tensor[5][3]*z ;
+        stiff(1,0,1,2) = tensor[5][3]*z ;
+        stiff(1,0,2,1) = tensor[5][3]*z ;
+        stiff(0,1,2,0) = tensor[5][4]*z ;
+        stiff(0,1,0,2) = tensor[5][4]*z ;
+        stiff(1,0,2,0) = tensor[5][4]*z ;
+        stiff(1,0,0,2) = tensor[5][4]*z ;
+        stiff(0,1,0,1) = tensor[5][5]*z ;
+        stiff(0,1,1,0) = tensor[5][5]*z ;
+        stiff(1,0,0,1) = tensor[5][5]*z ;    
+        stiff(1,0,1,0) = tensor[5][5]*z ;
+
+        Tensor rotated = Tensor::chainedDotProduct( rot, rot, rot, rot, stiff, tol ) ;
+        if(tol > 0) { rotated.threshold( tol ) ; }
+
+        ret[0][0] = rotated(0,0,0,0) ;
+        ret[1][1] = rotated(1,1,1,1) ;
+        ret[2][2] = rotated(2,2,2,2) ;    
+
+        ret[0][1] = rotated(0,0,1,1) ;
+        ret[1][0] = rotated(1,1,0,0) ;
+        ret[0][2] = rotated(0,0,2,2) ;
+        ret[2][0] = rotated(2,2,0,0) ;
+        ret[1][2] = rotated(1,1,2,2) ;
+        ret[2][1] = rotated(2,2,1,1) ;
+
+        ret[3][0] = (rotated(1,2,0,0)+rotated(2,1,0,0))*0.5/v ;//*0.5 ;
+        ret[4][0] = (rotated(2,0,0,0)+rotated(0,2,0,0))*0.5/v ;//*0.5 ;
+        ret[5][0] = (rotated(0,1,0,0)+rotated(1,0,0,0))*0.5/v ;//*0.5 ;
+        ret[0][3] = (rotated(0,0,1,2)+rotated(0,0,2,1))*0.5/v ;//*0.5 ;
+        ret[0][4] = (rotated(0,0,2,0)+rotated(0,0,0,2))*0.5/v ;//*0.5 ;
+        ret[0][5] = (rotated(0,0,0,1)+rotated(0,0,1,0))*0.5/v ;//*0.5 ;
+
+        ret[3][1] = (rotated(1,2,1,1)+rotated(2,1,1,1))*0.5/v ;//*0.5 ;
+        ret[4][1] = (rotated(2,0,1,1)+rotated(0,2,1,1))*0.5/v ;//*0.5 ;
+        ret[5][1] = (rotated(0,1,1,1)+rotated(1,0,1,1))*0.5/v ;//*0.5 ;
+        ret[1][3] = (rotated(1,1,1,2)+rotated(1,1,2,1))*0.5/v ;//*0.5 ;
+        ret[1][4] = (rotated(1,1,2,0)+rotated(1,1,0,2))*0.5/v ;//*0.5 ;/w
+        ret[1][5] = (rotated(1,1,0,1)+rotated(1,1,1,0))*0.5/v ;//*0.5 ;
+    
+        ret[3][2] = (rotated(1,2,2,2)+rotated(2,1,2,2))*0.5/v ;//*0.5 ;
+        ret[4][2] = (rotated(2,0,2,2)+rotated(0,2,2,2))*0.5/v ;//*0.5 ;
+        ret[5][2] = (rotated(0,1,2,2)+rotated(1,0,2,2))*0.5/v ;//*0.5 ;
+        ret[2][3] = (rotated(2,2,1,2)+rotated(2,2,2,1))*0.5/v ;//*0.5 ;
+        ret[2][4] = (rotated(2,2,2,0)+rotated(2,2,0,2))*0.5/v ;//*0.5 ;
+        ret[2][5] = (rotated(2,2,0,1)+rotated(2,2,1,0))*0.5/v ;//*0.5 ;
+
+        ret[3][3] = (rotated(1,2,1,2)+rotated(1,2,2,1)+rotated(2,1,2,1)+rotated(2,1,1,2))*0.25/z ;
+        ret[3][4] = (rotated(1,2,2,0)+rotated(1,2,0,2)+rotated(2,1,0,2)+rotated(2,1,2,0))*0.25/z ;
+        ret[3][5] = (rotated(1,2,0,1)+rotated(1,2,1,0)+rotated(2,1,1,0)+rotated(2,1,0,1))*0.25/z ;
+        ret[4][3] = (rotated(2,0,1,2)+rotated(2,0,2,1)+rotated(0,2,2,1)+rotated(0,2,1,2))*0.25/z ;    
+        ret[4][4] = (rotated(2,0,2,0)+rotated(2,0,0,2)+rotated(0,2,0,2)+rotated(0,2,2,0))*0.25/z ;
+        ret[4][5] = (rotated(2,0,0,1)+rotated(2,0,1,0)+rotated(0,2,1,0)+rotated(0,2,0,1))*0.25/z ;
+        ret[5][3] = (rotated(0,1,1,2)+rotated(0,1,2,1)+rotated(1,0,2,1)+rotated(1,0,1,2))*0.25/z ;
+        ret[5][4] = (rotated(0,1,2,0)+rotated(0,1,0,2)+rotated(1,0,0,2)+rotated(1,0,2,0))*0.25/z ;
+        ret[5][5] = (rotated(0,1,0,1)+rotated(0,1,1,0)+rotated(1,0,1,0)+rotated(1,0,0,1))*0.25/z ;
+
+        return ret ;
+    }
+    Matrix test = tensor ;
+    for(size_t i = 0 ; i < 3 ; i++)
+    {
+        for(size_t j = 0 ; j < 3 ; j++)
+        {
+            test[i][j+3] *= 2. ;
+            test[i+3][j] *= 2. ;
+            test[i+3][j+3] *= 2. ;
+        }
+
+    }
+
 
     Matrix K(6,6) ;
-    Matrix K1(3,3) ;
-    Matrix K2(3,3) ;
-    Matrix K3(3,3) ;
-    Matrix K4(3,3) ;
     for(size_t i = 0 ; i < 3 ; i++)
     {
         for(size_t j = 0 ; j < 3 ; j++)
@@ -747,34 +1321,35 @@ Matrix Tensor::rotate4thOrderTensor3D( Matrix & tensor, Point angle, double tol 
             K[i][j] = Om[i][j]*Om[i][j] ;
             K[i][j+3] = Om[i][j1]*Om[i][j2] ;
             K[i+3][j] = Om[i1][j]*Om[i2][j] ;
-            K[i+3][j+3] = Om[i1][j1]*Om[i2][j2] + Om[i1][j2]*Om[i2][j1] ;
+            K[i+3][j+3] = (Om[i1][j1]*Om[i2][j2] + Om[i1][j2]*Om[i2][j1]) ;
         }
     }
 
-
-
-//    Matrix K(6,6) ;
-/*    for(size_t i = 0 ; i < 3 ; i++)
-    {
-        for(size_t j = 0 ; j < 3 ; j++)
-        {
-            K[i+3][j+3] *= 2 ;
-        }
-    }*/
     Matrix Kt = K.transpose() ;
 
-//    K.print() ;
-
-    ret = (K*tensor)*Kt ;
-/*    for(size_t i = 0 ; i < 3 ; i++)
+    for(size_t i = 0 ; i < 3 ; i++)
     {
         for(size_t j = 0 ; j < 3 ; j++)
         {
-            ret[3+j][i] = 0 ; ret[i][3+j] = 0 ;
-            if( j != i ) 
-                ret[3+i][3+j] = 0 ;
+            K[i+3][j] *= 2. ;
+//            K[i][j+3] *= 0.5 ;
+//            Kt[i+3][j] *= 0.5 ;
+            Kt[i][j+3] *= 2. ;
         }
-    }*/
+    }
+
+    ret = (K)*(test*Kt) ;
+
+    for(size_t i = 0 ; i < 3 ; i++)
+    {
+        for(size_t j = 0 ; j < 3 ; j++)
+        {
+            ret[i][j+3] /= 2. ;
+            ret[i+3][j] /= 2. ;
+            ret[i+3][j+3] /= 2. ;
+        }
+
+    }
 
     for(size_t i = 0 ; i < ret.numCols() ; i++)
     {
