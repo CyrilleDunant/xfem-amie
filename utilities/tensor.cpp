@@ -566,8 +566,7 @@ Matrix Tensor::rotate4thOrderTensor2D( Matrix & tensor, double angle, double tol
 Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double G,  double nu, double angle, planeType pt)
 {
     Matrix cg = Tensor::orthotropicCauchyGreen(E_1, E_2, G, nu, pt ) ;
-    std::pair<Matrix, Matrix> transformation = rotationMatrix2D(angle) ;
-    return (transformation.first*cg)*transformation.second;
+    return Tensor::rotate4thOrderTensor2D( cg, angle ) ;
 }
 
 Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double G,  double nu, planeType pt)
@@ -1065,11 +1064,11 @@ Matrix rotationMatrixXYZ( double psi, double theta, double phi)
     return Om ;
 }
 
-Vector Tensor::rotate2ndOrderTensor3D( Vector & tensor, Point angle, double tol, bool tensorial ) 
+Vector Tensor::rotate2ndOrderTensor3D( Vector & tensor, Point angle, double tol ) 
 {
     Matrix Om = rotationMatrixXYZ( angle.getX(), angle.getY(), angle.getZ() ) ; 
 
-    if(tensorial)
+    if(false)
     {
         Tensor rot(2,3) ;
         for(size_t i = 0 ; i < 3 ; i++)
@@ -1131,7 +1130,7 @@ Vector Tensor::rotate2ndOrderTensor3D( Vector & tensor, Point angle, double tol,
     return ret ;
 }
 
-Matrix Tensor::rotate4thOrderTensor3D( Matrix & tensor, Point angle, double tol, bool tensorial ) 
+Matrix Tensor::rotate4thOrderTensor3D( Matrix & tensor, Point angle, double tol ) 
 {
     Matrix ret(6,6) ;
     if(tensor.numCols() != 6 || tensor.numRows() != 6)
@@ -1139,7 +1138,7 @@ Matrix Tensor::rotate4thOrderTensor3D( Matrix & tensor, Point angle, double tol,
 
     Matrix Om = rotationMatrixXYZ( angle.getX(), angle.getY(), angle.getZ() ) ; 
 
-    if(tensorial)
+    if(true)
     {
         Tensor rot(2,3) ;
         Tensor trs(2,3) ;

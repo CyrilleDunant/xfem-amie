@@ -484,6 +484,9 @@ target_link_libraries( test/cauchy_green Amie ${ALL_LINK_FLAGS})
 add_executable( test/spacetime_bilateral_damage EXCLUDE_FROM_ALL examples/test/main_test_spacetime_bilateral_damage.cpp )
 target_link_libraries( test/spacetime_bilateral_damage Amie ${ALL_LINK_FLAGS})
 
+add_executable( test/spacetime_fixed_crack EXCLUDE_FROM_ALL examples/test/main_test_spacetime_fixed_crack.cpp )
+target_link_libraries( test/spacetime_fixed_crack Amie ${ALL_LINK_FLAGS})
+
 add_executable( test/stxfem EXCLUDE_FROM_ALL examples/test/main_test_stxfem.cpp )
 target_link_libraries( test/stxfem Amie ${ALL_LINK_FLAGS})
 
@@ -512,6 +515,7 @@ check_test
 check_behaviour 
 test/cauchy_green
 test/spacetime_bilateral_damage
+test/spacetime_fixed_crack
 test/stxfem 
 test/tensor_rotation_2D
 test/tensor_rotation_3D

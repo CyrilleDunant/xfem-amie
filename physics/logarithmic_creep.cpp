@@ -228,23 +228,30 @@ void LogarithmicCreepWithImposedDeformation::preProcess( double timeStep, Elemen
     LogarithmicCreep::preProcess(timeStep, currentState) ;
 }
 
-LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Vector & imp, LogCreepAccumulator * acc) : LogarithmicCreepWithImposedDeformation(rig, imp, acc), dfunc(nullptr), criterion(nullptr), noFracture(false)
+LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Vector & imp, LogCreepAccumulator * acc) : LogarithmicCreepWithImposedDeformation(rig, imp, acc), dfunc(nullptr), criterion(nullptr), noFracture(false), etaSet(false), paramSet(false)
 {
+    currentEta = eta ;
+    currentParam = param ;
+}
+
+LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, const Matrix & r, double t, const Vector & imp, LogCreepAccumulator * acc) : LogarithmicCreepWithImposedDeformation(rig, v, r, t, imp, acc), dfunc(nullptr), criterion(nullptr), noFracture(false), etaSet(false), paramSet(false)
+{
+    currentEta = eta ;
+    currentParam = param ;
 
 }
 
-LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, const Matrix & r, double t, const Vector & imp, LogCreepAccumulator * acc) : LogarithmicCreepWithImposedDeformation(rig, v, r, t, imp, acc), dfunc(nullptr), criterion(nullptr), noFracture(false)
+LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Vector & imp, FractureCriterion * c , DamageModel * d, LogCreepAccumulator * acc) : LogarithmicCreepWithImposedDeformation(rig, imp, acc), dfunc(d), criterion(c), noFracture(!d || !c), etaSet(false), paramSet(false)
 {
-
-}
-
-LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Vector & imp, FractureCriterion * c , DamageModel * d, LogCreepAccumulator * acc) : LogarithmicCreepWithImposedDeformation(rig, imp, acc), dfunc(d), criterion(c), noFracture(!d || !c)
-{
+    currentEta = eta ;
+    currentParam = param ;
    timeDependentIntegration = true ;
 }
 
-LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, const Matrix & r, double t, const Vector & imp, FractureCriterion * c , DamageModel * d, LogCreepAccumulator * acc) : LogarithmicCreepWithImposedDeformation(rig, v, r, t, imp, acc), dfunc(d), criterion(c), noFracture(!d || !c)
+LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, const Matrix & r, double t, const Vector & imp, FractureCriterion * c , DamageModel * d, LogCreepAccumulator * acc) : LogarithmicCreepWithImposedDeformation(rig, v, r, t, imp, acc), dfunc(d), criterion(c), noFracture(!d || !c), etaSet(false), paramSet(false)
 {
+    currentEta = eta ;
+    currentParam = param ;
    timeDependentIntegration = true ;
 }
 
@@ -283,6 +290,15 @@ void LogarithmicCreepWithImposedDeformationAndFracture::step(double timestep, El
         dfunc->step(currentState, maxscore) ;
         currentState.getParent()->behaviourUpdated = dfunc->changed() ;
         currentState.getParent()->needAssembly = currentState.getParent()->behaviourUpdated ;
+
+            etaSet = false ;
+            paramSet = false ;
+            Point p( 0,0,0, 1.-2.*maxscore ) ;
+            currentParam = getTensor(p) ;
+            currentEta = getViscousTensor(p) ;
+            etaSet = true ;
+            paramSet = true ;
+
     }
     if(maxscore > 0)
     {
@@ -294,6 +310,8 @@ void LogarithmicCreepWithImposedDeformationAndFracture::step(double timestep, El
         prevImposed = imposed ;
         reducedTimeStep = -1. ;
     }
+
+
 }
 
 void LogarithmicCreepWithImposedDeformationAndFracture::setFractureCriterion(FractureCriterion * frac)
@@ -348,6 +366,8 @@ Matrix LogarithmicCreepWithImposedDeformation::getViscousTensor(const Point & p,
 
 Matrix LogarithmicCreepWithImposedDeformationAndFracture::getTensor(const Point & p, IntegrableEntity * e, int g) const
 {
+    if(paramSet) { return currentParam ; }
+
     if(noFracture)
         return param*(p.getT()+1.)*0.5 + prevParam*(1.-p.getT())*0.5 ;
     Matrix realParam = param*(p.getT()+1.)*0.5 + prevParam*(1.-p.getT())*0.5 ;
@@ -387,6 +407,9 @@ Matrix LogarithmicCreepWithImposedDeformationAndFracture::getTensor(const Point 
 
 Matrix LogarithmicCreepWithImposedDeformationAndFracture::getViscousTensor(const Point & p, IntegrableEntity * e, int g) const
 {
+    if(isPurelyElastic)
+        return eta ;
+
     if(noFracture)
         return eta*(p.getT()+1.)*0.5 + prevEta*(1.-p.getT())*0.5 ;
     Matrix realeta = eta*(p.getT()+1.)*0.5 + prevEta*(1.-p.getT())*0.5 ;

@@ -118,6 +118,10 @@ struct LogarithmicCreepWithImposedDeformationAndFracture : public LogarithmicCre
     DamageModel * dfunc ;
     FractureCriterion * criterion ;
     bool noFracture ;
+    bool etaSet ;
+    bool paramSet ;
+    Matrix currentEta ;
+    Matrix currentParam ;
 
     LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Vector & imp, LogCreepAccumulator * acc = new LogCreepAccumulator()) ;
     LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, const Matrix & r, double e, const Vector & imp, LogCreepAccumulator * acc = new TimeUnderLoadLogCreepAccumulator()) ;

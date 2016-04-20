@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 8/3/2016 at 9:50  */
+/* this is an auto-generated file created on 20/3/2016 at 11:17  */
 
 #ifndef __ENUMERATION_TRANSLATOR_H__
 #define __ENUMERATION_TRANSLATOR_H__
@@ -226,25 +226,6 @@ struct Enum
             case GENERALIZED_VISCOELASTIC_NON_ENRICHED_REAL_STRESS_FIELD: return "GENERALIZED_VISCOELASTIC_NON_ENRICHED_REAL_STRESS_FIELD" ;
         }
         return "DISPLACEMENT_FIELD" ;
-    }
-   
-    // parsed from header file: ../elements/integrable_entity.h
-    static CompositionType getCompositionType(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "SINGLE_OFF_DIAGONAL_VALUES") { return SINGLE_OFF_DIAGONAL_VALUES ; }
-        if( type == "DOUBLE_OFF_DIAGONAL_VALUES") { return DOUBLE_OFF_DIAGONAL_VALUES ; }
-        if(ok) { *ok = false ; }
-        return SINGLE_OFF_DIAGONAL_VALUES ;
-    }
-    static std::string fromCompositionType(CompositionType value)
-    {
-        switch(value)
-        {
-            case SINGLE_OFF_DIAGONAL_VALUES: return "SINGLE_OFF_DIAGONAL_VALUES" ;
-            case DOUBLE_OFF_DIAGONAL_VALUES: return "DOUBLE_OFF_DIAGONAL_VALUES" ;
-        }
-        return "SINGLE_OFF_DIAGONAL_VALUES" ;
     }
    
     // parsed from header file: ../features/boundarycondition.h
@@ -1447,6 +1428,25 @@ struct Enum
             case YOUNG_SHEAR: return "YOUNG_SHEAR" ;
         }
         return "YOUNG_POISSON" ;
+    }
+   
+    // parsed from header file: ../utilities/tensor.h
+    static CompositionType getCompositionType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "SINGLE_OFF_DIAGONAL_VALUES") { return SINGLE_OFF_DIAGONAL_VALUES ; }
+        if( type == "DOUBLE_OFF_DIAGONAL_VALUES") { return DOUBLE_OFF_DIAGONAL_VALUES ; }
+        if(ok) { *ok = false ; }
+        return SINGLE_OFF_DIAGONAL_VALUES ;
+    }
+    static std::string fromCompositionType(CompositionType value)
+    {
+        switch(value)
+        {
+            case SINGLE_OFF_DIAGONAL_VALUES: return "SINGLE_OFF_DIAGONAL_VALUES" ;
+            case DOUBLE_OFF_DIAGONAL_VALUES: return "DOUBLE_OFF_DIAGONAL_VALUES" ;
+        }
+        return "SINGLE_OFF_DIAGONAL_VALUES" ;
     }
    
 

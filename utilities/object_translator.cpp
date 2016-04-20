@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 8/3/2016 at 9:50  */
+/* this is an auto-generated file created on 20/3/2016 at 11:17  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -27,6 +27,7 @@
 #include "../physics/damagemodels/isotropiclineardamage.h"
 #include "../physics/damagemodels/spacetimebadisotropiclineardamage.h"
 #include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
+#include "../physics/damagemodels/spacetimefiberbasedfixedcrack.h"
 #include "../physics/fracturecriteria/boundedvonmises.h"
 #include "../physics/fracturecriteria/vonmises.h"
 #include "../physics/fracturecriteria/confinedmohrcoulomb.h"
@@ -571,6 +572,17 @@ namespace Amie
             return new SpaceTimeFiberBasedIsotropicLinearDamage(values["damage_increment"], values["time_tolerance"], values["maximum_damage"]) ;
         }
    
+        // parsed from header file: ../physics/damagemodels/spacetimefiberbasedfixedcrack.h
+        if( type == "SpaceTimeFiberBasedFixedCrack" )
+        { 
+            if( values.find("damage_increment") == values.end() ) { values["damage_increment"] = 0.1 ; } ; 
+            if( values.find("time_tolerance") == values.end() ) { values["time_tolerance"] = 1e-5 ; } ; 
+            if( values.find("maximum_damage") == values.end() ) { values["maximum_damage"] = 0.999 ; } ; 
+            if( strings.find("orientation_field") == strings.end() ) { strings["orientation_field"] = "EFFECTIVE_STRESS_FIELD" ; } ; 
+            if( strings.find("external_orientation") == strings.end() ) { strings["external_orientation"] = "false" ; } ; 
+            return new SpaceTimeFiberBasedFixedCrack(values["damage_increment"], values["time_tolerance"], values["maximum_damage"], Enum::getFieldType(strings["orientation_field"]), Enum::getbool(strings["external_orientation"])) ;
+        }
+   
         return nullptr ;
     }
 
@@ -596,6 +608,9 @@ namespace Amie
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h
         if( type == "SpaceTimeFiberBasedIsotropic" ) { return true ; }
    
+        // parsed from header file: ../physics/damagemodels/spacetimefiberbasedfixedcrack.h
+        if( type == "SpaceTimeFiberBasedFixedCrack" ) { return true ; }
+   
         return false ;
     }
 
@@ -612,6 +627,8 @@ namespace Amie
         // parsed from header file: ../physics/damagemodels/spacetimebadisotropiclineardamage.h
    
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h
+   
+        // parsed from header file: ../physics/damagemodels/spacetimefiberbasedfixedcrack.h
    
     }
 

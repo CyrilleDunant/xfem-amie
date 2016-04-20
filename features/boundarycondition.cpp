@@ -6932,7 +6932,11 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Me
         }
         auto i = t->begin() ;
         while((i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured()) || i->getBehaviour()->type == VOID_BEHAVIOUR)
+        {
             i++ ;
+            if(i == t->end())
+                return ;
+        }
 
         double minx = i->getBoundingPoint ( 0 ).getX() ;
         double maxx = i->getBoundingPoint ( 0 ).getX() ;
@@ -7038,7 +7042,11 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTri
         }
         auto i = t->begin() ;
         while((i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured()) || i->getBehaviour()->type == VOID_BEHAVIOUR)
+        {
             i++ ;
+            if(i == t->end())
+                return ;
+        }
 
         double minx = i->getBoundingPoint ( 0 ).getX() ;
         double maxx = i->getBoundingPoint ( 0 ).getX() ;
@@ -7137,7 +7145,11 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Me
 
         auto i = t->begin() ;
         while((i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured()) || i->getBehaviour()->type == VOID_BEHAVIOUR)
+        {
             i++ ;
+            if(i == t->end())
+                return ;
+        }
 
         double minx = i->getBoundingPoint ( 0 ).getX() ;
         double maxx = i->getBoundingPoint ( 0 ).getX() ;
@@ -7254,7 +7266,11 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTet
 
         auto i = t->begin() ;
         while((i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured()) || i->getBehaviour()->type == VOID_BEHAVIOUR)
+        {
             i++ ;
+            if(i == t->end())
+                return ;
+        }
 
         double minx = i->getBoundingPoint ( 0 ).getX() ;
         double maxx = i->getBoundingPoint ( 0 ).getX() ;

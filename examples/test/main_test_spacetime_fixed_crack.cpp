@@ -33,13 +33,18 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
-/*	CommandLineParser parser("Test a multi-surface damage behaviour on two elements") ;
+	CommandLineParser parser("Test a fixed crack damage behaviour on two elements") ;
 	parser.addFlag("--renew-base", "renew the base of results") ;
 	parser.addString("--output-directory","../examples/test/","directory where the results are stored", "-D") ;
 	parser.parseCommandLine(argc, argv) ;
 	bool renew = parser.getFlag("--renew-base") ;
-	std::string outdir = parser.getString("--output-directory") ;*/
+	std::string outdir = parser.getString("--output-directory") ;
 
+	std::ofstream out ;
+	if(renew)
+		out.open(outdir+"/test_spacetime_fixed_crack_base", std::ios::out) ;
+	else
+		out.open(outdir+"/test_spacetime_fixed_crack_current", std::ios::out) ;
 
         Sample rect(nullptr, 0.01,0.01,0,0) ;
 	SpaceTimeLimitSurfaceFractureCriterion * tension = new SpaceTimeLimitSurfaceFractureCriterion( "sqrt ( stress_1 * stres_1 + stress_2 * stress_2 )", "1e6", "", PRINCIPAL_POSITIVE ) ;
@@ -66,9 +71,9 @@ int main(int argc, char *argv[])
 	Vector stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
 	Vector strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
 	Vector omega = f.getAverageField( TENSOR_DAMAGE_FIELD, 1. ) ;
-	std::cout << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 << std::endl ;
+	out << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 << std::endl ;
 
-	for(double i = 0. ; i < 10 ; i+=2)
+	for(double i = 0. ; i < 7 ; i+=2)
 	{
 
 		top->setData( 0.000001 + 0.0000001*i ) ;
@@ -78,7 +83,7 @@ int main(int argc, char *argv[])
 		stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
 		strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
 		omega = f.getAverageField( TENSOR_DAMAGE_FIELD, 1. ) ;
-		std::cout << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 <<  std::endl ;
+		out << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 <<  std::endl ;
 	}
 
 //	f.removeBoundaryCondition( top ) ;
@@ -89,7 +94,7 @@ int main(int argc, char *argv[])
 	stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
 	strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
 	omega = f.getAverageField( TENSOR_DAMAGE_FIELD, 1. ) ;
-	std::cout << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 << std::endl ;
+	out << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 << std::endl ;
 
 	f.addBoundaryCondition( right ) ;
 
@@ -100,9 +105,9 @@ int main(int argc, char *argv[])
 	stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
 	strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
 	omega = f.getAverageField( TENSOR_DAMAGE_FIELD, 1. ) ;
-	std::cout << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 << std::endl ;
+	out << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 << std::endl ;
 
-	for(double i = 0. ; i < 15 ; i+=3)
+	for(double i = 0. ; i < 4 ; i+=1.5)
 	{
 
 		right->setData( 0.000001 + 0.0000001*i ) ;
@@ -112,21 +117,9 @@ int main(int argc, char *argv[])
 		stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
 		strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
 		omega = f.getAverageField( TENSOR_DAMAGE_FIELD, 1. ) ;
-		std::cout << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 <<  std::endl ;
+		out << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 <<  std::endl ;
 	}
 
-/*	std::ofstream out ;
-	if(renew)
-		out.open(outdir+"/test_viscodamage_multisurface_criterion_base", std::ios::out) ;
-	else
-		out.open(outdir+"/test_viscodamage_multisurface_criterion_current", std::ios::out) ;*/
-
-/*	for(size_t i = 0 ; i < 20 ; i++)
-	{
-		disp->setData( 0.000001 - 0.000002*i ) ;
-		f.step() ;
-		std::cout << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, 1. )[1]/1e6 << "\t" << f.getAverageField( STRAIN_FIELD, 1. )[1]*1e3 << "\t" << f.getAverageField( SCALAR_DAMAGE_FIELD, 1. )[0]*1e2 << std::endl ;
-	}*/
 
 	return 0 ;
 }
