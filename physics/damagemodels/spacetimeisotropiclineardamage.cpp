@@ -78,7 +78,7 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
 {
     elementState = &s ;
     converged = true ;
-    double timetol = 1e-3 ;
+    double timetol = 1e-4 ;
     s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = false ;
     if( fraction < 0 )
     {
