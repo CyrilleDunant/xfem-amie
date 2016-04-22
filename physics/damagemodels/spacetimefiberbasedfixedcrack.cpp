@@ -96,6 +96,7 @@ void SpaceTimeFiberBasedFixedCrack::step( ElementState &s , double maxscore)
 
     double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 
+    #pragma omp critical(taratartoto)
     if(!fractured() && score > 0 && (maxscore - score) < timeTolerance)
     {
         change = true ;
@@ -104,13 +105,13 @@ void SpaceTimeFiberBasedFixedCrack::step( ElementState &s , double maxscore)
         if( !fixedOrientation )
         {
             Vector strain = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedField(orientationField,  s , ( 1. -2.*maxscore )) ;
-            orientation = atan2 ( strain[1], strain[0] ) ;
-//            std::cout << strain[0] << "\t" << strain[1] << "\t" << strain[2] << "\t" << orientation << std::endl ;
+            orientation = 0.5*atan2( 0.5*strain[2], strain[0] - strain[1] ) ;
             fixedOrientation = true ;
         }
         
         Vector strain = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedField(orientationField,  s , ( 1. -2.*maxscore )) ;
         Vector rotated = Tensor::rotate2ndOrderTensor2D( strain, -orientation ) ;
+//        std::cout << strain[0] << "\t" << strain[1] << "\t" << strain[2] << "\t" << orientation << "\t" << rotated[0] << "\t"  << rotated[1] << "\t" << rotated[2] << std::endl ;
         if( std::abs( rotated[0] ) > std::abs( rotated[1] ) ) 
             state[0] += fibreFraction ;
         else
@@ -122,9 +123,6 @@ void SpaceTimeFiberBasedFixedCrack::step( ElementState &s , double maxscore)
                 state[i] = 1. ;
         }
     }
-
-
-
 
     return ;
 }

@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 
         Sample rect(nullptr, 0.01,0.01,0,0) ;
 	SpaceTimeLimitSurfaceFractureCriterion * tension = new SpaceTimeLimitSurfaceFractureCriterion( "sqrt ( stress_1 * stres_1 + stress_2 * stress_2 )", "1e6", "", PRINCIPAL_POSITIVE ) ;
-	SpaceTimeFiberBasedFixedCrack * dam = new SpaceTimeFiberBasedFixedCrack( 0.01, 1e-6, 0.99999, EFFECTIVE_STRESS_FIELD, false ) ;
+	SpaceTimeFiberBasedFixedCrack * dam = new SpaceTimeFiberBasedFixedCrack( 0.01, 1e-6, 0.99999, REAL_STRESS_FIELD, false ) ;
 
 	rect.setBehaviour(new LogarithmicCreepWithExternalParameters( "young_modulus = 10e9, poisson_ratio = 0.2", tension, dam ) ) ;
 

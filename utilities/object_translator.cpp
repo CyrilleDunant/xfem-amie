@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 20/3/2016 at 11:17  */
+/* this is an auto-generated file created on 22/3/2016 at 14:52  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -578,7 +578,7 @@ namespace Amie
             if( values.find("damage_increment") == values.end() ) { values["damage_increment"] = 0.1 ; } ; 
             if( values.find("time_tolerance") == values.end() ) { values["time_tolerance"] = 1e-5 ; } ; 
             if( values.find("maximum_damage") == values.end() ) { values["maximum_damage"] = 0.999 ; } ; 
-            if( strings.find("orientation_field") == strings.end() ) { strings["orientation_field"] = "EFFECTIVE_STRESS_FIELD" ; } ; 
+            if( strings.find("orientation_field") == strings.end() ) { strings["orientation_field"] = "REAL_STRESS_FIELD" ; } ; 
             if( strings.find("external_orientation") == strings.end() ) { strings["external_orientation"] = "false" ; } ; 
             return new SpaceTimeFiberBasedFixedCrack(values["damage_increment"], values["time_tolerance"], values["maximum_damage"], Enum::getFieldType(strings["orientation_field"]), Enum::getbool(strings["external_orientation"])) ;
         }
