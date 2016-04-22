@@ -471,7 +471,7 @@ Vector toPrincipal ( const Vector & stressOrStrain, CompositionType t )
             double trace = stressOrStrain[0] + stressOrStrain[1] ;
             double det = stressOrStrain[0]*stressOrStrain[1] - stressOrStrain[2]*stressOrStrain[2] ;
             double delta = std::sqrt(trace*trace - 4.*det) ;
-            double angle =  0.5*std::atan2 ( stressOrStrain[0] - stressOrStrain[1] , stressOrStrain[2] ) ;
+            double angle =  0.5*std::atan2 ( stressOrStrain[2], stressOrStrain[0] - stressOrStrain[1] ) ;
             if(std::cos(angle) < 0)
             {
                 ret[0] = (trace + delta)*.5 ;
@@ -518,7 +518,7 @@ Vector toPrincipal ( const Vector & stressOrStrain, CompositionType t )
             double trace = stressOrStrain[0] + stressOrStrain[1] ;
             double det = stressOrStrain[0]*stressOrStrain[1] - 0.25*stressOrStrain[2]*stressOrStrain[2] ;
             double delta = std::sqrt(trace*trace - 4.*det) ;
-            double angle =  0.5*std::atan2 ( stressOrStrain[0] - stressOrStrain[1] , 0.5*stressOrStrain[2] ) ;
+            double angle =  0.5*std::atan2 (  0.5*stressOrStrain[2], stressOrStrain[0] - stressOrStrain[1] ) ;
             if(std::cos(angle) < 0)
             {
                 ret[0] = (trace + delta)*.5 ;
@@ -1483,14 +1483,14 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         }
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
-            ret[0] =  0.5*atan2 ( strains[0] - strains[1] , 0.5*strains[2] ) ;
+            ret[0] =  0.5*atan2 ( 0.5*strains[2], strains[0] - strains[1]  ) ;
 
         }
         else
         {
-            ret[0] = 0.5*atan2 ( strains[0] - strains[1], 0.5*strains[3] ) ;
-            ret[1] = 0.5*atan2 ( strains[0] - strains[2], 0.5*strains[4] ) ;
-            ret[2] = 0.5*atan2 ( strains[1] - strains[2], 0.5*strains[5] ) ;
+            ret[0] = 0.5*atan2 ( 0.5*strains[3], strains[0] - strains[1] ) ;
+            ret[1] = 0.5*atan2 ( 0.5*strains[4], strains[0] - strains[2] ) ;
+            ret[2] = 0.5*atan2 ( 0.5*strains[5], strains[1] - strains[2] ) ;
         }
         if ( cleanup )
         {
@@ -1517,13 +1517,13 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         }
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
-            ret[0] =  0.5*atan2 ( strains[0] - strains[1] , 0.5*strains[2] ) ;
+            ret[0] =  0.5*atan2 ( 0.5*strains[2], strains[0] - strains[1]  ) ;
         }
         else
         {
-            ret[0] = 0.5*atan2 ( strains[0] - strains[1], 0.5*strains[3] ) ;
-            ret[1] = 0.5*atan2 ( strains[0] - strains[2], 0.5*strains[4] ) ;
-            ret[2] = 0.5*atan2 ( strains[1] - strains[2], 0.5*strains[5] ) ;
+            ret[0] = 0.5*atan2 ( 0.5*strains[3] , strains[0] - strains[1] ) ;
+            ret[1] = 0.5*atan2 (  0.5*strains[4], strains[0] - strains[2] ) ;
+            ret[2] = 0.5*atan2 (  0.5*strains[5], strains[1] - strains[2] ) ;
         }
         if ( cleanup )
         {
@@ -2472,13 +2472,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     w = weights[i] ;
                 if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
                 {
-                    ret[0] +=  atan2 ( tmp[0] - tmp[1] , tmp[2] )*gp.gaussPoints[i].second*w ;
+                    ret[0] +=  atan2 ( tmp[2], tmp[0] - tmp[1] )*gp.gaussPoints[i].second*w ;
                 }
                 else
                 {
-                    ret[0] += atan2 ( tmp[0] - tmp[1], tmp[3] )*gp.gaussPoints[i].second*w ;
-                    ret[1] += atan2 ( tmp[0] - tmp[2], tmp[4] )*gp.gaussPoints[i].second*w ;
-                    ret[2] += atan2 ( tmp[1] - tmp[2], tmp[5] )*gp.gaussPoints[i].second*w ;
+                    ret[0] += atan2 ( tmp[3], tmp[0] - tmp[1] )*gp.gaussPoints[i].second*w ;
+                    ret[1] += atan2 ( tmp[4], tmp[0] - tmp[2] )*gp.gaussPoints[i].second*w ;
+                    ret[2] += atan2 ( tmp[5], tmp[1] - tmp[2] )*gp.gaussPoints[i].second*w ;
                 }
                 total += gp.gaussPoints[i].second*w ;
             }
@@ -2513,13 +2513,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     w = weights[i] ;
                 if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
                 {
-                    ret[0] +=  atan2 ( tmp[0] - tmp[1] , tmp[2] )*gp.gaussPoints[i].second*w ;
+                    ret[0] +=  atan2 ( tmp[2], tmp[0] - tmp[1]  )*gp.gaussPoints[i].second*w ;
                 }
                 else
                 {
-                    ret[0] += atan2 ( tmp[0] - tmp[1], tmp[3] )*gp.gaussPoints[i].second*w ;
-                    ret[1] += atan2 ( tmp[0] - tmp[2], tmp[4] )*gp.gaussPoints[i].second*w ;
-                    ret[2] += atan2 ( tmp[1] - tmp[2], tmp[5] )*gp.gaussPoints[i].second*w ;
+                    ret[0] += atan2 ( tmp[3], tmp[0] - tmp[1] )*gp.gaussPoints[i].second*w ;
+                    ret[1] += atan2 ( tmp[4], tmp[0] - tmp[2] )*gp.gaussPoints[i].second*w ;
+                    ret[2] += atan2 ( tmp[5], tmp[1] - tmp[2] )*gp.gaussPoints[i].second*w ;
                 }
                 total += gp.gaussPoints[i].second*w ;
             }
@@ -2569,13 +2569,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
 
                 if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
                 {
-                    ret[0] +=  atan2 ( tmp[0] - tmp[1] , tmp[2] )*gp.gaussPoints[i].second*w ;
+                    ret[0] +=  atan2 ( tmp[2], tmp[0] - tmp[1] )*gp.gaussPoints[i].second*w ;
                 }
                 else
                 {
-                    ret[0] += atan2 ( tmp[0] - tmp[1], tmp[3] )*gp.gaussPoints[i].second*w ;
-                    ret[1] += atan2 ( tmp[0] - tmp[2], tmp[4] )*gp.gaussPoints[i].second*w ;
-                    ret[2] += atan2 ( tmp[1] - tmp[2], tmp[5] )*gp.gaussPoints[i].second*w ;
+                    ret[0] += atan2 ( tmp[3], tmp[0] - tmp[1] )*gp.gaussPoints[i].second*w ;
+                    ret[1] += atan2 ( tmp[4], tmp[0] - tmp[2] )*gp.gaussPoints[i].second*w ;
+                    ret[2] += atan2 ( tmp[5], tmp[1] - tmp[2] )*gp.gaussPoints[i].second*w ;
                 }
                 total += gp.gaussPoints[i].second*w ;
             }
@@ -2613,15 +2613,15 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     if(ret.size() != 1)
                         ret.resize(1, 0.);
-                    ret[0] +=  atan2 ( tmp[0] - tmp[1] , tmp[2] )*gp.gaussPoints[i].second*w ;
+                    ret[0] +=  atan2 ( tmp[2], tmp[0] - tmp[1] )*gp.gaussPoints[i].second*w ;
                 }
                 else
                 {
                     if(ret.size() != 3)
                         ret.resize(3, 0.);
-                    ret[0] += atan2 ( tmp[0] - tmp[1], tmp[3] )*gp.gaussPoints[i].second*w ;
-                    ret[1] += atan2 ( tmp[0] - tmp[2], tmp[4] )*gp.gaussPoints[i].second*w ;
-                    ret[2] += atan2 ( tmp[1] - tmp[2], tmp[5] )*gp.gaussPoints[i].second*w ;
+                    ret[0] += atan2 ( tmp[3], tmp[0] - tmp[1] )*gp.gaussPoints[i].second*w ;
+                    ret[1] += atan2 ( tmp[4], tmp[0] - tmp[2] )*gp.gaussPoints[i].second*w ;
+                    ret[2] += atan2 ( tmp[5], tmp[1] - tmp[2] )*gp.gaussPoints[i].second*w ;
                 }
                 total += gp.gaussPoints[i].second*w ;
             }
@@ -3297,7 +3297,7 @@ std::vector<Point> ElementState::getPrincipalFrame ( const Point &p, bool local,
     {
         Vector principalStresses ( 0., 2 ) ;
         getAverageField ( principalStressFieldType ( m ), principalStresses, vm, 0. ) ;
-        double principalAngle = 0.5*atan2 ( principalStresses[0]-principalStresses[1], 2.*principalStresses[2] ) ;
+        double principalAngle = 0.5*atan2 ( 2.*principalStresses[2], principalStresses[0]-principalStresses[1]  ) ;
         std::vector<Point> ret ;
         ret.push_back ( Point ( cos ( principalAngle ), -sin ( principalAngle ) ) );
         ret.push_back ( Point ( sin ( principalAngle ), cos ( principalAngle ) ) );

@@ -37,6 +37,7 @@ Matrix SpaceTimeFiberBasedFixedCrack::apply(const Matrix & m, const Point & p,co
     C[1][1] *= 1.-state[1] ;
     C[2][1] *= 1.-state[1] ;
     C[1][2] *= 1.-state[1] ;
+    C[2][2] *= 1.-(state.max()) ;
 
 /*    if(m.array().max() > 1)
     {
@@ -96,7 +97,6 @@ void SpaceTimeFiberBasedFixedCrack::step( ElementState &s , double maxscore)
 
     double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 
-    #pragma omp critical(taratartoto)
     if(!fractured() && score > 0 && (maxscore - score) < timeTolerance)
     {
         change = true ;
