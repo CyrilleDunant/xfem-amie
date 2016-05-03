@@ -158,7 +158,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             r[i] *= -1 ;
     
         double err0 = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
-        if(isnan(err0))
+        if(std::isnan(err0))
         {
             assembly->printDiag() ;
             exit(0) ;

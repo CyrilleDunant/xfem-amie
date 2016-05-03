@@ -5,7 +5,7 @@
 //
 #ifndef GRID_H
 #define GRID_H
-#include<valarray>
+#include <valarray>
 
 #include "../geometry/geometry_base.h"
 #include "../geometry/geometry_2D.h"
