@@ -11,19 +11,20 @@
 //
 #include "spacetimelimitsurfacefracturecriterion.h"
 #include "../damagemodels/damagemodel.h"
+#include "../damagemodels/spacetimefiberbasedfixedcrack.h"
 #include "../../utilities/parser/function_parser.h"
 #include <fstream>
 
 namespace Amie {
 
 
-SpaceTimeLimitSurfaceFractureCriterion::SpaceTimeLimitSurfaceFractureCriterion( Function m, Function s, StressMeasurementMethod mth, std::string y, std::string z, std::string t, std::string u, std::string v, std::string w) : measure(m), surface(s), method(mth), needStringVariable(false), surfaceYCoordinate(y), surfaceZCoordinate(z), surfaceTCoordinate(t), surfaceUCoordinate(u), surfaceVCoordinate(v), surfaceWCoordinate(w)
+SpaceTimeLimitSurfaceFractureCriterion::SpaceTimeLimitSurfaceFractureCriterion( Function m, Function s, ReferenceFrame frm, bool pos, std::string y, std::string z, std::string t, std::string u, std::string v, std::string w) : measure(m), surface(s), frame(frm), positive(pos), needStringVariable(false), surfaceYCoordinate(y), surfaceZCoordinate(z), surfaceTCoordinate(t), surfaceUCoordinate(u), surfaceVCoordinate(v), surfaceWCoordinate(w)
 {
    if( surfaceYCoordinate.length() > 0 || surfaceZCoordinate.length() > 0 || surfaceTCoordinate.length() > 0 || surfaceUCoordinate.length() > 0 || surfaceVCoordinate.length() > 0 || surfaceWCoordinate.length() > 0 )
        needStringVariable = true ;
 }
 
-SpaceTimeLimitSurfaceFractureCriterion::SpaceTimeLimitSurfaceFractureCriterion( std::string m, std::string f, std::string reqs, StressMeasurementMethod mth ) : method(mth), needStringVariable(false)
+SpaceTimeLimitSurfaceFractureCriterion::SpaceTimeLimitSurfaceFractureCriterion( std::string m, std::string f, std::string reqs, ReferenceFrame frm, bool pos ) : frame(frm), positive(pos), needStringVariable(false)
 {
     std::map<std::string, char> coordMeasures ; 
     coordMeasures["stress_1"] = 'x' ;
@@ -94,7 +95,7 @@ SpaceTimeLimitSurfaceFractureCriterion::SpaceTimeLimitSurfaceFractureCriterion( 
 
 FractureCriterion * SpaceTimeLimitSurfaceFractureCriterion::getCopy() const 
 {
-    SpaceTimeLimitSurfaceFractureCriterion * ret = new SpaceTimeLimitSurfaceFractureCriterion( measure, surface, method, surfaceYCoordinate, surfaceZCoordinate, surfaceTCoordinate, surfaceUCoordinate, surfaceVCoordinate, surfaceWCoordinate ) ;
+    SpaceTimeLimitSurfaceFractureCriterion * ret = new SpaceTimeLimitSurfaceFractureCriterion( measure, surface, frame, positive, surfaceYCoordinate, surfaceZCoordinate, surfaceTCoordinate, surfaceUCoordinate, surfaceVCoordinate, surfaceWCoordinate ) ;
     ret->copyEssentialParameters( this ) ;
     return ret ;
 }
@@ -108,7 +109,18 @@ double SpaceTimeLimitSurfaceFractureCriterion::grade(ElementState &s)
     if(gradeAfter < 0)
         return gradeAfter ;
     if(gradeBefore > -POINT_TOLERANCE)
+    {
+/*        Matrix S =s.getParent()->getBehaviour()->getTensor(Point(0,0,0,1));
+        (S/1e9).print() ;
+        for(size_t i = 0 ; i < 3 ; i++)
+        {
+            std::cout << std::abs(2*(S[i][0]*S[i][0]+S[i][1]*S[i][1]-S[i][0]*S[i][1])+S[i][2]*S[i][2]) << "\t" ;
+        }
+
+        SpaceTimeFiberBasedFixedCrack * toto = dynamic_cast<SpaceTimeFiberBasedFixedCrack *>(s.getParent()->getBehaviour()->getDamageModel()) ;
+        std::cout << gradeBefore << "\t" << gradeAfter << "\t" << toto->getState().max() << "\t" << toto->getState().min()<< "\t" << toto->getOrientation() << std::endl ;*/
         return 1 ;
+    }
     
     double upTime = 1 ;
     double downTime = -1 ;
@@ -153,40 +165,69 @@ double getVal( Vector & v, size_t iter)
 double SpaceTimeLimitSurfaceFractureCriterion::gradeAtTime(ElementState &s, double t)  
 {
     if( s.getParent()->getBehaviour()->fractured() )
+    {
         return -1 ;
+    }
 
-    FieldType sigma = REAL_STRESS_FIELD ;
-    FieldType epsilon = MECHANICAL_STRAIN_FIELD ;
-    if( method == PRINCIPAL || method == PRINCIPAL_POSITIVE || method == PRINCIPAL_NEGATIVE )
+
+    std::pair<Vector, Vector> currentState = getSmoothedFields( REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD, s, t ) ;
+    double orientation = 0 ;
+    bool oriented = false ;
+    switch(frame)
     {
-        sigma = PRINCIPAL_REAL_STRESS_FIELD ;
-        epsilon = PRINCIPAL_MECHANICAL_STRAIN_FIELD ;
-    }
-    std::pair<Vector, Vector> currentState = getSmoothedFields( sigma, epsilon, s, t ) ;
-    switch( method )
+    case FRAME_CARTESIAN:
+        oriented = true ;
+        break;
+    case FRAME_PRINCIPAL:
+        oriented = true ;
+        orientation = 0.5*atan2( 2*currentState.second[2], currentState.second[1] - currentState.second[0] ) ;
+        break ;
+    case FRAME_MODEL:
     {
-        case ALL:
-        case PRINCIPAL:
-            break;
-        case ALL_POSITIVE:
-        case PRINCIPAL_POSITIVE:
-            for(size_t i = 0 ; i < currentState.first.size() ; i++)
-                currentState.first[i] = std::max(0., currentState.first[i] ) ;
-            for(size_t i = 0 ; i < currentState.second.size() ; i++)
-                currentState.second[i] = std::max(0., currentState.second[i] ) ;
-            break;
-        case ALL_NEGATIVE:
-        case PRINCIPAL_NEGATIVE:
-            for(size_t i = 0 ; i < currentState.first.size() ; i++)
-                currentState.first[i] = std::max(0., -currentState.first[i] ) ;
-            for(size_t i = 0 ; i < currentState.second.size() ; i++)
-                currentState.second[i] = std::max(0., -currentState.second[i] ) ;
-            break;
+        SpaceTimeFiberBasedFixedCrack * toto = dynamic_cast<SpaceTimeFiberBasedFixedCrack *>(s.getParent()->getBehaviour()->getDamageModel()) ;
+        if(toto)
+        {
+            if(toto->isOriented())
+            {
+                oriented = true ;
+                orientation = toto->getOrientation() ;
+            }
+        }
+        break ;
     }
+    case FRAME_MATERIAL:
+    {
+//        GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables test = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &>(s) ;
+        if( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &>(s).has("crack_orientation") )
+        {
+            oriented = true ;
+            orientation = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &>(s).get( "crack_orientation", values) ;
+        }
+        break ;
+    }
+    default:
+        break ;
+    }
+
+    if(!oriented)
+        orientation = 0.5*atan2( 2*currentState.second[2], currentState.second[1] - currentState.second[0] ) ;
+
+    Vector sigma = Tensor::rotate2ndOrderTensor2D( currentState.first, orientation ) ;
+    Vector epsilon = Tensor::rotate2ndOrderTensor2D( currentState.second, orientation ) ;
+
+    if(positive)
+    {
+        for(size_t i = 0 ; i <sigma.size() ; i++)
+            if( sigma[i] < 0) { sigma[i] = 0 ; }
+        for(size_t i = 0 ; i <epsilon.size() ; i++)
+            if( epsilon[i] < 0) { epsilon[i] = 0 ; }
+    }
+
+//    std::cout << sigma[0] << "\t" << sigma[1] << "\t" << sigma[2] << std::endl ;
 
     VirtualMachine vm ;
-    double stress = vm.eval( measure, getVal( currentState.first, 0), getVal( currentState.first, 1), getVal( currentState.first, 2), getVal( currentState.first, 3), getVal( currentState.first, 4), getVal( currentState.first, 5)) ;
-    double strain = vm.eval( measure, getVal( currentState.second, 0), getVal( currentState.second, 1), getVal( currentState.second, 2), getVal( currentState.second, 3), getVal( currentState.second, 4), getVal( currentState.second, 5)) ;
+    double stress = vm.eval( measure, getVal( sigma, 0), getVal( sigma, 1), getVal( sigma, 2), getVal( sigma, 3), getVal( sigma, 4), getVal( sigma, 5)) ;
+    double strain = vm.eval( measure, getVal( epsilon, 0), getVal( epsilon, 1), getVal( epsilon, 2), getVal( epsilon, 3), getVal( epsilon, 4), getVal( epsilon, 5)) ;
 
     double ycoor = 0 ;
     double zcoor = 0 ;
@@ -214,10 +255,12 @@ double SpaceTimeLimitSurfaceFractureCriterion::gradeAtTime(ElementState &s, doub
 
     double limit = std::max(0., vm.eval( surface, strain, ycoor, zcoor, tcoor, ucoor, vcoor, wcoor )) ;
 
-//    std::cout << strain << "\t" << stress << "\t" << limit << std::endl ;
 
     if( stress > limit )
+    {
+//        std::cout << currentState.second[0] << "\t" << currentState.second[1] << "\t" << currentState.first[0] << "\t" << currentState.first[1] << std::endl ;
         return std::min( 1., 1.-limit/stress ) ;
+    }
 
     return std::max( -1., -1.+ stress/limit ) ;
 }

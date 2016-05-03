@@ -480,3 +480,13 @@ void LogarithmicCreepWithImposedDeformationAndFracture::preProcess( double timeS
     if(dfunc) { dfunc->prepare() ; }
 }
 
+bool LogarithmicCreepWithImposedDeformationAndFracture::fractured() const
+{
+    if(noFracture) { return false ; }
+
+    for( size_t i = 0 ; i < dfunc->getState().size() ; i++)
+    {
+        if(! dfunc->fractured(i)) { return false ; }
+    }
+    return true ;
+}

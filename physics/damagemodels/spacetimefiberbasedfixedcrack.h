@@ -23,6 +23,7 @@ namespace Amie {
     @value[maximum_damage] 0.999 // damage above which an element is considered broken
     @string<FieldType>[orientation_field] REAL_STRESS_FIELD // field used to get the orientation of the crack
     @string<bool>[external_orientation] false // find the orientation from the ElementState
+    @string<bool>[cleavage] false // sets one crack instead of two
 */
 class SpaceTimeFiberBasedFixedCrack : public SpaceTimeFiberBasedIsotropicLinearDamage
 {
@@ -30,10 +31,11 @@ protected:
     double orientation ;
     FieldType orientationField ;
     bool fixedOrientation ;
+    bool cleavage ;
     std::map<std::string, double> values ;
 
 public:
-    SpaceTimeFiberBasedFixedCrack(double f = 0.1, double tol = 0.001, double cutoff = 0.6, FieldType type = REAL_STRESS_FIELD, bool externalOrientation = false) : SpaceTimeFiberBasedIsotropicLinearDamage(f,tol,cutoff), orientation(0.), orientationField(type), fixedOrientation(externalOrientation) { getState(true).resize(2,0.) ; }
+    SpaceTimeFiberBasedFixedCrack(double f = 0.1, double tol = 0.001, double cutoff = 0.6, FieldType type = REAL_STRESS_FIELD, bool externalOrientation = false, bool cleav = false) : SpaceTimeFiberBasedIsotropicLinearDamage(f,tol,cutoff), orientation(0.), orientationField(type), fixedOrientation(externalOrientation), cleavage(cleav) { getState(true).resize(2,0.) ; }
 
     virtual ~SpaceTimeFiberBasedFixedCrack() { } 
 
@@ -45,6 +47,9 @@ public:
     virtual DamageModel * getCopy() const ;
 
     virtual bool fractured(int direction = -1) const  ;
+
+    double getOrientation() const { return orientation ; }
+    bool isOriented() const { return fixedOrientation ; }
 };
 
 }

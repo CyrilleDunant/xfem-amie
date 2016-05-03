@@ -16,23 +16,23 @@
 
 namespace Amie {
 
-typedef enum {
-    ALL,
-    ALL_POSITIVE,
-    ALL_NEGATIVE,
-    PRINCIPAL,
-    PRINCIPAL_POSITIVE,
-    PRINCIPAL_NEGATIVE,
-} StressMeasurementMethod ;
 
 
+typedef enum
+{
+    FRAME_CARTESIAN,
+    FRAME_PRINCIPAL,
+    FRAME_MODEL,
+    FRAME_MATERIAL,
+} ReferenceFrame ;
 
 
 /*PARSE SpaceTimeLimitSurfaceFractureCriterion FractureCriterion
 	@string[stress_measure] // function used to get a scalar measure of the stress
 	@string[failure_surface] // function representing the stress-strain curve
 	@string[requirements] // defines internal variables required by the failure surface
-	@string<StressMeasurementMethod>[method] ALL // defines which stress components are used
+        @string<ReferenceFrame>[frame] FRAME_CARTESIAN // defines the frame in which the criterion is evaluated
+        @string<bool>[positive] false // ignores negative components of the strains and stress tensors
 */
 class SpaceTimeLimitSurfaceFractureCriterion : public FractureCriterion
 {
@@ -40,7 +40,8 @@ protected:
 	Function measure ;
 	Function surface ;
 
-	StressMeasurementMethod method ;
+        ReferenceFrame frame ;
+        bool positive ;
 	bool needStringVariable ;
 
 	std::string surfaceYCoordinate ;
@@ -56,10 +57,10 @@ protected:
 
 public:
 
-	SpaceTimeLimitSurfaceFractureCriterion( Function m, Function s, StressMeasurementMethod mth = ALL, std::string surface_y = std::string(), std::string surface_z = std::string(), std::string surface_t = std::string(), std::string surface_u = std::string(), std::string surface_v = std::string(), std::string surface_w = std::string()) ;
-	SpaceTimeLimitSurfaceFractureCriterion( std::string m, std::string f, std::string requirements, StressMeasurementMethod mth = ALL) ;
+        SpaceTimeLimitSurfaceFractureCriterion( Function m, Function s, ReferenceFrame frm = FRAME_PRINCIPAL, bool pos = false, std::string surface_y = std::string(), std::string surface_z = std::string(), std::string surface_t = std::string(), std::string surface_u = std::string(), std::string surface_v = std::string(), std::string surface_w = std::string()) ;
+        SpaceTimeLimitSurfaceFractureCriterion( std::string m, std::string f, std::string requirements, ReferenceFrame frm = FRAME_PRINCIPAL, bool ps = false) ;
 
-	virtual ~SpaceTimeLimitSurfaceFractureCriterion() {  } ;
+        virtual ~SpaceTimeLimitSurfaceFractureCriterion() {  }
 
 	virtual FractureCriterion * getCopy() const ;
 

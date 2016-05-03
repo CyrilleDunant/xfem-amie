@@ -135,9 +135,7 @@ struct LogarithmicCreepWithImposedDeformationAndFracture : public LogarithmicCre
     virtual bool changed() const {
         return (noFracture ? false : dfunc->changed()) ;
     }
-    virtual bool fractured() const {
-        return (noFracture ? false : dfunc->fractured()) ;
-    }
+    virtual bool fractured() const ;
 
     virtual void step(double timestep, ElementState &s, double maxScore) ;
 

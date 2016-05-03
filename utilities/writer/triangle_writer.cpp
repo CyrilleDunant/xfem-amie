@@ -920,7 +920,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
                 {
                     int r = ctoi( fieldName.at(1) ) -1 ;
                     int c = ctoi( fieldName.at(2) ) -1 ;
-                    double v = (i->getBehaviour())->getTensor( Point(0,0,0) )[r][c] ;
+                    double v = std::abs((i->getBehaviour())->getTensor( Point(0,0,0) )[r][c]) ;
                     ret[0][iterator] = v ;
                     ret[1][iterator] = v ;
                     ret[2][iterator++] = v ;

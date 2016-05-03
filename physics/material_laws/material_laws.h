@@ -52,6 +52,16 @@ struct ExternalMaterialLaw
 
 typedef std::vector<ExternalMaterialLaw *> ExternalMaterialLawList ;
 
+struct GetDamageOrientationMaterialLaw : public ExternalMaterialLaw
+{
+    GetDamageOrientationMaterialLaw( std::string args = std::string(), char sep = ',' ) : ExternalMaterialLaw(args, sep) { }
+    virtual ~GetDamageOrientationMaterialLaw() { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+
+};
+
+
 /* Generic material law to set one or several variables to a constant
  * The variables affected and their values are the variables specified in the arguments
  */

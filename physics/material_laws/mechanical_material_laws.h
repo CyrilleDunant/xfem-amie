@@ -86,6 +86,16 @@ struct MineralMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( Matrix & stiffness, Point angle, planeType plane ) ;
 } ;
 
+
+/*PARSE SetInitialDamage ExternalMaterialLaw */
+struct SetInitialDamageMaterialLaw : public ExternalMaterialLaw
+{
+    SetInitialDamageMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
+    virtual ~SetInitialDamageMaterialLaw() { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+};
+
 struct SetStiffnessMatrixMaterialLaw : public ExternalMaterialLaw
 {
     Matrix localStiffness ;

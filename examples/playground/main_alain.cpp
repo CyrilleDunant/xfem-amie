@@ -40,94 +40,23 @@ int main(int argc, char *argv[])
 	bool renew = parser.getFlag("--renew-base") ;
 	std::string outdir = parser.getString("--output-directory") ;*/
 
+    Matrix C(3,3) ;
+    C[0][0] = 60 ;
+    C[0][1] = 14 ;
+    C[1][0] = 14 ;
+    C[0][2] = 3 ;
+    C[2][0] = 3 ;
+    C[1][1] = 85 ;
+    C[1][2] = -5 ;
+    C[2][1] = -5 ;
+    C[2][2] = 50 ;
 
-        Sample rect(nullptr, 0.01,0.01,0,0) ;
-	SpaceTimeLimitSurfaceFractureCriterion * tension = new SpaceTimeLimitSurfaceFractureCriterion( "sqrt ( stress_1 * stres_1 + stress_2 * stress_2 )", "1e6", "", PRINCIPAL_POSITIVE ) ;
-	SpaceTimeFiberBasedFixedCrack * dam = new SpaceTimeFiberBasedFixedCrack( 0.01, 1e-6, 0.99999, EFFECTIVE_STRESS_FIELD, false ) ;
+    Vector normal(3) ; normal[0] = 1 ;
+    Vector tangent(3) ; tangent[1] = 1 ;
 
-	rect.setBehaviour(new LogarithmicCreepWithExternalParameters( "young_modulus = 10e9, poisson_ratio = 0.2", tension, dam ) ) ;
 
-	FeatureTree f(&rect) ;
-	f.setSamplingNumber(0) ;
-        f.setDeltaTime(0.001) ;
-        f.setMinDeltaTime(1e-9) ;
 
-	f.step() ;
 
-	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT_AFTER) ) ;
-	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER ) ) ;
-	BoundingBoxDefinedBoundaryCondition * top = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_ETA, TOP_AFTER, 0) ;
-	BoundingBoxDefinedBoundaryCondition * right = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_XI, RIGHT_AFTER, 0) ;
-	f.addBoundaryCondition( top ) ;
-	top->setData( 0.0000009 ) ;
-
-	f.step() ;
-
-	Vector stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
-	Vector strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
-	Vector omega = f.getAverageField( TENSOR_DAMAGE_FIELD, 1. ) ;
-	std::cout << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 << std::endl ;
-
-	for(double i = 0. ; i < 10 ; i+=2)
-	{
-
-		top->setData( 0.000001 + 0.0000001*i ) ;
-
-		f.step() ;
-
-		stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
-		strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
-		omega = f.getAverageField( TENSOR_DAMAGE_FIELD, 1. ) ;
-		std::cout << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 <<  std::endl ;
-	}
-
-//	f.removeBoundaryCondition( top ) ;
-//	top->setData( 0. ) ;
-
-	f.step() ;
-
-	stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
-	strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
-	omega = f.getAverageField( TENSOR_DAMAGE_FIELD, 1. ) ;
-	std::cout << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 << std::endl ;
-
-	f.addBoundaryCondition( right ) ;
-
-	right->setData( 0.0000009 ) ;
-
-	f.step() ;
-
-	stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
-	strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
-	omega = f.getAverageField( TENSOR_DAMAGE_FIELD, 1. ) ;
-	std::cout << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 << std::endl ;
-
-	for(double i = 0. ; i < 15 ; i+=3)
-	{
-
-		right->setData( 0.000001 + 0.0000001*i ) ;
-
-		f.step() ;
-
-		stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
-		strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
-		omega = f.getAverageField( TENSOR_DAMAGE_FIELD, 1. ) ;
-		std::cout << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 <<  std::endl ;
-	}
-
-/*	std::ofstream out ;
-	if(renew)
-		out.open(outdir+"/test_viscodamage_multisurface_criterion_base", std::ios::out) ;
-	else
-		out.open(outdir+"/test_viscodamage_multisurface_criterion_current", std::ios::out) ;*/
-
-/*	for(size_t i = 0 ; i < 20 ; i++)
-	{
-		disp->setData( 0.000001 - 0.000002*i ) ;
-		f.step() ;
-		std::cout << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, 1. )[1]/1e6 << "\t" << f.getAverageField( STRAIN_FIELD, 1. )[1]*1e3 << "\t" << f.getAverageField( SCALAR_DAMAGE_FIELD, 1. )[0]*1e2 << std::endl ;
-	}*/
-
-	return 0 ;
+    return 0 ;
 }
 

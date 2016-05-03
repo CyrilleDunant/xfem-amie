@@ -42,8 +42,8 @@ int main(int argc, char *argv[])
 
         Sample rect(nullptr, 0.01,0.01,0,0) ;
 	SpaceTimeMultiSurfaceFractureCriterion * crit = new SpaceTimeMultiSurfaceFractureCriterion() ;
-	SpaceTimeLimitSurfaceFractureCriterion * tension = new SpaceTimeLimitSurfaceFractureCriterion( "max stress_1 stress_2", "tensile_strength", "tensile_strength", PRINCIPAL_POSITIVE ) ;
-	SpaceTimeLimitSurfaceFractureCriterion * compression = new SpaceTimeLimitSurfaceFractureCriterion( "max stress_1 stress_2", "compressive_strength", "compressive_strength", PRINCIPAL_NEGATIVE ) ;
+        SpaceTimeLimitSurfaceFractureCriterion * tension = new SpaceTimeLimitSurfaceFractureCriterion( "max stress_1 stress_2", "tensile_strength", "tensile_strength", FRAME_PRINCIPAL, true ) ;
+        SpaceTimeLimitSurfaceFractureCriterion * compression = new SpaceTimeLimitSurfaceFractureCriterion( "max ( stress_1 * -1 ) ( stress_2 * -1 )", "compressive_strength", "compressive_strength", FRAME_PRINCIPAL, false ) ;
 	crit->add( tension ) ;
 	crit->add( compression ) ;
 	SpaceTimeFiberBasedIsotropicLinearDamage * dam = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.01, 1e-6, 0.99999 ) ;

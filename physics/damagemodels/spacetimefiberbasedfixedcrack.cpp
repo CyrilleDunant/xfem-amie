@@ -27,39 +27,44 @@ Matrix SpaceTimeFiberBasedFixedCrack::apply(const Matrix & m, const Point & p,co
     if(state.max() < POINT_TOLERANCE || abs(m.array()).max() < POINT_TOLERANCE )
         return m ;
 
-    Matrix C = m ;
-    C = Tensor::rotate4thOrderTensor2D( C, orientation ) ;
-    C[0][0] *= 1.-state[0] ;
-    C[0][1] *= 1.-(state.min()) ;
-    C[0][2] *= 1.-state[0] ;
-    C[1][0] *= 1.-(state.min()) ;
-    C[2][0] *= 1.-state[0] ;
-    C[1][1] *= 1.-state[1] ;
-    C[2][1] *= 1.-state[1] ;
-    C[1][2] *= 1.-state[1] ;
-    C[2][2] *= 1.-(state.max()) ;
-
-/*    if(m.array().max() > 1)
+    if(fractured(0) && fractured(1))
+        return m*residualStiffnessFraction ;
+    else
     {
+        Matrix S = inverse3x3Matrix( m ) ;
+        S = Tensor::rotate4thOrderTensor2D( S, orientation, -1) ;
 
-    std::cout << "--------------" << std::endl ;
+        Matrix C = inverse3x3Matrix(S) ;
 
-    std::cout << orientation << "\t" << state[0] << "\t" << state[1] << std::endl ;
+        Matrix D(3,3) ;
+        D[0][0] = std::max(std::sqrt(1.-state[0]), residualStiffnessFraction ) ;
+        if(cleavage) { D[2][2] = D[0][0] ; D[1][1] = 1 ;}
+        else
+        {
+            D[1][1] = std::max(std::sqrt(1.-state[1]), residualStiffnessFraction ) ;
+            D[2][2] = std::sqrt(D[0][0]*D[1][1]) ;
+        }
 
-    m.print() ;
+        C = (D*C)*D ;
 
-    std::cout << "------" << std::endl ;
+        if(fractured())
+        {
+            C = Tensor::rotate4thOrderTensor2D( C, -orientation, 1) ;
+            return C ;
+        }
 
-    C.print() ;
+//        return C ;
 
-    std::cout << "------" << std::endl ;
+        S = inverse3x3Matrix(C) ;
 
-    Tensor::rotate4thOrderTensor2D( C, -orientation ).print() ; 
+        S = Tensor::rotate4thOrderTensor2D( S, -orientation, -1 ) ;
 
-    std::cout << "------" << std::endl ;
-    }*/
+        S = inverse3x3Matrix( S ) ;
 
-    return Tensor::rotate4thOrderTensor2D( C, -orientation ) ;
+        return S ;
+    }
+
+    return m*residualStiffnessFraction ;
 }
 
 
@@ -97,31 +102,67 @@ void SpaceTimeFiberBasedFixedCrack::step( ElementState &s , double maxscore)
 
     double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 
-    if(!fractured() && score > 0 && (maxscore - score) < timeTolerance)
+    if(!(fractured(0) && fractured(1)) && score > 0 && (maxscore - score) < timeTolerance)
     {
         change = true ;
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
 
+        if(state.max() < POINT_TOLERANCE)
         if( !fixedOrientation )
         {
             Vector strain = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedField(orientationField,  s , ( 1. -2.*maxscore )) ;
-            orientation = 0.5*atan2( 0.5*strain[2], strain[0] - strain[1] ) ;
+            orientation = 0.5*atan2( 2*strain[2], strain[1] - strain[0] ) ;
             fixedOrientation = true ;
+            if(cleavage)
+            {
+                Vector rotated = Tensor::rotate2ndOrderTensor2D( strain, orientation ) ;
+                if(rotated[1] > rotated[0]) { orientation += M_PI*0.5 ; }
+                rotated = Tensor::rotate2ndOrderTensor2D( strain, orientation ) ;
+            }
         }
         
-        Vector strain = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedField(orientationField,  s , ( 1. -2.*maxscore )) ;
-        Vector rotated = Tensor::rotate2ndOrderTensor2D( strain, -orientation ) ;
-//        std::cout << strain[0] << "\t" << strain[1] << "\t" << strain[2] << "\t" << orientation << "\t" << rotated[0] << "\t"  << rotated[1] << "\t" << rotated[2] << std::endl ;
-        if( std::abs( rotated[0] ) > std::abs( rotated[1] ) ) 
-            state[0] += fibreFraction ;
+        if(cleavage)
+        {
+            Vector strain = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedField(orientationField,  s , ( 1. -2.*maxscore )) ;
+            Vector rotated = Tensor::rotate2ndOrderTensor2D( strain, orientation ) ;
+//            std::cout << maxscore << "\t" << rotated[0] << "\t" << rotated[1] << "\t" << rotated[2] << "\t" << state[0] << std::endl ;
+            if(rotated[1] > std::max( rotated[0], rotated[2])) { state[0] = 1. ; }
+            else
+                state[0] += fibreFraction ;
+        }
         else
-            state[1] += fibreFraction ;
+        {
+            Vector strain = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedField(orientationField,  s , ( 1. -2.*maxscore )) ;
+            Vector rotated = Tensor::rotate2ndOrderTensor2D( strain, orientation ) ;
+            if(rotated[2] > std::max( rotated[0], rotated[1]))
+            {
+                if(state[0] < 1.)
+                    state[0] += fibreFraction*std::sqrt(0.5) ;
+                if(state[1] < 1.)
+                    state[1] += fibreFraction*std::sqrt(0.5) ;
+            }
+            else if( rotated[0] >  rotated[1] )
+            {
+                if(state[0] < 1.)
+                    state[0] += fibreFraction ;
+                else
+                    state[1] += fibreFraction ;
+            }
+            else
+            {
+                if(state[1] < 1.)
+                    state[1] += fibreFraction ;
+                else
+                    state[0] += fibreFraction ;
+            }
+        }
 
         for(size_t i = 0 ; i < state.size() ; i++)
         {
-            if(state[i] > 1)
+            if(state[i] > thresholdDamageDensity)
                 state[i] = 1. ;
         }
+
     }
 
     return ;
@@ -129,7 +170,7 @@ void SpaceTimeFiberBasedFixedCrack::step( ElementState &s , double maxscore)
 
 DamageModel * SpaceTimeFiberBasedFixedCrack::getCopy() const
 {
-    SpaceTimeFiberBasedFixedCrack * dam = new SpaceTimeFiberBasedFixedCrack(fibreFraction, timeTolerance, thresholdDamageDensity, orientationField, fixedOrientation && (fraction < 0) ) ;
+    SpaceTimeFiberBasedFixedCrack * dam = new SpaceTimeFiberBasedFixedCrack(fibreFraction, timeTolerance, thresholdDamageDensity, orientationField, fixedOrientation && (fraction < 0), cleavage ) ;
     dam->copyEssentialParameters( this ) ;
     return dam ;
 }
@@ -138,7 +179,16 @@ bool SpaceTimeFiberBasedFixedCrack::fractured(int direction) const
 {
     if(fraction < 0)
         return false ;
-    return getState().max() >= thresholdDamageDensity ;
+    if(cleavage)
+    {
+        return state[0] >= thresholdDamageDensity ;
+    }
+    if(direction < 0 || direction >= state.size())
+    {
+        return this->fractured(0) || this->fractured(1) ;
+        return getState().max() >= thresholdDamageDensity ;
+    }
+    return state[direction] >= thresholdDamageDensity ;
 }
 
 }

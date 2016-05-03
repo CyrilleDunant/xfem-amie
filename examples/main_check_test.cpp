@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
 		command += dir+"/check_behaviour -i " + testdir+"/"+inis[i] ;
 		for(int j = 1 ; j < argc ; j++)
 			command += " " + std::string(argv[j]) ;
-		command += " 1>"+dir+"/test/"+inis[i]+".out 2>"+dir+"/"+inis[i]+".err" ;
+		command += " 1>"+dir+"/test/"+inis[i]+".out 2>"+dir+"/test/"+inis[i]+".err" ;
 //		std::cout << "\t" << command << std::endl ;
 		int r = std::system(command.c_str()) ;
 		gettimeofday ( &time1, nullptr );

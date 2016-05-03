@@ -185,6 +185,21 @@ void StrainRateDependentStrengthMaterialLaw::preProcess(GeneralizedSpaceTimeVisc
 
 }
 
+void SetInitialDamageMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt )
+{
+    if(s.has("initial_damage"))
+    {
+        double d = s.get("initial_damage", defaultValues ) ;
+        DamageModel * dfunc = s.getParent()->getBehaviour()->getDamageModel() ;
+        if(dfunc && d > 0)
+        {
+            if( dfunc->getState()[0] < d )
+                dfunc->getState(true)[0] = d ;
+        }
+    }
+
+}
+
 MineralMaterialLaw::MineralMaterialLaw( Mineral min, Variable cut, std::string args, char sep) : ExternalMaterialLaw( args, sep ), mineral(min ), cuttingPlane(cut)
 {
 

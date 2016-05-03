@@ -376,11 +376,11 @@ Form * LogarithmicCreepWithExternalParameters::getCopy() const
 	else
 	{
 		copy = new LogarithmicCreepWithExternalParameters( args, criterion->getCopy(), dfunc->getCopy(),  accumulator->getCopy(), ((int) param.numCols() == 3*blocks) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane ) ;
-		copy->dfunc->getState(true).resize(dfunc->getState().size());
+/*		copy->dfunc->getState(true).resize(dfunc->getState().size());
 		copy->dfunc->getState(true) = dfunc->getState() ;
 		copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
 		copy->dfunc->setDamageDensityTolerance(dfunc->getDamageDensityTolerance());
-		copy->dfunc->setThresholdDamageDensity(dfunc->getThresholdDamageDensity());
+                copy->dfunc->setThresholdDamageDensity(dfunc->getThresholdDamageDensity());*/
 	}
 
         copy->setBlocks(blocks) ;

@@ -984,6 +984,17 @@ Matrix Tensor::to2D(Matrix & tensor, planeType pt, Variable var)
         default:
             ret = 0 ;
     }
+
+/*    ret[0][2] = 0 ;
+    ret[1][2] = 0 ;
+    ret[2][0] = 0 ;
+    ret[2][1] = 0 ;
+    ret[0][1] = std::abs(ret[0][1]) ;
+    ret[1][0] = std::abs(ret[1][0]) ;
+    ret[0][0] = std::abs(ret[0][0]) ;
+    ret[1][1] = std::abs(ret[1][1]) ;
+    ret[2][2] = std::abs(ret[2][2]) ;*/
+
     return ret ;
 }
 

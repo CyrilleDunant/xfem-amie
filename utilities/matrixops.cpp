@@ -465,7 +465,7 @@ void Matrix::print() const
             std::cout << std::setprecision(16) << (*this)[i][j] << "   " << std::flush ;
         }
 
-        std::cout << std::endl ;
+        std::cout << std::setprecision(8) << std::endl ;
     }
 }
 

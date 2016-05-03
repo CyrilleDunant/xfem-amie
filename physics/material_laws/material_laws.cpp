@@ -2,6 +2,7 @@
 #include "../../utilities/itoa.h"
 #include "../../utilities/parser/function_parser.h"
 #include "../../utilities/enumeration_translator.h"
+#include "../damagemodels/spacetimefiberbasedfixedcrack.h"
 #include <stdlib.h>
 #include <fstream>
 
@@ -49,6 +50,22 @@ void ConstantExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticEl
 {
     for(auto iter = defaultValues.begin() ; iter != defaultValues.end() ; iter++)
         s.set(iter->first, iter->second) ;
+}
+
+void GetDamageOrientationMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )
+{
+    DamageModel * dfunc = s.getParent()->getBehaviour()->getDamageModel() ;
+    if(dynamic_cast<SpaceTimeFiberBasedFixedCrack *>(dfunc))
+    {
+        if(dfunc->getState(true).max() > 0.1)
+            s.set("damage_orientation", dynamic_cast<SpaceTimeFiberBasedFixedCrack *>(dfunc)->getOrientation()) ;
+        else
+            s.set("damage_orientation", -5) ;
+    }
+    else
+    {
+        s.set("damage_orientation", -6) ;
+    }
 }
 
 void SpaceTimeDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )

@@ -42,8 +42,8 @@ int main(int argc, char *argv[])
 
         Sample rect(nullptr, 0.01,0.01,0,0) ;
 	SpaceTimeMultiSurfaceFractureCriterion * crit = new SpaceTimeMultiSurfaceFractureCriterion() ;
-	SpaceTimeLimitSurfaceFractureCriterion * bulk = new SpaceTimeLimitSurfaceFractureCriterion( "( stress_1 + stress_2 ) / 2", "max ( bulk_strength ) ( bulk_strength * ( strain * bulk_modulus / bulk_strength ) )", "bulk_strength,bulk_modulus", PRINCIPAL ) ;
-	SpaceTimeLimitSurfaceFractureCriterion * shear = new SpaceTimeLimitSurfaceFractureCriterion( "( sqrt ( ( stress_1 - stress_2 ) ^ 2 + stress_1 ^ 2 + stress_2 ^ 2 ) ) / 2", "shear_strength", "shear_strength", PRINCIPAL ) ;
+        SpaceTimeLimitSurfaceFractureCriterion * bulk = new SpaceTimeLimitSurfaceFractureCriterion( "( stress_1 + stress_2 ) / 2", "max ( bulk_strength ) ( bulk_strength * ( strain * bulk_modulus / bulk_strength ) )", "bulk_strength,bulk_modulus", FRAME_PRINCIPAL ) ;
+        SpaceTimeLimitSurfaceFractureCriterion * shear = new SpaceTimeLimitSurfaceFractureCriterion( "( sqrt ( ( stress_1 - stress_2 ) ^ 2 + stress_1 ^ 2 + stress_2 ^ 2 ) ) / 2", "shear_strength", "shear_strength", FRAME_PRINCIPAL ) ;
 	crit->add( bulk ) ;
 	crit->add( shear ) ;
 	SpaceTimeFiberBasedBilateralLinearDamage * dam = new SpaceTimeFiberBasedBilateralLinearDamage( 0.01, 1e-6, 0.99999 ) ;
