@@ -231,6 +231,67 @@ void SetStiffnessMatrixMaterialLaw::preProcess( Matrix & stiffness, Point angle,
     stiffness = localStiffness ;
 } 
 
+void BiLinearStiffnessMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )
+{
+    if(std::abs(factor-1) < POINT_TOLERANCE) { return ; }
+
+    Vector strain(3) ;
+    s.getAverageField(STRAIN_FIELD, strain) ;
+    double criterion = strain[0]+strain[1] ;
+    double cutoff = s.get(limit,defaultValues) ;
+
+    if(cutoff > POINT_TOLERANCE)
+    {
+        if(criterion > cutoff && !over )
+        {
+            over = true ;
+            if(std::abs(criterion) > POINT_TOLERANCE)
+                residual = strain*cutoff/criterion;
+            else
+                residual = strain ;
+            residual *= (1.-1./factor) ;
+        }
+        else if( criterion < cutoff && over)
+        {
+            over = false ;
+            residual = 0 ;
+        }
+    }
+    else if( cutoff < -POINT_TOLERANCE)
+    {
+        if(criterion > cutoff && !over)
+        {
+            over = true ;
+            residual = 0 ;
+        }
+        else if(criterion < cutoff && over)
+        {
+            over = false ;
+            if(std::abs(criterion) > POINT_TOLERANCE)
+                residual = strain*cutoff/criterion;
+            else
+                residual = strain ;
+            residual *= (1.-1./factor) ;
+        }
+
+    }
+    else
+    {
+        over = criterion > 0 ;
+        residual = 0 ;
+    }
+
+    s.add("imposed_deformation_xx",residual[0]) ;
+    s.add("imposed_deformation_yy",residual[1]) ;
+}
+
+void BiLinearStiffnessMaterialLaw::preProcess( Matrix & stiffness, Point angle, planeType plane )
+{
+    if(over)
+        stiffness *= factor ;
+
+}
+
 
 } 
 

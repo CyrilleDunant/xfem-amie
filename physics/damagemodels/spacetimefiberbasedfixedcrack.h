@@ -52,6 +52,7 @@ public:
     bool isOriented() const { return fixedOrientation ; }
 };
 
+
 }
 
 #endif

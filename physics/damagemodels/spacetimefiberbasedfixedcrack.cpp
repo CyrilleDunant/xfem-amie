@@ -191,5 +191,12 @@ bool SpaceTimeFiberBasedFixedCrack::fractured(int direction) const
     return state[direction] >= thresholdDamageDensity ;
 }
 
-}
 
+
+
+
+
+
+
+
+}

@@ -54,6 +54,20 @@ struct TensionCompressionCreepMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
+struct BiLinearStiffnessMaterialLaw : public ExternalMaterialLaw
+{
+    std::string limit ;
+    double factor ;
+    bool over ;
+    Vector residual ;
+
+    BiLinearStiffnessMaterialLaw( std::string l, double f, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw( args, sep), limit(l), factor(f), over(false) { residual.resize(3,0) ; }
+    virtual ~BiLinearStiffnessMaterialLaw() { }
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+    virtual void preProcess( Matrix & stiffness, Point angle, planeType plane ) ;
+};
+
 struct StrainRateDependentStrengthMaterialLaw : public ExternalMaterialLaw
 {
     double strainRateRef ;
