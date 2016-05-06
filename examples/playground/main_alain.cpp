@@ -13,6 +13,7 @@
 #include "../../physics/fracturecriteria/spacetimelimitsurfacefracturecriterion.h"
 #include "../../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include "../../physics/damagemodels/spacetimefiberbasedfixedcrack.h"
+#include "../../physics/damagemodels/spacetimebifurcation.h"
 #include "../../physics/material_laws/mechanical_material_laws.h"
 #include "../../physics/materials/paste_behaviour.h"
 #include "../../utilities/writer/triangle_writer.h"
@@ -48,9 +49,12 @@ int main(int argc, char *argv[])
                 out.open(outdir+"/test_spacetime_fixed_crack_current", std::ios::out) ;
 
         Sample rect(nullptr, 0.01,0.01,0,0) ;
-        LogarithmicCreepWithExternalParameters * toto = new LogarithmicCreepWithExternalParameters("young_modulus = 10e9, poisson_ratio = 0.2, imposed_deformation = 0, imposed_deformation_xx = 0, imposed_deformation_yy = 0, microcracking = -1e-3") ;
-        toto->addMaterialLaw( new BiLinearStiffnessMaterialLaw("microcracking", 0.5)) ;
 
+        SpaceTimeMultiSurfaceFractureCriterion * crit = new SpaceTimeMultiSurfaceFractureCriterion() ;
+        crit->add(new SpaceTimeLimitFirstStrainInvariant(-1.8e-3)) ;
+        crit->add(new SpaceTimeNonLocalMaximumStress(15e6)) ;
+
+        LogarithmicCreepWithExternalParameters * toto = new LogarithmicCreepWithExternalParameters("young_modulus = 10e9, poisson_ratio = 0.2, imposed_deformation = 0, microcracking = -1e-3", crit, new SpaceTimeBifurcationAndDamage(0.5, new SpaceTimeFiberBasedIsotropicLinearDamage(0.001,0.00001,0.99))) ;
 
         rect.setBehaviour( toto ) ;
 
@@ -79,7 +83,7 @@ int main(int argc, char *argv[])
                 f.step() ;
 
                 stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
-                strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
+                strain = f.getAverageField( MECHANICAL_STRAIN_FIELD, 1. ) ;
                 alpha = f.getAverageField( IMPOSED_STRAIN_FIELD, 1. ) ;
                 for(size_t i = 0 ; i < stress.size() ; i++)
                 {
@@ -97,7 +101,7 @@ int main(int argc, char *argv[])
                 f.step() ;
 
                 stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
-                strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
+                strain = f.getAverageField( MECHANICAL_STRAIN_FIELD, 1. ) ;
                 alpha = f.getAverageField( IMPOSED_STRAIN_FIELD, 1. ) ;
                 for(size_t i = 0 ; i < stress.size() ; i++)
                 {
@@ -115,7 +119,7 @@ int main(int argc, char *argv[])
                 f.step() ;
 
                 stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
-                strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
+                strain = f.getAverageField( MECHANICAL_STRAIN_FIELD, 1. ) ;
                 alpha = f.getAverageField( IMPOSED_STRAIN_FIELD, 1. ) ;
                 for(size_t i = 0 ; i < stress.size() ; i++)
                 {

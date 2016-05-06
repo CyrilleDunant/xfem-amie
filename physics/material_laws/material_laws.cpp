@@ -58,7 +58,7 @@ void GetDamageOrientationMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElast
     if(dynamic_cast<SpaceTimeFiberBasedFixedCrack *>(dfunc))
     {
         if(dfunc->getState(true).max() > 0.1)
-            s.set("damage_orientation", dynamic_cast<SpaceTimeFiberBasedFixedCrack *>(dfunc)->getOrientation()) ;
+            s.set("damage_orientation", dfunc->getAngleShift()) ;
         else
             s.set("damage_orientation", -5) ;
     }
@@ -806,6 +806,32 @@ std::pair<std::string, double> WeibullDistributedMaterialLaw::getWeibullVariable
         std::weibull_distribution< double > distribution(sc, sh);
 	return std::make_pair( weib, std::max(0., 1. - var + var*distribution(generator)) ) ;
 }
+
+UniformDistributedMaterialLaw::UniformDistributedMaterialLaw(std::string a, std::string w, std::string args, char sep) : ExternalMaterialLaw(args, sep), uni(w)
+{
+    affected.push_back(a) ;
+}
+
+UniformDistributedMaterialLaw::UniformDistributedMaterialLaw(std::vector<std::string> aff, std::string w, std::string args, char sep) : ExternalMaterialLaw(args, sep), uni(w)
+{
+    for(size_t i = 0 ; i < aff.size() ; i++)
+        affected.push_back(aff[i]) ;
+}
+
+void UniformDistributedMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+{
+    if(!s.has(uni))
+    {
+        std::default_random_engine generator(std::rand()) ;
+        std::uniform_real_distribution<double> distribution(0,1) ;
+        s.set(uni, distribution(generator)) ;
+    }
+    double u = s.get(uni, defaultValues) ;
+    for(size_t i = 0 ; i < affected.size() ; i++)
+        s.multiply(affected[i], u);
+}
+
+
 
 UniformDistributedPerParticleMaterialLaw::UniformDistributedPerParticleMaterialLaw( std::string str, double min, double max, EMLOperation o, std::string args, char sep) : ExternalMaterialLaw(args, sep), variable(str), minimum(min), maximum(max), op(o)
 {

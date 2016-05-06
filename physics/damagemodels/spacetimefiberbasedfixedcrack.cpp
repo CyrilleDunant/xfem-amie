@@ -183,7 +183,7 @@ bool SpaceTimeFiberBasedFixedCrack::fractured(int direction) const
     {
         return state[0] >= thresholdDamageDensity ;
     }
-    if(direction < 0 || direction >= state.size())
+    if(direction < 0 || direction >= (int) state.size())
     {
         return this->fractured(0) || this->fractured(1) ;
         return getState().max() >= thresholdDamageDensity ;

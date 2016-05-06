@@ -409,6 +409,20 @@ struct WeibullDistributedMaterialLaw : public ExternalMaterialLaw
 
 } ;
 
+struct UniformDistributedMaterialLaw : public ExternalMaterialLaw
+{
+    std::vector<std::string> affected ;
+    std::string uni ;
+
+    UniformDistributedMaterialLaw( std::string a, std::string w, std::string args = std::string(), char sep = ',') ;
+    UniformDistributedMaterialLaw( std::vector<std::string> aff, std::string w, std::string args = std::string(), char sep = ',') ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+    virtual ~UniformDistributedMaterialLaw() { } ;
+
+
+};
+
 /*PARSE UniformDistributedPerParticle ExternalMaterialLaw
     @string[output] // name of the parameter set to a random value
     @value[minimum] 0 // minimum value of the distribution

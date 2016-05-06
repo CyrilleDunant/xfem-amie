@@ -101,6 +101,7 @@ physics/damagemodels/spacetimebadisotropiclineardamage.cpp
 physics/damagemodels/spacetimefiberbasedbilineardamage.cpp 
 physics/damagemodels/spacetimeratebasedisotropiclineardamage.cpp 
 physics/damagemodels/spacetimeisotropiclineardamage.cpp 
+physics/damagemodels/spacetimebifurcation.cpp 
 physics/damagemodels/anisotropicdamage.cpp
 physics/damagemodels/fractiondamage.cpp
 physics/damagemodels/strainbrokenisotropiclineardamage.cpp

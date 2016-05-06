@@ -169,7 +169,6 @@ double SpaceTimeLimitSurfaceFractureCriterion::gradeAtTime(ElementState &s, doub
         return -1 ;
     }
 
-
     std::pair<Vector, Vector> currentState = getSmoothedFields( REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD, s, t ) ;
     double orientation = 0 ;
     bool oriented = false ;
@@ -184,14 +183,12 @@ double SpaceTimeLimitSurfaceFractureCriterion::gradeAtTime(ElementState &s, doub
         break ;
     case FRAME_MODEL:
     {
+        orientation = s.getParent()->getBehaviour()->getDamageModel()->getAngleShift() ;
+        oriented = s.getParent()->getBehaviour()->getDamageModel()->getState().max() > 0 ;
         SpaceTimeFiberBasedFixedCrack * toto = dynamic_cast<SpaceTimeFiberBasedFixedCrack *>(s.getParent()->getBehaviour()->getDamageModel()) ;
         if(toto)
         {
-            if(toto->isOriented())
-            {
-                oriented = true ;
-                orientation = toto->getOrientation() ;
-            }
+            oriented = toto->isOriented() ;
         }
         break ;
     }

@@ -1026,7 +1026,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case IMPOSED_STRESS_FIELD:
     {
-        if ( parent->getBehaviour()->getTensor ( p_, parent ).numCols() != ret.size() )
+        if ( parent->getBehaviour()->getTensor ( p_, parent ).numCols() != ret.size()*blocks )
         {
             ret = 0 ;
             if ( cleanup )

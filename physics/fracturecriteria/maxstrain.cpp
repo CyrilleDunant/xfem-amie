@@ -11,6 +11,7 @@
 //
 #include "maxstrain.h"
 #include "../damagemodels/damagemodel.h"
+#include "../damagemodels/spacetimebifurcation.h"
 #include <fstream>
 
 namespace Amie {
@@ -72,6 +73,78 @@ double SpaceTimeNonLocalMaximumStrain::grade(ElementState &s)
 	return -1.+ maxStrainAfter/upVal;
 	
 	
+}
+
+double SpaceTimeLimitFirstStrainInvariant::grade(ElementState &s)
+{
+    if(s.getParent()->getBehaviour()->getDamageModel()->fractured(0))
+    {
+        scoreAtTimeStepEnd = -1 ;
+        return -1 ;
+    }
+
+    double gradeBefore = gradeAtTime(s, -1) ;
+    double gradeAfter = gradeAtTime(s, 1) ;
+
+//    std::cout << gradeBefore << "\t" << gradeAfter << std::endl ;
+
+    scoreAtTimeStepEnd = gradeAfter ;
+
+    if(gradeBefore > 0)
+    {
+        return 1 ;
+    }
+    if(gradeAfter < 0)
+    {
+        return gradeAfter ;
+    }
+
+    double upTime = 1. ;
+    double downTime = -1 ;
+    double testTime = (upTime+downTime)*0.5 ;
+    double gradeTest = 0 ;
+    while(std::abs(upTime-downTime) > 1e-4)
+    {
+        gradeTest = gradeAtTime(s, testTime) ;
+        if(gradeTest < 0)
+        {
+            if(gradeBefore < 0)
+                downTime = testTime ;
+            else
+                upTime = testTime ;
+        }
+        else if(gradeTest > 0)
+        {
+            if(gradeBefore < 0)
+                upTime = testTime ;
+            else
+                downTime = testTime ;
+        }
+        else
+        {
+//            std::cout << gradeBefore << "\t" << gradeAfter << std::endl ;
+            return 1.-(testTime*.5+.5) ;
+        }
+        testTime = (downTime+upTime)*0.5 ;
+    }
+
+
+//    std::cout << gradeBefore << "\t" << gradeAfter << std::endl ;
+    return 1.-(testTime*.5+.5) ;
+}
+
+
+
+double SpaceTimeLimitFirstStrainInvariant::gradeAtTime(ElementState &s, double t)
+{
+        Vector strain = getSmoothedField( MECHANICAL_STRAIN_FIELD, s, t ) ;
+        double trace = strain[0]+strain[1]+(strain.size() == 6 ? strain[2] : 0 ) ;
+        if(upVal > 0)
+        {
+            return -(upVal-trace)/upVal ;
+        }
+        else
+            return -(upVal-trace)/upVal ;
 }
 
 double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)

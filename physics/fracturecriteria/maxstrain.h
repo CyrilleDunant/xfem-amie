@@ -55,6 +55,8 @@ public:
 	virtual FractureCriterion * getCopy() const;
 
 	virtual double getTensileLimit(const ElementState & s) const {return upVal*20e9 ; } ;
+
+        virtual void reset(double up) { upVal = up ;  }
 };
 
 /*PARSE SpaceTimeNonLocalMaximumStrain FractureCriterion
@@ -79,6 +81,21 @@ public:
 
 	virtual double grade(ElementState &s)  ;
 
+};
+
+
+class SpaceTimeLimitFirstStrainInvariant : public MaximumStrain
+{
+public:
+    SpaceTimeLimitFirstStrainInvariant(double up) : MaximumStrain(up) { }
+
+    virtual ~SpaceTimeLimitFirstStrainInvariant() { }
+
+    virtual FractureCriterion * getCopy() const { return new SpaceTimeLimitFirstStrainInvariant(upVal) ; }
+    virtual double grade(ElementState &s)  ;
+    virtual double gradeAtTime(ElementState &s, double t)  ;
+
+    virtual void reset(double up) { upVal = up ; }
 };
 
 /*PARSE SpaceTimeNonLocalLinearSofteningMaximumStrain FractureCriterion --has-reset

@@ -28,6 +28,19 @@ FractureCriterion * SpaceTimeMultiSurfaceFractureCriterion::getCopy() const
 
 double SpaceTimeMultiSurfaceFractureCriterion::grade(ElementState &s)
 {    
+    double g = -1 ;
+    double ms = -1 ;
+    for(size_t i = 0 ; i < surfaces.size() ; i++)
+    {
+//        std::cout << g << " ";
+        g = std::max( g, surfaces[i]->grade(s)) ;
+        ms = std::max( ms, surfaces[i]->getScoreAtTimeStepEnd()  ) ;
+    }
+//    std::cout << g << std::endl ;
+    scoreAtTimeStepEnd = ms ;
+    return g ;
+/*
+
     double atEnd = -1 ;
     double time = -1 ;
     for(size_t i = 0 ; i < surfaces.size() ; i++)
@@ -50,7 +63,7 @@ double SpaceTimeMultiSurfaceFractureCriterion::grade(ElementState &s)
 
     scoreAtTimeStepEnd = atEnd ;
 
-    return time ;
+    return time ;*/
 }
 
 double SpaceTimeMultiSurfaceFractureCriterion::gradeAtTime(ElementState &s, double t)  
@@ -77,7 +90,8 @@ void SpaceTimeMultiSurfaceFractureCriterion::updateCache( ElementState & s)
 
 bool SpaceTimeMultiSurfaceFractureCriterion::directionMet(size_t direction, double t) 
 {
-    return instants[direction] > t ;
+//    std::cout << instants[0] << "\t" << instants[1] << "\t" << t << std::endl ;
+    return t >= instants[direction] ;
 }
 
 double SpaceTimeMultiSurfaceFractureCriterion::getTensileLimit(const ElementState & s) const 

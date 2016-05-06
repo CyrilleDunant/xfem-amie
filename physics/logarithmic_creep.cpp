@@ -488,5 +488,5 @@ bool LogarithmicCreepWithImposedDeformationAndFracture::fractured() const
     {
         if(! dfunc->fractured(i)) { return false ; }
     }
-    return true ;
+    return dfunc->fractured() ;
 }

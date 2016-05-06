@@ -262,7 +262,7 @@ void CommandLineParser::sendEmail( std::string subject, std::string body, std::s
 void CommandLineParser::setNumThreads( int n )
 {
 //#ifdef HAVE_OMP
-	std::cout << "dafuq" << std::endl ;
+        std::cout << "disabling OpenMP..." << std::endl ;
 	omp_set_num_threads(std::max(n,1)) ;
 //#endif
 }
