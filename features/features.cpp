@@ -4157,6 +4157,45 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain ( Mesh< DelaunayTetr
     return stress_strain ;
 }
 
+std::pair<Vector , Vector > FeatureTree::getStressAndStrain (Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >::iterator begin, Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >::iterator end, bool stepTree )
+{
+    if ( stepTree )
+    {
+        state.setStateTo ( XFEM_STEPPED, false ) ;
+    }
+    std::pair<Vector , Vector > stress_strain ( Vector ( begin->getBoundingPoints().size() * 3 * begin.size() ), Vector ( begin->getBoundingPoints().size() * 3 * begin.size() ) ) ;
+
+    for ( auto i = begin ; i != end ; i++ )
+    {
+        std::valarray<Point *> pts ( 3 ) ;
+        pts[0] =  i->first ;
+        pts[1] =  i->second ;
+        pts[2] =  i->third ;
+
+        Vector strain ( 0., i->getBoundingPoints().size() * 3 ) ;
+        Vector stress ( 0., i->getBoundingPoints().size() * 3 ) ;
+        i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, i->getBoundingPoints(), strain, stress, false ) ;
+
+        for ( size_t j = 0 ; j < i->getBoundingPoints().size() ; j++ )
+        {
+            for ( size_t k = 0 ; k < 3 ; k++ )
+            {
+                stress_strain.first[i.getPosition() * i->getBoundingPoints().size() * 3 + j * 3 + k] = stress[j * 3 + k] ;
+                stress_strain.second[i.getPosition() * i->getBoundingPoints().size() * 3 + j * 3 + k] = strain[j * 3 + k] ;
+            }
+        }
+
+        if ( i.getPosition() % 1000 == 0 )
+        {
+            std::cerr << "\r computing strain+stress... element " << i.getPosition() + 1 << "/" << i.size() << std::flush ;
+        }
+    }
+
+    std::cerr << " ...done." << std::endl ;
+    return stress_strain ;
+}
+
+
 Vector FeatureTree::strainFromDisplacements()
 {
     state.setStateTo ( XFEM_STEPPED, false ) ;
@@ -6001,26 +6040,26 @@ std::vector<Point *> FeatureTree::getNodes ()
     return pts ;
 }
 
-Vector FeatureTree::getAverageField ( FieldType f, double t, int grid, int index )
+Vector FeatureTree::getAverageField ( FieldType f, double t, int grid, int index, int cacheID )
 {
     if ( is2D() )
     {
         if( layer2d.find( grid ) != layer2d.end() )
-             return layer2d[grid]->getField( f, -1, t, index ) ;
+             return layer2d[grid]->getField( f, cacheID, t, index ) ;
 
-        Vector ret = dtree->getField ( f, -1, t, index ) ;
+        Vector ret = dtree->getField ( f, cacheID, t, index ) ;
         for ( auto layer = layer2d.begin() ; layer!=layer2d.end() ; layer++ )
         {
             if(layer->second != dtree)
-                ret += layer->second->getField ( f, -1, t, index ) ;
+                ret += layer->second->getField ( f, cacheID, t, index ) ;
         }
         return ret ;
     }
 
-
-    return get3DMesh()->getField ( f, -1, t, index ) ;
+    return get3DMesh()->getField ( f, cacheID, t, index ) ;
 
 }
+
 
 Vector FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, FieldType f, double t, int index )
 {

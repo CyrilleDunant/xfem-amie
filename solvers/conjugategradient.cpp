@@ -111,7 +111,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     }
     
     int vsize = r.size() ;
-    Ssor ssor (assembly->getMatrix(), rowstart, colstart) ;
+//     Ssor ssor (assembly->getMatrix(), rowstart, colstart) ;
     Vector rcompensate(0., r.size()) ;
     Vector xcompensate(0., x.size()) ; 
     nit = 0 ;
@@ -124,7 +124,6 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         rcompensate = 0 ;
         xcompensate = 0 ;
         
-
         //smooth the initial guess
         if(nssor)
         {

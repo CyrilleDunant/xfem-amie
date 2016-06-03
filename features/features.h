@@ -861,7 +861,8 @@ public:
 
     /** \brief Return the stress and strain of a vector of Tetrahedrons*/
     std::pair<Vector , Vector > getStressAndStrain ( Amie::Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D >::iterator begin, Amie::Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D >::iterator end, bool stepTree = true ) ;
-
+    std::pair<Vector , Vector > getStressAndStrain ( Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >::iterator begin, Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >::iterator end, bool stepTree = true ) ;
+    
     /** \brief Return the stress and strain of a vector of Tetrahedrons*/
     std::pair<Vector , Vector > getGradientAndFlux ( Amie::Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D >::iterator begin, Amie::Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D >::iterator end, bool stepTree = true ) ;
 
@@ -874,9 +875,7 @@ public:
     std::pair<Vector , Vector > getStressAndStrainInLayer ( int layer, bool stepTree = true ) ;
 // 	std::pair<Vector , Vector > getStressAndStrainInAllLayers( bool stepTree = true) ;
 
-    Vector getAverageField ( FieldType f, double t = 1, int grid = -1, int index = 0 ) ;
-// 	Vector getAverageField( FieldType f, const std::vector<DelaunayTriangle *> & tri) ;
-// 	Vector getAverageField( FieldType f, const std::vector<DelaunayTetrahedron *> & tet) ;
+    Vector getAverageField( FieldType f, double t = 1, int grid = -1, int index = 0, int cacheID = -1) ;
 
     Vector getAverageFieldOnBoundary( BoundingBoxPosition position, FieldType f, double t = 0, int index = 0) ;
     double getAverageFieldOnBoundary( BoundingBoxPosition position, std::string f, double t = 0) ;

@@ -68,6 +68,7 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
     int intermediateCount=0 ;
     featureTree->setMaxIterationsPerStep( 3200 ) ;
 
+    int cacheID = -2 ;
     std::vector<Feature *> inclusionsAndBlocks =inclusions ;
     if(!blocks.empty())
         inclusionsAndBlocks.insert(inclusionsAndBlocks.end(), blocks.begin(), blocks.end());
@@ -75,6 +76,7 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
     {
         std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
         bool go_on = featureTree->step() ;
+	
 //         if(i%5 != 0)
 //             continue ;
         std::string filename( "triangles" ) ;
@@ -109,11 +111,12 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
 
         if( go_on )
         {
+	  cacheID = featureTree->get2DMesh()->generateCache(&baseGeometry) ;
             std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax(REAL_STRESS_FIELD) ;
             std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax(STRAIN_FIELD) ;
-            Vector stemp = featureTree->getAverageField(REAL_STRESS_FIELD) ;
-            Vector etemp = featureTree->getAverageField(STRAIN_FIELD) ;
-            std::vector<double> macro_strain = featureTree->getMedianMacroscopicStrain(&baseGeometry) ;
+            Vector stemp = featureTree->getAverageField(REAL_STRESS_FIELD, 1, -1,  0, cacheID) ;
+            Vector etemp = featureTree->getAverageField(STRAIN_FIELD, 1, -1,  0, cacheID) ;
+            std::vector<double> macro_strain = featureTree->getMacroscopicStrain(&baseGeometry) ;
             expansion_reaction.push_back( std::make_pair( gelManager->getReactedFraction(), macro_strain[0]) ) ;
             expansion_stress_xx.push_back( std::make_pair( etemp[0], stemp[0] ) ) ;
             expansion_stress_yy.push_back( std::make_pair( etemp[1], stemp[1] ) ) ;
@@ -123,6 +126,7 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
             Vector buffer(3) ;
             featureTree->averageFieldInFeatures(REAL_STRESS_FIELD, blocks, buffer) ;
             asrStress.push_back(buffer) ;
+	    featureTree->get2DMesh()->deleteCache(cacheID) ;
         }
 
         std::cout << "reaction" << "   "<< "eps xx" << "\t" << "eps yy" << "\t" << "sig xx" << "\t"<< "sig yy" << "\t" << "   dx "  << "\t"<< "   dy "  << "\t"
@@ -149,7 +153,7 @@ int main( int argc, char *argv[] )
     featureTree = &F ;
 
     double itzSize = 0.00005;
-    int inclusionNumber = 1 ; 1500 ; 2500 ;
+    int inclusionNumber = 2500 ;1 ; 1500 ; 
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
 
@@ -209,7 +213,11 @@ int main( int argc, char *argv[] )
     //width are  1100000000 3340000000  4360000000      done: 
     //length are 1220000000 2180000000  3400000000      next: 
 
-    Sample *blocktop = new Sample( nullptr, basesize, restraintDepth * .5, sample.getCenter().getX(), sample.getCenter().getY() + basesize*.5 + restraintDepth * .25 ) ;
+    Sample *blocktop = new Sample( nullptr, basesize, 
+				            restraintDepth * .5, 
+				            sample.getCenter().getX(), 
+				            sample.getCenter().getY() + basesize*.5 + restraintDepth * .25 ) ;
+					    
     double Emin = std::max(std::max(fact, fact0)*sqrt(POINT_TOLERANCE),1e4) ;
     fact = std::max(fact, Emin) ;
     fact0 = std::max(fact0, Emin) ;

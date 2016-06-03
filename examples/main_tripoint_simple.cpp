@@ -155,9 +155,9 @@ int main ( int argc, char *argv[] )
     // Beton
 
     CommandLineParser parser("Make a tri-point bending test on an homogeneous concrete sample") ;
-    parser.addArgument("length", .195, "length of the sample (default 3.9)") ;
-    parser.addArgument("height", .06, "height of the sample (default 1.2)") ;
-    parser.addArgument("speed", -0.0000144, "loading speed (default -0.144 (1 mm / 60000 s))") ;
+    parser.addArgument("length", .39, "length of the sample (default 3.9)") ;
+    parser.addArgument("height", .12, "height of the sample (default 1.2)") ;
+    parser.addArgument("speed", -0.000144, "loading speed (default -0.144 (1 mm / 60000 s))") ;
     parser.parseCommandLine(argc, argv) ;
 
     double sampleLength     = parser.getNumeralArgument( "length") ;
@@ -217,7 +217,7 @@ int main ( int argc, char *argv[] )
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT_AFTER ) ) ;
     F.addBoundaryCondition ( new BoundingBoxNearestNodeDefinedBoundaryCondition ( FIX_ALONG_ETA, BOTTOM_AFTER, Point ( supportLever, -sampleHeight*.5 ) ) ) ;
     F.setOrder ( LINEAR_TIME_LINEAR ) ;
-    F.setDeltaTime(0.02);
+    F.setDeltaTime(0.002);
     F.setMinDeltaTime(1e-12);
 
     step(&F, supportLever, sampleHeight, load, loadingSpeed) ;

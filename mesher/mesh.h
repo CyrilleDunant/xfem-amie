@@ -384,39 +384,6 @@ public:
         coefs[cacheID].clear() ;
     }
 
-    virtual unsigned int generateCache( Geometry * source) {
-        //search for first empty cache slot ;
-        getElements() ;
-        if ( caches.empty() ) {
-            caches.push_back ( std::vector<int>() );
-            coefs.push_back ( std::vector<std::vector<double>>() );
-        }
-        size_t position = 0;
-        for ( ; position < caches.size() ; position++ ) {
-            if ( caches[position].empty() ) {
-                break ;
-            }
-        }
-        if ( position == caches.size() ) {
-            caches.push_back ( std::vector<int>() );
-            coefs.push_back ( std::vector<std::vector<double>>() );
-        }
-
-        std::vector<ETYPE *> elems = getConflictingElements ( source ) ;
-        if(elems.empty())
-            elems = getConflictingElements ( &source->getCenter() ) ;
-	
-        for ( auto & element : elems ) {
-            if(source->in(element->getCenter()) && element->getBehaviour() && element->getBehaviour()->getSource() == source)
-            {
-                caches[position].push_back ( element->index ) ;
-                coefs[position].push_back ( std::vector<double>() ) ;
-            }
-        }
-        return position ;
-
-    }
-
     virtual unsigned int generateCache( Segment * source, double width = 0.001, bool side = false) {
         //search for first empty cache slot ;
         getElements() ;
@@ -834,12 +801,18 @@ public:
             }
             Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
             Vector buffer ( ret ) ;
+	    Vector retcomp( ret ) ;
+	    Vector temp( ret ) ;
+	    Vector tempsum( ret ) ;
             double w = 0 ;
             for ( size_t i = 0 ; i < elems.size() ; i++ ) {
 
                 double v = elems[i]->getState().getAverageField ( f, buffer, &vm, t, coefs, index ) ;
-                ret += buffer * v ;
-                w +=v ;
+		temp = buffer * v - retcomp ;
+		tempsum = ret+temp ;
+		retcomp = tempsum-ret-temp ;
+		ret = tempsum ;
+		w +=v ;
             }
             return ret/w ;
         }
@@ -854,10 +827,16 @@ public:
         if( caches[cacheID].size() == 0)
             return ret ;
         Vector buffer ( ret ) ;
+	Vector retcomp( ret ) ;
+	Vector temp( ret ) ;
+	Vector tempsum( ret ) ;
         double w = 0 ;
         for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
             double v = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->getState().getAverageField ( f, buffer, &vm, t, coefs[cacheID][i], index ) ;
-            ret += buffer * v ;
+	    temp = buffer * v - retcomp ;
+	    tempsum = ret+temp ;
+	    retcomp = tempsum-ret-temp ;
+            ret = tempsum ;
             w +=v ;
         }
         return ret/w ;

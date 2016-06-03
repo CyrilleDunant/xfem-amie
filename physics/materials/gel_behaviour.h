@@ -28,12 +28,13 @@ struct GelBehaviour : public StiffnessWithImposedDeformation
     bool spaceTime ;
     int freeblocks ;
     
-    // variation in density 2.06 to 2.22 of amorphous silica suggests 0.025257
-    // volumic expansion is 22%, so linear is 7%,            cube root 0.0685
-    // bulteel suggests 0.5 expansion,                             so 0.1447
+    // variation in density 2.06 to 2.22 of amorphous silica suggests  0.025257
+    // volumic expansion is 22%, so linear is 7%,           cube root  0.0685
+    // bulteel suggests 0.5 expansion,                             so  0.1447   
     // gel behaviour should be 0.18  
+    // Garcia-Diaz and Bulteel "Mechanism of damage for the alkali–silica reaction"  eq. 14 imply 50% volume expansion
     // Leeman values are 8-12 (0.18) GPa "E-modulus of the alkali–silica-reaction product determined by micro-indentation"
-    // Leeman values are 25 (0.35) GPa "Determination of the elastic properties of amorphous materials: Case study of alkali–silica reaction gel"
+    // Moon et al. values are 25 (0.35) GPa "Determination of the elastic properties of amorphous materials: Case study of alkali–silica reaction gel"
     GelBehaviour(bool st=false, double E=25e9, double nu=0.35, double alpha= 0.069, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, int blocks = 0) ;
 
     Form * getCopy() const ;
