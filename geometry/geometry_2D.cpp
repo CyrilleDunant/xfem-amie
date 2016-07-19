@@ -2020,21 +2020,6 @@ std::vector<Point> Ellipse::getSamplingBoundingPoints(double linearDensity) cons
 
 }
 
-Function Ellipse::getEllipseFormFunction() const
-{
-    double alpha = majorAxis.angle() ;
-    Function x("x") ;
-    Function y("y") ;
-    Function x_((x-center.getX())*cos(alpha)-(y-center.getY())*sin(-alpha)) ;
-    Function y_((x-center.getX())*sin(-alpha)+(y-center.getY())*cos(alpha)) ;
-    double mm0 = (getMajorRadius()*getMajorRadius()) ;
-    double mm1 = (getMinorRadius()*getMinorRadius()) ;
-    Function f0 = x_*x_/mm0 ;
-    Function f1 = y_*y_/mm1 ;
-    Function f2 = f0+f1-1. ;
-    return f2 ;
-}
-
 bool Ellipse::in(const Point &p) const
 {
     Point q = toLocalCoordinates(p) ;

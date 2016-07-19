@@ -3098,38 +3098,38 @@ Matrix VirtualMachine::ieval(const DtGtMtG & d, const GaussPointArray &gp_, cons
     }
 }
 
-void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret)
-{
-    if(d.first == TIME_VARIABLE)
-    {
-        Matrix a(ret.numRows(), ret.numCols()) ;
-        a = 0 ;
-        ieval( d.second.first.dot() * d.second.second * d.second.third, gp_, Jinv, vars, a) ;
-        ret += a ;
-        a = 0 ;
-        ieval( d.second.first * d.second.second * d.second.third.dot() , gp_, Jinv, vars, a) ;
-        ret += a ;
-        ret /= Jinv[0][Jinv[0].numRows()-1][Jinv[0].numRows()-1] ;
-    }
-    else
-        ieval( d, gp_, Jinv, nullptr, vars, ret) ;
-}
+// void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret)
+// {
+//     if(d.first == TIME_VARIABLE)
+//     {
+//         Matrix a(ret.numRows(), ret.numCols()) ;
+//         a = 0 ;
+//         ieval( d.second.first.dot() * d.second.second * d.second.third, gp_, Jinv, vars, a) ;
+//         ret += a ;
+//         a = 0 ;
+//         ieval( d.second.first * d.second.second * d.second.third.dot() , gp_, Jinv, vars, a) ;
+//         ret += a ;
+//         ret /= Jinv[0][Jinv[0].numRows()-1][Jinv[0].numRows()-1] ;
+//     }
+//     else
+//         ieval( d, gp_, Jinv, nullptr, vars, ret) ;
+// }
 
-void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret)
-{
-    if(d.first == TIME_VARIABLE)
-    {
-        Matrix a(ret.numRows(), ret.numCols()) ;
-        ieval( d.second.first.dot() * d.second.second * d.second.third, gp_, Jinv, vars, a) ;
-        ret += a ;
-        a = 0 ;
-        ieval( d.second.first * d.second.second * d.second.third.dot() , gp_, Jinv, vars, a) ;
-        ret += a ;
-        ret /= Jinv[0][Jinv[0].numRows()-1][Jinv[0].numRows()-1] ;
-    }
-    else
-        ieval( d, gp_, Jinv, nullptr, vars, ret) ;
-}
+// void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret)
+// {
+//     if(d.first == TIME_VARIABLE)
+//     {
+//         Matrix a(ret.numRows(), ret.numCols()) ;
+//         ieval( d.second.first.dot() * d.second.second * d.second.third, gp_, Jinv, vars, a) ;
+//         ret += a ;
+//         a = 0 ;
+//         ieval( d.second.first * d.second.second * d.second.third.dot() , gp_, Jinv, vars, a) ;
+//         ret += a ;
+//         ret /= Jinv[0][Jinv[0].numRows()-1][Jinv[0].numRows()-1] ;
+//     }
+//     else
+//         ieval( d, gp_, Jinv, nullptr, vars, ret) ;
+// }
 
 void VirtualMachine::ieval(const DdGtMLtG & d, const std::vector<Matrix> & dmat, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret)
 {
@@ -3175,7 +3175,7 @@ void VirtualMachine::ieval(const DdGtMLtGD & d, const std::vector<Matrix> & dmat
     }
 }
 
-void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const IntegrableEntity * e, const std::vector<Variable> & vars, Matrix & ret)
+void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret)
 {
     GaussPointArray gp_a(gp_);
     gp_a.getId() = -1 ;
@@ -3243,88 +3243,15 @@ void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const 
     }
     case TIME_VARIABLE :
     {
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-            gp_a.gaussPoints[i].first.getT() += default_derivation_delta*10 ;
-        std::valarray<Matrix> t_a(ievalDecomposed(d.second, gp_a, Jinv, vars)) ;
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-            gp_a.gaussPoints[i].first.getT() -= default_derivation_delta*10 ;
+        Matrix a(ret.numRows(), ret.numCols()) ;
+        a = 0 ;
+        ieval( d.second.first.dot() * d.second.second * d.second.third, gp_, Jinv, vars, a) ;
+        ret += a ;
+        a = 0 ;
+        ieval( d.second.first * d.second.second * d.second.third.dot() , gp_, Jinv, vars, a) ;
+        ret += a ;
+        ret /= Jinv[0][Jinv[0].numRows()-1][Jinv[0].numRows()-1] ;
 
-
-        for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-            gp_b.gaussPoints[i].first.getT() -= default_derivation_delta*10 ;
-        std::valarray<Matrix> t_b (ievalDecomposed(d.second, gp_b, Jinv, vars)) ;
-        for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-            gp_b.gaussPoints[i].first.getT() += default_derivation_delta*10 ;
-
-        size_t dim = vars.size()-1 ;
-
-
-        ret = ((t_a[0]-t_b[0])*Jinv[0][dim][dim])/(20.*default_derivation_delta) ;
-        for(size_t i = 1 ; i < gp_a.gaussPoints.size() ; i++)
-        {
-            ret += ((t_a[i]-t_b[i])*Jinv[i][dim][dim])/(20.*default_derivation_delta) ;
-        }
-
-
-
-
-
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-            gp_a.gaussPoints[i].first.getX() += default_derivation_delta/10 ;
-        std::valarray<Matrix> x_a(ievalDecomposed(d.second, gp_a, Jinv, vars)) ;
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-            gp_a.gaussPoints[i].first.getX() -= default_derivation_delta/10 ;
-
-
-        for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-            gp_b.gaussPoints[i].first.getX() -= default_derivation_delta/10 ;
-        std::valarray<Matrix> x_b (ievalDecomposed(d.second, gp_b, Jinv, vars)) ;
-        for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-            gp_b.gaussPoints[i].first.getX() += default_derivation_delta/10 ;
-
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-        {
-            ret +=  ((x_a[i]-x_b[i])*Jinv[i][dim][0])/(20.*default_derivation_delta) ;
-        }
-
-
-
-
-
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-            gp_a.gaussPoints[i].first.getY() += default_derivation_delta*10 ;
-        std::valarray<Matrix> y_a(ievalDecomposed(d.second, gp_a, Jinv, vars)) ;
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-            gp_a.gaussPoints[i].first.getY() -= default_derivation_delta*10 ;
-
-
-        for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-            gp_b.gaussPoints[i].first.getY() -= default_derivation_delta*10 ;
-        std::valarray<Matrix> y_b (ievalDecomposed(d.second, gp_b, Jinv, vars)) ;
-        for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-            gp_b.gaussPoints[i].first.getY() += default_derivation_delta*10 ;
-
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-        {
-            ret +=  ((y_a[i]-y_b[i])*Jinv[i][dim][1])/(20.*default_derivation_delta) ;
-        }
-// 			ret.print() ;
-
-
-        if(std::abs(Jinv[0][0][dim]) > POINT_TOLERANCE ||
-                std::abs(Jinv[0][1][dim]) > POINT_TOLERANCE ||
-                std::abs(Jinv[0][dim][0]) > POINT_TOLERANCE ||
-                std::abs(Jinv[0][dim][1]) > POINT_TOLERANCE)
-        {
-
-            std::valarray<Matrix> domega (ievalDecomposed(d.second, gp_, Jinv, vars)) ;
-            for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-                gp_a.gaussPoints[i].first.getT() += default_derivation_delta*10 ;
-            for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-                gp_b.gaussPoints[i].first.getT() -= default_derivation_delta*10 ;
-            for(size_t i = 0 ; i < gp_.gaussPoints.size() ; i++)
-                ret += (domega[i]*Jinv[i][dim][dim] /(20.*default_derivation_delta)) ;
-        }
         break ;
     }
     default:
@@ -3335,7 +3262,7 @@ void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const 
     }
 }
 
-void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const IntegrableEntity * e, const std::vector<Variable> & vars, Matrix & ret)
+void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret)
 {
     GaussPointArray gp_a(gp_);
     gp_a.getId() = -1 ;
@@ -3402,93 +3329,15 @@ void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const
     }
     case TIME_VARIABLE :
     {
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-            gp_a.gaussPoints[i].first.getT() += default_derivation_delta*100 ;
-        std::valarray<Matrix> t_a(ievalDecomposed(d.second, gp_a, Jinv, vars)) ;
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-            gp_a.gaussPoints[i].first.getT() -= default_derivation_delta*100 ;
+      
+        Matrix a(ret.numRows(), ret.numCols()) ;
+        ieval( d.second.first.dot() * d.second.second * d.second.third, gp_, Jinv, vars, a) ;
+        ret += a ;
+        a = 0 ;
+        ieval( d.second.first * d.second.second * d.second.third.dot() , gp_, Jinv, vars, a) ;
+        ret += a ;
+        ret /= Jinv[0][Jinv[0].numRows()-1][Jinv[0].numRows()-1] ;
 
-
-        for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-            gp_b.gaussPoints[i].first.getT() -= default_derivation_delta*100 ;
-        std::valarray<Matrix> t_b (ievalDecomposed(d.second, gp_b, Jinv, vars)) ;
-        for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-            gp_b.gaussPoints[i].first.getT() += default_derivation_delta*100 ;
-
-        size_t dim = vars.size()-1 ;
-
-
-        ret = ((Matrix) ((Matrix) (t_a[0]-t_b[0])*Jinv[0][dim][dim]))/(200.*default_derivation_delta) ;
-        for(size_t i = 1 ; i < gp_a.gaussPoints.size() ; i++)
-        {
-            ret += ((Matrix) ((Matrix) (t_a[i]-t_b[i])*Jinv[i][dim][dim]))/(200.*default_derivation_delta) ;
-        }
-
-
-
-
-
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-            gp_a.gaussPoints[i].first.getX() += default_derivation_delta*100 ;
-        std::valarray<Matrix> x_a(ievalDecomposed(d.second, gp_a, Jinv, vars)) ;
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-            gp_a.gaussPoints[i].first.getX() -= default_derivation_delta*100 ;
-
-
-        for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-            gp_b.gaussPoints[i].first.getX() -= default_derivation_delta*100 ;
-        std::valarray<Matrix> x_b (ievalDecomposed(d.second, gp_b, Jinv, vars)) ;
-        for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-            gp_b.gaussPoints[i].first.getX() += default_derivation_delta*100 ;
-
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-        {
-            ret += ((Matrix) ((Matrix) (x_a[i]-x_b[i])*Jinv[i][dim][0]))/(200.*default_derivation_delta) ;
-        }
-
-
-
-
-
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-            gp_a.gaussPoints[i].first.getY() += default_derivation_delta*100 ;
-        std::valarray<Matrix> y_a(ievalDecomposed(d.second, gp_a, Jinv, vars)) ;
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-            gp_a.gaussPoints[i].first.getY() -= default_derivation_delta*100 ;
-
-
-        for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-            gp_b.gaussPoints[i].first.getY() -= default_derivation_delta*100 ;
-        std::valarray<Matrix> y_b (ievalDecomposed(d.second, gp_b, Jinv, vars)) ;
-        for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-            gp_b.gaussPoints[i].first.getY() += default_derivation_delta*100 ;
-
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-        {
-            ret += ((Matrix) ((Matrix) (y_a[i]-y_b[i])*Jinv[i][dim][1]))/(200.*default_derivation_delta) ;
-        }
-
-        std::valarray<Matrix> domega (ievalDecomposed(d.second, gp_, Jinv, vars)) ;
-        for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-            gp_a.gaussPoints[i].first.getT() += default_derivation_delta*100 ;
-        for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-            gp_b.gaussPoints[i].first.getT() -= default_derivation_delta*100 ;
-
-
-        if(std::abs(Jinv[0][0][dim]) > POINT_TOLERANCE ||
-                std::abs(Jinv[0][1][dim]) > POINT_TOLERANCE ||
-                std::abs(Jinv[0][dim][0]) > POINT_TOLERANCE ||
-                std::abs(Jinv[0][dim][1]) > POINT_TOLERANCE)
-        {
-
-            std::valarray<Matrix> domega (ievalDecomposed(d.second, gp_, Jinv, vars)) ;
-            for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-                gp_a.gaussPoints[i].first.getT() += default_derivation_delta*10 ;
-            for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-                gp_b.gaussPoints[i].first.getT() -= default_derivation_delta*10 ;
-            for(size_t i = 0 ; i < gp_.gaussPoints.size() ; i++)
-                ret += (domega[i]*Jinv[i][dim][dim] /(20.*default_derivation_delta)) ;
-        }
 
         break ;
     }
@@ -3918,65 +3767,65 @@ double VirtualMachine::ieval(const VGtV &f, const GaussPointArray &gp, const std
     return ret ;
 }
 
-std::vector<Point> VirtualMachine::allHints(const Function &f0, const Function &f1,IntegrableEntity *e )
-{
-    std::vector<Point> hints(0) ;
-
-    if ((e!= nullptr && f0.hasIntegrationHint()) || f1.hasIntegrationHint())
-    {
-        hints.push_back(e->getBoundingPoint(0)) ;
-        hints.push_back(e->getBoundingPoint(e->getBoundingPoints().size()/3));
-        hints.push_back(e->getBoundingPoint(2*e->getBoundingPoints().size()/3)) ;
-// 		for(size_t i = 0 ; i < t->getBoundingPoints()->size() ; i++)
-// 		{
-// 			if(i%t->getOrder() != 0)
-// 				hints.push_back(Point(*t->getBoundingPoint(i))) ;
-// 		}
-        if(f0.hasIntegrationHint())
-        {
-            for(size_t i = 0 ; i<  f0.getIntegrationHint().size() ; i++)
-            {
-                hints.push_back(f0.getIntegrationHint(i)) ;
-            }
-        }
-        if(f1.hasIntegrationHint())
-        {
-            for(size_t i = 0 ; i<  f1.getIntegrationHint().size() ; i++)
-            {
-                hints.push_back(f1.getIntegrationHint(i)) ;
-            }
-        }
-    }
-
-    return hints ;
-}
-
-std::vector<Point> VirtualMachine::allHints(const Function &f0,IntegrableEntity *e )
-{
-    std::vector<Point> hints(0) ;
-
-
-    if (e!= nullptr && f0.hasIntegrationHint() )
-    {
-        hints.push_back(e->getBoundingPoint(0)) ;
-        hints.push_back(e->getBoundingPoint(e->getBoundingPoints().size()/3));
-        hints.push_back(e->getBoundingPoint(2*e->getBoundingPoints().size()/3)) ;
-        for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
-        {
-            if(i%e->getOrder() != 0)
-                hints.push_back(Point(e->getBoundingPoint(i))) ;
-        }
-        if(f0.hasIntegrationHint())
-        {
-            for(size_t i = 0 ; i<  f0.getIntegrationHint().size() ; i++)
-            {
-                hints.push_back(f0.getIntegrationHint(i)) ;
-            }
-        }
-    }
-
-    return hints ;
-}
+// std::vector<Point> VirtualMachine::allHints(const Function &f0, const Function &f1,IntegrableEntity *e )
+// {
+//     std::vector<Point> hints(0) ;
+// 
+//     if ((e!= nullptr && f0.hasIntegrationHint()) || f1.hasIntegrationHint())
+//     {
+//         hints.push_back(e->getBoundingPoint(0)) ;
+//         hints.push_back(e->getBoundingPoint(e->getBoundingPoints().size()/3));
+//         hints.push_back(e->getBoundingPoint(2*e->getBoundingPoints().size()/3)) ;
+// // 		for(size_t i = 0 ; i < t->getBoundingPoints()->size() ; i++)
+// // 		{
+// // 			if(i%t->getOrder() != 0)
+// // 				hints.push_back(Point(*t->getBoundingPoint(i))) ;
+// // 		}
+//         if(f0.hasIntegrationHint())
+//         {
+//             for(size_t i = 0 ; i<  f0.getIntegrationHint().size() ; i++)
+//             {
+//                 hints.push_back(f0.getIntegrationHint(i)) ;
+//             }
+//         }
+//         if(f1.hasIntegrationHint())
+//         {
+//             for(size_t i = 0 ; i<  f1.getIntegrationHint().size() ; i++)
+//             {
+//                 hints.push_back(f1.getIntegrationHint(i)) ;
+//             }
+//         }
+//     }
+// 
+//     return hints ;
+// }
+// 
+// std::vector<Point> VirtualMachine::allHints(const Function &f0,IntegrableEntity *e )
+// {
+//     std::vector<Point> hints(0) ;
+// 
+// 
+//     if (e!= nullptr && f0.hasIntegrationHint() )
+//     {
+//         hints.push_back(e->getBoundingPoint(0)) ;
+//         hints.push_back(e->getBoundingPoint(e->getBoundingPoints().size()/3));
+//         hints.push_back(e->getBoundingPoint(2*e->getBoundingPoints().size()/3)) ;
+//         for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
+//         {
+//             if(i%e->getOrder() != 0)
+//                 hints.push_back(Point(e->getBoundingPoint(i))) ;
+//         }
+//         if(f0.hasIntegrationHint())
+//         {
+//             for(size_t i = 0 ; i<  f0.getIntegrationHint().size() ; i++)
+//             {
+//                 hints.push_back(f0.getIntegrationHint(i)) ;
+//             }
+//         }
+//     }
+// 
+//     return hints ;
+// }
 
 // Matrix VirtualMachine::ieval(const GtFMtG &f, IntegrableEntity *e, const std::vector<Variable> & var)
 // {

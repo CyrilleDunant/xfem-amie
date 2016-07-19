@@ -14,8 +14,6 @@
 namespace Amie
 {
 
-class Function ;
-
 /** \brief Triangle lying in 2-space.*/
 class Triangle : public ConvexGeometry
 {
@@ -639,8 +637,6 @@ public:
     } ;
 
     const Point getPointOnEllipse(double theta) const ;
-
-    Function getEllipseFormFunction() const ;
 
     Ellipse getEllipseInLocalCoordinates() const ;
 

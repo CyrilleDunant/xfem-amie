@@ -16,6 +16,20 @@
 
 namespace Amie {
 
+Function getEllipseFormFunction(const Ellipse * e)
+{
+    double alpha = e->getMajorAxis().angle() ;
+    Function x("x") ;
+    Function y("y") ;
+    Function x_((x-e->getCenter().getX())*cos(alpha)-(y-e->getCenter().getY())*sin(-alpha)) ;
+    Function y_((x-e->getCenter().getX())*sin(-alpha)+(y-e->getCenter().getY())*cos(alpha)) ;
+    double mm0 = (e->getMajorRadius()*e->getMajorRadius()) ;
+    double mm1 = (e->getMinorRadius()*e->getMinorRadius()) ;
+    Function f0 = x_*x_/mm0 ;
+    Function f1 = y_*y_/mm1 ;
+    Function f2 = f0+f1-1. ;
+    return f2 ;
+}
 
 void concatenateFunctions(const Function & src0, const Function & src1, Function & dst)
 {

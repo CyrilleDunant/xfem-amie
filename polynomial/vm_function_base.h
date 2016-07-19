@@ -889,6 +889,8 @@ struct FunctionParserHelper
     static functionParseElement toToken ( const std::string & str, int iter , std::vector<double> & v ) ;
 } ;
 
+Function getEllipseFormFunction(const Ellipse * e) ;
+
 struct GradientDot ;
 struct GradientDotDot ;
 struct FtF ;

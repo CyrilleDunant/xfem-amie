@@ -265,7 +265,7 @@ SpaceTimeNonLocalEllipsoidalMixedCriterion::SpaceTimeNonLocalEllipsoidalMixedCri
 
 	surface = new Ellipse(center, mj, mn) ;
 	surface->sampleBoundingSurface(512) ;
-	base = std::abs(VirtualMachine().eval( surface->getEllipseFormFunction() )) ;
+	base = std::abs(VirtualMachine().eval( getEllipseFormFunction(surface) )) ;
 	upVal = surface->getCenter().getX()-surface->getMajorRadius() ;
 
 }

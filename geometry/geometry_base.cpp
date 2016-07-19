@@ -12,7 +12,6 @@
 
 #include "../mesher/delaunay.h"
 #include "space_time_geometry_2D.h"
-#include "../polynomial/vm_function_base.h"
 
 namespace Amie
 {
@@ -1544,8 +1543,6 @@ bool Geometry::intersects(const Geometry *g) const
             double theta = 0 ;
             double dtheta = 2.*M_PI/64 ;
 
-            Function f = dynamic_cast<const Ellipse *>(this)->getEllipseFormFunction() ;
-            VirtualMachine vm ;
             while(theta < 2.*M_PI)
             {
                 Point p = dynamic_cast<const Ellipse *>(g)->getPointOnEllipse(theta) ;

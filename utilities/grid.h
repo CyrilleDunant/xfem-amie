@@ -24,7 +24,7 @@ protected:
 	Point bl ;
 	Point br ;
 	bool filled ;
-	std::valarray<Pixel> pixels ;
+	std::valarray<Pixel *> pixels ;
 	void refine() ;
 	int computeFillFactor() const;
 // 	const short level ;

@@ -70,9 +70,21 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
 
         for( size_t j = 0 ; j < aggregates.size() ; j++ )
         {
+	    if( dist( zonesToPlace[i]->getCenter(), aggregates[j]->getCenter() ) < aggregates[j]->getRadius() && baseGeometry.in( zonesToPlace[i]->getCenter() ) && 
+	        dist( zonesToPlace[i]->getCenter(), aggregates[j]->getCenter() ) > aggregates[j]->getRadius() - deltaRadius*50.
+	    )
+	    {
+	      int count = 0 ;
+	      Point vec = zonesToPlace[i]->getCenter()-aggregates[j]->getCenter() ;
+	      vec /= vec.norm() ;
+	      while(dist( zonesToPlace[i]->getCenter(), aggregates[j]->getCenter() ) > aggregates[j]->getRadius() - deltaRadius*50. && count++ < 50)
+	      {
+		 zonesToPlace[i]->getCenter() += vec*deltaRadius ;
+	      }
+	    }
             if( dist( zonesToPlace[i]->getCenter(), aggregates[j]->getCenter() ) < aggregates[j]->getRadius() - deltaRadius*50. && baseGeometry.in( zonesToPlace[i]->getCenter() ) )
             {
-                zonesPerIncs[aggregates[j]]++ ; ;
+                zonesPerIncs[aggregates[j]]++ ;
                 ftree->addFeature( aggregates[j], zonesToPlace[i] ) ;
                 zones.push_back( std::make_pair( zonesToPlace[i], aggregates[j] ) ) ;
                 reactedArea += zonesToPlace[i]->area() ;

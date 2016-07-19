@@ -7,7 +7,7 @@
 #ifndef VM_BASE_H
 #define VM_BASE_H
 
-#include "../elements/integrable_entity.h"
+// #include "../elements/integrable_entity.h"
 #include "vm_function_base.h"
 #include "vm_function_matrix.h"
 
@@ -48,7 +48,7 @@ struct GtMLtGD ;
 struct GDtMLtG ;
 struct GDtV ;
 struct GDtVL ;
-struct IntegrableEntity ;
+// struct IntegrableEntity ;
 struct GaussPointArray ;
 class Function ;
 struct DeprecatedFunction ;
@@ -139,7 +139,6 @@ public:
     @param gp GaussPointArray giving the points at which to evaluate the Function f
     */
     Vector eval(const Function &f, const GaussPointArray &gp) ;
-    Vector eval(const DeprecatedFunction &f, const GaussPointArray &gp) ;
 
     /** \brief Evaluate Function f at all points of the given GaussPointArray gp, each offset by "offset".
     This method is used internally to compute the numerical differential of a set of points.
@@ -454,9 +453,9 @@ public:
     */
     Matrix ieval(const DtGtMtG & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
 
-    void ieval(const DdGtMtG & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const IntegrableEntity * e, const std::vector<Variable> & vars, Matrix & ret) ;
+//     void ieval(const DdGtMtG & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const IntegrableEntity * e, const std::vector<Variable> & vars, Matrix & ret) ;
 
-    void ieval(const DdGtMtGD & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const IntegrableEntity * e, const std::vector<Variable> & vars, Matrix & ret) ;
+//     void ieval(const DdGtMtGD & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const IntegrableEntity * e, const std::vector<Variable> & vars, Matrix & ret) ;
 
     void ieval(const DdGtMtG & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
 
@@ -656,18 +655,18 @@ public:
     */
     void geval(const Function &f, const std::valarray<Matrix> & m, const std::vector<Variable> & var, const GaussPointArray & gp, bool transpose,  std::valarray<Matrix> & ret) ;
 
-    /** \brief Return all points to be used for sub-tesselation of the IntegrableEntity e, given by two functions
-    @param f0 First source of points
-    @param f1 Second source of points
-    @param e defining surface
-    */
-    std::vector<Point> allHints(const Function &f0, const Function &f1,IntegrableEntity *e ) ;
-
-    /** \brief Return all points to be used for sub-tesselation of the IntegrableEntity e, given by a functions
-    @param f source of points
-    @param e defining surface
-    */
-    std::vector<Point> allHints(const Function &f,IntegrableEntity *e ) ;
+//     /** \brief Return all points to be used for sub-tesselation of the IntegrableEntity e, given by two functions
+//     @param f0 First source of points
+//     @param f1 Second source of points
+//     @param e defining surface
+//     */
+//     std::vector<Point> allHints(const Function &f0, const Function &f1,IntegrableEntity *e ) ;
+// 
+//     /** \brief Return all points to be used for sub-tesselation of the IntegrableEntity e, given by a functions
+//     @param f source of points
+//     @param e defining surface
+//     */
+//     std::vector<Point> allHints(const Function &f,IntegrableEntity *e ) ;
 
     /** \brief Print the ByteCode of the Function f.
     This is sometimes useful for debug, if functions have been generated on-the-fly.

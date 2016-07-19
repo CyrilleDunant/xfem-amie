@@ -355,16 +355,16 @@ void Pixel::refine()
     if(pixels.size() == 0)
     {
         pixels.resize(4) ;
-        pixels[0] = Pixel(tl.getX()+(tr.getX()-tl.getX())*.25, bl.getY()+(tl.getY()-bl.getY())*.75, (tr.getX()-tl.getX())*.5) ;
-        pixels[1] = Pixel(tl.getX()+(tr.getX()-tl.getX())*.75, bl.getY()+(tl.getY()-bl.getY())*.75, (tr.getX()-tl.getX())*.5) ;
-        pixels[2] = Pixel(tl.getX()+(tr.getX()-tl.getX())*.25, bl.getY()+(tl.getY()-bl.getY())*.25, (tr.getX()-tl.getX())*.5) ;
-        pixels[3] = Pixel(tl.getX()+(tr.getX()-tl.getX())*.75, bl.getY()+(tl.getY()-bl.getY())*.25, (tr.getX()-tl.getX())*.5) ;
+        pixels[0] = new Pixel(tl.getX()+(tr.getX()-tl.getX())*.25, bl.getY()+(tl.getY()-bl.getY())*.75, (tr.getX()-tl.getX())*.5) ;
+        pixels[1] = new Pixel(tl.getX()+(tr.getX()-tl.getX())*.75, bl.getY()+(tl.getY()-bl.getY())*.75, (tr.getX()-tl.getX())*.5) ;
+        pixels[2] = new Pixel(tl.getX()+(tr.getX()-tl.getX())*.25, bl.getY()+(tl.getY()-bl.getY())*.25, (tr.getX()-tl.getX())*.5) ;
+        pixels[3] = new Pixel(tl.getX()+(tr.getX()-tl.getX())*.75, bl.getY()+(tl.getY()-bl.getY())*.25, (tr.getX()-tl.getX())*.5) ;
 
         for(size_t i = 0 ; i < 4 ; i++)
         {
             for(size_t j = 0 ; j < features.size() ; j++)
-                if(pixels[i].coOccur(features[j]))
-                    pixels[i].forceAdd(features[j]) ;
+                if(pixels[i]->coOccur(features[j]))
+                    pixels[i]->forceAdd(features[j]) ;
         }
     }
     else
@@ -373,6 +373,8 @@ void Pixel::refine()
 
 Pixel::~Pixel()
 {
+  for(size_t i = 0 ; i < pixels.size() ; i++)
+    delete pixels[i] ;
 }
 
 bool Pixel::coOccur(const Geometry * const inc) const
@@ -413,7 +415,7 @@ void Pixel::remove(const Geometry * inc)
 
     if(pixels.size())
         for(size_t i = 0 ; i < 4 ; i++)
-            pixels[i].remove(inc) ;
+            pixels[i]->remove(inc) ;
 
     if(features.empty() && pixels.size())
     {
@@ -464,9 +466,9 @@ void Pixel::coOccuringFeatures(std::vector<const Geometry *> &f , const Geometry
     {
         for(size_t i = 0 ; i < 4 ; i++)
         {
-            if(pixels[i].coOccur(inc))
+            if(pixels[i]->coOccur(inc))
             {
-                pixels[i].coOccuringFeatures(f, inc) ;
+                pixels[i]->coOccuringFeatures(f, inc) ;
             }
         }
     }
@@ -486,9 +488,9 @@ void Pixel::coOccuringFeatures(std::vector<const Geometry *> &f , const Point & 
     {
         for(size_t i = 0 ; i < 4 ; i++)
         {
-            if(pixels[i].coOccur(p))
+            if(pixels[i]->coOccur(p))
             {
-                pixels[i].coOccuringFeatures(f, p) ;
+                pixels[i]->coOccuringFeatures(f, p) ;
             }
         }
     }
@@ -504,13 +506,13 @@ bool Pixel::add(const Geometry * inc)
         bool ret = true ;
         for(size_t i = 0 ; i < 4 ; i++)
         {
-            if(pixels[i].coOccur(inc))
-                ret = ret && pixels[i].add(inc) ;
+            if(pixels[i]->coOccur(inc))
+                ret = ret && pixels[i]->add(inc) ;
         }
 
         if(!ret)
             for(size_t i = 0 ; i < 4 ; i++)
-                pixels[i].remove(inc) ;
+                pixels[i]->remove(inc) ;
 
         if(ret)
             forceAdd(inc) ;
@@ -555,8 +557,8 @@ void Pixel::forceAdd(const Geometry * inc)
     if(pixels.size())
     {
         for(size_t i = 0 ; i < 4 ; i++)
-            if(pixels[i].coOccur(inc))
-                pixels[i].forceAdd(inc) ;
+            if(pixels[i]->coOccur(inc))
+                pixels[i]->forceAdd(inc) ;
     }
 
 
