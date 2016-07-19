@@ -2319,7 +2319,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
         for ( size_t i = 0 ; i < targetstmp.size() ; i++ )
         {
             const Feature * tmp = dynamic_cast<const Feature *> ( targetstmp[i] ) ;
-            if ( tmp->getLayer() == layer && ( (tmp->getBoundingPoints().size() > 0  && tmp->getInPoints().size() > 0) || tmp->isVirtualFeature || samplingRestriction < POINT_TOLERANCE ) )
+            if ( tmp->getBehaviour() && tmp->getLayer() == layer && ( (tmp->getBoundingPoints().size() > 0  && tmp->getInPoints().size() > 0) || tmp->isVirtualFeature || samplingRestriction < POINT_TOLERANCE ) )
             {
                 targets.push_back ( const_cast<Feature *> ( tmp ) ) ;
             }
@@ -2330,7 +2330,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
     {
         for ( size_t i = 0 ; i < tree.size() ; i++ )
         {
-            if ( tree[i]->getLayer() == layer && ( (tree[i]->getBoundingPoints().size() && tree[i]->getInPoints().size()) || tree[i]->isVirtualFeature || samplingRestriction < POINT_TOLERANCE ) )
+            if ( tree[i]->getBehaviour() && tree[i]->getLayer() == layer && ( (tree[i]->getBoundingPoints().size() && tree[i]->getInPoints().size()) || tree[i]->isVirtualFeature || samplingRestriction < POINT_TOLERANCE ) )
             {
                 targets.push_back ( tree[i] ) ;
             }
