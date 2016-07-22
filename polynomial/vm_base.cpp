@@ -5,7 +5,8 @@
 
 
 #include "vm_base.h"
-#include "../mesher/delaunay.h"
+#include "../elements/integrable_entity.h"
+//#include "../mesher/delaunay.h"
 #include <limits>
 #include <iomanip>
 

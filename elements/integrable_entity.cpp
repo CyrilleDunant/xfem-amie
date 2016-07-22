@@ -91,6 +91,8 @@ IntegrableEntity::IntegrableEntity() : boundaryConditionCache ( nullptr ), cache
     state = new ElementState ( this ) ;
     enrichmentUpdated = false ;
     behaviourUpdated = false ;
+    behaviourForcesUpdated = false ;
+    behaviourViscoUpdated = false ;
     needAssembly = true ;
 }
 
@@ -228,9 +230,9 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
     {
         return ;
     }
-    if ( getBehaviour()->type != VOID_BEHAVIOUR )
+    if ( getBehaviour()->type != VOID_BEHAVIOUR  )
     {
-        if ( boundaryConditionCache )
+        if ( boundaryConditionCache && !behaviourForcesUpdated )
         {
             for ( size_t i = 0 ; i < boundaryConditionCache->size() ; i++ )
             {
@@ -249,7 +251,10 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
             
             return ;
         }
-        boundaryConditionCache = new std::vector<BoundaryCondition *>() ;
+        if( boundaryConditionCache && behaviourForcesUpdated ) 
+            boundaryConditionCache->clear() ;
+        else
+            boundaryConditionCache = new std::vector<BoundaryCondition *>() ;
 
         int JinvSize = 3 ;
         if ( spaceDimensions() == SPACE_THREE_DIMENSIONAL && timePlanes() > 1 )
@@ -3602,7 +3607,7 @@ int isGaussPoint ( const Point & p, IntegrableEntity * e )
 }
 
 
-Vector Form::getForcesFromAppliedStress ( const Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic, const Vector & normal )
+Vector Form::getForcesFromAppliedStress ( const Vector & data, const Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, const std::vector<Variable> & v, bool isVolumic, const Vector & normal ) const
 {
     if ( isVolumic )
     {
@@ -3617,11 +3622,9 @@ Vector Form::getForcesFromAppliedStress ( const Vector & data, Function & shape,
     }
     else
     {
-
         ret[0] += ( data[0]*normal[0]+data[3]*normal[1]+data[4]*normal[2] ) ;
         ret[1] += ( data[1]*normal[1]+data[3]*normal[0]+data[5]*normal[2] ) ;
         ret[2] += ( data[2]*normal[2]+data[4]*normal[0]+data[5]*normal[1] ) ;
-
     }
 
     return ret * VirtualMachine().ieval ( shape, gp ) ;

@@ -15,6 +15,7 @@
 #include "delaunay.h"
 #include <limits>
 #include "../features/crack.h"
+#include "../utilities/samplingcriterion.h"
 #include "../physics/dual_behaviour.h"
 #include "../features/inclusion.h"
 #include "../features/boundarycondition.h"
@@ -2661,7 +2662,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 {
     size_t dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
 
-    if( !behaviourUpdated && !enrichmentUpdated && cachedViscousElementaryMatrix.size() && cachedViscousElementaryMatrix[0].size() == dofCount)
+    if( !behaviourViscoUpdated && !enrichmentUpdated && cachedViscousElementaryMatrix.size() && cachedViscousElementaryMatrix[0].size() == dofCount)
     {
         return cachedViscousElementaryMatrix ;
     }
@@ -2776,7 +2777,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
     }
 
     enrichmentUpdated = false ;
-    behaviourUpdated = false ;
+    behaviourViscoUpdated = false ;
 
     if(behaviour->hasInducedForces())
         cachedForces.resize(0) ;

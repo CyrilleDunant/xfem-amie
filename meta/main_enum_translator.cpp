@@ -94,6 +94,13 @@ struct EnumerationConstructor
 		return ret ;
 	}
 
+	std::string getKeywordString(size_t i)
+        {
+		if(i+1 > values.size())
+			return std::string() ;
+		return "      <keyword>"+values[i]+"</keyword>" ;
+        }
+
 	std::string getStringConstructorLine(size_t i)
 	{
 		if(i+1 > values.size())
@@ -313,6 +320,19 @@ int main(int argc, char *argv[])
 	out << "}" << std::endl ;
 	out << std::endl ;
 	out << "#endif // __ENUMERATION_TRANSLATOR_H__" << std::endl ;
+	out.close() ;
+
+	std::fstream xml ;
+	xml.open("enum_keyword.xml", std::ios::out) ;
+	for(size_t i = 0 ; i < all.headers.size() ; i++)
+	{
+		for(size_t j = 0 ; j < all.headers[i].enums.size() ; j++)
+		{
+			for(size_t k = 0 ; k < all.headers[i].enums[j].values.size() ; k++)
+				xml << all.headers[i].enums[j].getKeywordString(k) << std::endl ;
+		}
+	}
+	xml.close() ;
 
 
 	return 0 ;

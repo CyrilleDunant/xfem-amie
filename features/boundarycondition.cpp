@@ -236,6 +236,10 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             a->setPointAlongIndexedAxis ( axis, data, id[idit] ) ;
             break ;
 
+        case INCREMENT_FORCE_INDEXED_AXIS:
+            a->addForceToExternalForces ( axis, data, id[idit] ) ;
+            break ;
+
         case INCREMENT_ALONG_INDEXED_AXIS:
             if( std::abs( data ) < POINT_TOLERANCE || a->getPreviousDisplacements().size() == 0 )
                 break ;

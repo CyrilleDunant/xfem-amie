@@ -1,4 +1,5 @@
 #include "space_time_geometry_2D.h"
+#include "../polynomial/vm_base.h"
 #include <iomanip>
 
 namespace Amie{

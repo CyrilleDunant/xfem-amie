@@ -365,7 +365,7 @@ public:
         return elastic ;
     }
 
-    void setSpaceTimeFixed( bool f ) { spaceTimeFixed = f ; std::cout << "warning! disabling space-time damage adaptativity..." << std::endl ; }
+    void setSpaceTimeFixed( bool f ) { spaceTimeFixed = f ; if(f) { std::cout << "warning! disabling space-time damage adaptativity..." << std::endl ; } }
 
     void setProjectionOnBoundaries ( bool p ) {
         projectOnBoundaries = p ;

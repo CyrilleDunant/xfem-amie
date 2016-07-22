@@ -6,11 +6,13 @@
 // Copyright: See COPYING file that comes with this distribution
 
 #include "geometry_base.h"
+#include "geometry_2D.h"
+#include "geometry_3D.h"
 //#include "../utilities/xml.h"
 #include <limits>
 #include <iomanip>
 
-#include "../mesher/delaunay.h"
+//#include "../mesher/delaunay.h"
 #include "space_time_geometry_2D.h"
 
 namespace Amie

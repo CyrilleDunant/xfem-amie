@@ -58,11 +58,11 @@ features/loftedPolygonSample3d.cpp
 features/vibratingcircularmembrane.cpp 
 filters/voxelfilter.cpp
 filters/voxelporefilter.cpp 
-polynomial/vm_base.cpp 
 polynomial/vm_function_base.cpp 
 polynomial/vm_function_extra.cpp 
 polynomial/vm_function_matrix.cpp 
 polynomial/vm_token.cpp 
+polynomial/vm_base.cpp 
 geometry/geometry_2D.cpp 
 geometry/geometry_3D.cpp 
 geometry/geometry_with_exclusion.cpp 

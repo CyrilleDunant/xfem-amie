@@ -7,7 +7,7 @@
 #define __ST_GEOMETRY_2D_H_
 
 #include "geometry_2D.h"
-#include "../polynomial/vm_function_base.h"
+#include "../polynomial/vm_function_matrix.h"
 
 namespace Amie
 {

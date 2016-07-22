@@ -142,6 +142,11 @@ struct ObjectConstructor
 		return token+suffix ; 
 	}
 
+	std::string getClassKeyword()
+	{
+		return "      <keyword>"+token+"</keyword>" ;
+	}
+
 	std::string getExistenceCondition( int i )
 	{
 		std::string ret("            if( ") ;
@@ -777,6 +782,7 @@ int main(int argc, char *argv[])
 	head << "}" << std::endl ;
 	head << std::endl ;
 	head << "#endif // __OBJECT_TRANSLATOR_H__" << std::endl ;
+	head.close() ;
 
 
 	std::fstream src ;
@@ -823,6 +829,22 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < all.size() ; i++)
 		all[i].printAllTemplates() ;
 
+	src.close() ;
+
+
+	std::fstream xml ;
+	xml.open( "class_keyword.xml", std::ios::out ) ;
+	for(size_t i = 0 ; i < all.size() ; i++)
+	{
+		for(size_t j = 0 ; j < all[i].headers.size() ; j++)
+		{
+			for(size_t k = 0 ; k < all[i].headers[j].construct.size() ; k++)
+			{
+				if( all[i].headers[j].construct[k].token != "." )
+					xml << all[i].headers[j].construct[k].getClassKeyword( ) << std::endl ;
+			}
+		}
+	} 
 
 	return 0 ;
 }

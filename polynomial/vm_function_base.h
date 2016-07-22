@@ -20,7 +20,7 @@
 #include <cmath>
 // #include <boost/tuple/tuple.hpp>
 
-#include "../elements/integrable_entity.h"
+//#include "../elements/integrable_entity.h"
 #include "../utilities/matrixops.h"
 #include "vm_token.h"
 #include "../geometry/geometry_base.h"

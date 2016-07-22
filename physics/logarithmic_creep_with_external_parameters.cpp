@@ -457,7 +457,9 @@ void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, Elemen
 
 		if(dfunc) { dfunc->prepare() ; }
         }
-	currentState.getParent()->behaviourUpdated = true ;
+	currentState.getParent()->behaviourUpdated = ( abs( param.array()-prevParam.array() ).max() > 1 )  ;
+	currentState.getParent()->behaviourViscoUpdated = ( abs( eta.array()-prevEta.array() ).max() > 1 ) ;
+        if( imposed.size() == prevImposed.size() && abs( imposed-prevImposed ).max() > POINT_TOLERANCE ) { currentState.getParent()->behaviourForcesUpdated = true ; }
 }
 
 LogarithmicCreepWithExternalParameters::~LogarithmicCreepWithExternalParameters() 

@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 3/4/2016 at 17:3  */
+/* this is an auto-generated file created on 19/6/2016 at 12:59  */
 
 #ifndef __OBJECT_TRANSLATOR_H__
 #define __OBJECT_TRANSLATOR_H__
@@ -22,12 +22,12 @@ struct Object
 {
 
     // parsed from header file: ../physics/material_laws/material_laws.h
-    static ExternalMaterialLaw * getExternalMaterialLaw(std::string type, std::map<std::string, std::string> & strings, std::map<std::string, std::vector<std::string>> & stringlists, std::map<std::string, double> & values) ;
+    static ExternalMaterialLaw * getExternalMaterialLaw(std::string type, std::map<std::string, std::string> & strings, std::map<std::string, double> & values, std::map<std::string, std::vector<std::string>> & stringlists) ;
     static bool isExternalMaterialLaw(std::string type) ;
     static void resetExternalMaterialLaw(ExternalMaterialLaw * target) ;
 
     // parsed from header file: ../elements/integrable_entity.h
-    static Form * getForm(std::string type, std::map<std::string, double> & values, std::map<std::string, std::string> & strings, std::map<std::string, ExternalMaterialLawList*> & externalmateriallawlists, std::map<std::string, FractureCriterion*> & fracturecriterions, std::map<std::string, DamageModel*> & damagemodels, std::map<std::string, LogCreepAccumulator*> & logcreepaccumulators) ;
+    static Form * getForm(std::string type, std::map<std::string, double> & values, std::map<std::string, FractureCriterion*> & fracturecriterions, std::map<std::string, DamageModel*> & damagemodels, std::map<std::string, std::string> & strings, std::map<std::string, ExternalMaterialLawList*> & externalmateriallawlists, std::map<std::string, LogCreepAccumulator*> & logcreepaccumulators) ;
     static bool isForm(std::string type) ;
     static void resetForm(Form * target) ;
 
@@ -37,7 +37,7 @@ struct Object
     static void resetDamageModel(DamageModel * target) ;
 
     // parsed from header file: ../physics/fracturecriteria/fracturecriterion.h
-    static FractureCriterion * getFractureCriterion(std::string type, std::map<std::string, double> & values, std::map<std::string, std::string> & strings) ;
+    static FractureCriterion * getFractureCriterion(std::string type, std::map<std::string, std::string> & strings, std::map<std::string, double> & values) ;
     static bool isFractureCriterion(std::string type) ;
     static void resetFractureCriterion(FractureCriterion * target, std::map<std::string, double> & values, std::map<std::string, std::string> & strings) ;
 

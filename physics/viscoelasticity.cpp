@@ -917,7 +917,7 @@ Form * Viscoelasticity::getCopy() const
     return copy ;
 }
 
-Vector Viscoelasticity::getForcesFromAppliedStress( const Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic, const Vector & normal)
+Vector Viscoelasticity::getForcesFromAppliedStress( const Vector & data, const Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, const std::vector<Variable> & v, bool isVolumic, const Vector & normal) const
 {
     if(isVolumic)
     {

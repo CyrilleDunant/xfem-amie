@@ -759,7 +759,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw()
     }
     else if( Object::isExternalMaterialLaw(str))
         type = str ;
-    if(type == "Eval")
+    if(type == std::string("Eval"))
     {
         strings["function"] = str ;
     }
@@ -773,7 +773,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw()
     }
 
 
-    return Object::getExternalMaterialLaw( type, strings, stringlists, values ) ;
+    return Object::getExternalMaterialLaw( type, strings, values, stringlists ) ;
 }
 
 Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, std::vector<ExternalMaterialLaw *> common)
@@ -822,11 +822,11 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, std::vector<Externa
         std::string ctype = getStringData("fracture_criterion") ;
         if(Object::isFractureCriterion(ctype))
         {
-            frac[ "fracture_criterion" ] = Object::getFractureCriterion( ctype, values, strings ) ;
+            frac[ "fracture_criterion" ] = Object::getFractureCriterion( ctype, strings, values ) ;
             if( values.find( "material_characteristic_radius" ) != values.end() )
                 frac[ "fracture_criterion" ]->setMaterialCharacteristicRadius( values["material_characteristic_radius"] ) ;
         }
-        if(ctype == "SpaceTimeMultiSurfaceFractureCriterion")
+        if(ctype == std::string("SpaceTimeMultiSurfaceFractureCriterion"))
         {
             std::vector<ConfigTreeItem *> crits = getChild("fracture_criterion")->getAllChildren("fracture_criterion") ;
             for(size_t i = 0 ; i < crits.size() ; i++)
@@ -839,7 +839,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, std::vector<Externa
                          std::map<std::string, double> vals = crits[i]->getDataMap( ) ;
                          std::map<std::string, std::string> strs = crits[i]->getStringDataMap(  ) ;
 
-                         FractureCriterion * test = Object::getFractureCriterion( cctype, vals, strs ) ;
+                         FractureCriterion * test = Object::getFractureCriterion( cctype, strs, vals ) ;
                          if(test != nullptr)
                              dynamic_cast<SpaceTimeMultiSurfaceFractureCriterion *>(frac["fracture_criterion"])->add( test ) ;
                     }
@@ -863,7 +863,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, std::vector<Externa
              acc[ "accumulator" ] = Object::getLogCreepAccumulator( atype, values ) ;
     }
 
-    return Object::getForm( type, values, strings, law, frac, dam,acc) ;
+    return Object::getForm( type, values, frac, dam, strings, law, acc) ;
 }
 
 Vector ConfigTreeItem::readVectorFromFile() const
@@ -1016,13 +1016,13 @@ InclusionFamilyTree * ConfigTreeItem::makeInclusionFamilyTree( FeatureTree * F, 
         {
             std::vector<ConfigTreeItem *> forms = getAllChildren("behaviour") ;
             if(forms.size() == 1)
-                inc->setBehaviour( getChild("behaviour")->getBehaviour( dim ), getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
+                inc->setBehaviour( getChild("behaviour")->getBehaviour( dim ), getStringData("copy_grain_behaviour","FALSE") == std::string("TRUE" )) ;
             else
             {
                 std::vector<Form *> behaviours ;
                 for(size_t i = 0 ; i < forms.size() ; i++)
                     behaviours.push_back( forms[i]->getBehaviour( dim ) ) ;
-                inc->setBehaviour( behaviours, getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
+                inc->setBehaviour( behaviours, getStringData("copy_grain_behaviour","FALSE") == std::string("TRUE" )) ;
             }
         }
 	tree->insert( inc ) ;
@@ -1076,7 +1076,7 @@ InclusionFamilyTree * ConfigTreeItem::makeInclusionFamilyTree( FeatureTree * F, 
             all[i]->addChild( new ConfigTreeItem( nullptr, "surface", all[i]->getData("surface_fraction")*placement->area() ) ) ; 
         InclusionFamily * current = all[i]->getInclusionFamily( str ) ;
         if(all[i]->hasChild("behaviour"))
-            current->setBehaviour( all[i]->getChild("behaviour")->getBehaviour( dim ), getStringData("copy_grain_behaviour","FALSE") == "TRUE" ) ;
+            current->setBehaviour( all[i]->getChild("behaviour")->getBehaviour( dim ), getStringData("copy_grain_behaviour","FALSE") == std::string("TRUE" )) ;
 	tree->insert( current ) ;
         Sampler * sampler = nullptr ;
         if(all[i]->hasChild("sampler"))
@@ -1250,13 +1250,13 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
 
 bool ConfigTreeItem::isAtTimeStep(int i, int nsteps) const
 {
-    if(getStringData("at","ALL") == "ALL")
+    if(getStringData("at","ALL") == std::string("ALL"))
         return true ;
-    if(getStringData("at","ALL") == "LAST")
+    if(getStringData("at","ALL") == std::string("LAST"))
         return i == nsteps-1 ;
-    if(getStringData("at","ALL") == "FIRST")
+    if(getStringData("at","ALL") == std::string("FIRST"))
         return i == 1 ;
-    if(getStringData("at","ALL") == "REGULAR")
+    if(getStringData("at","ALL") == std::string("REGULAR"))
         return i%((int) getData("every", 2)) == 0 ;
     return false ;
 }
@@ -1303,7 +1303,7 @@ std::vector<PostProcessor *> ConfigTreeItem::getAllPostProcessors(std::vector<un
 ConfigTreeItem * ConfigTreeItem::makeTemplate()
 {
     std::string source = getStringData("source","file_not_found") ;
-    if(source == "file_not_found")
+    if(source == std::string("file_not_found"))
     {
         std::cout << "template without source file! exiting now" << std::endl ;
         exit(0) ;
@@ -1333,7 +1333,7 @@ ConfigTreeItem * ConfigTreeItem::makeTemplate()
 
 void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector<unsigned int> cacheIndex, std::vector<std::string> flags)
 {
-    if(getStringData("file_name","file_not_found") == "file_not_found")
+    if(getStringData("file_name","file_not_found") == std::string("file_not_found"))
         return ;
 
     std::string path  = getStringData("file_name","output") ;
@@ -1353,7 +1353,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
         std::cout << F->getCurrentTime() << "\t" ;
         out << F->getCurrentTime() << "\t" ;
         std::string instant = getStringData("instant","NOW") ;
-        double time = (int) (instant == "AFTER") - (int) (instant == "BEFORE") ;
+        double time = (int) (instant == std::string("AFTER")) - (int) (instant == std::string("BEFORE")) ;
         std::vector<ConfigTreeItem *> fields = getAllChildren("field") ;
         for(size_t i = 0 ; i < fields.size() ; i++)
         {
@@ -1386,7 +1386,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
                 FieldType ft = Enum::getFieldType( ffields[i]->getStringData(), &isFieldType ) ;
                 if(isFieldType)
                 {
-                    Vector f = F->get2DMesh()->getField( ft, cacheIndex[index], (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
+                    Vector f = F->get2DMesh()->getField( ft, cacheIndex[index], (int) (instant == std::string("AFTER")) - (int) (instant == std::string("BEFORE")) ) ;
                     for(size_t j = 0 ; j < f.size() ; j++)
                     {
                         std::cout << f[j] << "\t" ;
@@ -1414,7 +1414,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
                 FieldType ft = Enum::getFieldType( ffields[i]->getStringData(), &isFieldType ) ;
                 if(isFieldType)
                 {
-                    Vector f = F->getAverageFieldOnBoundary( pos, ft, (int) (instant == "AFTER") - (int) (instant == "BEFORE"), getData("field_index",0) ) ;
+                    Vector f = F->getAverageFieldOnBoundary( pos, ft, (int) (instant == std::string("AFTER")) - (int) (instant == std::string("BEFORE")), getData("field_index",0) ) ;
                     for(size_t j = 0 ; j < f.size() ; j++)
                     {
                         std::cout << f[j] << "\t" ;
@@ -1423,7 +1423,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
                 }
                 else
                 {
-                    double f = F->getAverageFieldOnBoundary( pos, ffields[i]->getStringData(), (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
+                    double f = F->getAverageFieldOnBoundary( pos, ffields[i]->getStringData(), (int) (instant == std::string("AFTER")) - (int) (instant == std::string("BEFORE")) ) ;
                     std::cout << f << "\t" ;
                     out << f << "\t" ;
                 }
@@ -1434,7 +1434,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
         std::vector<ConfigTreeItem *> nodes = getAllChildren("point") ;
         for(size_t i = 0 ; i < nodes.size() ; i++)
         {
-            Point * p = new Point( nodes[i]->getData("x") , nodes[i]->getData("y") , 0 , ((int) (instant == "AFTER") - (int) (instant == "BEFORE")) ) ;
+            Point * p = new Point( nodes[i]->getData("x") , nodes[i]->getData("y") , 0 , ((int) (instant == std::string("AFTER")) - (int) (instant == std::string("BEFORE"))) ) ;
             std::vector<ConfigTreeItem *> ffields = nodes[i]->getAllChildren("field") ;
             for(size_t i = 0 ; i < ffields.size() ; i++)
             {
@@ -1465,7 +1465,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
             {
                 for(size_t yi = 0 ; yi < y.size() ; yi++)
                 {
-                    Point * p = new Point( x[xi] , y[yi] , 0 , ((int) (instant == "AFTER") - (int) (instant == "BEFORE")) ) ;
+                    Point * p = new Point( x[xi] , y[yi] , 0 , ((int) (instant == std::string("AFTER")) - (int) (instant == std::string("BEFORE"))) ) ;
                     std::vector<ConfigTreeItem *> ffields = nodes[i]->getAllChildren("field") ;
                     for(size_t i = 0 ; i < ffields.size() ; i++)
                     {
@@ -1495,7 +1495,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
 
 void ConfigTreeItem::exportTriangles(FeatureTree * F, int i, int nsteps, std::vector<std::string> flags)
 {
-    if(getStringData("file_name","file_not_found") == "file_not_found")
+    if(getStringData("file_name","file_not_found") == std::string("file_not_found"))
         return ;
 
     std::string path  = getStringData("file_name","triangles") ;
@@ -1506,7 +1506,7 @@ void ConfigTreeItem::exportTriangles(FeatureTree * F, int i, int nsteps, std::ve
     if(getChild("time_step")->isAtTimeStep(i, nsteps))
     {
         std::string instant = getStringData("instant","NOW") ;
-        TriangleWriter trg( path , F, (int) (instant == "AFTER") - (int) (instant == "BEFORE") ) ;
+        TriangleWriter trg( path , F, (int) (instant == std::string("AFTER")) - (int) (instant == std::string("BEFORE")) ) ;
         std::vector<ConfigTreeItem *> fields = getAllChildren("field") ;
         for(size_t i = 0 ; i < fields.size() ; i++)
         {
@@ -1530,7 +1530,7 @@ void ConfigTreeItem::exportSvgTriangles(MultiTriangleWriter * trg, FeatureTree *
     if(!trg)
         return ;
 
-    if(getStringData("svg", "TRUE") == "FALSE")
+    if(getStringData("svg", "TRUE") == std::string("FALSE"))
     {
         exportTriangles( F, i, nsteps, flags) ;
         return ;
@@ -1539,7 +1539,7 @@ void ConfigTreeItem::exportSvgTriangles(MultiTriangleWriter * trg, FeatureTree *
     if(getChild("time_step")->isAtTimeStep(i, nsteps))
     {
         std::string instant = getStringData("instant","NOW") ;
-        trg->reset(F, (int) (instant == "AFTER") - (int) (instant == "BEFORE")) ;
+        trg->reset(F, (int) (instant == std::string("AFTER")) - (int) (instant == std::string("BEFORE"))) ;
         std::vector<ConfigTreeItem *> fields = getAllChildren("field") ;
         for(size_t i = 0 ; i < fields.size() ; i++)
         {

@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 3/4/2016 at 17:3  */
+/* this is an auto-generated file created on 19/6/2016 at 12:59  */
 
 #ifndef __ENUMERATION_TRANSLATOR_H__
 #define __ENUMERATION_TRANSLATOR_H__
@@ -6,25 +6,25 @@
 #include "../elements/integrable_entity.h"
 #include "../features/boundarycondition.h"
 #include "../geometry/geometry_base.h"
-#include "../physics/materials/csh_behaviour.h"
-#include "../physics/damagemodels/damagemodel.h"
 #include "../physics/finite_difference_viscoelasticity.h"
-#include "../physics/viscoelasticity.h"
-#include "../physics/material_laws/material_laws.h"
-#include "../physics/fracturecriteria/mcft.h"
-#include "../physics/fracturecriteria/spacetimelimitsurfacefracturecriterion.h"
+#include "../physics/materials/csh_behaviour.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
+#include "../physics/fracturecriteria/spacetimelimitsurfacefracturecriterion.h"
+#include "../physics/fracturecriteria/mcft.h"
+#include "../physics/material_laws/material_laws.h"
+#include "../physics/viscoelasticity.h"
+#include "../physics/damagemodels/damagemodel.h"
 #include "../polynomial/vm_token.h"
-#include "../polynomial/vm_function_base.h"
 #include "../polynomial/variable.h"
 #include "../polynomial/typeref.h"
+#include "../polynomial/vm_function_base.h"
 #include "../solvers/assembly.h"
-#include "../utilities/granulo.h"
 #include "../utilities/configuration.h"
-#include "../utilities/parser/config_parser.h"
-#include "../utilities/tensor.h"
-#include "../utilities/writer/triangle_writer.h"
 #include "../utilities/writer/voxel_writer.h"
+#include "../utilities/writer/triangle_writer.h"
+#include "../utilities/parser/config_parser.h"
+#include "../utilities/granulo.h"
+#include "../utilities/tensor.h"
 
 namespace Amie
 {
@@ -579,44 +579,6 @@ struct Enum
         return "SPACE_ONE_DIMENSIONAL" ;
     }
    
-    // parsed from header file: ../physics/materials/csh_behaviour.h
-    static CSHType getCSHType(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "INNER_CSH") { return INNER_CSH ; }
-        if( type == "OUTER_CSH") { return OUTER_CSH ; }
-        if(ok) { *ok = false ; }
-        return INNER_CSH ;
-    }
-    static std::string fromCSHType(CSHType value)
-    {
-        switch(value)
-        {
-            case INNER_CSH: return "INNER_CSH" ;
-            case OUTER_CSH: return "OUTER_CSH" ;
-        }
-        return "INNER_CSH" ;
-    }
-   
-    // parsed from header file: ../physics/damagemodels/damagemodel.h
-    static ConvergenceType getConvergenceType(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "DISSIPATIVE") { return DISSIPATIVE ; }
-        if( type == "CONSERVATIVE") { return CONSERVATIVE ; }
-        if(ok) { *ok = false ; }
-        return DISSIPATIVE ;
-    }
-    static std::string fromConvergenceType(ConvergenceType value)
-    {
-        switch(value)
-        {
-            case DISSIPATIVE: return "DISSIPATIVE" ;
-            case CONSERVATIVE: return "CONSERVATIVE" ;
-        }
-        return "DISSIPATIVE" ;
-    }
-   
     // parsed from header file: ../physics/finite_difference_viscoelasticity.h
     static ViscoelasticFiniteDifferenceIntegration getViscoelasticFiniteDifferenceIntegration(std::string type, bool * ok = 0)
     {
@@ -640,6 +602,113 @@ struct Enum
             case ZIENKIEWICZ: return "ZIENKIEWICZ" ;
         }
         return "FORWARD_EULER" ;
+    }
+   
+    // parsed from header file: ../physics/materials/csh_behaviour.h
+    static CSHType getCSHType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "INNER_CSH") { return INNER_CSH ; }
+        if( type == "OUTER_CSH") { return OUTER_CSH ; }
+        if(ok) { *ok = false ; }
+        return INNER_CSH ;
+    }
+    static std::string fromCSHType(CSHType value)
+    {
+        switch(value)
+        {
+            case INNER_CSH: return "INNER_CSH" ;
+            case OUTER_CSH: return "OUTER_CSH" ;
+        }
+        return "INNER_CSH" ;
+    }
+   
+    // parsed from header file: ../physics/fracturecriteria/fracturecriterion.h
+    static SmoothingFunctionType getSmoothingFunctionType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "QUARTIC_COMPACT") { return QUARTIC_COMPACT ; }
+        if( type == "GAUSSIAN_NONCOMPACT") { return GAUSSIAN_NONCOMPACT ; }
+        if(ok) { *ok = false ; }
+        return QUARTIC_COMPACT ;
+    }
+    static std::string fromSmoothingFunctionType(SmoothingFunctionType value)
+    {
+        switch(value)
+        {
+            case QUARTIC_COMPACT: return "QUARTIC_COMPACT" ;
+            case GAUSSIAN_NONCOMPACT: return "GAUSSIAN_NONCOMPACT" ;
+        }
+        return "QUARTIC_COMPACT" ;
+    }
+   
+    // parsed from header file: ../physics/fracturecriteria/spacetimelimitsurfacefracturecriterion.h
+    static ReferenceFrame getReferenceFrame(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "FRAME_CARTESIAN") { return FRAME_CARTESIAN ; }
+        if( type == "FRAME_PRINCIPAL") { return FRAME_PRINCIPAL ; }
+        if( type == "FRAME_MODEL") { return FRAME_MODEL ; }
+        if( type == "FRAME_MATERIAL") { return FRAME_MATERIAL ; }
+        if(ok) { *ok = false ; }
+        return FRAME_CARTESIAN ;
+    }
+    static std::string fromReferenceFrame(ReferenceFrame value)
+    {
+        switch(value)
+        {
+            case FRAME_CARTESIAN: return "FRAME_CARTESIAN" ;
+            case FRAME_PRINCIPAL: return "FRAME_PRINCIPAL" ;
+            case FRAME_MODEL: return "FRAME_MODEL" ;
+            case FRAME_MATERIAL: return "FRAME_MATERIAL" ;
+        }
+        return "FRAME_CARTESIAN" ;
+    }
+   
+    // parsed from header file: ../physics/fracturecriteria/mcft.h
+    static RedistributionType getRedistributionType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "UPPER_BOUND") { return UPPER_BOUND ; }
+        if( type == "LOWER_BOUND") { return LOWER_BOUND ; }
+        if( type == "AVERAGE") { return AVERAGE ; }
+        if(ok) { *ok = false ; }
+        return UPPER_BOUND ;
+    }
+    static std::string fromRedistributionType(RedistributionType value)
+    {
+        switch(value)
+        {
+            case UPPER_BOUND: return "UPPER_BOUND" ;
+            case LOWER_BOUND: return "LOWER_BOUND" ;
+            case AVERAGE: return "AVERAGE" ;
+        }
+        return "UPPER_BOUND" ;
+    }
+   
+    // parsed from header file: ../physics/material_laws/material_laws.h
+    static EMLOperation getEMLOperation(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "SET") { return SET ; }
+        if( type == "ADD") { return ADD ; }
+        if( type == "MULTIPLY") { return MULTIPLY ; }
+        if( type == "SUBSTRACT") { return SUBSTRACT ; }
+        if( type == "DIVIDE") { return DIVIDE ; }
+        if(ok) { *ok = false ; }
+        return SET ;
+    }
+    static std::string fromEMLOperation(EMLOperation value)
+    {
+        switch(value)
+        {
+            case SET: return "SET" ;
+            case ADD: return "ADD" ;
+            case MULTIPLY: return "MULTIPLY" ;
+            case SUBSTRACT: return "SUBSTRACT" ;
+            case DIVIDE: return "DIVIDE" ;
+        }
+        return "SET" ;
     }
    
     // parsed from header file: ../physics/viscoelasticity.h
@@ -700,92 +769,23 @@ struct Enum
         return "LOGPOWER_CREEP" ;
     }
    
-    // parsed from header file: ../physics/material_laws/material_laws.h
-    static EMLOperation getEMLOperation(std::string type, bool * ok = 0)
+    // parsed from header file: ../physics/damagemodels/damagemodel.h
+    static ConvergenceType getConvergenceType(std::string type, bool * ok = 0)
     {
         if(ok) { *ok = true ; }
-        if( type == "SET") { return SET ; }
-        if( type == "ADD") { return ADD ; }
-        if( type == "MULTIPLY") { return MULTIPLY ; }
-        if( type == "SUBSTRACT") { return SUBSTRACT ; }
-        if( type == "DIVIDE") { return DIVIDE ; }
+        if( type == "DISSIPATIVE") { return DISSIPATIVE ; }
+        if( type == "CONSERVATIVE") { return CONSERVATIVE ; }
         if(ok) { *ok = false ; }
-        return SET ;
+        return DISSIPATIVE ;
     }
-    static std::string fromEMLOperation(EMLOperation value)
+    static std::string fromConvergenceType(ConvergenceType value)
     {
         switch(value)
         {
-            case SET: return "SET" ;
-            case ADD: return "ADD" ;
-            case MULTIPLY: return "MULTIPLY" ;
-            case SUBSTRACT: return "SUBSTRACT" ;
-            case DIVIDE: return "DIVIDE" ;
+            case DISSIPATIVE: return "DISSIPATIVE" ;
+            case CONSERVATIVE: return "CONSERVATIVE" ;
         }
-        return "SET" ;
-    }
-   
-    // parsed from header file: ../physics/fracturecriteria/mcft.h
-    static RedistributionType getRedistributionType(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "UPPER_BOUND") { return UPPER_BOUND ; }
-        if( type == "LOWER_BOUND") { return LOWER_BOUND ; }
-        if( type == "AVERAGE") { return AVERAGE ; }
-        if(ok) { *ok = false ; }
-        return UPPER_BOUND ;
-    }
-    static std::string fromRedistributionType(RedistributionType value)
-    {
-        switch(value)
-        {
-            case UPPER_BOUND: return "UPPER_BOUND" ;
-            case LOWER_BOUND: return "LOWER_BOUND" ;
-            case AVERAGE: return "AVERAGE" ;
-        }
-        return "UPPER_BOUND" ;
-    }
-   
-    // parsed from header file: ../physics/fracturecriteria/spacetimelimitsurfacefracturecriterion.h
-    static ReferenceFrame getReferenceFrame(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "FRAME_CARTESIAN") { return FRAME_CARTESIAN ; }
-        if( type == "FRAME_PRINCIPAL") { return FRAME_PRINCIPAL ; }
-        if( type == "FRAME_MODEL") { return FRAME_MODEL ; }
-        if( type == "FRAME_MATERIAL") { return FRAME_MATERIAL ; }
-        if(ok) { *ok = false ; }
-        return FRAME_CARTESIAN ;
-    }
-    static std::string fromReferenceFrame(ReferenceFrame value)
-    {
-        switch(value)
-        {
-            case FRAME_CARTESIAN: return "FRAME_CARTESIAN" ;
-            case FRAME_PRINCIPAL: return "FRAME_PRINCIPAL" ;
-            case FRAME_MODEL: return "FRAME_MODEL" ;
-            case FRAME_MATERIAL: return "FRAME_MATERIAL" ;
-        }
-        return "FRAME_CARTESIAN" ;
-    }
-   
-    // parsed from header file: ../physics/fracturecriteria/fracturecriterion.h
-    static SmoothingFunctionType getSmoothingFunctionType(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "QUARTIC_COMPACT") { return QUARTIC_COMPACT ; }
-        if( type == "GAUSSIAN_NONCOMPACT") { return GAUSSIAN_NONCOMPACT ; }
-        if(ok) { *ok = false ; }
-        return QUARTIC_COMPACT ;
-    }
-    static std::string fromSmoothingFunctionType(SmoothingFunctionType value)
-    {
-        switch(value)
-        {
-            case QUARTIC_COMPACT: return "QUARTIC_COMPACT" ;
-            case GAUSSIAN_NONCOMPACT: return "GAUSSIAN_NONCOMPACT" ;
-        }
-        return "QUARTIC_COMPACT" ;
+        return "DISSIPATIVE" ;
     }
    
     // parsed from header file: ../polynomial/vm_token.h
@@ -913,52 +913,6 @@ struct Enum
         return "TOKEN_OPERATION_CONSTANT" ;
     }
    
-    // parsed from header file: ../polynomial/vm_function_base.h
-    static PositionTokenType getPositionTokenType(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "POSITION_TOKEN") { return POSITION_TOKEN ; }
-        if( type == "PROJECTION_TOKEN") { return PROJECTION_TOKEN ; }
-        if(ok) { *ok = false ; }
-        return POSITION_TOKEN ;
-    }
-    static std::string fromPositionTokenType(PositionTokenType value)
-    {
-        switch(value)
-        {
-            case POSITION_TOKEN: return "POSITION_TOKEN" ;
-            case PROJECTION_TOKEN: return "PROJECTION_TOKEN" ;
-        }
-        return "POSITION_TOKEN" ;
-    }
-   
-    // parsed from header file: ../polynomial/vm_function_base.h
-    static TemporayUsageType getTemporayUsageType(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "NO_TEMPORARY") { return NO_TEMPORARY ; }
-        if( type == "SET_TEMPORARY") { return SET_TEMPORARY ; }
-        if( type == "SET_GET_TEMPORARY_A") { return SET_GET_TEMPORARY_A ; }
-        if( type == "SET_GET_TEMPORARY_B") { return SET_GET_TEMPORARY_B ; }
-        if( type == "GET_TEMPORARY_A") { return GET_TEMPORARY_A ; }
-        if( type == "GET_TEMPORARY_B") { return GET_TEMPORARY_B ; }
-        if(ok) { *ok = false ; }
-        return NO_TEMPORARY ;
-    }
-    static std::string fromTemporayUsageType(TemporayUsageType value)
-    {
-        switch(value)
-        {
-            case NO_TEMPORARY: return "NO_TEMPORARY" ;
-            case SET_TEMPORARY: return "SET_TEMPORARY" ;
-            case SET_GET_TEMPORARY_A: return "SET_GET_TEMPORARY_A" ;
-            case SET_GET_TEMPORARY_B: return "SET_GET_TEMPORARY_B" ;
-            case GET_TEMPORARY_A: return "GET_TEMPORARY_A" ;
-            case GET_TEMPORARY_B: return "GET_TEMPORARY_B" ;
-        }
-        return "NO_TEMPORARY" ;
-    }
-   
     // parsed from header file: ../polynomial/variable.h
     static Variable getVariable(std::string type, bool * ok = 0)
     {
@@ -1009,6 +963,52 @@ struct Enum
         return "ZERO_TO_ONE" ;
     }
    
+    // parsed from header file: ../polynomial/vm_function_base.h
+    static PositionTokenType getPositionTokenType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "POSITION_TOKEN") { return POSITION_TOKEN ; }
+        if( type == "PROJECTION_TOKEN") { return PROJECTION_TOKEN ; }
+        if(ok) { *ok = false ; }
+        return POSITION_TOKEN ;
+    }
+    static std::string fromPositionTokenType(PositionTokenType value)
+    {
+        switch(value)
+        {
+            case POSITION_TOKEN: return "POSITION_TOKEN" ;
+            case PROJECTION_TOKEN: return "PROJECTION_TOKEN" ;
+        }
+        return "POSITION_TOKEN" ;
+    }
+   
+    // parsed from header file: ../polynomial/vm_function_base.h
+    static TemporayUsageType getTemporayUsageType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "NO_TEMPORARY") { return NO_TEMPORARY ; }
+        if( type == "SET_TEMPORARY") { return SET_TEMPORARY ; }
+        if( type == "SET_GET_TEMPORARY_A") { return SET_GET_TEMPORARY_A ; }
+        if( type == "SET_GET_TEMPORARY_B") { return SET_GET_TEMPORARY_B ; }
+        if( type == "GET_TEMPORARY_A") { return GET_TEMPORARY_A ; }
+        if( type == "GET_TEMPORARY_B") { return GET_TEMPORARY_B ; }
+        if(ok) { *ok = false ; }
+        return NO_TEMPORARY ;
+    }
+    static std::string fromTemporayUsageType(TemporayUsageType value)
+    {
+        switch(value)
+        {
+            case NO_TEMPORARY: return "NO_TEMPORARY" ;
+            case SET_TEMPORARY: return "SET_TEMPORARY" ;
+            case SET_GET_TEMPORARY_A: return "SET_GET_TEMPORARY_A" ;
+            case SET_GET_TEMPORARY_B: return "SET_GET_TEMPORARY_B" ;
+            case GET_TEMPORARY_A: return "GET_TEMPORARY_A" ;
+            case GET_TEMPORARY_B: return "GET_TEMPORARY_B" ;
+        }
+        return "NO_TEMPORARY" ;
+    }
+   
     // parsed from header file: ../solvers/assembly.h
     static LagrangeMultiplierType getLagrangeMultiplierType(std::string type, bool * ok = 0)
     {
@@ -1051,6 +1051,7 @@ struct Enum
         if( type == "SET_FORCE_ETA") { return SET_FORCE_ETA ; }
         if( type == "SET_FORCE_ZETA") { return SET_FORCE_ZETA ; }
         if( type == "SET_FORCE_INDEXED_AXIS") { return SET_FORCE_INDEXED_AXIS ; }
+        if( type == "INCREMENT_FORCE_INDEXED_AXIS") { return INCREMENT_FORCE_INDEXED_AXIS ; }
         if( type == "SET_FLUX_XI") { return SET_FLUX_XI ; }
         if( type == "SET_FLUX_ETA") { return SET_FLUX_ETA ; }
         if( type == "SET_FLUX_ZETA") { return SET_FLUX_ZETA ; }
@@ -1112,6 +1113,7 @@ struct Enum
             case SET_FORCE_ETA: return "SET_FORCE_ETA" ;
             case SET_FORCE_ZETA: return "SET_FORCE_ZETA" ;
             case SET_FORCE_INDEXED_AXIS: return "SET_FORCE_INDEXED_AXIS" ;
+            case INCREMENT_FORCE_INDEXED_AXIS: return "INCREMENT_FORCE_INDEXED_AXIS" ;
             case SET_FLUX_XI: return "SET_FLUX_XI" ;
             case SET_FLUX_ETA: return "SET_FLUX_ETA" ;
             case SET_FLUX_ZETA: return "SET_FLUX_ZETA" ;
@@ -1130,6 +1132,160 @@ struct Enum
             case SET_GLOBAL_FORCE_VECTOR: return "SET_GLOBAL_FORCE_VECTOR" ;
         }
         return "GENERAL" ;
+    }
+   
+    // parsed from header file: ../utilities/configuration.h
+    static bool getbool(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "false") { return false ; }
+        if( type == "true") { return true ; }
+        if(ok) { *ok = false ; }
+        return false ;
+    }
+    static std::string frombool(bool value) { return ( value ? "true" : "false" ) ; }
+   
+    // parsed from header file: ../utilities/writer/voxel_writer.h
+    static VWFieldType getVWFieldType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "VWFT_PRINCIPAL_ANGLE") { return VWFT_PRINCIPAL_ANGLE ; }
+        if( type == "VWFT_STIFFNESS") { return VWFT_STIFFNESS ; }
+        if( type == "VWFT_STRAIN") { return VWFT_STRAIN ; }
+        if( type == "VWFT_STRESS") { return VWFT_STRESS ; }
+        if( type == "VWFT_PRINCIPAL_STRAIN") { return VWFT_PRINCIPAL_STRAIN ; }
+        if( type == "VWFT_PRINCIPAL_STRESS") { return VWFT_PRINCIPAL_STRESS ; }
+        if( type == "VWFT_STRAIN_AND_STRESS") { return VWFT_STRAIN_AND_STRESS ; }
+        if( type == "VWFT_CONCENTRATION") { return VWFT_CONCENTRATION ; }
+        if( type == "VWFT_GRADIENT") { return VWFT_GRADIENT ; }
+        if( type == "VWFT_FLUX") { return VWFT_FLUX ; }
+        if( type == "VWFT_GRADIENT_AND_FLUX") { return VWFT_GRADIENT_AND_FLUX ; }
+        if( type == "VWFT_VON_MISES") { return VWFT_VON_MISES ; }
+        if( type == "VWFT_ENRICHEMENT") { return VWFT_ENRICHEMENT ; }
+        if( type == "VWFT_DAMAGE") { return VWFT_DAMAGE ; }
+        if(ok) { *ok = false ; }
+        return VWFT_PRINCIPAL_ANGLE ;
+    }
+    static std::string fromVWFieldType(VWFieldType value)
+    {
+        switch(value)
+        {
+            case VWFT_PRINCIPAL_ANGLE: return "VWFT_PRINCIPAL_ANGLE" ;
+            case VWFT_STIFFNESS: return "VWFT_STIFFNESS" ;
+            case VWFT_STRAIN: return "VWFT_STRAIN" ;
+            case VWFT_STRESS: return "VWFT_STRESS" ;
+            case VWFT_PRINCIPAL_STRAIN: return "VWFT_PRINCIPAL_STRAIN" ;
+            case VWFT_PRINCIPAL_STRESS: return "VWFT_PRINCIPAL_STRESS" ;
+            case VWFT_STRAIN_AND_STRESS: return "VWFT_STRAIN_AND_STRESS" ;
+            case VWFT_CONCENTRATION: return "VWFT_CONCENTRATION" ;
+            case VWFT_GRADIENT: return "VWFT_GRADIENT" ;
+            case VWFT_FLUX: return "VWFT_FLUX" ;
+            case VWFT_GRADIENT_AND_FLUX: return "VWFT_GRADIENT_AND_FLUX" ;
+            case VWFT_VON_MISES: return "VWFT_VON_MISES" ;
+            case VWFT_ENRICHEMENT: return "VWFT_ENRICHEMENT" ;
+            case VWFT_DAMAGE: return "VWFT_DAMAGE" ;
+        }
+        return "VWFT_PRINCIPAL_ANGLE" ;
+    }
+   
+    // parsed from header file: ../utilities/writer/triangle_writer.h
+    static TWFieldType getTWFieldType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "TWFT_COORDINATE") { return TWFT_COORDINATE ; }
+        if( type == "TWFT_DISPLACEMENTS") { return TWFT_DISPLACEMENTS ; }
+        if( type == "TWFT_SCALAR") { return TWFT_SCALAR ; }
+        if( type == "TWFT_DOH") { return TWFT_DOH ; }
+        if( type == "TWFT_PRINCIPAL_ANGLE") { return TWFT_PRINCIPAL_ANGLE ; }
+        if( type == "TWFT_TRIANGLE_ANGLE") { return TWFT_TRIANGLE_ANGLE ; }
+        if( type == "TWFT_CRACK_ANGLE") { return TWFT_CRACK_ANGLE ; }
+        if( type == "TWFT_CRITERION") { return TWFT_CRITERION ; }
+        if( type == "TWFT_STIFFNESS") { return TWFT_STIFFNESS ; }
+        if( type == "TWFT_VISCOSITY") { return TWFT_VISCOSITY ; }
+        if( type == "TWFT_STIFFNESS_X") { return TWFT_STIFFNESS_X ; }
+        if( type == "TWFT_STIFFNESS_Y") { return TWFT_STIFFNESS_Y ; }
+        if( type == "TWFT_STIFFNESS_Z") { return TWFT_STIFFNESS_Z ; }
+        if( type == "TWFT_ENRICHMENT") { return TWFT_ENRICHMENT ; }
+        if( type == "TWFT_IMPOSED_STRESS_NORM") { return TWFT_IMPOSED_STRESS_NORM ; }
+        if( type == "TWFT_PRINCIPAL_STRESS") { return TWFT_PRINCIPAL_STRESS ; }
+        if( type == "TWFT_PRINCIPAL_STRAIN") { return TWFT_PRINCIPAL_STRAIN ; }
+        if( type == "TWFT_DAMAGE") { return TWFT_DAMAGE ; }
+        if( type == "TWFT_GRADIENT") { return TWFT_GRADIENT ; }
+        if( type == "TWFT_FLUX") { return TWFT_FLUX ; }
+        if( type == "TWFT_GRADIENT_AND_FLUX") { return TWFT_GRADIENT_AND_FLUX ; }
+        if( type == "TWFT_VON_MISES") { return TWFT_VON_MISES ; }
+        if( type == "TWFT_CRACKS") { return TWFT_CRACKS ; }
+        if( type == "TWFT_INTERSECTION") { return TWFT_INTERSECTION ; }
+        if( type == "TWFT_FIELD_TYPE") { return TWFT_FIELD_TYPE ; }
+        if( type == "TWFT_INTERNAL_VARIABLE") { return TWFT_INTERNAL_VARIABLE ; }
+        if(ok) { *ok = false ; }
+        return TWFT_COORDINATE ;
+    }
+    static std::string fromTWFieldType(TWFieldType value)
+    {
+        switch(value)
+        {
+            case TWFT_COORDINATE: return "TWFT_COORDINATE" ;
+            case TWFT_DISPLACEMENTS: return "TWFT_DISPLACEMENTS" ;
+            case TWFT_SCALAR: return "TWFT_SCALAR" ;
+            case TWFT_DOH: return "TWFT_DOH" ;
+            case TWFT_PRINCIPAL_ANGLE: return "TWFT_PRINCIPAL_ANGLE" ;
+            case TWFT_TRIANGLE_ANGLE: return "TWFT_TRIANGLE_ANGLE" ;
+            case TWFT_CRACK_ANGLE: return "TWFT_CRACK_ANGLE" ;
+            case TWFT_CRITERION: return "TWFT_CRITERION" ;
+            case TWFT_STIFFNESS: return "TWFT_STIFFNESS" ;
+            case TWFT_VISCOSITY: return "TWFT_VISCOSITY" ;
+            case TWFT_STIFFNESS_X: return "TWFT_STIFFNESS_X" ;
+            case TWFT_STIFFNESS_Y: return "TWFT_STIFFNESS_Y" ;
+            case TWFT_STIFFNESS_Z: return "TWFT_STIFFNESS_Z" ;
+            case TWFT_ENRICHMENT: return "TWFT_ENRICHMENT" ;
+            case TWFT_IMPOSED_STRESS_NORM: return "TWFT_IMPOSED_STRESS_NORM" ;
+            case TWFT_PRINCIPAL_STRESS: return "TWFT_PRINCIPAL_STRESS" ;
+            case TWFT_PRINCIPAL_STRAIN: return "TWFT_PRINCIPAL_STRAIN" ;
+            case TWFT_DAMAGE: return "TWFT_DAMAGE" ;
+            case TWFT_GRADIENT: return "TWFT_GRADIENT" ;
+            case TWFT_FLUX: return "TWFT_FLUX" ;
+            case TWFT_GRADIENT_AND_FLUX: return "TWFT_GRADIENT_AND_FLUX" ;
+            case TWFT_VON_MISES: return "TWFT_VON_MISES" ;
+            case TWFT_CRACKS: return "TWFT_CRACKS" ;
+            case TWFT_INTERSECTION: return "TWFT_INTERSECTION" ;
+            case TWFT_FIELD_TYPE: return "TWFT_FIELD_TYPE" ;
+            case TWFT_INTERNAL_VARIABLE: return "TWFT_INTERNAL_VARIABLE" ;
+        }
+        return "TWFT_COORDINATE" ;
+    }
+   
+    // parsed from header file: ../utilities/parser/config_parser.h
+    static XMLTokenType getXMLTokenType(std::string type, bool * ok = 0)
+    {
+        if(ok) { *ok = true ; }
+        if( type == "XML_OPEN_COMMENT") { return XML_OPEN_COMMENT ; }
+        if( type == "XML_CLOSE_COMMENT") { return XML_CLOSE_COMMENT ; }
+        if( type == "XML_INLINE_COMMENT") { return XML_INLINE_COMMENT ; }
+        if( type == "XML_OPEN") { return XML_OPEN ; }
+        if( type == "XML_CLOSE") { return XML_CLOSE ; }
+        if( type == "XML_INLINE") { return XML_INLINE ; }
+        if( type == "XML_VALUE") { return XML_VALUE ; }
+        if( type == "XML_INVALID") { return XML_INVALID ; }
+        if( type == "XML_HEADER") { return XML_HEADER ; }
+        if(ok) { *ok = false ; }
+        return XML_OPEN_COMMENT ;
+    }
+    static std::string fromXMLTokenType(XMLTokenType value)
+    {
+        switch(value)
+        {
+            case XML_OPEN_COMMENT: return "XML_OPEN_COMMENT" ;
+            case XML_CLOSE_COMMENT: return "XML_CLOSE_COMMENT" ;
+            case XML_INLINE_COMMENT: return "XML_INLINE_COMMENT" ;
+            case XML_OPEN: return "XML_OPEN" ;
+            case XML_CLOSE: return "XML_CLOSE" ;
+            case XML_INLINE: return "XML_INLINE" ;
+            case XML_VALUE: return "XML_VALUE" ;
+            case XML_INVALID: return "XML_INVALID" ;
+            case XML_HEADER: return "XML_HEADER" ;
+        }
+        return "XML_OPEN_COMMENT" ;
     }
    
     // parsed from header file: ../utilities/granulo.h
@@ -1199,50 +1355,6 @@ struct Enum
             case VORONOI_RANDOM: return "VORONOI_RANDOM" ;
         }
         return "VORONOI_CONSTANT" ;
-    }
-   
-    // parsed from header file: ../utilities/configuration.h
-    static bool getbool(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "false") { return false ; }
-        if( type == "true") { return true ; }
-        if(ok) { *ok = false ; }
-        return false ;
-    }
-    static std::string frombool(bool value) { return ( value ? "true" : "false" ) ; }
-   
-    // parsed from header file: ../utilities/parser/config_parser.h
-    static XMLTokenType getXMLTokenType(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "XML_OPEN_COMMENT") { return XML_OPEN_COMMENT ; }
-        if( type == "XML_CLOSE_COMMENT") { return XML_CLOSE_COMMENT ; }
-        if( type == "XML_INLINE_COMMENT") { return XML_INLINE_COMMENT ; }
-        if( type == "XML_OPEN") { return XML_OPEN ; }
-        if( type == "XML_CLOSE") { return XML_CLOSE ; }
-        if( type == "XML_INLINE") { return XML_INLINE ; }
-        if( type == "XML_VALUE") { return XML_VALUE ; }
-        if( type == "XML_INVALID") { return XML_INVALID ; }
-        if( type == "XML_HEADER") { return XML_HEADER ; }
-        if(ok) { *ok = false ; }
-        return XML_OPEN_COMMENT ;
-    }
-    static std::string fromXMLTokenType(XMLTokenType value)
-    {
-        switch(value)
-        {
-            case XML_OPEN_COMMENT: return "XML_OPEN_COMMENT" ;
-            case XML_CLOSE_COMMENT: return "XML_CLOSE_COMMENT" ;
-            case XML_INLINE_COMMENT: return "XML_INLINE_COMMENT" ;
-            case XML_OPEN: return "XML_OPEN" ;
-            case XML_CLOSE: return "XML_CLOSE" ;
-            case XML_INLINE: return "XML_INLINE" ;
-            case XML_VALUE: return "XML_VALUE" ;
-            case XML_INVALID: return "XML_INVALID" ;
-            case XML_HEADER: return "XML_HEADER" ;
-        }
-        return "XML_OPEN_COMMENT" ;
     }
    
     // parsed from header file: ../utilities/tensor.h
@@ -1333,116 +1445,6 @@ struct Enum
             case DOUBLE_OFF_DIAGONAL_VALUES: return "DOUBLE_OFF_DIAGONAL_VALUES" ;
         }
         return "SINGLE_OFF_DIAGONAL_VALUES" ;
-    }
-   
-    // parsed from header file: ../utilities/writer/triangle_writer.h
-    static TWFieldType getTWFieldType(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "TWFT_COORDINATE") { return TWFT_COORDINATE ; }
-        if( type == "TWFT_DISPLACEMENTS") { return TWFT_DISPLACEMENTS ; }
-        if( type == "TWFT_SCALAR") { return TWFT_SCALAR ; }
-        if( type == "TWFT_DOH") { return TWFT_DOH ; }
-        if( type == "TWFT_PRINCIPAL_ANGLE") { return TWFT_PRINCIPAL_ANGLE ; }
-        if( type == "TWFT_TRIANGLE_ANGLE") { return TWFT_TRIANGLE_ANGLE ; }
-        if( type == "TWFT_CRACK_ANGLE") { return TWFT_CRACK_ANGLE ; }
-        if( type == "TWFT_CRITERION") { return TWFT_CRITERION ; }
-        if( type == "TWFT_STIFFNESS") { return TWFT_STIFFNESS ; }
-        if( type == "TWFT_VISCOSITY") { return TWFT_VISCOSITY ; }
-        if( type == "TWFT_STIFFNESS_X") { return TWFT_STIFFNESS_X ; }
-        if( type == "TWFT_STIFFNESS_Y") { return TWFT_STIFFNESS_Y ; }
-        if( type == "TWFT_STIFFNESS_Z") { return TWFT_STIFFNESS_Z ; }
-        if( type == "TWFT_ENRICHMENT") { return TWFT_ENRICHMENT ; }
-        if( type == "TWFT_IMPOSED_STRESS_NORM") { return TWFT_IMPOSED_STRESS_NORM ; }
-        if( type == "TWFT_PRINCIPAL_STRESS") { return TWFT_PRINCIPAL_STRESS ; }
-        if( type == "TWFT_PRINCIPAL_STRAIN") { return TWFT_PRINCIPAL_STRAIN ; }
-        if( type == "TWFT_DAMAGE") { return TWFT_DAMAGE ; }
-        if( type == "TWFT_GRADIENT") { return TWFT_GRADIENT ; }
-        if( type == "TWFT_FLUX") { return TWFT_FLUX ; }
-        if( type == "TWFT_GRADIENT_AND_FLUX") { return TWFT_GRADIENT_AND_FLUX ; }
-        if( type == "TWFT_VON_MISES") { return TWFT_VON_MISES ; }
-        if( type == "TWFT_CRACKS") { return TWFT_CRACKS ; }
-        if( type == "TWFT_INTERSECTION") { return TWFT_INTERSECTION ; }
-        if( type == "TWFT_FIELD_TYPE") { return TWFT_FIELD_TYPE ; }
-        if( type == "TWFT_INTERNAL_VARIABLE") { return TWFT_INTERNAL_VARIABLE ; }
-        if(ok) { *ok = false ; }
-        return TWFT_COORDINATE ;
-    }
-    static std::string fromTWFieldType(TWFieldType value)
-    {
-        switch(value)
-        {
-            case TWFT_COORDINATE: return "TWFT_COORDINATE" ;
-            case TWFT_DISPLACEMENTS: return "TWFT_DISPLACEMENTS" ;
-            case TWFT_SCALAR: return "TWFT_SCALAR" ;
-            case TWFT_DOH: return "TWFT_DOH" ;
-            case TWFT_PRINCIPAL_ANGLE: return "TWFT_PRINCIPAL_ANGLE" ;
-            case TWFT_TRIANGLE_ANGLE: return "TWFT_TRIANGLE_ANGLE" ;
-            case TWFT_CRACK_ANGLE: return "TWFT_CRACK_ANGLE" ;
-            case TWFT_CRITERION: return "TWFT_CRITERION" ;
-            case TWFT_STIFFNESS: return "TWFT_STIFFNESS" ;
-            case TWFT_VISCOSITY: return "TWFT_VISCOSITY" ;
-            case TWFT_STIFFNESS_X: return "TWFT_STIFFNESS_X" ;
-            case TWFT_STIFFNESS_Y: return "TWFT_STIFFNESS_Y" ;
-            case TWFT_STIFFNESS_Z: return "TWFT_STIFFNESS_Z" ;
-            case TWFT_ENRICHMENT: return "TWFT_ENRICHMENT" ;
-            case TWFT_IMPOSED_STRESS_NORM: return "TWFT_IMPOSED_STRESS_NORM" ;
-            case TWFT_PRINCIPAL_STRESS: return "TWFT_PRINCIPAL_STRESS" ;
-            case TWFT_PRINCIPAL_STRAIN: return "TWFT_PRINCIPAL_STRAIN" ;
-            case TWFT_DAMAGE: return "TWFT_DAMAGE" ;
-            case TWFT_GRADIENT: return "TWFT_GRADIENT" ;
-            case TWFT_FLUX: return "TWFT_FLUX" ;
-            case TWFT_GRADIENT_AND_FLUX: return "TWFT_GRADIENT_AND_FLUX" ;
-            case TWFT_VON_MISES: return "TWFT_VON_MISES" ;
-            case TWFT_CRACKS: return "TWFT_CRACKS" ;
-            case TWFT_INTERSECTION: return "TWFT_INTERSECTION" ;
-            case TWFT_FIELD_TYPE: return "TWFT_FIELD_TYPE" ;
-            case TWFT_INTERNAL_VARIABLE: return "TWFT_INTERNAL_VARIABLE" ;
-        }
-        return "TWFT_COORDINATE" ;
-    }
-   
-    // parsed from header file: ../utilities/writer/voxel_writer.h
-    static VWFieldType getVWFieldType(std::string type, bool * ok = 0)
-    {
-        if(ok) { *ok = true ; }
-        if( type == "VWFT_PRINCIPAL_ANGLE") { return VWFT_PRINCIPAL_ANGLE ; }
-        if( type == "VWFT_STIFFNESS") { return VWFT_STIFFNESS ; }
-        if( type == "VWFT_STRAIN") { return VWFT_STRAIN ; }
-        if( type == "VWFT_STRESS") { return VWFT_STRESS ; }
-        if( type == "VWFT_PRINCIPAL_STRAIN") { return VWFT_PRINCIPAL_STRAIN ; }
-        if( type == "VWFT_PRINCIPAL_STRESS") { return VWFT_PRINCIPAL_STRESS ; }
-        if( type == "VWFT_STRAIN_AND_STRESS") { return VWFT_STRAIN_AND_STRESS ; }
-        if( type == "VWFT_CONCENTRATION") { return VWFT_CONCENTRATION ; }
-        if( type == "VWFT_GRADIENT") { return VWFT_GRADIENT ; }
-        if( type == "VWFT_FLUX") { return VWFT_FLUX ; }
-        if( type == "VWFT_GRADIENT_AND_FLUX") { return VWFT_GRADIENT_AND_FLUX ; }
-        if( type == "VWFT_VON_MISES") { return VWFT_VON_MISES ; }
-        if( type == "VWFT_ENRICHEMENT") { return VWFT_ENRICHEMENT ; }
-        if( type == "VWFT_DAMAGE") { return VWFT_DAMAGE ; }
-        if(ok) { *ok = false ; }
-        return VWFT_PRINCIPAL_ANGLE ;
-    }
-    static std::string fromVWFieldType(VWFieldType value)
-    {
-        switch(value)
-        {
-            case VWFT_PRINCIPAL_ANGLE: return "VWFT_PRINCIPAL_ANGLE" ;
-            case VWFT_STIFFNESS: return "VWFT_STIFFNESS" ;
-            case VWFT_STRAIN: return "VWFT_STRAIN" ;
-            case VWFT_STRESS: return "VWFT_STRESS" ;
-            case VWFT_PRINCIPAL_STRAIN: return "VWFT_PRINCIPAL_STRAIN" ;
-            case VWFT_PRINCIPAL_STRESS: return "VWFT_PRINCIPAL_STRESS" ;
-            case VWFT_STRAIN_AND_STRESS: return "VWFT_STRAIN_AND_STRESS" ;
-            case VWFT_CONCENTRATION: return "VWFT_CONCENTRATION" ;
-            case VWFT_GRADIENT: return "VWFT_GRADIENT" ;
-            case VWFT_FLUX: return "VWFT_FLUX" ;
-            case VWFT_GRADIENT_AND_FLUX: return "VWFT_GRADIENT_AND_FLUX" ;
-            case VWFT_VON_MISES: return "VWFT_VON_MISES" ;
-            case VWFT_ENRICHEMENT: return "VWFT_ENRICHEMENT" ;
-            case VWFT_DAMAGE: return "VWFT_DAMAGE" ;
-        }
-        return "VWFT_PRINCIPAL_ANGLE" ;
     }
    
 

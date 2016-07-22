@@ -14,7 +14,6 @@
 #define  __DELAUNAY_H_
 
 #include "../geometry/geometry_2D.h"
-#include "../utilities/samplingcriterion.h"
 #include "../elements/elements.h"
 #include "mesh.h"
 #include <vector>

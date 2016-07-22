@@ -67,6 +67,7 @@ void ViscoelasticityAndFracture::step(double timestep, ElementState & currentSta
 {
     dfunc->step(currentState, maxscore) ;
     currentState.getParent()->behaviourUpdated = dfunc->changed() ;
+    currentState.getParent()->behaviourViscoUpdated = dfunc->changed() ;
     currentState.getParent()->needAssembly = dfunc->changed() ; 
 }
 
