@@ -354,13 +354,6 @@ void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, 
         delete tet[i]->cachedGps ;
         tet[i]->cachedGps = nullptr ;
         tet[i]->behaviourUpdated = true ;
-// 		if( tet[i]->volume() < 0 )
-// 		{
-// 			for( int j = 0 ; j < tet[i]->getBoundingPoints().size() ; j++ )
-// 				tet[i]->getBoundingPoint( j ).print() ;
-//
-// 			exit( 0 ) ;
-// 		}
 
         std::vector<std::pair<Point, Point> > sides ;
         sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 0 ), tet[i]->getBoundingPoint( 1 ) ) ) ;
@@ -3239,7 +3232,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
     if( getEnrichmentFunctions().size() > 0  )
     {
-        if( getCachedGaussPoints()->getId() == REGULAR_GRID )
+        if( getCachedGaussPoints()->regularGrid )
             return *getCachedGaussPoints() ;
 
         std::vector<std::pair<Point, double> > gp_alternative ;
@@ -3275,7 +3268,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
             delete cachedGps ;
             cachedGps = new GaussPointArray(gp_alternative) ;
-            cachedGps->getId() = REGULAR_GRID ;
+            cachedGps->regularGrid = true ;
             return *getCachedGaussPoints() ;
         }
 
@@ -3430,7 +3423,6 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
         {
             gp.gaussPoints.resize( gp_alternative.size() ) ;
             std::copy( gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0] );
-            gp.getId() = -1 ;
         }
     }
 

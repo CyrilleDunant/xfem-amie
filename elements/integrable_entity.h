@@ -293,22 +293,18 @@ public:
 /** \brief container for a set of Gauss points*/
 struct GaussPointArray {
     std::valarray< std::pair<Point, double> > gaussPoints ;
-    int id ;
-    int & getId() {
-        return id ;
-    }
-    const int & getId() const {
-        return id ;
-    }
-    GaussPointArray() : gaussPoints ( std::make_pair ( Point(), 1. ),1 ), id ( -2 ) { } ;
-    GaussPointArray ( const std::pair<Point, double> & p ) : gaussPoints ( p, 1 ), id ( -2 ) { } ;
-    GaussPointArray ( const GaussPointArray & gp ) : gaussPoints ( gp.gaussPoints ), id ( gp.getId() ) { } ;
-    GaussPointArray ( const std::valarray< std::pair<Point, double> > & array, int i ) : gaussPoints ( array ), id ( i ) { } ;
-    GaussPointArray ( const std::vector< std::pair<Point, double> > & array ) : gaussPoints ( array.size() ), id ( -1 ) { std::copy(array.begin(), array.end(), &gaussPoints[0]) ; } ;
+
+    bool regularGrid = false ;
+
+    GaussPointArray() : gaussPoints ( std::make_pair ( Point(), 1. ),1 ) { } ;
+    GaussPointArray ( const std::pair<Point, double> & p ) : gaussPoints ( p, 1 ) { } ;
+    GaussPointArray ( const GaussPointArray & gp ) : gaussPoints ( gp.gaussPoints ) { } ;
+    GaussPointArray ( const std::valarray< std::pair<Point, double> > & array/*, int i*/ ) : gaussPoints ( array ) { } ;
+    GaussPointArray ( const std::vector< std::pair<Point, double> > & array ) : gaussPoints ( array.size() ) { std::copy(array.begin(), array.end(), &gaussPoints[0]) ; } ;
     void operator = ( const GaussPointArray & gp ) {
         gaussPoints.resize ( gp.gaussPoints.size() ) ;
         gaussPoints = gp.gaussPoints ;
-        id = gp.getId() ;
+//         id = gp.getId() ;
     }
     
    void operator = ( const std::valarray< std::pair<Point, double> > & gp ) {

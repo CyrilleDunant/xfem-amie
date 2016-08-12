@@ -141,8 +141,8 @@ void BimaterialInterface::apply(const Function & p_i, const Function & p_j, cons
     std::valarray<Matrix> inMatrixArray( Matrix(Jinv[0].numRows(), Jinv[0].numCols()), inCount) ;
     std::valarray<std::pair<Point, double> > outArray(gp.gaussPoints.size()-inCount) ;
     std::valarray<Matrix> outMatrixArray(Matrix(Jinv[0].numRows(), Jinv[0].numCols()) , gp.gaussPoints.size()-inCount) ;
-    GaussPointArray gpIn(inArray, -1) ;
-    GaussPointArray gpOut(outArray, -1) ;
+    GaussPointArray gpIn(inArray) ;
+    GaussPointArray gpOut(outArray) ;
 
     int outIterator = 0;
     int inIterator = 0 ;
@@ -208,8 +208,8 @@ void BimaterialInterface::applyViscous(const Function & p_i, const Function & p_
     std::valarray<Matrix> inMatrixArray( Matrix(Jinv[0].numRows(), Jinv[0].numCols()), inCount) ;
     std::valarray<std::pair<Point, double> > outArray(gp.gaussPoints.size()-inCount) ;
     std::valarray<Matrix> outMatrixArray(Matrix(Jinv[0].numRows(), Jinv[0].numCols()) , gp.gaussPoints.size()-inCount) ;
-    GaussPointArray gpIn(inArray, -1) ;
-    GaussPointArray gpOut(outArray, -1) ;
+    GaussPointArray gpIn(inArray) ;
+    GaussPointArray gpOut(outArray) ;
 
     int outIterator = 0;
     int inIterator = 0 ;
@@ -288,8 +288,8 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
     std::valarray<Matrix> inMatrixArray( Matrix(Jinv[0].numRows(), Jinv[0].numCols()),inCount) ;
     std::valarray<std::pair<Point, double> > outArray(gp.gaussPoints.size()-inCount) ;
     std::valarray<Matrix> outMatrixArray( Matrix(Jinv[0].numRows(), Jinv[0].numCols()),gp.gaussPoints.size()-inCount) ;
-    GaussPointArray gpIn(inArray, -1) ;
-    GaussPointArray gpOut(outArray, -1) ;
+    GaussPointArray gpIn(inArray) ;
+    GaussPointArray gpOut(outArray) ;
 
     int outIterator = 0;
     int inIterator = 0 ;
@@ -414,8 +414,8 @@ Vector BimaterialInterface::getForcesFromAppliedStress( const  Vector & data, Fu
     std::valarray<Matrix> inMatrixArray( Matrix(Jinv[0].numRows(), Jinv[0].numCols()),inCount) ;
     std::valarray<std::pair<Point, double> > outArray(gp.gaussPoints.size()-inCount) ;
     std::valarray<Matrix> outMatrixArray( Matrix(Jinv[0].numRows(), Jinv[0].numCols()),gp.gaussPoints.size()-inCount) ;
-    GaussPointArray gpIn(inArray, -1) ;
-    GaussPointArray gpOut(outArray, -1) ;
+    GaussPointArray gpIn(inArray) ;
+    GaussPointArray gpOut(outArray) ;
 
     int outIterator = 0;
     int inIterator = 0 ;
@@ -493,8 +493,8 @@ Vector BimaterialInterface::getForcesFromAppliedStress( const Function & data, s
     std::valarray<Matrix> inMatrixArray( Matrix(Jinv[0].numRows(), Jinv[0].numCols()),inCount) ;
     std::valarray<std::pair<Point, double> > outArray(gp.gaussPoints.size()-inCount) ;
     std::valarray<Matrix> outMatrixArray( Matrix(Jinv[0].numRows(), Jinv[0].numCols()),gp.gaussPoints.size()-inCount) ;
-    GaussPointArray gpIn(inArray, -1) ;
-    GaussPointArray gpOut(outArray, -1) ;
+    GaussPointArray gpIn(inArray) ;
+    GaussPointArray gpOut(outArray) ;
 
     int outIterator = 0;
     int inIterator = 0 ;

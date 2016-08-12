@@ -298,59 +298,6 @@ void concatenateFunctions(const Function & src0_, const Function & src1_, const 
     dst = tmpdst ;
 }
 
-
-void  Function::preCalculate(const GaussPointArray & gp , std::vector<Variable> & var, const double eps)
-{
-    //this needs to be in to stages, otherwise memory gets accessed too early.
-    Vector * newVal = new Vector(VirtualMachine().eval(*this, gp)) ;
-    if(precalc.find(gp.getId()) != precalc.end())
-        delete precalc[gp.getId()] ;
-    precalc[gp.getId()] = newVal ;
-    std::map<Variable, Vector *> val ;
-    for(size_t i = 0 ; i < var.size() ; i++)
-    {
-        if(val.find(var[i]) == val.end())
-            val[var[i]] = new Vector(VirtualMachine().deval(*this,var[i] ,gp, eps)) ;
-    }
-
-    if(dprecalc.find(gp.getId()) != dprecalc.end())
-    {
-        for(auto i = dprecalc[gp.getId()].begin() ;  i != dprecalc[gp.getId()].end() ; ++i)
-            delete i->second ;
-    }
-
-    dprecalc[gp.getId()] = val ;
-}
-
-void  Function::preCalculate(const GaussPointArray & gp )
-{
-    if(precalc.find(gp.getId()) != precalc.end())
-        delete precalc[gp.getId()] ;
-    precalc[gp.getId()] = new Vector(VirtualMachine().eval(*this, gp)) ;
-}
-
-const Vector & Function::getPrecalculatedValue(const GaussPointArray &gp ) const
-{
-    return *(precalc.find(gp.getId())->second) ;
-}
-
-const Vector & Function::getPrecalculatedValue(const GaussPointArray &gp, Variable v) const
-{
-    return *dprecalc.find(gp.getId())->second.find(v)->second ;
-}
-
-bool Function::precalculated(const GaussPointArray & gp) const
-{
-    return (precalc.find(gp.getId()) != precalc.end()) ;
-}
-
-bool Function::precalculated(const GaussPointArray & gp, Variable v) const
-{
-    auto precalculatedDerivative = dprecalc.find(gp.getId()) ;
-    return precalculatedDerivative != dprecalc.end() && precalculatedDerivative->second.find(v) != precalculatedDerivative->second.end() ;
-}
-
-
 GtM Gradient::operator*( const Matrix & f) const
 {
     return GtM(*this, f) ;
@@ -608,16 +555,6 @@ Function & Function::operator=(const Function &f)
     adress_t.clear() ;
     transformed.clear() ;
 
-    for(auto i = precalc.begin() ; i != precalc.end() ; ++i)
-        delete i->second ;
-    for(auto i = dprecalc.begin() ; i != dprecalc.end() ; ++i)
-    {
-        for(auto j = i->second.begin() ; j != i->second.end() ; ++j)
-        {
-            delete j->second ;
-        }
-    }
-
     derivative = nullptr ;
     e_diff = false ;
     if(f.derivative)
@@ -671,21 +608,6 @@ Function & Function::operator=(const Function &f)
     adress_a = f.adress_a ;
     hasGeoOp = f.hasGeoOp ;
 
-// 	initialiseAdresses();
-
-    for(auto i = f.precalc.begin() ; i != f.precalc.end() ; ++i)
-    {
-        precalc[i->first] = new Vector(*i->second) ;
-    }
-    for(auto i = f.dprecalc.begin() ; i != f.dprecalc.end() ; ++i)
-    {
-
-        dprecalc[i->first] =  std::map<Variable, Vector *>() ;
-        for(auto j = i->second.begin() ; j != i->second.end() ; ++j)
-        {
-            dprecalc[i->first][j->first] = new Vector(*j->second) ;
-        }
-    }
     return *this ;
 }
 
@@ -2002,17 +1924,6 @@ Function::Function(const Function &f) :
         }
     }
 
-    for(auto i = f.precalc.begin() ; i != f.precalc.end() ; ++i)
-        precalc[i->first] = new Vector(*i->second) ;
-    for(auto i = f.dprecalc.begin() ; i != f.dprecalc.end() ; ++i)
-    {
-        dprecalc[i->first] =  std::map<Variable, Vector *>() ;
-        for(auto j = i->second.begin() ; j != i->second.end() ; ++j)
-        {
-            dprecalc[i->first][j->first] = new Vector(*j->second) ;
-        }
-    }
-
 }
 
 Function::Function(const Function &f, int copyDerivative) : transforms(nullptr),
@@ -2063,17 +1974,6 @@ Function::Function(const Function &f, int copyDerivative) : transforms(nullptr),
         }
     }
 
-    for(auto i = f.precalc.begin() ; i != f.precalc.end() ; ++i)
-        precalc[i->first] = new Vector(*i->second) ;
-    for(auto i = f.dprecalc.begin() ; i != f.dprecalc.end() ; ++i)
-    {
-        dprecalc[i->first] =  std::map<Variable, Vector *>() ;
-        for(auto j = i->second.begin() ; j != i->second.end() ; ++j)
-        {
-            dprecalc[i->first][j->first] = new Vector(*j->second) ;
-        }
-    }
-
 }
 
 
@@ -2097,15 +1997,6 @@ Function::~Function()
         delete derivative ;
     }
 
-    for(auto i = precalc.begin() ; i != precalc.end() ; ++i)
-        delete i->second ;
-    for(auto i = dprecalc.begin() ; i != dprecalc.end() ; ++i)
-    {
-        for(auto j = i->second.begin() ; j != i->second.end() ; ++j)
-        {
-            delete j->second ;
-        }
-    }
 }
 
 

@@ -118,9 +118,9 @@ void TrimaterialInterface::apply(const Function & p_i, const Function & p_j, con
     std::valarray<Matrix> midMatrixArray(midCount) ;
     std::valarray<std::pair<Point, double> > outArray(gp.gaussPoints.size()-inCount-midCount) ;
     std::valarray<Matrix> outMatrixArray(gp.gaussPoints.size()-inCount-midCount) ;
-    GaussPointArray gpIn(inArray, -1) ;
-    GaussPointArray gpMid(midArray, -1) ;
-    GaussPointArray gpOut(outArray, -1) ;
+    GaussPointArray gpIn(inArray) ;
+    GaussPointArray gpMid(midArray) ;
+    GaussPointArray gpOut(outArray) ;
 
     int outIterator = 0;
     int inIterator = 0 ;
@@ -210,9 +210,9 @@ std::vector<BoundaryCondition * > TrimaterialInterface::getBoundaryConditions(co
     std::valarray<Matrix> midMatrixArray(midCount) ;
     std::valarray<std::pair<Point, double> > outArray(gp.gaussPoints.size()-inCount-midCount) ;
     std::valarray<Matrix> outMatrixArray(gp.gaussPoints.size()-inCount-midCount) ;
-    GaussPointArray gpIn(inArray, -1) ;
-    GaussPointArray gpMid(midArray, -1) ;
-    GaussPointArray gpOut(outArray, -1) ;
+    GaussPointArray gpIn(inArray) ;
+    GaussPointArray gpMid(midArray) ;
+    GaussPointArray gpOut(outArray) ;
 
     int outIterator = 0;
     int inIterator = 0 ;

@@ -238,8 +238,8 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 
 Vector VirtualMachine::eval(const Function &f, const GaussPointArray &gp)
 {
-    if(f.precalculated(gp))
-        return f.getPrecalculatedValue(gp) ;
+//     if(f.precalculated(gp))
+//         return f.getPrecalculatedValue(gp) ;
 
     Vector ret(gp.gaussPoints.size()) ;
     for(size_t i = 0 ; i < ret.size() ; i++)
@@ -597,8 +597,8 @@ Matrix VirtualMachine::deval(const FunctionMatrix &f,  const Point&p, const Poin
 
 Vector VirtualMachine::deval(const Function&f, const Variable v_, const GaussPointArray & gp, const double eps)
 {
-    if(f.precalculated(gp, v_))
-        return f.getPrecalculatedValue(gp, v_) ;
+//     if(f.precalculated(gp, v_))
+//         return f.getPrecalculatedValue(gp, v_) ;
 
     if(f.isDifferentiable(v_))
     {
@@ -3012,9 +3012,7 @@ void VirtualMachine::ieval(const GtMLtG &f, const GaussPointArray &gp, const std
 Matrix VirtualMachine::ieval(const DtGtMtG & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars)
 {
     GaussPointArray gp_a(gp_);
-    gp_a.getId() = -1 ;
     GaussPointArray gp_b(gp_);
-    gp_b.getId() = -1 ;
     switch(d.first.v)
     {
     case XI :
@@ -3179,9 +3177,7 @@ void VirtualMachine::ieval(const DdGtMLtGD & d, const std::vector<Matrix> & dmat
 void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret)
 {
     GaussPointArray gp_a(gp_);
-    gp_a.getId() = -1 ;
     GaussPointArray gp_b(gp_);
-    gp_b.getId() = -1 ;
 
     switch(d.first)
     {
@@ -3266,9 +3262,7 @@ void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const 
 void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret)
 {
     GaussPointArray gp_a(gp_);
-    gp_a.getId() = -1 ;
     GaussPointArray gp_b(gp_);
-    gp_b.getId() = -1 ;
     switch(d.first)
     {
     case XI :

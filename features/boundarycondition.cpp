@@ -814,7 +814,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
 
             Segment edge ( *first, *last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
@@ -908,7 +908,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             }
 
             Segment edge ( *first, *last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR )/*, -1 */) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
@@ -1002,7 +1002,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             }
 
             Segment edge ( *last, *first ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             double enorm = edge.norm()*.5  ;
             if(e->getOrder() >= CONSTANT_TIME_LINEAR)
                 enorm *= .5 ;
@@ -1123,7 +1123,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             }
 
             Segment edge ( *last, *first ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
@@ -1243,7 +1243,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
 
             Segment edge ( *first, *last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
@@ -1332,7 +1332,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
 
             Segment edge ( *first, *last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
@@ -1757,7 +1757,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
 
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
@@ -1851,7 +1851,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
@@ -1943,7 +1943,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
 
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
@@ -2245,7 +2245,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             }
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
 
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
@@ -2359,7 +2359,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             }
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
 
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
@@ -2473,7 +2473,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             }
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
 
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
@@ -2587,7 +2587,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             }
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
 
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
@@ -2713,7 +2713,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             }
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
 
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
@@ -2870,7 +2870,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
 
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
@@ -3571,7 +3571,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             }
             
             Segment edge ( *first, *last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
@@ -3663,7 +3663,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             }
 
             Segment edge ( *first, *last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
@@ -3754,7 +3754,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
 
             Segment edge ( *first, *last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
             for ( size_t j = 0 ; j < gpe.gaussPoints.size() ; j++ )
             {
@@ -3875,7 +3875,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
 
             Segment edge ( *first, *last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
             for ( size_t j = 0 ; j < gpe.gaussPoints.size() ; j++ )
             {
@@ -4263,7 +4263,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             }
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
 
             for ( size_t j = 0 ; j < gpe.gaussPoints.size() ; j++ )
@@ -4375,7 +4375,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
 
             for ( size_t j = 0 ; j < gpe.gaussPoints.size() ; j++ )
@@ -4485,7 +4485,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
 
             for ( size_t j = 0 ; j < gpe.gaussPoints.size() ; j++ )
@@ -4797,7 +4797,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             }
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
 
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
@@ -4909,7 +4909,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             }
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
 
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
@@ -5021,7 +5021,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             }
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
 
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
@@ -5133,7 +5133,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             }
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
 
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
@@ -5259,7 +5259,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
 
             for ( size_t j = 0 ; j < gpe.gaussPoints.size() ; j++ )
@@ -5423,7 +5423,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
 
             TriPoint edge ( first, middle, last ) ;
-            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ) ) ;
             std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
 
             for ( size_t j = 0 ; j < gpe.gaussPoints.size() ; j++ )

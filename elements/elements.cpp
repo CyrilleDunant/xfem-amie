@@ -588,7 +588,7 @@ GaussPointArray gaussPointSet(Order order, const TriElement * t)
             fin[i].second *= j;
         }
     }
-    return GaussPointArray(fin, order)  ;
+    return GaussPointArray(fin)  ;
 }
 
 GaussPointArray gaussPointSet(Order order, const TetrahedralElement * t)
@@ -688,7 +688,7 @@ GaussPointArray gaussPointSet(Order order, const TetrahedralElement * t)
             fin[i].second *= j;
         }
     }
-    return GaussPointArray(fin, order)  ;
+    return GaussPointArray(fin)  ;
 }
 
 const GaussPointArray & TriElement::genGaussPoints()
@@ -994,7 +994,7 @@ const GaussPointArray & TriElement::genGaussPoints()
             fin[i].second *= j;
         }
     }
-    setCachedGaussPoints(new GaussPointArray(fin, order))  ;
+    setCachedGaussPoints(new GaussPointArray(fin))  ;
     return *getCachedGaussPoints() ;
 } 
 
@@ -2566,7 +2566,7 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 // 		}
     }
 
-    setCachedGaussPoints( new GaussPointArray(fin, order)) ;
+    setCachedGaussPoints( new GaussPointArray(fin)) ;
     return *getCachedGaussPoints() ;
 }
 
@@ -4944,7 +4944,7 @@ const GaussPointArray & HexahedralElement::genGaussPoints()
         fin[i].second*= jacobianAtPoint(fin[i].first) ;
     }
 
-    setCachedGaussPoints(new GaussPointArray(fin, order)) ;
+    setCachedGaussPoints(new GaussPointArray(fin)) ;
     return *getCachedGaussPoints() ;
 }
 

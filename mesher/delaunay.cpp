@@ -1643,13 +1643,6 @@ void DelaunayTriangle::print() const
     std::cout <<  ":: "<< isAlive() << std::endl ;
 }
 
-
-// void DelaunayTriangle::displace(Vector * eps)
-// {
-// 	(*eps)[first->getId()*2]+=(*eps)[first->getId()*2] ;
-// 	(*eps)[first->getId()*2+1]+=(*eps)[first->getId()*2+1] ;
-// }
-
 DelaunayDemiPlane::DelaunayDemiPlane(Mesh<DelaunayTriangle, DelaunayTreeItem> *t, DelaunayTreeItem * father,  Point  * _begin,  Point  * _end,  Point  * p,  Point * c) : DelaunayTreeItem(t, father, c)
 {
     second  = _end ;
@@ -3011,7 +3004,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
         if( order >= CONSTANT_TIME_LINEAR )
         {
 
-            if((getCachedGaussPoints() != nullptr) && (getCachedGaussPoints()->getId() == REGULAR_GRID))
+            if((getCachedGaussPoints() != nullptr) && (getCachedGaussPoints()->regularGrid ))
                 return *getCachedGaussPoints() ;
 
 
@@ -3076,7 +3069,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 *cachedGps = gp_alternative ;
             else
                 cachedGps = new GaussPointArray(gp_alternative) ;
-            cachedGps->getId() = REGULAR_GRID ;      
+            cachedGps->regularGrid = true ;      
             return *getCachedGaussPoints();
 
         }
@@ -3085,12 +3078,12 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
             if( false )
             {
-                if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
+                if(getCachedGaussPoints() && getCachedGaussPoints()->regularGrid)
                     return *getCachedGaussPoints() ;
 
                 delete cachedGps ;
                 cachedGps = new GaussPointArray(monteCarloGaussPoints(128, this)) ;
-                cachedGps->getId() = REGULAR_GRID ;
+                cachedGps->regularGrid = true ;
                 return *getCachedGaussPoints() ;
             }
 
@@ -3136,11 +3129,11 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             }
             if(tri.size() < 3 || std::abs(parentArea - 0.5) > 1e-4)
             {
-                if(getCachedGaussPoints() && getCachedGaussPoints()->getId() == REGULAR_GRID)
+                if(getCachedGaussPoints() && getCachedGaussPoints()->regularGrid)
                     return *getCachedGaussPoints() ;
                 delete cachedGps ;
                 cachedGps = new GaussPointArray(monteCarloGaussPoints(128, this)) ;
-                cachedGps->getId() = REGULAR_GRID ;
+                cachedGps->regularGrid = true ;
                 return *getCachedGaussPoints() ;
             }
 
@@ -3171,7 +3164,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             *cachedGps = gp_alternative ;
         else
             cachedGps = new GaussPointArray(gp_alternative) ;
-//         cachedGps->getId() = REGULAR_GRID ;      
         return *getCachedGaussPoints();
 
     }
@@ -3193,10 +3185,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints(const Fu
     {
         VirtualMachine vm ;
         double ndivs = 4 ;
-
-
-// 		if(getCachedGaussPoints()->getId() == REGULAR_GRID)
-// 			return *getCachedGaussPoints() ;
 
         std::vector<std::pair<Point, double> > gp_alternative ;
         std::valarray<Matrix> Jinv ;
@@ -3247,7 +3235,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints(const Fu
 
             gp.gaussPoints.resize(gp_alternative.size()) ;
             std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
-            gp.getId() = REGULAR_GRID ;
+            gp.regularGrid = true ;
 
             Jinv.resize(gp.gaussPoints.size(), J) ;
             newTest = test ;

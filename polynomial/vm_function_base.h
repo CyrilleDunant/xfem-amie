@@ -81,22 +81,6 @@ protected :
     bool derivativeTransformed = false ;
 
 
-    /*void defaultInitialise()
-    {
-    	derivative(nullptr),
-    	e_diff(false) ;
-    	byteCodeSize(0) ;
-    	constNumber(0) ;
-    	byteCode.resize(TOKEN_OPERATION_CONSTANT,FUNCTION_LENGTH, );
-    	geo_op.resize((GeometryOperation *)nullptr,FUNCTION_LENGTH);
-    	use_temp.resize(NO_TEMPORARY,FUNCTION_LENGTH);
-    	values.resize(0.,FUNCTION_LENGTH) ;
-    	adress_a.resize(0,FUNCTION_LENGTH*4) ;
-    	dofID =-1 ;
-    	ptID = nullptr ;
-    	hasGeoOp = false ;
-    }*/
-
 protected:
 
     std::pair<size_t, functionParseElement> getNext ( size_t init, const char * form, int iter, std::vector<double> & val ) ;
@@ -114,8 +98,6 @@ protected:
     bool isBinaryVectorisableOperator ( TokenOperationType t ) const ;
     bool isTrinaryVectorisableOperator ( TokenOperationType t ) const ;
     bool isTrinaryOperator ( TokenOperationType t ) const ;
-    std::map<int, Vector *> precalc ;
-    std::map<int, std::map<Variable, Vector *> > dprecalc ;
     bool shareDerivatives = false ;
 
 public:
@@ -127,10 +109,7 @@ public:
     std::vector<double> values ;
     std::vector<unsigned short int> adress_a ;
     std::vector<unsigned short int> adress_t ;
-// 	Function * xtransform ;
-// 	Function * ytransform ;
-// 	Function * ztransform ;
-// 	Function * ttransform ;
+
     /** \brief Default constructor. Creates a null function.
      *
      */
@@ -252,11 +231,6 @@ public:
     Function ( Geometry * inGeo, const std::vector<Segment> & inProjector, const std::vector<Segment> &outProjector, const Function &x, const Function &y ) ;
 
     virtual ~Function() final ;
-
-// 	void setTransform(const ElementarySurface * s) ;
-// 	void setTransform(const ElementaryVolume * s) ;
-// 	void setTransform(const Function & x, const Function & y) ;
-// 	void setTransform(const Function & x, const Function & y, const Function & z) ;
 
     /** \brief return the size of the ByteCode
      *
@@ -510,82 +484,7 @@ public:
         Function ret ;
         ret += a ;
         return ret-f ;
-       /* 
-        Amie::Function ret ( f ) ;
-        ret.values.clear();
-        ret.values.push_back ( a ) ;
-        ret.values.insert ( ret.values.end(), f.values.begin(), f.values.end() ) ;
-        if ( f.hasGeoOp ) {
-            ret.geo_op.resize ( HEAP_SIZE, ( GeometryOperation* ) nullptr );
-        }
-
-        for ( size_t i = 0 ; i < f.byteCode.size() ; i++ ) {
-            if ( f.hasGeoOp ) {
-                if ( f.geo_op[i] ) {
-                    ret.geo_op[i] = f.geo_op[i]->getCopy() ;
-                }
-            }
-
-            if ( f.adress_a[i*4] >= HEAP_SIZE-f.values.size()-2 ) {
-                ret.adress_a[ ( i ) *4] = f.adress_a[i*4]-1 ;
-            }
-
-            if ( f.adress_a[i*4+1] >= HEAP_SIZE-f.values.size()-2 ) {
-                ret.adress_a[ ( i ) *4+1] = f.adress_a[i*4+1]-1 ;
-            }
-
-            if ( f.adress_a[i*4+2] >= HEAP_SIZE-f.values.size()-2 ) {
-                ret.adress_a[ ( i ) *4+2] = f.adress_a[i*4+2]-1 ;
-            }
-
-            if ( f.adress_a[i*4] >= 8 && f.adress_a[i*4] < HEAP_SIZE-1-f.values.size() ) {
-                ret.adress_a[ ( i ) *4] = f.adress_a[i*4] ;
-            }
-
-            if ( f.adress_a[i*4+1] >= 8 && f.adress_a[i*4+1] < HEAP_SIZE-1-f.values.size() ) {
-                ret.adress_a[ ( i ) *4+1] = f.adress_a[i*4+1] ;
-            }
-
-            if ( f.adress_a[i*4+2] >= 8 && f.adress_a[i*4+2] < HEAP_SIZE-1-f.values.size() ) {
-                ret.adress_a[ ( i ) *4+2] = f.adress_a[i*4+2] ;
-            }
-
-            if ( f.adress_a[i*4] < 8 ) {
-                ret.adress_a[ ( i ) *4] = f.adress_a[i*4] ;
-            }
-
-            if ( f.adress_a[i*4+1] < 8 ) {
-                ret.adress_a[ ( i ) *4+1] = f.adress_a[i*4+1] ;
-            }
-
-            if ( f.adress_a[i*4+2] < 8 ) {
-                ret.adress_a[ ( i ) *4+2] = f.adress_a[i*4+2] ;
-            }
-
-        }
-        ret.byteCode.push_back ( TOKEN_OPERATION_MINUS );
-        ret.adress_a.push_back ( 0 );
-        ret.adress_a.push_back ( 0 );
-        ret.adress_a.push_back ( 0 );
-        ret.adress_a.push_back ( 0 );
-        ret.adress_a[ ( ret.byteCode.size()-1 ) *4+2] = 8 ;
-        ret.adress_a[ ( ret.byteCode.size()-1 ) *4+1] = 8 ;
-        ret.adress_a[ ( ret.byteCode.size()-1 ) *4] = HEAP_SIZE-1 ;
-
-
-        size_t n = f.getNumberOfDerivatives() ;
-        if ( n > 0 ) {
-            ret.setNumberOfDerivatives ( n ) ;
-            for ( size_t i = 0 ; i < n ; i++ ) {
-                if ( f.isDifferentiable ( i ) ) {
-                    Amie::Function diff =  f.d ( ( const Variable ) i ) * -1;
-                    ret.setDerivative ( ( const Variable ) i, diff ) ;
-                }
-            }
-        }
-        ret.hasGeoOp = f.hasGeoOp ;
-        return ret ;*/
-
+   
     }
 
 
@@ -824,60 +723,6 @@ public:
 
     }
 
-
-    /** \brief Take the composite of two functions
-     *
-     * @param f Function with which to compose
-     * @return a new Function
-     *//*
-Function operator()(const Function & f) const ;
-
-Function operator()(const Function &f0, const Function &f1) const;*/
-
-
-    /** \brief Precalculate the function derivatives at a set of locations
-    *
-    * @param gp GaussPointArray defining the locations
-    * @param var Variables with respect to which differentiation should be calculated
-    * @param eps delata for the numerical evaluation of derivatives
-    */
-    void preCalculate ( const GaussPointArray & gp , std::vector<Variable> & var, const double eps = default_derivation_delta ) ;
-
-    /** \brief Precalculate the function  at a set of locations
-     *
-     * @param gp GaussPointArray defining the locations
-     */
-    void preCalculate ( const GaussPointArray & gp ) ;
-
-    /** \brief Check whether the function has been precalculated at a set of positions
-     *
-     * @param gp GaussPointArray defining the locations
-     * @return true if the function has been precalculated
-     */
-    bool precalculated ( const GaussPointArray & gp ) const ;
-
-    /** \brief Check whether the function derivative has been precalculated at a set of positions
-     *
-     * @param gp GaussPointArray defining the locations
-     * @param v Variable with respect to which differentiation should be calculated
-     * @return
-     */
-    bool precalculated ( const GaussPointArray & gp, Variable v ) const ;
-
-    /** \brief return the precalculated values at a set of points
-     *
-     * @param gp GaussPointArray  defining the locations
-     * @return Vector of values at those points
-     */
-    const Vector & getPrecalculatedValue ( const GaussPointArray & gp ) const ;
-
-    /** \brief return the precalculated derivative values at a set of points
-     *
-     * @param gp GaussPointArray  defining the locations
-     * @param v Variable with respect to which differentiation should be calculated
-     * @return Vector of values at those points
-     */
-    const Vector & getPrecalculatedValue ( const GaussPointArray & gp, Variable v ) const ;
 } ;
 
 struct FunctionParserHelper
