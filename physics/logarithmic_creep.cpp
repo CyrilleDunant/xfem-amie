@@ -466,11 +466,14 @@ std::vector<BoundaryCondition * > LogarithmicCreepWithImposedDeformationAndFract
         std::vector<Variable> variables = v ;
         Vector forces = getForcesFromAppliedStress ( istress, p_i, gp, Jinv, variables, true ) ;
         ret.push_back( new DofDefinedBoundaryCondition( INCREMENT_FORCE_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()), gp, Jinv, id, forces[0], 0 ) ) ;
-        ret.push_back( new DofDefinedBoundaryCondition( INCREMENT_FORCE_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()), gp, Jinv, id, -forces[0], 2 ) ) ;
-        ret.push_back( new DofDefinedBoundaryCondition( INCREMENT_FORCE_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()), gp, Jinv, id, -forces[0], 4 ) ) ;
         ret.push_back( new DofDefinedBoundaryCondition( INCREMENT_FORCE_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()), gp, Jinv, id, forces[1], 1 ) ) ;
-        ret.push_back( new DofDefinedBoundaryCondition( INCREMENT_FORCE_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()), gp, Jinv, id, -forces[1], 3 ) ) ;
-        ret.push_back( new DofDefinedBoundaryCondition( INCREMENT_FORCE_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()), gp, Jinv, id, -forces[1], 5 ) ) ;
+	if( model != PURE_ELASTICITY )
+	{
+	        ret.push_back( new DofDefinedBoundaryCondition( INCREMENT_FORCE_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()), gp, Jinv, id, -forces[0], 2 ) ) ;
+	        ret.push_back( new DofDefinedBoundaryCondition( INCREMENT_FORCE_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()), gp, Jinv, id, -forces[0], 4 ) ) ;
+	        ret.push_back( new DofDefinedBoundaryCondition( INCREMENT_FORCE_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()), gp, Jinv, id, -forces[1], 3 ) ) ;
+	        ret.push_back( new DofDefinedBoundaryCondition( INCREMENT_FORCE_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()), gp, Jinv, id, -forces[1], 5 ) ) ;
+	}
 /*        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[0]));
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[1]));*/
     }

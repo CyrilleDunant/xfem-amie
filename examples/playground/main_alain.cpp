@@ -50,84 +50,30 @@ int main(int argc, char *argv[])
 
         Sample rect(nullptr, 0.01,0.01,0,0) ;
 
-        SpaceTimeMultiSurfaceFractureCriterion * crit = new SpaceTimeMultiSurfaceFractureCriterion() ;
-        crit->add(new SpaceTimeLimitFirstStrainInvariant(-1.8e-3)) ;
-        crit->add(new SpaceTimeNonLocalMaximumStress(15e6)) ;
+        LogarithmicCreepWithExternalParameters * toto = new LogarithmicCreepWithExternalParameters("young_modulus = 10e9, poisson_ratio = 0.2, creep_modulus = 40e9, creep_characteristic_time = 1, imposed_deformation = 0") ;
+        LogarithmicCreepWithExternalParameters * tata = new LogarithmicCreepWithExternalParameters("young_modulus = 60e9, poisson_ratio = 0.2, imposed_deformation = 0.001") ;
 
-        LogarithmicCreepWithExternalParameters * toto = new LogarithmicCreepWithExternalParameters("young_modulus = 10e9, poisson_ratio = 0.2, imposed_deformation = 0, microcracking = -1e-3", crit, new SpaceTimeBifurcationAndDamage(0.5, new SpaceTimeFiberBasedIsotropicLinearDamage(0.001,0.00001,0.99))) ;
+	Inclusion * inc = new Inclusion( 0.003,0,0 ) ;
+	inc->setBehaviour(tata) ;
 
         rect.setBehaviour( toto ) ;
 
         FeatureTree f(&rect) ;
-        f.setSamplingNumber(0) ;
-        f.setDeltaTime(0.001) ;
+        f.setSamplingNumber(4) ;
+        f.setDeltaTime(1) ;
         f.setMinDeltaTime(1e-9) ;
-
-        f.step() ;
-        f.step() ;
-
+	f.addFeature( &rect, inc ) ;
         f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT_AFTER) ) ;
         f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER ) ) ;
-        BoundingBoxDefinedBoundaryCondition * top = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_ETA, TOP_AFTER, 0) ;
-        f.addBoundaryCondition( top ) ;
 
-        Vector stress(3) ;
-        Vector strain(3) ;
-        Vector alpha(3) ;
+	for(size_t i = 0 ; i < 10 ; i++)
+	{
+		f.setDeltaTime( i+1) ;
+	        f.step() ;
+		Vector strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
+		std::cout << strain[0] << "\t" << strain[1] << "\t"  << strain[2] << std::endl ;
+	}
 
-        for(double i = 0. ; i < 10 ; i++)
-        {
-
-            top->setData( - 0.00001*i )   ;
-
-                f.step() ;
-
-                stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
-                strain = f.getAverageField( MECHANICAL_STRAIN_FIELD, 1. ) ;
-                alpha = f.getAverageField( IMPOSED_STRAIN_FIELD, 1. ) ;
-                for(size_t i = 0 ; i < stress.size() ; i++)
-                {
-                    if(std::abs(stress[i]) < 1e3) { stress[i] = 0 ; }
-                    if(std::abs(strain[i]) < 1e-6) { strain[i] = 0 ; }
-                }
-                std::cout << top->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << alpha[0]*1e3 << "\t" << alpha[1]*1e3 << "\t" << alpha[2]*1e3 << std::endl ;
-        }
-
-        for(double i = 10. ; i > -20.5 ; i--)
-        {
-
-            top->setData( - 0.00001*i )   ;
-
-                f.step() ;
-
-                stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
-                strain = f.getAverageField( MECHANICAL_STRAIN_FIELD, 1. ) ;
-                alpha = f.getAverageField( IMPOSED_STRAIN_FIELD, 1. ) ;
-                for(size_t i = 0 ; i < stress.size() ; i++)
-                {
-                    if(std::abs(stress[i]) < 1e3) { stress[i] = 0 ; }
-                    if(std::abs(strain[i]) < 1e-6) { strain[i] = 0 ; }
-                }
-                std::cout << top->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << alpha[0]*1e3 << "\t" << alpha[1]*1e3 << "\t" << alpha[2]*1e3 << std::endl ;
-        }
-
-        for(double i = -19 ; i < 0.5 ; i++)
-        {
-
-            top->setData( - 0.00001*i )   ;
-
-                f.step() ;
-
-                stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
-                strain = f.getAverageField( MECHANICAL_STRAIN_FIELD, 1. ) ;
-                alpha = f.getAverageField( IMPOSED_STRAIN_FIELD, 1. ) ;
-                for(size_t i = 0 ; i < stress.size() ; i++)
-                {
-                    if(std::abs(stress[i]) < 1e3) { stress[i] = 0 ; }
-                    if(std::abs(strain[i]) < 1e-6) { strain[i] = 0 ; }
-                }
-                std::cout << top->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << alpha[0]*1e3 << "\t" << alpha[1]*1e3 << "\t" << alpha[2]*1e3 << std::endl ;
-        }
 
         return 0 ;
 }
