@@ -9,9 +9,9 @@
 #define ITOA_H
 
 #include <string>
-
+namespace Amie {
 std::string itoa(int value, int base = 10) ;
 
 int ctoi(char c) ;
-
+}
 #endif

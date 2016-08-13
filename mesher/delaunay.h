@@ -171,7 +171,7 @@ public:
     virtual void adjustElementaryMatrix(double previousTimeStep, double nextTimeStep) ;
     virtual Vector getNonLinearForces() ;
     virtual const GaussPointArray & getSubTriangulatedGaussPoints() ;
-    virtual const GaussPointArray & getSubTriangulatedGaussPoints(const Function & f0, const Function & f1, Matrix &m) ;
+//     virtual const GaussPointArray & getSubTriangulatedGaussPoints(const Function & f0, const Function & f1, Matrix &m) ;
 
     virtual double distanceToVertex(const Point * p) const ;
 

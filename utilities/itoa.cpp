@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cmath>
 
-
+namespace Amie {
 std::string itoa(int value, int base) {
 
 	enum { kMaxDigits = 35 };
@@ -59,4 +59,6 @@ int ctoi(char c)
 	if(c == '9')
 		return 9 ;
 	return 0 ;
+}
+
 }

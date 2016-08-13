@@ -10,6 +10,7 @@
 // #include "../elements/integrable_entity.h"
 #include "vm_function_matrix.h"
 #include "vm_function_base.h"
+#include "vm_token.h"
 
 namespace Amie
 {

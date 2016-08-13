@@ -107,10 +107,10 @@ bool LinearDamage::fractured(int direction) const
 	if (fraction < 0)
 		return false ;
 	
-		if(inCompression)
-			return getState()[0] >= thresholdDamageDensity ;
-		if(inTension)
-			return getState()[1] >= secondaryThresholdDamageDensity ;
+        if(inCompression)
+                return getState()[0] >= thresholdDamageDensity ;
+        if(inTension)
+                return getState()[1] >= secondaryThresholdDamageDensity ;
 		
 	return  getState()[1] >= secondaryThresholdDamageDensity || getState()[0] >= thresholdDamageDensity ;
 }
