@@ -32,11 +32,10 @@ protected:
     std::vector<const Geometry *> domains ;
     std::vector<DelaunayTree *> meshes ;
     std::vector<Point *> additionalPoints ;
-//     std::vector<DelaunayTreeItem *> tree ;
     int global_counter ;
+    virtual std::vector<DelaunayTriangle *> getElements() ;
 public:
-    virtual std::vector<DelaunayTreeItem *> & getTree() ;
-    virtual const std::vector<DelaunayTreeItem *> & getTree() const;
+
     virtual std::vector<Point * > & getAdditionalPoints()  ;
     virtual const std::vector<Point * > & getAdditionalPoints() const  ;
     void addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep) ;
@@ -45,7 +44,7 @@ public:
     virtual double getInternalScale() const {
         return meshes[0]->getInternalScale() ;
     } ;
-     virtual std::vector<DelaunayTriangle *> getElements() ;
+     
 public:
     ParallelDelaunayTree(Point * p0,  Point *p1,  Point *p2, const std::vector<const Geometry *> & domains) ;
     virtual ~ParallelDelaunayTree() {} ;
@@ -53,7 +52,7 @@ public:
     virtual std::vector<DelaunayTriangle *> getConflictingElements(const Geometry * g) ;
 
     virtual void setElementOrder(Order o, double dt = 0.) ;
-    virtual void insert(Point *) ;
+    virtual void insert(Point *, double minDist) ;
 
     virtual size_t getLastNodeId() const {
         return global_counter ;
@@ -78,6 +77,7 @@ public:
             s += m->size() ;
         return s ;
     }
+    
     virtual void clearCaches()
     {
         caches.clear();

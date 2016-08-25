@@ -4449,7 +4449,7 @@ void FeatureTree::solve()
             {
                 #pragma omp parallel
                 {
-#ifdef HAVE_OMP
+#ifdef HAVE_OPENMP
                     int numThreads = omp_get_num_threads() ;
 #else
                     int numThreads = 1 ;
@@ -4489,7 +4489,7 @@ void FeatureTree::solve()
             {
                  #pragma omp parallel
                 {
-#ifdef HAVE_OMP
+#ifdef HAVE_OPENMP
                     int numThreads = omp_get_num_threads() ;
 #else
                     int numThreads = 1 ;
@@ -4748,7 +4748,7 @@ bool FeatureTree::stepElements()
                 {
                     #pragma omp parallel
                     {
-#ifdef HAVE_OMP
+#ifdef HAVE_OPENMP
                         int numThreads = omp_get_num_threads() ;
 #else
                         int numThreads = 1 ;
@@ -5438,7 +5438,7 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
     }
     ft->stepMesh();
 
-#ifdef HAVE_OMP
+#ifdef HAVE_OPENMP
     if ( !sampled )
     {
         double t0 = omp_get_wtime() ;
@@ -5459,7 +5459,7 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
         return ;
     }
 
-#ifdef HAVE_OMP
+#ifdef HAVE_OPENMP
     if ( !meshed )
     {
         double t0 = omp_get_wtime() ;

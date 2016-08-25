@@ -14,6 +14,7 @@
 #include "../features/inclusion.h"
 #include "../features/expansiveZone.h"
 #include "../utilities/writer/triangle_writer.h"
+#include "../mesher/parallel_delaunay.h"
 
 
 
@@ -571,7 +572,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 
 int main(int argc, char *argv[])
 {
-	
+
 	Matrix m0_steel(3,3) ;
 	double E_steel = 200e9 ;
 	double nu_steel = 0.3 ; 

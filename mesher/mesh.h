@@ -688,15 +688,21 @@ public:
     virtual unsigned int generateCache ()
     {
 //        std::cout << omp_get_max_threads() << std::endl ;
-        if(strainCache.size() == 0) { strainCache.resize( omp_get_max_threads(), Vector(0) ) ; }
-        if(strainGenViscoCache.size() == 0) { strainGenViscoCache.resize( omp_get_max_threads(), Vector(0) ) ; }
-        if(strainRateGenViscoCache.size() == 0) { strainRateGenViscoCache.resize( omp_get_max_threads(), Vector(0) ) ; }
-        if(stressCache.size() == 0) { stressCache.resize( omp_get_max_threads(), Vector(0) ) ; }
-        if(stressGenViscoCache.size() == 0) { stressGenViscoCache.resize( omp_get_max_threads(), Vector(0) ) ; }
-        if(stressImposedCache.size() == 0) { stressImposedCache.resize( omp_get_max_threads(), Vector(0) ) ; }
-        if(bufferCache.size() == 0) { bufferCache.resize( omp_get_max_threads(), Vector(0) ) ; }
-        if(firstResultCache.size() == 0) { firstResultCache.resize( omp_get_max_threads(), Vector(0) ) ; }
-        if(secondResultCache.size() == 0) { secondResultCache.resize( omp_get_max_threads(), Vector(0) ) ; }
+#ifdef HAVE_OPENMP
+      int maxthread = omp_get_max_threads() ;
+#else
+      int maxthread = 1 ;
+#endif
+      
+        if(strainCache.size() == 0) { strainCache.resize( maxthread, Vector(0) ) ; }
+        if(strainGenViscoCache.size() == 0) { strainGenViscoCache.resize( maxthread, Vector(0) ) ; }
+        if(strainRateGenViscoCache.size() == 0) { strainRateGenViscoCache.resize( maxthread, Vector(0) ) ; }
+        if(stressCache.size() == 0) { stressCache.resize( maxthread, Vector(0) ) ; }
+        if(stressGenViscoCache.size() == 0) { stressGenViscoCache.resize( maxthread, Vector(0) ) ; }
+        if(stressImposedCache.size() == 0) { stressImposedCache.resize( maxthread, Vector(0) ) ; }
+        if(bufferCache.size() == 0) { bufferCache.resize( maxthread, Vector(0) ) ; }
+        if(firstResultCache.size() == 0) { firstResultCache.resize( maxthread, Vector(0) ) ; }
+        if(secondResultCache.size() == 0) { secondResultCache.resize( maxthread, Vector(0) ) ; }
 
         getElements() ;
         #pragma omp critical
@@ -958,50 +964,14 @@ public:
         return v ;
     }
 
-//     virtual Vector getField ( FieldType f, int dummy = 0, double t = 0 ) {
-//         if(allElementsCacheID == -1)
-//         {
-//             VirtualMachine vm ;
-//             size_t blocks = 0 ;
-// 
-//             std::vector<ETYPE *> elems = getElements() ;
-//             for ( size_t i = 0 ; i < elems.size() && !blocks; i++ ) {
-//                 blocks = elems[i]->getBehaviour()->getNumberOfDegreesOfFreedom() /spaceDimensions ;
-//             }
-//             Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
-//             Vector buffer ( ret ) ;
-//             double w = 0 ;
-//             for ( size_t i = 0 ; i < elems.size() ; i++ ) {
-// 
-//                 double v = elems[i]->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
-//                 ret += buffer * v ;
-//                 w +=v ;
-//             }
-//             return ret/w ;
-//         }
-// 
-//         VirtualMachine vm ;
-//         size_t blocks = 0 ;
-// 
-// 
-//         for ( auto i = begin() ; i  != end() && !blocks; i++ ) {
-//             blocks = i->getBehaviour()->getNumberOfDegreesOfFreedom() /spaceDimensions ;
-//         }
-//         Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
-//         Vector buffer ( ret ) ;
-//         double w = 0 ;
-//         for ( auto i = begin() ; i  != end() ; i++ ) {
-//             double v = i->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
-//             ret += buffer * v ;
-//             w +=v ;
-//         }
-//         return ret/w ;
-//     }
-
     virtual Vector getSmoothedField (  FieldType f0, int cacheID, IntegrableEntity * e, double t, const std::vector<bool> & restrict = std::vector<bool>(), int index = 0) {
         unsigned int tsize = 3 ;
         unsigned int psize = 2 ;
+#ifdef HAVE_OPENMP
         int thread = omp_get_thread_num() ;
+#else
+	int thread = 0 ;
+#endif
 
         if ( spaceDimensions == SPACE_THREE_DIMENSIONAL ) {
             tsize = 6 ;
@@ -1229,7 +1199,11 @@ public:
 
     virtual std::pair<Vector, Vector> getSmoothedFields ( FieldType f0, FieldType f1, int cacheID, IntegrableEntity * e , double t, const std::vector<bool> & restrict = std::vector<bool>(), int index0 = 0, int index1 = 1  ) {
 
+#ifdef HAVE_OPENMP
         int thread = omp_get_thread_num() ;
+#else
+	int thread = 0 ;
+#endif
 
         firstResultCache[thread] = 0 ;
         secondResultCache[thread] = 0 ;
@@ -2069,10 +2043,6 @@ public:
         return tree[std::abs ( index )] ;
     }
 
-
-
-// 		virtual std::vector<EABSTRACTTYPE *> & getTree() {return tree ; }
-// 		virtual const std::vector<EABSTRACTTYPE *> & getTree() const {return tree ; }
 } ;
 }
 

@@ -114,8 +114,8 @@ public:
     virtual bool onCircumSphere(const Point &p) const = 0 ;
     virtual bool isNeighbour(const  DelaunayTreeItem3D *) const = 0 ;  //!< Test. Are we a neighbour ?
     virtual void insert(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *> &, Point *p,  Star3D *s) = 0 ; //!< Insert the point isVertex the Neighbourhood given by \a s. Returns the new elements
-    virtual  void conflicts(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *>  & ret ,const Point *p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
-    virtual  void conflicts(std::valarray<bool> & visited,std::vector<DelaunayTreeItem3D *> & ret, const Geometry *g) ;
+//     virtual  void conflicts(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *>  & ret ,const Point *p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
+//     virtual  void conflicts(std::valarray<bool> & visited,std::vector<DelaunayTreeItem3D *> & ret, const Geometry *g) ;
     virtual void flatConflicts(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *> &toTest, std::vector<DelaunayTreeItem3D *> & ret, const Geometry *g) ;
     virtual void flatConflicts(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *> &toTest , std::vector<DelaunayTreeItem3D *> & ret,const Point *p, int threadid = -1) ;
 
@@ -340,6 +340,7 @@ public:
 class DelaunayTree3D final: public Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>
 {
     friend class FeatureTree ;
+    friend class DelaunayRoot3D ;
     friend class ParallelDelaunayTree3D ;
     friend class Geometry ;
     friend struct IntegrableEntity ;

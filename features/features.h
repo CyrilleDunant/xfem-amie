@@ -715,7 +715,7 @@ public:
      * @param first Parent of all features. This shoud typically be the sample itself.
      * @return
      */
-    FeatureTree ( Feature *first, int layer = -1, double fraction = 1,  size_t gridsize = 100 ) ;
+    FeatureTree ( Feature *first, int layer = -1, double fraction = 1,  size_t gridsize = 4 ) ;
     
     /** \brief construct a featuretree from a µic-output
      * There are 2 modes: if times is empty, a single file is assumed. Otherwise, as time moves forward, successive meshes are loaded as the hydration advances.

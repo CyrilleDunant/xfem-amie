@@ -476,7 +476,7 @@ void assign(Vector & ret, const CoordinateIndexedSparseMatrixTimesVecMinusVec & 
 
     #pragma omp parallel
     {
-#ifdef HAVE_OMP
+#ifdef HAVE_OPENMP
         int nthreads = omp_get_num_threads() ;
 #else
         int nthreads = 1 ;
@@ -516,7 +516,7 @@ void assign(Vector & ret, const CoordinateIndexedSparseMatrixTimesVec & c, const
 
     #pragma omp parallel
     { 
-       #ifdef HAVE_OMP
+       #ifdef HAVE_OPENMP
             int nthreads = omp_get_num_threads() ;
         #else
             int nthreads = 1 ;

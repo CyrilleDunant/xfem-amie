@@ -208,7 +208,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             x[i] = xtot ;
         }
 
-    #ifdef HAVE_OMP
+    #ifdef HAVE_OPENMP
         double t0 = omp_get_wtime() ;
     #endif
         double rho = 0 ;
@@ -252,7 +252,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             last_rho = rho ;
             nit++ ;
         }
-    #ifdef HAVE_OMP
+    #ifdef HAVE_OPENMP
         double delta = std::max((omp_get_wtime() - t0)*1e6, 1e-32) ;
     #else
         double delta = 1 ;

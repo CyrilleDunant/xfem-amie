@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 		fiber = false ;
 	}
 
-	#ifdef HAVE_OMP
+	#ifdef HAVE_OPENMP
 		omp_set_num_threads(1) ;
 	#endif
 

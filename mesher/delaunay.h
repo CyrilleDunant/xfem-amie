@@ -105,8 +105,7 @@ public:
     virtual bool onCircumCircle(const Point &p) const = 0 ;
     virtual bool isNeighbour( const DelaunayTreeItem *) const = 0 ;  //!< Test. Are we a neighbour ?
     virtual void insert(std::valarray<bool> & visited,std::vector<DelaunayTreeItem *> &, Point *p,  Star *s) = 0 ; //!< Insert the point isVertex the Neighbourhood given by \a s. Returns the new elements
-    virtual void conflicts(std::valarray<bool> & visited, std::vector< Amie::DelaunayTreeItem* >& ret, const Amie::Point* p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
-    virtual void conflicts(std::valarray<bool> & visited,std::vector<DelaunayTriangle *> &, const Geometry *g) ;
+
     void flatConflicts(std::valarray<bool> & visited,std::vector<DelaunayTreeItem *> & toTest, std::vector<DelaunayTriangle *> & ret, const Geometry *g) ;
     void flatConflicts(std::valarray<bool> & visited, std::vector<DelaunayTreeItem *> & toTest, std::vector<DelaunayTreeItem *> & ret,const Point *p) ;
     virtual void print() const { } ;
@@ -349,6 +348,7 @@ class DelaunayTree final: public Mesh<DelaunayTriangle, DelaunayTreeItem>
     friend class DelaunayTriangle ;
 
 protected:
+    std::valarray<bool> visited ;
     bool falseTopology = false ;
     bool neighbourhood ;
     size_t global_counter ;

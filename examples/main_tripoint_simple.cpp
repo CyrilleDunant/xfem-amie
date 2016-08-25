@@ -102,7 +102,7 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight, B
             std::cout << "average sigma12 : " << stemp[2]/1e6 << std::endl ;
             std::cout << std::endl ;
             
-            std::fstream ldfile ( "ldn_2", std::ios::out | std::ios::app)  ;
+            std::fstream ldfile ( "ldn_3", std::ios::out | std::ios::app)  ;
             ldfile << 1000.* ( VirtualMachine().eval(load->getData()*load->getScale(), 0,0,0,featureTree->getInitialTime()) ) << "   " 
                    << stemp[1]/1e6 << "   " 
                    << featureTree->averageDamage << "   " 
@@ -155,9 +155,9 @@ int main ( int argc, char *argv[] )
     // Beton
 
     CommandLineParser parser("Make a tri-point bending test on an homogeneous concrete sample") ;
-    parser.addArgument("length", .39, "length of the sample (default 3.9)") ;
-    parser.addArgument("height", .12, "height of the sample (default 1.2)") ;
-    parser.addArgument("speed", -0.000144, "loading speed (default -0.144 (1 mm / 60000 s))") ;
+    parser.addArgument("length", .39*.5, "length of the sample (default 3.9)") ;
+    parser.addArgument("height", .12*.5, "height of the sample (default 1.2)") ;
+    parser.addArgument("speed", -0.00144, "loading speed (default -0.144 (1 mm / 60000 s))") ;
     parser.parseCommandLine(argc, argv) ;
 
     double sampleLength     = parser.getNumeralArgument( "length") ;
@@ -190,8 +190,8 @@ int main ( int argc, char *argv[] )
  
     Sample sample ( nullptr, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;   
     
-//     sample.setBehaviour (new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mcft->getCopy(), linear->getCopy() )); 
-    sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mcft->getCopy(), linear->getCopy())); 
+    sample.setBehaviour (new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mazar->getCopy(), linear->getCopy() )); 
+//     sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mcft->getCopy(), linear->getCopy())); 
 
     FeatureTree F ( &sample ) ;
 
@@ -219,6 +219,7 @@ int main ( int argc, char *argv[] )
     F.setOrder ( LINEAR_TIME_LINEAR ) ;
     F.setDeltaTime(0.002);
     F.setMinDeltaTime(1e-12);
+    F.setSamplingNumber(4);
 
     step(&F, supportLever, sampleHeight, load, loadingSpeed) ;
 

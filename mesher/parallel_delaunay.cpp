@@ -205,7 +205,7 @@ bool interacts(const Geometry * g , DelaunayTreeItem * item)
     return false ;
 }
 
-void ParallelDelaunayTree::insert(Point * p)
+void ParallelDelaunayTree::insert(Point * p, double minDist)
 {   
     #pragma omp parallel for
     for(size_t i = 0 ; i < meshes.size() ; i++)

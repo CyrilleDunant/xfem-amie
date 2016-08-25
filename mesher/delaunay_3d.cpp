@@ -494,126 +494,6 @@ size_t DelaunayTree3D::numPoints() const
     return this->global_counter ;
 }
 
-void DelaunayTreeItem3D::conflicts(std::valarray<bool> & visited, std::vector< DelaunayTreeItem3D * >  & ret, const Amie::Geometry *g )
-{
-
-    if( visited[index] )
-    {
-        return  ;
-    }
-
-    visited[index] = true ;
-
-
-    if(
-        !inCircumSphere( g->getCenter() )
-        &&
-        (
-            ( !g->in( *first )
-              && !g->in( *second )
-              && !g->in( *third )
-              && !g->in( *fourth )
-              && isTetrahedron )
-            ||
-            (
-                g->in( *fourth )
-                && isSpace
-            )
-        )
-    )
-    {
-        return  ;
-    }
-
-    for( size_t i  = 0 ;  i < stepson.size() ; i++ )
-    {
-        if( !visited[stepson[i]]
-                &&
-                !(
-                    !getStepson( i )->inCircumSphere( g->getCenter() )
-                    &&
-                    (
-                        ( !g->in( *getStepson( i )->first )
-                          && !g->in( *getStepson( i )->second )
-                          && !g->in( *getStepson( i )->third )
-                          && !g->in( *getStepson( i )->fourth )
-                          && getStepson( i )->isTetrahedron
-                        )
-                        ||
-                        (
-                            g->in( *getStepson( i )->fourth )
-                            && getStepson( i )->isSpace
-                        )
-                    )
-                )
-          )
-        {
-            getStepson( i )->conflicts(visited, ret, g ) ;
-        }
-    }
-
-    for( size_t i  = 0 ;  i < son.size() ; i++ )
-    {
-        if(
-            !visited[son[i]]
-            &&
-            !(
-                !getSon( i )->inCircumSphere( g->getCenter() )
-                &&
-                (
-                    ( !g->in( *getSon( i )->first )
-                      && !g->in( *getSon( i )->second )
-                      && !g->in( *getSon( i )->third )
-                      && !g->in( *getSon( i )->fourth )
-                      && getSon( i )->isTetrahedron
-                    )
-                    ||
-                    (
-                        g->in( *getSon( i )->fourth )
-                        && getSon( i )->isSpace
-                    )
-                )
-            )
-        )
-        {
-            getSon( i )->conflicts(visited, ret, g ) ;
-        }
-    }
-
-    if( !dead && isTetrahedron )
-    {
-        ret.push_back( static_cast<DelaunayTetrahedron *>( this ) ) ;
-    }
-
-    for( size_t i  = 0 ;  i < neighbour.size() ; i++ )
-    {
-        if(
-            !visited[neighbour[i]]
-            &&
-            !(
-                !getNeighbour( i )->inCircumSphere( g->getCenter() )
-                &&
-                (
-                    (
-                        !g->in( *getNeighbour( i )->first )
-                        && !g->in( *getNeighbour( i )->second )
-                        && !g->in( *getNeighbour( i )->third )
-                        && !g->in( *getNeighbour( i )->fourth )
-                        && getNeighbour( i )->isTetrahedron
-                    )
-                    ||
-                    (
-                        g->in( *getNeighbour( i )->fourth )
-                        && getNeighbour( i )->isSpace
-                    )
-                )
-            )
-        )
-        {
-            getNeighbour( i )->conflicts(visited, ret, g ) ;
-        }
-    }
-}
 
 void DelaunayTreeItem3D::flatConflicts(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *> & toTest,  std::vector<DelaunayTreeItem3D *>  & ret, const Geometry *g )
 {
@@ -733,58 +613,6 @@ void DelaunayTreeItem3D::flatConflicts(std::valarray<bool> & visited, std::vecto
             toTest.push_back( getNeighbour( i ) ) ;
         }
     }
-}
-
-void DelaunayTreeItem3D::conflicts(std::valarray<bool> & visited, std::vector< DelaunayTreeItem3D * > &ret, const Point *p )
-{
-
-    if( visited[index] )
-    {
-        return  ;
-    }
-
-    visited[index] = true ;
-
-
-    for( size_t i  = 0 ;  i < stepson.size() ; i++ )
-    {
-        if( ( !visited[stepson[i]] && getStepson( i )->inCircumSphere( *p ) ) )
-        {
-            getStepson( i )->conflicts(visited, ret, p ) ;
-        }
-    }
-
-    for( size_t i  = 0 ;  i < son.size() ; i++ )
-    {
-
-        if( ( !visited[son[i]] && getSon( i )->inCircumSphere( *p ) ) )
-        {
-            getSon( i )->conflicts(visited, ret, p ) ;
-        }
-    }
-
-    if( !inCircumSphere( *p ) )
-    {
-        return  ;
-    }
-
-    for( size_t i  = 0 ;  i < neighbour.size() ; i++ )
-    {
-
-        if( ( !visited[neighbour[i]] && getNeighbour( i )->inCircumSphere( *p ) ) )
-        {
-            getNeighbour( i )->conflicts(visited, ret, p ) ;
-        }
-    }
-
-
-
-    if( !dead )
-    {
-        ret.push_back( this ) ;
-    }
-
-
 }
 
 void DelaunayTreeItem3D::flatConflicts(std::valarray<bool> & visited, std::vector< DelaunayTreeItem3D * >& toTest, std::vector< DelaunayTreeItem3D * > & ret, const Point *p, int threadid )
@@ -1687,13 +1515,6 @@ bool DelaunayTetrahedron::onCircumSphere( const Point &p ) const
 bool DelaunayTetrahedron::isNeighbour( const DelaunayTreeItem3D *t ) const
 {
 
-// 	for(size_t i = 0 ; i < neighbour.size() ; i++)
-// 		if(neighbour[i] == t->index)
-// 			return true ;
-// 	for(size_t i = 0 ; i < t->neighbour.size() ; i++)
-// 		if(t->neighbour[i] == index)
-// 			return true ;
-
     size_t cv = numberOfCommonVertices( t ) ;
 
     return ( cv == 3 );
@@ -1841,16 +1662,6 @@ bool DelaunayDemiSpace::onCircumSphere( const Point &p ) const
 
 bool  DelaunayDemiSpace::isNeighbour( const DelaunayTreeItem3D *t )  const
 {
-// 	for(size_t i = 0 ; i < neighbour.size() ; i++)
-// 		if(neighbour[i] == t->index)
-// 			return true ;
-// 	for(size_t i = 0 ; i < t->neighbour.size() ; i++)
-// 		if(t->neighbour[i] == index)
-// 			return true ;
-// 	if(std::find(&neighbour[0], &neighbour[neighbour.size()],t->index) !=  &neighbour[neighbour.size()])
-// 		return true ;
-// 	if(std::find(&t->neighbour[0], &t->neighbour[t->neighbour.size()],index) !=  &t->neighbour[t->neighbour.size()])
-// 		return true ;
 
     if( t->isTetrahedron )
     {
@@ -2034,9 +1845,8 @@ void DelaunayRoot3D::conflicts(std::valarray<bool> & visited,  std::vector< Dela
 
     for( size_t i  = 0 ;  i < son.size() ; i++ )
     {
-        std::vector<DelaunayTreeItem3D *>  temp  ;
         std::vector<DelaunayTreeItem3D *> toTest ;
-        getSon( i )->flatConflicts(visited, toTest, temp, g ) ;
+        getSon( i )->flatConflicts(visited, toTest, ret, g ) ;
 
         while( !toTest.empty() )
         {
@@ -2044,14 +1854,14 @@ void DelaunayRoot3D::conflicts(std::valarray<bool> & visited,  std::vector< Dela
 
             for( size_t j  = 0 ;  j < toTest.size() ; j++ )
             {
-                toTest[j]->flatConflicts(visited, tempToTest, temp, g ) ;
+                toTest[j]->flatConflicts(visited, tempToTest, ret, g ) ;
             }
 
             toTest = tempToTest ;
         }
 
-        ret.insert( ret.end(), temp.begin(), temp.end() ) ;
     }
+
 
 }
 
@@ -2331,17 +2141,26 @@ std::vector<DelaunayTreeItem3D *> DelaunayTree3D::conflicts(const Point *p)
     std::vector<DelaunayTreeItem3D *> cons;
     std::valarray<bool> visited(false, tree.size()) ;
 
-    tree[0]->conflicts(visited, cons, p ) ;
+    static_cast<DelaunayRoot3D *>(tree[0])->conflicts(visited, cons, p ) ;
 
     if( cons.empty() )
     {
         for( auto & s : space )
         {
 
-            std::vector<DelaunayTreeItem3D *>  temp ;
-            s->conflicts(visited, temp, p ) ;
+	    std::vector<DelaunayTreeItem3D *> toTest ;
 
-            cons.insert( cons.end(), temp.begin(), temp.end() ) ;
+	    s->flatConflicts(visited,toTest,cons,p) ;
+
+	    while(!toTest.empty())
+	    {
+		std::vector<DelaunayTreeItem3D *> tempToTest ;
+		for(size_t j  = 0 ;  j < toTest.size() ; j++)
+		{
+		    toTest[j]->flatConflicts(visited,tempToTest,cons,p) ;
+		}
+		toTest = tempToTest ;
+	    }
         }
     }
 

@@ -10,8 +10,8 @@
 #include "../utilities/parser/command_line_parser.h"
 #include "../utilities/postprocessor.h"
 
-#ifdef HAVE_OMP
-#include <omp>
+#ifdef HAVE_OPENMP
+#include <omp.h>
 #endif
 #include <fstream>
 #include <cmath>
