@@ -348,7 +348,7 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
         }
 
         i->setBoundingPoints(newPoints) ;
-	i->genGaussPoints() ;
+// 	i->genGaussPoints() ;
     }  
 
 }

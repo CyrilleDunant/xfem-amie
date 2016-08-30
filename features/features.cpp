@@ -1177,6 +1177,8 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
 
                 if ( triangles[i]->getPrimitive()->intersects ( tree[j] ) )
                 {
+		  delete  triangles[i]->cachedGps ;
+		  triangles[i]->cachedGps = nullptr ;
 
                     Point proj_0 ( *triangles[i]->first ) ;
                     tree[j]->project ( &proj_0 ) ;

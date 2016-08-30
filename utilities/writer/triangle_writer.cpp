@@ -1010,12 +1010,15 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
             i->getState().getField(field,  i->getBoundingPoint(time_offset+0), first, false, 0);
             i->getState().getField(field,  i->getBoundingPoint(time_offset+n), second, false, 0);
             i->getState().getField(field,  i->getBoundingPoint(time_offset+2*n), third, false, 0);
+//             i->getState().getField(field,  i->getCenter(), first, false, 0);
+//             i->getState().getField(field,  i->getCenter(), second, false, 0);
+//             i->getState().getField(field,  i->getCenter(), third, false, 0);
 
             for(int j = 0 ; j < size ; j++)
             {
-                ret[(size-1-j)*3+2][iterator] = third[j] ;
+                ret[(size-1-j)*3+2][iterator] = first[j] ;
                 ret[(size-1-j)*3+1][iterator] = second[j] ;
-                ret[(size-1-j)*3+0][iterator] = first[j] ;
+                ret[(size-1-j)*3+0][iterator] = third[j] ;
             }
 
             iterator++ ;
@@ -1106,7 +1109,6 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
             }
             break ;
         }
-
         case TWFT_CRACK_ANGLE:
         {
             if( tri->getBehaviour()->getFractureCriterion() && tri->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE)
@@ -1128,7 +1130,6 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
             found = true ;
             break ;
         }
-
         case TWFT_CRITERION:
         {
             if( tri->getBehaviour() && tri->getBehaviour()->getFractureCriterion())
@@ -1149,7 +1150,6 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
             found = true ;
             break ;
         }
-
         case TWFT_PRINCIPAL_STRESS:
         {
             Vector v(0., 2) ;
@@ -1301,9 +1301,6 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
         }
         default:
             break ;
-
-
-
         }
     }
 

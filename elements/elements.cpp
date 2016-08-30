@@ -720,18 +720,18 @@ const GaussPointArray & TriElement::genGaussPoints()
     case QUADRATIC:
     {
 
-//         ordre = 4 ;
-//         fin.resize(ordre);
-//         fin[0] = std::pair<Point, double>(Point(0.2, 0.2), 0.260416666666667) ;
-//         fin[1] = std::pair<Point, double>(Point(0.6, 0.2), 0.260416666666667) ;
-//         fin[2] = std::pair<Point, double>(Point(0.2, 0.6), 0.260416666666667) ;
-//         fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333), -0.28125) ;
-        
-        ordre = 3 ;
+        ordre = 4 ;
         fin.resize(ordre);
-        fin[0] = std::pair<Point, double>(Point(.25, .25), 0.1666666666666667) ;
-        fin[1] = std::pair<Point, double>(Point(.25, .75), 0.1666666666666667) ;
-        fin[2] = std::pair<Point, double>(Point(.75, .25), 0.1666666666666667) ;
+        fin[0] = std::pair<Point, double>(Point(0.2, 0.2), 0.260416666666667) ;
+        fin[1] = std::pair<Point, double>(Point(0.6, 0.2), 0.260416666666667) ;
+        fin[2] = std::pair<Point, double>(Point(0.2, 0.6), 0.260416666666667) ;
+        fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.33333333333333), -0.28125) ;
+        
+//         ordre = 3 ;
+//         fin.resize(ordre);
+//         fin[0] = std::pair<Point, double>(Point(.25, .25), 0.1666666666666667) ;
+//         fin[1] = std::pair<Point, double>(Point(.25, .75), 0.1666666666666667) ;
+//         fin[2] = std::pair<Point, double>(Point(.75, .25), 0.1666666666666667) ;
         break ;
     }
     case QUADTREE_REFINED:
@@ -1100,7 +1100,13 @@ TriElement::TriElement(Order order_ ): moved(false)
         (*shapefunc)[5].setDerivative( ETA, d) ;
         d = Function("4 y *") ;
         (*shapefunc)[5].setDerivative( XI, d) ;
-
+	
+// 	VirtualMachine vm ;
+// 	for(size_t i = 0 ; i < 6 ; i++)
+// 	{
+// 	  std::cout << vm.eval((*shapefunc)[i], 0.,.5 ) << vm.eval((*shapefunc)[i], 0.5,0.5 ) << vm.eval((*shapefunc)[i], .5,0. ) << std::endl ;
+// 	}
+// 	exit(0) ;
         break ;
     }
     case CUBIC :
