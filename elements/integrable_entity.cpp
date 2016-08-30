@@ -1730,11 +1730,11 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
     double v = (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? parent->area() : parent->volume() ;
     double total = 0 ;
     bool weighted = true ;
-    if ( weights.size() != parent->getGaussPoints().gaussPoints.size() )
+    
+    if ( weights.size() != gp.gaussPoints.size() )
     {
         weighted = false ;
     }
-
 
     switch ( f )
     {
