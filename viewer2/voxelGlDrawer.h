@@ -1,4 +1,4 @@
-#define nullptr NULL ;
+// #define nullptr NULL ;
 
 
 

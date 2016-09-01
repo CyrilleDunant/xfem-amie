@@ -1,4 +1,4 @@
-#define nullptr NULL ;
+// #define nullptr NULL ;
 
 
 
@@ -22,6 +22,20 @@
 #include "triangleDataReader.h"
 
 #include "glutils.h"
+
+/*
+   Return a RGB colour value given a scalar v in the range [vmin,vmax]
+   In this case each colour component ranges from 0 (no contribution) to
+   1 (fully saturated), modifications for other ranges is trivial.
+   The colour is clipped at the end of the scales if v is outside
+   the range [vmin,vmax]
+*/
+
+typedef struct {
+    double r,g,b;
+} COLOUR;
+
+COLOUR GetColour(double v) ;
 
 class TriangleGLDrawer : public QGLWidget
 {

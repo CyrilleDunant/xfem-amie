@@ -1,5 +1,5 @@
 #include <QApplication>
-#define nullptr NULL ;
+// #define nullptr NULL ;
 
 
 /*#include "voxelGlDrawer.h"*/
