@@ -4,6 +4,8 @@ include(CheckCXXCompilerFlag)
 include (CheckCXXSourceCompiles)
 find_package(OpenMP)
 find_package(MPI)
+cmake_policy( SET CMP0004 OLD )
+cmake_policy( SET CMP0037 OLD )
 
 if (CMAKE_CXX_COMPILER MATCHES ".*clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   set(CMAKE_COMPILER_IS_CLANGXX 1)
