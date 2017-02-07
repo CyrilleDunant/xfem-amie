@@ -40,6 +40,7 @@ double DruckerPrager::grade(ElementState &s)
 	double maxStrain = 0 ;
 	double pseudomodulus = modulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 	double dfactor = 1 ;
+	
 	//hardening function from Jirasek et al.
 	if(dynamic_cast<PlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel()))
 	{

@@ -9,6 +9,7 @@
 #include "../features/features.h"
 #include "../physics/radialstiffnessgradient.h"
 #include "../physics/physics_base.h"
+#include "../physics/homogenization/composite.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/mcft.h"
 #include "../physics/fracturecriteria/fractionmcft.h"
@@ -19,7 +20,8 @@
 #include "../physics/fracturecriteria/boundedvonmises.h"
 #include "../physics/damagemodels/plasticstrain.h"
 #include "../physics/stiffness.h"
-#include "../physics/materials/aggregate_behaviour.cpp"
+#include "../physics/materials/aggregate_behaviour.h"
+#include "../physics/materials/paste_behaviour.h"
 #include "../physics/stiffness_and_fracture.h"
 #include "../physics/fraction_stiffness_and_fracture.h"
 #include "../physics/void_form.h"
@@ -36,10 +38,8 @@
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 #include "../utilities/optimizer.h"
-#include "../utilities/itoa.h"
 #include "../utilities/writer/triangle_writer.h"
 #include "../physics/materials/concrete_behaviour.h"
-#include "../physics/materials/paste_behaviour.h"
 #include "../physics/orthotropicstiffness.h"
 
 
@@ -138,10 +138,10 @@ bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
-MultiTriangleWriter writer ( "triangles_head", "triangles_layers", nullptr ) ;
-MultiTriangleWriter writerc ( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
+MultiTriangleWriter writer ( "triangles_stiff_head", "triangles_stiff_layers", nullptr ) ;
+// MultiTriangleWriter writerc ( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
 
-void step ( size_t nsteps )
+void step ( size_t nsteps, Sample * samplef )
 {
 
     size_t tries = 0 ;
@@ -150,7 +150,7 @@ void step ( size_t nsteps )
         tries = 0 ;
 
         tries++ ;
-
+	loadr->setData ( -4e-2 ) ;
         bool go_on = featureTree->step() ;
         double appliedForce = loadr->getData() *effectiveRadius*2.*rebarDiametre;
         if ( go_on )
@@ -161,7 +161,7 @@ void step ( size_t nsteps )
 // 			else
 // 				loadr->setData(loadr->getData()+1e-7) ;
             count++ ;
-            loadr->setData ( loadr->getData() +1e-5 ) ;
+            loadr->setData ( 1e-5 ) ;
 // 			loadr->setData(loadr->getData()-1e-5) ;
 
 // 			loadt->setData(0) ;
@@ -182,7 +182,7 @@ void step ( size_t nsteps )
         }
         for ( auto k = featureTree->get2DMesh()->begin() ; k != featureTree->get2DMesh()->end() ; k++ )
         {
-            if ( k->getBehaviour()->type != VOID_BEHAVIOUR )
+            if ( k->getBehaviour()->getDamageModel() && k->getBehaviour()->type != VOID_BEHAVIOUR )
             {
                 if ( go_on )
                 {
@@ -211,6 +211,16 @@ void step ( size_t nsteps )
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD ) ;
         Vector etemp = featureTree->getAverageField ( STRAIN_FIELD ) ;
 
+// 	Vector tmp(3) ;
+// 	for(double x = 0 ;  x <= 0.3 ; x += .001)
+//         {
+//             for(double y = 0 ;  y <= 0.3 ; y += .001)
+//             {
+//                 featureTree->get2DMesh()->getField(PRINCIPAL_REAL_STRESS_FIELD, Point(x,y,0),tmp) ;
+//                     std::cout <<  tmp[0]<< "  "<< std::flush ;
+//             }
+//             std::cout << std::endl ;
+//         }
 //         std::cout << std::endl ;
 //         std::cout << "max value :" << x.max() << std::endl ;
 //         std::cout << "min value :" << x.min() << std::endl ;
@@ -264,13 +274,13 @@ void step ( size_t nsteps )
 
 //         if ( true )
 //         {
-//             writer.reset ( featureTree ) ;
-//             writer.getField ( TWFT_CRITERION ) ;
-//             writer.getField ( TWFT_STIFFNESS_X ) ;
-//             writer.getField ( TWFT_STIFFNESS_Y ) ;
+            writer.reset ( featureTree ) ;
+            writer.getField ( TWFT_CRITERION ) ;
+            writer.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
+//             writer.getField ( STRAIN_FIELD ) ;
 //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
 //             writer.getField ( TWFT_DAMAGE ) ;
-//             writer.append() ;
+            writer.append() ;
 //         }
 //         if ( go_on )
 //         {
@@ -283,6 +293,8 @@ void step ( size_t nsteps )
 //             writerc.append() ;
 //         }
         //(1./epsilon11.getX())*( stressMoyenne.getX()-stressMoyenne.getY()*modulePoisson);
+	    
+	  samplef->setBehaviour(new Stiffness(30e9,0.1+0.1*v)) ;
     }
 
 }
@@ -293,16 +305,34 @@ void step ( size_t nsteps )
 int main ( int argc, char *argv[] )
 {
 
+  for(double soft = 0 ; soft < .6 ; soft += .05)
+  {
+    double E_agg=59e9 ;
+    double E_paste=12e9 ;
+    AggregateBehaviour * agg = new AggregateBehaviour(true, false,E_agg, 0.3) ;
+    PasteBehaviour * paste = new PasteBehaviour(true, false, E_paste*(1.-soft), 0.3*(1.-soft)) ;
+    
+    Phase matrix(paste, 0.3) ;
+    
+    Phase aggregate(agg,0.7 ) ;
+    
+    MoriTanakaMatrixInclusionComposite mt(matrix,aggregate) ;
+    std::cout << mt.getBehaviour()->getTensor(Point())[0][0] << std::endl ;
+    delete agg ;
+    delete paste ;
+  }
+  exit(0) ;
+  
 
     double compressionCrit = -32.6e6 ;
     double mradius = .1 ; // .010 ;//
 
-    double nu = 0.2 ;
-    double E_paste = 30e9 ;
+    double nu = 0.3 ;
+    double E_paste = 12e9 ;
 
 
 // 	Sample samplef(0.3, 0.6,  0.15, 0.3) ;
-    Sample samplef ( 0.3, 0.3,  0.15, 0.15 ) ;
+    Sample samplef ( 100, 100,  50, 50 ) ;
 
     FeatureTree F ( &samplef ) ;
     featureTree = &F ;
@@ -319,12 +349,12 @@ int main ( int argc, char *argv[] )
     t0.isVirtualFeature = true ;
     t1.isVirtualFeature = true ;
 
-    Sample r0 ( mradius, samplef.height(),samplef.getCenter().getX(), samplef.getCenter().getY() ) ;
-    r0.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*0.8,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
-    dynamic_cast<ConcreteBehaviour *> ( r0.getBehaviour() )->materialRadius = mradius ;
-    r0.isVirtualFeature = true ;
-    r0.setBehaviourSource ( &samplef );
-    F.addFeature ( &samplef, &r0 );
+//     Sample r0 ( mradius, samplef.height(),samplef.getCenter().getX(), samplef.getCenter().getY() ) ;
+//     r0.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*0.8,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
+//     dynamic_cast<ConcreteBehaviour *> ( r0.getBehaviour() )->materialRadius = mradius ;
+//     r0.isVirtualFeature = true ;
+//     r0.setBehaviourSource ( &samplef );
+//     F.addFeature ( &samplef, &r0 );
 
 //     PlasticStrain * t0damagemodel = new PlasticStrain() ;
 //     PlasticStrain * t1damagemodel = new PlasticStrain() ;
@@ -332,19 +362,27 @@ int main ( int argc, char *argv[] )
 // 	t0.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6*.95, -20e6*.95,E_paste,0.1 , mradius),t0damagemodel));
 // 	t1.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6*.95, -20e6*.95,E_paste,0.1 , mradius),t1damagemodel));
 
-    t0.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) );
-    t1.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) );
-    t0.setBehaviourSource ( &samplef );
-    t1.setBehaviourSource ( &samplef );
+//     t0.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) );
+//     t1.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) );
+//     t0.setBehaviourSource ( &samplef );
+//     t1.setBehaviourSource ( &samplef );
 //     F.addFeature ( &samplef, &t0 );
 //     F.addFeature ( &samplef, &t1 );
     
-    Pore pore(mradius*.15, samplef.getCenter()) ;
-//     F.addFeature(&samplef, &pore);
-    F.setSamplingFactor(&pore, 4);
-// 	samplef.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN))) ;
-    samplef.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
-    dynamic_cast<ConcreteBehaviour *> ( samplef.getBehaviour() )->materialRadius = mradius ;
+    
+    // 1:10 -> -0.063126
+    // 1:5  -> -0.137859
+    //             0         0.25       0.5       1         2      
+    // 1:2  -> -0.341575  -0.558602 -0.630257 -0.689162 -0.784332 
+    // 1:1  -> -0.412712
+    EllipsoidalInclusion inclusion(&samplef, samplef.getCenter(), Point(0.,samplef.width()*.1), Point(samplef.height()*.1/2, 0.)) ;
+    F.addFeature(&samplef, &inclusion);
+//     F.setSamplingFactor(&inclusion, 4);
+    inclusion.setBehaviour(new Stiffness(E_paste*4, nu)) ;
+//     samplef.setBehaviour(new Stiffness(E_paste,0)) ;
+    samplef.setBehaviour ( new PasteBehaviour(false, false, E_paste, nu,  3e6, 3.6e9,4e9, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, 1, 0.) );
+
+//     dynamic_cast<ConcreteBehaviour *> ( samplef.getBehaviour() )->materialRadius = mradius ;
 
     F.addBoundaryCondition ( loadr );
 // 	F.addBoundaryCondition(loadt);
@@ -354,12 +392,12 @@ int main ( int argc, char *argv[] )
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
 
-    F.setOrder ( LINEAR ) ;
+    F.setOrder ( QUADRATIC ) ;
 // F.addPoint(new Point(0, 0)) ;
 
     F.setMaxIterationsPerStep ( 3400 );
 
-    step ( 12 ) ;
+    step ( 1, &samplef ) ;
 
 
     return 0 ;

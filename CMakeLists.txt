@@ -109,6 +109,7 @@ physics/damagemodels/fractiondamage.cpp
 physics/damagemodels/strainbrokenisotropiclineardamage.cpp
 physics/damagemodels/lineardamage.cpp 
 physics/damagemodels/plasticstrain.cpp
+physics/damagemodels/prandtlreussplasticity.cpp
 physics/damagemodels/rotatingcrack.cpp
 physics/material_laws/logcreep_accumulator.cpp
 physics/material_laws/material_laws.cpp

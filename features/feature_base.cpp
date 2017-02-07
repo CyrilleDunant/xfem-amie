@@ -89,6 +89,7 @@ void Feature::setBehaviour(Form * const f)
     /*	if(behaviour)
     		delete this->behaviour ;*/
     behaviour = f ;
+//     isUpdated = true ;
 }
 
 Form * Feature::getBehaviour( const Point & p) const

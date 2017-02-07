@@ -43,43 +43,15 @@ double MohrCoulomb::grade( ElementState &s )
     metInTension = false ;
     metInCompression = false ;
     metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
-    metInTension = std::abs( minStress / downVal ) < std::abs( maxStress / upVal ) ;
+    metInTension = !metInCompression ;
 
-    if( maxStress >= upVal )
-    {
-        metInTension = true;
-
-        if( minStress <= downVal )
-            metInCompression = true ;
-        
-        return 1. - std::abs( upVal / maxStress ) ;
+    if( metInTension )
+    {   
+        return std::abs( maxStress/upVal )-1. ;
     }
 
-    if( minStress <= downVal )
-    {
-        metInCompression = true ;
-        return 1. - std::abs( downVal / minStress ) ;
-    }
-
-    double s0 = -1. + std::abs( maxStress / upVal );
-    double s1 = -1. + std::abs( minStress / downVal ) ;
-
-    if( minStress > 0 )
-    {
-        return s0 ;
-    }
-
-    if( maxStress < 0 )
-    {
-       
-            
-        return s1 ;
-    }
-
-    if( std::abs( s0 ) > std::abs( s1 ) )
-        return s0 ;
-
-    return s1;
+    metInCompression = true ;
+    return std::abs( minStress/downVal )-1. ;
 }
 
 FractureCriterion *MohrCoulomb::getCopy() const
