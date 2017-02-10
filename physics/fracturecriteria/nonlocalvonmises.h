@@ -31,7 +31,6 @@ namespace Amie {
 		bool met ;
 	public:
 		double threshold ;
-		double E ;
 		virtual bool directionInTension(size_t direction, double t = 0) {return met ;}
 		virtual bool directionInCompression(size_t direction, double t = 0) {return met ;}
 		virtual bool directionMet(size_t direction, double t = 0) {return met;}
@@ -39,7 +38,7 @@ namespace Amie {
 	/** \brief Constructor 
 	 * @param thres Set the maximum stress. 
 	 */
-		NonLocalVonMises(double thres, double E, double radius);
+		NonLocalVonMises(double thres, double radius);
 	
 		virtual ~NonLocalVonMises();
 

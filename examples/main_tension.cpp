@@ -19,6 +19,7 @@
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/fracturecriteria/boundedvonmises.h"
 #include "../physics/damagemodels/plasticstrain.h"
+#include "../physics/damagemodels/prandtlreussplasticity.h"
 #include "../physics/stiffness.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
@@ -129,7 +130,7 @@ Vector vonMises ( 0 ) ;
 Vector angle ( 0 ) ;
 
 // BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition ( SET_ALONG_XI, RIGHT,0 ) ;
-BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,0) ;
+BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,Point(.2, 0), 0) ;
 
 double factor = 25 ;
 MinimumAngle cri ( M_PI/6. ) ;
@@ -150,21 +151,16 @@ void step ( size_t nsteps, Sample * samplef )
         tries = 0 ;
 
         tries++ ;
-	loadr->setData ( -4e-2 ) ;
+
         bool go_on = featureTree->step() ;
         double appliedForce = loadr->getData() *effectiveRadius*2.*rebarDiametre;
         if ( go_on )
         {
-// 			loadr->setData(sin(double(count)/40.)*5e-5) ;
-// 			if(count < 80)
-// 				loadr->setData(loadr->getData()-1e-5) ;
-// 			else
-// 				loadr->setData(loadr->getData()+1e-7) ;
-            count++ ;
-            loadr->setData ( 1e-5 ) ;
-// 			loadr->setData(loadr->getData()-1e-5) ;
 
-// 			loadt->setData(0) ;
+            count++ ;
+
+	loadr->setData(loadr->getData()-.25e-3) ;
+
         }
         else
             nsteps++ ;
@@ -277,7 +273,8 @@ void step ( size_t nsteps, Sample * samplef )
             writer.reset ( featureTree ) ;
             writer.getField ( TWFT_CRITERION ) ;
             writer.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
-//             writer.getField ( STRAIN_FIELD ) ;
+            writer.getField ( STRAIN_FIELD ) ;
+	    writer.getField ( IMPOSED_STRAIN_FIELD ) ;
 //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
 //             writer.getField ( TWFT_DAMAGE ) ;
             writer.append() ;
@@ -294,7 +291,7 @@ void step ( size_t nsteps, Sample * samplef )
 //         }
         //(1./epsilon11.getX())*( stressMoyenne.getX()-stressMoyenne.getY()*modulePoisson);
 	    
-	  samplef->setBehaviour(new Stiffness(30e9,0.1+0.1*v)) ;
+// 	  samplef->setBehaviour(new Stiffness(30e9,0.1+0.1*v)) ;
     }
 
 }
@@ -305,47 +302,47 @@ void step ( size_t nsteps, Sample * samplef )
 int main ( int argc, char *argv[] )
 {
 
-  for(double soft = 0 ; soft < .6 ; soft += .05)
-  {
-    double E_agg=59e9 ;
-    double E_paste=12e9 ;
-    AggregateBehaviour * agg = new AggregateBehaviour(true, false,E_agg, 0.3) ;
-    PasteBehaviour * paste = new PasteBehaviour(true, false, E_paste*(1.-soft), 0.3*(1.-soft)) ;
-    
-    Phase matrix(paste, 0.3) ;
-    
-    Phase aggregate(agg,0.7 ) ;
-    
-    MoriTanakaMatrixInclusionComposite mt(matrix,aggregate) ;
-    std::cout << mt.getBehaviour()->getTensor(Point())[0][0] << std::endl ;
-    delete agg ;
-    delete paste ;
-  }
-  exit(0) ;
+//   for(double soft = 0 ; soft < .6 ; soft += .05)
+//   {
+//     double E_agg=59e9 ;
+//     double E_paste=12e9 ;
+//     AggregateBehaviour * agg = new AggregateBehaviour(true, false,E_agg, 0.3) ;
+//     PasteBehaviour * paste = new PasteBehaviour(true, false, E_paste*(1.-soft), 0.3*(1.-soft)) ;
+//     
+//     Phase matrix(paste, 0.3) ;
+//     
+//     Phase aggregate(agg,0.7 ) ;
+//     
+//     MoriTanakaMatrixInclusionComposite mt(matrix,aggregate) ;
+//     std::cout << mt.getBehaviour()->getTensor(Point())[0][0] << std::endl ;
+//     delete agg ;
+//     delete paste ;
+//   }
+//   exit(0) ;
   
 
     double compressionCrit = -32.6e6 ;
     double mradius = .1 ; // .010 ;//
 
-    double nu = 0.3 ;
+    double nu = 0.2 ;
     double E_paste = 12e9 ;
 
 
-// 	Sample samplef(0.3, 0.6,  0.15, 0.3) ;
-    Sample samplef ( 100, 100,  50, 50 ) ;
+	Sample samplef(0.1, 1.2,  0, 0) ;
+//     Sample samplef ( 100, 100,  50, 50 ) ;
 
     FeatureTree F ( &samplef ) ;
     featureTree = &F ;
 
 
-    double verticaloffset = 0 ; //1./14.*samplef.height()
+    double verticaloffset = 0. ;
     double minDist = std::min ( samplef.width(), samplef.height() ) ;
-    TriangularInclusion t0 ( Point ( minDist*.5,-minDist*.5-mradius+verticaloffset ),
-                             Point ( minDist*.5,-minDist*.5+mradius+verticaloffset ),
-                             Point ( -minDist*.5,minDist*.5+mradius+verticaloffset ) );
-    TriangularInclusion t1 ( Point ( minDist*.5,-minDist*.5-mradius+verticaloffset ),
-                             Point ( -minDist*.5,minDist*.5+mradius+verticaloffset ),
-                             Point ( -minDist*.5,minDist*.5-mradius+verticaloffset ) );
+    TriangularInclusion t0 ( Point ( minDist*.5,-minDist*.5-mradius*.5 ),
+                             Point ( minDist*.5,-minDist*.5+mradius*.5 ),
+                             Point ( -minDist*.5,minDist*.5-mradius*.5 ) );
+    TriangularInclusion t1 ( Point ( minDist*.5,-minDist*.5+mradius*.5 ),
+                             Point ( -minDist*.5,minDist*.5+mradius*.5 ),
+                             Point ( -minDist*.5,minDist*.5-mradius*.5 ) );
     t0.isVirtualFeature = true ;
     t1.isVirtualFeature = true ;
 
@@ -356,16 +353,16 @@ int main ( int argc, char *argv[] )
 //     r0.setBehaviourSource ( &samplef );
 //     F.addFeature ( &samplef, &r0 );
 
-//     PlasticStrain * t0damagemodel = new PlasticStrain() ;
-//     PlasticStrain * t1damagemodel = new PlasticStrain() ;
-
-// 	t0.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6*.95, -20e6*.95,E_paste,0.1 , mradius),t0damagemodel));
-// 	t1.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6*.95, -20e6*.95,E_paste,0.1 , mradius),t1damagemodel));
+    PrandtlReussPlasticStrain * t0damagemodel = new PrandtlReussPlasticStrain() ;
+    PrandtlReussPlasticStrain * t1damagemodel = new PrandtlReussPlasticStrain() ;
+	t0.setBehaviour( new StiffnessAndFracture(E_paste,nu, new NonLocalVonMises(20e6*.9, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN));
+	t1.setBehaviour( new StiffnessAndFracture(E_paste,nu, new NonLocalVonMises(20e6*.9, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN));
+	samplef.setBehaviour(new StiffnessAndFracture(E_paste,nu, new NonLocalVonMises(20e6, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN));
 
 //     t0.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) );
 //     t1.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) );
-//     t0.setBehaviourSource ( &samplef );
-//     t1.setBehaviourSource ( &samplef );
+    t0.setBehaviourSource ( &samplef );
+    t1.setBehaviourSource ( &samplef );
 //     F.addFeature ( &samplef, &t0 );
 //     F.addFeature ( &samplef, &t1 );
     
@@ -375,20 +372,22 @@ int main ( int argc, char *argv[] )
     //             0         0.25       0.5       1         2      
     // 1:2  -> -0.341575  -0.558602 -0.630257 -0.689162 -0.784332 
     // 1:1  -> -0.412712
-    EllipsoidalInclusion inclusion(&samplef, samplef.getCenter(), Point(0.,samplef.width()*.1), Point(samplef.height()*.1/2, 0.)) ;
-    F.addFeature(&samplef, &inclusion);
-//     F.setSamplingFactor(&inclusion, 4);
-    inclusion.setBehaviour(new Stiffness(E_paste*4, nu)) ;
-//     samplef.setBehaviour(new Stiffness(E_paste,0)) ;
-    samplef.setBehaviour ( new PasteBehaviour(false, false, E_paste, nu,  3e6, 3.6e9,4e9, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, 1, 0.) );
+//     EllipsoidalInclusion inclusion(&samplef, samplef.getCenter(), Point(0.,samplef.width()*.1), Point(samplef.height()*.1/2, 0.)) ;
+//     F.addFeature(&samplef, &inclusion);
+// //     F.setSamplingFactor(&inclusion, 4);
+//     inclusion.setBehaviour(new Stiffness(E_paste*4, nu)) ;
+// //     samplef.setBehaviour(new Stiffness(E_paste,0)) ;
+//     samplef.setBehaviour ( new PasteBehaviour(false, false, E_paste, nu,  3e6, 3.6e9,4e9, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, 1, 0.) );
 
 //     dynamic_cast<ConcreteBehaviour *> ( samplef.getBehaviour() )->materialRadius = mradius ;
 
     F.addBoundaryCondition ( loadr );
 // 	F.addBoundaryCondition(loadt);
 
-    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT ) ) ;
+    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, BOTTOM_LEFT ) ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM ) ) ;
+    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, TOP_LEFT ) ) ;
+    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,TOP ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
 
@@ -397,7 +396,7 @@ int main ( int argc, char *argv[] )
 
     F.setMaxIterationsPerStep ( 3400 );
 
-    step ( 1, &samplef ) ;
+    step ( 300, &samplef ) ;
 
 
     return 0 ;

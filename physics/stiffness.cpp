@@ -103,7 +103,7 @@ Form * DerivedStiffness::getCopy() const
 PseudoPlastic::PseudoPlastic(const Amie::Matrix& rig, double E, double limitStrain, double radius): LinearForm(rig, false, true, rig.numRows()/3+1), alpha(0), change(true), radius(radius), limitStrain(limitStrain)
 {
     stiffness = E ;
-    vm = new NonLocalVonMises(limitStrain, E, radius) ;
+    vm = new NonLocalVonMises(limitStrain, radius) ;
     vm->setMaterialCharacteristicRadius(radius);
     initialised = false ;
     lastDamage = alpha ;

@@ -579,13 +579,14 @@ public:
                             Function y = element->getYTransformAtCentralNodalTime() ;
                             Function z = element->getZTransformAtCentralNodalTime() ;
     //		            Function t = element->getTTransform() ;
+			    double a = (element->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
                             GaussPointArray gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
                             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
                                 double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
                                 double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
                                 double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
 
-                                coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, 0. ) );
+                                coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, 0. )*a );
                             }
                         }
                         else
@@ -604,14 +605,23 @@ public:
                             Function y = element->getYTransform() ;
                             Function z = element->getZTransform() ;
                             GaussPointArray gp = element->getGaussPoints() ;
+			    double a = (element->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
 
                             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
                                 double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
                                 double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
                                 double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
 
-                                coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, 0. ) );
+                                coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, 0. )*a );
                             }
+                            
+                            if(gp.gaussPoints.size() == 1)
+			    {
+			      coefs[position].back().back() = 0 ;
+			      for(size_t i = 0 ; i <  element->getBoundingPoints().size() ; i++)
+				coefs[position].back().back() +=  vm.eval ( smoothing, element->getBoundingPoint(i).x,  element->getBoundingPoint(i).y,  element->getBoundingPoint(i).z, 0. )*a ;
+			      coefs[position].back().back() /= element->getBoundingPoints().size() ;
+			    }
                         }
                         else
                         {
@@ -651,12 +661,13 @@ public:
                 Function z = element->getZTransformAtCentralNodalTime() ;
 //                  Function t = element->getTTransform() ;
                 GaussPointArray gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
+		double a = (element->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
                 for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
                     double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
                     double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
                     double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
 
-                    coefs[position][iter].push_back ( vm.eval ( smoothing, xx, xy, xz, 0. ) );
+                    coefs[position][iter].push_back ( vm.eval ( smoothing, xx, xy, xz, 0. )*a );
                 }
             }
             else
@@ -665,6 +676,7 @@ public:
                 Function y = element->getYTransform() ;
                 Function z = element->getZTransform() ;
                 GaussPointArray gp = element->getGaussPoints() ;
+		double a = (element->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
 
                 for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
                     double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
@@ -672,10 +684,18 @@ public:
                     double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
 
                     if(element->getBehaviour()->fractured())
-                        coefs[position][iter].push_back ( vm.eval ( smoothing, xx, xy, xz, 0. ) );
+                        coefs[position][iter].push_back ( vm.eval ( smoothing, xx, xy, xz, 0. )*a );
                     else
                         coefs[position][iter].push_back ( 0. );
                 }
+                
+		if(gp.gaussPoints.size() == 1)
+		{
+		  coefs[position][iter].back() = 0 ;
+		  for(size_t i = 0 ; i <  element->getBoundingPoints().size() ; i++)
+		    coefs[position][iter].back() +=  vm.eval ( smoothing, element->getBoundingPoint(i).x,  element->getBoundingPoint(i).y,  element->getBoundingPoint(i).z, 0. )*a ;
+		  coefs[position][iter].back() /= element->getBoundingPoints().size() ;
+		}
 
             }
             iter++ ;

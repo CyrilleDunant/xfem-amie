@@ -15,10 +15,11 @@
 #include "../damagemodels/damagemodel.h"
 namespace Amie {
 
-NonLocalVonMises::NonLocalVonMises(double thresh, double E, double radius) : threshold(std::abs(thresh)), E(E)
+NonLocalVonMises::NonLocalVonMises(double thresh, double radius) : threshold(std::abs(thresh))
 {
     setMaterialCharacteristicRadius(radius);
     met = false ;
+//     smoothingType = GAUSSIAN_NONCOMPACT ;
 }
 
 
@@ -30,29 +31,19 @@ double NonLocalVonMises::grade(ElementState &s)
 {
     met = false ;
     Vector str( getSmoothedField( PRINCIPAL_REAL_STRESS_FIELD, s ) ) ;
-    double maxStress = 0 ;
-    if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
-    {
-        maxStress = sqrt( ( ( str[0] - str[1] ) * ( str[0] - str[1] ) + str[0] * str[0] + str[1] * str[1] ) * .5 ) ;
-    }
-    else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
-    {
-        maxStress = sqrt( ( str[0] - str[1] ) * ( str[0] - str[1] ) + ( str[0] - str[2] ) * ( str[0] - str[2] ) + ( str[1] - str[2] ) * ( str[1] - str[2] ) ) / 6 ;
-    }
 
-    if( maxStress >= threshold )
-    {
+    double vm = s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL? sqrt(str[0]*str[0]+str[1]*str[1]-str[0]*str[1]) : sqrt(str[0]*str[0]+str[1]*str[1]+str[2]*str[2]-str[0]*str[1]-str[0]*str[2]-str[1]*str[2]);
+    if( vm >= threshold )
         met = true ;
-        return 1. - std::abs( threshold / maxStress );
-    }
 
-    return -1. + std::abs( maxStress / threshold );
+
+    return -1. + std::abs( vm / threshold );
 
 }
 
 FractureCriterion * NonLocalVonMises::getCopy() const
 {
-    NonLocalVonMises * ret = new NonLocalVonMises(threshold,E,  getMaterialCharacteristicRadius()) ;
+    NonLocalVonMises * ret = new NonLocalVonMises(threshold, getMaterialCharacteristicRadius()) ;
     ret->copyEssentialParameters( this ) ;
     return ret ;
 }

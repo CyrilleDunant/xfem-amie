@@ -4641,6 +4641,7 @@ bool FeatureTree::stepElements()
     maxScore = -1 ;
     double maxTolerance = 1e-6 ;
     foundCheckPoint = true ;
+    
     if ( resetcalcul )
     {
         deltaTime = 0 ;
@@ -4983,7 +4984,7 @@ bool FeatureTree::stepElements()
 
                 if (foundCheckPoint )
                 {
-                    std::cerr << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
+                    std::cout << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
 
                     maxTolerance = 1 ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
@@ -5001,6 +5002,7 @@ bool FeatureTree::stepElements()
                                         {
                                             maxScore = std::max (i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScore ) ;
                                             maxTolerance = std::max (i->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance ) ;
+					    i->getBehaviour()->getFractureCriterion()->setCheckpoint(true) ;
                                         }
                                     }
                                 }
@@ -5008,7 +5010,7 @@ bool FeatureTree::stepElements()
                         }
                     }
 
-                    std::cerr << maxScore << "]" << std::flush ;
+                    std::cout << maxScore << "]" << std::flush ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
                         if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE  && solverConverged() && !spaceTimeFixed)

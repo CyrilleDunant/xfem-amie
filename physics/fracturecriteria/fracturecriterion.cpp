@@ -30,7 +30,7 @@ double getSmoothingKernelSize( SmoothingFunctionType type )
         case QUARTIC_COMPACT:
            return 1.5 ;
         case GAUSSIAN_NONCOMPACT:
-           return 4. ;
+           return 1.5 ;
     }
     return 1. ;
 }
@@ -40,9 +40,12 @@ Function getSmoothingKernelFunction( SmoothingFunctionType type, Function & rrn 
     switch(type)
     {
         case QUARTIC_COMPACT:
+	{
+	  rrn/=2. ;
            return (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+	}
         case GAUSSIAN_NONCOMPACT:
-           return f_exp(rrn*-0.5) ;
+           return f_exp(rrn*-1) ;
     }
     return Function("1") ;
 }
@@ -163,6 +166,13 @@ void FractureCriterion::initialiseCache( ElementState & s)
 //         physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*1.5) ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
         Function smooth = getSmoothingKernelFunction( smoothingType, rrn ) ; 
+	
+// 	Function smoothalt = getSmoothingKernelFunction( QUARTIC_COMPACT, rrn ) ; 
+// 	for(double x = -1 ; x < 1 ; x+= 0.01)
+// 	{
+// 	  std::cout << VirtualMachine().eval(smooth, x, s.getParent()->getCenter().getY()) << "  "<< VirtualMachine().eval(smoothalt, x, s.getParent()->getCenter().getY()) << std::endl ;
+// 	}
+// 	exit(0) ;
         Circle epsilonAll( std::max(physicalCharacteristicRadius*1.1, s.getParent()->getRadius()*3. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         Circle epsilonReduced(physicalCharacteristicRadius*1.1+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         mesh2d = s.getMesh2D() ;
@@ -203,7 +213,7 @@ void FractureCriterion::updateCache( ElementState & s)
         Function y = Function("y")-s.getParent()->getCenter().getY() ;
         Function rr = x*x+y*y ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-        Function smooth =  (smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+        Function smooth =  getSmoothingKernelFunction( smoothingType, rrn ) ; 
 
         mesh2d = s.getMesh2D() ;
         mesh2d->updateCache(cachecoreID, s.getParent()->getBehaviour()->getSource(), smooth) ;
@@ -217,7 +227,7 @@ void FractureCriterion::updateCache( ElementState & s)
         Function z = Function("z")-s.getParent()->getCenter().getZ() ;
         Function rr = x*x+y*y+z*z ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-        Function smooth =  (smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+        Function smooth =  getSmoothingKernelFunction( smoothingType, rrn ) ; 
 
         mesh3d = s.getMesh3D() ;
         mesh3d->updateCache(cachecoreID, s.getParent()->getBehaviour()->getSource(), smooth) ;
@@ -289,7 +299,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
 
             initialScore = 1. ;
             double minscore = thresholdScore ;
-            double maxscore = 0 ;
+            double maxscore = std::max(0.,thresholdScore) ;
             bool foundmaxscore = false ;
             minDeltaInNeighbourhood = 1 ;
             maxModeInNeighbourhood = -1 ;
@@ -302,9 +312,9 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                         continue ;
 
                     if(ci->getBehaviour()->fractured())
-                        continue ;
+                        continue ; 
 
-                    if(std::abs(ci->getBehaviour()->getFractureCriterion()->scoreAtState-thresholdScore) <= scoreTolerance*initialScore*.25 &&
+                    if(thresholdScore-ci->getBehaviour()->getFractureCriterion()->scoreAtState <= scoreTolerance*initialScore*.25 &&
                             ci->getBehaviour()->getFractureCriterion()->met())
                     {
 
