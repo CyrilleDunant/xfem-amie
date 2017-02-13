@@ -125,7 +125,7 @@ int main( int argc, char *argv[] )
     F.step() ;
 
 //    MeshWriter::exportExodus2D("test.e.txt", &F, all) ;
-    Vector strain = F.getAverageField( STRAIN_FIELD ) ;
+    Vector strain = F.getAverageField( TOTAL_STRAIN_FIELD ) ;
     Vector stress = F.getAverageField( REAL_STRESS_FIELD ) ;
     Vector dmg = F.getAverageField( SCALAR_DAMAGE_FIELD ) ;
 
@@ -140,7 +140,7 @@ int main( int argc, char *argv[] )
     if(exp)
     {
         TriangleWriter trg( file.c_str() , &F, 1.) ;
-        trg.getField( STRAIN_FIELD ) ;
+        trg.getField( TOTAL_STRAIN_FIELD ) ;
         trg.getField( REAL_STRESS_FIELD ) ;
         trg.getField( SCALAR_DAMAGE_FIELD ) ;
         trg.getField( TWFT_STIFFNESS ) ;

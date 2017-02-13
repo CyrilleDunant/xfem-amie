@@ -113,9 +113,9 @@ void step(std::vector<Feature *> & inclusions, std::vector<Feature *> & blocks)
         {
 	  cacheID = featureTree->get2DMesh()->generateCache(&baseGeometry) ;
             std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax(REAL_STRESS_FIELD) ;
-            std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax(STRAIN_FIELD) ;
+            std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax(TOTAL_STRAIN_FIELD) ;
             Vector stemp = featureTree->getAverageField(REAL_STRESS_FIELD, 1, -1,  0, cacheID) ;
-            Vector etemp = featureTree->getAverageField(STRAIN_FIELD, 1, -1,  0, cacheID) ;
+            Vector etemp = featureTree->getAverageField(TOTAL_STRAIN_FIELD, 1, -1,  0, cacheID) ;
             std::vector<double> macro_strain = featureTree->getMacroscopicStrain(&baseGeometry) ;
             expansion_reaction.push_back( std::make_pair( gelManager->getReactedFraction(), macro_strain[0]) ) ;
             expansion_stress_xx.push_back( std::make_pair( etemp[0], stemp[0] ) ) ;

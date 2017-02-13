@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
 	
 	
 	getDisplacements() ;
-  Vector strain = F.getAverageField(STRAIN_FIELD);
+  Vector strain = F.getAverageField(TOTAL_STRAIN_FIELD);
   Vector stress = F.getAverageField(REAL_STRESS_FIELD);
 
   // write results in textfile

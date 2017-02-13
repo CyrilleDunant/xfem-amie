@@ -406,7 +406,7 @@ std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point
 			for ( size_t k = 0 ; k < gaussPoints.size() ; k++ )
 			{
 				Point localGaussPoint = gamma[j].second->inLocalCoordinates ( gaussPoints[k].first ) ;
-				gamma[j].second->getState().getField(STRAIN_FIELD, REAL_STRESS_FIELD, localGaussPoint, strain, stress, true) ;
+				gamma[j].second->getState().getField(TOTAL_STRAIN_FIELD, REAL_STRESS_FIELD, localGaussPoint, strain, stress, true) ;
 				Matrix sigma = makeStressOrStrainMatrix(stress) ;
 				Matrix epsilon = makeStressOrStrainMatrix(strain) ;
 				double sigma_epsilon = sigma[0][0]*epsilon[0][0] + sigma[0][1]*epsilon[0][1] + sigma[1][0]*epsilon[1][0] + sigma[1][1]*epsilon[1][1];//0.5*std::inner_product(&sigma.array()[0], &sigma.array()[sigma.size()], &epsilon.array()[0], 0. );

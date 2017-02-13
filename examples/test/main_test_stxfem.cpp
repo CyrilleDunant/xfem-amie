@@ -61,11 +61,11 @@ int main( int argc, char *argv[] )
         out.open(outdir+"/test_stxfem_current", std::ios::out) ;
 
     F.step() ;
-    Vector str = F.getAverageField( STRAIN_FIELD ) ;
+    Vector str = F.getAverageField( TOTAL_STRAIN_FIELD ) ;
     out << F.getCurrentTime() << "\t" << exp->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0]*1e3 << "\t" << str[1]*1e3 << "\t" << str[2]*1e3 << std::endl ;
 
     F.step() ;
-    str = F.getAverageField( STRAIN_FIELD ) ;
+    str = F.getAverageField( TOTAL_STRAIN_FIELD ) ;
     out << F.getCurrentTime() << "\t" << exp->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0]*1e3 << "\t" << str[1]*1e3 << "\t" << str[2]*1e3 << std::endl ;
 
     return 0 ;

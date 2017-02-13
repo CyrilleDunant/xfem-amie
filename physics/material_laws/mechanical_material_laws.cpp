@@ -236,7 +236,7 @@ void BiLinearStiffnessMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticE
     if(std::abs(factor-1) < POINT_TOLERANCE) { return ; }
 
     Vector strain(3) ;
-    s.getAverageField(STRAIN_FIELD, strain) ;
+    s.getAverageField(TOTAL_STRAIN_FIELD, strain) ;
     double criterion = strain[0]+strain[1] ;
     double cutoff = s.get(limit,defaultValues) ;
 

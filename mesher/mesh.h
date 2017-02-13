@@ -1036,7 +1036,7 @@ public:
                     double v = 0; 
 
                     if(e != ci  || restrict.empty()|| ( e == ci && (restrict.size() !=  coefs[cacheID][i].size())))
-                        v = ci->getState().getAverageField ( STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
+                        v = ci->getState().getAverageField ( MECHANICAL_STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
                     else if(e == ci && restrict.size() ==  coefs[cacheID][i].size())
                     {
                         std::vector<double> effCoef = coefs[cacheID][i] ;
@@ -1044,7 +1044,7 @@ public:
                         for(size_t j = 0 ; j < restrict.size() ; j++)
                             effCoef[j] *= !restrict[j] ;
                         
-                        v = ci->getState().getAverageField ( STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef ); 
+                        v = ci->getState().getAverageField ( MECHANICAL_STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef ); 
                     }                   
 
                     strainCache[thread] += bufferCache[thread]*v ;
@@ -1265,7 +1265,6 @@ public:
              f0 == EFFECTIVE_STRESS_FIELD || 
              f0 == PRINCIPAL_REAL_STRESS_FIELD || 
              f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || 
-             f0 == STRAIN_FIELD || 
              f0 == MECHANICAL_STRAIN_FIELD || 
              f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ||
                 f1 == PRINCIPAL_STRAIN_FIELD || 
@@ -1273,7 +1272,6 @@ public:
                 f1 == EFFECTIVE_STRESS_FIELD || 
                 f1 == PRINCIPAL_REAL_STRESS_FIELD || 
                 f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || 
-                f1 == STRAIN_FIELD || 
                 f1 == MECHANICAL_STRAIN_FIELD || 
                 f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD
            ) {
@@ -1292,7 +1290,7 @@ public:
                         double v = 0; 
 
                         if(e != ci  || restrict.empty()|| ( e == ci && (restrict.size() !=  coefs[cacheID][i].size())))
-                            v = ci->getState().getAverageField ( STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
+                            v = ci->getState().getAverageField ( MECHANICAL_STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
                         else if(e == ci && restrict.size() ==  coefs[cacheID][i].size())
                         {
                             std::vector<double> effCoef = coefs[cacheID][i] ;
@@ -1300,7 +1298,7 @@ public:
                             for(size_t j = 0 ; j < restrict.size() ; j++)
                                 effCoef[j] *= !restrict[j] ;
                             
-                            v = ci->getState().getAverageField ( STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef ); 
+                            v = ci->getState().getAverageField ( MECHANICAL_STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef ); 
                         } 
 
                         strainCache[thread] += bufferCache[thread]*v ;
@@ -1508,14 +1506,6 @@ public:
                 }
             }
 
-            if ( f0 == STRAIN_FIELD ) {
-                firstResultCache[thread].resize ( tsize ) ;
-                firstResultCache[thread] = strainCache[thread] ;
-            }
-            if ( f1 == STRAIN_FIELD ) {
-                secondResultCache[thread].resize ( tsize ) ;
-                secondResultCache[thread] = strainCache[thread] ;
-            }
             if ( f0 == MECHANICAL_STRAIN_FIELD ) {
                 firstResultCache[thread].resize( tsize ) ;
                 firstResultCache[thread] = strainCache[thread] ;

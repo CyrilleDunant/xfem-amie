@@ -1141,7 +1141,7 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < 30 ; i++)
 	{
 		F.step() ;
-		Vector strain = F.getAverageField(STRAIN_FIELD) ;
+		Vector strain = F.getAverageField(TOTAL_STRAIN_FIELD) ;
 		Vector stress = F.getAverageField(REAL_STRESS_FIELD) ;
 		double damage = getAverageDamage(F) ;
 		std::cout << strain[0] << "\t" << strain[1] << std::endl ;
@@ -1176,7 +1176,7 @@ int main(int argc, char *argv[])
 		filename.append(itoa(i)) ;
 		TriangleWriter writer(filename, &F) ;
 		writer.getField(REAL_STRESS_FIELD ) ;
-		writer.getField(STRAIN_FIELD ) ;
+		writer.getField(TOTAL_STRAIN_FIELD ) ;
 		writer.getField(TWFT_VON_MISES) ;
 		writer.getField(TWFT_STIFFNESS) ;
 		writer.getField(TWFT_DAMAGE) ;

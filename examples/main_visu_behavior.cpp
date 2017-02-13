@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
     //Chargement
     int i = 0 ;
     //while(F.getCurrentTime() < 1.4)
-    while( F.getAverageField( STRAIN_FIELD )[1] < 0.0003 )
+    while( F.getAverageField( TOTAL_STRAIN_FIELD )[1] < 0.0003 )
     {
         F.addBoundaryCondition(load1) ;
         i++ ;
@@ -168,11 +168,11 @@ int main(int argc, char *argv[])
 //	load->setData(0.0001*F.getCurrentTime()) ;
         F.step();
         std::cout << "Pas de temps "<< i << "Grade"  <<std::endl ;
-        std::cout << "\n" << F.getAverageField( STRAIN_FIELD )[1] << "\t" << F.getAverageField( REAL_STRESS_FIELD )[1]  <<std::endl;
+        std::cout << "\n" << F.getAverageField( TOTAL_STRAIN_FIELD )[1] << "\t" << F.getAverageField( REAL_STRESS_FIELD )[1]  <<std::endl;
         std::ofstream fichier_data(test_data.c_str(), std::ios::out | std::ios::app);
         if(fichier_data.is_open())
         {
-            fichier_data << F.getCurrentTime() << " ; " << F.getAverageField( STRAIN_FIELD )[1] << " ; " << F.getAverageField( REAL_STRESS_FIELD )[1] << std::endl ;
+            fichier_data << F.getCurrentTime() << " ; " << F.getAverageField( TOTAL_STRAIN_FIELD )[1] << " ; " << F.getAverageField( REAL_STRESS_FIELD )[1] << std::endl ;
             fichier_data.close();
         }
         else
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
         }
         std::string test = "../../../../amie_data/visu_behavior" ;
         TriangleWriter writer(test.c_str(), &F, 1.) ;
-        writer.getField(STRAIN_FIELD) ;
+        writer.getField(TOTAL_STRAIN_FIELD) ;
         writer.getField(PRINCIPAL_REAL_STRESS_FIELD) ;
         writer.getField(TWFT_DAMAGE) ;
         writer.getField(TWFT_STIFFNESS) ;

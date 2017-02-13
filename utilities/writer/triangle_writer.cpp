@@ -994,6 +994,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
         ret.push_back( reti ) ;
     }
 
+    VirtualMachine vm ;
 
     for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
     {
@@ -1007,9 +1008,9 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
             if(i->timePlanes() > 1)
                 n /= i->timePlanes() ;
 
-            i->getState().getField(field,  i->getBoundingPoint(time_offset+0), first, false, 0);
-            i->getState().getField(field,  i->getBoundingPoint(time_offset+n), second, false, 0);
-            i->getState().getField(field,  i->getBoundingPoint(time_offset+2*n), third, false, 0);
+            i->getState().getField(field,  i->getBoundingPoint(time_offset+0), first, false, &vm);
+            i->getState().getField(field,  i->getBoundingPoint(time_offset+n), second, false, &vm);
+            i->getState().getField(field,  i->getBoundingPoint(time_offset+2*n), third, false, &vm);
 //             i->getState().getField(field,  i->getCenter(), first, false, 0);
 //             i->getState().getField(field,  i->getCenter(), second, false, 0);
 //             i->getState().getField(field,  i->getCenter(), third, false, 0);
@@ -1526,7 +1527,7 @@ std::string nameOfField(FieldType field)
         return std::string("") ;
     case GRADIENT_FIELD :
         return std::string("") ;
-    case STRAIN_FIELD :
+    case TOTAL_STRAIN_FIELD :
         return std::string("Strain") ;
     case MECHANICAL_STRAIN_FIELD :
         return std::string("Mechanical Strain") ;
@@ -1540,6 +1541,10 @@ std::string nameOfField(FieldType field)
         return std::string("Imposed Strain") ;
     case IMPOSED_STRESS_FIELD :
         return std::string("Imposed Stress") ;
+    case PRINCIPAL_IMPOSED_STRAIN_FIELD :
+        return std::string("Principal Imposed Strain") ;
+    case PRINCIPAL_IMPOSED_STRESS_FIELD :
+        return std::string("Principal Imposed Stress") ;
     case PRINCIPAL_STRAIN_FIELD :
         return std::string("Principal Strain") ;
     case PRINCIPAL_MECHANICAL_STRAIN_FIELD :
@@ -1618,7 +1623,7 @@ int numberOfFields( FieldType field )
         return 6 ;
     case GRADIENT_FIELD :
         return 6 ;
-    case STRAIN_FIELD :
+    case TOTAL_STRAIN_FIELD :
         return 9 ;
     case MECHANICAL_STRAIN_FIELD :
         return 9 ;
@@ -1630,6 +1635,10 @@ int numberOfFields( FieldType field )
         return 9 ;
     case IMPOSED_STRESS_FIELD :
         return 9 ;
+    case PRINCIPAL_IMPOSED_STRAIN_FIELD :
+        return 6 ;
+    case PRINCIPAL_IMPOSED_STRESS_FIELD :
+        return 6 ;
     case REAL_STRESS_FIELD :
         return 9 ;
     case PRINCIPAL_STRAIN_FIELD :

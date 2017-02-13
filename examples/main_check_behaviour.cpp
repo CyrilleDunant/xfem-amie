@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 	F.setSamplingNumber(0) ;
 
 	F.step() ;
-	std::cout << F.getCurrentTime() << "\t" << F.getAverageField(STRAIN_FIELD)[1]*1e3 << "\t" << F.getAverageField(REAL_STRESS_FIELD)[1]/1e6 << std::endl ;
+	std::cout << F.getCurrentTime() << "\t" << F.getAverageField(TOTAL_STRAIN_FIELD)[1]*1e3 << "\t" << F.getAverageField(REAL_STRESS_FIELD)[1]/1e6 << std::endl ;
 	double dt = F.getDeltaTime() ;
 
 	LagrangeMultiplierType bc = SET_ALONG_ETA ;
@@ -113,8 +113,8 @@ int main(int argc, char *argv[])
 		if(incr)
 			F.setDeltaTime( F.getDeltaTime()+dt ) ;
 		F.step() ;
-		std::cout << F.getCurrentTime()  << "\t" << F.getAverageField(STRAIN_FIELD)[direction]*1e3 << "\t" << F.getAverageField(REAL_STRESS_FIELD)[direction]/1e6 << "\t" << F.getAverageField(SCALAR_DAMAGE_FIELD)[0]*100 << std::endl ;
-		out << F.getCurrentTime() << "\t" << F.getAverageField(STRAIN_FIELD)[direction]*1e3 << "\t" << F.getAverageField(REAL_STRESS_FIELD)[direction]/1e6 << "\t" << F.getAverageField(SCALAR_DAMAGE_FIELD)[0]*100 << std::endl ;
+		std::cout << F.getCurrentTime()  << "\t" << F.getAverageField(TOTAL_STRAIN_FIELD)[direction]*1e3 << "\t" << F.getAverageField(REAL_STRESS_FIELD)[direction]/1e6 << "\t" << F.getAverageField(SCALAR_DAMAGE_FIELD)[0]*100 << std::endl ;
+		out << F.getCurrentTime() << "\t" << F.getAverageField(TOTAL_STRAIN_FIELD)[direction]*1e3 << "\t" << F.getAverageField(REAL_STRESS_FIELD)[direction]/1e6 << "\t" << F.getAverageField(SCALAR_DAMAGE_FIELD)[0]*100 << std::endl ;
 	}		
 
 	F.getAssembly()->print() ;

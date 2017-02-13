@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
     F.step();
 
     std::ofstream fichier_data(test_data.c_str(), std::ios::out | std::ios::app);
-    fichier_data << F.getCurrentTime() << " ; " << F.getAverageField( STRAIN_FIELD )[1] << " ; " << F.getAverageField( REAL_STRESS_FIELD )[1] << std::endl ;
+    fichier_data << F.getCurrentTime() << " ; " << F.getAverageField( TOTAL_STRAIN_FIELD )[1] << " ; " << F.getAverageField( REAL_STRESS_FIELD )[1] << std::endl ;
     fichier_data.close();
 
     std::cout << "temps " <<  F.getCurrentTime() << std::endl ;
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
     //Visualisation des champs meca
     std::string test = "../../../../amie_data/test_visco_CASH_CSH1" + str;
     TriangleWriter writer(test.c_str(), &F, 1.) ;
-    writer.getField(STRAIN_FIELD) ;
+    writer.getField(TOTAL_STRAIN_FIELD) ;
     writer.getField(PRINCIPAL_REAL_STRESS_FIELD) ;
 //	writer.getField(SCALAR_DAMAGE_FIELD) ;
     writer.getField(TWFT_STIFFNESS) ;

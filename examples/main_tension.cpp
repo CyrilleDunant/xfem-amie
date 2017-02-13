@@ -138,9 +138,10 @@ bool nothingToAdd = false ;
 bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
+double pmax = 0 ;
 
 MultiTriangleWriter writer ( "triangles_stiff_head", "triangles_stiff_layers", nullptr ) ;
-// MultiTriangleWriter writerc ( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
+MultiTriangleWriter writerc ( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
 
 void step ( size_t nsteps, Sample * samplef )
 {
@@ -148,18 +149,17 @@ void step ( size_t nsteps, Sample * samplef )
     size_t tries = 0 ;
     for ( size_t v = 0 ; v < nsteps ; v++ )
     {
-        tries = 0 ;
-
-        tries++ ;
 
         bool go_on = featureTree->step() ;
-        double appliedForce = loadr->getData() *effectiveRadius*2.*rebarDiametre;
         if ( go_on )
         {
+	  tries++ ;
+	  count++ ;
 
-            count++ ;
-
-	loadr->setData(loadr->getData()-.25e-3) ;
+	  pmax = std::min(loadr->getData(), pmax) ;
+	  loadr->setData(pmax-.25e-3) ;
+	  if(tries%5 == 0 && tries > 60)
+	    loadr->setData(0);
 
         }
         else
@@ -205,7 +205,7 @@ void step ( size_t nsteps, Sample * samplef )
 //         std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax ( STRAIN_FIELD ) ;
 //         std::pair<Vector, Vector> vmm = featureTree->getFieldMinMax ( VON_MISES_REAL_STRESS_FIELD ) ;
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD ) ;
-        Vector etemp = featureTree->getAverageField ( STRAIN_FIELD ) ;
+        Vector etemp = featureTree->getAverageField ( TOTAL_STRAIN_FIELD ) ;
 
 // 	Vector tmp(3) ;
 // 	for(double x = 0 ;  x <= 0.3 ; x += .001)
@@ -252,7 +252,6 @@ void step ( size_t nsteps, Sample * samplef )
 
         if ( go_on )
         {
-            std::cout << appliedForce/1000. << std::endl ;
             displacements.push_back ( etemp[1] );
             displacementsx.push_back ( etemp[0] );
             loads.push_back ( stemp[1] );
@@ -268,17 +267,29 @@ void step ( size_t nsteps, Sample * samplef )
         ldfile.close();
 
 
-//         if ( true )
-//         {
-            writer.reset ( featureTree ) ;
-            writer.getField ( TWFT_CRITERION ) ;
-            writer.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
-            writer.getField ( STRAIN_FIELD ) ;
-	    writer.getField ( IMPOSED_STRAIN_FIELD ) ;
+
+	writer.reset ( featureTree ) ;
+	writer.getField ( TWFT_CRITERION ) ;
+	writer.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
+	writer.getField ( MECHANICAL_STRAIN_FIELD ) ;
+	writer.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
+// 	writer.getField ( IMPOSED_STRAIN_FIELD ) ;
 //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
 //             writer.getField ( TWFT_DAMAGE ) ;
-            writer.append() ;
-//         }
+	writer.append() ;
+
+        if ( go_on )
+	{
+	    writerc.reset ( featureTree ) ;
+            writerc.getField ( TWFT_CRITERION ) ;
+            writerc.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
+            writerc.getField ( MECHANICAL_STRAIN_FIELD ) ;
+	    writerc.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
+// 	    writerc.getField ( IMPOSED_STRAIN_FIELD ) ;
+//             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
+//             writer.getField ( TWFT_DAMAGE ) ;
+            writerc.append() ;
+	}
 //         if ( go_on )
 //         {
 //             writerc.reset ( featureTree ) ;
@@ -322,13 +333,14 @@ int main ( int argc, char *argv[] )
   
 
     double compressionCrit = -32.6e6 ;
-    double mradius = .1 ; // .010 ;//
+    double mradius = .01 ; // .010 ;//
 
-    double nu = 0.2 ;
-    double E_paste = 12e9 ;
+    // More or less a 5754 Al alloy
+    double nu = 0.33 ;
+    double E = 70e9 ;
 
 
-	Sample samplef(0.1, 1.2,  0, 0) ;
+	Sample samplef(0.025, 1.2,  0, 0) ;
 //     Sample samplef ( 100, 100,  50, 50 ) ;
 
     FeatureTree F ( &samplef ) ;
@@ -355,9 +367,9 @@ int main ( int argc, char *argv[] )
 
     PrandtlReussPlasticStrain * t0damagemodel = new PrandtlReussPlasticStrain() ;
     PrandtlReussPlasticStrain * t1damagemodel = new PrandtlReussPlasticStrain() ;
-	t0.setBehaviour( new StiffnessAndFracture(E_paste,nu, new NonLocalVonMises(20e6*.9, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN));
-	t1.setBehaviour( new StiffnessAndFracture(E_paste,nu, new NonLocalVonMises(20e6*.9, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN));
-	samplef.setBehaviour(new StiffnessAndFracture(E_paste,nu, new NonLocalVonMises(20e6, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN));
+	t0.setBehaviour( new StiffnessAndFracture(E,nu, new NonLocalVonMises(100e6*.9, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS));
+	t1.setBehaviour( new StiffnessAndFracture(E,nu, new NonLocalVonMises(100e6*.9, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS));
+	samplef.setBehaviour(new StiffnessAndFracture(E,nu, new NonLocalVonMises(100e6, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS));
 
 //     t0.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) );
 //     t1.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) );
@@ -384,9 +396,9 @@ int main ( int argc, char *argv[] )
     F.addBoundaryCondition ( loadr );
 // 	F.addBoundaryCondition(loadt);
 
-    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, BOTTOM_LEFT ) ) ;
+    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, BOTTOM ) ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM ) ) ;
-    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, TOP_LEFT ) ) ;
+    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, TOP ) ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,TOP ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
@@ -394,7 +406,7 @@ int main ( int argc, char *argv[] )
     F.setOrder ( QUADRATIC ) ;
 // F.addPoint(new Point(0, 0)) ;
 
-    F.setMaxIterationsPerStep ( 3400 );
+    F.setMaxIterationsPerStep ( 20000 );
 
     step ( 300, &samplef ) ;
 

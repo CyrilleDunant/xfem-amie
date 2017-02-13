@@ -138,14 +138,14 @@ int main(int argc, char *argv[])
 	{
 		disp->setData( i*(check ? 0.00000005 : 0.0000001) ) ;
 		F.step() ;
-		std::cout << F.getCurrentTime() << "\t" << F.getAverageField( STRAIN_FIELD )[0] << "\t" << F.getAverageField( REAL_STRESS_FIELD )[0] << "\t" << F.getAverageField( SCALAR_DAMAGE_FIELD )[0] << std::endl ;
-		out << F.getCurrentTime() << "\t" << F.getAverageField( STRAIN_FIELD )[0] << "\t" << F.getAverageField( REAL_STRESS_FIELD )[0] << "\t" << F.getAverageField( SCALAR_DAMAGE_FIELD )[0] << std::endl ;
+		std::cout << F.getCurrentTime() << "\t" << F.getAverageField( TOTAL_STRAIN_FIELD )[0] << "\t" << F.getAverageField( REAL_STRESS_FIELD )[0] << "\t" << F.getAverageField( SCALAR_DAMAGE_FIELD )[0] << std::endl ;
+		out << F.getCurrentTime() << "\t" << F.getAverageField( TOTAL_STRAIN_FIELD )[0] << "\t" << F.getAverageField( REAL_STRESS_FIELD )[0] << "\t" << F.getAverageField( SCALAR_DAMAGE_FIELD )[0] << std::endl ;
 
 
 		std::string trgf = "trg"+index+"_"+itoa(i) ;
 
 		TriangleWriter trg( trgf, &F, 1.) ;
-		trg.getField( STRAIN_FIELD ) ;
+		trg.getField( TOTAL_STRAIN_FIELD ) ;
 		trg.getField( REAL_STRESS_FIELD ) ;
 		trg.getField( SCALAR_DAMAGE_FIELD ) ;
 		trg.getField( TWFT_STIFFNESS ) ;

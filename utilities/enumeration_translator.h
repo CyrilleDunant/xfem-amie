@@ -138,7 +138,7 @@ struct Enum
         if( type == "SPEED_FIELD") { return SPEED_FIELD ; }
         if( type == "FLUX_FIELD") { return FLUX_FIELD ; }
         if( type == "GRADIENT_FIELD") { return GRADIENT_FIELD ; }
-        if( type == "STRAIN_FIELD") { return STRAIN_FIELD ; }
+        if( type == "STRAIN_FIELD") { return TOTAL_STRAIN_FIELD ; }
         if( type == "STRAIN_RATE_FIELD") { return STRAIN_RATE_FIELD ; }
         if( type == "MECHANICAL_STRAIN_FIELD") { return MECHANICAL_STRAIN_FIELD ; }
         if( type == "EFFECTIVE_STRESS_FIELD") { return EFFECTIVE_STRESS_FIELD ; }
@@ -159,6 +159,8 @@ struct Enum
         if( type == "INTERNAL_VARIABLE_FIELD") { return INTERNAL_VARIABLE_FIELD ; }
         if( type == "IMPOSED_STRESS_FIELD") { return IMPOSED_STRESS_FIELD ; }
         if( type == "IMPOSED_STRAIN_FIELD") { return IMPOSED_STRAIN_FIELD ; }
+        if( type == "PRINCIPAL_IMPOSED_STRESS_FIELD") { return PRINCIPAL_IMPOSED_STRESS_FIELD ; }
+        if( type == "PRINCIPAL_IMPOSED_STRAIN_FIELD") { return PRINCIPAL_IMPOSED_STRAIN_FIELD ; }
         if( type == "SCALAR_DAMAGE_FIELD") { return SCALAR_DAMAGE_FIELD ; }
         if( type == "TENSOR_DAMAGE_FIELD") { return TENSOR_DAMAGE_FIELD ; }
         if( type == "GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD") { return GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD ; }
@@ -187,7 +189,7 @@ struct Enum
             case SPEED_FIELD: return "SPEED_FIELD" ;
             case FLUX_FIELD: return "FLUX_FIELD" ;
             case GRADIENT_FIELD: return "GRADIENT_FIELD" ;
-            case STRAIN_FIELD: return "STRAIN_FIELD" ;
+            case TOTAL_STRAIN_FIELD: return "STRAIN_FIELD" ;
             case STRAIN_RATE_FIELD: return "STRAIN_RATE_FIELD" ;
             case MECHANICAL_STRAIN_FIELD: return "MECHANICAL_STRAIN_FIELD" ;
             case EFFECTIVE_STRESS_FIELD: return "EFFECTIVE_STRESS_FIELD" ;
@@ -208,6 +210,8 @@ struct Enum
             case INTERNAL_VARIABLE_FIELD: return "INTERNAL_VARIABLE_FIELD" ;
             case IMPOSED_STRESS_FIELD: return "IMPOSED_STRESS_FIELD" ;
             case IMPOSED_STRAIN_FIELD: return "IMPOSED_STRAIN_FIELD" ;
+	    case PRINCIPAL_IMPOSED_STRESS_FIELD: return "IMPOSED_STRESS_FIELD" ;
+            case PRINCIPAL_IMPOSED_STRAIN_FIELD: return "IMPOSED_STRAIN_FIELD" ;
             case SCALAR_DAMAGE_FIELD: return "SCALAR_DAMAGE_FIELD" ;
             case TENSOR_DAMAGE_FIELD: return "TENSOR_DAMAGE_FIELD" ;
             case GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD: return "GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD" ;

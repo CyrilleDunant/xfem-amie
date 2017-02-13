@@ -56,19 +56,19 @@ int main( int argc, char *argv[] )
         out.open(outdir+"/test_xfem_current", std::ios::out) ;
 
     F.step() ;
-    Vector str = F.getAverageField( STRAIN_FIELD )*1e3 ;
+    Vector str = F.getAverageField( TOTAL_STRAIN_FIELD )*1e3 ;
     Vector sig = F.getAverageField( REAL_STRESS_FIELD )/1e6 ;
     out << F.getCurrentTime() << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << "\t" << sig[0] << "\t" << sig[1] << "\t" << sig[2] << std::endl ;
 
     exp->setRadius(0.03) ;
     F.step() ;
-    str = F.getAverageField( STRAIN_FIELD )*1e3 ;
+    str = F.getAverageField( TOTAL_STRAIN_FIELD )*1e3 ;
     sig = F.getAverageField( REAL_STRESS_FIELD )/1e6 ;
     out << F.getCurrentTime() << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << "\t" << sig[0] << "\t" << sig[1] << "\t" << sig[2] << std::endl ;
 
     exp->setRadius(0.5) ;
     F.step() ;
-    str = F.getAverageField( STRAIN_FIELD )*1e3 ;
+    str = F.getAverageField( TOTAL_STRAIN_FIELD )*1e3 ;
     sig = F.getAverageField( REAL_STRESS_FIELD )/1e6 ;
     out << F.getCurrentTime() << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << "\t" << sig[0] << "\t" << sig[1] << "\t" << sig[2] << std::endl ;
 

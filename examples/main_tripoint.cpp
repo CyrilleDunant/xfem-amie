@@ -175,10 +175,10 @@ void step()
         yavg /= volume ;
         delta /= deltacount ;
         std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax ( REAL_STRESS_FIELD ) ;
-        std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax ( STRAIN_FIELD ) ;
+        std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax ( TOTAL_STRAIN_FIELD ) ;
         std::pair<Vector, Vector> vmm = featureTree->getFieldMinMax ( VON_MISES_REAL_STRESS_FIELD ) ;
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD ) ;
-        Vector etemp = featureTree->getAverageField ( STRAIN_FIELD ) ;
+        Vector etemp = featureTree->getAverageField ( TOTAL_STRAIN_FIELD ) ;
 
         std::cout << std::endl ;
         std::cout << "max value :" << x.max() << std::endl ;

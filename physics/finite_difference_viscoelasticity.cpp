@@ -377,7 +377,7 @@ void FiniteDifferenceViscoelasticity::updateElementState(double timeStep, Elemen
         Vector straindot_next( 0., 3+3*(num_dof == 3)) ;
         Vector straindot_prev( 0., 3+3*(num_dof == 3)) ;
 
-	currentState.getAverageField( STRAIN_FIELD, strain_next, &vm, 0) ;
+	currentState.getAverageField( TOTAL_STRAIN_FIELD, strain_next, &vm, 0) ;
 	dynamic_cast<ElementStateWithInternalVariables &>(currentState).getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, 0, strain_prev, &vm, 0) ;
 	dynamic_cast<ElementStateWithInternalVariables &>(currentState).getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, 0, straindot_prev, &vm, 1) ;
 
@@ -397,7 +397,7 @@ void FiniteDifferenceViscoelasticity::updateElementState(double timeStep, Elemen
         Vector straindot_next( 0., 3+3*(num_dof == 3)) ;
 
 	currentState.getAverageField( REAL_STRESS_FIELD, stress_next, &vm, 0) ;
-	currentState.getAverageField( STRAIN_FIELD, strain_next, &vm, 0) ;
+	currentState.getAverageField( TOTAL_STRAIN_FIELD, strain_next, &vm, 0) ;
         stress_next -= tensors[0]*strain_next ;
 
         Matrix S1 = tensors[1] ;
@@ -540,7 +540,7 @@ void FiniteDifferenceViscoelasticity::updateElementState(double timeStep, Elemen
         Vector omega_i( 0., 3+3*(num_dof == 3)) ;
         Matrix K_i = tensors[0]*0 ;
 
-	currentState.getAverageField( STRAIN_FIELD, strain_next, &vm, 0) ;
+	currentState.getAverageField( TOTAL_STRAIN_FIELD, strain_next, &vm, 0) ;
         for(size_t i = 1 ; i < tensors.size() ; i+=2)
         {
             if(scheme == ZIENKIEWICZ)

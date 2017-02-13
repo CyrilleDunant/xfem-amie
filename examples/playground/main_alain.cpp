@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 	{
 		f.setDeltaTime( i+1) ;
 	        f.step() ;
-		Vector strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
+		Vector strain = f.getAverageField( TOTAL_STRAIN_FIELD, 1. ) ;
 		std::cout << strain[0] << "\t" << strain[1] << "\t"  << strain[2] << std::endl ;
 	}
 

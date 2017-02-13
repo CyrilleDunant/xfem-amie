@@ -40,7 +40,7 @@ void step(FeatureTree * featureTree, const std::vector<double> & times)
 //             featureTree->setDeltaTime(times[i+2] - times[i+1]);
 //         featureTree->printReport( ( i == 0 ) , false);
         Vector str = featureTree->getAverageField(REAL_STRESS_FIELD) ;
-        Vector stra = featureTree->getAverageField(STRAIN_FIELD) ;
+        Vector stra = featureTree->getAverageField(TOTAL_STRAIN_FIELD) ;
         std::cout  << featureTree->getCurrentTime() << "  " << str[2]/stra[2] << std::endl ;
 //         std::stringstream filename ;
 //         filename << "sphere_stiffness_" << i ;

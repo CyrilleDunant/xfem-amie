@@ -63,14 +63,14 @@ void step()
        {
            for(double y = -100 ;  y <= 100 ; y += .25)
            {
-               featureTree->get2DMesh()->getField(STRAIN_FIELD, Point(x,y),tmp) ;
+               featureTree->get2DMesh()->getField(TOTAL_STRAIN_FIELD, Point(x,y),tmp) ;
                 std::cout << tmp[0] << "  "<< std::flush ;
            }
            std::cout << std::endl ;
        }
         writerc.reset( featureTree ) ;
         writerc.getField( REAL_STRESS_FIELD ) ;
-        writerc.getField( STRAIN_FIELD ) ;
+        writerc.getField( TOTAL_STRAIN_FIELD ) ;
 //             writerc.getField( TWFT_DAMAGE ) ;
         writerc.getField( TWFT_STIFFNESS ) ;
         writerc.append() ;

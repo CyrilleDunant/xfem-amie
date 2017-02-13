@@ -101,7 +101,7 @@ void step (const Function & loadfunc)
     {
         bool go_on = featureTree->stepToCheckPoint(1, 1e-4) ;
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD ) ;
-        Vector etemp = featureTree->getAverageField ( STRAIN_FIELD  ) ;
+        Vector etemp = featureTree->getAverageField ( TOTAL_STRAIN_FIELD  ) ;
         Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD ) ;
         itcounter++ ;
 

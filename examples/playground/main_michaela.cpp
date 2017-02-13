@@ -302,10 +302,10 @@ int aggCachePosition = F.get2DMesh()->generateCache( allinc ) ;
         if(!F.solverConverged())
             break ;
 //saving to file
-        Vector strain = F.getAverageField(STRAIN_FIELD ) ;
+        Vector strain = F.getAverageField(TOTAL_STRAIN_FIELD ) ;
         Vector stress = F.getAverageField(REAL_STRESS_FIELD ) ;
-        Vector strainPaste = F.get2DMesh()->getField(STRAIN_FIELD, pasteCachePosition, 1. ) ;
-        Vector strainAgg = F.get2DMesh()->getField(STRAIN_FIELD, aggCachePosition, 1. ) ;
+        Vector strainPaste = F.get2DMesh()->getField(TOTAL_STRAIN_FIELD, pasteCachePosition, 1. ) ;
+        Vector strainAgg = F.get2DMesh()->getField(TOTAL_STRAIN_FIELD, aggCachePosition, 1. ) ;
 
         double damagePaste = 0. ;
         double damageAggregates = 0. ;
@@ -325,7 +325,7 @@ int aggCachePosition = F.get2DMesh()->generateCache( allinc ) ;
     }
  MultiTriangleWriter trg("elleuch_misa","elleuch_misa_2", &F, 1.) ;
 
-    trg.getField(STRAIN_FIELD) ;
+    trg.getField(TOTAL_STRAIN_FIELD) ;
     trg.getField(REAL_STRESS_FIELD) ;
     trg.getField(TWFT_STIFFNESS) ;
     trg.getField(TWFT_DAMAGE) ;

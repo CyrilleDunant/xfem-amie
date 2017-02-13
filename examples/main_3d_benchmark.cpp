@@ -483,7 +483,7 @@ int main(int argc, char *argv[])
        {
            for(double y = 0 ;  y <= size ; y += size*.005)
            {
-               featureTree->get3DMesh()->getField(STRAIN_FIELD, Point(x,y,halfSize),tmp) ;
+               featureTree->get3DMesh()->getField(TOTAL_STRAIN_FIELD, Point(x,y,halfSize),tmp) ;
                 std::cout <<  tmp[0]<< "  "<< std::flush ;
            }
            std::cout << std::endl ;

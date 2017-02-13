@@ -37,10 +37,12 @@ size_t fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t bl
     case PRINCIPAL_MECHANICAL_STRAIN_FIELD:
     case PRINCIPAL_EFFECTIVE_STRESS_FIELD:
     case PRINCIPAL_REAL_STRESS_FIELD:
+    case PRINCIPAL_IMPOSED_STRAIN_FIELD:
+    case PRINCIPAL_IMPOSED_STRESS_FIELD:
     case TENSOR_DAMAGE_FIELD:
         return (dim == SPACE_THREE_DIMENSIONAL) ? 3 : 2 ;
 
-    case STRAIN_FIELD:
+    case TOTAL_STRAIN_FIELD:
     case STRAIN_RATE_FIELD:
     case MECHANICAL_STRAIN_FIELD:
     case EFFECTIVE_STRESS_FIELD:
@@ -447,7 +449,7 @@ Matrix makeStressOrStrainMatrix ( const Vector & stressOrStrain )
 
 bool isStrainField ( FieldType f )
 {
-    return f == STRAIN_FIELD || f == NON_ENRICHED_STRAIN_FIELD || f == MECHANICAL_STRAIN_FIELD /* || f == PRINCIPAL_STRAIN_FIELD*/ ;
+    return f == TOTAL_STRAIN_FIELD || f == NON_ENRICHED_STRAIN_FIELD || f == MECHANICAL_STRAIN_FIELD /* || f == PRINCIPAL_STRAIN_FIELD*/ ;
 }
 
 bool isStressField ( FieldType f )
@@ -491,7 +493,7 @@ Vector toPrincipal ( const Vector & stressOrStrain, CompositionType t )
         else if ( ret.size() == 3 )
         {
             Matrix mat = Amie::makeStressOrStrainMatrix ( stressOrStrain ) ;
-            double trmat = -1.*trace(mat);
+            double trmat = -trace(mat);
             double detmat = -2.0*mat[0][1]*mat[0][2]*mat[1][2] + mat[0][0]*mat[1][2]*mat[1][2] + mat[1][1]*mat[0][2]*mat[0][2] + mat[2][2]*mat[0][1]*mat[0][1] - mat[0][0]*mat[1][1]*mat[2][2];
             double m2mat =  (mat[0][0]*mat[1][1] + mat[1][1]*mat[2][2] + mat[2][2]*mat[0][0]) - mat[0][2]*mat[0][2] - mat[0][1]*mat[0][1] - mat[1][2]*mat[1][2];
             double q =  m2mat/3. - trmat*trmat/9. ;
@@ -822,7 +824,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     }
     case MECHANICAL_STRAIN_FIELD:
     {
-        getField( STRAIN_FIELD, *p_, ret, true, vm) ;
+        getField( TOTAL_STRAIN_FIELD, *p_, ret, true, vm) ;
         if(parent->getBehaviour() && parent->getBehaviour()->hasInducedForces())
             ret -= parent->getBehaviour()->getImposedStrain(*p_) ;
         if ( cleanup )
@@ -833,7 +835,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             delete p_ ;
         return ;
     }
-    case STRAIN_FIELD:
+    case TOTAL_STRAIN_FIELD:
     {
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
@@ -976,7 +978,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     case PRINCIPAL_STRAIN_FIELD:
     {
         Vector strains ( 0.,(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ? 6 : 3 ) ;
-        getField ( STRAIN_FIELD, *p_, strains, true,vm ) ;
+        getField ( TOTAL_STRAIN_FIELD, *p_, strains, true,vm ) ;
 
         ret = toPrincipal ( strains, DOUBLE_OFF_DIAGONAL_VALUES  ) ;
         if ( cleanup )
@@ -1129,7 +1131,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     }
     case REAL_STRESS_FIELD:
     {
-        getField ( STRAIN_FIELD, *p_, ret, true, vm ) ;
+        getField ( MECHANICAL_STRAIN_FIELD, *p_, ret, true, vm ) ;
         if ( parent->getBehaviour()->getTensor ( *p_, parent ).numCols() != ret.size() )
         {
             ret = 0 ;
@@ -1191,6 +1193,35 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         }
 
         ret = parent->getBehaviour()->getImposedStrain ( *p_, parent ) ;
+	
+
+        if ( cleanup )
+        {
+            delete vm ;
+        }
+        if(cleanupp)
+            delete p_ ;
+        return ;
+    }
+    case PRINCIPAL_IMPOSED_STRESS_FIELD:
+    {
+
+        Vector str = parent->getBehaviour()->getImposedStress ( *p_, parent ) ;
+        ret = toPrincipal(str,SINGLE_OFF_DIAGONAL_VALUES) ;
+
+        if ( cleanup )
+        {
+            delete vm ;
+        }
+        if(cleanupp)
+            delete p_ ;
+        return ;
+    }
+    case PRINCIPAL_IMPOSED_STRAIN_FIELD:
+    {
+
+        Vector str = parent->getBehaviour()->getImposedStrain ( *p_, parent ) ;
+        ret = toPrincipal(str, DOUBLE_OFF_DIAGONAL_VALUES) ;
 
         if ( cleanup )
         {
@@ -1331,7 +1362,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     }
     case EFFECTIVE_STRESS_FIELD:
     {
-        getField ( STRAIN_FIELD, *p_, ret, true,vm, 0 ) ;
+        getField ( TOTAL_STRAIN_FIELD, *p_, ret, true,vm, 0 ) ;
         ret = ( Vector ) ( parent->getBehaviour()->param * ret ) - getParent()->getBehaviour()->getImposedStrain ( *p_, parent ) *parent->getBehaviour()->param ;
         if ( cleanup )
         {
@@ -1508,7 +1539,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     case PRINCIPAL_STRAIN_ANGLE_FIELD:
     {
         Vector strains ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
-        getField ( STRAIN_FIELD,  *p_, strains, true ) ;
+        getField ( MECHANICAL_STRAIN_FIELD,  *p_, strains, true ) ;
         if ( std::abs ( strains ).max() < POINT_TOLERANCE )
         {
             ret = 0 ;
@@ -1738,7 +1769,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
 
     switch ( f )
     {
-    case STRAIN_FIELD :
+    case TOTAL_STRAIN_FIELD :
 
         if ( strainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() )
         {
@@ -1841,7 +1872,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                 
-                getField ( STRAIN_FIELD, gp.gaussPoints[i].first, tmp, true,vm, i ) ;
+                getField ( TOTAL_STRAIN_FIELD, gp.gaussPoints[i].first, tmp, true,vm, i ) ;
                 for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
                 {
                     strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j] = tmp[j] ;
@@ -1942,7 +1973,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
-                getField ( STRAIN_FIELD, gp.gaussPoints[i].first, tmp, true,vm, i ) ;
+                getField ( TOTAL_STRAIN_FIELD, gp.gaussPoints[i].first, tmp, true,vm, i ) ;
                 for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
                 {
                     strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j] = tmp[j] ;
@@ -2560,7 +2591,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                 
-                getField ( STRAIN_FIELD, gp.gaussPoints[i].first, tmp, true, vm, i ) ;
+                getField ( MECHANICAL_STRAIN_FIELD, gp.gaussPoints[i].first, tmp, true, vm, i ) ;
                 for ( size_t j = 0 ; j < tmp.size() ; j++ )
                 {
                     strainAtGaussPoints[i*tmp.size() +j] = tmp[j] ;
@@ -2712,7 +2743,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
         weighted = false ;
     }
 
-    if ( f == STRAIN_FIELD && ( f_ == EFFECTIVE_STRESS_FIELD || f_ == REAL_STRESS_FIELD ) )
+    if ( f == MECHANICAL_STRAIN_FIELD && ( f_ == EFFECTIVE_STRESS_FIELD || f_ == REAL_STRESS_FIELD ) )
     {
         if ( strainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) ||
                 stressAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) )
@@ -2961,11 +2992,11 @@ void ElementState::getField ( FieldType f1, FieldType f2, const Point & p, Vecto
         Vector v2 ( 0., v1.size() ) ;
         if ( isRealStressField ( f2 ) )
         {
-            getField ( STRAIN_FIELD, REAL_STRESS_FIELD, p, v1, v2, local, vm ) ;
+            getField ( MECHANICAL_STRAIN_FIELD, REAL_STRESS_FIELD, p, v1, v2, local, vm ) ;
         }
         else
         {
-            getField ( STRAIN_FIELD, EFFECTIVE_STRESS_FIELD, p, v1, v2, local, vm ) ;
+            getField ( MECHANICAL_STRAIN_FIELD, EFFECTIVE_STRESS_FIELD, p, v1, v2, local, vm ) ;
         }
         ret1 = toPrincipal ( v1 , DOUBLE_OFF_DIAGONAL_VALUES) ;
         ret2 = toPrincipal ( v2 , SINGLE_OFF_DIAGONAL_VALUES ) ;
@@ -3005,7 +3036,7 @@ void ElementState::getField ( FieldType f1, FieldType f2, const Point & p, Vecto
     {
         Vector v1 ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         Vector v2 ( 0., v1.size() ) ;
-        getField ( isRealStressField ( f2 ) ? REAL_STRESS_FIELD : EFFECTIVE_STRESS_FIELD, STRAIN_FIELD, p, v1, v2, local,vm ) ;
+        getField ( isRealStressField ( f2 ) ? REAL_STRESS_FIELD : EFFECTIVE_STRESS_FIELD, MECHANICAL_STRAIN_FIELD, p, v1, v2, local,vm ) ;
 
         ret1 = toPrincipal ( v1, SINGLE_OFF_DIAGONAL_VALUES ) ;
         ret2 = toPrincipal ( v2,  DOUBLE_OFF_DIAGONAL_VALUES) ;

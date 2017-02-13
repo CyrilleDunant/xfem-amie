@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
 	
 	F.step() ;
 	F.getAssembly()->setEpsilon(1e-8) ;
-	Vector x = F.getAverageField(STRAIN_FIELD) ;
+	Vector x = F.getAverageField(TOTAL_STRAIN_FIELD) ;
  	Vector y = F.getAverageField(REAL_STRESS_FIELD) ;
 //	std::cout << 0. << "\t" << x[0] << "\t" << y[0] << std::endl ;
 
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
 				tati.append(itoa(i)) ;
 				std::cout << tati << std::endl ;
 				TriangleWriter writer(tati, &F, 1) ;
-	 			writer.getField(STRAIN_FIELD) ;
+	 			writer.getField(TOTAL_STRAIN_FIELD) ;
 		 		writer.getField(REAL_STRESS_FIELD) ;
 				writer.getField(TWFT_DAMAGE) ;
 				writer.getField(TWFT_STIFFNESS) ;
@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
 				tati.append(itoa(j)) ;
 				std::cout << tati << std::endl ;
 				TriangleWriter writer(tati, &F, -1) ;
-		 		writer.getField(STRAIN_FIELD) ;
+		 		writer.getField(TOTAL_STRAIN_FIELD) ;
 	 			writer.getField(REAL_STRESS_FIELD) ;
 				writer.getField(TWFT_DAMAGE) ;
 				writer.getField(TWFT_STIFFNESS) ;
@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
 
 		if(goOn)
 		{
-	 		x = F.getAverageField(STRAIN_FIELD ) ;
+	 		x = F.getAverageField(TOTAL_STRAIN_FIELD ) ;
 	 		y = F.getAverageField(REAL_STRESS_FIELD ) ;
 			out << F.get2DMesh()->begin()->getBoundingPoint(3).getT() << "\t" << (F.getCurrentTime()-totaltime/100.)*speed << "\t" << x[0] << "\t" << y[0] << "\t" << F.averageDamage << std::endl ;
 		}

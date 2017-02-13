@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 		Vector stress = f.getAverageField( PRINCIPAL_REAL_STRESS_FIELD ) ;
 		double bulk = (stress[0] + stress[1])/2. ;
 		double shear = std::sqrt( (stress[0]-stress[1])*(stress[0]-stress[1]) + stress[0]*stress[0] + stress[1]*stress[1] )/2. ;
-		out << f.getCurrentTime() << "\t" << bulk/1e6 << "\t" << shear/1e6 << "\t" << "\t" << f.getAverageField( STRAIN_FIELD, 1. )[1]*1e3 << "\t" << f.getAverageField( TENSOR_DAMAGE_FIELD, 1. )[0]*1e2 << "\t" << f.getAverageField( TENSOR_DAMAGE_FIELD, 1. )[1]*1e2 << std::endl ;
+		out << f.getCurrentTime() << "\t" << bulk/1e6 << "\t" << shear/1e6 << "\t" << "\t" << f.getAverageField( TOTAL_STRAIN_FIELD, 1. )[1]*1e3 << "\t" << f.getAverageField( TENSOR_DAMAGE_FIELD, 1. )[0]*1e2 << "\t" << f.getAverageField( TENSOR_DAMAGE_FIELD, 1. )[1]*1e2 << std::endl ;
 	}
 
 	return 0 ;

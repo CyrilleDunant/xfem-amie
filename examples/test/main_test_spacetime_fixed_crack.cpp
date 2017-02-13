@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 	f.step() ;
 
 	Vector stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
-	Vector strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
+	Vector strain = f.getAverageField( TOTAL_STRAIN_FIELD, 1. ) ;
 	Vector omega = f.getAverageField( TENSOR_DAMAGE_FIELD, 1. ) ;
 	out << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 << std::endl ;
 
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 		f.step() ;
 
 		stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
-		strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
+		strain = f.getAverageField( TOTAL_STRAIN_FIELD, 1. ) ;
 		omega = f.getAverageField( TENSOR_DAMAGE_FIELD, 1. ) ;
 		out << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 <<  std::endl ;
 	}
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
 	f.step() ;
 
 	stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
-	strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
+	strain = f.getAverageField( TOTAL_STRAIN_FIELD, 1. ) ;
 	omega = f.getAverageField( TENSOR_DAMAGE_FIELD, 1. ) ;
 	out << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 << std::endl ;
 
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 	f.step() ;
 
 	stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
-	strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
+	strain = f.getAverageField( TOTAL_STRAIN_FIELD, 1. ) ;
 	omega = f.getAverageField( TENSOR_DAMAGE_FIELD, 1. ) ;
 	out << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 << std::endl ;
 
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
 		f.step() ;
 
 		stress = f.getAverageField( REAL_STRESS_FIELD, 1. ) ;
-		strain = f.getAverageField( STRAIN_FIELD, 1. ) ;
+		strain = f.getAverageField( TOTAL_STRAIN_FIELD, 1. ) ;
 		omega = f.getAverageField( TENSOR_DAMAGE_FIELD, 1. ) ;
 		out << top->getData()*1e6 << "\t" << right->getData()*1e6 << "\t" << stress[0]/1e6  << "\t" << stress[1]/1e6 << "\t" << stress[2]/1e6 << "\t" << strain[0]*1e3  << "\t" << strain[1]*1e3 << "\t" << strain[2]*1e3 << "\t" << omega[0]*1e2 << "\t" << omega[1]*1e2 <<  std::endl ;
 	}

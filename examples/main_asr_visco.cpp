@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 		double r = VirtualMachine().eval( radius, 0,0,0, nodes[ nodes.size()-1]->getT() ) ;
 		summary << r << "\t" << nzones*r*r*M_PI/aggregatesArea << "\t" ;
 		
-		Vector strain = F.getAverageField(STRAIN_FIELD, 1) ;
+		Vector strain = F.getAverageField(TOTAL_STRAIN_FIELD, 1) ;
 		Vector stress = F.getAverageField(REAL_STRESS_FIELD, 1) ;
 		summary << strain[0] << "\t" << strain[1] << "\t" << strain[2] << "\t" ;
 		summary << stress[0] << "\t" << stress[1] << "\t" << stress[2] << "\t" ;
@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
 		nametrg.append("_trg_") ;
 		nametrg.append(itoa(i)) ;
 		TriangleWriter w( nametrg, &F, 1) ;
-		w.getField( STRAIN_FIELD ) ;
+		w.getField( TOTAL_STRAIN_FIELD ) ;
 		w.getField( REAL_STRESS_FIELD ) ;
 		w.getField( TWFT_STIFFNESS ) ;
 		w.getField( TWFT_DAMAGE ) ;

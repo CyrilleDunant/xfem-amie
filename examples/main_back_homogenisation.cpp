@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
   ft.setSamplingNumber(1024*6);
 
     ft.step() ;
-    Vector epsilon = ft.getAverageField(STRAIN_FIELD) ;
+    Vector epsilon = ft.getAverageField(TOTAL_STRAIN_FIELD) ;
     Vector sigma = ft.getAverageField(REAL_STRESS_FIELD) ;
     
 //     std::cout << "phi_inner = " << innerVolume/s.volume() << ", phi_anh = " << anhydrousVolume/s.volume() << ", phi_matrix = " << (s.volume()-anhydrousVolume-innerVolume)/s.volume() << std::endl ;

@@ -30,7 +30,7 @@ MaximumStrain::~MaximumStrain()
 double MaximumStrain::grade(ElementState &s)
 {
 	Vector pstrain(0., s.getParent()->getBoundingPoints().size()*(3+3*(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL))) ;
-	s.getField( STRAIN_FIELD, s.getParent()->getBoundingPoints(), pstrain, false) ;
+	s.getField( TOTAL_STRAIN_FIELD, s.getParent()->getBoundingPoints(), pstrain, false) ;
 	double maxStrain = pstrain.max();
 	metInCompression = false ;
 	metInTension = false ;
@@ -230,8 +230,8 @@ double SpaceTimeNonLocalMaximumStress::grade(ElementState &s)
 	if( s.getParent()->getBehaviour()->fractured() )
 		return -1 ;
 
-	std::pair<Vector, Vector> stateBefore( getSmoothedFields( REAL_STRESS_FIELD, STRAIN_FIELD, s, -1) ) ;
-	std::pair<Vector, Vector> stateAfter( getSmoothedFields( REAL_STRESS_FIELD, STRAIN_FIELD, s, 1) ) ;
+	std::pair<Vector, Vector> stateBefore( getSmoothedFields( REAL_STRESS_FIELD, TOTAL_STRAIN_FIELD, s, -1) ) ;
+	std::pair<Vector, Vector> stateAfter( getSmoothedFields( REAL_STRESS_FIELD, TOTAL_STRAIN_FIELD, s, 1) ) ;
 	double maxStressAfter = stateAfter.first.max() ;
 	double maxStressBefore = stateBefore.first.max() ;
 
@@ -278,8 +278,8 @@ double SpaceTimeNonLocalEllipsoidalMixedCriterion::grade(ElementState &s)
 	metInCompression = false ;
 	metInTension = false ;
 
-	std::pair<Vector, Vector> stateBefore( getSmoothedFields( REAL_STRESS_FIELD, STRAIN_FIELD, s, -1) ) ;
-	std::pair<Vector, Vector> stateAfter( getSmoothedFields( REAL_STRESS_FIELD, STRAIN_FIELD, s, 1) ) ;
+	std::pair<Vector, Vector> stateBefore( getSmoothedFields( REAL_STRESS_FIELD, TOTAL_STRAIN_FIELD, s, -1) ) ;
+	std::pair<Vector, Vector> stateAfter( getSmoothedFields( REAL_STRESS_FIELD, TOTAL_STRAIN_FIELD, s, 1) ) ;
 
 	Point before( stateBefore.second.max()*renormStrain/surface->getMinorRadius(), stateBefore.first.max()*renormStress/surface->getMajorRadius()) ;
 	Point after( stateAfter.second.max()*renormStrain/surface->getMinorRadius() , stateAfter.first.max()*renormStress/surface->getMajorRadius()) ;

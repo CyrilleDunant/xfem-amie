@@ -3630,7 +3630,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain (bool stepTree )
 
                         Vector strain ( 0., 3*i->getBoundingPoints().size() ) ;
                         Vector stress ( 0., 3*i->getBoundingPoints().size() ) ;
-                        i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, i->getBoundingPoints(), strain, stress, false, &vm ) ;
+                        i->getState().getField ( TOTAL_STRAIN_FIELD, REAL_STRESS_FIELD, i->getBoundingPoints(), strain, stress, false, &vm ) ;
 
                         for ( size_t j = 0 ; j < i->getBoundingPoints().size() * 3 ; j++ )
                         {
@@ -3675,7 +3675,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain (bool stepTree )
 
                     Vector strain ( 0., 24 ) ;
                     Vector stress ( 0., 24 ) ;
-                    i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, pts, strain, stress, false, &vm ) ;
+                    i->getState().getField ( TOTAL_STRAIN_FIELD, REAL_STRESS_FIELD, pts, strain, stress, false, &vm ) ;
 
                     for ( size_t j = 0 ; j < 24 ; j++ )
                     {
@@ -3733,7 +3733,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer ( int g, bool
 
                     Vector strain ( 0., 3*i->getBoundingPoints().size() ) ;
                     Vector stress ( 0., 3*i->getBoundingPoints().size() ) ;
-                    i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, i->getBoundingPoints(), strain, stress, false, &vm ) ;
+                    i->getState().getField ( TOTAL_STRAIN_FIELD, REAL_STRESS_FIELD, i->getBoundingPoints(), strain, stress, false, &vm ) ;
 
                     for ( size_t j = 0 ; j < i->getBoundingPoints().size() * 3 ; j++ )
                     {
@@ -3782,7 +3782,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer ( int g, bool
 
                     Vector strain ( 0., 24 ) ;
                     Vector stress ( 0., 24 ) ;
-                    i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, pts, strain, stress, false, &vm ) ;
+                    i->getState().getField ( TOTAL_STRAIN_FIELD, REAL_STRESS_FIELD, pts, strain, stress, false, &vm ) ;
 
                     for ( size_t j = 0 ; j < 24 ; j++ )
                     {
@@ -4138,7 +4138,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain ( Mesh< DelaunayTetr
 
         Vector strain ( 0., i->getBoundingPoints().size() * 6 ) ;
         Vector stress ( 0., i->getBoundingPoints().size() * 6 ) ;
-        i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, i->getBoundingPoints(), strain, stress, false ) ;
+        i->getState().getField ( TOTAL_STRAIN_FIELD, REAL_STRESS_FIELD, i->getBoundingPoints(), strain, stress, false ) ;
 
         for ( size_t j = 0 ; j < i->getBoundingPoints().size() ; j++ )
         {
@@ -4176,7 +4176,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain (Amie::Mesh< Amie::D
 
         Vector strain ( 0., i->getBoundingPoints().size() * 3 ) ;
         Vector stress ( 0., i->getBoundingPoints().size() * 3 ) ;
-        i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, i->getBoundingPoints(), strain, stress, false ) ;
+        i->getState().getField ( TOTAL_STRAIN_FIELD, REAL_STRESS_FIELD, i->getBoundingPoints(), strain, stress, false ) ;
 
         for ( size_t j = 0 ; j < i->getBoundingPoints().size() ; j++ )
         {
@@ -4216,7 +4216,7 @@ Vector FeatureTree::strainFromDisplacements()
                 pts[2] =  i->third ;
 
                 Vector str ( 0., 9 ) ;
-                i->getState().getField ( STRAIN_FIELD, pts, str, false ) ;
+                i->getState().getField ( TOTAL_STRAIN_FIELD, pts, str, false ) ;
 
                 for ( size_t j = 0 ; j < 9 ; j++ )
                 {
@@ -4244,7 +4244,7 @@ Vector FeatureTree::strainFromDisplacements()
             pts[3] =  i->fourth ;
 
             Vector str ( 0., 24 ) ;
-            i->getState().getField ( STRAIN_FIELD, pts, str, false ) ;
+            i->getState().getField ( TOTAL_STRAIN_FIELD, pts, str, false ) ;
 
             for ( size_t j = 0 ; j < 24 ; j++ )
             {
@@ -4984,7 +4984,7 @@ bool FeatureTree::stepElements()
 
                 if (foundCheckPoint )
                 {
-                    std::cout << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
+                    std::cerr << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
 
                     maxTolerance = 1 ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
@@ -5010,7 +5010,7 @@ bool FeatureTree::stepElements()
                         }
                     }
 
-                    std::cout << maxScore << "]" << std::flush ;
+                    std::cerr << maxScore << "]" << std::flush ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
                         if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE  && solverConverged() && !spaceTimeFixed)
@@ -8539,10 +8539,10 @@ void FeatureTree::printReport(bool printHeader, bool vertical, double t)
         xavg /= volume ;
         reportValues.push_back(Vector(23));
         std::pair<Vector, Vector> stempm = getFieldMinMax(REAL_STRESS_FIELD) ;
-        std::pair<Vector, Vector> etempm = getFieldMinMax(STRAIN_FIELD) ;
+        std::pair<Vector, Vector> etempm = getFieldMinMax(TOTAL_STRAIN_FIELD) ;
         std::pair<Vector, Vector> vmm = getFieldMinMax(VON_MISES_REAL_STRESS_FIELD) ;
         Vector stemp = getAverageField(REAL_STRESS_FIELD, t) ;
-        Vector etemp = getAverageField(STRAIN_FIELD, t) ;
+        Vector etemp = getAverageField(TOTAL_STRAIN_FIELD, t) ;
         reportValues.back()[0] = x.max() ;
         reportValues.back()[1] = x.min() ;
         reportValues.back()[2] = xavg    ;
@@ -8724,10 +8724,10 @@ void FeatureTree::printReport(bool printHeader, bool vertical, double t)
         xavg /= volume ;
         reportValues.push_back(Vector(41));
         std::pair<Vector, Vector> stempm = getFieldMinMax(REAL_STRESS_FIELD) ;
-        std::pair<Vector, Vector> etempm = getFieldMinMax(STRAIN_FIELD) ;
+        std::pair<Vector, Vector> etempm = getFieldMinMax(TOTAL_STRAIN_FIELD) ;
         std::pair<Vector, Vector> vmm = getFieldMinMax(VON_MISES_REAL_STRESS_FIELD) ;
         Vector stemp = getAverageField(REAL_STRESS_FIELD) ;
-        Vector etemp = getAverageField(STRAIN_FIELD) ;
+        Vector etemp = getAverageField(TOTAL_STRAIN_FIELD) ;
         reportValues.back()[0] = x.max() ;
         reportValues.back()[1] = x.min() ;
         reportValues.back()[2] = xavg    ;
