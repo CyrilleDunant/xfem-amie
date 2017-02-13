@@ -30,9 +30,12 @@ NonLocalVonMises::~NonLocalVonMises()
 double NonLocalVonMises::grade(ElementState &s)
 {
     met = false ;
+//     Vector str(2) ;
+//     s.getField(PRINCIPAL_REAL_STRESS_FIELD, Point(), str, true);
     Vector str( getSmoothedField( PRINCIPAL_REAL_STRESS_FIELD, s ) ) ;
 
-    double vm = s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL? sqrt(str[0]*str[0]+str[1]*str[1]-str[0]*str[1]) : sqrt(str[0]*str[0]+str[1]*str[1]+str[2]*str[2]-str[0]*str[1]-str[0]*str[2]-str[1]*str[2]);
+    double vm = (s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)? sqrt(str[0]*str[0]+str[1]*str[1]-str[0]*str[1]) : sqrt(str[0]*str[0]+str[1]*str[1]+str[2]*str[2]-str[0]*str[1]-str[0]*str[2]-str[1]*str[2]);
+//     std::cout << "\n" << vm << std::endl ;
     if( vm >= threshold )
         met = true ;
 

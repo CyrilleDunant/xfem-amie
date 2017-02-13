@@ -112,30 +112,62 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 	 change = true ;
 // 	 return ; 
 //       }
-//       if(states.size() == 1)
-//       {
-// 	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0., score, setChange.second, -M_PI*.01, -1 ) ) ;
-// 	 trialRatio = .5 ;
-// 	 getState( true ) = (upState+downState)*.5 ;
-// 	 change = true ;
-// 	 return ; 
-//       }
-//       if(states.size() == 2)
-//       {
-// 	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0., score, setChange.second, -M_PI*.01, -1 ) ) ;
-// 	 trialRatio = .25 ;
-// 	 getState( true ) = downState+(upState-downState)*.25 ;
-// 	 change = true ;
-// 	 return ; 
-//       }
-//       if(states.size() == 3)
-//       {
-// 	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0., score, setChange.second, -M_PI*.01, -1 ) ) ;
-// 	 trialRatio = .75 ;
-// 	 getState( true ) = downState+(upState-downState)*.75 ;
-// 	 change = true ;
-// 	 return ; 
-//       }
+      if(states.size() == 1)
+      {
+	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,1., score, setChange.second, -M_PI*.01, -1 ) ) ;
+	 trialRatio = .5 ;
+	 getState( true ) = (upState+downState)*.5 ;
+	 change = true ;
+	 return ; 
+      }
+      if(states.size() == 2)
+      {
+	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0.5, score, setChange.second, -M_PI*.01, -1 ) ) ;
+	 trialRatio = .25 ;
+	 getState( true ) = downState+(upState-downState)*.25 ;
+	 change = true ;
+	 return ; 
+      }
+      if(states.size() == 3)
+      {
+	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,.25, score, setChange.second, -M_PI*.01, -1 ) ) ;
+	 trialRatio = .75 ;
+	 getState( true ) = downState+(upState-downState)*.75 ;
+	 change = true ;
+	 return ; 
+      }
+      if(states.size() == 4)
+      {
+	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,.75, score, setChange.second, -M_PI*.01, -1 ) ) ;
+	 trialRatio = .125 ;
+	 getState( true ) = downState+(upState-downState)*.125 ;
+	 change = true ;
+	 return ; 
+      }
+      if(states.size() == 5)
+      {
+	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,.125, score, setChange.second, -M_PI*.01, -1 ) ) ;
+	 trialRatio = .375 ;
+	 getState( true ) = downState+(upState-downState)*.375 ;
+	 change = true ;
+	 return ; 
+      }
+      if(states.size() == 6)
+      {
+	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,.375, score, setChange.second, -M_PI*.01, -1 ) ) ;
+	 trialRatio = .625 ;
+	 getState( true ) = downState+(upState-downState)*.625 ;
+	 change = true ;
+	 return ; 
+      }
+      if(states.size() == 7)
+      {
+	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,.625, score, setChange.second, -M_PI*.01, -1 ) ) ;
+	 trialRatio = .875 ;
+	 getState( true ) = downState+(upState-downState)*.875 ;
+	 change = true ;
+	 return ; 
+      }
 
 //       std::cout << "\n----"<< score << "  ;  "<< trialRatio << "----" << std::endl ;
 //       if(states.size() == 12)
@@ -305,7 +337,7 @@ void DamageModel::step( ElementState &s , double maxscore)
                 {
                     if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE)
                     {
-                        state[i] += 0.25*damageDensityTolerance ;
+//                         state[i] += 0.25*damageDensityTolerance ;
                         state[i] = std::min(state[i], 1.) ;
                     }
                 }
@@ -352,7 +384,7 @@ DamageModel::DamageModel(): state(0)
     isNull = true ;
     haslimit = false ;
     error = 1 ;
-    iterationNumber = 16 ;
+    iterationNumber = 36 ;
 
     ctype = DISSIPATIVE ;
     fraction = -1 ;

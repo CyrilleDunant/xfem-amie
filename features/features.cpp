@@ -5010,7 +5010,7 @@ bool FeatureTree::stepElements()
                         }
                     }
 
-                    std::cerr << maxScore << "]" << std::flush ;
+                    std::cout << maxScore << "]" << std::flush ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
                         if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE  && solverConverged() && !spaceTimeFixed)

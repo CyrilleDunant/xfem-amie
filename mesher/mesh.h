@@ -1101,7 +1101,7 @@ public:
                                   strainCache[thread][i] -= strainGenViscoCache[thread][ j*tsize + i ] ;
                           } 
                      }
-                if(f0 != PRINCIPAL_STRAIN_FIELD) { 
+                if(f0 != PRINCIPAL_MECHANICAL_STRAIN_FIELD) { 
                     Point p ;
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
@@ -1245,15 +1245,9 @@ public:
 //        Vector buffer ;
         unsigned int tsize = 3 ;
         unsigned int psize = 2 ;
-        double coord0 = 1./3. ;
-        double coord1 = 1./3. ;
-        double coord2 = 0 ;
         if ( spaceDimensions == SPACE_THREE_DIMENSIONAL ) {
             tsize = 6 ;
             psize = 3 ;
-            coord0 = .25 ;
-            coord1 = .25 ;
-            coord2 = .25 ;
         }
         VirtualMachine vm ;
         if (
@@ -1368,14 +1362,10 @@ public:
 
             if ( f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) {
                 firstResultCache[thread].resize ( psize );
-                if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
-                    strainCache[thread] -= e->getBehaviour()->getImposedStrain(Point(coord0,coord1,coord2,t)) ;
                 firstResultCache[thread] = toPrincipal( strainCache[thread], DOUBLE_OFF_DIAGONAL_VALUES ) ;
             }
             if ( f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) {
                 secondResultCache[thread].resize ( psize );
-                if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
-                    strainCache[thread] -= e->getBehaviour()->getImposedStrain(Point(coord0,coord1,coord2,t)) ;
                 secondResultCache[thread] = toPrincipal ( strainCache[thread] , DOUBLE_OFF_DIAGONAL_VALUES ) ;
             }
             if ( f0 == REAL_STRESS_FIELD ) {
@@ -1498,15 +1488,11 @@ public:
             if ( f0 == MECHANICAL_STRAIN_FIELD ) {
                 firstResultCache[thread].resize( tsize ) ;
                 firstResultCache[thread] = strainCache[thread] ;
-                if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
-                    firstResultCache[thread] -= e->getBehaviour()->getImposedStrain(Point(coord0,coord1,coord2,t)) ;
             }
 
             if ( f1 == MECHANICAL_STRAIN_FIELD ) {
                 secondResultCache[thread].resize( tsize ) ;
                 secondResultCache[thread] = strainCache[thread] ;
-                if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
-                    secondResultCache[thread] -= e->getBehaviour()->getImposedStrain(Point(coord0,coord1,coord2,t)) ;
             }
 
         } else {
