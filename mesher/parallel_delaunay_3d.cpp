@@ -826,7 +826,7 @@ Vector ParallelDelaunayTree3D::getSmoothedField ( FieldType f0, int cacheID, Int
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 IntegrableEntity *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
 
-                double v = ci->getState().getAverageField ( TOTAL_STRAIN_FIELD, buffer, nullptr, t, coefs[cacheID][i] );
+                double v = ci->getState().getAverageField ( MECHANICAL_STRAIN_FIELD, buffer, nullptr, t, coefs[cacheID][i] );
                 if ( !strain.size() ) {
                     strain.resize ( 0., buffer.size() );
                 }
@@ -930,8 +930,8 @@ std::pair<Vector, Vector> ParallelDelaunayTree3D::getSmoothedFields ( FieldType 
 
     bool spaceTime = e->getOrder() >= CONSTANT_TIME_LINEAR ;
     VirtualMachine vm ;
-    if ( f0 == PRINCIPAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f0 == TOTAL_STRAIN_FIELD ||
-            f1 == PRINCIPAL_STRAIN_FIELD || f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD || f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f1 == TOTAL_STRAIN_FIELD
+    if ( f0 == PRINCIPAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f0 == MECHANICAL_STRAIN_FIELD ||
+            f1 == PRINCIPAL_STRAIN_FIELD || f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD || f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f1 == MECHANICAL_STRAIN_FIELD
        ) {
         //we first need to compute the strain field
         if ( !spaceTime ) {
@@ -942,7 +942,7 @@ std::pair<Vector, Vector> ParallelDelaunayTree3D::getSmoothedFields ( FieldType 
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 IntegrableEntity *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
                 if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
-                    double v = ci->getState().getAverageField ( TOTAL_STRAIN_FIELD, buffer, nullptr, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( MECHANICAL_STRAIN_FIELD, buffer, nullptr, t, coefs[cacheID][i] );
                     strain += buffer*v ;
                     sumFactors += v ;
                 }
@@ -1053,11 +1053,11 @@ std::pair<Vector, Vector> ParallelDelaunayTree3D::getSmoothedFields ( FieldType 
             }
         }
 
-        if ( f0 == TOTAL_STRAIN_FIELD ) {
+        if ( f0 == MECHANICAL_STRAIN_FIELD ) {
             first.resize ( tsize ) ;
             first = strain ;
         }
-        if ( f1 == TOTAL_STRAIN_FIELD ) {
+        if ( f1 == MECHANICAL_STRAIN_FIELD ) {
             second.resize ( tsize ) ;
             second = strain ;
         }

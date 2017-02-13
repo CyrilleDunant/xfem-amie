@@ -643,7 +643,8 @@ COLOUR GetColour(double v)
 		 0.993248, 0.906157, 0.143936}   ;
    
    
-   
+   if(std::isnan(v))
+     v = 0 ;
    int idx = round(v*255) ;
    c.r = _viridis_data[idx*3] ;
    c.g = _viridis_data[idx*3+1] ;

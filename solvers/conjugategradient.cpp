@@ -71,7 +71,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 //     nssor = 0 ;
     size_t attempts = 0 ;
     
-    if(std::abs(assembly->getForces()).max() < eps)
+    if(std::abs(assembly->getForces()).max() < eps*eps)
     {
         std::cerr << "\n CG "<< x.size() << " homogeneous." << std::endl ;
         return true ;

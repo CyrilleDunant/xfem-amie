@@ -56,7 +56,7 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
         Vector originalIstrain = getImposedStrain(s.getParent()->getCenter()) ;
 	Vector stress(previousImposedStrain.size()) ;
 	Vector strain(previousImposedStrain.size()) ;
-//        s.getField( REAL_STRESS_FIELD, STRAIN_FIELD,Point(), stress, strain, true) ;
+//        s.getField( REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD,Point(), stress, strain, true) ;
 	std::pair<Vector, Vector> ss = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields(REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD, s) ;
 	stress = ss.first ;
 	strain = ss.second ;
@@ -71,12 +71,8 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
 	  for(size_t i = 0 ; i < 3 ; i++)
 	    stress[i] -= tr*.33333333333333333 ;
 	}
-       
-//        Vector pstresses = toPrincipal(stress, SINGLE_OFF_DIAGONAL_VALUES) ;
 
 	imposedStrain = stress ;
-//         imposedStrain[0] = pstresses[0] ;
-//         imposedStrain[1] = pstresses[1] ;
 	if(stress.size()==3)
 	  imposedStrain[2] *= 2. ;
 	else
@@ -91,9 +87,41 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
         imposedStrain /= norm ;
 	imposedStrain *= sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum()) ;
 	
+	//we need to flow in the right direction
+	state[0] = 1e-6 ;
+	ss = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields(REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD, s) ;
+	stress = ss.first ;
+	strain = ss.second ;
+	tr = stress.size()==3?(stress[0]+stress[1]):(stress[0]+stress[1]+stress[2]) ;
+	if(stress.size()==3)
+	{
+	  for(size_t i = 0 ; i < 2 ; i++)
+	    stress[i] -= tr*.5 ;
+	}
+	else
+	{
+	  for(size_t i = 0 ; i < 3 ; i++)
+	    stress[i] -= tr/3. ;
+	}
+
+	imposedStrain = stress ;
+	if(stress.size()==3)
+	  imposedStrain[2] *= 2. ;
+	else
+	{
+	  imposedStrain[3] *= 2. ;
+	  imposedStrain[4] *= 2. ;
+	  imposedStrain[5] *= 2. ;
+	}
+
+	state[0] = 0 ;
+        norm = sqrt((imposedStrain*imposedStrain).sum()) ;
+        imposedStrain /= norm ;
+	imposedStrain *= 0.5*sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum()) ;
+	
 	double mini = -1 ;
 	double mins = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-	for(double i = -1 ; i < 1 ; i+=0.1)
+	for(double i = -1 ; i < 1 ; i+=0.01)
 	{
 	  state[0] = i ;
 // 	  std::cout << i << "  "<< s.getParent()->getBehaviour()->getFractureCriterion()->grade(s) << "  " << s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() << std::endl ;
@@ -167,8 +195,8 @@ Vector PrandtlReussPlasticStrain::getImposedStress(const Point & p) const
 {
     if(v.size() == 2 )
         return Vector(0., 3) ;
-    if(v.size() == 3 )
-        return Vector(0., 6) ;
+
+    return Vector(0., 6) ;
 //     if(fractured())
 //     {
 //         if(v.size() == 2)
@@ -192,7 +220,7 @@ Vector PrandtlReussPlasticStrain::getImposedStrain(const Point & p) const
             return Vector(0., 3) ;
         return Vector(0., 6) ;
     }
-    return  (imposedStrain*getState()[0]+previousImposedStrain) ;
+    return  imposedStrain*getState()[0]+previousImposedStrain ;
 
 }
 

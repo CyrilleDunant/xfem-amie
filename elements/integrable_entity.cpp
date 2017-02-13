@@ -978,7 +978,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     case PRINCIPAL_STRAIN_FIELD:
     {
         Vector strains ( 0.,(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ? 6 : 3 ) ;
-        getField ( TOTAL_STRAIN_FIELD, *p_, strains, true,vm ) ;
+        getField ( MECHANICAL_STRAIN_FIELD, *p_, strains, true,vm ) ;
 
         ret = toPrincipal ( strains, DOUBLE_OFF_DIAGONAL_VALUES  ) ;
         if ( cleanup )
@@ -1926,7 +1926,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 if(weighted)
                 {
                     if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
-                        ret += (tmp-getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ))*gp.gaussPoints[i].second*weights[i] ;
+                        ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                     else
                         ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                     total += gp.gaussPoints[i].second*weights[i] ;
@@ -1934,7 +1934,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 else
                 {
                     if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
-                        ret += (tmp-getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ))*gp.gaussPoints[i].second ;
+                        ret += tmp*gp.gaussPoints[i].second ;
                     else
                         ret += tmp*gp.gaussPoints[i].second ;
                     total += gp.gaussPoints[i].second ; 
@@ -2018,8 +2018,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     tmp[j] = strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j];
                 }
-                if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
-                    tmp -= getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+
                 Vector ptmp = toPrincipal(tmp, DOUBLE_OFF_DIAGONAL_VALUES) ;
                 if(ret.size() != ptmp.size())
                     ret.resize(ptmp.size(), 0.);
@@ -2986,7 +2985,7 @@ void ElementState::getField ( FieldType f1, FieldType f2, const Point & p, Vecto
         }
         return ;
     }
-    if ( f1 == PRINCIPAL_STRAIN_FIELD && ( f2 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f2 == PRINCIPAL_REAL_STRESS_FIELD ) )
+    if ( f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD && ( f2 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f2 == PRINCIPAL_REAL_STRESS_FIELD ) )
     {
         Vector v1 ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         Vector v2 ( 0., v1.size() ) ;
@@ -3032,7 +3031,7 @@ void ElementState::getField ( FieldType f1, FieldType f2, const Point & p, Vecto
         }
         return ;
     }
-    if ( f2 == PRINCIPAL_STRAIN_FIELD && ( f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f1 == PRINCIPAL_REAL_STRESS_FIELD ) )
+    if ( f2 == PRINCIPAL_MECHANICAL_STRAIN_FIELD && ( f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f1 == PRINCIPAL_REAL_STRESS_FIELD ) )
     {
         Vector v1 ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         Vector v2 ( 0., v1.size() ) ;

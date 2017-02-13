@@ -302,7 +302,7 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
     case VWFT_STRAIN:
     {
         Vector tmp(0.,6) ;
-        tet->getState().getField( TOTAL_STRAIN_FIELD, tet->inLocalCoordinates(p), tmp, true) ;
+        tet->getState().getField( MECHANICAL_STRAIN_FIELD, tet->inLocalCoordinates(p), tmp, true) ;
         for(int i = 0 ; i < 6 ; i++)
             ret[i] = tmp[5-i] ;
         found = true ;
@@ -314,7 +314,7 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
     {
         Vector tmp1(0.,6) ;
         Vector tmp2(0.,6) ;
-        tet->getState().getField( TOTAL_STRAIN_FIELD, REAL_STRESS_FIELD, tet->inLocalCoordinates(p), tmp1, tmp2, true) ;
+        tet->getState().getField( MECHANICAL_STRAIN_FIELD, REAL_STRESS_FIELD, tet->inLocalCoordinates(p), tmp1, tmp2, true) ;
         for(int i = 0 ; i < 6 ; i++)
         {
             ret[i] = tmp1[5-i] ;

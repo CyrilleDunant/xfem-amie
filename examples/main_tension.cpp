@@ -142,6 +142,7 @@ double pmax = 0 ;
 
 MultiTriangleWriter writer ( "triangles_stiff_head", "triangles_stiff_layers", nullptr ) ;
 MultiTriangleWriter writerc ( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
+MultiTriangleWriter writerr ( "triangles_relaxed_head", "triangles_relaxed_layers", nullptr ) ;
 
 void step ( size_t nsteps, Sample * samplef )
 {
@@ -151,15 +152,19 @@ void step ( size_t nsteps, Sample * samplef )
     {
 
         bool go_on = featureTree->step() ;
+	bool relaxed = tries%2 == 0 && tries > 6 ;
+	if(relaxed)
+	  featureTree->addBoundaryCondition( loadr );
+	
         if ( go_on )
         {
 	  tries++ ;
 	  count++ ;
 
 	  pmax = std::min(loadr->getData(), pmax) ;
-	  loadr->setData(pmax-.25e-3) ;
-	  if(tries%5 == 0 && tries > 60)
-	    loadr->setData(0);
+	  loadr->setData(pmax-.25e-2) ;
+	  if(tries%2 == 0 && tries > 6)
+	    featureTree->removeBoundaryCondition( loadr );
 
         }
         else
@@ -267,18 +272,20 @@ void step ( size_t nsteps, Sample * samplef )
         ldfile.close();
 
 
+	if (!relaxed)
+	{
+	  writer.reset ( featureTree ) ;
+	  writer.getField ( TWFT_CRITERION ) ;
+	  writer.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
+	  writer.getField ( MECHANICAL_STRAIN_FIELD ) ;
+	  writer.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
+  // 	writer.getField ( IMPOSED_STRAIN_FIELD ) ;
+  //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
+  //             writer.getField ( TWFT_DAMAGE ) ;
+	  writer.append() ;
+	}
 
-	writer.reset ( featureTree ) ;
-	writer.getField ( TWFT_CRITERION ) ;
-	writer.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
-	writer.getField ( MECHANICAL_STRAIN_FIELD ) ;
-	writer.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
-// 	writer.getField ( IMPOSED_STRAIN_FIELD ) ;
-//             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
-//             writer.getField ( TWFT_DAMAGE ) ;
-	writer.append() ;
-
-        if ( go_on )
+        if ( go_on && !relaxed)
 	{
 	    writerc.reset ( featureTree ) ;
             writerc.getField ( TWFT_CRITERION ) ;
@@ -289,6 +296,18 @@ void step ( size_t nsteps, Sample * samplef )
 //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
 //             writer.getField ( TWFT_DAMAGE ) ;
             writerc.append() ;
+	}
+	if(relaxed)
+	{
+	    writerr.reset ( featureTree ) ;
+            writerr.getField ( TWFT_CRITERION ) ;
+            writerr.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
+            writerr.getField ( MECHANICAL_STRAIN_FIELD ) ;
+	    writerr.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
+// 	    writerc.getField ( IMPOSED_STRAIN_FIELD ) ;
+//             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
+//             writer.getField ( TWFT_DAMAGE ) ;
+            writerr.append() ;
 	}
 //         if ( go_on )
 //         {
@@ -333,14 +352,14 @@ int main ( int argc, char *argv[] )
   
 
     double compressionCrit = -32.6e6 ;
-    double mradius = .01 ; // .010 ;//
+    double mradius = .05 ; // .010 ;//
 
     // More or less a 5754 Al alloy
     double nu = 0.33 ;
     double E = 70e9 ;
 
 
-	Sample samplef(0.025, 1.2,  0, 0) ;
+	Sample samplef(0.05, 1.2,  0, 0) ;
 //     Sample samplef ( 100, 100,  50, 50 ) ;
 
     FeatureTree F ( &samplef ) ;
@@ -367,9 +386,9 @@ int main ( int argc, char *argv[] )
 
     PrandtlReussPlasticStrain * t0damagemodel = new PrandtlReussPlasticStrain() ;
     PrandtlReussPlasticStrain * t1damagemodel = new PrandtlReussPlasticStrain() ;
-	t0.setBehaviour( new StiffnessAndFracture(E,nu, new NonLocalVonMises(100e6*.9, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS));
-	t1.setBehaviour( new StiffnessAndFracture(E,nu, new NonLocalVonMises(100e6*.9, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS));
-	samplef.setBehaviour(new StiffnessAndFracture(E,nu, new NonLocalVonMises(100e6, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS));
+	t0.setBehaviour( new StiffnessAndFracture(E,nu, new NonLocalVonMises(30e6*.9, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS));
+	t1.setBehaviour( new StiffnessAndFracture(E,nu, new NonLocalVonMises(30e6*.9, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS));
+	samplef.setBehaviour(new StiffnessAndFracture(E,nu, new NonLocalVonMises(30e6, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS));
 
 //     t0.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) );
 //     t1.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) );
@@ -406,7 +425,7 @@ int main ( int argc, char *argv[] )
     F.setOrder ( QUADRATIC ) ;
 // F.addPoint(new Point(0, 0)) ;
 
-    F.setMaxIterationsPerStep ( 20000 );
+    F.setMaxIterationsPerStep ( 5000 );
 
     step ( 300, &samplef ) ;
 

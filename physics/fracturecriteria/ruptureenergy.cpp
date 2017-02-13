@@ -26,7 +26,7 @@ double RuptureEnergy::grade(ElementState &s)
 {
 	Vector pstress(0., s.getParent()->getGaussPoints().gaussPoints.size()*(3+3*(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL))) ;
 	Vector pstrain(0., pstress.size()) ;
-	s.getField( REAL_STRESS_FIELD, TOTAL_STRAIN_FIELD, s.getParent()->getGaussPoints().gaussPoints, pstress, pstrain, true) ;
+	s.getField( REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD, s.getParent()->getGaussPoints().gaussPoints, pstress, pstrain, true) ;
 	
 	pstrain *= pstress ;
 	

@@ -1016,7 +1016,7 @@ public:
             stressImposedCache[thread] = 0 ;
         }
         VirtualMachine vm ;
-        if ( f0 == PRINCIPAL_STRAIN_FIELD || 
+        if (
             f0 == REAL_STRESS_FIELD || 
             f0 == EFFECTIVE_STRESS_FIELD || 
             f0 == PRINCIPAL_REAL_STRESS_FIELD || 
@@ -1120,11 +1120,7 @@ public:
                }
             }
 
-            if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
-                firstResultCache[thread].resize ( psize );
-                firstResultCache[thread] = toPrincipal ( strainCache[thread], DOUBLE_OFF_DIAGONAL_VALUES ) ;
-            }
-            else if ( f0 == REAL_STRESS_FIELD ) {
+            if ( f0 == REAL_STRESS_FIELD ) {
                 firstResultCache[thread].resize ( tsize, 0. );
                 if ( !spaceTime ) {
                     double sum = 0 ; 
@@ -1260,14 +1256,14 @@ public:
             coord2 = .25 ;
         }
         VirtualMachine vm ;
-        if ( f0 == PRINCIPAL_STRAIN_FIELD || 
+        if (
              f0 == REAL_STRESS_FIELD || 
              f0 == EFFECTIVE_STRESS_FIELD || 
              f0 == PRINCIPAL_REAL_STRESS_FIELD || 
              f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || 
              f0 == MECHANICAL_STRAIN_FIELD || 
              f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ||
-                f1 == PRINCIPAL_STRAIN_FIELD || 
+               
                 f1 == REAL_STRESS_FIELD || 
                 f1 == EFFECTIVE_STRESS_FIELD || 
                 f1 == PRINCIPAL_REAL_STRESS_FIELD || 
@@ -1369,14 +1365,7 @@ public:
                 stressCache[thread] /= sum ;
             }
 
-            if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
-                firstResultCache[thread].resize ( psize );
-                firstResultCache[thread] = toPrincipal ( strainCache[thread], DOUBLE_OFF_DIAGONAL_VALUES) ;
-            }
-            if ( f1 == PRINCIPAL_STRAIN_FIELD ) {
-                secondResultCache[thread].resize ( psize );
-                secondResultCache[thread] = toPrincipal ( strainCache[thread], DOUBLE_OFF_DIAGONAL_VALUES ) ;
-            }
+
             if ( f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) {
                 firstResultCache[thread].resize ( psize );
                 if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
