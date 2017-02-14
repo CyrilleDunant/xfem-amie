@@ -228,7 +228,7 @@ void Form::getViscousTensorDotAtGaussPoints( const GaussPointArray & gp, const s
 
 void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
 {
-    if ( !getBehaviour() || (!(getBehaviour()->getDamageModel() && getBehaviour()->getDamageModel()->hasInducedBoundaryConditions()) && !getBehaviour()->hasInducedForces()))
+    if ( !getBehaviour() || !(getBehaviour()->getDamageModel() && (getBehaviour()->getDamageModel()->hasInducedBoundaryConditions() || !getBehaviour()->hasInducedForces())))
     {
         return ;
     }
@@ -273,28 +273,6 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
             }
         }
 
-/*        std::valarray<Matrix> Jinv ;
-
-        if ( spaceDimensions() == SPACE_THREE_DIMENSIONAL && timePlanes() == 1 )
-        {
-            Jinv.resize ( getGaussPoints().gaussPoints.size(),  Matrix ( 3,3 ) ) ;
-        }
-        if ( spaceDimensions() == SPACE_THREE_DIMENSIONAL && timePlanes() > 1 )
-        {
-            Jinv.resize ( getGaussPoints().gaussPoints.size(),  Matrix ( 4,4 ) ) ;
-        }
-        if ( spaceDimensions() == SPACE_TWO_DIMENSIONAL && timePlanes() == 1 )
-        {
-            Jinv.resize ( getGaussPoints().gaussPoints.size(),  Matrix ( 2,2 ) ) ;
-        }
-        if ( spaceDimensions() == SPACE_TWO_DIMENSIONAL && timePlanes() > 1 )
-        {
-            Jinv.resize ( getGaussPoints().gaussPoints.size(),  Matrix ( 3,3 ) ) ;
-        }
-
-
-
-*/
 
         size_t start = 0 ;
         if ( timePlanes() > 1 )
@@ -3625,11 +3603,13 @@ int isGaussPoint ( const Point & p, IntegrableEntity * e )
 }
 
 
-Vector Form::getForcesFromAppliedStress ( const Vector & data, const Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, const std::vector<Variable> & v, bool isVolumic, const Vector & normal ) const
+Vector Form::getForcesFromAppliedStress ( const Vector & data, const Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, const std::vector<Variable> & v, bool isVolumic, const Vector & normal, VirtualMachine *vm) const
 {
     if ( isVolumic )
     {
-        return VirtualMachine().ieval ( Gradient ( shape ) * data, gp, Jinv, v )  ;
+      if(vm)
+	return vm->ieval ( Gradient ( shape ) * data, gp, Jinv, v )  ;
+      return VirtualMachine().ieval ( Gradient ( shape ) * data, gp, Jinv, v )  ;
     }
     Vector ret ( 0., normal.size() ) ;
     if ( normal.size() == 2 )
@@ -3648,14 +3628,24 @@ Vector Form::getForcesFromAppliedStress ( const Vector & data, const Function & 
     return ret * VirtualMachine().ieval ( shape, gp ) ;
 }
 
-Vector Form::getForcesFromAppliedStress ( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic , const Vector& normal )
+Vector Form::getForcesFromAppliedStress ( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic , const Vector& normal , VirtualMachine *vm )
 {
-    VirtualMachine vm ;
     size_t n = e->getBoundingPoints().size() ;
     Vector field ( 0., n*externaldofs ) ;
+    if(vm)
     for ( size_t i = 0 ; i < n ; i++ )
     {
-        field[ i*externaldofs + index ] = vm.eval ( data, e->getBoundingPoint ( i ) ) ;
+      
+        field[ i*externaldofs + index ] = vm->eval ( data, e->getBoundingPoint ( i ) ) ;
+    }
+    else
+    {
+      VirtualMachine vml ;
+      for ( size_t i = 0 ; i < n ; i++ )
+      {
+	
+	  field[ i*externaldofs + index ] = vml.eval ( data, e->getBoundingPoint ( i ) ) ;
+      }
     }
 
     std::vector<Vector> g ( gp.gaussPoints.size(), Vector ( 0., externaldofs ) ) ;
@@ -3663,7 +3653,10 @@ Vector Form::getForcesFromAppliedStress ( const Function & data, size_t index, s
 
     if ( isVolumic )
     {
-        return vm.ieval ( Gradient ( shape ) * g, gp, Jinv, v ) ;
+      if(vm)
+        return vm->ieval ( Gradient ( shape ) * g, gp, Jinv, v ) ;
+      else
+	return VirtualMachine().ieval ( Gradient ( shape ) * g, gp, Jinv, v ) ;
     }
 
     Vector ret ( 0., normal.size() ) ;
@@ -3684,6 +3677,8 @@ Vector Form::getForcesFromAppliedStress ( const Function & data, size_t index, s
             ret[2] += ( g[2][i]*normal[2]+g[4][i]*normal[0]+g[5][i]*normal[1] ) *gp.gaussPoints[i].second ;
         }
     }
+    if(vm)
+      return ret * vm->ieval ( shape, gp ) ;
     return ret * VirtualMachine().ieval ( shape, gp ) ;
 }
 

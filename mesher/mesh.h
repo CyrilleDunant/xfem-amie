@@ -256,7 +256,7 @@ public:
                 for ( size_t k = 0 ; k < targets.size() ; k++ ) {
                     Point proj ( * ( *i ) ) ;
                     targets[k]->project ( &proj ) ;
-                    if ( targets[k]->in ( * ( *i ) ) || dist ( proj, * ( *i ) ) < 128.*POINT_TOLERANCE ) {
+                    if ( targets[k]->in ( * ( *i ) ) || dist ( proj, * ( *i ) ) < 128.*POINT_TOLERANCE*POINT_TOLERANCE ) {
                         coincidentElements[dist ( * ( *i ), targets[k]->getCenter() )] = targets[k] ;
                     }
                 }
@@ -861,8 +861,17 @@ public:
 		retcomp = tempsum-ret-temp ;
 		ret = tempsum ;
 		w +=v ;
+		
+		if(std::isnan(v) || std::isnan(buffer[0]) || std::isnan(buffer[1]))
+		{
+		  std::cout << buffer[0] << "  " << buffer[1] << std::endl ;
+		  exit(0) ;
+		}
             }
-            return ret/w ;
+            if(w > POINT_TOLERANCE*POINT_TOLERANCE)
+	      ret /=w ;
+	    
+	    return ret/w ;
         }
         if(cacheID == -1)
             cacheID = allElementsCacheID ;
@@ -887,7 +896,10 @@ public:
             ret = tempsum ;
             w +=v ;
         }
-        return ret/w ;
+        if(w > POINT_TOLERANCE*POINT_TOLERANCE)
+	  ret /=w ;
+	
+	return ret/w ;
     }
     
     virtual Vector getField ( FieldType f, const Point & p, Vector & ret, double t = 1, int index = 0 ) 
@@ -963,7 +975,7 @@ public:
                 }
             }
         }
-        if(w > POINT_TOLERANCE)
+        if(w > POINT_TOLERANCE*POINT_TOLERANCE)
             return ret/w ;
         return 0. ;
     }
@@ -1051,7 +1063,7 @@ public:
                     sumFactors += v ;
 
                 }
-                if(sumFactors > POINT_TOLERANCE)
+                if(sumFactors > POINT_TOLERANCE*POINT_TOLERANCE)
                     strainCache[thread] /= sumFactors ;
             } else {
                 size_t blocks = 0 ;
@@ -1134,7 +1146,7 @@ public:
                         firstResultCache[thread] += (strainCache[thread]*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
                         sum += e->getGaussPoints().gaussPoints[j].second ;
                     }
-                    if(sum > POINT_TOLERANCE)
+                    if(sum > POINT_TOLERANCE*POINT_TOLERANCE)
                         firstResultCache[thread] /= sum ;
                     
                 } else {
@@ -1172,7 +1184,7 @@ public:
                         stressCache[thread] += (strainCache[thread]*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
                         sum += e->getGaussPoints().gaussPoints[j].second ;
                     }
-                    if(sum > POINT_TOLERANCE)
+                    if(sum > POINT_TOLERANCE*POINT_TOLERANCE)
                         stressCache[thread] /= sum ;
                     firstResultCache[thread] = toPrincipal( stressCache[thread] , SINGLE_OFF_DIAGONAL_VALUES) ;
                 } else {
@@ -1206,7 +1218,7 @@ public:
                 sumFactors += v ;
                 
             }
-            if(sumFactors > POINT_TOLERANCE)
+            if(sumFactors > POINT_TOLERANCE*POINT_TOLERANCE)
                 firstResultCache[thread] /= sumFactors ;
         }
 
@@ -1295,7 +1307,7 @@ public:
                         sumFactors += v ;
                     }
                 }
-                if(sumFactors > POINT_TOLERANCE)
+                if(sumFactors > POINT_TOLERANCE*POINT_TOLERANCE)
                     strainCache[thread] /= sumFactors ;
             } else {
                 size_t blocks = 0 ;
@@ -1383,7 +1395,7 @@ public:
                         firstResultCache[thread] += (strainCache[thread]*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
                         sum += e->getGaussPoints().gaussPoints[j].second ;
                     }
-                    if(sum > POINT_TOLERANCE)
+                    if(sum > POINT_TOLERANCE*POINT_TOLERANCE)
                         firstResultCache[thread] /= sum ;
                 } else {
                     firstResultCache[thread] = stressCache[thread] ;
@@ -1455,7 +1467,7 @@ public:
                         stressCache[thread] += (strainCache[thread]*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
                         sum += e->getGaussPoints().gaussPoints[j].second ;
                     }
-                    if(sum > POINT_TOLERANCE)
+                    if(sum > POINT_TOLERANCE*POINT_TOLERANCE)
                         stressCache[thread] /= sum ;
                     firstResultCache[thread] = toPrincipal ( stressCache[thread] , SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 } else {
@@ -1477,7 +1489,7 @@ public:
                         stressCache[thread] += (strainCache[thread]*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
                         sum += e->getGaussPoints().gaussPoints[j].second ;
                     }
-                    if(sum > POINT_TOLERANCE)
+                    if(sum > POINT_TOLERANCE*POINT_TOLERANCE)
                         stressCache[thread] /= sum ;
                     secondResultCache[thread] = toPrincipal (  stressCache[thread], SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 } else {
@@ -1522,7 +1534,7 @@ public:
                     secondResultCache[thread] += bufferCache[thread]*v ;
                 }
             }
-            if(sumFactors > POINT_TOLERANCE)
+            if(sumFactors > POINT_TOLERANCE*POINT_TOLERANCE)
             {
                 firstResultCache[thread] /= sumFactors ;
                 secondResultCache[thread] /= sumFactors ;

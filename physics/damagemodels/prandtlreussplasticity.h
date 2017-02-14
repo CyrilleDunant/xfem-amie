@@ -33,6 +33,7 @@ public:
     Matrix * param ;
     Vector imposedStrain ;
     Vector previousImposedStrain ;
+    Vector imposedStrainAccumulator ;
     double plasticVariable ;
 
     bool broken ;
@@ -68,10 +69,14 @@ public:
     virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
 
     virtual bool hasInducedBoundaryConditions() const {
-        return true ;
+      if(previousImposedStrain.size() ==0)
+	return false ;
+      return std::abs(previousImposedStrain+state[0]*imposedStrain).max() > POINT_TOLERANCE ;
     } ;
     virtual bool hasInducedForces() const {
-        return true ;
+       if(previousImposedStrain.size() ==0)
+	 return false ;
+       return std::abs(previousImposedStrain+state[0]*imposedStrain).max() > POINT_TOLERANCE ;
     }
 
 
@@ -88,6 +93,7 @@ public:
 
     virtual DamageModel * getCopy() const ;
 
+    virtual void preProcess( double timeStep, ElementState & currentState ) ;
     virtual void postProcess() ;
     double getDamage() const ;
     double getPlasticity() const;

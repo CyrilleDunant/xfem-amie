@@ -319,7 +319,6 @@ void DamageModel::step( ElementState &s , double maxscore)
 
             if(ctype == DISSIPATIVE)
             {
-                getState( true ) = downState + ( upState - downState ) * trialRatio;
                 for(size_t i = 0 ; i <  state.size() ; i++)
                 {
                     if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE)
@@ -332,7 +331,6 @@ void DamageModel::step( ElementState &s , double maxscore)
             }
             else if(ctype == CONSERVATIVE)
             {
-                getState( true ) = downState + ( upState - downState ) * trialRatio  ;
                 for(size_t i = 0 ; i <  state.size() ; i++)
                 {
                     if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE)
@@ -384,7 +382,7 @@ DamageModel::DamageModel(): state(0)
     isNull = true ;
     haslimit = false ;
     error = 1 ;
-    iterationNumber = 36 ;
+    iterationNumber = 18 ;
 
     ctype = DISSIPATIVE ;
     fraction = -1 ;

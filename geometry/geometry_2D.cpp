@@ -1191,8 +1191,8 @@ void Rectangle::sampleSurface(double linearDensity, double surfaceDensityFactor,
             for(size_t i = 0 ; i < numberOfPointsAlongX-2+(j+1)%2 ; i++)
             {
 
-                double randx= ((2.*rand()/(RAND_MAX+1.0))-1.)*0.175*distanceBetweenPointsAlongX ;
-                double randy= ((2.*rand()/(RAND_MAX+1.0))-1.)*0.175*distanceBetweenPointsAlongY ;
+                double randx= ((2.*rand()/(RAND_MAX+1.0))-1.)*0.2*distanceBetweenPointsAlongX ;
+                double randy= ((2.*rand()/(RAND_MAX+1.0))-1.)*0.2*distanceBetweenPointsAlongY ;
 
                 newInPoints.push_back( new Point(center.getX() - 0.5*size_x + (double)(i+0.66)*distanceBetweenPointsAlongX+(double)((j)%2)*distanceBetweenPointsAlongX*.5-(double)((j+1)%2)*distanceBetweenPointsAlongX*.15+randx,
                                                  center.getY() - 0.5*size_y + (double)(j+1)*distanceBetweenPointsAlongY+ randy)) ;

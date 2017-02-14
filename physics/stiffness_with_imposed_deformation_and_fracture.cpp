@@ -89,7 +89,7 @@ Vector StiffnessWithImposedDeformationAndFracture::getImposedStress(const Point 
 
 Vector StiffnessWithImposedDeformationAndFracture::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
-    return imposed ;
+    return imposed*0. ;
 }
 
 std::vector<BoundaryCondition * > StiffnessWithImposedDeformationAndFracture::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const

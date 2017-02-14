@@ -147,24 +147,33 @@ MultiTriangleWriter writerr ( "triangles_relaxed_head", "triangles_relaxed_layer
 void step ( size_t nsteps, Sample * samplef )
 {
 
-    size_t tries = 0 ;
+    int tries = 0 ;
+    int every = 2 ;
+    bool relaxed = false ;
+    bool go_on = true ;
     for ( size_t v = 0 ; v < nsteps ; v++ )
     {
-
-        bool go_on = featureTree->step() ;
-	bool relaxed = tries%5 == 0 && tries > 60 ;
-	if(relaxed)
+	if(go_on && tries%every == 0 )
+	{
+	  featureTree->removeBoundaryCondition( loadr );
+	  relaxed = true ;
+	}
+	if(go_on && (tries-1)%every == 0)
+	{
 	  featureTree->addBoundaryCondition( loadr );
+	  relaxed = false ;
+	}
 	
+        go_on = featureTree->step() ;
+
         if ( go_on )
         {
 	  tries++ ;
 	  count++ ;
 
 	  pmax = std::min(loadr->getData(), pmax) ;
-	  loadr->setData(pmax-.25e-3) ;
-	  if(tries%2 == 0 && tries > 60)
-	    featureTree->removeBoundaryCondition( loadr );
+	  if(!relaxed)
+	    loadr->setData(pmax-.25e-3) ;
 
         }
         else
@@ -206,53 +215,9 @@ void step ( size_t nsteps, Sample * samplef )
 
         xavg /= volume ;
         yavg /= volume ;
-//         std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax ( REAL_STRESS_FIELD ) ;
-//         std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax ( STRAIN_FIELD ) ;
-//         std::pair<Vector, Vector> vmm = featureTree->getFieldMinMax ( VON_MISES_REAL_STRESS_FIELD ) ;
+
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD ) ;
         Vector etemp = featureTree->getAverageField ( MECHANICAL_STRAIN_FIELD ) ;
-
-// 	Vector tmp(3) ;
-// 	for(double x = 0 ;  x <= 0.3 ; x += .001)
-//         {
-//             for(double y = 0 ;  y <= 0.3 ; y += .001)
-//             {
-//                 featureTree->get2DMesh()->getField(PRINCIPAL_REAL_STRESS_FIELD, Point(x,y,0),tmp) ;
-//                     std::cout <<  tmp[0]<< "  "<< std::flush ;
-//             }
-//             std::cout << std::endl ;
-//         }
-//         std::cout << std::endl ;
-//         std::cout << "max value :" << x.max() << std::endl ;
-//         std::cout << "min value :" << x.min() << std::endl ;
-//         std::cout << "avg x value :" << xavg << std::endl ;
-//         std::cout << "avg y value :" << xavg << std::endl ;
-// 
-//         std::cout << "max sigma11 :" << stempm.second[0]/1e6  << std::endl ;
-//         std::cout << "min sigma11 :" << stempm.first[0]/1e6   << std::endl ;
-//         std::cout << "max sigma12 :" << stempm.second[2]/1e6  << std::endl ;
-//         std::cout << "min sigma12 :" << stempm.first[2]/1e6   << std::endl ;
-//         std::cout << "max sigma22 :" << stempm.second[1]/1e6  << std::endl ;
-//         std::cout << "min sigma22 :" << stempm.first[1]/1e6   << std::endl ;
-// 
-//         std::cout << "max epsilon11 :" << etempm.second[0]*1e6 << std::endl ;
-//         std::cout << "min epsilon11 :" << etempm.first[0]*1e6  << std::endl ;
-//         std::cout << "max epsilon12 :" << etempm.second[2]*1e6 << std::endl ;
-//         std::cout << "min epsilon12 :" << etempm.first[2]*1e6  << std::endl ;
-//         std::cout << "max epsilon22 :" << etempm.second[1]*1e6 << std::endl ;
-//         std::cout << "min epsilon22 :" << etempm.first[1]*1e6  << std::endl ;
-// 
-//         std::cout << "max von Mises :" << vmm.second[0]/1e6 << std::endl ;
-//         std::cout << "min von Mises :" << vmm.first[0]/1e6 << std::endl ;
-
-//         std::cout << "average sigma11 : " << stemp[0]/1e6 << std::endl ;
-//         std::cout << "average sigma22 : " << stemp[1]/1e6 << std::endl ;
-//         std::cout << "average sigma12 : " << stemp[2]/1e6 << std::endl ;
-//         std::cout << "average epsilon11 : " << etemp[0]*1e6 << std::endl ;
-//         std::cout << "average epsilon22 : " << etemp[1]*1e6 << std::endl ;
-//         std::cout << "average epsilon12 : " << etemp[2]*1e6 << std::endl ;
-// 
-//         std::cout << std::endl ;
 
 
         if ( go_on )
@@ -363,7 +328,7 @@ int main ( int argc, char *argv[] )
   
 
     double compressionCrit = -32.6e6 ;
-    double mradius = .05 ; // .010 ;//
+    double mradius = .025 ; // .010 ;//
 
     // More or less a 5754 Al alloy
     double nu = 0.33 ;
@@ -433,7 +398,7 @@ int main ( int argc, char *argv[] )
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
 
-    F.setOrder ( LINEAR ) ;
+    F.setOrder ( QUADRATIC ) ;
 // F.addPoint(new Point(0, 0)) ;
 
     F.setMaxIterationsPerStep ( 5000 );

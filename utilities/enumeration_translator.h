@@ -1123,6 +1123,8 @@ struct Enum
             case SET_FLUX_ZETA: return "SET_FLUX_ZETA" ;
             case SET_VOLUMIC_STRESS_XI: return "SET_VOLUMIC_STRESS_XI" ;
             case SET_VOLUMIC_STRESS_XI_ETA: return "SET_VOLUMIC_STRESS_XI_ETA" ;
+	    case SET_VOLUMIC_STRESS_XI_ZETA: return "SET_VOLUMIC_STRESS_XI_ZETA" ;
+	    case SET_VOLUMIC_STRESS_ETA_ZETA: return "SET_VOLUMIC_STRESS_ETA_ZETA" ;
             case SET_VOLUMIC_STRESS_ETA: return "SET_VOLUMIC_STRESS_ETA" ;
             case SET_VOLUMIC_STRESS_ZETA: return "SET_VOLUMIC_STRESS_ZETA" ;
             case SET_STRESS_XI: return "SET_STRESS_XI" ;
