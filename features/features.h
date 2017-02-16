@@ -452,6 +452,7 @@ public:
     double crackedVolume ;
     double damagedVolume ;
     double averageDamage;
+    double thresholdScoreMet ;
     bool foundCheckPoint ;
 
 public:

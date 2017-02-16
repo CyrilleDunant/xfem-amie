@@ -95,6 +95,7 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
     structuredMesh = false ;
     alternating = false ;
     maxScore = -1 ;
+    thresholdScoreMet = 1e-3 ;
 
     std::vector<Point> bbox = first->getBoundingBox() ;
     double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;
@@ -214,6 +215,8 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     stateConverged = false ;
     dtree = nullptr ;
     alternating = false ;
+    thresholdScoreMet = 1e-3 ;
+    
     if(times.empty())
         dtree3D = new MicDerivedMesh(voxelSource, behaviourMap) ;
     else
@@ -4949,6 +4952,12 @@ bool FeatureTree::stepElements()
                         }
                     }
                 }
+                double thresholdScore = 0 ;
+                if(foundCheckPoint)
+		{
+		   thresholdScore = thresholdScoreMet ;
+		   behaviourChange = false ;
+		}
 
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                 {
@@ -4962,7 +4971,7 @@ bool FeatureTree::stepElements()
                                 {
                                     bool done = false ;
                                     #pragma omp task firstprivate(i)
-                                    if ( i->getBehaviour()->getFractureCriterion() && i->getBehaviour()->getFractureCriterion()->met() )
+                                    if ( i->getBehaviour()->getFractureCriterion() && i->getBehaviour()->getFractureCriterion()->met(thresholdScore) )
                                     {
                                         #pragma omp critical
                                         {
@@ -5880,7 +5889,7 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
     if(damageConverged)
         K->setPreviousDisplacements() ;
 
-    return solverConverged() && stateConverged && maxScore < 0 ;
+    return solverConverged() && stateConverged && maxScore < thresholdScoreMet ;
 
 }
 

@@ -580,9 +580,9 @@ void FractureCriterion::setMaterialCharacteristicRadius(double r)
     mesh3d = nullptr ;
 }
 
-bool FractureCriterion::met() const
+bool FractureCriterion::met(double threshold) const
 {
-    return metAtStep ;
+    return scoreAtState > threshold ;
 }
 
 }

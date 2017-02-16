@@ -139,7 +139,7 @@ public:
      * @param s ElementState to consider
      * @return true if the fracture criterion is met
      */
-    virtual bool met() const ;
+    virtual bool met( double threshold = 0) const ;
 
     /** \brief Return a normalised distance to the fracture surface,
      *
