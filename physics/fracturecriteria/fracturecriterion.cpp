@@ -62,7 +62,7 @@ FractureCriterion::FractureCriterion() :
     maxModeInNeighbourhood(-1),
     maxScoreInNeighbourhood(0),
     maxAngleShiftInNeighbourhood(0),
-    scoreTolerance(1e-5),
+    scoreTolerance(1e-2),
     checkpoint(true),
     inset(false),
     smoothingType(QUARTIC_COMPACT),

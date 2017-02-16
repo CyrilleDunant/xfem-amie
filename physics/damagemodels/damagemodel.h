@@ -94,6 +94,7 @@ protected:
 
     bool change ;
     bool haslimit ;
+    bool allowBackSearch ;
 
     Vector state ;
     Vector initalState ;

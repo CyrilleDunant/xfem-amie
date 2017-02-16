@@ -129,8 +129,8 @@ Vector epsilon12 ( 0 ) ;
 Vector vonMises ( 0 ) ;
 Vector angle ( 0 ) ;
 
-// BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition ( SET_ALONG_XI, RIGHT,0 ) ;
-BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,Point(.2, 0), 0) ;
+BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition ( SET_ALONG_XI, BOTTOM_RIGHT,0 ) ;
+// BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,Point(.02, 0), 0) ;
 
 double factor = 25 ;
 MinimumAngle cri ( M_PI/6. ) ;
@@ -328,14 +328,15 @@ int main ( int argc, char *argv[] )
   
 
     double compressionCrit = -32.6e6 ;
-    double mradius = .025 ; // .010 ;//
+    double mradius = .015 ; // .010 ;//
 
     // More or less a 5754 Al alloy
     double nu = 0.33 ;
     double E = 70e9 ;
 
 
-	Sample samplef(0.05, 1.2,  0, 0) ;
+	Sample samplef(0.05, 0.6,  0, 0) ;
+// 	Sample samplef(0.01, 0.01,  0, 0) ;
 //     Sample samplef ( 100, 100,  50, 50 ) ;
 
     FeatureTree F ( &samplef ) ;
@@ -391,9 +392,9 @@ int main ( int argc, char *argv[] )
     F.addBoundaryCondition ( loadr );
 // 	F.addBoundaryCondition(loadt);
 
-    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, BOTTOM ) ) ;
+//     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, BOTTOM_LEFT ) ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM ) ) ;
-    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, TOP ) ) ;
+    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, TOP_LEFT ) ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,TOP ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
@@ -401,7 +402,7 @@ int main ( int argc, char *argv[] )
     F.setOrder ( QUADRATIC ) ;
 // F.addPoint(new Point(0, 0)) ;
 
-    F.setMaxIterationsPerStep ( 5000 );
+    F.setMaxIterationsPerStep ( 500 );
 
     step ( 300, &samplef ) ;
 
