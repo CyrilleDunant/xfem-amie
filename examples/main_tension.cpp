@@ -18,7 +18,7 @@
 #include "../physics/fracturecriteria/druckerprager.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/fracturecriteria/boundedvonmises.h"
-#include "../physics/damagemodels/plasticstrain.h"
+#include "../physics/damagemodels/prandtlgrauertplasticstrain.h"
 #include "../physics/damagemodels/prandtlreussplasticity.h"
 #include "../physics/stiffness.h"
 #include "../physics/materials/aggregate_behaviour.h"
@@ -153,13 +153,16 @@ void step ( size_t nsteps, Sample * samplef )
     bool go_on = true ;
     for ( size_t v = 0 ; v < nsteps ; v++ )
     {
+	
+	
 	if(go_on && tries%every == 0 )
 	{
 	  featureTree->removeBoundaryCondition( loadr );
 	  relaxed = true ;
 	}
-	if(go_on && (tries-1)%every == 0)
+	else if(go_on)
 	{
+	  loadr->setData(loadr->getData()-.25e-3) ;
 	  featureTree->addBoundaryCondition( loadr );
 	  relaxed = false ;
 	}
@@ -170,58 +173,19 @@ void step ( size_t nsteps, Sample * samplef )
         {
 	  tries++ ;
 	  count++ ;
-
-	  pmax = std::min(loadr->getData(), pmax) ;
-	  if(!relaxed)
-	    loadr->setData(pmax-.25e-3) ;
-
         }
         else
             nsteps++ ;
 
-        x.resize ( featureTree->getDisplacements().size() ) ;
-        x = featureTree->getDisplacements() ;
-
         double volume = 0 ;
         double xavg = 0 ;
         double yavg = 0 ;
-        std::fstream dfile ;
-        if ( go_on )
-        {
-            dfile.open ( "dprofile", std::ios::out | std::ios::app ) ;
-        }
-        for ( auto k = featureTree->get2DMesh()->begin() ; k != featureTree->get2DMesh()->end() ; k++ )
-        {
-            if ( k->getBehaviour()->getDamageModel() && k->getBehaviour()->type != VOID_BEHAVIOUR )
-            {
-                if ( go_on )
-                {
-                    dfile <<  k->getCenter().getX() << "  "<< k->getBehaviour()->getDamageModel()->getState().max() << "  " ;
-                }
-                double ar = k->area() ;
-                volume += ar ;
-                for ( size_t l = 0 ; l < k->getBoundingPoints().size() ; l++ )
-                {
-                    xavg += x[k->getBoundingPoint ( l ).getId() *2]*ar/ k->getBoundingPoints().size() ;
-                    yavg += x[k->getBoundingPoint ( l ).getId() *2+1]*ar/ k->getBoundingPoints().size() ;
-                }
-            }
-        }
-        if ( go_on )
-        {
-            dfile << "\n" ;
-        }
-        dfile.close();
-
-        xavg /= volume ;
-        yavg /= volume ;
-
-        Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD ) ;
-        Vector etemp = featureTree->getAverageField ( MECHANICAL_STRAIN_FIELD ) ;
-
 
         if ( go_on )
         {
+	    Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD ) ;
+	    Vector etemp = featureTree->getAverageField ( MECHANICAL_STRAIN_FIELD ) ;
+	  
             displacements.push_back ( etemp[1] );
             displacementsx.push_back ( etemp[0] );
             loads.push_back ( stemp[1] );
@@ -235,15 +199,6 @@ void step ( size_t nsteps, Sample * samplef )
 
 	  std::cout << std::endl ;
         }
-
-        std::fstream ldfile  ;
-        ldfile.open ( "ldn", std::ios::out ) ;
-        for ( size_t j = 0 ; j < loads.size() ; j++ )
-        {
-            ldfile << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] <<  "\n" ;
-        }
-        ldfile.close();
-
 
 	if (!relaxed)
 	{
@@ -272,7 +227,7 @@ void step ( size_t nsteps, Sample * samplef )
 //             writer.getField ( TWFT_DAMAGE ) ;
             writerc.append() ;
 	}
-	if(relaxed)
+	if(go_on && relaxed)
 	{
 	    writerr.reset ( featureTree ) ;
             writerr.getField ( TWFT_CRITERION ) ;
@@ -285,19 +240,7 @@ void step ( size_t nsteps, Sample * samplef )
 //             writer.getField ( TWFT_DAMAGE ) ;
             writerr.append() ;
 	}
-//         if ( go_on )
-//         {
-//             writerc.reset ( featureTree ) ;
-//             writerc.getField ( TWFT_CRITERION ) ;
-//             writerc.getField ( TWFT_STIFFNESS_X ) ;
-//             writerc.getField ( TWFT_STIFFNESS_Y ) ;
-//             writerc.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
-//             writerc.getField ( TWFT_DAMAGE ) ;
-//             writerc.append() ;
-//         }
-        //(1./epsilon11.getX())*( stressMoyenne.getX()-stressMoyenne.getY()*modulePoisson);
-	    
-// 	  samplef->setBehaviour(new Stiffness(30e9,0.1+0.1*v)) ;
+
     }
 
 }
@@ -395,7 +338,7 @@ int main ( int argc, char *argv[] )
 //     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, BOTTOM_LEFT ) ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM ) ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, TOP_LEFT ) ) ;
-    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,TOP ) ) ;
+//     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,TOP_LEFT ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
 

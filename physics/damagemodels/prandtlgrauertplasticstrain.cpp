@@ -9,13 +9,13 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
-#include "plasticstrain.h"
+#include "prandtlgrauertplasticstrain.h"
 #include "../../features/boundarycondition.h"
 #include "../fracturecriteria/fracturecriterion.h"
 
 namespace Amie {
 
-PlasticStrain::PlasticStrain(double c_psi, double eps_f, double kappa_0) : imposedStrain(0.,3), previousCompressiveImposedStrain(0.,3),  previousTensileImposedStrain(0.,3),c_psi(c_psi), eps_f(eps_f), kappa_0(kappa_0)
+PrandtlGrauertPlasticStrain::PrandtlGrauertPlasticStrain(double c_psi, double eps_f, double kappa_0) : imposedStrain(0.,3), previousCompressiveImposedStrain(0.,3),  previousTensileImposedStrain(0.,3),c_psi(c_psi), eps_f(eps_f), kappa_0(kappa_0)
 {
     getState(true).resize(1, 0.);
     isNull = false ;
@@ -32,13 +32,13 @@ PlasticStrain::PlasticStrain(double c_psi, double eps_f, double kappa_0) : impos
 
 }
 
-double PlasticStrain::plasticFlowPotential(const Matrix &m) const
+double PrandtlGrauertPlasticStrain::plasticFlowPotential(const Matrix &m) const
 {
     Matrix s(m-identity(m.numCols())*trace(m)/(double)m.numCols()) ;
     return c_psi * trace(m) + sqrt(0.5*s.squareFroebeniusNorm()) ;
 }
 
-std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s)
+std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(ElementState & s)
 {
     if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL && v.size() == 2)
     {
@@ -64,10 +64,10 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
         Matrix stressMatrix(v.size(), v.size()) ;
         Vector stress(3) ;
         Vector strain(3) ;
-// 		s.getField(STRAIN_FIELD, REAL_STRESS_FIELD,es->getParent()->getCenter(),strain,stress, false);
-        std::pair<Vector, Vector> ss = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( MECHANICAL_STRAIN_FIELD, REAL_STRESS_FIELD, s) ;
-        stress = ss.first ;
-        strain = ss.second ;
+	s.getField(MECHANICAL_STRAIN_FIELD, REAL_STRESS_FIELD,es->getParent()->getCenter(),strain,stress, false);
+//         std::pair<Vector, Vector> ss = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( MECHANICAL_STRAIN_FIELD, REAL_STRESS_FIELD, s) ;
+//         stress = ss.first ;
+//         strain = ss.second ;
         stressMatrix[0][0] = stress[0] ;
         stressMatrix[1][1] = stress[1] ;
         stressMatrix[0][1] = stress[2] ;
@@ -107,7 +107,7 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 
 }
 
-int PlasticStrain::getMode() const
+int PrandtlGrauertPlasticStrain::getMode() const
 {
 // 	if(es
 // 		&& es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()
@@ -124,7 +124,7 @@ int PlasticStrain::getMode() const
     return -1 ;
 }
 
-double PlasticStrain::getAngleShift() const
+double PrandtlGrauertPlasticStrain::getAngleShift() const
 {
 // 	if(!es)
     return 0 ;
@@ -182,19 +182,19 @@ double PlasticStrain::getAngleShift() const
     return angle ;
 }
 
-void PlasticStrain::computeDelta(ElementState & s)
+void PrandtlGrauertPlasticStrain::computeDelta(ElementState & s)
 {
     delta = 1 ;
 }
 
-Matrix PlasticStrain::apply(const Matrix & m, const Point & p , const IntegrableEntity * e, int g) const
+Matrix PrandtlGrauertPlasticStrain::apply(const Matrix & m, const Point & p , const IntegrableEntity * e, int g) const
 {
     if(fractured())
         return m*1e-6 ;
     return m*(1.-getDamage()) ;
 }
 
-std::vector<BoundaryCondition * > PlasticStrain::getBoundaryConditions(const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+std::vector<BoundaryCondition * > PrandtlGrauertPlasticStrain::getBoundaryConditions(const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
     std::vector<BoundaryCondition * > ret ;
     if(!param || fractured())
@@ -203,20 +203,24 @@ std::vector<BoundaryCondition * > PlasticStrain::getBoundaryConditions(const Ele
     Vector imp = getImposedStress(*p_i.getPoint()) ;
     if(v.size() == 2)
     {
-        ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, id, imp[0]));
-        ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, id, imp[1]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, id, imp[0]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, id, imp[1]));
+	ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, id, imp[2]));
     }
     if(v.size() == 3)
     {
-        ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_XI, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[0]));
-        ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[1]));
-        ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[2]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[0]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[1]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[2]));
+	ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[3]));
+	ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[4]));
+	ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[5]));
 
     }
     return ret ;
 }
 
-Vector PlasticStrain::getImposedStress(const Point & p) const
+Vector PrandtlGrauertPlasticStrain::getImposedStress(const Point & p) const
 {
     if(v.size() == 2 && !param)
         return Vector(0., 3) ;
@@ -232,26 +236,26 @@ Vector PlasticStrain::getImposedStress(const Point & p) const
     return  (Vector)(*param*(1.-getDamage())*getImposedStrain(p)) ;
 }
 
-Vector PlasticStrain::getImposedStrain(const Point & p) const
+Vector PrandtlGrauertPlasticStrain::getImposedStrain(const Point & p) const
 {
-    if(v.size() == 2 && !param)
+    if(v.size() == 2 /*&& !param*/)
         return Vector(0., 3) ;
-    if(v.size() == 3 && !param)
+//     if(v.size() == 3 && !param)
         return Vector(0., 6) ;
 
-    if(fractured())
-    {
-        if(v.size() == 2)
-            return Vector(0., 3) ;
-        return Vector(0., 6) ;
-    }
-// 	if(inCompression )
-    return  (imposedStrain*getState()[0]+previousCompressiveImposedStrain) ;
+//     if(fractured())
+//     {
+//         if(v.size() == 2)
+//             return Vector(0., 3) ;
+//         return Vector(0., 6) ;
+//     }
+// // 	if(inCompression )
+//     return  (imposedStrain*getState()[0]+previousCompressiveImposedStrain) ;
 
 // 	return  imposedStrain*getState()[0]+previousTensileImposedStrain ;
 }
 
-double PlasticStrain::getDamage() const
+double PrandtlGrauertPlasticStrain::getDamage() const
 {
 
     //return std::min(topdamage*state[0]+bottomdamage*(1.-state[0]) + factor, 1.);
@@ -265,7 +269,7 @@ double PlasticStrain::getDamage() const
     return 0 ;
 }
 
-double PlasticStrain::getPlasticity() const
+double PrandtlGrauertPlasticStrain::getPlasticity() const
 {
     Vector istrain = imposedStrain*getState()[0];
     double currentPlaticVariable = sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
@@ -276,14 +280,14 @@ double PlasticStrain::getPlasticity() const
     return currentPlaticVariable ;
 }
 
-bool PlasticStrain::fractured(int direction) const
+bool PrandtlGrauertPlasticStrain::fractured(int direction) const
 {
     if(fraction < 0)
         return false ;
     return broken || getDamage() >= thresholdDamageDensity ;
 }
 
-void PlasticStrain::postProcess()
+void PrandtlGrauertPlasticStrain::postProcess()
 {
     if(converged && es && state[0] > POINT_TOLERANCE)
     {
@@ -316,14 +320,14 @@ void PlasticStrain::postProcess()
     }
 }
 
-PlasticStrain::~PlasticStrain()
+PrandtlGrauertPlasticStrain::~PrandtlGrauertPlasticStrain()
 {
     delete param ;
 }
 
-DamageModel * PlasticStrain::getCopy() const
+DamageModel * PrandtlGrauertPlasticStrain::getCopy() const
 {
-    PlasticStrain * ret = new PlasticStrain() ;
+    PrandtlGrauertPlasticStrain * ret = new PrandtlGrauertPlasticStrain() ;
     ret->factor = factor ;
     ret->copyEssentialParameters( this ) ;
     return ret ;

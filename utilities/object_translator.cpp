@@ -25,7 +25,7 @@
 #include "../physics/damagemodels/spacetimebadisotropiclineardamage.h"
 #include "../physics/damagemodels/spacetimefiberbasedbilineardamage.h"
 #include "../physics/damagemodels/spacetimefiberbasedfixedcrack.h"
-#include "../physics/damagemodels/plasticstrain.h"
+#include "../physics/damagemodels/prandtlgrauertplasticstrain.h"
 #include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include "../physics/damagemodels/isotropiclineardamage.h"
 #include "../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
@@ -571,7 +571,7 @@ namespace Amie
             if( values.find("compressibility") == values.end() ) { values["compressibility"] = 0.05 ; } ; 
             if( values.find("limit_strain") == values.end() ) { values["limit_strain"] = 0.0057 ; } ; 
             if( values.find("initial_plastic_variable") == values.end() ) { values["initial_plastic_variable"] = 0 ; } ; 
-            return new PlasticStrain(values["compressibility"], values["limit_strain"], values["initial_plastic_variable"]) ;
+            return new PrandtlGrauertPlasticStrain(values["compressibility"], values["limit_strain"], values["initial_plastic_variable"]) ;
         }
    
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h

@@ -16,7 +16,7 @@
 #include "fracturecriteria/mcft.h"
 #include "fracturecriteria/mohrcoulomb.h"
 #include "damagemodels/nonlocalisotropiclineardamage.h"
-#include "damagemodels/plasticstrain.h"
+#include "damagemodels/prandtlgrauertplasticstrain.h"
 #include "damagemodels/fiberbasedisotropiclineardamage.h"
 
 using namespace Amie ;

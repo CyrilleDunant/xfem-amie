@@ -26,7 +26,7 @@ namespace Amie {
     @value[limit_strain] 0.0057 //
     @value[initial_plastic_variable] 0 // 
 */
-class PlasticStrain final: public DamageModel
+class PrandtlGrauertPlasticStrain final: public DamageModel
 {
 public:
     std::vector<Variable> v ;
@@ -55,9 +55,9 @@ public:
      *
      * @param numDof number of degrees of freedom
      */
-    PlasticStrain(double c_psi = 0.05, double eps_f = 0.0057, double kappa_0 = 0) ;
+    PrandtlGrauertPlasticStrain(double c_psi = 0.05, double eps_f = 0.0057, double kappa_0 = 0) ;
 
-    virtual ~PlasticStrain();
+    virtual ~PrandtlGrauertPlasticStrain();
 
     /** \brief Increment the damage
      *

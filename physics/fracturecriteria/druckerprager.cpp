@@ -12,7 +12,7 @@
 //
 #include "druckerprager.h"
 #include "../../mesher/delaunay.h"
-#include "../damagemodels/plasticstrain.h"
+#include "../damagemodels/prandtlgrauertplasticstrain.h"
 namespace Amie {
 
 DruckerPrager::DruckerPrager(double downthres,double upthres, double modulus,  double friction, double radius) :  upthreshold(upthres), downthreshold(downthres), friction(friction), modulus(modulus)
@@ -42,11 +42,11 @@ double DruckerPrager::grade(ElementState &s)
 	double dfactor = 1 ;
 	
 	//hardening function from Jirasek et al.
-	if(dynamic_cast<PlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel()))
+	if(dynamic_cast<PrandtlGrauertPlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel()))
 	{
 		pseudomodulus = modulus ;
 	
-		PlasticStrain* ps = static_cast<PlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel()) ;
+		PrandtlGrauertPlasticStrain* ps = static_cast<PrandtlGrauertPlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel()) ;
 		
 // 		double kappa_0 = ps->kappa_0 ;
 // 		double kappa_p = ps->getPlasticity() ;

@@ -27,7 +27,7 @@
 #include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include "../physics/damagemodels/spacetimeisotropiclineardamage.h"
 #include "../physics/damagemodels/isotropiclineardamage.h"
-#include "../physics/damagemodels/plasticstrain.h"
+#include "../physics/damagemodels/prandtlgrauertplasticstrain.h"
 #include "../physics/fracturecriteria/maxstrain.h"
 #include "../physics/fracturecriteria/spacetimemultisurfacefracturecriterion.h"
 #include "../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
