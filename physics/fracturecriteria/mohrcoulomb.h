@@ -25,12 +25,14 @@ namespace Amie {
 /*PARSE MohrCoulomb FractureCriterion 
     @value[tensile_strength] // maximum stress in tension (positive)
     @value[compressive_strength] // maximum stress in compression (negative)
+    @value[young_modulus] // young's modulus
 */
 class MohrCoulomb : public FractureCriterion
 {
 public:
 	double upVal ;
 	double downVal ;
+        double stiffness ;
 	bool metInCompression  ;
 	bool metInTension  ;
 	
@@ -39,8 +41,9 @@ public:
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
+ * @param E Young's modulus
 */
-	MohrCoulomb(double up, double down);
+	MohrCoulomb(double up, double down, double E);
 
 	virtual ~MohrCoulomb();
 

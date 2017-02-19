@@ -206,7 +206,7 @@ void step ( size_t nsteps, Sample * samplef )
 	  writer.getField ( TWFT_CRITERION ) ;
 	  writer.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
 	  writer.getField ( TOTAL_STRAIN_FIELD ) ;
-// 	  writer.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
+	  writer.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
 	  writer.getField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
   // 	writer.getField ( IMPOSED_STRAIN_FIELD ) ;
   //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
@@ -220,7 +220,7 @@ void step ( size_t nsteps, Sample * samplef )
             writerc.getField ( TWFT_CRITERION ) ;
             writerc.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
             writerc.getField ( TOTAL_STRAIN_FIELD ) ;
-// 	    writerc.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
+	    writerc.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
 	    writerc.getField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
 // 	    writerc.getField ( IMPOSED_STRAIN_FIELD ) ;
 //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
@@ -233,7 +233,7 @@ void step ( size_t nsteps, Sample * samplef )
             writerr.getField ( TWFT_CRITERION ) ;
             writerr.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
             writerr.getField ( TOTAL_STRAIN_FIELD ) ;
-// 	    writerr.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
+	    writerr.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
 	    writerr.getField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
 // 	    writerc.getField ( IMPOSED_STRAIN_FIELD ) ;
 //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;

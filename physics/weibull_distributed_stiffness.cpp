@@ -51,7 +51,7 @@ Form * WeibullDistributedStiffness::getCopy() const
     std::default_random_engine generator(std::rand());
     std::weibull_distribution< double > distribution(5, 1);
     double weib = distribution(generator) ;
-    double factor = 1 - variability + variability*weib ;
+    double factor = 1. - variability + variability*weib ;
     StiffnessAndFracture * copy = new StiffnessAndFracture(
         param*factor,
         new NonLocalMCFT(
@@ -63,10 +63,11 @@ Form * WeibullDistributedStiffness::getCopy() const
     {
         delete copy->dfunc ;
         copy->dfunc = damageModel->getCopy() ;
+        copy->dfunc->setThresholdDamageDensity(damageModel->getThresholdDamageDensity());
+        copy->dfunc->setSecondaryThresholdDamageDensity(damageModel->getSecondaryThresholdDamageDensity());
     }
     copy->criterion->setMaterialCharacteristicRadius(materialRadius);
-    copy->dfunc->setThresholdDamageDensity(.99);
-    copy->dfunc->setSecondaryThresholdDamageDensity(.99);
+
 
     return copy ;
 }

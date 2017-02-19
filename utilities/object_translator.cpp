@@ -695,7 +695,7 @@ namespace Amie
         if( type == "SpaceTimeMultiSurfaceFractureCriterion" ) { return new SpaceTimeMultiSurfaceFractureCriterion() ; }
    
         // parsed from header file: ../physics/fracturecriteria/mohrcoulomb.h
-        if( type == "MohrCoulomb" ) { return new MohrCoulomb(values["tensile_strength"], values["compressive_strength"]) ; }
+        if( type == "MohrCoulomb" ) { return new MohrCoulomb(values["tensile_strength"], values["compressive_strength"], values["young_modulus"]) ; }
         if( type == "NonLocalMohrCoulomb" ) { return new NonLocalMohrCoulomb(values["tensile_strength"], values["compressive_strength"], values["young_modulus"]) ; }
         if( type == "SpaceTimeNonLocalMohrCoulomb" ) { return new SpaceTimeNonLocalMohrCoulomb(values["tensile_strength"], values["compressive_strength"], values["young_modulus"]) ; }
         if( type == "NonLocalLinearlyDecreasingMohrCoulomb" ) { return new NonLocalLinearlyDecreasingMohrCoulomb(values["tensile_strength"], values["compressive_strength"], values["tensile_ultimate_strain"], values["compressive_ultimate_strain"], values["young_modulus"]) ; }

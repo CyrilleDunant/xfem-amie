@@ -822,7 +822,7 @@ void TriangleGLDrawer::computeDisplayList()
 					float v = 0 ;
 					if(std::abs( max_val - min_val ) > 1e-12)
 					    v = ( ( *valuesAtPoint )[( 2 + N ) * numberOfPointsPerTriangle + j][i] - min_val ) / ( max_val - min_val );
-					if( std::abs(min_val) > 1e-4  &&  abs(max_val / min_val - 1.) < 1e-12)
+					if( std::abs(min_val) > 1e-4  &&  std::abs(max_val / min_val - 1.) < 1e-12)
 						v = 0.5 ;
 				
 					if( v < ( double )fracdown / 1000. )

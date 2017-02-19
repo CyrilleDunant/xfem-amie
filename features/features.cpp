@@ -5019,7 +5019,7 @@ bool FeatureTree::stepElements()
                         }
                     }
 
-                    std::cout << maxScore << "]" << std::flush ;
+                    std::cerr << maxScore << "]" << std::flush ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
                         if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE  && solverConverged() && !spaceTimeFixed)
@@ -5029,11 +5029,11 @@ bool FeatureTree::stepElements()
                             double end = j->second->cbegin()->getBoundingPoint ( j->second->cbegin()->getBoundingPoints().size() -1 ).getT() ;
                             if ( maxScore* ( end-begin ) > minDeltaTime )
                             {
-                                moveFirstTimePlanes ( ( 1.-maxScore ) * ( end-begin ) , j->second->begin(), j->second->end() ) ;
+                                moveFirstTimePlanes ( ( 1.-maxScore ) * ( end-begin ) -minDeltaTime*2., j->second->begin(), j->second->end() ) ;
                             }
-                            else if ( end - begin > minDeltaTime )
+                            else if ( end - begin > minDeltaTime*2. )
                             {
-                                moveFirstTimePlanes ( end-begin-minDeltaTime , j->second->begin(), j->second->end() ) ;
+                                moveFirstTimePlanes ( end-begin-minDeltaTime*2. , j->second->begin(), j->second->end() ) ;
                             }
                             else
                             {

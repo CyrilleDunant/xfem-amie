@@ -31,6 +31,9 @@
    the range [vmin,vmax]
 */
 
+
+
+
 typedef struct {
     double r,g,b;
 } COLOUR;

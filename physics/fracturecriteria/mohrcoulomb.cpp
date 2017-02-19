@@ -17,7 +17,7 @@
 namespace Amie
 {
 
-MohrCoulomb::MohrCoulomb( double up, double down) :  upVal( up ), downVal( down )
+MohrCoulomb::MohrCoulomb ( double up, double down, double E ): upVal(up), downVal(down), stiffness(E)
 {
     metInTension = false ;
     metInCompression = false ;
@@ -40,8 +40,6 @@ double MohrCoulomb::grade( ElementState &s )
     double maxStress = pstress.max() ;
     double minStress = pstress.min() ;
 
-    metInTension = false ;
-    metInCompression = false ;
     metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
     metInTension = !metInCompression ;
 
@@ -76,12 +74,11 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
     if( s.getParent()->getBehaviour()->fractured() )
         return -1 ;
 
-    Vector stress =  getSmoothedField(PRINCIPAL_REAL_STRESS_FIELD, s) ;
+    Vector stress =  getSmoothedField(PRINCIPAL_REAL_STRESS_FIELD , s,  0.) ;
+    
     double maxStress = stress.max() ;
     double minStress = stress.min() ;
 
-    metInTension = false ;
-    metInCompression = false ;
     metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
     metInTension = !metInCompression ;
 
