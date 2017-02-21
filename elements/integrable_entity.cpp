@@ -1851,7 +1851,6 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             {
                 
                 getField ( MECHANICAL_STRAIN_FIELD, gp.gaussPoints[i].first, tmp, true,vm, i ) ;
-                tmp -= getParent()->getBehaviour()->getImposedStrain(gp.gaussPoints[i].first) ;
 		 
                 for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
                 {
@@ -1943,8 +1942,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                 getField (MECHANICAL_STRAIN_FIELD, gp.gaussPoints[i].first, tmp, true,vm, i ) ;
-                tmp -= getParent()->getBehaviour()->getImposedStrain(gp.gaussPoints[i].first) ;
-                for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
+
+		for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
                 {
                     strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j] = tmp[j] ;
                 }

@@ -213,7 +213,7 @@ std::vector<BoundaryCondition * > PrandtlReussPlasticStrain::getBoundaryConditio
     if(!param || fractured() || hasInducedForces() == false)
         return ret ;
     
-    Vector imp = getImposedStress(*p_i.getPoint()) ;//(*param)*getImposedStrain(*p_i.getPoint()) ;
+    Vector imp = (*param)*getImposedStrain(*p_i.getPoint()) ;//getImposedStress(*p_i.getPoint()) ;//
     if(v.size() == 2)
     {
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, id, imp[0]));
@@ -235,37 +235,37 @@ std::vector<BoundaryCondition * > PrandtlReussPlasticStrain::getBoundaryConditio
 
 Vector PrandtlReussPlasticStrain::getImposedStress(const Point & p) const
 {
-    if(v.size() == 2 && !param)
-        return Vector(0., 3) ;
-    if(v.size() == 3 && !param)
-	return Vector(0., 6) ;
-    
-    if(fractured())
-    {
-        if(v.size() == 2)
-            return Vector(0., 3) ;
-        return Vector(0., 6) ;
-    }
-
-    Vector effImposed = imposedStrain*getState()[0]+previousImposedStrain ;
-//     effImposed[2] = sqrt(effImposed[0]*effImposed[0]) ;
-    return  (Vector)(*param*(1.-getDamage())*effImposed) ;
-}
-
-Vector PrandtlReussPlasticStrain::getImposedStrain(const Point & p) const
-{
     if(v.size() == 2 /*&& !param*/)
         return Vector(0., 3) ;
 //     if(v.size() == 3 /*&& !param*/)
-        return Vector(0., 6) ;
-
+	return Vector(0., 6) ;
+    
 //     if(fractured())
 //     {
 //         if(v.size() == 2)
 //             return Vector(0., 3) ;
 //         return Vector(0., 6) ;
 //     }
-//     return  imposedStrain*getState()[0]+previousImposedStrain ;
+// 
+//     Vector effImposed = imposedStrain*getState()[0]+previousImposedStrain ;
+// //     effImposed[2] = sqrt(effImposed[0]*effImposed[0]) ;
+//     return  (Vector)(*param*(1.-getDamage())*effImposed) ;
+}
+
+Vector PrandtlReussPlasticStrain::getImposedStrain(const Point & p) const
+{
+    if(v.size() == 2 && !param)
+        return Vector(0., 3) ;
+    if(v.size() == 3 && !param)
+        return Vector(0., 6) ;
+
+    if(fractured())
+    {
+        if(v.size() == 2)
+            return Vector(0., 3) ;
+        return Vector(0., 6) ;
+    }
+    return  imposedStrain*getState()[0]+previousImposedStrain ;
 
 }
 

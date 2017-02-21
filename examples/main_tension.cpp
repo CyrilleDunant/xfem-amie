@@ -151,10 +151,12 @@ void step ( size_t nsteps, Sample * samplef )
     int every = 2 ;
     bool relaxed = false ;
     bool go_on = true ;
+    
+    std::fstream ldfile ;
+    ldfile.open("loadStrain.txt", std::ios_base::in|std::ios_base::out|std::ios_base::trunc) ;
     for ( size_t v = 0 ; v < nsteps ; v++ )
     {
-	
-	
+
 	if(go_on && tries%every == 0 )
 	{
 	  featureTree->removeBoundaryCondition( loadr );
@@ -170,12 +172,9 @@ void step ( size_t nsteps, Sample * samplef )
         go_on = featureTree->step() ;
 
         if ( go_on )
-        {
 	  tries++ ;
-	  count++ ;
-        }
         else
-            nsteps++ ;
+           nsteps++ ;
 
         double volume = 0 ;
         double xavg = 0 ;
@@ -184,7 +183,9 @@ void step ( size_t nsteps, Sample * samplef )
         if ( go_on )
         {
 	    Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD ) ;
+	    Vector istemp = featureTree->getAverageField ( IMPOSED_STRESS_FIELD ) ;
 	    Vector etemp = featureTree->getAverageField ( MECHANICAL_STRAIN_FIELD ) ;
+	    Vector ietemp = featureTree->getAverageField ( IMPOSED_STRAIN_FIELD ) ;
 	  
             displacements.push_back ( etemp[1] );
             displacementsx.push_back ( etemp[0] );
@@ -196,8 +197,12 @@ void step ( size_t nsteps, Sample * samplef )
 	    std::cout << "average epsilon11 : " << etemp[0]*1e6 << std::endl ;
 	    std::cout << "average epsilon22 : " << etemp[1]*1e6 << std::endl ;
 	    std::cout << "average epsilon12 : " << etemp[2]*1e6 << std::endl ;
+	    std::cout << std::endl ;
+	    
+	    ldfile << stemp[0]/1e6 << "  " << stemp[1]/1e6 << "  " << stemp[2]/1e6 << "  " << etemp[0]*1e6 << "  " << etemp[1]*1e6 << "  " << etemp[2]*1e6 <<  "  " 
+	           << istemp[0]/1e6 << "  " << istemp[1]/1e6 << "  " << istemp[2]/1e6 << "  " << ietemp[0]*1e6 << "  " << ietemp[1]*1e6 << "  " << ietemp[2]*1e6 <<  std::endl ;
 
-	  std::cout << std::endl ;
+	  
         }
 
 	if (!relaxed)
@@ -242,6 +247,7 @@ void step ( size_t nsteps, Sample * samplef )
 	}
 
     }
+    ldfile.close() ;
 
 }
 
@@ -346,6 +352,7 @@ int main ( int argc, char *argv[] )
 // F.addPoint(new Point(0, 0)) ;
 
     F.setMaxIterationsPerStep ( 500 );
+    F.thresholdScoreMet = 0.01 ;
 
     step ( 300, &samplef ) ;
 
