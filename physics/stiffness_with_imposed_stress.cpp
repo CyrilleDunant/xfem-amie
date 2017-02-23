@@ -78,9 +78,10 @@ Vector StiffnessWithImposedStress::getImposedStress(const Point & p, IntegrableE
 
 Vector StiffnessWithImposedStress::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
-    Matrix compliance = param ;
-    Composite::invertTensor(compliance) ;
-    return compliance*imposed ;
+    return imposed*0. ;
+//    Matrix compliance = param ;
+//    Composite::invertTensor(compliance) ;
+//    return compliance*imposed ;
 }
 
 std::vector<BoundaryCondition * > StiffnessWithImposedStress::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
@@ -91,6 +92,7 @@ std::vector<BoundaryCondition * > StiffnessWithImposedStress::getBoundaryConditi
     {
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, imposed[0]));
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, imposed[1]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, imposed[2]));
     }
     if(v.size() == 3)
     {

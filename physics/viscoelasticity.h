@@ -131,9 +131,9 @@ struct Viscoelasticity : public LinearForm
 	
 	virtual Matrix getViscousTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const { return eta ; }
 	
-	virtual Vector getForcesFromAppliedStress( const Vector & data, const Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, const std::vector<Variable> & v, bool isVolumic = false, const Vector & normal = Vector()) const ;
+	virtual Vector getForcesFromAppliedStress( const Vector & data, const Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, const std::vector<Variable> & v, bool isVolumic = false, const Vector & normal = Vector(), VirtualMachine *vm = nullptr) const ;
 
-	virtual Vector getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic = false, const Vector & normal = Vector()) ;
+	virtual Vector getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic = false, const Vector & normal = Vector(), VirtualMachine *vm = nullptr) ;
 	
 	virtual void print() const ;
 	

@@ -82,7 +82,6 @@ Vector StiffnessWithImposedDeformation::getImposedStrain(const Point & p, Integr
 
 std::vector<BoundaryCondition * > StiffnessWithImposedDeformation::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
-
     std::vector<BoundaryCondition * > ret ;
     if(v.size() == 2)
     {

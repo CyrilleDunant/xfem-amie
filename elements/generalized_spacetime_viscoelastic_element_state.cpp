@@ -354,25 +354,29 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointB
     if(f == REAL_STRESS_FIELD)
     {
         generalizedBuffer = getCachedFieldAtGaussPointBefore( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, gp, i, vm) ;
+        strainBuffer = parent->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+        for(size_t j = 0 ; j < strainBuffer.size() ; j++)
+            generalizedBufferSecond[j] -= strainBuffer[j] ;
         generalizedBufferSecond = (Vector) ((parent->getBehaviour()->getTensor( gp.gaussPoints[i].first ))*generalizedBuffer) ;
         generalizedBuffer = getCachedFieldAtGaussPointBefore( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, gp, i, vm) ;
         generalizedBufferSecond += (Vector) ((parent->getBehaviour()->getViscousTensor( gp.gaussPoints[i].first ))*generalizedBuffer) ;
-        strainBuffer = parent->getBehaviour()->getImposedStress( gp.gaussPoints[i].first ) ;
         ret.resize(strainBuffer.size()) ;
         for(size_t j = 0 ; j < ret.size() ; j++)
-            ret[j] = generalizedBufferSecond[j]-strainBuffer[j] ;
+            ret[j] = generalizedBufferSecond[j] ;
         return ret ;
     }
     if(f == EFFECTIVE_STRESS_FIELD)
     {
         generalizedBuffer = getCachedFieldAtGaussPointBefore( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, gp, i, vm) ;
+        strainBuffer = parent->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+        for(size_t j = 0 ; j < strainBuffer.size() ; j++)
+            generalizedBufferSecond[j] -= strainBuffer[j] ;
         generalizedBufferSecond = (Vector) ((parent->getBehaviour()->param)*generalizedBuffer) ;
         generalizedBuffer = getCachedFieldAtGaussPointBefore( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, gp, i, vm) ;
         generalizedBufferSecond += (Vector) ((dynamic_cast<Viscoelasticity *>(parent->getBehaviour())->eta)*generalizedBuffer) ;
-        strainBuffer = parent->getBehaviour()->getImposedStress( gp.gaussPoints[i].first ) ;
         ret.resize(strainBuffer.size()) ;
         for(size_t j = 0 ; j < ret.size() ; j++)
-            ret[j] = generalizedBufferSecond[j]-strainBuffer[j] ;
+            ret[j] = generalizedBufferSecond[j] ;
         return ret ;
     }
     if(f == PRINCIPAL_STRAIN_FIELD)
@@ -478,27 +482,31 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointA
     if(f == REAL_STRESS_FIELD)
     {
         generalizedBuffer = getCachedFieldAtGaussPointAfter( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, gp, i, vm) ;
+        strainBuffer = parent->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+        for(size_t j = 0 ; j < strainBuffer.size() ; j++)
+            generalizedBuffer[j] -= strainBuffer[j] ;
         generalizedBufferSecond = (Vector) ((parent->getBehaviour()->getTensor( gp.gaussPoints[i].first ))*generalizedBuffer) ;
         generalizedBuffer = getCachedFieldAtGaussPointAfter( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, gp, i, vm) ;
         generalizedBufferSecond += (Vector) ((parent->getBehaviour()->getViscousTensor( gp.gaussPoints[i].first ))*generalizedBuffer) ;
-        
-        strainBuffer = parent->getBehaviour()->getImposedStress( gp.gaussPoints[i].first ) ;
         ret.resize(strainBuffer.size()) ;
         for(size_t j = 0 ; j < ret.size() ; j++)
-            ret[j] = generalizedBufferSecond[j]-strainBuffer[j] ;
+            ret[j] = generalizedBufferSecond[j] ;
         return ret ;
+
     }
     if(f == EFFECTIVE_STRESS_FIELD)
     {
         generalizedBuffer = getCachedFieldAtGaussPointAfter( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, gp, i, vm) ;
+        strainBuffer = parent->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+        for(size_t j = 0 ; j < strainBuffer.size() ; j++)
+            generalizedBuffer[j] -= strainBuffer[j] ;
         generalizedBufferSecond = (Vector) ((parent->getBehaviour()->param)*generalizedBuffer) ;
         generalizedBuffer = getCachedFieldAtGaussPointAfter( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, gp, i, vm) ;
         generalizedBufferSecond += (Vector) ((dynamic_cast<Viscoelasticity *>(parent->getBehaviour())->eta)*generalizedBuffer) ;
         
-        strainBuffer = parent->getBehaviour()->getImposedStress( gp.gaussPoints[i].first ) ;
         ret.resize(strainBuffer.size()) ;
         for(size_t j = 0 ; j < ret.size() ; j++)
-            ret[j] = generalizedBufferSecond[j]-strainBuffer[j] ;
+            ret[j] = generalizedBufferSecond[j] ;
         return ret ;
     }
     if(f == PRINCIPAL_STRAIN_FIELD)

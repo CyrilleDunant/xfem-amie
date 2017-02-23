@@ -917,8 +917,17 @@ Form * Viscoelasticity::getCopy() const
     return copy ;
 }
 
-Vector Viscoelasticity::getForcesFromAppliedStress( const Vector & data, const Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, const std::vector<Variable> & v, bool isVolumic, const Vector & normal) const
+Vector Viscoelasticity::getForcesFromAppliedStress( const Vector & data, const Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, const std::vector<Variable> & v, bool isVolumic, const Vector & normal, VirtualMachine *vm) const
 {
+    if( vm != nullptr )
+    {
+        if(isVolumic)
+        {
+            return vm->ieval(GradientDot( shape ) * data, gp, Jinv, v) ;
+        }
+        return data * vm->ieval(Differential( shape, TIME_VARIABLE ), gp, Jinv, v) ;
+    }
+
     if(isVolumic)
     {
         return VirtualMachine().ieval(GradientDot( shape ) * data, gp, Jinv, v) ;
@@ -926,28 +935,35 @@ Vector Viscoelasticity::getForcesFromAppliedStress( const Vector & data, const F
     return data * VirtualMachine().ieval(Differential( shape, TIME_VARIABLE ), gp, Jinv, v) ;
 }
 
-Vector Viscoelasticity::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic, const Vector & normal)
+Vector Viscoelasticity::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic, const Vector & normal, VirtualMachine *vm)
 {
-    VirtualMachine vm ;
+    bool cleanup = false ;
+    if( vm == nullptr )
+    {
+        vm = new VirtualMachine() ;
+        cleanup = true ;
+    }
 
     size_t n = e->getBoundingPoints().size() ;
     Vector field(0., n*externaldofs) ;
     for(size_t i = 0 ; i < n ; i++)
-        field[ i*externaldofs + index ] = vm.eval( data, e->getBoundingPoint(i) ) ;
+        field[ i*externaldofs + index ] = vm->eval( data, e->getBoundingPoint(i) ) ;
 
     std::vector<Vector> g(e->getGaussPoints().gaussPoints.size(), Vector(0., externaldofs)) ;
     e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
 
-    Vector f = vm.ieval( GradientDot( shape ) * g, gp, Jinv, v) ;
+    Vector f = vm->ieval( GradientDot( shape ) * g, gp, Jinv, v) ;
 
     field = 0 ;
     for(size_t i = 0 ; i < n ; i++)
-        field[ i*externaldofs + index ] = vm.deval( data, TIME_VARIABLE, e->getBoundingPoint(i) ) ;
+        field[ i*externaldofs + index ] = vm->deval( data, TIME_VARIABLE, e->getBoundingPoint(i) ) ;
 
     e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
 
-    Vector f1 = vm.ieval( Gradient( shape ) * g, gp, Jinv, v) ;
+    Vector f1 = vm->ieval( Gradient( shape ) * g, gp, Jinv, v) ;
     f += f1 ;
+
+    if( cleanup ) { delete vm ; }
 
     return f*0.5 ;
 }

@@ -54,7 +54,7 @@ public:
 
     virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, VirtualMachine * vm = nullptr, int i = 0, int j = 0) final;
 
-    virtual double getAverageField( FieldType f, Vector & ret, VirtualMachine * vm = nullptr, double t = 1, const std::vector< double > & weights = std::vector<double>(), int i = 0)final ;
+    virtual double getAverageField( FieldType f, Vector & ret, VirtualMachine * vm = nullptr, double t = 1, const std::vector< double > & weights = std::vector<double>(), int i = 0) final ;
 
     virtual double getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, VirtualMachine * vm = nullptr, double t = 1, const std::vector< double > & weights = std::vector<double>(), int i = 0) final ;
 

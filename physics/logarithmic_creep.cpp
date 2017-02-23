@@ -189,7 +189,7 @@ Vector LogarithmicCreepWithImposedDeformation::getImposedStrain(const Point & p,
         			return prevImposed*VirtualMachine().eval(f1, p_) + imposed*VirtualMachine().eval(f2, p_) ;
         		}*/
 //        std::cout << imposed[0]*(p.getT()+1)*0.5 + prevImposed[0]*(1-p.getT())*0.5 << std::endl ;
-	return imposed*(p.getT()+1)*0.5 + prevImposed*(1-p.getT())*0.5 ;
+	    return imposed*(p.getT()+1)*0.5 + prevImposed*(1-p.getT())*0.5 ;
     }
     return Vector(0., C.numCols()) ;
 }
@@ -211,7 +211,7 @@ std::vector<BoundaryCondition * > LogarithmicCreepWithImposedDeformation::getBou
         Vector istress = C * imposed   ;
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[0]));
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[1]));
-	ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[2]));
+	    ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[2]));
     }
     if(v.size() == 4)
     {
@@ -338,14 +338,14 @@ Vector LogarithmicCreepWithImposedDeformationAndFracture::getImposedStrain(const
 Vector LogarithmicCreepWithImposedDeformationAndFracture::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
     Vector ret = LogarithmicCreepWithImposedDeformation::getImposedStrain(p,e,g)*0. ;
-//     if(dfunc)
-//     {
-//         ret = dfunc->apply(C)*ret ;
-//         if(dfunc->hasInducedForces())
-//             ret += dfunc->getImposedStress(p) ;
-//     }
-//     else
-//         ret = C*ret ;
+/*     if(dfunc)
+     {
+         ret = dfunc->apply(C)*ret ;
+         if(dfunc->hasInducedForces())
+             ret += dfunc->getImposedStress(p) ;
+     }
+     else
+         ret = C*ret ;*/
 
     return ret ;
 }

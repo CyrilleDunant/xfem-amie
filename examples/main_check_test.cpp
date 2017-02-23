@@ -284,6 +284,13 @@ int main(int argc, char *argv[])
 
 	for(size_t i = 0 ; i < inis.size() && ini ; i++)
 	{
+        if( isDeprecated( "check_behaviour_"+inis[i].substr( 0, inis[i].size()-4 ) ) )
+        {
+			std::cout << inis[i] << Font(BOLD, BLUE) << " skipped" << Font() <<  std::endl ;
+			skipped++ ;
+			continue ;
+        }
+
 		timeval time0, time1 ;
 		gettimeofday ( &time0, nullptr );
 		std::cout << inis[i] << std::flush ;

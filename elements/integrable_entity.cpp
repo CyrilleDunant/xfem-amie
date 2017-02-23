@@ -228,7 +228,7 @@ void Form::getViscousTensorDotAtGaussPoints( const GaussPointArray & gp, const s
 
 void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
 {
-    if ( !getBehaviour() || !(getBehaviour()->getDamageModel() && (getBehaviour()->getDamageModel()->hasInducedBoundaryConditions() || !getBehaviour()->hasInducedForces())))
+    if ( !getBehaviour() || !( (getBehaviour()->getDamageModel() && getBehaviour()->getDamageModel()->hasInducedBoundaryConditions()) || getBehaviour()->hasInducedForces()))
     {
         return ;
     }
@@ -1770,7 +1770,6 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
-                
                 getField ( f, gp.gaussPoints[i].first, tmp, true,vm, i ) ;
                 for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
                 {
