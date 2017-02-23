@@ -1736,7 +1736,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         ret.resize( fieldTypeElementarySize ( f, parent->spaceDimensions(), blocks ) , 0.) ;
     else
         ret = 0 ;
-//     double v = (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? parent->area() : parent->volume() ;
+    double v = (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? parent->area() : parent->volume() ;
+    double w = 0 ;
     double total = 0 ;
     bool weighted = true ;
     
@@ -1744,6 +1745,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
     {
         weighted = false ;
     }
+    if(weighted)
+    {
+        for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) 
+	  w += weights[i] ;
+    }
+    else 
+      w = 1 ;
 
     switch ( f )
     {
@@ -1789,6 +1797,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             else
             {
                 ret = 0 ;
+		
             }
             if ( cleanup )
             {
@@ -1832,7 +1841,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         }
         #pragma omp atomic write
         lock = false ;
-        return total;
+        return v*w;
     case MECHANICAL_STRAIN_FIELD :
 
         if ( strainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
@@ -1922,7 +1931,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         }
         #pragma omp atomic write
         lock = false ;
-        return total;
+        return v*w;
 
     case PRINCIPAL_MECHANICAL_STRAIN_FIELD :
 
@@ -2016,7 +2025,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         }
         #pragma omp atomic write
         lock = false ;
-        return total;
+        return v*w;
     case PRINCIPAL_STRAIN_FIELD :
 
         if ( pstrainAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) )
@@ -2101,7 +2110,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         }
         #pragma omp atomic write
         lock = false ;
-        return total;
+        return v*w;
     case REAL_STRESS_FIELD:
 
         if ( stressAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
@@ -2188,7 +2197,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         }
         #pragma omp atomic write
         lock = false ;
-        return total;
+        return v*w;
     case PRINCIPAL_REAL_STRESS_FIELD :
         if ( pstressAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) )
         {
@@ -2274,7 +2283,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         }
         #pragma omp atomic write
         lock = false ;
-        return total;
+        return v*w;
     case EFFECTIVE_STRESS_FIELD:
         if ( stressAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
         {
@@ -2360,7 +2369,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         }
         #pragma omp atomic write
         lock = false ;
-        return total;
+        return v*w;
     case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
         if ( pstressAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) )
         {
@@ -2446,7 +2455,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         }
         #pragma omp atomic write
         lock = false ;
-        return total;
+        return v*w;
 
     case PRINCIPAL_STRESS_ANGLE_FIELD:
         if ( stressAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
@@ -2541,7 +2550,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         }
         #pragma omp atomic write
         lock = false ;
-        return total;
+        return v*w;
 
     case PRINCIPAL_STRAIN_ANGLE_FIELD:
         if ( strainAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
@@ -2643,7 +2652,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         }
         #pragma omp atomic write
         lock = false ;
-        return total;
+        return v*w;
 
     default :
 
@@ -2673,7 +2682,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         }
         #pragma omp atomic write
         lock = false ;
-        return total;
+        return v*w;
     }
 }
 
@@ -2702,13 +2711,21 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
     const GaussPointArray & gp = parent->getGaussPoints() ;
     ret = 0 ;
     ret_ = 0 ;
-    double v = 0 ; //(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? parent->area() : parent->volume() ;
+    double v = (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? parent->area() : parent->volume() ;
+    double w = 0 ;
     double total = 0 ;
     bool weighted = true ;
     if ( weights.size() != gp.gaussPoints.size() )
     {
         weighted = false ;
     }
+    if(weighted)
+    {
+       for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
+	 w+= weights[i] ;
+    }
+    else 
+      w = 1 ;
 
     if ( f == MECHANICAL_STRAIN_FIELD && ( f_ == EFFECTIVE_STRESS_FIELD || f_ == REAL_STRESS_FIELD ) )
     {
@@ -2808,7 +2825,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
         }
         #pragma omp atomic write
         lock = false ;
-        return total ;
+        return v*w ;
     }
     
     if ( f == PRINCIPAL_STRAIN_FIELD && ( f_ == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD ) )
@@ -2906,7 +2923,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
         }
         #pragma omp atomic write
         lock = false ;
-        return total;
+        return v*w;
     }
 
 
@@ -2918,7 +2935,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
     }
     #pragma omp atomic write
     lock = false ;
-    return v ;
+    return v*w ;
 
 }
 

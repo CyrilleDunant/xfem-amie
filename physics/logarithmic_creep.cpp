@@ -196,8 +196,8 @@ Vector LogarithmicCreepWithImposedDeformation::getImposedStrain(const Point & p,
 
 Vector LogarithmicCreepWithImposedDeformation::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
-    if(imposed.size())
-        return C*getImposedStrain(p,e,g) ;
+//     if(imposed.size())
+//         return C*getImposedStrain(p,e,g) ;
     return Vector(0., C.numCols()) ;
 }
 
@@ -211,13 +211,17 @@ std::vector<BoundaryCondition * > LogarithmicCreepWithImposedDeformation::getBou
         Vector istress = C * imposed   ;
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[0]));
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[1]));
+	ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[2]));
     }
     if(v.size() == 4)
     {
         Vector istress = C * imposed ;
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[0]));
-        ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[1]));
-        ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[2]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[1]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[2]));
+	ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[3]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[4]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[5]));
     }
     return ret ;
 
@@ -333,15 +337,15 @@ Vector LogarithmicCreepWithImposedDeformationAndFracture::getImposedStrain(const
 
 Vector LogarithmicCreepWithImposedDeformationAndFracture::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
-    Vector ret = LogarithmicCreepWithImposedDeformation::getImposedStrain(p,e,g) ;
-    if(dfunc)
-    {
-        ret = dfunc->apply(C)*ret ;
-        if(dfunc->hasInducedForces())
-            ret += dfunc->getImposedStress(p) ;
-    }
-    else
-        ret = C*ret ;
+    Vector ret = LogarithmicCreepWithImposedDeformation::getImposedStrain(p,e,g)*0. ;
+//     if(dfunc)
+//     {
+//         ret = dfunc->apply(C)*ret ;
+//         if(dfunc->hasInducedForces())
+//             ret += dfunc->getImposedStress(p) ;
+//     }
+//     else
+//         ret = C*ret ;
 
     return ret ;
 }

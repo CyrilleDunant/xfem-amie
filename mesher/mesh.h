@@ -573,46 +573,48 @@ public:
                     coefs[position].push_back ( std::vector<double>() ) ;
                     if(element->getOrder() >= CONSTANT_TIME_LINEAR)
                     {
+		      double a = (spaceDimensions == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
                         if(source)
                         {
                             Function x = element->getXTransformAtCentralNodalTime() ;
                             Function y = element->getYTransformAtCentralNodalTime() ;
                             Function z = element->getZTransformAtCentralNodalTime() ;
     //		            Function t = element->getTTransform() ;
-			    double a = (element->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
+			    
                             GaussPointArray gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
                             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
                                 double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
                                 double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
                                 double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
 
-                                coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, 0. )*a );
+                                coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, 0. )*a/gp.gaussPoints.size() );
                             }
                         }
                         else
                         {
                             GaussPointArray gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
                             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
-                                coefs[position].back().push_back ( 1. );
+                                coefs[position].back().push_back ( a/gp.gaussPoints.size() );
                             }
                         }
                     }
                     else
                     {
+		      double a = (element->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
                         if(source)
                         {
                             Function x = element->getXTransform() ;
                             Function y = element->getYTransform() ;
                             Function z = element->getZTransform() ;
                             GaussPointArray gp = element->getGaussPoints() ;
-			    double a = (element->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
+			    
 
                             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
                                 double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
                                 double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
                                 double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
 
-                                coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, 0. )*a );
+                                coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, 0. )*a/gp.gaussPoints.size() );
                             }
                             
                             if(gp.gaussPoints.size() == 1)
@@ -628,14 +630,20 @@ public:
                            GaussPointArray gp = element->getGaussPoints() ;
 
                             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
-                                coefs[position].back().push_back ( 1. );
+                                coefs[position].back().push_back ( a/gp.gaussPoints.size() );
                             }
                         }
                     }
                 }
             }
         }
-
+        double tot = 0 ;
+	for(size_t i = 0 ;  i < coefs[position].size() ; i++)
+	  for(size_t j = 0 ;  j < coefs[position][i].size() ; j++)
+	    tot += coefs[position][i][j] ; 
+	for(size_t i = 0 ;  i < coefs[position].size() ; i++)
+	  for(size_t j = 0 ;  j < coefs[position][i].size() ; j++) 
+	    coefs[position][i][j] /= tot ;
         return position ;
     } ;
 
@@ -661,13 +669,13 @@ public:
                 Function z = element->getZTransformAtCentralNodalTime() ;
 //                  Function t = element->getTTransform() ;
                 GaussPointArray gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
-		double a = (element->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
+		double a = (spaceDimensions == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
                 for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
                     double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
                     double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
                     double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
 
-                    coefs[position][iter].push_back ( vm.eval ( smoothing, xx, xy, xz, 0. )*a );
+                    coefs[position][iter].push_back ( vm.eval ( smoothing, xx, xy, xz, 0. )*a/gp.gaussPoints.size() );
                 }
             }
             else
@@ -684,7 +692,7 @@ public:
                     double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
 
                     if(element->getBehaviour()->fractured())
-                        coefs[position][iter].push_back ( vm.eval ( smoothing, xx, xy, xz, 0. )*a );
+                        coefs[position][iter].push_back ( vm.eval ( smoothing, xx, xy, xz, 0. )*a/gp.gaussPoints.size() );
                     else
                         coefs[position][iter].push_back ( 0. );
                 }
@@ -700,6 +708,14 @@ public:
             }
             iter++ ;
         }
+        
+        double tot = 0 ;
+        for(size_t i = 0 ;  i < coefs[position].size() ; i++)
+	  for(size_t j = 0 ;  j < coefs[position][i].size() ; j++)
+	    tot += coefs[position][i][j] ; 
+	for(size_t i = 0 ;  i < coefs[position].size() ; i++)
+	  for(size_t j = 0 ;  j < coefs[position][i].size() ; j++) 
+	    coefs[position][i][j] /= tot ;
     }
 
     } ;
@@ -871,7 +887,7 @@ public:
             if(w > POINT_TOLERANCE*POINT_TOLERANCE)
 	      ret /=w ;
 	    
-	    return ret/w ;
+	    return ret ;
         }
         if(cacheID == -1)
             cacheID = allElementsCacheID ;
@@ -899,7 +915,7 @@ public:
         if(w > POINT_TOLERANCE*POINT_TOLERANCE)
 	  ret /=w ;
 	
-	return ret/w ;
+	return ret ;
     }
     
     virtual Vector getField ( FieldType f, const Point & p, Vector & ret, double t = 1, int index = 0 ) 
@@ -1058,7 +1074,6 @@ public:
                         
                         v = ci->getState().getAverageField ( MECHANICAL_STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef ); 
                     }                   
-
                     strainCache[thread] += bufferCache[thread]*v ;
                     sumFactors += v ;
 
@@ -1137,6 +1152,7 @@ public:
                 if ( !spaceTime ) {
                     double sum = 0 ; 
                     Point p ;
+		    
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
                         if(!restrict.empty() && restrict.size() == e->getGaussPoints().gaussPoints.size())
@@ -1156,7 +1172,7 @@ public:
             else if ( f0 == EFFECTIVE_STRESS_FIELD ) {
                 firstResultCache[thread].resize ( tsize );
                 if ( !spaceTime ) {
-                    firstResultCache[thread] = strainCache[thread]*e->getBehaviour()->param ;
+                    firstResultCache[thread] = (strainCache[thread]-e->getBehaviour()->getImposedStrain( Point() ))*e->getBehaviour()->param ;
                 } else {
                     firstResultCache[thread] = stressCache[thread] ;
                 }
@@ -1164,7 +1180,7 @@ public:
             else if ( f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
                 firstResultCache[thread].resize ( psize );
                 if ( !spaceTime ) {
-                    firstResultCache[thread] = toPrincipal( strainCache[thread]*e->getBehaviour()->param , SINGLE_OFF_DIAGONAL_VALUES) ;
+                    firstResultCache[thread] = toPrincipal( (strainCache[thread]-e->getBehaviour()->getImposedStrain( Point() ))*e->getBehaviour()->param , SINGLE_OFF_DIAGONAL_VALUES) ;
                 } else {
                     firstResultCache[thread] = toPrincipal( stressCache[thread] , SINGLE_OFF_DIAGONAL_VALUES) ;
                 }
@@ -1335,7 +1351,6 @@ public:
                 }
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
-
                     double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
                     strainRateGenViscoCache[thread] += bufferCache[thread]*v ;
                 }
@@ -1524,8 +1539,9 @@ public:
             }
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
+		
                 if(ci->getBehaviour()->fractured())
-                        continue ;                    
+                        continue ;    
                 if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
                     double v = ci->getState().getAverageField ( f1, bufferCache[thread], &vm, t,coefs[cacheID][i], index1 );
                     if ( !secondResultCache[thread].size() ) {

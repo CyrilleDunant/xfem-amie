@@ -129,7 +129,7 @@ Vector epsilon12 ( 0 ) ;
 Vector vonMises ( 0 ) ;
 Vector angle ( 0 ) ;
 
-BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition ( SET_ALONG_XI, BOTTOM_RIGHT,0 ) ;
+BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition ( SET_ALONG_XI, BOTTOM,0 ) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,Point(.02, 0), 0) ;
 
 double factor = 25 ;
@@ -182,10 +182,10 @@ void step ( size_t nsteps, Sample * samplef )
 
         if ( go_on )
         {
-	    Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD ) ;
-	    Vector istemp = featureTree->getAverageField ( IMPOSED_STRESS_FIELD ) ;
-	    Vector etemp = featureTree->getAverageField ( MECHANICAL_STRAIN_FIELD ) ;
-	    Vector ietemp = featureTree->getAverageField ( IMPOSED_STRAIN_FIELD ) ;
+	    Vector stemp = featureTree->getAverageField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
+	    Vector istemp = featureTree->getAverageField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
+	    Vector etemp = featureTree->getAverageField ( PRINCIPAL_MECHANICAL_STRAIN_FIELD ) ;
+	    Vector ietemp = featureTree->getAverageField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
 	  
             displacements.push_back ( etemp[1] );
             displacementsx.push_back ( etemp[0] );
@@ -193,14 +193,12 @@ void step ( size_t nsteps, Sample * samplef )
             loadsx.push_back ( stemp[0] );
 	    std::cout << "\naverage sigma11 : " << stemp[0]/1e6 << std::endl ;
 	    std::cout << "average sigma22 : " << stemp[1]/1e6 << std::endl ;
-	    std::cout << "average sigma12 : " << stemp[2]/1e6 << std::endl ;
 	    std::cout << "average epsilon11 : " << etemp[0]*1e6 << std::endl ;
 	    std::cout << "average epsilon22 : " << etemp[1]*1e6 << std::endl ;
-	    std::cout << "average epsilon12 : " << etemp[2]*1e6 << std::endl ;
 	    std::cout << std::endl ;
 	    
-	    ldfile << stemp[0]/1e6 << "  " << stemp[1]/1e6 << "  " << stemp[2]/1e6 << "  " << etemp[0]*1e6 << "  " << etemp[1]*1e6 << "  " << etemp[2]*1e6 <<  "  " 
-	           << istemp[0]/1e6 << "  " << istemp[1]/1e6 << "  " << istemp[2]/1e6 << "  " << ietemp[0]*1e6 << "  " << ietemp[1]*1e6 << "  " << ietemp[2]*1e6 <<  std::endl ;
+	    ldfile << stemp[0]/1e6 << "  " << stemp[1]/1e6 << "  " << etemp[0]*1e6 << "  " << etemp[1]*1e6 <<  "  " 
+	           << istemp[0]/1e6 << "  " << istemp[1]/1e6 << "  "  << ietemp[0]*1e6 << "  " << ietemp[1]*1e6 <<  std::endl ;
 
 	  
         }
@@ -341,9 +339,9 @@ int main ( int argc, char *argv[] )
     F.addBoundaryCondition ( loadr );
 // 	F.addBoundaryCondition(loadt);
 
-//     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, BOTTOM_LEFT ) ) ;
-    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM ) ) ;
-    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, TOP_LEFT ) ) ;
+    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA, BOTTOM ) ) ;
+    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,TOP ) ) ;
+    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, TOP ) ) ;
 //     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,TOP_LEFT ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
