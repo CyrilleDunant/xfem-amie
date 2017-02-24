@@ -565,7 +565,7 @@ public:
                 coefs.push_back ( std::vector<std::vector<double>>() );
             }
             for ( auto & element : elems ) {
-                if ( (source && element->getBehaviour() && element->getBehaviour()->getSource() != source) || element->getBehaviour()->type == VOID_BEHAVIOUR) {
+                if ( (source && element->getBehaviour() && element->getBehaviour()->getSource() != source) || (element->getBehaviour() && element->getBehaviour()->type == VOID_BEHAVIOUR)) {
                     continue ;
                 }
                 if ( locus->in ( element->getCenter() ) ) {
@@ -658,7 +658,7 @@ public:
 
 
             coefs[position][iter].clear() ;
-            if ( (source && element->getBehaviour() && element->getBehaviour()->getSource() != source) || element->getBehaviour()->type == VOID_BEHAVIOUR) {
+            if ( (source && element->getBehaviour() && element->getBehaviour()->getSource() != source) || (element->getBehaviour() && element->getBehaviour()->type == VOID_BEHAVIOUR)) {
                 continue ;
             }
             if(element->getOrder() >= CONSTANT_TIME_LINEAR)
