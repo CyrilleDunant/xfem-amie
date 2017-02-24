@@ -55,8 +55,8 @@ double SpaceTimeNonLocalMaximumStrain::grade(ElementState &s)
 		return -1 ;
 
 
-	Vector stateBefore( getSmoothedField( PRINCIPAL_STRAIN_FIELD, s, -1) ) ;
-	Vector stateAfter( getSmoothedField( PRINCIPAL_STRAIN_FIELD, s, 1) ) ;
+	Vector stateBefore( getSmoothedField( PRINCIPAL_TOTAL_STRAIN_FIELD, s, -1) ) ;
+	Vector stateAfter( getSmoothedField( PRINCIPAL_TOTAL_STRAIN_FIELD, s, 1) ) ;
 	double maxStrainAfter = stateAfter.max() ;
 	double maxStrainBefore = stateBefore.max() ;
 

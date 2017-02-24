@@ -24,7 +24,7 @@ std::pair<Vector, Vector> StrainBrokenIsotropicLinearDamage::computeDamageIncrem
 {
 	Vector ret(1) ; 
 	Vector pstrain(0., s.getParent()->spaceDimensions()) ;
-	s.getField( PRINCIPAL_STRAIN_FIELD, s.getParent()->getCenter(), pstrain, false) ;
+	s.getField( PRINCIPAL_TOTAL_STRAIN_FIELD, s.getParent()->getCenter(), pstrain, false) ;
 	if(pstrain.max() > limitStrain)
 	{
 		ret[0] = (1.+damageDensityTolerance*64.)*thresholdDamageDensity/fraction - state[0] ; //thresholdDamageDensity/fraction+POINT_TOLERANCE ;
@@ -39,7 +39,7 @@ void StrainBrokenIsotropicLinearDamage::computeDelta(ElementState & s)
 {
 	Vector ret(1) ; 
 	Vector pstrain(0., s.getParent()->spaceDimensions()) ;
-	s.getField( PRINCIPAL_STRAIN_FIELD, s.getParent()->getCenter(), pstrain, false) ;
+	s.getField( PRINCIPAL_TOTAL_STRAIN_FIELD, s.getParent()->getCenter(), pstrain, false) ;
 	if(pstrain.max() > limitStrain)
 	{
 		ret[0] = (1.+damageDensityTolerance*64.)*thresholdDamageDensity/fraction - state[0] ; //thresholdDamageDensity/fraction+POINT_TOLERANCE ;

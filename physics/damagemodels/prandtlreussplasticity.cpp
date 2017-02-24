@@ -45,7 +45,7 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
     if(!es)
     {
         es = &s ;
-        setConvergenceType(DISSIPATIVE);
+        setConvergenceType(CONSERVATIVE);
     }
 
     if(!param)
@@ -78,11 +78,7 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
 	  stress[5] *= 0.5 ;
 	}
 
-	//we reduce the shear...
-	double reduction = 1. ;
-	
 	imposedStrain = stress ;
-
 
         double norm = sqrt((imposedStrain*imposedStrain).sum()) ;
 	double onorm = factor*std::max(1.,sqrt(((stress-originalIstrain)*(stress-originalIstrain)).sum())) ;
@@ -93,7 +89,7 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
 	}
 	
 	//we need to flow in the right direction
-	state[0] = POINT_TOLERANCE*POINT_TOLERANCE ;
+	state[0] = POINT_TOLERANCE ;
 	s.getField( REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD,Point(), stress, strain, true) ;
 
 	tr = (stress.size()==3)?(stress[0]+stress[1]):(stress[0]+stress[1]+stress[2]) ;
@@ -126,29 +122,29 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
 	  imposedStrain *= onorm ;
 	}
 // 	
-	double mini = -.01 ;
-	double mins = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-	for(double i = -.01 ; i < .01 ; i+=0.0001)
-	{
-	  s.strainAtGaussPointsSet = false ;
-	  s.stressAtGaussPointsSet = false ;
-	  state[0] = i ;
-	  if(s.getParent()->getBehaviour()->getFractureCriterion()->grade(s) < mins)
-	  {
-	    mini = i ;
-	    mins = s.getParent()->getBehaviour()->getFractureCriterion()->grade(s) ;
-	  }
-	}
-	 state[0] = 0 ;
-	 s.getParent()->getBehaviour()->getFractureCriterion()->grade(s) ;
-	 s.strainAtGaussPointsSet = true ;
-	 s.stressAtGaussPointsSet = true ;
-	
-	if(mini < 0)
-	{
-	  imposedStrain *= -1; 
-// 	  imposedStrain[2] *= sqrt(imposedStrain[0]*imposedStrain[0]) ;
-	}
+// 	double mini = -.01 ;
+// 	double mins = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
+// 	for(double i = -.05 ; i < .05 ; i+=0.001)
+// 	{
+// 	  s.strainAtGaussPointsSet = false ;
+// 	  s.stressAtGaussPointsSet = false ;
+// 	  state[0] = i ;
+// 	  if(s.getParent()->getBehaviour()->getFractureCriterion()->grade(s) < mins)
+// 	  {
+// 	    mini = i ;
+// 	    mins = s.getParent()->getBehaviour()->getFractureCriterion()->grade(s) ;
+// 	  }
+// 	}
+// 	 state[0] = 0 ;
+// 	 s.getParent()->getBehaviour()->getFractureCriterion()->grade(s) ;
+// 	 s.strainAtGaussPointsSet = true ;
+// 	 s.stressAtGaussPointsSet = true ;
+// 	
+// 	if(mini < 0)
+// 	{
+// 	  imposedStrain *= -1; 
+// // 	  imposedStrain[2] *= sqrt(imposedStrain[0]*imposedStrain[0]) ;
+// 	}
 	state[0] = 0 ;
 	
         inCompression = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(1) ;
@@ -167,31 +163,33 @@ int PrandtlReussPlasticStrain::getMode() const
 
 double PrandtlReussPlasticStrain::getAngleShift() const
 {
-  	Vector stress(previousImposedStrain.size()) ;
-	Vector strain(previousImposedStrain.size()) ;
-        es->getField( REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD,Point(), stress, strain, true) ;
+  if(!es)
+    return 0 ;
+  
+  Vector stress(previousImposedStrain.size()) ;
+  Vector strain(previousImposedStrain.size()) ;
+  #pragma omp critical
+  es->getField( REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD,Point(), stress, strain, true) ;
 
-	double tr = (stress.size()==3)?(stress[0]+stress[1]):(stress[0]+stress[1]+stress[2]) ;
-	if(stress.size()==3)
-	{
-	  for(size_t i = 0 ; i < 2 ; i++)
-	    stress[i] -= tr/3. ;
-	  
-	  stress[2] *= 0.5 ;
-	}
-	else
-	{
-	  for(size_t i = 0 ; i < 3 ; i++)
-	    stress[i] -= tr/3. ;
-	  
-	  stress[3] *= 0.5 ;
-	  stress[4] *= 0.5 ;
-	  stress[5] *= 0.5 ;
-	}
-  
-  
-  
-    return acos((stress*imposedStrain).sum()/sqrt((imposedStrain*imposedStrain).sum()*(stress*stress).sum())) ;
+  double tr = (stress.size()==3)?(stress[0]+stress[1]):(stress[0]+stress[1]+stress[2]) ;
+  if(stress.size()==3)
+  {
+    for(size_t i = 0 ; i < 2 ; i++)
+      stress[i] -= tr/3. ;
+    
+    stress[2] *= 0.5 ;
+  }
+  else
+  {
+    for(size_t i = 0 ; i < 3 ; i++)
+      stress[i] -= tr/3. ;
+    
+    stress[3] *= 0.5 ;
+    stress[4] *= 0.5 ;
+    stress[5] *= 0.5 ;
+  }
+
+   return acos((stress*imposedStrain).sum()/sqrt((imposedStrain*imposedStrain).sum()*(stress*stress).sum())) ;
 
 }
 
@@ -204,7 +202,7 @@ Matrix PrandtlReussPlasticStrain::apply(const Matrix & m, const Point & p , cons
 {
     if(plasticVariable > 1e-2 || fractured())
         return m*1e-6 ;
-    return m*(1.-getDamage()) ;
+    return m ;
 }
 
 std::vector<BoundaryCondition * > PrandtlReussPlasticStrain::getBoundaryConditions(const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const

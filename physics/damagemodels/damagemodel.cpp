@@ -373,7 +373,7 @@ void DamageModel::step( ElementState &s , double maxscore)
                 {
                     if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE)
                     {
-                        state[i] += 0.25*damageDensityTolerance ;
+                        state[i] += 0.5*damageDensityTolerance ;
                         state[i] = std::min(state[i], 1.) ;
                     }
                 }
@@ -420,7 +420,7 @@ DamageModel::DamageModel(): state(0)
     isNull = true ;
     haslimit = false ;
     error = 1 ;
-    iterationNumber = 26 ;
+    iterationNumber = 22 ;
 
     ctype = DISSIPATIVE ;
     fraction = -1 ;
@@ -435,7 +435,7 @@ DamageModel::DamageModel(): state(0)
     // the correct distribution of damage: the effect
     // of damage increment on the distribution of
     // fracture criterion scores is non-monotonic.
-    damageDensityTolerance =  std::max(0.25/pow(2.,iterationNumber), 2e-5) ; //1e-8 ;//1. / pow( 2., 14 );
+    damageDensityTolerance =  std::max(0.25/pow(2.,iterationNumber), 1e-4) ; //1e-8 ;//1. / pow( 2., 14 );
     thresholdDamageDensity = 1. ;
     secondaryThresholdDamageDensity = 1. ;
     allowBackSearch = false ;

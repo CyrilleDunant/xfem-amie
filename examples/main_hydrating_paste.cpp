@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 
 	MultiTriangleWriter writerm( "displacements", "displacements_layer", nullptr ) ;
 	writerm.reset( &Fm ) ;
-	writerm.getField( PRINCIPAL_STRAIN_FIELD ) ;
+	writerm.getField( PRINCIPAL_TOTAL_STRAIN_FIELD ) ;
 	writerm.getField( PRINCIPAL_REAL_STRESS_FIELD ) ;
 	writerm.getField( TWFT_STIFFNESS ) ;
 	writerm.append() ;
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 		writer.writeSvg(0., true) ;
 
 		writerm.reset( &Fm ) ;
-		writerm.getField( PRINCIPAL_STRAIN_FIELD ) ;
+		writerm.getField( PRINCIPAL_TOTAL_STRAIN_FIELD ) ;
 		writerm.getField( PRINCIPAL_REAL_STRESS_FIELD ) ;
 		writerm.getField( TWFT_STIFFNESS ) ;
 		writerm.append() ;

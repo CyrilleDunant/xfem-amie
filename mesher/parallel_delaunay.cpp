@@ -728,7 +728,7 @@ Vector ParallelDelaunayTree::getField( FieldType f, double t, int index)
 
     bool spaceTime = e->getOrder() >= CONSTANT_TIME_LINEAR ;
     VirtualMachine vm ;
-    if ( f0 == PRINCIPAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
+    if ( f0 == PRINCIPAL_TOTAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
         //we first need to compute the strain field
         if ( !spaceTime ) {
             double sumFactors ( 0 ) ;
@@ -780,7 +780,7 @@ Vector ParallelDelaunayTree::getField( FieldType f, double t, int index)
             }
         }
 
-        if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
+        if ( f0 == PRINCIPAL_TOTAL_STRAIN_FIELD ) {
             first.resize ( psize );
             first = toPrincipal ( strain, DOUBLE_OFF_DIAGONAL_VALUES ) ;
         }
@@ -840,8 +840,8 @@ std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0
 
     bool spaceTime = e->getOrder() >= CONSTANT_TIME_LINEAR ;
     VirtualMachine vm ;
-    if ( f0 == PRINCIPAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f0 == MECHANICAL_STRAIN_FIELD ||
-            f1 == PRINCIPAL_STRAIN_FIELD || f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD || f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f1 == MECHANICAL_STRAIN_FIELD
+    if ( f0 == PRINCIPAL_TOTAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f0 == MECHANICAL_STRAIN_FIELD ||
+            f1 == PRINCIPAL_TOTAL_STRAIN_FIELD || f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD || f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f1 == MECHANICAL_STRAIN_FIELD
         ) {
         //we first need to compute the strain field
         if ( !spaceTime ) {
@@ -906,11 +906,11 @@ std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0
             }
         }
 
-        if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
+        if ( f0 == PRINCIPAL_TOTAL_STRAIN_FIELD ) {
             first.resize ( psize );
             first = toPrincipal ( strain , DOUBLE_OFF_DIAGONAL_VALUES) ;
         }
-        if ( f1 == PRINCIPAL_STRAIN_FIELD ) {
+        if ( f1 == PRINCIPAL_TOTAL_STRAIN_FIELD ) {
             second.resize ( psize );
             second = toPrincipal ( strain , DOUBLE_OFF_DIAGONAL_VALUES) ;
         }

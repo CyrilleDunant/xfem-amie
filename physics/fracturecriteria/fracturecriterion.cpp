@@ -62,7 +62,7 @@ FractureCriterion::FractureCriterion() :
     maxModeInNeighbourhood(-1),
     maxScoreInNeighbourhood(0),
     maxAngleShiftInNeighbourhood(0),
-    scoreTolerance(1e-2),
+    scoreTolerance(.5e-2),
     checkpoint(true),
     inset(false),
     smoothingType(QUARTIC_COMPACT),
@@ -93,9 +93,11 @@ void FractureCriterion::copyEssentialParameters( const FractureCriterion * frac 
 
 Vector FractureCriterion::getSmoothedField(FieldType f0,  ElementState &s ,double t)
 {
+//   std::cout << "a" << std::endl ;
     if(!mesh2d && !mesh3d)
         initialiseCache(s) ;
 
+//   std::cout << "b" << std::endl ; 
     if(mesh2d)
         return mesh2d->getSmoothedField(f0, cachecoreID, s.getParent(), t, restriction) ;
     return mesh3d->getSmoothedField(f0, cachecoreID, s.getParent(), t, restriction) ;

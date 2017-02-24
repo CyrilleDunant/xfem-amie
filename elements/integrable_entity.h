@@ -74,7 +74,7 @@ typedef enum : char {
     MECHANICAL_STRAIN_FIELD,
     EFFECTIVE_STRESS_FIELD,
     REAL_STRESS_FIELD,
-    PRINCIPAL_STRAIN_FIELD,
+    PRINCIPAL_TOTAL_STRAIN_FIELD,
     PRINCIPAL_MECHANICAL_STRAIN_FIELD,
     PRINCIPAL_EFFECTIVE_STRESS_FIELD,
     PRINCIPAL_REAL_STRESS_FIELD,
@@ -145,6 +145,7 @@ class ElementState
   friend LinearForm ;
   friend NonLinearForm ;
   friend PrandtlReussPlasticStrain ;
+  friend DelaunayTriangle ;
 protected:
 
     Vector strainAtGaussPoints ;
@@ -164,13 +165,18 @@ protected:
     double timePos ;
     double previousTimePos ;
 
+#ifdef HAVE_OPENMP
+    omp_lock_t lock ;
+#else
     bool lock ;
+#endif
     
     IntegrableEntity * parent ;
 
     Mesh< DelaunayTriangle, DelaunayTreeItem > * mesh2d ;
     Mesh< DelaunayTetrahedron, DelaunayTreeItem3D > *mesh3d ;
 
+    void updateInverseJacobianCache(const Point &p) ;
 public:
     Matrix * JinvCache ;
     /** \brief Construct the state of the argument*/
@@ -327,6 +333,7 @@ struct GaussPointArray {
 struct IntegrableEntity : public Geometry
 {
 
+  
     Order order ;
     ElementState * state ;
     std::vector<BoundaryCondition *> * boundaryConditionCache ;

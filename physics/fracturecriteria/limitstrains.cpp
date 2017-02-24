@@ -27,7 +27,7 @@ LimitStrains::~LimitStrains()
 double LimitStrains::grade(ElementState &s)
 {
 	Vector pstrain(0., s.getParent()->spaceDimensions()) ;
-	s.getField( PRINCIPAL_STRAIN_FIELD, s.getParent()->getCenter(), pstrain, false) ;
+	s.getField( PRINCIPAL_TOTAL_STRAIN_FIELD, s.getParent()->getCenter(), pstrain, false) ;
 	double maxStrain = pstrain.max();
 	metInCompression = false ;
 	metInTension = false ;

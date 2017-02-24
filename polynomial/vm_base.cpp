@@ -14,7 +14,12 @@
 namespace Amie
 {
 
-VirtualMachine::VirtualMachine() { }
+VirtualMachine::VirtualMachine() { 
+  #ifdef HAVE_OPENMP
+    omp_init_lock(&lock);
+#endif
+  
+}
 
 
 double VirtualMachine::ieval(Vector& v, const Amie::GaussPointArray& gp)
@@ -29,10 +34,17 @@ double VirtualMachine::ieval(Vector& v, const Amie::GaussPointArray& gp)
 
 double VirtualMachine::eval(const Function &f, const double x, const double y, const double z, const double t, const double u, const double v, const double w)
 {
+ #ifdef HAVE_OPENMP
+  omp_set_lock(&lock);
+#endif
     size_t size = f.byteCode.size() ;
     
     if(size == 1)
     {
+  
+         #ifdef HAVE_OPENMP
+	  omp_unset_lock(&lock);
+	#endif
 	if (f.byteCode[0] == TOKEN_OPERATION_CONSTANT)
 	  return f.values[0] ;
 	if (f.byteCode[0] == TOKEN_OPERATION_X)
@@ -43,7 +55,9 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 	  return z ;
 	if (f.byteCode[0] == TOKEN_OPERATION_T)
 	  return t ;
-    }
+    }  
+    
+
     
     stack.memory.heap[1] = x ;
     stack.memory.heap[2] = y ;
@@ -55,7 +69,7 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 
     for(size_t i = 0 ; i < f.adress_t.size() ; i++)
     {
-        stack.memory.heap[f.adress_t[i] ] = eval( f.transform(i),x,y,z,t,u,v,w) ;
+        stack.memory.heap[f.adress_t[i] ] = VirtualMachine().eval( f.transform(i),x,y,z,t,u,v,w) ;
     }
 
     for(size_t i = 0 ; i < f.values.size(); i++)
@@ -232,6 +246,9 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
         }
 
     }
+    	#ifdef HAVE_OPENMP
+	  omp_unset_lock(&lock);
+	#endif
     return  stack.memory.heap[8] ;
 
 }

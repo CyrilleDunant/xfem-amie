@@ -191,7 +191,7 @@ double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
     if( s.getParent()->getBehaviour()->getDamageModel()->fractured() )
         return -1 ;
 
-    std::pair<Vector, Vector> pstressStrain( getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s)) ;
+    std::pair<Vector, Vector> pstressStrain( getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_TOTAL_STRAIN_FIELD, s)) ;
     Vector pstress = pstressStrain.first ;
     Vector pstrain = pstressStrain.second ;
     double maxStress = pstress.max() ;
@@ -275,7 +275,7 @@ double NonLocalExponentiallyDecreasingMohrCoulomb::grade( ElementState &s )
     if( s.getParent()->getBehaviour()->fractured() )
         return -1 ;
 
-    std::pair<Vector, Vector> pstressStrain( getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s)) ;
+    std::pair<Vector, Vector> pstressStrain( getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_TOTAL_STRAIN_FIELD, s)) ;
     Vector pstress = pstressStrain.first ;
     Vector pstrain = pstressStrain.second ;
     double maxStress = pstress.max() ;
@@ -334,7 +334,7 @@ double NonLocalInverseRootMohrCoulomb::grade( ElementState &s )
     if( s.getParent()->getBehaviour()->fractured() )
         return -1 ;
 
-    std::pair<Vector, Vector> pstressStrain( getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s)) ;
+    std::pair<Vector, Vector> pstressStrain( getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_TOTAL_STRAIN_FIELD, s)) ;
     Vector pstress = pstressStrain.first ;
     Vector pstrain = pstressStrain.second ;
 // 	double maxStress = pstress.max() ;

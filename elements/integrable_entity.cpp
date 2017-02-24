@@ -33,7 +33,7 @@ size_t fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t bl
     case SPEED_FIELD :
     case FLUX_FIELD:
     case GRADIENT_FIELD:
-    case PRINCIPAL_STRAIN_FIELD:
+    case PRINCIPAL_TOTAL_STRAIN_FIELD:
     case PRINCIPAL_MECHANICAL_STRAIN_FIELD:
     case PRINCIPAL_EFFECTIVE_STRESS_FIELD:
     case PRINCIPAL_REAL_STRESS_FIELD:
@@ -387,9 +387,13 @@ ElementState::ElementState ( IntegrableEntity *s )
     mesh2d = nullptr ; //s->get2DMesh() ;
     mesh3d = nullptr ; //s->get3DMesh() ;
     parent = s ;
-    lock = false ;
+//     lock = false ;
     timePos = 0 ;
     previousTimePos = 0 ;
+    
+#ifdef HAVE_OPENMP
+    omp_init_lock(&lock);
+#endif
 // 	size_t ndof = 2 ;
 // // 	if(s->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 // // 		ndof = 3 ;
@@ -582,124 +586,17 @@ void ElementState::getExternalFieldAtGaussPoints ( Vector & nodalValues, int ext
     }
 }
 
-//helper function: be a bit faster
-// void getStrainField ( const Point & p, Matrix * JinvCache, IntegrableEntity * parent,  const Vector & displacements, const Vector & enrichedDisplacements,  Vector & ret, VirtualMachine * vm ) 
-// {
-//   if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
-//         {
-//             double x_xi = 0;
-//             double x_eta = 0;
-//             double y_xi = 0;
-//             double y_eta = 0;
-// 
-//             for ( size_t j = 0 ; j < parent->getShapeFunctions().size(); j++ )
-//             {
-//                 if(j*2 >= displacements.size())
-//                 {
-//                     std::cerr << "displacement size mismatch" << std::endl ;
-//                     break ;
-//                 }
-//                 double f_xi  = vm ->deval ( parent->getShapeFunction ( j ), XI , p ) ;
-//                 double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, p ) ;
-//                 
-//                 x_xi  += f_xi * displacements[j * 2] ;
-//                 x_eta += f_eta * displacements[j * 2] ;
-//                 y_xi  += f_xi * displacements[j * 2 + 1] ;
-//                 y_eta += f_eta * displacements[j * 2 + 1] ;
-//             }
-//             for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
-//             {
-//                 double f_xi  = vm ->deval ( parent->getEnrichmentFunction ( j ), XI , p ) ;
-//                 double f_eta = vm ->deval ( parent->getEnrichmentFunction ( j ), ETA, p ) ;
-// 
-//                 x_xi  += f_xi * enrichedDisplacements[j * 2] ;
-//                 x_eta += f_eta * enrichedDisplacements[j * 2] ;
-//                 y_xi  += f_xi * enrichedDisplacements[j * 2 +1] ;
-//                 y_eta += f_eta * enrichedDisplacements[j * 2 + 1] ;
-//             }
-//             
-//             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
-//             ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;
-//             ret[2] = ( ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( y_xi ) * (*JinvCache)[0][0] + ( y_eta ) * (*JinvCache)[0][1] );
-//         }
-//         else if ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
-//         {
-//             double x_xi = 0;
-//             double x_eta = 0;
-//             double x_zeta = 0;
-//             double y_xi = 0;
-//             double y_eta = 0;
-//             double y_zeta = 0;
-//             double z_xi = 0;
-//             double z_eta = 0;
-//             double z_zeta = 0;
-// 
-//             for ( size_t j = 0 ; j < parent->getShapeFunctions().size() ; j++ )
-//             {
-//                 double f_xi = vm ->deval ( parent->getShapeFunction ( j ), XI, *p_ ) ;
-//                 double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, *p_ ) ;
-//                 double f_zeta = vm ->deval ( parent->getShapeFunction ( j ), ZETA, *p_ ) ;
-//                 double x = displacements[j * 3] ;
-//                 double y = displacements[j * 3 + 1] ;
-//                 double z = displacements[j * 3 + 2] ;
-// 
-//                 x_xi   += f_xi   * x ;
-//                 x_eta  += f_eta  * x ;
-//                 x_zeta += f_zeta * x ;
-//                 y_xi   += f_xi   * y ;
-//                 y_eta  += f_eta  * y ;
-//                 y_zeta += f_zeta * y ;
-//                 z_xi   += f_xi   * z ;
-//                 z_eta  += f_eta  * z ;
-//                 z_zeta += f_zeta * z ;
-//             }
-// 
-//             for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
-//             {
-//                 double f_xi = vm ->deval ( parent->getEnrichmentFunction ( j ), XI, *p_ ) ;
-//                 double f_eta = vm ->deval ( parent->getEnrichmentFunction ( j ), ETA, *p_ ) ;
-//                 double f_zeta = vm ->deval ( parent->getEnrichmentFunction ( j ), ZETA, *p_ ) ;
-//                 double x = enrichedDisplacements[j * 3] ;
-//                 double y = enrichedDisplacements[j * 3 + 1] ;
-//                 double z = enrichedDisplacements[j * 3 + 2] ;
-// 
-//                 x_xi += f_xi * x;
-//                 x_eta += f_eta * x ;
-//                 x_zeta += f_zeta * x ;
-//                 y_xi += f_xi * y ;
-//                 y_eta += f_eta * y ;
-//                 y_zeta += f_zeta * y ;
-//                 z_xi += f_xi * z ;
-//                 z_eta += f_eta * z ;
-//                 z_zeta += f_zeta * z ;
-//             }
-// 
-//             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
-//             ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1]  + ( y_zeta ) * (*JinvCache)[1][2];
-//             ret[2] = ( z_xi ) * (*JinvCache)[2][0] + ( z_eta ) * (*JinvCache)[2][1]  + ( z_zeta ) * (*JinvCache)[2][2];
-// 
-//             ret[3] = ( ( y_xi ) * (*JinvCache)[2][0] +
-//                        ( y_eta ) * (*JinvCache)[2][1] +
-//                        ( y_zeta ) * (*JinvCache)[2][2] +
-//                        ( z_xi ) * (*JinvCache)[1][0] +
-//                        ( z_eta ) * (*JinvCache)[1][1] +
-//                        ( z_zeta ) * (*JinvCache)[1][2] );
-// 
-//             ret[4] = ( ( x_xi ) * (*JinvCache)[2][0] +
-//                        ( x_eta ) * (*JinvCache)[2][1] +
-//                        ( x_zeta ) * (*JinvCache)[2][2] +
-//                        ( z_xi ) * (*JinvCache)[0][0] +
-//                        ( z_eta ) * (*JinvCache)[0][1] +
-//                        ( z_zeta ) * (*JinvCache)[0][2] );
-// 
-//             ret[5] = ( ( y_xi )   * (*JinvCache)[0][0] +
-//                        ( y_eta )  * (*JinvCache)[0][1] +
-//                        ( y_zeta ) * (*JinvCache)[0][2] +
-//                        ( x_xi )   * (*JinvCache)[1][0] +
-//                        ( x_eta )  * (*JinvCache)[1][1] +
-//                        ( x_zeta ) * (*JinvCache)[1][2] );
-//         }
-// }
+void ElementState::updateInverseJacobianCache(const Point & p)
+{
+    if(!JinvCache || parent->isMoved())
+    {
+	if(!JinvCache)
+	{
+	    JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
+	}
+	parent->getInverseJacobianMatrix ( p, (*JinvCache) ) ;
+    }
+}
 
 void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm, int ) 
 {
@@ -848,13 +745,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 y_eta += f_eta * enrichedDisplacements[j * 2 + 1] ;
             }
 
-            if(!JinvCache || parent->isMoved())
-            {
-                if(JinvCache)
-                    delete JinvCache ;
-                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
-                parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
-            }
+	    
+	    updateInverseJacobianCache(*p_) ;
             
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
             ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;
@@ -912,13 +804,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 z_zeta += f_zeta * z ;
             }
 
-            if(!JinvCache || parent->isMoved())
-            {
-                if(JinvCache)
-                    delete JinvCache ;
-                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
-                parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
-            }
+            updateInverseJacobianCache(*p_) ;
 
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
             ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1]  + ( y_zeta ) * (*JinvCache)[1][2];
@@ -953,7 +839,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             delete p_ ;
         return ;
     }
-    case PRINCIPAL_STRAIN_FIELD:
+    case PRINCIPAL_TOTAL_STRAIN_FIELD:
     {
         Vector strains ( 0.,(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ? 6 : 3 ) ;
         getField ( MECHANICAL_STRAIN_FIELD, *p_, strains, true,vm ) ;
@@ -1003,13 +889,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 }
             }
 
-            if(!JinvCache || parent->isMoved())
-            {
-                if(JinvCache)
-                    delete JinvCache ;
-                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
-                parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
-            }
+            updateInverseJacobianCache(*p_) ;
+	    
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
             ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;
             ret[2] = ( ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( y_xi ) * (*JinvCache)[0][0] + ( y_eta ) * (*JinvCache)[0][1] );
@@ -1046,14 +927,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 z_zeta += f_zeta * z ;
             }
 
-
-            if(!JinvCache || parent->isMoved())
-            {
-                if(JinvCache)
-                    delete JinvCache ;
-                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
-                parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
-            }
+            updateInverseJacobianCache(*p_) ;
+	    
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
             ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1]  + ( y_zeta ) * (*JinvCache)[1][2];
             ret[2] = ( z_xi ) * (*JinvCache)[2][0] + ( z_eta ) * (*JinvCache)[2][1]  + ( z_zeta ) * (*JinvCache)[2][2];
@@ -1090,7 +965,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     case VON_MISES_STRAIN_FIELD:
     {
         Vector eps ( 0., ( size_t ) parent->spaceDimensions() ) ;
-        getField ( PRINCIPAL_STRAIN_FIELD, *p_, eps, true,vm ) ;
+        getField ( PRINCIPAL_TOTAL_STRAIN_FIELD, *p_, eps, true,vm ) ;
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
             ret[0] = ( 2. / 3. * ( eps[0] * eps[0] + eps[1] * eps[1] ) ) ;
@@ -1571,13 +1446,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
 
             }
 
-            if(!JinvCache || parent->isMoved())
-            {
-                if(JinvCache)
-                    delete JinvCache ;
-                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
-                parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
-            }
+            updateInverseJacobianCache(*p_) ;
             
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
             ret[1] = ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1] ;
@@ -1612,13 +1481,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 x_zeta += f_zeta * x ;
             }
 
-            if(!JinvCache || parent->isMoved())
-            {
-                if(JinvCache)
-                    delete JinvCache ;
-                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
-                parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
-            }
+            updateInverseJacobianCache(*p_) ;
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
             ret[1] = ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( x_zeta ) * (*JinvCache)[1][2];
             ret[2] = ( x_xi ) * (*JinvCache)[2][0] + ( x_eta ) * (*JinvCache)[2][1]  + ( x_zeta ) * (*JinvCache)[2][2];
@@ -1710,21 +1573,26 @@ void ElementState::getFieldAtGaussPoint ( FieldType f, size_t p, Vector & ret, V
 
 double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine * vm, double time, const std::vector<double> & weights, int index )
 {
-    while(true) {
-//         usleep(1) ;
-        bool test = true;
-        #pragma omp flush(lock)
-        #pragma omp atomic read
-        test = lock ;
-        if(!test)
-        {
-            #pragma omp atomic write
-            lock = true ;
-            #pragma omp flush
-            break ;
-        }
-    }
+  
+//     while(true) {
+//         bool test = true;
+//         #pragma omp flush(lock)
+//         #pragma omp atomic read
+//         test = lock ;
+//         if(!test)
+//         {
+// 	  #pragma omp atomic write
+// 	  lock = true ;
+// 	  #pragma omp flush
+// 	  break ;
+//         }
+//     }
+//   std::cout << "infield" << std::endl ;
+#ifdef HAVE_OPENMP
+  omp_set_lock(&lock);
+#endif
 
+//     std::cout << "infieldlock" << std::endl ;
     bool cleanup = !vm ;
     if ( !vm )
     {
@@ -1756,7 +1624,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
     switch ( f )
     {
     case TOTAL_STRAIN_FIELD :
-
+    {
         if ( strainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() )
         {
             strainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() , 0. ) ;
@@ -1765,6 +1633,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
 
         if ( !strainAtGaussPointsSet)
         {
+
             strainAtGaussPoints = 0 ;
             strainAtGaussPointsSet = true ;
             Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
@@ -1838,11 +1707,14 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma omp atomic write
-        lock = false ;
+	#ifdef HAVE_OPENMP
+	  omp_unset_lock(&lock);
+	#endif
         return v*w;
+    }
     case MECHANICAL_STRAIN_FIELD :
-
+    {
+//       std::cout << "puf" << std::endl ;
         if ( strainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
         {
             strainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() , 0. ) ;
@@ -1851,6 +1723,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
 
         if ( !strainAtGaussPointsSet)
         {
+// 	  std::cout << "puf0" << std::endl ;
+
             strainAtGaussPoints = 0 ;
             strainAtGaussPointsSet = true ;
 
@@ -1894,6 +1768,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         }
         else
         {
+// 	   std::cout << "puf1" << std::endl ;
             Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -1928,11 +1803,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma omp atomic write
-        lock = false ;
+	#ifdef HAVE_OPENMP
+	  omp_unset_lock(&lock);
+	#endif
         return v*w;
-
+    }
     case PRINCIPAL_MECHANICAL_STRAIN_FIELD :
+    {
 
         if ( strainAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
         {
@@ -1942,6 +1819,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
 
         if ( !strainAtGaussPointsSet)
         {
+
             strainAtGaussPoints = 0 ;
             strainAtGaussPointsSet = true ;
             Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
@@ -2022,11 +1900,14 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma omp atomic write
-        lock = false ;
+	#ifdef HAVE_OPENMP
+	  omp_unset_lock(&lock);
+	#endif
         return v*w;
-    case PRINCIPAL_STRAIN_FIELD :
-
+    }
+    case PRINCIPAL_TOTAL_STRAIN_FIELD :
+    {
+//       #pragma omp critical
         if ( pstrainAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) )
         {
             pstrainAtGaussPoints.resize ( (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) , 0. ) ;
@@ -2107,11 +1988,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma omp atomic write
-        lock = false ;
+	#ifdef HAVE_OPENMP
+	  omp_unset_lock(&lock);
+	#endif
         return v*w;
+    }
     case REAL_STRESS_FIELD:
-
+    {
         if ( stressAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
         {
             stressAtGaussPoints.resize ( (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
@@ -2120,6 +2003,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
 
         if ( !stressAtGaussPointsSet)
         {
+
             stressAtGaussPoints = 0 ;
             stressAtGaussPointsSet = true ;
             Vector tmp ( stressAtGaussPoints.size() /gp.gaussPoints.size() ) ;
@@ -2194,10 +2078,14 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma omp atomic write
-        lock = false ;
+	#ifdef HAVE_OPENMP
+	  omp_unset_lock(&lock);
+	#endif
         return v*w;
+    }
     case PRINCIPAL_REAL_STRESS_FIELD :
+    {  
+//       #pragma omp critical
         if ( pstressAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) )
         {
             pstressAtGaussPoints.resize ( (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) , 0. ) ;
@@ -2206,6 +2094,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
 
         if ( !pstressAtGaussPointsSet)
         {
+
             pstressAtGaussPoints = 0 ;
             pstressAtGaussPoints = true ;
             Vector tmp ( pstressAtGaussPoints.size() /gp.gaussPoints.size() ) ;
@@ -2280,10 +2169,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma omp atomic write
-        lock = false ;
+	#ifdef HAVE_OPENMP
+	  omp_unset_lock(&lock);
+	#endif
         return v*w;
+    }
     case EFFECTIVE_STRESS_FIELD:
+    {  
         if ( stressAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
         {
             stressAtGaussPoints.resize ( (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
@@ -2292,6 +2184,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
 
         if ( !stressAtGaussPointsSet)
         {
+
             stressAtGaussPoints = 0 ;
             stressAtGaussPointsSet = true ;
             Vector tmp ( stressAtGaussPoints.size() /gp.gaussPoints.size() ) ;
@@ -2366,10 +2259,15 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma omp atomic write
-        lock = false ;
+	#ifdef HAVE_OPENMP
+	  omp_unset_lock(&lock);
+	#endif
+	  
         return v*w;
+    }
     case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
+    {
+      
         if ( pstressAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) )
         {
             pstressAtGaussPoints.resize ( (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) , 0. ) ;
@@ -2378,6 +2276,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
 
         if ( !pstressAtGaussPointsSet)
         {
+
             pstressAtGaussPoints = 0 ;
             pstressAtGaussPointsSet = true ;
             Vector tmp ( pstressAtGaussPoints.size() /gp.gaussPoints.size() ) ;
@@ -2451,12 +2350,15 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             {
                 delete vm ;
             }
-        }
-        #pragma omp atomic write
-        lock = false ;
+	}
+	#ifdef HAVE_OPENMP
+	  omp_unset_lock(&lock);
+	#endif
+	  
         return v*w;
-
+     }
     case PRINCIPAL_STRESS_ANGLE_FIELD:
+    {  
         if ( stressAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
         {
             stressAtGaussPoints.resize ( (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
@@ -2547,12 +2449,14 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma omp atomic write
-        lock = false ;
+	#ifdef HAVE_OPENMP
+	  omp_unset_lock(&lock);
+	#endif
         return v*w;
-
+    }
     case PRINCIPAL_STRAIN_ANGLE_FIELD:
-        if ( strainAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
+    {
+      if ( strainAtGaussPoints.size() != (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
         {
             strainAtGaussPoints.resize ( (((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
             strainAtGaussPoints = false ;
@@ -2649,12 +2553,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma omp atomic write
-        lock = false ;
+	#ifdef HAVE_OPENMP
+	  omp_unset_lock(&lock);
+	#endif
         return v*w;
-
+    }
     default :
-
+    {
         Vector tmp (ret) ;
         for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
         {
@@ -2679,29 +2584,22 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         {
             delete vm ;
         }
-        #pragma omp atomic write
-        lock = false ;
+	#ifdef HAVE_OPENMP
+	  omp_unset_lock(&lock);
+	#endif
         return v*w;
+    }
     }
 }
 
 double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, Vector & ret_, VirtualMachine * vm,  double time, const std::vector<double> & weights, int index )
 {
-    while(true) {
-//         usleep(1) ;
-        bool test = true;
-        #pragma omp flush(lock)
-        #pragma omp atomic read
-        test = lock ;
-        if(!test)
-        {
-            #pragma omp atomic write
-            lock = true ;
-            #pragma omp flush(lock)
-            break ;
-        }
-    }
-
+//   std::cout << "plif" << std::endl ;
+#ifdef HAVE_OPENMP
+  omp_set_lock(&lock);
+#endif
+  
+//   std::cout << "pluf" << std::endl ;
     bool cleanup = !vm ;
     if ( !vm )
     {
@@ -2728,6 +2626,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
 
     if ( f == MECHANICAL_STRAIN_FIELD && ( f_ == EFFECTIVE_STRESS_FIELD || f_ == REAL_STRESS_FIELD ) )
     {
+//       	#pragma omp critical
         if ( strainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) ||
                 stressAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) )
         {
@@ -2740,6 +2639,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
 
         if ( !strainAtGaussPointsSet || !stressAtGaussPointsSet)
         {
+
             strainAtGaussPointsSet = true ;
             stressAtGaussPointsSet = true ;
             Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
@@ -2822,13 +2722,15 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
                 delete vm ;
             }
         }
-        #pragma omp atomic write
-        lock = false ;
+	#ifdef HAVE_OPENMP
+	  omp_unset_lock(&lock);
+	#endif
         return v*w ;
     }
     
-    if ( f == PRINCIPAL_STRAIN_FIELD && ( f_ == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD ) )
+    if ( f == PRINCIPAL_TOTAL_STRAIN_FIELD && ( f_ == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD ) )
     {
+//         #pragma omp critical
         if ( pstrainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) ||
                 pstressAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) )
         {
@@ -2841,7 +2743,8 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
 
         if ( !pstrainAtGaussPointsSet || !pstressAtGaussPointsSet)
         {
-
+// 	   #pragma omp critical
+	  {
             pstrainAtGaussPointsSet = true ;
             pstressAtGaussPointsSet = true ;
             Vector tmp ( pstrainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
@@ -2883,6 +2786,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
             {
                 delete vm ;
             }
+	  }
         }
         else
         {
@@ -2920,8 +2824,9 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
             }
 
         }
-        #pragma omp atomic write
-        lock = false ;
+	#ifdef HAVE_OPENMP
+	  omp_unset_lock(&lock);
+	#endif
         return v*w;
     }
 
@@ -2932,8 +2837,9 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
     {
         delete vm ;
     }
-    #pragma omp atomic write
-    lock = false ;
+    #ifdef HAVE_OPENMP
+      omp_unset_lock(&lock);
+    #endif
     return v*w ;
 
 }

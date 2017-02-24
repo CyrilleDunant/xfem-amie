@@ -2469,13 +2469,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
         vm = new VirtualMachine() ;
     }
 
-    if(!getState().JinvCache ||isMoved())
-    {
-        if(getState().JinvCache)
-            delete getState().JinvCache ;
-        getState().JinvCache = new Matrix (  spaceDimensions()+(timePlanes()>1), spaceDimensions()+(timePlanes()>1)) ;
-        getInverseJacobianMatrix ( Point( 1./3.,1./3.), (*getState().JinvCache) ) ;
-    }
+    getState().updateInverseJacobianCache(Point( 1./3.,1./3.)) ;
     
     std::valarray<Matrix> Jinv((*getState().JinvCache),  getGaussPoints().gaussPoints.size()) ;
     if(moved)
@@ -2593,13 +2587,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
         getSubTriangulatedGaussPoints() ;
     }
 
-    if(!getState().JinvCache || isMoved())
-    {
-        if(getState().JinvCache)
-            delete getState().JinvCache ;
-        getState().JinvCache = new Matrix (  spaceDimensions()+(timePlanes()>1), spaceDimensions()+(timePlanes()>1)) ; ;
-        getInverseJacobianMatrix ( Point( 1./3.,1./3.), (*getState().JinvCache) ) ;
-    }
+    getState().updateInverseJacobianCache(Point(1./3, 1./3)) ;
     
     std::valarray<Matrix> Jinv((*getState().JinvCache),  getGaussPoints().gaussPoints.size()) ;
     if(moved)

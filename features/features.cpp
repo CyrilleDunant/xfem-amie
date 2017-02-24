@@ -810,6 +810,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                            )
                         {
                             tets[i]->moved = true ;
+			    tets[i]->setCachedGaussPoints(nullptr) ;
 
                             for ( size_t j = 0 ; j < 4 ; j++ )
                             {
@@ -868,6 +869,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                            )
                         {
                             tets[i]->moved = true ;
+			    tets[i]->setCachedGaussPoints(nullptr) ;
 
                             for ( size_t j = 0 ; j < 4 ; j++ )
                             {
@@ -925,6 +927,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                            )
                         {
                             tets[i]->moved = true ;
+			    tets[i]->setCachedGaussPoints(nullptr) ;
 
                             for ( size_t j = 0 ; j < 4 ; j++ )
                             {
@@ -982,6 +985,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                            )
                         {
                             tets[i]->moved = true ;
+			    tets[i]->setCachedGaussPoints(nullptr) ;
 
                             for ( size_t j = 0 ; j < 4 ; j++ )
                             {
@@ -1039,6 +1043,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                            )
                         {
                             tets[i]->moved = true ;
+			    tets[i]->setCachedGaussPoints(nullptr) ;
 
                             for ( size_t j = 0 ; j < 4 ; j++ )
                             {
@@ -1096,6 +1101,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                            )
                         {
                             tets[i]->moved = true ;
+			    tets[i]->setCachedGaussPoints(nullptr) ;
 
                             for ( size_t j = 0 ; j < 4 ; j++ )
                             {
@@ -1216,6 +1222,7 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
                                )
                             {
                                 triangles[i]->moved = true ;
+				triangles[i]->setCachedGaussPoints(nullptr) ;
 
                                 for ( size_t j = 0 ; j < 3 ; j++ )
                                 {
@@ -1264,6 +1271,7 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
                                )
                             {
                                 triangles[i]->moved = true ;
+				triangles[i]->setCachedGaussPoints(nullptr) ;
 
                                 for ( size_t j = 0 ; j < 3 ; j++ )
                                 {
@@ -1312,6 +1320,7 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
                                )
                             {
                                 triangles[i]->moved = true ;
+				triangles[i]->setCachedGaussPoints(nullptr) ;
 
                                 for ( size_t j = 0 ; j < 3 ; j++ )
                                 {
@@ -4892,7 +4901,7 @@ bool FeatureTree::stepElements()
                 }
                 averageDamage = adamage/volume ;
 
-                std::cerr << ". Average damage = " << averageDamage << " ...done. " << ccount << " elements changed."  << std::endl ;
+                std::cerr << ". Average damage = " << averageDamage << " ...done. " << ccount << " element(s) changed."  << std::endl ;
 
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                 {
@@ -4923,7 +4932,7 @@ bool FeatureTree::stepElements()
                         }
                     }
                 }
-                std::cerr << ". Average damage = " << averageDamage << " ...done. " << ccount << " elements changed." << std::endl ;
+                std::cerr << ". Average damage = " << averageDamage << " ...done. " << ccount << " element(s) changed." << std::endl ;
 
                 foundCheckPoint = true ;
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
@@ -5019,7 +5028,7 @@ bool FeatureTree::stepElements()
                         }
                     }
 
-                    std::cerr << maxScore << "]" << std::flush ;
+                    std::cout << maxScore << "]" << std::flush ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
                         if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE  && solverConverged() && !spaceTimeFixed)
@@ -5191,7 +5200,7 @@ bool FeatureTree::stepElements()
                 }
                 averageDamage = adamage/volume ;
 
-                std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
+                std::cerr << " ...done. " << ccount << " element(s) changed." << std::endl ;
 
                 #pragma omp parallel
                 {

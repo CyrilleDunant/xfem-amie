@@ -565,7 +565,7 @@ public:
                 coefs.push_back ( std::vector<std::vector<double>>() );
             }
             for ( auto & element : elems ) {
-                if ( source && element->getBehaviour() && element->getBehaviour()->getSource() != source) {
+                if ( (source && element->getBehaviour() && element->getBehaviour()->getSource() != source) || element->getBehaviour()->type == VOID_BEHAVIOUR) {
                     continue ;
                 }
                 if ( locus->in ( element->getCenter() ) ) {
@@ -658,7 +658,7 @@ public:
 
 
             coefs[position][iter].clear() ;
-            if ( source && element->getBehaviour() && element->getBehaviour()->getSource() != source) {
+            if ( (source && element->getBehaviour() && element->getBehaviour()->getSource() != source) || element->getBehaviour()->type == VOID_BEHAVIOUR) {
                 continue ;
             }
             if(element->getOrder() >= CONSTANT_TIME_LINEAR)
@@ -725,7 +725,7 @@ public:
     {
 //        std::cout << omp_get_max_threads() << std::endl ;
 #ifdef HAVE_OPENMP
-      int maxthread = omp_get_max_threads() ;
+      int maxthread = std::max(omp_get_max_threads(), 8) ;
 #else
       int maxthread = 1 ;
 #endif
@@ -1060,7 +1060,7 @@ public:
                     
                     if(ci->getBehaviour()->fractured() || ci->getBehaviour()->getSource() != e->getBehaviour()->getSource())
                         continue ;
-                    
+//                     std::cout << "x" << std::endl ;
                     double v = 0; 
 
                     if(e != ci  || restrict.empty()|| ( e == ci && (restrict.size() !=  coefs[cacheID][i].size())))
@@ -1076,6 +1076,7 @@ public:
                     }                   
                     strainCache[thread] += bufferCache[thread]*v ;
                     sumFactors += v ;
+// 		    std::cout << "y" << std::endl ;
 
                 }
                 if(sumFactors > POINT_TOLERANCE*POINT_TOLERANCE)
@@ -1152,7 +1153,7 @@ public:
                 if ( !spaceTime ) {
                     double sum = 0 ; 
                     Point p ;
-		    
+// 		    std::cout << "z" << std::endl ;
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
                         if(!restrict.empty() && restrict.size() == e->getGaussPoints().gaussPoints.size())
@@ -1164,6 +1165,8 @@ public:
                     }
                     if(sum > POINT_TOLERANCE*POINT_TOLERANCE)
                         firstResultCache[thread] /= sum ;
+		    
+// 		    std::cout << "w" << std::endl ;
                     
                 } else {
                     firstResultCache[thread] = stressCache[thread] ;

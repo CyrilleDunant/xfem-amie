@@ -354,7 +354,7 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
         case VWFT_PRINCIPAL_STRAIN:
     {
         Vector tmp(0.,3) ;
-        tet->getState().getField( PRINCIPAL_STRAIN_FIELD, tet->inLocalCoordinates(p), tmp, true) ;
+        tet->getState().getField( PRINCIPAL_TOTAL_STRAIN_FIELD, tet->inLocalCoordinates(p), tmp, true) ;
         for(int i = 0 ; i < 3 ; i++)
             ret[i] = tmp[2-i] ;
         found = true ;

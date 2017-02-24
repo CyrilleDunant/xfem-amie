@@ -693,7 +693,7 @@ GaussPointArray gaussPointSet(Order order, const TetrahedralElement * t)
 
 const GaussPointArray & TriElement::genGaussPoints()
 {
-    if(getCachedGaussPoints() && !moved)
+    if(getCachedGaussPoints())
         return *getCachedGaussPoints() ;
 
     size_t ordre = 0;
@@ -976,6 +976,7 @@ const GaussPointArray & TriElement::genGaussPoints()
 
     if(moved)
     {
+//         #pragma omp critical
         for(size_t i = 0 ; i < fin.size() ; i++)
         {
             double j = jacobianAtPoint(fin[i].first);
@@ -2277,19 +2278,12 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
         double ydeta = 0 ;//this->getdYTransform(ETA,p) ;
 
         VirtualMachine vm ;
-        TriElement * father = nullptr ;
-
-        std::valarray<Function> * functions = shapefunc ;
-        if(!shapefunc)
-        {
-            father = new TriElement(order) ;
-            functions = father->shapefunc ;
-        }
+        TriElement father(order) ;
 
         for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
         {
-            double dxi = vm.deval((*functions)[i], XI, p) ;
-            double deta = vm.deval((*functions)[i], ETA, p) ;
+            double dxi = vm.deval(father.getShapeFunction(i), XI, p) ;
+            double deta = vm.deval(father.getShapeFunction(i), ETA, p) ;
 
             xdxi += dxi*getBoundingPoint(i).getX() ;
             ydxi += dxi*getBoundingPoint(i).getY() ;
@@ -2303,7 +2297,6 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
         ret[1][0] = xdeta ;
         ret[1][1] = ydeta ;
         invert2x2Matrix(ret) ;
-        delete father ;
 // 		ret.print() ;
 // 		exit(0) ;
     }
@@ -2545,6 +2538,7 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 
     if( !isFather && isMoved())
     {
+// 	#pragma omp critical
         for(size_t i = 0 ; i < fin.size() ; i++)
         {
             fin[i].second *= jacobianAtPoint(fin[i].first) ;

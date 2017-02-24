@@ -1169,13 +1169,13 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
         case TWFT_PRINCIPAL_STRAIN:
         {
             Vector v(0., 2) ;
-            tri->getState().getField( PRINCIPAL_STRAIN_FIELD, *tri->first, v, false, 0) ;
+            tri->getState().getField( PRINCIPAL_TOTAL_STRAIN_FIELD, *tri->first, v, false, 0) ;
             ret[5] = v[1] ;
             ret[2] = v[0] ;
-            tri->getState().getField( PRINCIPAL_STRAIN_FIELD, *tri->second, v, false, 0) ;
+            tri->getState().getField( PRINCIPAL_TOTAL_STRAIN_FIELD, *tri->second, v, false, 0) ;
             ret[4] = v[1] ;
             ret[1] = v[0] ;
-            tri->getState().getField( PRINCIPAL_STRAIN_FIELD, *tri->third, v, false, 0) ;
+            tri->getState().getField( PRINCIPAL_TOTAL_STRAIN_FIELD, *tri->third, v, false, 0) ;
             ret[3] = v[1] ;
             ret[0] = v[0] ;
             found = true ;
@@ -1545,7 +1545,7 @@ std::string nameOfField(FieldType field)
         return std::string("Principal Imposed Strain") ;
     case PRINCIPAL_IMPOSED_STRESS_FIELD :
         return std::string("Principal Imposed Stress") ;
-    case PRINCIPAL_STRAIN_FIELD :
+    case PRINCIPAL_TOTAL_STRAIN_FIELD :
         return std::string("Principal Strain") ;
     case PRINCIPAL_MECHANICAL_STRAIN_FIELD :
         return std::string("Principal Mechanical Strain") ;
@@ -1641,7 +1641,7 @@ int numberOfFields( FieldType field )
         return 6 ;
     case REAL_STRESS_FIELD :
         return 9 ;
-    case PRINCIPAL_STRAIN_FIELD :
+    case PRINCIPAL_TOTAL_STRAIN_FIELD :
         return 6 ;
     case PRINCIPAL_MECHANICAL_STRAIN_FIELD :
         return 6 ;

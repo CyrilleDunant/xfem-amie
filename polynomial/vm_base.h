@@ -76,12 +76,21 @@ class VirtualMachine
     Context stack ;
     Matrix B ;
     Matrix B_ ;
+#ifdef HAVE_OPENMP
+    omp_lock_t lock ;
+#endif
 public:
 
     /** \brief Constructor.
     The constructor created and initialises the stack
     */
     VirtualMachine() ;
+    
+    #ifdef HAVE_OPENMP
+    ~VirtualMachine() {
+	  omp_unset_lock(&lock);
+    }
+    #endif
 
     /** \brief Evaluate Function f at (x, y, z, t, u, v, w).
     @param f Function to evaluate.

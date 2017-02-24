@@ -98,14 +98,14 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     }
     else
     {
-        #pragma omp parallel for schedule(static) 
+        #pragma omp parallel for 
         for(size_t i = 0 ; i < std::min(assembly->getForces().size(), x0.size()) ; i++)
             x[i] = x0[i] ;
     }
 
     if(rowstart)
     {
-        #pragma omp parallel for schedule(static) 
+        #pragma omp parallel for 
         for(size_t i = 0 ; i < rowstart ; i++)
             x[i] = assembly->getForces()[i] ;
     }
@@ -139,7 +139,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
                 if(err > perr)
                     break ;
                 P->precondition(r,r);
-                #pragma omp parallel for schedule(static) if (vsize > 8192)
+                #pragma omp parallel for 
                 for(int i = rowstart ; i < vsize ; i++)
                 {
                     double yx =  -r[i] - xcompensate[i];
@@ -152,7 +152,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         }
         assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
         
-        #pragma omp parallel for schedule(static) if (vsize > 8192)
+        #pragma omp parallel for 
         for(int i = rowstart ; i < vsize ; i++)
             r[i] *= -1 ;
     
@@ -195,7 +195,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         }
         double alpha = last_rho/pq ;
 
-        #pragma omp parallel for schedule(static) if (vsize > 8192)
+        #pragma omp parallel for 
         for(int i = rowstart ; i < vsize ; i++)
         {
             double yr = -q[i]*alpha - rcompensate[i];
@@ -223,9 +223,11 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
             beta = rho/last_rho ;
 
-            #pragma omp parallel for schedule(static) if (vsize > 8192)
+            #pragma omp parallel for 
             for(int i = rowstart ; i < vsize ; i++)
+	    {
                 p[i] = p[i]*beta+z[i] ;
+	    }
 
             assign(q, assembly->getMatrix()*p, rowstart, colstart) ;
             pq =  parallel_inner_product_restricted(&q[rowstart], &p[rowstart], vsize-rowstart);
@@ -236,7 +238,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             }
             alpha = rho/pq;
 
-            #pragma omp parallel for schedule(static) if (vsize > 8192)
+            #pragma omp parallel for
             for(int i = rowstart ; i < vsize ; i++)
             {
                 double yr = -q[i]*alpha - rcompensate[i];
@@ -275,7 +277,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
             {
                 assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
                 P->precondition(r,r);
-                #pragma omp parallel for schedule(static) if (vsize > 8192)
+                #pragma omp parallel for 
                 for(int i = rowstart ; i < vsize ; i++)
                 {
                     double yx =  -r[i] - xcompensate[i];

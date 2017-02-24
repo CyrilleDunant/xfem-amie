@@ -72,7 +72,7 @@ void NonLocalMazars::reset( double thresh, double E_, double nu_, double Gf_)
 
 double NonLocalMazars::gradeAtTime(ElementState &s, double t)
 {
-    std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s,  t) ;
+    std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_TOTAL_STRAIN_FIELD, s,  t) ;
     Vector stress = sstrain.first ;
     Vector strain = sstrain.second ;
     double strainzz =  -nu*(strain[0] + strain[1])/(1. - nu) ;

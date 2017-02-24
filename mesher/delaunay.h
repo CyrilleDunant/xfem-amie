@@ -119,6 +119,9 @@ public:
     virtual bool isConflicting(const Geometry * g) const ;
 
     bool isDuplicate(const DelaunayTreeItem * t) const ;
+    
+//     virtual double volume() const {return 0 ;}
+//     virtual double area() const {return 0 ;}
 
 } ;
 

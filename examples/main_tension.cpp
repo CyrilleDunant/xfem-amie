@@ -129,7 +129,7 @@ Vector epsilon12 ( 0 ) ;
 Vector vonMises ( 0 ) ;
 Vector angle ( 0 ) ;
 
-BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition ( SET_ALONG_XI, BOTTOM,0 ) ;
+BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition ( SET_ALONG_ETA, TOP,0 ) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,Point(.02, 0), 0) ;
 
 double factor = 25 ;
@@ -148,24 +148,30 @@ void step ( size_t nsteps, Sample * samplef )
 {
 
     int tries = 0 ;
-    int every = 2 ;
+    int every = 20 ;
     bool relaxed = false ;
     bool go_on = true ;
+    bool setbc = true ;
     
     std::fstream ldfile ;
     ldfile.open("loadStrain.txt", std::ios_base::in|std::ios_base::out|std::ios_base::trunc) ;
     for ( size_t v = 0 ; v < nsteps ; v++ )
     {
 
-	if(go_on && tries%every == 0 )
+	if(go_on && tries%every == 0 && tries)
 	{
 	  featureTree->removeBoundaryCondition( loadr );
+	  setbc = false ;
 	  relaxed = true ;
 	}
 	else if(go_on)
 	{
-	  loadr->setData(loadr->getData()-.25e-3) ;
-	  featureTree->addBoundaryCondition( loadr );
+	  loadr->setData(loadr->getData()+.25e-6) ;
+	  if(!setbc)
+	  {
+	    featureTree->addBoundaryCondition( loadr );
+	    setbc = true ;
+	  }
 	  relaxed = false ;
 	}
 	
@@ -174,7 +180,7 @@ void step ( size_t nsteps, Sample * samplef )
         if ( go_on )
 	  tries++ ;
         else
-           nsteps++ ;
+          nsteps++ ;
 
         double volume = 0 ;
         double xavg = 0 ;
@@ -203,8 +209,8 @@ void step ( size_t nsteps, Sample * samplef )
 	  
         }
 
-	if (!relaxed)
-	{
+// 	if (!relaxed)
+// 	{
 	  writer.reset ( featureTree ) ;
 	  writer.getField ( TWFT_CRITERION ) ;
 	  writer.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
@@ -215,7 +221,7 @@ void step ( size_t nsteps, Sample * samplef )
   //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
   //             writer.getField ( TWFT_DAMAGE ) ;
 	  writer.append() ;
-	}
+// 	}
 
         if ( go_on && !relaxed)
 	{
@@ -275,19 +281,20 @@ int main ( int argc, char *argv[] )
   
 
     double compressionCrit = -32.6e6 ;
-    double mradius = .015 ; // .010 ;//
+    double mradius = .001 ; // .010 ;//
 
     // More or less a 5754 Al alloy
     double nu = 0.33 ;
     double E = 70e9 ;
 
 
-	Sample samplef(0.05, 0.6,  0, 0) ;
+	Sample samplef(0.005, 0.021,  0, 0) ;
 // 	Sample samplef(0.01, 0.01,  0, 0) ;
 //     Sample samplef ( 100, 100,  50, 50 ) ;
 
     FeatureTree F ( &samplef ) ;
     featureTree = &F ;
+//     F.setProjectionOnBoundaries(false) ;
 
 
     double verticaloffset = 0. ;
@@ -301,18 +308,36 @@ int main ( int argc, char *argv[] )
     t0.isVirtualFeature = true ;
     t1.isVirtualFeature = true ;
 
-//     Sample r0 ( mradius, samplef.height(),samplef.getCenter().getX(), samplef.getCenter().getY() ) ;
-//     r0.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*0.8,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
-//     dynamic_cast<ConcreteBehaviour *> ( r0.getBehaviour() )->materialRadius = mradius ;
-//     r0.isVirtualFeature = true ;
-//     r0.setBehaviourSource ( &samplef );
-//     F.addFeature ( &samplef, &r0 );
+    Sample r0 ( 0.0015, 0.009,+0.001+0.0015*.5, 0 ) ;
+    r0.setBehaviour ( new  VoidForm() ) ;
+    F.addFeature ( &samplef, &r0 );
+    
+    Inclusion i0(0.0015, samplef.width()*.5, 0.0045) ;
+    i0.setBehaviour ( new  VoidForm() ) ;
+    F.addFeature ( &samplef, &i0 );
+    
+    Inclusion i1(0.0015, samplef.width()*.5, -0.0045) ;
+    i1.setBehaviour ( new  VoidForm() ) ;
+    F.addFeature ( &samplef, &i1 );
+    
+    Sample r1 ( 0.0015, 0.009,-0.001-0.0015*.5, 0 ) ;
+    r1.setBehaviour ( new  VoidForm() ) ;
+    F.addFeature ( &samplef, &r1 );
+    
+    Inclusion i2(0.0015, -samplef.width()*.5, 0.0045) ;
+    i2.setBehaviour ( new  VoidForm() ) ;
+    F.addFeature ( &samplef, &i2 );
+    
+    Inclusion i3(0.0015, -samplef.width()*.5, -0.0045) ;
+    i3.setBehaviour ( new  VoidForm() ) ;
+    F.addFeature ( &samplef, &i3 );
+
 
     PrandtlReussPlasticStrain * t0damagemodel = new PrandtlReussPlasticStrain() ;
     PrandtlReussPlasticStrain * t1damagemodel = new PrandtlReussPlasticStrain() ;
-	t0.setBehaviour( new StiffnessAndFracture(E,nu, new NonLocalVonMises(30e6*.9, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS));
-	t1.setBehaviour( new StiffnessAndFracture(E,nu, new NonLocalVonMises(30e6*.9, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS));
-	samplef.setBehaviour(new StiffnessAndFracture(E,nu, new NonLocalVonMises(30e6, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS));
+	t0.setBehaviour( new StiffnessAndFracture(E,nu, new NonLocalVonMises(30e6*.9, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN));
+	t1.setBehaviour( new StiffnessAndFracture(E,nu, new NonLocalVonMises(30e6*.9, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN));
+	samplef.setBehaviour(new StiffnessAndFracture(E,nu, new NonLocalVonMises(30e6, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN));
 
 //     t0.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) );
 //     t1.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) );
@@ -340,17 +365,17 @@ int main ( int argc, char *argv[] )
 // 	F.addBoundaryCondition(loadt);
 
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA, BOTTOM ) ) ;
-    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,TOP ) ) ;
+    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI,BOTTOM ) ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, TOP ) ) ;
 //     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,TOP_LEFT ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
 
-    F.setOrder ( QUADRATIC ) ;
+    F.setOrder ( LINEAR ) ;
 // F.addPoint(new Point(0, 0)) ;
 
-    F.setMaxIterationsPerStep ( 500 );
-    F.thresholdScoreMet = 0.01 ;
+    F.setMaxIterationsPerStep ( 1500 );
+    F.thresholdScoreMet = 0.005 ;
 
     step ( 300, &samplef ) ;
 

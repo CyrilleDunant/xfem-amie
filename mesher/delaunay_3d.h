@@ -128,6 +128,8 @@ public:
     size_t numberOfCommonVertices(const DelaunayTreeItem3D * s) const;
 
     bool isDuplicate( const DelaunayTreeItem3D * t) const ;
+//     virtual double volume() const {return 0 ;}
+//     virtual double area() const {return 0 ;}
 
 } ;
 
