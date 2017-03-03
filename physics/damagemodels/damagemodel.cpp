@@ -238,7 +238,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 	    del = fac*score ;
 	    
 	  
-	  trialRatio = initialRatio+damageDensityTolerance ;//std::min(std::max(initialRatio + del, 0.), 1.) ;
+	  trialRatio = initialRatio+damageDensityTolerance*.25 ;//std::min(std::max(initialRatio + del, 0.), 1.) ;
 	  getState( true ) = downState + ( upState - downState ) *trialRatio /*+ damageDensityTolerance*.25*/;
 	  deltaRoot = true ;
 	}

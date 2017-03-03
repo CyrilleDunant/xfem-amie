@@ -60,10 +60,10 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
         Vector originalIstrain = getImposedStrain(s.getParent()->getCenter()) ;
 	Vector stress(previousImposedStrain.size()) ;
 	Vector strain(previousImposedStrain.size()) ;
-// 	std::pair<Vector,Vector> str = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( REAL_STRESS_FIELD,MECHANICAL_STRAIN_FIELD, s )  ;
-// 	stress = str.first ;
-// 	strain = str.second ;
-        s.getField( REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD,Point(), stress, strain, true) ;
+	std::pair<Vector,Vector> str = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( REAL_STRESS_FIELD,MECHANICAL_STRAIN_FIELD, s )  ;
+	stress = str.first ;
+	strain = str.second ;
+//         s.getField( REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD,Point(), stress, strain, true) ;
 
 	double tr = (stress.size()==3)?(stress[0]+stress[1]):(stress[0]+stress[1]+stress[2]) ;
 	double trstra = (strain.size()==3)?(strain[0]+strain[1]):(strain[0]+strain[1]+strain[2]) ;
@@ -71,8 +71,8 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
 	{
 	  for(size_t i = 0 ; i < 2 ; i++)
 	  {
-	    stress[i] -= tr/3. ;
-	    strain[i] -= trstra/3. ;
+	    stress[i] -= tr/2. ;
+	    strain[i] -= trstra/2. ;
 	  }
 	  
 	  stress[2] *= .5 ;
@@ -102,18 +102,18 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
 	
 	//we need to flow in the right direction
 	state[0] += POINT_TOLERANCE ;
-// 	s.strainAtGaussPointsSet = false ;
-// 	s.stressAtGaussPointsSet = false ;
-	s.getField( REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD,Point(), stress, strain, true) ;
-// 	str = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( REAL_STRESS_FIELD,MECHANICAL_STRAIN_FIELD, s )  ;
-// 	stress = str.first ;
-// 	strain = str.second ;
+	s.strainAtGaussPointsSet = false ;
+	s.stressAtGaussPointsSet = false ;
+// 	s.getField( REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD,Point(), stress, strain, true) ;
+	str = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( REAL_STRESS_FIELD,MECHANICAL_STRAIN_FIELD, s )  ;
+	stress = str.first ;
+	strain = str.second ;
 
 	tr = (stress.size()==3)?(stress[0]+stress[1]):(stress[0]+stress[1]+stress[2]) ;
 	if(stress.size()==3)
 	{
 	  for(size_t i = 0 ; i < 2 ; i++)
-	    stress[i] -= tr/3. ;
+	    stress[i] -= tr/2. ;
 	  
 	  stress[2] *= .5 ;
 	}
@@ -295,7 +295,7 @@ double PrandtlReussPlasticStrain::getAngleShift() const
   if(stress.size()==3)
   {
     for(size_t i = 0 ; i < 2 ; i++)
-      stress[i] -= tr/3. ;
+      stress[i] -= tr/2. ;
     
     stress[2] *= .5 ;
   }
