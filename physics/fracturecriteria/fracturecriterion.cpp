@@ -295,6 +295,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
             inIteration = false ;
             damagingSet.clear();
             proximitySet.clear() ;
+	    initialScore = std::max(scoreAtState, scoreTolerance*scoreTolerance) ; 
 
             std::vector<unsigned int> newSet ;
             std::set<unsigned int> newProximity ;
@@ -314,7 +315,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                     if(ci->getBehaviour()->fractured())
                         continue ; 
 
-                    if(thresholdScore-ci->getBehaviour()->getFractureCriterion()->scoreAtState <= scoreTolerance &&
+                    if(thresholdScore-ci->getBehaviour()->getFractureCriterion()->scoreAtState <= scoreTolerance*initialScore &&
                             ci->getBehaviour()->getFractureCriterion()->met())
                     {
 

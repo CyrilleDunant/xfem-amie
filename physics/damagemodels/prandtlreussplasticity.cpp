@@ -47,14 +47,14 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
     if(!es)
     {
         es = &s ;
-//         setConvergenceType(CONSERVATIVE);
+        setConvergenceType(CONSERVATIVE);
     }
 
     if(!param)
         param = new Matrix(s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())) ;
 
 
-    if( s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() && s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
+    if( s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() /*&& s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint()*/)
     {
 	double initialState = state[0] ;
         Vector originalIstrain = getImposedStrain(s.getParent()->getCenter()) ;
@@ -144,9 +144,12 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
 	  imposedStrain /= norm ;
 	  imposedStrain *= onorm ;
 	}
-	std::cout << imposedStrain[0] << "  " << imposedStrain[1] << "  " << imposedStrain[2] << std::endl ;
+// 	std::cout << imposedStrain[0] << "  " << imposedStrain[1] << "  " << imposedStrain[2] << std::endl ;
 // 	
 	state[0] = initialState ;
+	
+	s.strainAtGaussPointsSet = false ;
+	s.stressAtGaussPointsSet = false ;
 	
         inCompression = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(1) ;
         inTension = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(0) ;
@@ -194,7 +197,10 @@ void PrandtlReussPlasticStrain::step( ElementState &s , double maxscore)
 	Vector stress(previousImposedStrain.size()) ;
 	Vector strain(previousImposedStrain.size()) ;
       
-        s.getField( REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD,Point(), stress, strain, true) ;
+//         s.getField( REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD,Point(), stress, strain, true) ;
+	std::pair<Vector, Vector> str = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( REAL_STRESS_FIELD,MECHANICAL_STRAIN_FIELD, s )  ;
+	stress = str.first ;
+	strain = str.second ;
 
 	double tr = (stress.size()==3)?(stress[0]+stress[1]):(stress[0]+stress[1]+stress[2]) ;
 	double trstra = (strain.size()==3)?(strain[0]+strain[1]):(strain[0]+strain[1]+strain[2]) ;
@@ -232,8 +238,13 @@ void PrandtlReussPlasticStrain::step( ElementState &s , double maxscore)
 	}
 	
 	//we need to flow in the right direction
-	state[0] = POINT_TOLERANCE ;
-	s.getField( REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD,Point(), stress, strain, true) ;
+	state[0] += POINT_TOLERANCE ;
+	s.strainAtGaussPointsSet = false ;
+	s.stressAtGaussPointsSet = false ;
+// 	s.getField( REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD,Point(), stress, strain, true) ;
+	str = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( REAL_STRESS_FIELD,MECHANICAL_STRAIN_FIELD, s )  ;
+	stress = str.first ;
+	strain = str.second ;
 
 	tr = (stress.size()==3)?(stress[0]+stress[1]):(stress[0]+stress[1]+stress[2]) ;
 	if(stress.size()==3)

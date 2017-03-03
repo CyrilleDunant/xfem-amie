@@ -113,7 +113,7 @@ void DamageModel::step( ElementState &s , double maxscore)
     {
 
       
-      Vector ratios({0.0000500000, 0.0001000000, 0.0002137962, 0.0004570882, 0.0009772372, 0.0020892961, 0.0044668359, 0.0095499259, 0.0204173794, 0.0436515832, 0.0933254301, 0.2}) ;
+      Vector ratios({0.0000062500, 0.0000125000, 0.0000250000, 0.0000500000, 0.0001000000, 0.0002137962, 0.0004570882, 0.0009772372, 0.0020892961, 0.0044668359, 0.0095499259, 0.0204173794, 0.0436515832, 0.0933254301, 0.2}) ;
 
       double globalAngleShift = std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->maxAngleShiftInNeighbourhood) ;
       int globalMode = s.getParent()->getBehaviour()->getFractureCriterion()->maxModeInNeighbourhood ;
@@ -238,7 +238,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 	    del = fac*score ;
 	    
 	  
-	  trialRatio = initialRatio+damageDensityTolerance*.25 ;//std::min(std::max(initialRatio + del, 0.), 1.) ;
+	  trialRatio = std::min(std::max(initialRatio + del, 0.), 1.) ;//initialRatio+damageDensityTolerance*.175 ;
 	  getState( true ) = downState + ( upState - downState ) *trialRatio /*+ damageDensityTolerance*.25*/;
 	  deltaRoot = true ;
 	}
@@ -266,7 +266,7 @@ void DamageModel::step( ElementState &s , double maxscore)
                 {
                     if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE)
                     {
-                        state[i] += 0.5*damageDensityTolerance ;
+                        state[i] += 0.01*damageDensityTolerance ;
                         state[i] = std::min(state[i], 1.) ;
                     }
                 }
@@ -328,7 +328,7 @@ DamageModel::DamageModel(): state(0)
     // the correct distribution of damage: the effect
     // of damage increment on the distribution of
     // fracture criterion scores is non-monotonic.
-    damageDensityTolerance =  std::max(0.25/pow(2.,iterationNumber), 0.5e-2) ; //1e-8 ;//1. / pow( 2., 14 );
+    damageDensityTolerance =  std::max(0.25/pow(2.,iterationNumber), 0.5e-3) ; //1e-8 ;//1. / pow( 2., 14 );
     thresholdDamageDensity = 1. ;
     secondaryThresholdDamageDensity = 1. ;
     allowBackSearch = false ;
