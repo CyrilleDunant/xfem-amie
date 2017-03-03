@@ -6079,8 +6079,27 @@ Vector FeatureTree::getAverageField ( FieldType f, double t, int grid, int index
     }
 
     return get3DMesh()->getField ( f, cacheID, t, index ) ;
-
 }
+
+// Vector FeatureTree::getMaximumField ( FieldType f, double t, int grid, int index, int cacheID )
+// {
+//     if ( is2D() )
+//     {
+//         if( layer2d.find( grid ) != layer2d.end() )
+//              return layer2d[grid]->getField( f, cacheID, t, index ) ;
+// 
+//         Vector ret = dtree->getField ( f, cacheID, t, index ) ;
+//         for ( auto layer = layer2d.begin() ; layer!=layer2d.end() ; layer++ )
+//         {
+//             if(layer->second != dtree)
+//                 ret += layer->second->getField ( f, cacheID, t, index ) ;
+//         }
+//         return ret ;
+//     }
+// 
+//     return get3DMesh()->getField ( f, cacheID, t, index ) ;
+// }
+
 
 
 Vector FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, FieldType f, double t, int index )

@@ -191,6 +191,8 @@ public:
                 return element ;
             }
         }
+        if(!elements.empty())
+	  return elements.back() ;
 
         return nullptr ;
     }

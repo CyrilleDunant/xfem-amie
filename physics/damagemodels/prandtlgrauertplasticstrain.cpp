@@ -200,7 +200,7 @@ std::vector<BoundaryCondition * > PrandtlGrauertPlasticStrain::getBoundaryCondit
     if(!param || fractured())
         return ret ;
 
-    Vector imp = getImposedStress(*p_i.getPoint()) ;
+    Vector imp = getImposedStrain(*p_i.getPoint())*apply(*param) ;
     if(v.size() == 2)
     {
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, id, imp[0]));
@@ -222,35 +222,35 @@ std::vector<BoundaryCondition * > PrandtlGrauertPlasticStrain::getBoundaryCondit
 
 Vector PrandtlGrauertPlasticStrain::getImposedStress(const Point & p) const
 {
-    if(v.size() == 2 && !param)
-        return Vector(0., 3) ;
-    if(v.size() == 3 && !param)
-        return Vector(0., 6) ;
-    if(fractured())
-    {
-        if(v.size() == 2)
-            return Vector(0., 3) ;
-        return Vector(0., 6) ;
-    }
-
-    return  (Vector)(*param*(1.-getDamage())*getImposedStrain(p)) ;
-}
-
-Vector PrandtlGrauertPlasticStrain::getImposedStrain(const Point & p) const
-{
     if(v.size() == 2 /*&& !param*/)
         return Vector(0., 3) ;
 //     if(v.size() == 3 && !param)
         return Vector(0., 6) ;
-
 //     if(fractured())
 //     {
 //         if(v.size() == 2)
 //             return Vector(0., 3) ;
 //         return Vector(0., 6) ;
 //     }
-// // 	if(inCompression )
-//     return  (imposedStrain*getState()[0]+previousCompressiveImposedStrain) ;
+// 
+//     return  (Vector)(*param*(1.-getDamage())*getImposedStrain(p)) ;
+}
+
+Vector PrandtlGrauertPlasticStrain::getImposedStrain(const Point & p) const
+{
+    if(v.size() == 2 && !param)
+        return Vector(0., 3) ;
+    if(v.size() == 3 && !param)
+        return Vector(0., 6) ;
+
+    if(fractured())
+    {
+        if(v.size() == 2)
+            return Vector(0., 3) ;
+        return Vector(0., 6) ;
+    }
+// 	if(inCompression )
+    return  imposedStrain*getState()[0]+previousCompressiveImposedStrain ;
 
 // 	return  imposedStrain*getState()[0]+previousTensileImposedStrain ;
 }

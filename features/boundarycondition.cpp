@@ -748,8 +748,8 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                         a->addForceToExternalForces ( 1, forces[1], id[idit] ) ;
                         for ( int b = 1 ; b < visc->blocks ;  b++ )
                         {
-                            a->addForceToExternalForces ( 2*b, -forces[0], id[idit] ) ;
-                            a->addForceToExternalForces ( 2*b+1, -forces[1], id[idit] ) ;
+                            a->addForceToExternalForces ( 2.*b, -forces[0], id[idit] ) ;
+                            a->addForceToExternalForces ( 2.*b+1, -forces[1], id[idit] ) ;
                         }
                     } 
                     else

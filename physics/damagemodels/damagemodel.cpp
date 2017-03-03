@@ -79,6 +79,14 @@ void DamageModel::step( ElementState &s , double maxscore)
         states.clear() ;
         if(!fractured())
         {
+// 	    if(setChange.first < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance())
+// 	    {
+// 		converged = true ;
+// 		change = true ;
+// 		downState = damageIncrement.first ;
+// 		upState = damageIncrement.second ;
+// 		getState( true ) = downState+(upState-downState) * s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
+// 	    }
 
             converged = false ;
             change = true ;
@@ -87,7 +95,7 @@ void DamageModel::step( ElementState &s , double maxscore)
             upState = damageIncrement.second ;
             upState= downState+(upState-downState) * s.getParent()->getBehaviour()->getFractureCriterion()->getMinDeltaInNeighbourhood();
 
-            states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0., score, setChange.second, -M_PI*.05, -1 ) ) ;
+            states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0., score, setChange.second, -M_PI*.025, -1 ) ) ;
             trialRatio = 1. ;
             getState( true ) = upState ;
 
@@ -104,116 +112,26 @@ void DamageModel::step( ElementState &s , double maxscore)
     else if( !converged )
     {
 
-//       if(states.size() == 0)
-//       {
-// 	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0., score, setChange.second, -M_PI*.05, -1 ) ) ;
-// 	 trialRatio = 1. ;
-// 	 getState( true ) = upState ;
-// 	 change = true ;
-// 	 return ; 
-//       }
       
-//        [1] 0.0001000000 0.0002137962 0.0004570882 0.0009772372 0.0020892961
-//  [6] 0.0044668359 0.0095499259 0.0204173794 0.0436515832 0.0933254301
+      Vector ratios({0.0000500000, 0.0001000000, 0.0002137962, 0.0004570882, 0.0009772372, 0.0020892961, 0.0044668359, 0.0095499259, 0.0204173794, 0.0436515832, 0.0933254301, 0.2}) ;
 
       double globalAngleShift = std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->maxAngleShiftInNeighbourhood) ;
       int globalMode = s.getParent()->getBehaviour()->getFractureCriterion()->maxModeInNeighbourhood ;
-      if(states.size() == 1)
-      {
-	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,1., score, setChange.second, globalAngleShift-M_PI*.05, globalMode ) ) ;
-	 trialRatio = .0001 ;
-	 getState( true ) = (upState+downState)*.0001 ;
-	 change = true ;
-	 return ; 
-      }
-      if(states.size() == 2)
-      {
-	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,.0001, score, setChange.second, globalAngleShift-M_PI*.05, globalMode ) ) ;
-	 trialRatio = 0.0002137962 ;
-	 getState( true ) = downState+(upState-downState)*0.0002137962 ;
-	 change = true ;
-	 return ; 
-      }
-      if(states.size() == 3)
-      {
-	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0.0002137962, score, setChange.second, globalAngleShift-M_PI*.05, globalMode) ) ;
-	 trialRatio = 0.0004570882 ;
-	 getState( true ) = downState+(upState-downState)*0.0004570882 ;
-	 change = true ;
-	 return ; 
-      }
-      if(states.size() == 4)
-      {
-	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0.0004570882, score, setChange.second, globalAngleShift-M_PI*.05, globalMode ) ) ;
-	 trialRatio = 0.0009772372 ;
-	 getState( true ) = downState+(upState-downState)*0.0009772372 ;
-	 change = true ;
-	 return ; 
-      }
-      if(states.size() == 5)
-      {
-	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0.0009772372, score, setChange.second, globalAngleShift-M_PI*.05, globalMode ) ) ;
-	 trialRatio = 0.0020892961 ;
-	 getState( true ) = downState+(upState-downState)*0.0020892961 ;
-	 change = true ;
-	 return ; 
-      }
-      if(states.size() == 6)
-      {
-	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0.0020892961, score, setChange.second, globalAngleShift-M_PI*.05, globalMode ) ) ;
-	 trialRatio = 0.0044668359 ;
-	 getState( true ) = downState+(upState-downState)*0.0044668359 ;
-	 change = true ;
-	 return ; 
-      }
-      if(states.size() == 7)
-      {
-	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0.0044668359, score, setChange.second, globalAngleShift-M_PI*.05, globalMode ) ) ;
-	 trialRatio = 0.0095499259 ;
-	 getState( true ) = downState+(upState-downState)*0.0095499259 ;
-	 change = true ;
-	 return ; 
-      }
-      if(states.size() == 8)
-      {
-	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0.0095499259, score, setChange.second, globalAngleShift-M_PI*.05, globalMode ) ) ;
-	 trialRatio = 0.0204173794 ;
-	 getState( true ) = downState+(upState-downState)*0.0204173794 ;
-	 change = true ;
-	 return ; 
-      }
-      if(states.size() == 9)
-      {
-	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0.0204173794, score, setChange.second, globalAngleShift-M_PI*.05, globalMode ) ) ;
-	 trialRatio = 0.0436515832 ;
-	 getState( true ) = downState+(upState-downState)*0.0436515832 ;
-	 change = true ;
-	 return ; 
-      }
-      if(states.size() == 10)
-      {
-	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0.0436515832, score, setChange.second, globalAngleShift-M_PI*.05, globalMode ) ) ;
-	 trialRatio = 0.0933254301 ;
-	 getState( true ) = downState+(upState-downState)*0.0933254301 ;
-	 change = true ;
-	 return ; 
-      }
-      if(allowBackSearch && states.size() == 11)
-      {
-	 states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0.0933254301, score, setChange.second, globalAngleShift-M_PI*.05, globalMode ) ) ;
-	 trialRatio = -.01 ;
-	 getState( true ) = downState-(upState-downState)*.01 ;
-	 change = true ;
-	 return ; 
-      }
-
-//       std::cout << "\n----"<< score << "  ;  "<< trialRatio << "----" << std::endl ;
-//       if(states.size() == 12)
-// 	exit(0) ;
 
         change = true ;
 
-        states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.05, globalMode ) ) ;
+        states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.025, globalMode ) ) ;
+	
+	if(states.size()-2  < 12)
+	{
+	  trialRatio = ratios[states.size()-2] ;
+	  getState( true ) = downState + ( upState - downState ) *trialRatio ;
+	  return ;
+	  
+	}
+	double initialRatio = trialRatio ;
+	
+	
         std::sort( states.begin(), states.end() ) ;
 
         double minFraction = states[0].fraction ;
@@ -301,55 +219,30 @@ void DamageModel::step( ElementState &s , double maxscore)
                 }
             }
         }
+        trialRatio = (minFraction+nextFraction)*.5  ;
         
-        if(!(deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot)) // we should then minimise the score
+        if(!(deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot)) // we should then minimise the score or proximity.
 	{
-
-	  error = 10 ;
-	  for( size_t i = 0 ; i < states.size() ; i++ )
-	  {
-	    currentScore = states[i].score ;
-
-	    if(std::abs(currentScore-minscore)< 1e-8)
-	    {
-	      minFraction = states[i].fraction ;
-	      if(i == states.size()-1)
-	      {
-		minFraction = states[i-1].fraction ;
-		nextFraction = states[i].fraction ;
-		scoreRoot = true ;
-		break ;
-	      }
-	      else if(i == 0)
-	      {
-		minFraction = states[0].fraction ;
-		nextFraction = states[1].fraction ;
-		scoreRoot = true ;
-		break ;
-	      }
-	      else
-	      {
-		if(states[i+1].fraction-states[i].fraction > states[i].fraction-states[i-1].fraction)
-		{
-		  minFraction = states[i].fraction ;
-		  nextFraction = states[i+1].fraction ;
-		  scoreRoot = true ;
-		}
-		else
-		{
-		  minFraction = states[i-1].fraction ;
-		  nextFraction = states[i].fraction ;
-		  scoreRoot = true ;
-		}
-	      }
-	    }    
-	  }  
+	  double del = 0 ;
+	  double fac = std::min(std::max(.5/((std::abs(score) + std::abs(setChange.first) + std::abs(setChange.second) )), 0.25), 1.) ;
+// 	  if(std::max(setChange.first, setChange.second) > 4.*damageDensityTolerance)
+// 	  {
+	    if(setChange.first <= setChange.second && setChange.first <= score)
+	      del = fac*setChange.first ;
+	    else if(setChange.second <= setChange.first && setChange.second <= score)
+	      del = fac*setChange.second ;
+	    else 
+	      del = fac*score ;
+// 	  }
+// 	  else
+// 	    del = fac*score ;
+	    
+	  
+	  trialRatio = initialRatio+damageDensityTolerance ;//std::min(std::max(initialRatio + del, 0.), 1.) ;
+	  getState( true ) = downState + ( upState - downState ) *trialRatio /*+ damageDensityTolerance*.25*/;
+	  deltaRoot = true ;
 	}
-        
 
-        trialRatio = (minFraction+nextFraction)*.5/*std::min(minFraction, states[states.size()-2].fraction ) + .27/pow(2, states.size()-1)*/  ;
-
-        getState( true ) = downState + ( upState - downState ) *trialRatio ;
 
         if( states.size() > maxit-1 && (deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot))
         {
@@ -420,7 +313,7 @@ DamageModel::DamageModel(): state(0)
     isNull = true ;
     haslimit = false ;
     error = 1 ;
-    iterationNumber = 22 ;
+    iterationNumber = 24 ;
 
     ctype = DISSIPATIVE ;
     fraction = -1 ;
@@ -435,7 +328,7 @@ DamageModel::DamageModel(): state(0)
     // the correct distribution of damage: the effect
     // of damage increment on the distribution of
     // fracture criterion scores is non-monotonic.
-    damageDensityTolerance =  std::max(0.25/pow(2.,iterationNumber), 1e-4) ; //1e-8 ;//1. / pow( 2., 14 );
+    damageDensityTolerance =  std::max(0.25/pow(2.,iterationNumber), 0.5e-2) ; //1e-8 ;//1. / pow( 2., 14 );
     thresholdDamageDensity = 1. ;
     secondaryThresholdDamageDensity = 1. ;
     allowBackSearch = false ;

@@ -62,7 +62,7 @@ FractureCriterion::FractureCriterion() :
     maxModeInNeighbourhood(-1),
     maxScoreInNeighbourhood(0),
     maxAngleShiftInNeighbourhood(0),
-    scoreTolerance(.5e-2),
+    scoreTolerance(1e-2),
     checkpoint(true),
     inset(false),
     smoothingType(QUARTIC_COMPACT),
@@ -175,8 +175,8 @@ void FractureCriterion::initialiseCache( ElementState & s)
 // 	  std::cout << VirtualMachine().eval(smooth, x, s.getParent()->getCenter().getY()) << "  "<< VirtualMachine().eval(smoothalt, x, s.getParent()->getCenter().getY()) << std::endl ;
 // 	}
 // 	exit(0) ;
-        Circle epsilonAll( std::max(physicalCharacteristicRadius*1.1, s.getParent()->getRadius()*3. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
-        Circle epsilonReduced(physicalCharacteristicRadius*1.1+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
+        Circle epsilonAll( std::max(physicalCharacteristicRadius*4., s.getParent()->getRadius()*3. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
+        Circle epsilonReduced(physicalCharacteristicRadius*4.+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         mesh2d = s.getMesh2D() ;
         cachecoreID = mesh2d->generateCache(&epsilonReduced, s.getParent()->getBehaviour()->getSource(), smooth) ;
         if(s.getParent()->timePlanes() > 1)
@@ -193,8 +193,8 @@ void FractureCriterion::initialiseCache( ElementState & s)
 //         physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*1.5) ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
         Function smooth = getSmoothingKernelFunction( smoothingType, rrn ) ; 
-        Sphere epsilonAll( std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*2. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
-        Sphere epsilonReduced(physicalCharacteristicRadius*1.1+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
+        Sphere epsilonAll( std::max(physicalCharacteristicRadius*4., s.getParent()->getRadius()*2. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
+        Sphere epsilonReduced(physicalCharacteristicRadius*4.+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         mesh3d = s.getMesh3D() ;
         cachecoreID = mesh3d->generateCache(&epsilonReduced, s.getParent()->getBehaviour()->getSource(), smooth) ;
         if(s.getParent()->timePlanes() > 1)
@@ -299,8 +299,6 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
             std::vector<unsigned int> newSet ;
             std::set<unsigned int> newProximity ;
 
-            initialScore = 1. ;
-            double minscore = thresholdScore ;
             double maxscore = std::max(0.,thresholdScore) ;
             bool foundmaxscore = false ;
             minDeltaInNeighbourhood = 1 ;
@@ -316,7 +314,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                     if(ci->getBehaviour()->fractured())
                         continue ; 
 
-                    if(thresholdScore-ci->getBehaviour()->getFractureCriterion()->scoreAtState <= scoreTolerance*initialScore*.25 &&
+                    if(thresholdScore-ci->getBehaviour()->getFractureCriterion()->scoreAtState <= scoreTolerance &&
                             ci->getBehaviour()->getFractureCriterion()->met())
                     {
 
@@ -329,7 +327,6 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                         maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, ci->getBehaviour()->getDamageModel()->getMode()) ;
                         maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, ci->getBehaviour()->getDamageModel()->getAngleShift()) ;
                         newSet.push_back(ci->index);
-                        minscore = std::min(ci->getBehaviour()->getFractureCriterion()->scoreAtState, thresholdScore) ;
                     }
                     else
                     {
@@ -339,6 +336,8 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                             maxscore = ci->getBehaviour()->getFractureCriterion()->scoreAtState ;
                             foundmaxscore = true ;
                         }
+                        else
+			  maxscore = std::max(ci->getBehaviour()->getFractureCriterion()->scoreAtState, maxscore) ;
                     }
                 }
             }
@@ -362,32 +361,32 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
             for(size_t i = 0 ; i < proximitySet.size() ; i++)
                 static_cast<DelaunayTriangle *>( mesh2d->getInTree(proximitySet[i]))->getBehaviour()->getFractureCriterion()->inIteration = true ;
 
-            return std::make_pair(minscore - maxscore /*+ scoreTolerance*2.*initialScore*/, thresholdScore - minscore /*- scoreTolerance*initialScore*/) ;
+            return std::make_pair(scoreAtState - maxscore /*+ scoreTolerance*2.*initialScore*/, thresholdScore - scoreAtState /*- scoreTolerance*initialScore*/) ;
         }
         else if (inset)
         {
             checkpoint = false ;
             DelaunayTriangle * ci = static_cast<DelaunayTriangle *>( mesh2d->getInTree(damagingSet[0])) ;
-            double maxscore = 0 ;
-            if(ci->getBehaviour()->getFractureCriterion() && !ci->getBehaviour()->getDamageModel()->converged )
-            {
-                maxscore = ci->getBehaviour()->getFractureCriterion()->scoreAtState ;
-            }
-            maxModeInNeighbourhood = ci->getBehaviour()->getDamageModel()->getMode() ;
-            maxAngleShiftInNeighbourhood = ci->getBehaviour()->getDamageModel()->getAngleShift() ;
+//             double maxscore = 0 ;
+//             if(ci->getBehaviour()->getFractureCriterion() && !ci->getBehaviour()->getDamageModel()->converged )
+//             {
+//                 maxscore = ci->getBehaviour()->getFractureCriterion()->scoreAtState ;
+//             }
+            maxModeInNeighbourhood = s.getParent()->getBehaviour()->getDamageModel()->getMode() ;
+            maxAngleShiftInNeighbourhood = s.getParent()->getBehaviour()->getDamageModel()->getAngleShift() ;
 
-            for(size_t i = 1 ; i < damagingSet.size() ; i++)
-            {
-                ci = static_cast<DelaunayTriangle *>( mesh2d->getInTree(damagingSet[i])) ;
-                if(ci->getBehaviour()->getFractureCriterion() && !ci->getBehaviour()->getDamageModel()->converged)
-                {
-                    double nls = ci->getBehaviour()->getFractureCriterion()->scoreAtState ;
-                    maxscore = std::min(maxscore,nls) ;
-                }
-                maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, ci->getBehaviour()->getDamageModel()->getMode()) ;
-                maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, ci->getBehaviour()->getDamageModel()->getAngleShift()) ;
-
-            }
+//             for(size_t i = 1 ; i < damagingSet.size() ; i++)
+//             {
+//                 ci = static_cast<DelaunayTriangle *>( mesh2d->getInTree(damagingSet[i])) ;
+// //                 if(ci->getBehaviour()->getFractureCriterion() && !ci->getBehaviour()->getDamageModel()->converged)
+// //                 {
+// //                     double nls = ci->getBehaviour()->getFractureCriterion()->scoreAtState ;
+// //                     maxscore = std::min(maxscore,nls) ;
+// //                 }
+//                 maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, ci->getBehaviour()->getDamageModel()->getMode()) ;
+// //                 maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, ci->getBehaviour()->getDamageModel()->getAngleShift()) ;
+// 
+//             }
 
 
             double minscore = 0 ;
@@ -409,7 +408,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                 }
             }
 
-            return std::make_pair(maxscore - minscore /*+ scoreTolerance*2.*initialScore*/, thresholdScore - maxscore /*- scoreTolerance*initialScore*/) ;
+            return std::make_pair(scoreAtState - minscore /*+ scoreTolerance*2.*initialScore*/, thresholdScore - scoreAtState /*- scoreTolerance*initialScore*/) ;
         }
     }
     else

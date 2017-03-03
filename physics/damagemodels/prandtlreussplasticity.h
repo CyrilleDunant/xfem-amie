@@ -39,6 +39,7 @@ public:
     bool broken ;
     bool inCompression ;
     bool inTension ;
+    bool newtonIteration ;
 
     ElementState * es ;
 
@@ -71,12 +72,12 @@ public:
     virtual bool hasInducedBoundaryConditions() const {
       if(previousImposedStrain.size() ==0)
 	return false ;
-      return std::abs(previousImposedStrain+state[0]*imposedStrain).max() > POINT_TOLERANCE ;
+      return true ;
     } ;
     virtual bool hasInducedForces() const {
        if(previousImposedStrain.size() ==0)
 	 return false ;
-       return std::abs(previousImposedStrain+state[0]*imposedStrain).max() > POINT_TOLERANCE ;
+       return true ;
     }
 
 
@@ -98,7 +99,7 @@ public:
     double getDamage() const ;
     double getPlasticity() const;
 
-
+    virtual void step( ElementState &s , double maxscore) ;
 };
 
 }

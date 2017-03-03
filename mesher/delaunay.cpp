@@ -2265,6 +2265,7 @@ std::vector<DelaunayTreeItem *> DelaunayTree::conflicts( const Point *p)
             }
         }
     }
+    
     return cons ;
 }
 
