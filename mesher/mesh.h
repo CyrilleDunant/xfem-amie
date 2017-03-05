@@ -1066,7 +1066,7 @@ public:
                     double v = 0; 
 
                     if(e != ci  || restrict.empty()|| ( e == ci && (restrict.size() !=  coefs[cacheID][i].size())))
-                        v = ci->getState().getAverageField ( MECHANICAL_STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
+                        v = ci->getState().getAverageField ( TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
                     else if(e == ci && restrict.size() ==  coefs[cacheID][i].size())
                     {
                         std::vector<double> effCoef = coefs[cacheID][i] ;
@@ -1074,7 +1074,7 @@ public:
                         for(size_t j = 0 ; j < restrict.size() ; j++)
                             effCoef[j] *= !restrict[j] ;
                         
-                        v = ci->getState().getAverageField ( MECHANICAL_STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef ); 
+                        v = ci->getState().getAverageField ( TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef ); 
                     }                   
                     strainCache[thread] += bufferCache[thread]*v ;
                     sumFactors += v ;
@@ -1083,6 +1083,7 @@ public:
                 }
                 if(sumFactors > POINT_TOLERANCE*POINT_TOLERANCE)
                     strainCache[thread] /= sumFactors ;
+                
             } else {
                 size_t blocks = 0 ;
                 for ( size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++ ) {
@@ -1313,7 +1314,7 @@ public:
                         double v = 0; 
 
                         if(e != ci  || restrict.empty()|| ( e == ci && (restrict.size() !=  coefs[cacheID][i].size())))
-                            v = ci->getState().getAverageField ( MECHANICAL_STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
+                            v = ci->getState().getAverageField ( TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
                         else if(e == ci && restrict.size() ==  coefs[cacheID][i].size())
                         {
                             std::vector<double> effCoef = coefs[cacheID][i] ;
@@ -1321,7 +1322,7 @@ public:
                             for(size_t j = 0 ; j < restrict.size() ; j++)
                                 effCoef[j] *= !restrict[j] ;
                             
-                            v = ci->getState().getAverageField ( MECHANICAL_STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef ); 
+                            v = ci->getState().getAverageField ( TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef ); 
                         } 
 
                         strainCache[thread] += bufferCache[thread]*v ;
@@ -1330,6 +1331,7 @@ public:
                 }
                 if(sumFactors > POINT_TOLERANCE*POINT_TOLERANCE)
                     strainCache[thread] /= sumFactors ;
+                
             } else {
                 size_t blocks = 0 ;
                 for ( size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++ ) {
@@ -1394,11 +1396,11 @@ public:
 
             if ( f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) {
                 firstResultCache[thread].resize ( psize );
-                firstResultCache[thread] = toPrincipal( strainCache[thread], DOUBLE_OFF_DIAGONAL_VALUES ) ;
+                firstResultCache[thread] = toPrincipal( strainCache[thread]-e->getBehaviour()->getImposedStrain( Point() ), DOUBLE_OFF_DIAGONAL_VALUES ) ;
             }
             if ( f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) {
                 secondResultCache[thread].resize ( psize );
-                secondResultCache[thread] = toPrincipal ( strainCache[thread] , DOUBLE_OFF_DIAGONAL_VALUES ) ;
+                secondResultCache[thread] = toPrincipal ( strainCache[thread]-e->getBehaviour()->getImposedStrain( Point() ) , DOUBLE_OFF_DIAGONAL_VALUES ) ;
             }
             if ( f0 == REAL_STRESS_FIELD ) {
                 firstResultCache[thread].resize ( tsize, 0. );
@@ -1519,12 +1521,12 @@ public:
 
             if ( f0 == MECHANICAL_STRAIN_FIELD ) {
                 firstResultCache[thread].resize( tsize ) ;
-                firstResultCache[thread] = strainCache[thread] ;
+                firstResultCache[thread] = strainCache[thread]-e->getBehaviour()->getImposedStrain( Point() ) ;
             }
 
             if ( f1 == MECHANICAL_STRAIN_FIELD ) {
                 secondResultCache[thread].resize( tsize ) ;
-                secondResultCache[thread] = strainCache[thread] ;
+                secondResultCache[thread] = strainCache[thread]-e->getBehaviour()->getImposedStrain( Point() ) ;
             }
 
         } else {

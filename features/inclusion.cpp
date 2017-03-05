@@ -236,7 +236,7 @@ bool RectangularInclusion::interacts(Feature * f, double d) const
 	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
 		if(f->inBoundary(*(*i), d))
 			return true ;
-		return false ;
+	return false ;
 }
 
 

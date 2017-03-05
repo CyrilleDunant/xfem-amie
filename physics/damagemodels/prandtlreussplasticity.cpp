@@ -29,7 +29,7 @@ PrandtlReussPlasticStrain::PrandtlReussPlasticStrain() : imposedStrain(0.,3), pr
     broken = false ;
     factor = 1 ;
     allowBackSearch = false ;
-    newtonIteration = false ;
+    newtonIteration = true ;
 
 }
 
@@ -47,7 +47,7 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
     if(!es)
     {
         es = &s ;
-        setConvergenceType(CONSERVATIVE);
+        setConvergenceType(DISSIPATIVE);
     }
 
     if(!param)
@@ -276,7 +276,7 @@ void PrandtlReussPlasticStrain::step( ElementState &s , double maxscore)
 	  imposedStrain *= onorm ;
 	}
 	
-	state[0] =  (s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()+mindelta)*0.5 ; 
+	state[0] += std::min(mindelta, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) ;//s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()/*+mindelta)*0.5*/ ;  s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()/*+mindelta)*0.5*/ ; 
 		
         inCompression = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(1) ;
         inTension = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(0) ;

@@ -156,7 +156,7 @@ void step ( size_t nsteps, Sample * samplef )
     std::fstream ldfile ;
     ldfile.open("loadStrain_m.txt", std::ios_base::in|std::ios_base::out|std::ios_base::trunc) ;
     featureTree->step() ;
-    ldfile << 1 << "  " << 0 << "  " << 0 << "  " << 0 << "  " << 0 <<  "  " << 0 << "  " << 0 << "  "  << 0 << "  " << 0 <<  std::endl ;
+    ldfile << 1 <<"  " << 0 << "  " << 0 << "  " << 0 << "  " << 0 << "  " << 0 <<  "  " << 0 << "  " << 0 << "  "  << 0 << "  " << 1 <<  std::endl ;
     writer.reset ( featureTree ) ;
     writer.getField ( TWFT_CRITERION ) ;
     writer.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
@@ -182,7 +182,7 @@ void step ( size_t nsteps, Sample * samplef )
     for ( size_t v = 0 ; v < nsteps ; v++ )
     {
 
-	if(go_on && tries%every == 0 && tries)
+	if(false && go_on && tries%every == 0 && tries)
 	{
 	  featureTree->removeBoundaryCondition( loadr );
 	  setbc = false ;
@@ -190,7 +190,7 @@ void step ( size_t nsteps, Sample * samplef )
 	}
 	else if(go_on)
 	{
-	  loadr->setData(loadr->getData()+.125e-4) ;
+	  loadr->setData(loadr->getData()+.125e-5) ; //e-4*.25 is mostly OK
 	  if(!setbc)
 	  {
 	    featureTree->addBoundaryCondition( loadr );
@@ -206,7 +206,7 @@ void step ( size_t nsteps, Sample * samplef )
         else
           nsteps++ ;
 	
-	if(go_on && (tries+1)%every == 0 && tries)
+	if(false &&go_on && (tries+1)%every == 0 && tries)
 	  featureTree->thresholdScoreMet = 0.00001 ;
 	else
 	  featureTree->thresholdScoreMet = 0.01 ;
@@ -238,7 +238,7 @@ void step ( size_t nsteps, Sample * samplef )
 	    std::cout << std::endl ;
 	    
 	    ldfile << go_on << "  " << stemp[0]/1e6 << "  " << stemp[1]/1e6 << "  " << etemp[0]*1e6 << "  " << etemp[1]*1e6 <<  "  " 
-	           << istemp[0]/1e6 << "  " << istemp[1]/1e6 << "  "  << ietemp[0]*1e6 << "  " << ietemp[1]*1e6 <<  std::endl ;
+	           << istemp[0]/1e6 << "  " << istemp[1]/1e6 << "  "  << ietemp[0]*1e6 << "  " << ietemp[1]*1e6 << "  " << featureTree->getIterationCount() << std::endl ;
 
 	  
 //         }
@@ -375,7 +375,7 @@ int main ( int argc, char *argv[] )
     StiffnessAndFracture  * pr = new StiffnessAndFracture(70e9,0.33, new NonLocalVonMises(30e6, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
     StiffnessAndFracture  * pg = new StiffnessAndFracture(30e9,0.2, new NonLocalVonMises(20e6, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
     
-    samplef.setBehaviour(pr);
+    samplef.setBehaviour(pg);
 
     
     
@@ -409,7 +409,7 @@ int main ( int argc, char *argv[] )
     F.setMaxIterationsPerStep ( 500 );
     F.thresholdScoreMet = 0.01 ;
 
-    step ( 300, &samplef ) ;
+    step ( 1500, &samplef ) ;
 
 
     return 0 ;

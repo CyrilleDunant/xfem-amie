@@ -309,9 +309,10 @@ void TimeDependentEnrichmentInclusion::step(double dt, std::valarray< double >*,
         }
     }
     else
-
+    {
         changed = false ;
         updated = false ;
+    }
 
 }
 

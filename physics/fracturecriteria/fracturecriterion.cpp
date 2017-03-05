@@ -25,12 +25,15 @@ namespace Amie
 
 double getSmoothingKernelSize( SmoothingFunctionType type )
 {
+    return 2.5 ;
     switch(type)
     {
         case QUARTIC_COMPACT:
-           return 1.5 ;
+           return 2.5 ;
         case GAUSSIAN_NONCOMPACT:
-           return 1.5 ;
+           return 2.5 ;
+        case LINEAR_COMPACT:
+           return 2.5 ;
     }
     return 1. ;
 }
@@ -45,7 +48,13 @@ Function getSmoothingKernelFunction( SmoothingFunctionType type, Function & rrn 
            return (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 	}
         case GAUSSIAN_NONCOMPACT:
+        {
            return f_exp(rrn*-1) ;
+        }
+        case LINEAR_COMPACT:
+        {
+            return f_sqrt(1.-rrn)*f_positivity(1.-rrn) ;
+        }
     }
     return Function("1") ;
 }
@@ -295,7 +304,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
             inIteration = false ;
             damagingSet.clear();
             proximitySet.clear() ;
-	    initialScore = std::max(scoreAtState, scoreTolerance*scoreTolerance) ; 
+// 	    initialScore = std::max(scoreAtState, scoreTolerance*scoreTolerance) ; 
 
             std::vector<unsigned int> newSet ;
             std::set<unsigned int> newProximity ;

@@ -85,6 +85,7 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
     previousDeltaTime = 0 ;
     minDeltaTime = 0.001 ;
     epsilonA = -1 ;
+    iterationCounter = 0 ;
     foundCheckPoint = true ;
     averageDamage = 0 ;
     behaviourSet =false ;
@@ -212,6 +213,7 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     maxScore = -1 ;
     behaviourSet =true ;
     damageConverged = true ;
+    iterationCounter = 0 ;
     stateConverged = false ;
     dtree = nullptr ;
     alternating = false ;
@@ -5897,6 +5899,9 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
 
     if(damageConverged)
         K->setPreviousDisplacements() ;
+    
+//     if((solverConverged() && stateConverged && maxScore < thresholdScoreMet))
+        iterationCounter += totit ;
 
     return solverConverged() && stateConverged && maxScore < thresholdScoreMet ;
 
@@ -5904,6 +5909,8 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
 
 bool FeatureTree::step(bool guided)
 {
+    if(solverConverged() && stateConverged && maxScore < thresholdScoreMet)
+        iterationCounter = 0 ;
     return stepInternal(guided, true) ;
 }
 

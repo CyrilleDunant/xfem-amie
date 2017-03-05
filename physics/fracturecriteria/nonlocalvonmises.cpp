@@ -20,6 +20,8 @@ NonLocalVonMises::NonLocalVonMises(double thresh, double radius) : threshold(std
     setMaterialCharacteristicRadius(radius);
     met = false ;
 //     smoothingType = GAUSSIAN_NONCOMPACT ;
+//         smoothingType = GAUSSIAN_NONCOMPACT ;
+
 }
 
 

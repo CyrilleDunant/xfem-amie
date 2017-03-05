@@ -45,7 +45,8 @@ public:
     bool broken ;
     bool inCompression ;
     bool inTension ;
-
+    bool newtonIteration ;
+    
     ElementState * es ;
 
 public:
@@ -85,6 +86,8 @@ public:
     /** \brief return true is the element concerned is fractured
     	*/
     virtual bool fractured(int direction = -1) const  ;
+    
+    virtual void step( ElementState &s , double maxscore) ;
 
 // 	virtual void step(ElementState & s) ;
 

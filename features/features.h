@@ -161,6 +161,7 @@ protected:
     double samplingNumber ;
     size_t previousSamplingNumber ;
     size_t maxitPerStep ;
+    size_t iterationCounter ;
     size_t lastNodeId ;
     size_t lastEnrichmentId ;
 
@@ -347,6 +348,8 @@ public:
     } ;
 public:
     Vector instants ;
+    
+    size_t getIterationCount() const {return iterationCounter ;};
 
     void setDiscretizationParameters ( ConfigTreeItem * config, ConfigTreeItem * def = nullptr )  ;
     Vector setSteppingParameters ( ConfigTreeItem * config, ConfigTreeItem * def = nullptr )  ;

@@ -122,7 +122,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 
         states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.025, globalMode ) ) ;
 	
-	if(states.size()-2  < 12)
+	if(states.size()-2  < 8)
 	{
 	  trialRatio = ratios[states.size()-2] ;
 	  getState( true ) = downState + ( upState - downState ) *trialRatio ;
@@ -224,7 +224,7 @@ void DamageModel::step( ElementState &s , double maxscore)
         if(!(deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot)) // we should then minimise the score or proximity.
 	{
 	  double del = 0 ;
-	  double fac = std::min(std::max(.5/((std::abs(score) + std::abs(setChange.first) + std::abs(setChange.second) )), 0.25), 1.) ;
+	  double fac = std::min(std::max(.75/((std::abs(score) + std::abs(setChange.first) + std::abs(setChange.second) )), 0.25), 1.) ;
 // 	  if(std::max(setChange.first, setChange.second) > 4.*damageDensityTolerance)
 // 	  {
 	    if(setChange.first <= setChange.second && setChange.first <= score)
@@ -266,7 +266,7 @@ void DamageModel::step( ElementState &s , double maxscore)
                 {
                     if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE)
                     {
-                        state[i] += 0.01*damageDensityTolerance ;
+                        state[i] += 0.5*damageDensityTolerance ;
                         state[i] = std::min(state[i], 1.) ;
                     }
                 }
@@ -313,7 +313,7 @@ DamageModel::DamageModel(): state(0)
     isNull = true ;
     haslimit = false ;
     error = 1 ;
-    iterationNumber = 24 ;
+    iterationNumber = 16 ;
 
     ctype = DISSIPATIVE ;
     fraction = -1 ;

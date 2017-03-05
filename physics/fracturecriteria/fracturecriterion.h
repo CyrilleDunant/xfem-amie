@@ -32,6 +32,7 @@ class DelaunayTetrahedron ;
 typedef enum {
     QUARTIC_COMPACT,
     GAUSSIAN_NONCOMPACT,
+    LINEAR_COMPACT
 } SmoothingFunctionType ;
 
 /**
