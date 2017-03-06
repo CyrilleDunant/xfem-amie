@@ -117,6 +117,7 @@ typedef enum : char {
 class Form ;
 class NonLinearForm ;
 class PrandtlReussPlasticStrain ;
+class PrandtlGrauertPlasticStrain ;
 class LinearForm ;
 class Function ;
 class DelaunayTriangle ;
@@ -145,6 +146,7 @@ class ElementState
   friend LinearForm ;
   friend NonLinearForm ;
   friend PrandtlReussPlasticStrain ;
+  friend PrandtlGrauertPlasticStrain ;
   friend DelaunayTriangle ;
 protected:
 

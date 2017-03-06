@@ -270,11 +270,53 @@ void PrandtlGrauertPlasticStrain::step( ElementState &s , double maxscore)
 	  imposedStrain *= onorm ;
 	}
 	
+        state[0] += POINT_TOLERANCE ;
+	s.strainAtGaussPointsSet = false ;
+	s.stressAtGaussPointsSet = false ;
+        
+        ss = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( MECHANICAL_STRAIN_FIELD, REAL_STRESS_FIELD, s) ;
+        stress = ss.first ;
+        strain = ss.second ;
+        stressMatrix[0][0] = stress[0] ;
+        stressMatrix[1][1] = stress[1] ;
+        stressMatrix[0][1] = stress[2] ;
+        stressMatrix[1][0] = stress[2] ;
+        incrementalStrainMatrix = Matrix(stressMatrix.numRows(), stressMatrix.numCols()) ;
+
+        m_p = (stressMatrix) ;
+        m_m = (stressMatrix) ;
+        delta = 1e-6*std::abs(plasticFlowPotential(stressMatrix)) ;
+        for(size_t i = 0 ; i < stressMatrix.numRows() ; i++)
+        {
+            for(size_t j = 0 ; j < stressMatrix.numCols() ; j++)
+            {
+
+                m_p[i][j] += delta ;
+                m_m[i][j] -= delta ;
+                incrementalStrainMatrix[i][j] = (plasticFlowPotential(m_p)-plasticFlowPotential(m_m))/(2.*delta) ;
+                m_p[i][j] = stressMatrix[i][j] ;
+                m_m[i][j] = stressMatrix[i][j] ;
+            }
+        }
+        imposedStrain[0] = incrementalStrainMatrix[0][0] ;
+        imposedStrain[1] = incrementalStrainMatrix[1][1] ;
+        imposedStrain[2] = 0.5*(incrementalStrainMatrix[0][1]+incrementalStrainMatrix[1][0]) ;
+
+
+        norm = sqrt((imposedStrain*imposedStrain).sum()) ;
+        onorm = factor*std::min(1.,sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())) ;
+	if(norm > POINT_TOLERANCE && onorm > POINT_TOLERANCE)
+	{
+	  imposedStrain /= norm ;
+	  imposedStrain *= onorm ;
+	}
+        
+	s.strainAtGaussPointsSet = false ;
+	s.stressAtGaussPointsSet = false ;
 	
-        double istate = state[0] ;
-	state[0] += std::min(mindelta, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) ; //s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()/*+mindelta)*0.5*/ ; 
-        double dmg = std::max(.999, getDamage()*2.) ;
-        state[0] = istate + (1.-dmg)*std::min(mindelta, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) ;
+        double pstate = state[0]-POINT_TOLERANCE ;
+        double schange = 0.001*std::min(mindelta, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) ;
+	state[0] += schange-POINT_TOLERANCE ; //s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()/*+mindelta)*0.5*/ ; 
         
 		
         inCompression = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(1) ;
