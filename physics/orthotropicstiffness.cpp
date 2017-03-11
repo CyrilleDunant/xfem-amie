@@ -104,19 +104,24 @@ void OrthotropicStiffness::setAngle(double angle)
 
 void OrthotropicStiffness::setStiffness(double E_1, double E_2, double G, double nu)
 {
-    paramBase = Tensor::orthotropicCauchyGreen(E_1, E_2, G,  nu, PLANE_STRESS) ;
+    this->E_1 = E_1 ;
+    this->E_2 = E_2 ;
+    paramBase = Tensor::orthotropicCauchyGreen(E_1, E_2, G,  nu, PLANE_STRAIN) ;
     if(transformset)
         param = (transform*paramBase)*transformt ;
 }
 
 void OrthotropicStiffness::setStiffness(double E_1, double E_2, double E_3, double G_1, double G_2, double G_3, double nu)
 {
+    this->E_1 = E_1 ;
+    this->E_2 = E_2 ;
+    this->E_3 = E_3 ;
     paramBase = Tensor::orthotropicCauchyGreen(E_1, E_2,E_3, G_1, G_2, G_3,  nu) ;
     if(transformset)
         param = (transform*paramBase)*transformt ;
 }
 
-OrthotropicStiffness::OrthotropicStiffness(double E_1, double E_2, double G,  double nu, double angle) : LinearForm(Tensor::orthotropicCauchyGreen(E_1, E_2, G,  nu, PLANE_STRESS), true, false, 2) ,
+OrthotropicStiffness::OrthotropicStiffness(double E_1, double E_2, double G,  double nu, double angle) : LinearForm(Tensor::orthotropicCauchyGreen(E_1, E_2, G,  nu, PLANE_STRAIN), true, false, 2) , E_1(E_1), E_2(E_2) ,
     transform(3,3),
     transformt(3,3)
 {
@@ -133,7 +138,7 @@ OrthotropicStiffness::OrthotropicStiffness(const OrthotropicStiffness * source) 
 {
 } 
 
-OrthotropicStiffness::OrthotropicStiffness(double E_1, double E_2, double nu_12,  double nu_21, double angle, bool poissondefined) : LinearForm(Tensor::orthotropicCauchyGreen(E_1, E_2, E_1*E_2/(E_1*(1.+nu_12)+E_2*(1.+nu_21)),  (nu_12+nu_21)*.5, PLANE_STRESS), true, false, 2) ,
+OrthotropicStiffness::OrthotropicStiffness(double E_1, double E_2, double nu_12,  double nu_21, double angle, bool poissondefined) : LinearForm(Tensor::orthotropicCauchyGreen(E_1, E_2, E_1*E_2/(E_1*(1.+nu_12)+E_2*(1.+nu_21)),  (nu_12+nu_21)*.5, PLANE_STRESS), true, false, 2) , E_1(E_1), E_2(E_2),
     transform(3,3),
     transformt(3,3)
 {
@@ -142,9 +147,10 @@ OrthotropicStiffness::OrthotropicStiffness(double E_1, double E_2, double nu_12,
     v.push_back(ETA);
     paramBase = param ;
     setAngle(angle);
+    
 }
 
-OrthotropicStiffness::OrthotropicStiffness(double E_1, double E_2, double E_3, double G_1, double G_2, double G_3,  double nu, double angle) : LinearForm(Tensor::orthotropicCauchyGreen(E_1, E_2, E_3, G_1, G_2, G_3,  nu), true, false, 3),
+OrthotropicStiffness::OrthotropicStiffness(double E_1, double E_2, double E_3, double G_1, double G_2, double G_3,  double nu, double angle) : LinearForm(Tensor::orthotropicCauchyGreen(E_1, E_2, E_3, G_1, G_2, G_3,  nu), true, false, 3),E_1(E_1), E_2(E_2),E_3(E_3),
     transform(6,6),
     transformt(6,6)
 {

@@ -22,7 +22,7 @@ namespace Amie
 {
 
 NonLocalMCFT::NonLocalMCFT( double down, double youngModulus,  double charRad, RedistributionType r) : 
-    rtype(r), upVal( /*0.66*1e6*pow(std::abs(down*1e-6),.33)*/ .33e6*sqrt(-down*1e-6)*0.9),  downVal( down ), youngModulus(youngModulus)
+    rtype(r), upVal( /*0.66*1e6*pow(std::abs(down*1e-6),.33)*/ .33e6*sqrt(-down*1e-6)),  downVal( down ), youngModulus(youngModulus)
 {
     physicalCharacteristicRadius = charRad ;
     critStrain = -0.00163 ;//-0.0015;
@@ -58,7 +58,7 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
         double downTestVal = tensionCritStrain ;
         double upTestVal = std::max(strain_te*100.,tstrain*100.) ;
         double factor = 1 ;
-// 		double delta_tech = (strain_te-strain_ch);
+	double delta_tech = (strain_te-strain_ch);
         int count = 0 ;
 
         double sk = sqrt(k) ;
@@ -69,12 +69,12 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 
             if(testVal < tensionCritStrain)
                 factor = 1. ;
-            else //if(testVal < strain_ch)
+            else if(testVal < strain_ch)
                 factor = mainCurve ;
-// 			else if(testVal < strain_te)
-// 				factor = mainCurve*(strain_te-testVal)/(delta_tech) ;
-// 			else
-// 				factor = 0 ;
+	    else if(testVal < strain_te)
+		    factor = mainCurve*(strain_te-testVal)/(delta_tech) ;
+	    else
+		    factor = 0 ;
 
 
             if( testVal*pseudoYoung > upVal*factor )
@@ -262,15 +262,15 @@ double sqrtdecrease(double k0, double upVal, double eps_0, double strain_ch, dou
 void NonLocalMCFT::initialise( ElementState &s)
 {
     double energy = /*physicalCharacteristicRadius / sqrt(s.getParent()->area())*/75. ; //N/m 32000 prev
-    strain_ch = 2.*energy/(upVal) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
+    strain_ch = 3.*tensionCritStrain ;// 2.*energy/(upVal) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
 
 // 	energy *= nlcorrection ;
-    if(strain_ch < tensionCritStrain)
-    {
-        std::cout << strain_ch << " vs " << tensionCritStrain <<std::endl ;
-// 		exit(0) ;
-        strain_ch = 4.*tensionCritStrain ;
-    }
+//     if(strain_ch < tensionCritStrain)
+//     {
+//         std::cout << strain_ch << " vs " << tensionCritStrain <<std::endl ;
+// // 		exit(0) ;
+//         strain_ch = 4.*tensionCritStrain ;
+//     }
     strain_te = 5.*strain_ch;
 
     double k0 = 1 ;
@@ -396,6 +396,14 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
         double cpseudoYoung0 =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[1]) ;
         double tpseudoYoung1 =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[2]) ;
         double cpseudoYoung1 =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[3]) ;
+	if(dynamic_cast<const RotatingCrack *>(s.getParent()->getBehaviour()->getDamageModel()))
+	{
+	   const RotatingCrack * rc = dynamic_cast<const RotatingCrack *>(s.getParent()->getBehaviour()->getDamageModel()) ;
+	   tpseudoYoung0 =  youngModulus*(1.-rc->getState()[0]-rc->damage0) ;
+           cpseudoYoung0 =  youngModulus*(1.-rc->getState()[1]-rc->damage1) ;
+           tpseudoYoung1 =  youngModulus*(1.-rc->getState()[2]-rc->damage2) ;
+           cpseudoYoung1 =  youngModulus*(1.-rc->getState()[3]-rc->damage3) ;
+	}
 
         double ccrit0 = -1 ;
         double tcrit0 = -1 ;
@@ -520,12 +528,17 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
 
 double NonLocalMCFT::grade( ElementState &s )
 {
-    return gradeAtTime(s, 0) ;
+  if(s.getParent()->getBehaviour()->getDamageModel()->fractured())
+    return -1 ;
+  
+  return gradeAtTime(s, 0) ;
 }
 
 double NonLocalMCFT::getTensileLimit(const ElementState & s) const
 {
     double pseudoYoung = youngModulus*(1.-std::min(s.getParent()->getBehaviour()->getDamageModel()->getState().max(), 1.-1e-12));
+    
+    
     std::vector<double> crits ;
 
 

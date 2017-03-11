@@ -204,7 +204,7 @@ void PrandtlGrauertPlasticStrain::step( ElementState &s , double maxscore)
   { 
     converged = true ;
     std::pair<double, double> delta = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , maxscore) ;
-    double mindelta = std::max(delta.first, delta.second) ;
+    double mindelta = std::abs(delta.first) > std::abs(delta.second) ? delta.first :  delta.second ;
     
     computeDamageIncrement(s) ;
     
@@ -315,10 +315,9 @@ void PrandtlGrauertPlasticStrain::step( ElementState &s , double maxscore)
 	s.stressAtGaussPointsSet = false ;
 	
         double pstate = state[0]-POINT_TOLERANCE ;
-        double schange = 0.001*std::min(mindelta, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) ;
+        double schange = 0.001*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ; //0.001*std::min(mindelta, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) ;
 	state[0] += schange-POINT_TOLERANCE ; //s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()/*+mindelta)*0.5*/ ; 
         
-		
         inCompression = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(1) ;
         inTension = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(0) ;
     }else{
@@ -431,9 +430,9 @@ bool PrandtlGrauertPlasticStrain::fractured(int direction) const
 void PrandtlGrauertPlasticStrain::postProcess()
 {
     if(converged && es && state[0] > 0 ||
-      newtonIteration && 
+      newtonIteration /*&& 
       es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() < .05*es->getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() && 
-      es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()
+      es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()*/
     )
     {
 

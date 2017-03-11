@@ -225,17 +225,17 @@ void DamageModel::step( ElementState &s , double maxscore)
 	{
 	  double del = 0 ;
 	  double fac = std::min(std::max(.75/((std::abs(score) + std::abs(setChange.first) + std::abs(setChange.second) )), 0.25), 1.) ;
-// 	  if(std::max(setChange.first, setChange.second) > 4.*damageDensityTolerance)
-// 	  {
+	  if(std::max(setChange.first, setChange.second) > 4.*damageDensityTolerance)
+	  {
 	    if(setChange.first <= setChange.second && setChange.first <= score)
 	      del = fac*setChange.first ;
 	    else if(setChange.second <= setChange.first && setChange.second <= score)
 	      del = fac*setChange.second ;
 	    else 
 	      del = fac*score ;
-// 	  }
-// 	  else
-// 	    del = fac*score ;
+	  }
+	  else
+	    del = fac*score ;
 	    
 	  
 	  trialRatio = std::min(std::max(initialRatio + del, 0.), 1.) ;//initialRatio+damageDensityTolerance*.175 ;
@@ -328,7 +328,7 @@ DamageModel::DamageModel(): state(0)
     // the correct distribution of damage: the effect
     // of damage increment on the distribution of
     // fracture criterion scores is non-monotonic.
-    damageDensityTolerance =  std::max(0.25/pow(2.,iterationNumber), 0.5e-3) ; //1e-8 ;//1. / pow( 2., 14 );
+    damageDensityTolerance =  1e-5 ; //std::max(0.25/pow(2.,iterationNumber), 0.5e-3) ; //1e-8 ;//1. / pow( 2., 14 );
     thresholdDamageDensity = 1. ;
     secondaryThresholdDamageDensity = 1. ;
     allowBackSearch = false ;

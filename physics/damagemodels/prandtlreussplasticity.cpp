@@ -170,7 +170,7 @@ void PrandtlReussPlasticStrain::step( ElementState &s , double maxscore)
   { 
     converged = true ;
     std::pair<double, double> delta = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , maxscore) ;
-    double mindelta = std::max(delta.first, delta.second) ;
+    double mindelta = std::abs(delta.first) > std::abs(delta.second) ? delta.first :  delta.second ;
     
     computeDamageIncrement(s) ;
     
@@ -184,12 +184,6 @@ void PrandtlReussPlasticStrain::step( ElementState &s , double maxscore)
     
     if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() > .05*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
     {
-      if(std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) < .05*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance())
-      {
-	
-	change = false ;
-	return ;
-      }
       
 	change = true ;
 
@@ -276,7 +270,7 @@ void PrandtlReussPlasticStrain::step( ElementState &s , double maxscore)
 	  imposedStrain *= onorm ;
 	}
 	
-	state[0] += std::min(mindelta, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) ;//s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()/*+mindelta)*0.5*/ ;  s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()/*+mindelta)*0.5*/ ; 
+	state[0] += std::min(mindelta, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) - POINT_TOLERANCE; //0.5*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()  - POINT_TOLERANCE ;0.5*; // ;///*+mindelta)*0.5*/ ;  s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()/*+mindelta)*0.5*/ ; 
 		
         inCompression = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(1) ;
         inTension = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(0) ;
@@ -430,9 +424,9 @@ bool PrandtlReussPlasticStrain::fractured(int direction) const
 void PrandtlReussPlasticStrain::postProcess()
 {
     if(converged && es && state[0] > 0 ||
-      newtonIteration && 
+      newtonIteration /*&& 
       es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() < .05*es->getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() && 
-      es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()
+      es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()*/
     )
     {
 

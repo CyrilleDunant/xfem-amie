@@ -1080,7 +1080,7 @@ void Rectangle::sampleBoundingSurface(double linearDensity)
 {
     //	assert(num_points%4 == 0) ;
     double perimeter = 2.*(size_x+size_y) ;
-    linearDensity = std::max(linearDensity, 2./std::min(size_x,size_y)) ;
+    linearDensity = std::max(linearDensity, 1.5/std::min(size_x,size_y)) ;
     size_t num_points = round(perimeter*linearDensity) ;
 
     double distanceBetweenPointsx = std::min(perimeter/num_points, size_x) ;

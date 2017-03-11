@@ -68,8 +68,8 @@ double platewidth = 0.15 ;
 double plateHeight = 0.051 ;
 double rebarDiametre = 0.025 ; //sqrt(506e-6);//sqrt( 4.*0.000506/M_PI ) ;
 double rebarEndCover = 0.047 ;
-double phi = 3.*rebarDiametre/.4  ;
-double psi = 2.*0.0084261498/.4  ;
+double phi = 3.*rebarDiametre  ;
+double psi = 2.*0.0084261498  ;
 bool haveStirrups = false ;
 
 std::vector<std::pair<double, double> > load_displacement ;
@@ -255,9 +255,14 @@ void step()
         if ( go_on )
         {
             writerc.reset ( featureTree ) ;
+            writerc.getField ( TWFT_PRINCIPAL_STRESS ) ;
+            writerc.getField ( TWFT_PRINCIPAL_STRAIN ) ;
+            writerc.getField ( TWFT_CRITERION ) ;
+            writerc.getField ( TWFT_STIFFNESS_X ) ;
+            writerc.getField ( TWFT_STIFFNESS_Y ) ;
             writerc.getField ( TWFT_DAMAGE ) ;
             writerc.append() ;
-            writerc.writeSvg ( 0. ) ;
+//             writerc.writeSvg ( 0. ) ;
         }
 // 		if ( !go_on )
 // 			break ;
@@ -289,17 +294,17 @@ int main ( int argc, char *argv[] )
     double nu_steel = 0.01 ;
     double nu = 0.3 ;
     double E_paste = 37e9 ;
-    double E_steel_effective =.6/(1./E_steel+.2/E_paste) ;
+    double E_steel_effective = M_PI*0.5*rebarDiametre*rebarDiametre*E_steel/(rebarDiametre*rebarDiametre)*.8 ;
 
     double halfSampleOffset = sampleLength*.25 ;
 
-    Matrix m0_paste = Tensor::cauchyGreen ( E_paste, nu, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON ) ;
+    Matrix m0_paste = Tensor::cauchyGreen ( E_paste, nu, SPACE_TWO_DIMENSIONAL, PLANE_STRAIN, YOUNG_POISSON ) ;
 
 // 	//redimensionned so that we get in shear the right moment of inertia
 // 	Matrix m0_steel = Tensor::orthothropicCauchyGreen(E_steel, E_steel, E_steel*(1.-nu_steel)*.5*.13/(1.-nu_steel*nu_steel), nu_steel,PLANE_STRESS_FREE_G) ;
 //
-    Matrix m0_steel = Tensor::cauchyGreen ( E_steel,nu_steel, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON ) ;
-    Matrix m0_steel_effective = Tensor::cauchyGreen ( E_steel_effective,nu_steel, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON ) ;
+    Matrix m0_steel = Tensor::cauchyGreen ( E_steel,nu_steel, SPACE_TWO_DIMENSIONAL, PLANE_STRAIN, YOUNG_POISSON ) ;
+    Matrix m0_steel_effective = Tensor::cauchyGreen ( E_steel_effective,nu_steel, SPACE_TWO_DIMENSIONAL, PLANE_STRAIN, YOUNG_POISSON ) ;
 
 
     Sample sample ( nullptr, sampleLength*.5, sampleHeight+2.*plateHeight, halfSampleOffset, 0 ) ;
@@ -352,7 +357,7 @@ int main ( int argc, char *argv[] )
 
     double rebarcenter = ( sampleLength*.5 - rebarEndCover ) *.5 ;
     double rebarlength = ( sampleLength - rebarEndCover*2. ) *.5 ;
-    Sample rebar0 ( &sample, rebarlength, rebarDiametre, rebarcenter,  -sampleHeight*.5 + 0.064 ) ;
+    Sample rebar0 ( &sample, rebarlength, rebarDiametre , rebarcenter,  -sampleHeight*.5 + 0.064 ) ;
     rebar0.setBehaviour ( new StiffnessAndFracture ( m0_steel_effective*softeningFactor, new VonMises ( 490e6 ) ) );
 // 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
@@ -384,7 +389,7 @@ int main ( int argc, char *argv[] )
 // 		stirrups.back()->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 // 	}
 
-    FeatureTree F ( &samplebulk ) ;
+    FeatureTree F ( &samplebulk, .4-3.*rebarDiametre-haveStirrups*2.*0.0084261498) ;
 // 	F.addFeature(&box, &samplebulk);
     featureTree = &F ;
 
@@ -394,7 +399,7 @@ int main ( int argc, char *argv[] )
 // 	samplestirrupbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 
 
-    samplebulk.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
+    samplebulk.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
     dynamic_cast<ConcreteBehaviour *> ( samplebulk.getBehaviour() )->variability = 0.00 ;
     dynamic_cast<ConcreteBehaviour *> ( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar0.getCenter().getY(),rebarDiametre ) );
     dynamic_cast<ConcreteBehaviour *> ( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar1.getCenter().getY(),rebarDiametre ) );
@@ -402,7 +407,7 @@ int main ( int argc, char *argv[] )
 // 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar3.getCenter().getY(),rebarDiametre));
     samplebulk.getBehaviour()->setSource ( sample.getPrimitive() );
 
-    sample.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
+    sample.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
     sample.isVirtualFeature = true ;
     dynamic_cast<ConcreteBehaviour *> ( sample.getBehaviour() )->variability = 0.00 ;
     dynamic_cast<ConcreteBehaviour *> ( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar0.getCenter().getY(),rebarDiametre ) );
@@ -411,7 +416,7 @@ int main ( int argc, char *argv[] )
 // 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar3.getCenter().getY(),rebarDiametre));
 
 
-    samplestirrupbulk.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
+    samplestirrupbulk.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
     samplestirrupbulk.isVirtualFeature = true ;
     dynamic_cast<ConcreteBehaviour *> ( samplestirrupbulk.getBehaviour() )->variability = 0.00 ;
     dynamic_cast<ConcreteBehaviour *> ( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar0.getCenter().getY(),rebarDiametre ) );
@@ -433,8 +438,8 @@ int main ( int argc, char *argv[] )
     F.addFeature ( &topsupportbulk, &toprightvoidbulk);
     F.addFeature ( &topsupport, &toprightvoid, rebarlayer, phi);
 
-    Triangle fineZone ( Point ( 0.,sampleHeight*.5 ), Point ( 0.,-sampleHeight*.5 ), Point ( sampleLength*.5, -sampleHeight*.5 ) ) ;
-    F.addRefinementZone ( &fineZone );
+//     Triangle fineZone ( Point ( 0.,sampleHeight*.5 ), Point ( 0.,-sampleHeight*.5 ), Point ( sampleLength*.5, -sampleHeight*.5 ) ) ;
+//     F.addRefinementZone ( &fineZone );
 
     F.addFeature ( &baserightbulk,&bottomcentervoidbulk );
     F.addFeature ( &baserightbulk,&rightbottomvoidbulk ) ;
@@ -484,16 +489,18 @@ int main ( int argc, char *argv[] )
 
 
 // 	F.setSamplingFactor( &samplebulk, 3 ) ;
-    F.setSamplingFactor ( &rebar0, 4 ) ;
-    F.setSamplingFactor ( &rebar1, 4 ) ;
+//     F.setSamplingFactor ( &rebar0, 4 ) ;
+//     F.setSamplingFactor ( &rebar1, 4 ) ;
 
-    F.setSamplingFactor ( &bottomcentervoid, 1./3 ) ;
-    F.setSamplingFactor ( &rightbottomvoid, 1./3 ) ;
-    F.setSamplingFactor ( &bottomcentervoid, 1./3 ) ;
-    F.setSamplingFactor ( &rightbottomvoid, 1./3 ) ;
+//     F.setSamplingFactor ( &bottomcentervoid, 1./3 ) ;
+//     F.setSamplingFactor ( &rightbottomvoid, 1./3 ) ;
+//     F.setSamplingFactor ( &bottomcentervoid, 1./3 ) ;
+//     F.setSamplingFactor ( &rightbottomvoid, 1./3 ) ;
 
-    F.setSamplingFactor ( &rebar2, 4 ) ;
-    F.setSamplingFactor ( &rebar3, 4 ) ;
+    F.setSamplingFactor ( &rebar2, 1./20 ) ;
+    F.setSamplingFactor ( &rebar3, 1./20 ) ;
+    F.setSamplingFactor ( &baseright, 2 ) ;
+    F.setSamplingFactor ( &topsupport, 2 ) ;
     F.setSamplingNumber ( samplingNumber ) ;
 
     F.setSamplingRestriction ( 0 );
@@ -505,7 +512,8 @@ int main ( int argc, char *argv[] )
 
 
 // 	F.addPoint( new Point(platewidth, sampleHeight*.5)) ;
-    F.setMaxIterationsPerStep ( 15000 );
+    F.setMaxIterationsPerStep ( 60 );
+    F.thresholdScoreMet = 0.01 ;
 
 
     F.addPoint ( new Point ( supportLever,                -sampleHeight*.5-plateHeight ) ) ;

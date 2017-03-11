@@ -79,7 +79,7 @@ bool FeatureTree::getStateConvergence() const {
     return stateConverged ;
 }
 
-FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gridsize ) :  state ( this ), nodes ( 0 ), grid ( nullptr ),grid3d ( nullptr )
+FeatureTree::FeatureTree ( Feature *first, double fraction, int layer, size_t gridsize ) :  state ( this ), nodes ( 0 ), grid ( nullptr ),grid3d ( nullptr )
 {
     initialValue = 0 ;
     previousDeltaTime = 0 ;
@@ -3076,12 +3076,16 @@ void FeatureTree::setElementBehaviours()
         double remainder = 0 ;
         for ( auto i = layer2d.begin() ; i != layer2d.end() ; i++ )
         {
+             remainder += scalingFactors[i->first] ;
+        }
+        for ( auto i = layer2d.begin() ; i != layer2d.end() ; i++ )
+        {
             if ( i->first != -1 )
             {
-                remainder += scalingFactors[i->first] ;
+                scalingFactors[i->first] /= remainder;
             }
         }
-        scalingFactors[-1] = 1.-remainder ;
+       
         layer2d[-1] = dtree ;
 
 
@@ -6076,11 +6080,10 @@ Vector FeatureTree::getAverageField ( FieldType f, double t, int grid, int index
         if( layer2d.find( grid ) != layer2d.end() )
              return layer2d[grid]->getField( f, cacheID, t, index ) ;
 
-        Vector ret = dtree->getField ( f, cacheID, t, index ) ;
+        Vector ret(0., fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL));
         for ( auto layer = layer2d.begin() ; layer!=layer2d.end() ; layer++ )
         {
-            if(layer->second != dtree)
-                ret += layer->second->getField ( f, cacheID, t, index ) ;
+             ret += layer->second->getField ( f, cacheID, t, index ) ;
         }
         return ret ;
     }

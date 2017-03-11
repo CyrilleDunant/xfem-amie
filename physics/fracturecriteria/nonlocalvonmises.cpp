@@ -35,7 +35,7 @@ double NonLocalVonMises::grade(ElementState &s)
     met = false ;
     Vector str(3) ;
 //     s.getField(PRINCIPAL_REAL_STRESS_FIELD, Point(), str, true);
-    str = getSmoothedField( REAL_STRESS_FIELD, s )  ;
+    str = getSmoothedField( EFFECTIVE_STRESS_FIELD, s )  ;
     double tr = (str.size()==3)?(str[0]+str[1]):(str[0]+str[1]+str[2]) ;
     
     if(str.size()==3)

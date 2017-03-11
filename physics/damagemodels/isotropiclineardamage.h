@@ -24,6 +24,9 @@ class IsotropicLinearDamage final: public DamageModel
 {
 protected:
 	double eps ;
+	bool newtonIteration ;
+	double damage ;
+	ElementState * es ;
 public:
 	/** \brief Constructor. Set the number of degrees of freedom
 	 * 
@@ -49,9 +52,12 @@ public:
 	virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
 	virtual Matrix applyViscous(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
 	
+	virtual void step( ElementState &s , double maxscore) ;
+	
 	/** \brief return true is the element concerned is fractured 
 		*/
 	virtual bool fractured(int direction = -1) const  ;
+	virtual void postProcess() ;
 	
 	virtual DamageModel * getCopy() const ; 
 };

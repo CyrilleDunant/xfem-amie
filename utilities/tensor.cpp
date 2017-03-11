@@ -619,21 +619,29 @@ Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double G,  double 
     }
     else if (pt == PLANE_STRAIN)
     {
-        if(E_1 > POINT_TOLERANCE && E_2 > POINT_TOLERANCE)
+        if(E_1 > POINT_TOLERANCE*POINT_TOLERANCE && E_2 > POINT_TOLERANCE*POINT_TOLERANCE)
         {
-            Matrix A(2,2) ;
-
             double nu21 = (nu/E_1)*(E_1+E_2)*.5 ;
-            if(nu < POINT_TOLERANCE)
+            if(nu < POINT_TOLERANCE*POINT_TOLERANCE)
                 nu21 =  0 ;
             double nu12 = (nu/E_2)*(E_1+E_2)*.5 ;
-            if(nu < POINT_TOLERANCE)
+            if(nu < POINT_TOLERANCE*POINT_TOLERANCE)
                 nu12 =  0 ;
-            double nu23 = nu ;
-            double nu32 = nu ;
-            double nu13 = nu ;
-            double nu31 = nu ;
+            double nu23 = std::min(nu, sqrt(nu21)) ;
+            double nu32 = std::min(nu, sqrt(nu21)) ;
+            double nu13 = std::min(nu, sqrt(nu21)) ;
+            double nu31 = std::min(nu, sqrt(nu21)) ;
             double nupe = 1.-nu21*nu12-nu23*nu32-nu13*nu31-nu12*nu23*nu31-nu21*nu32*nu13 ;
+	    while(nupe < 0)
+	    {
+		nu21 *=.95 ;
+		nu12 *=.95 ;
+		nu23 = std::min(nu, sqrt(nu21)) ;
+		nu32 = std::min(nu, sqrt(nu21)) ;
+		nu13 = std::min(nu, sqrt(nu21)) ;
+		nu31 = std::min(nu, sqrt(nu21)) ;
+		nupe = 1.-nu21*nu12-nu23*nu32-nu13*nu31-nu12*nu23*nu31-nu21*nu32*nu13 ;
+	    }
 
             cg[0][0] = E_1*(1.-nu32*nu23)/nupe ;
             cg[0][1] = (nu21-nu23*nu31)*E_1/nupe ;
@@ -641,12 +649,12 @@ Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double G,  double 
             cg[1][1] = E_2*(1.-nu32*nu23)/nupe ;
             cg[2][2] = E_1*E_2/(E_2*(1.+nu12)*(1.-2.*nu12)+E_1*(1.+nu21)*(1.-2.*nu21)) ;
         }
-        else if(E_1 > POINT_TOLERANCE)
+        else if(E_1 > POINT_TOLERANCE*POINT_TOLERANCE)
         {
             cg[0][0] = E_1 ;
             cg[2][2] = G ;
         }
-        else if(E_2 > POINT_TOLERANCE)
+        else if(E_2 > POINT_TOLERANCE*POINT_TOLERANCE)
         {
             cg[1][1] = E_2 ;
             cg[2][2] = G ;

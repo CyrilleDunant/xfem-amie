@@ -26,12 +26,16 @@ namespace Amie
 */
 struct OrthotropicStiffness : public LinearForm
 {
-public:
+public:    
+    double E_1 ; 
+    double E_2 ;
+    double E_3 ;
     Matrix transform ;
     Matrix transformt ;
     Matrix paramBase ;
     bool transformset ;
     std::vector<Variable> v ;
+
 public:
     /** \brief Constructor
      *

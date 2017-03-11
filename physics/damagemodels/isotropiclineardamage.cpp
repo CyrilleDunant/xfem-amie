@@ -10,6 +10,7 @@
 //
 //
 #include "isotropiclineardamage.h"
+#include "../fracturecriteria/fracturecriterion.h"
 
 namespace Amie {
 
@@ -18,16 +19,21 @@ IsotropicLinearDamage::IsotropicLinearDamage()
     getState(true).resize(1, 0.);
     isNull = false ;
     alternate = false ;
+    newtonIteration = true ;
+    damage = 0 ;
+    es = nullptr ;
 }
 
 std::pair< Vector, Vector > IsotropicLinearDamage::computeDamageIncrement( Amie::ElementState &s)
 {
-    return std::make_pair(state, Vector(1., 1)) ;
+  if(!es)
+    es = &s ;
+  return std::make_pair(state, Vector(1., 1)) ;
 }
 
 void IsotropicLinearDamage::computeDelta(ElementState & s)
 {
-    delta = 1.-getState()[0] ;
+    delta = 1.-getState()[0]-damage ;
 }
 
 Matrix IsotropicLinearDamage::apply(const Matrix & m, const Point & p,const IntegrableEntity * e, int g) const
@@ -36,7 +42,7 @@ Matrix IsotropicLinearDamage::apply(const Matrix & m, const Point & p,const Inte
     if(fractured())
         return m*residualStiffnessFraction ;
 
-    return m*(1.-getState()[0]) ;
+    return m*(1.-getState()[0]-damage) ;
 }
 
 Matrix IsotropicLinearDamage::applyViscous(const Matrix & m, const Point & p,const IntegrableEntity * e, int g) const
@@ -45,16 +51,45 @@ Matrix IsotropicLinearDamage::applyViscous(const Matrix & m, const Point & p,con
     if(fractured())
         return m*residualStiffnessFraction ;
 
-    return m*(1.-getState()[0]) ;
+    return m*(1.-getState()[0]-damage) ;
 }
 
 bool IsotropicLinearDamage::fractured(int direction) const
 {
     if(fraction < 0)
         return false ;
-    return getState()[0] >= thresholdDamageDensity ;
+    return getState()[0]+damage >= thresholdDamageDensity ;
 }
 
+void IsotropicLinearDamage::step( ElementState &s , double maxscore)
+{
+ 
+  if(!newtonIteration)
+    DamageModel::step(s, maxscore) ;
+  else
+  {
+    converged = true ;
+    std::pair<double, double> delta = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , maxscore) ;
+    double mindelta = std::abs(delta.first) > std::abs(delta.second) ? delta.first :  delta.second ;
+    
+    computeDamageIncrement(s) ;
+    
+    if(std::abs(maxscore) < .5*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() && 
+      ((s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() && 
+        std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) < .05*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()) || !s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()))
+    {
+      change = false ;
+      return ;
+    }
+    
+    if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() > .05*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
+    {
+      
+	change = true ;
+	damage = std::max(damage+std::min(mindelta, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()), 0.) ;
+    }
+  }
+}
 
 IsotropicLinearDamage::~IsotropicLinearDamage()
 {
@@ -109,6 +144,19 @@ bool IsotropicLinearDamageRate::fractured(int direction) const
     return getState()[0] >= thresholdDamageDensity ;
 }
 
+
+void IsotropicLinearDamage::postProcess()
+{
+  if(converged && state[0] > 0 ||
+      newtonIteration /*&& 
+      es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() < .05*es->getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() && 
+      es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()*/
+    )
+  {
+    getState(true)[0] += damage ;
+    damage = 0 ;
+  }
+}
 
 IsotropicLinearDamageRate::~IsotropicLinearDamageRate()
 {

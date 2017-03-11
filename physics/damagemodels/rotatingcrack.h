@@ -41,8 +41,13 @@ protected:
     bool secondTensionFailure ;
     bool firstCompressionFailure ;
     bool secondCompressionFailure ;
+    bool broken ;
     double currentAngle ;
     double initialAngle ;
+    
+
+    
+    bool newtonIteration ;
     std::vector<std::pair<double, double>> angles_scores ;
     ElementState * es ;
 
@@ -53,6 +58,11 @@ protected:
     int iterationcount ;
 
 public:
+  
+      double damage0 ;
+    double damage1 ;
+    double damage2 ;
+    double damage3 ;
 
 
     /** \brief Constructor. Set the number of degrees of freedom

@@ -866,7 +866,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
                 {
                     double d = 0 ;
                     for(size_t m = 0 ;  m <  i->getBehaviour()->getDamageModel()->getState().size() ; m++)
-                        d +=  i->getBehaviour()->getDamageModel()->getState()[m] ;
+                        d =  std::max(i->getBehaviour()->getDamageModel()->getState()[m], d) ;
                     if( i->getBehaviour()->getDamageModel()->fractured() )
                         d = 1 ;
 
