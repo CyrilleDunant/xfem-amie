@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 19/6/2016 at 12:59  */
+/* this is an auto-generated file created on 10/3/2017 at 10:24  */
 
 #ifndef __OBJECT_TRANSLATOR_H__
 #define __OBJECT_TRANSLATOR_H__
@@ -39,7 +39,7 @@ struct Object
     // parsed from header file: ../physics/fracturecriteria/fracturecriterion.h
     static FractureCriterion * getFractureCriterion(std::string type, std::map<std::string, std::string> & strings, std::map<std::string, double> & values) ;
     static bool isFractureCriterion(std::string type) ;
-    static void resetFractureCriterion(FractureCriterion * target, std::map<std::string, double> & values, std::map<std::string, std::string> & strings) ;
+    static void resetFractureCriterion(FractureCriterion * target, std::map<std::string, double> & strings, std::map<std::string, std::string> & values) ;
 
     // parsed from header file: ../physics/material_laws/logcreep_accumulator.h
     static LogCreepAccumulator * getLogCreepAccumulator(std::string type, std::map<std::string, double> & values) ;

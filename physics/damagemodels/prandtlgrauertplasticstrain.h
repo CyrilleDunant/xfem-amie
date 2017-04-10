@@ -21,7 +21,7 @@ namespace Amie {
 */
 
 
-/*PARSE PlasticStrain DamageModel --no-suffix 
+/*PARSE PrandtlGrauertPlasticStrain DamageModel --no-suffix 
     @value[compressibility] 0.05 // 
     @value[limit_strain] 0.0057 //
     @value[initial_plastic_variable] 0 // 

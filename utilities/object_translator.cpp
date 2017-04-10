@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 19/6/2016 at 12:59  */
+/* this is an auto-generated file created on 10/3/2017 at 10:24  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -21,13 +21,14 @@
 #include "../physics/materials/concrete_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/materials/gel_behaviour.h"
+#include "../physics/damagemodels/prandtlgrauertplasticstrain.h"
 #include "../physics/damagemodels/spacetimefiberbasedplasticstrain.h"
 #include "../physics/damagemodels/spacetimebadisotropiclineardamage.h"
 #include "../physics/damagemodels/spacetimefiberbasedbilineardamage.h"
 #include "../physics/damagemodels/spacetimefiberbasedfixedcrack.h"
-#include "../physics/damagemodels/prandtlgrauertplasticstrain.h"
 #include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include "../physics/damagemodels/isotropiclineardamage.h"
+#include "../physics/damagemodels/prandtlreussplasticity.h"
 #include "../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
 #include "../physics/fracturecriteria/maxstrain.h"
 #include "../physics/fracturecriteria/limitstrains.h"
@@ -508,6 +509,15 @@ namespace Amie
 
     DamageModel * Object::getDamageModel(std::string type, std::map<std::string, double> & values, std::map<std::string, std::string> & strings)
     {
+        // parsed from header file: ../physics/damagemodels/prandtlgrauertplasticstrain.h
+        if( type == "PrandtlGrauertPlasticStrain" )
+        { 
+            if( values.find("compressibility") == values.end() ) { values["compressibility"] = 0.05 ; } ; 
+            if( values.find("limit_strain") == values.end() ) { values["limit_strain"] = 0.0057 ; } ; 
+            if( values.find("initial_plastic_variable") == values.end() ) { values["initial_plastic_variable"] = 0 ; } ; 
+            return new PrandtlGrauertPlasticStrain(values["compressibility"], values["limit_strain"], values["initial_plastic_variable"]) ;
+        }
+   
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedplasticstrain.h
         if( type == "SpaceTimeFiberBasedPlasticStrain" )
         { 
@@ -565,15 +575,6 @@ namespace Amie
             return new SpaceTimeFiberBasedFixedCrack(values["damage_increment"], values["time_tolerance"], values["maximum_damage"], Enum::getFieldType(strings["orientation_field"]), Enum::getbool(strings["external_orientation"]), Enum::getbool(strings["cleavage"])) ;
         }
    
-        // parsed from header file: ../physics/damagemodels/plasticstrain.h
-        if( type == "PlasticStrain" )
-        { 
-            if( values.find("compressibility") == values.end() ) { values["compressibility"] = 0.05 ; } ; 
-            if( values.find("limit_strain") == values.end() ) { values["limit_strain"] = 0.0057 ; } ; 
-            if( values.find("initial_plastic_variable") == values.end() ) { values["initial_plastic_variable"] = 0 ; } ; 
-            return new PrandtlGrauertPlasticStrain(values["compressibility"], values["limit_strain"], values["initial_plastic_variable"]) ;
-        }
-   
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h
         if( type == "SpaceTimeFiberBasedIsotropic" )
         { 
@@ -586,11 +587,17 @@ namespace Amie
         // parsed from header file: ../physics/damagemodels/isotropiclineardamage.h
         if( type == "Isotropic" ) { return new IsotropicLinearDamage() ; }
    
+        // parsed from header file: ../physics/damagemodels/prandtlreussplasticity.h
+        if( type == "PrandtlReussPlasticStrain" ) { return new PrandtlReussPlasticStrain() ; }
+   
         return nullptr ;
     }
 
     bool Object::isDamageModel(std::string type)
     {
+        // parsed from header file: ../physics/damagemodels/prandtlgrauertplasticstrain.h
+        if( type == "PrandtlGrauertPlasticStrain" ) { return true ; }
+   
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedplasticstrain.h
         if( type == "SpaceTimeFiberBasedPlasticStrain" ) { return true ; }
         if( type == "SpaceTimeFiberBasedPlasticDamage" ) { return true ; }
@@ -605,20 +612,22 @@ namespace Amie
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedfixedcrack.h
         if( type == "SpaceTimeFiberBasedFixedCrack" ) { return true ; }
    
-        // parsed from header file: ../physics/damagemodels/plasticstrain.h
-        if( type == "PlasticStrain" ) { return true ; }
-   
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h
         if( type == "SpaceTimeFiberBasedIsotropic" ) { return true ; }
    
         // parsed from header file: ../physics/damagemodels/isotropiclineardamage.h
         if( type == "Isotropic" ) { return true ; }
    
+        // parsed from header file: ../physics/damagemodels/prandtlreussplasticity.h
+        if( type == "PrandtlReussPlasticStrain" ) { return true ; }
+   
         return false ;
     }
 
     void Object::resetDamageModel(DamageModel * target)
     {
+        // parsed from header file: ../physics/damagemodels/prandtlgrauertplasticstrain.h
+   
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedplasticstrain.h
    
         // parsed from header file: ../physics/damagemodels/spacetimebadisotropiclineardamage.h
@@ -627,11 +636,11 @@ namespace Amie
    
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedfixedcrack.h
    
-        // parsed from header file: ../physics/damagemodels/plasticstrain.h
-   
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h
    
         // parsed from header file: ../physics/damagemodels/isotropiclineardamage.h
+   
+        // parsed from header file: ../physics/damagemodels/prandtlreussplasticity.h
    
     }
 

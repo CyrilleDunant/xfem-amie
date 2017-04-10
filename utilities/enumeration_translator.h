@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 19/6/2016 at 12:59  */
+/* this is an auto-generated file created on 10/3/2017 at 10:24  */
 
 #ifndef __ENUMERATION_TRANSLATOR_H__
 #define __ENUMERATION_TRANSLATOR_H__
@@ -138,12 +138,12 @@ struct Enum
         if( type == "SPEED_FIELD") { return SPEED_FIELD ; }
         if( type == "FLUX_FIELD") { return FLUX_FIELD ; }
         if( type == "GRADIENT_FIELD") { return GRADIENT_FIELD ; }
-        if( type == "STRAIN_FIELD") { return TOTAL_STRAIN_FIELD ; }
+        if( type == "TOTAL_STRAIN_FIELD") { return TOTAL_STRAIN_FIELD ; }
         if( type == "STRAIN_RATE_FIELD") { return STRAIN_RATE_FIELD ; }
         if( type == "MECHANICAL_STRAIN_FIELD") { return MECHANICAL_STRAIN_FIELD ; }
         if( type == "EFFECTIVE_STRESS_FIELD") { return EFFECTIVE_STRESS_FIELD ; }
         if( type == "REAL_STRESS_FIELD") { return REAL_STRESS_FIELD ; }
-        if( type == "PRINCIPAL_STRAIN_FIELD") { return PRINCIPAL_TOTAL_STRAIN_FIELD ; }
+        if( type == "PRINCIPAL_TOTAL_STRAIN_FIELD") { return PRINCIPAL_TOTAL_STRAIN_FIELD ; }
         if( type == "PRINCIPAL_MECHANICAL_STRAIN_FIELD") { return PRINCIPAL_MECHANICAL_STRAIN_FIELD ; }
         if( type == "PRINCIPAL_EFFECTIVE_STRESS_FIELD") { return PRINCIPAL_EFFECTIVE_STRESS_FIELD ; }
         if( type == "PRINCIPAL_REAL_STRESS_FIELD") { return PRINCIPAL_REAL_STRESS_FIELD ; }
@@ -159,8 +159,8 @@ struct Enum
         if( type == "INTERNAL_VARIABLE_FIELD") { return INTERNAL_VARIABLE_FIELD ; }
         if( type == "IMPOSED_STRESS_FIELD") { return IMPOSED_STRESS_FIELD ; }
         if( type == "IMPOSED_STRAIN_FIELD") { return IMPOSED_STRAIN_FIELD ; }
-        if( type == "PRINCIPAL_IMPOSED_STRESS_FIELD") { return PRINCIPAL_IMPOSED_STRESS_FIELD ; }
         if( type == "PRINCIPAL_IMPOSED_STRAIN_FIELD") { return PRINCIPAL_IMPOSED_STRAIN_FIELD ; }
+        if( type == "PRINCIPAL_IMPOSED_STRESS_FIELD") { return PRINCIPAL_IMPOSED_STRESS_FIELD ; }
         if( type == "SCALAR_DAMAGE_FIELD") { return SCALAR_DAMAGE_FIELD ; }
         if( type == "TENSOR_DAMAGE_FIELD") { return TENSOR_DAMAGE_FIELD ; }
         if( type == "GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD") { return GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD ; }
@@ -189,12 +189,12 @@ struct Enum
             case SPEED_FIELD: return "SPEED_FIELD" ;
             case FLUX_FIELD: return "FLUX_FIELD" ;
             case GRADIENT_FIELD: return "GRADIENT_FIELD" ;
-            case TOTAL_STRAIN_FIELD: return "STRAIN_FIELD" ;
+            case TOTAL_STRAIN_FIELD: return "TOTAL_STRAIN_FIELD" ;
             case STRAIN_RATE_FIELD: return "STRAIN_RATE_FIELD" ;
             case MECHANICAL_STRAIN_FIELD: return "MECHANICAL_STRAIN_FIELD" ;
             case EFFECTIVE_STRESS_FIELD: return "EFFECTIVE_STRESS_FIELD" ;
             case REAL_STRESS_FIELD: return "REAL_STRESS_FIELD" ;
-            case PRINCIPAL_TOTAL_STRAIN_FIELD: return "PRINCIPAL_STRAIN_FIELD" ;
+            case PRINCIPAL_TOTAL_STRAIN_FIELD: return "PRINCIPAL_TOTAL_STRAIN_FIELD" ;
             case PRINCIPAL_MECHANICAL_STRAIN_FIELD: return "PRINCIPAL_MECHANICAL_STRAIN_FIELD" ;
             case PRINCIPAL_EFFECTIVE_STRESS_FIELD: return "PRINCIPAL_EFFECTIVE_STRESS_FIELD" ;
             case PRINCIPAL_REAL_STRESS_FIELD: return "PRINCIPAL_REAL_STRESS_FIELD" ;
@@ -210,8 +210,8 @@ struct Enum
             case INTERNAL_VARIABLE_FIELD: return "INTERNAL_VARIABLE_FIELD" ;
             case IMPOSED_STRESS_FIELD: return "IMPOSED_STRESS_FIELD" ;
             case IMPOSED_STRAIN_FIELD: return "IMPOSED_STRAIN_FIELD" ;
-	    case PRINCIPAL_IMPOSED_STRESS_FIELD: return "IMPOSED_STRESS_FIELD" ;
-            case PRINCIPAL_IMPOSED_STRAIN_FIELD: return "IMPOSED_STRAIN_FIELD" ;
+            case PRINCIPAL_IMPOSED_STRAIN_FIELD: return "PRINCIPAL_IMPOSED_STRAIN_FIELD" ;
+            case PRINCIPAL_IMPOSED_STRESS_FIELD: return "PRINCIPAL_IMPOSED_STRESS_FIELD" ;
             case SCALAR_DAMAGE_FIELD: return "SCALAR_DAMAGE_FIELD" ;
             case TENSOR_DAMAGE_FIELD: return "TENSOR_DAMAGE_FIELD" ;
             case GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD: return "GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD" ;
@@ -633,6 +633,7 @@ struct Enum
         if(ok) { *ok = true ; }
         if( type == "QUARTIC_COMPACT") { return QUARTIC_COMPACT ; }
         if( type == "GAUSSIAN_NONCOMPACT") { return GAUSSIAN_NONCOMPACT ; }
+        if( type == "LINEAR_COMPACT") { return LINEAR_COMPACT ; }
         if(ok) { *ok = false ; }
         return QUARTIC_COMPACT ;
     }
@@ -642,6 +643,7 @@ struct Enum
         {
             case QUARTIC_COMPACT: return "QUARTIC_COMPACT" ;
             case GAUSSIAN_NONCOMPACT: return "GAUSSIAN_NONCOMPACT" ;
+            case LINEAR_COMPACT: return "LINEAR_COMPACT" ;
         }
         return "QUARTIC_COMPACT" ;
     }
@@ -1063,6 +1065,8 @@ struct Enum
         if( type == "SET_VOLUMIC_STRESS_XI_ETA") { return SET_VOLUMIC_STRESS_XI_ETA ; }
         if( type == "SET_VOLUMIC_STRESS_ETA") { return SET_VOLUMIC_STRESS_ETA ; }
         if( type == "SET_VOLUMIC_STRESS_ZETA") { return SET_VOLUMIC_STRESS_ZETA ; }
+        if( type == "SET_VOLUMIC_STRESS_XI_ZETA") { return SET_VOLUMIC_STRESS_XI_ZETA ; }
+        if( type == "SET_VOLUMIC_STRESS_ETA_ZETA") { return SET_VOLUMIC_STRESS_ETA_ZETA ; }
         if( type == "SET_STRESS_XI") { return SET_STRESS_XI ; }
         if( type == "SET_STRESS_ETA") { return SET_STRESS_ETA ; }
         if( type == "SET_STRESS_ZETA") { return SET_STRESS_ZETA ; }
@@ -1123,10 +1127,10 @@ struct Enum
             case SET_FLUX_ZETA: return "SET_FLUX_ZETA" ;
             case SET_VOLUMIC_STRESS_XI: return "SET_VOLUMIC_STRESS_XI" ;
             case SET_VOLUMIC_STRESS_XI_ETA: return "SET_VOLUMIC_STRESS_XI_ETA" ;
-	    case SET_VOLUMIC_STRESS_XI_ZETA: return "SET_VOLUMIC_STRESS_XI_ZETA" ;
-	    case SET_VOLUMIC_STRESS_ETA_ZETA: return "SET_VOLUMIC_STRESS_ETA_ZETA" ;
             case SET_VOLUMIC_STRESS_ETA: return "SET_VOLUMIC_STRESS_ETA" ;
             case SET_VOLUMIC_STRESS_ZETA: return "SET_VOLUMIC_STRESS_ZETA" ;
+            case SET_VOLUMIC_STRESS_XI_ZETA: return "SET_VOLUMIC_STRESS_XI_ZETA" ;
+            case SET_VOLUMIC_STRESS_ETA_ZETA: return "SET_VOLUMIC_STRESS_ETA_ZETA" ;
             case SET_STRESS_XI: return "SET_STRESS_XI" ;
             case SET_STRESS_ETA: return "SET_STRESS_ETA" ;
             case SET_STRESS_ZETA: return "SET_STRESS_ZETA" ;
