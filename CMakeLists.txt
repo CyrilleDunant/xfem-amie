@@ -121,6 +121,7 @@ physics/diffusion.cpp
 physics/mass.cpp 
 physics/laplacian.cpp 
 physics/logarithmic_creep.cpp 
+physics/ageing_logarithmic_creep.cpp 
 physics/logarithmic_creep_with_external_parameters.cpp 
 physics/dual_behaviour.cpp 
 physics/viscoelasticity.cpp 
@@ -412,6 +413,12 @@ target_link_libraries( asr_visco Amie ${ALL_LINK_FLAGS} )
 
 #add_executable(from_mic examples/main_from_mic.cpp )
 #target_link_libraries( from_mic Amie ${ALL_LINK_FLAGS} )
+
+add_executable(creep_homogenization examples/main_creep_homogenization.cpp )
+target_link_libraries( creep_homogenization Amie ${ALL_LINK_FLAGS} )
+
+add_executable(creep_homogenization_mic examples/main_creep_homogenization_mic.cpp )
+target_link_libraries( creep_homogenization_mic Amie ${ALL_LINK_FLAGS} )
 
 add_executable(tension examples/main_tension.cpp )
 target_link_libraries( tension Amie ${ALL_LINK_FLAGS})
