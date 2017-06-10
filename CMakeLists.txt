@@ -175,7 +175,13 @@ physics/materials/steel_behaviour.cpp
 physics/materials/concrete_behaviour.cpp
 physics/materials/c3s_behaviour.cpp
 physics/materials/csh_behaviour.cpp
-physics/materials/ch_behaviour.cpp
+physics/materials/c3s_behaviour.cpp
+physics/materials/c2s_behaviour.cpp
+physics/materials/c3a_behaviour.cpp
+physics/materials/c4af_behaviour.cpp
+physics/materials/gyp_behaviour.cpp
+physics/materials/ettr_behaviour.cpp
+physics/materials/filler_behaviour.cpp
 polynomial/scalarfield.cpp 
 solvers/assembly.cpp 
 geometry/space_time_geometry_2D.cpp 

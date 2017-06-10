@@ -8,6 +8,12 @@
 #include "../polynomial/vm_function_extra.h"
 #include "../utilities/writer/voxel_writer.h"
 #include "../physics/materials/c3s_behaviour.h"
+#include "../physics/materials/c2s_behaviour.h"
+#include "../physics/materials/c3a_behaviour.h"
+#include "../physics/materials/c4af_behaviour.h"
+#include "../physics/materials/gyp_behaviour.h"
+#include "../physics/materials/ettr_behaviour.h"
+#include "../physics/materials/filler_behaviour.h"
 #include "../physics/homogenization/phase.h"
 #include "../physics/materials/csh_behaviour.h"
 #include "../physics/materials/ch_behaviour.h"
@@ -38,7 +44,6 @@ void step(FeatureTree * featureTree, const std::vector<double> & forces)
 
         Vector stra = featureTree->getAverageField(TOTAL_STRAIN_FIELD) ;
 	Vector str = featureTree->getAverageField(REAL_STRESS_FIELD) ;
-        //std::cout  << featureTree->getCurrentTime() << "  " << stra[0] << "  " << stra[1]<< "  " << stra[2]<<  std::endl ;
 	std::cout  << featureTree->getCurrentTime() << " , " << stra[1] << " , " << str[1] << " , "   << stra[2] << " , " << str[2] << " , "  << stra[3] << " , " << str[3] << std::endl ;
 	
       }
@@ -69,14 +74,15 @@ int main(int argc, char *argv[])
         double t ;
 	// double correction = 1.0 ; 
        // double d040 ;
-        double d032,d040,d048,d032_,d040_,d048_ ;
-        double p032, p040, p048 ;
-        double sc032, sc040, sc048 ;
-	time_and_densities >> t >> d032 >> d040 >> d048 >> p032 >> p040 >> p048 >> d032_ >> d040_ >> d048_ >> sc032 >> sc040 >> sc048;
-        //time_and_densities >> t >> d040 ;
+	// porosity calculation is volume ratio between gel water /outer_CSH 
+	// Use the same relationship between porosity and stiffness of outer_CSH
+        double d035;
+        double p035;
+        double sc035;
+	time_and_densities >> t >> d035 >> p035 >> sc035 ;
 	 
         timesd.push_back(t) ;
-        densities.push_back(d040);
+        densities.push_back(d035);
     }
   
     for(size_t i = 0 ; i < densities.size() ; i++)
@@ -84,28 +90,23 @@ int main(int argc, char *argv[])
   
     
     std::map<unsigned char,Form *> behaviourMap ;
-    behaviourMap[0] = new Stiffness(m0) ;  // C3S
+    behaviourMap[0] = new Stiffness(m0) ;  // water
     behaviourMap[1] = new C3SBehaviour() ;  // C3S
-    behaviourMap[5] = new CSHBehaviour(INNER_CSH, densities,forces,timesd) ; // inner C-S-H 
-    behaviourMap[6] = new CSHBehaviour(OUTER_CSH, densities,forces,timesd) ; // inner C-S-H 
-    behaviourMap[7] = new CSHBehaviour(OUTER_CSH, densities,forces,timesd) ;  // outer C-S-H
-    behaviourMap[8] = new CHBehaviour() ; // CH 
-    behaviourMap[13] = new CSHBehaviour(OUTER_CSH, densities,forces,timesd) ;  // outer C-S-H 
-   //behaviourMap[6] = new CSHBehaviour(INNER_CSH, densities,std::vector<double>(),timesd) ; // inner C-S-H 
-    //behaviourMap[7] = new CSHBehaviour(OUTER_CSH, densities,std::vector<double>(),timesd) ;  // outer C-S-H
+    behaviourMap[2]= new C2SBehaviour() ; //C2S
+    behaviourMap[3]= new C3ABehaviour(); //C3A
+    behaviourMap[4]= new C4AFBehaviour(); //C4AF
+    behaviourMap[5] = new GypBehaviour(); //gypsum
+    behaviourMap[6] = new Stiffness(m0) ;  water
+    behaviourMap[7] = new CSHBehaviour(INNER_CSH, densities,forces,timesd) ;
+    behaviourMap[8] = new CSHBehaviour(OUTER_CSH, densities,forces,timesd) ;
+    behaviourMap[9] = new CSHBehaviour(OUTER_CSH, densities,forces,timesd) ;
+    behaviourMap[10] = new CHBehaviour() ; //CH
+    behaviourMap[11] = new EttrBehaviour() ;
+    behaviourMap[12] = new EttrBehaviour() ;
+    behaviourMap[13] = new EttrBehaviour() ;
+    behaviourMap[14] = new CSHBehaviour(OUTER_CSH, densities,forces,timesd) ;
     
     
-//     behaviourMap[0] = new Stiffness(m0) ; // C3S
-//     behaviourMap[1] = new Stiffness(m0) ;  // C3S
-//     behaviourMap[6] = new Stiffness(m0) ;// inner C-S-H 
-//     behaviourMap[7] = new CSHBehaviour(OUTER_CSH, ageing) ;  // outer C-S-H
-//     behaviourMap[8] = new Stiffness(m0) ; // CH 
-      
-//     behaviourMap[0] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // pores ?
-//     behaviourMap[1] = new Viscoelasticity(PURE_ELASTICITY, m0) ;  // C3S
-//     behaviourMap[2] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // CH ?
-//     behaviourMap[3] = new Viscoelasticity(PURE_ELASTICITY, m0) ;  // outer C-S-H
-//     behaviourMap[4] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // inner C-S-H
     FeatureTree F( argv[1], behaviourMap, timesd ) ;
     F.setDeltaTime(1.);
     F.setOrder(LINEAR) ;

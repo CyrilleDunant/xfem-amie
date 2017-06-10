@@ -132,6 +132,7 @@ void VoxelFilter::update(std::vector< DelaunayTetrahedron* > & tree, const char*
     int r ;
     int c ;
     int s ;
+    r=1;
 
 
     std::string dummy ;
@@ -184,6 +185,7 @@ void VoxelFilter::printStatistics(const char* filename)
     int r ;
     int c ;
     int s ;
+    r=1;
 
 
     std::string dummy ;
@@ -251,6 +253,7 @@ void VoxelFilter::read(const char * filename, Mesh<DelaunayTetrahedron, Delaunay
     int r ;
     int c ;
     int s ;
+   
 
 
     std::string dummy ;
@@ -272,6 +275,7 @@ void VoxelFilter::read(const char * filename, Mesh<DelaunayTetrahedron, Delaunay
     file.close() ;
     file.open(filename, std::ios::binary|std::ios::in) ;
     file.seekp(position)  ;
+    r=1;
     std::cerr << "volume is " << r << " x " << c << " x " << s << std::endl ;
 //     r = 3 ;
 //     c = 3 ;
@@ -339,6 +343,7 @@ void VoxelFilter::read(const char * filename, Mesh<DelaunayTetrahedron, Delaunay
                 tet->refresh(father) ;
                 elems.push_back(tet) ;
                 elems.back()->setBehaviour(mesh,behaviourMap[phase[i][j][k]]->getCopy()) ;
+		//std::cout << "I am a test"<<(int)phase[i][j][k]<< std::endl ;
 
                 tet = new DelaunayTetrahedron( mesh,nullptr, corner[3], corner[5], corner[7], corner[6], nullptr) ;
                 if(!mesh)
