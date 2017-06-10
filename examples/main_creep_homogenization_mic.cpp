@@ -82,39 +82,39 @@ int main(int argc, char *argv[])
 	//C-S-H
   double k_elas = 8.2654e9 + 4*0.5e9 + 2*0.5e9;
   double nu_elas = 0.24;  
-  Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;
+  Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas,  SPACE_THREE_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;
   //C3S
   double E_C3S = 135.0e9;
   double nu_C3S = 0.3;
-  Matrix E_C3S_elas = Tensor::cauchyGreen( E_C3S, nu_C3S, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;
+  Matrix E_C3S_elas = Tensor::cauchyGreen( E_C3S, nu_C3S, SPACE_THREE_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;
   //C2S
   double E_C2S = 130.0e9;
   double nu_C2S = 0.3;
-  Matrix E_C2S_elas = Tensor::cauchyGreen( E_C3S, nu_C3S, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;
+  Matrix E_C2S_elas = Tensor::cauchyGreen( E_C3S, nu_C3S, SPACE_THREE_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;
    //C3A
   double E_C3A = 145.0e9;
   double nu_C3A = 0.3;
-  Matrix E_C3A_elas = Tensor::cauchyGreen( E_C3S, nu_C3S, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;
+  Matrix E_C3A_elas = Tensor::cauchyGreen( E_C3S, nu_C3S, SPACE_THREE_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;
    //C4AF
   double E_C4AF = 125.0e9;
   double nu_C4AF = 0.3;
-  Matrix E_C4AF_elas = Tensor::cauchyGreen( E_C3S, nu_C3S, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;
+  Matrix E_C4AF_elas = Tensor::cauchyGreen( E_C3S, nu_C3S, SPACE_THREE_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;
   //C$
   double E_CS = 30.0e9;
   double nu_CS = 0.3;
-  Matrix E_CS_elas = Tensor::cauchyGreen( E_C3S, nu_C3S, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;
+  Matrix E_CS_elas = Tensor::cauchyGreen( E_C3S, nu_C3S, SPACE_THREE_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;
   //CH
   double E_CH = 38.0e9;
   double nu_CH = 0.305;
-  Matrix E_CH_elas = Tensor::cauchyGreen( E_CH, nu_CH, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;
+  Matrix E_CH_elas = Tensor::cauchyGreen( E_CH, nu_CH, SPACE_THREE_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;
   //Aft    
   double E_Aft = 22.4e9;
   double nu_Aft = 0.25;
-  Matrix E_Aft_elas = Tensor::cauchyGreen( E_Aft, nu_Aft, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;    
+  Matrix E_Aft_elas = Tensor::cauchyGreen( E_Aft, nu_Aft, SPACE_THREE_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;    
   //Ms+Autre    
   double E_Ms = 42.3e9;
   double nu_Ms = 0.324;
-  Matrix E_Ms_elas = Tensor::cauchyGreen( E_Ms, nu_Ms, SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;    
+  Matrix E_Ms_elas = Tensor::cauchyGreen( E_Ms, nu_Ms, SPACE_THREE_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON) ;    
  //water
     double nu = 0.2 ;
     double E = 1e5 ;
@@ -127,13 +127,13 @@ int main(int argc, char *argv[])
   ///////////////////////////////////////////////////
   
   std::vector<std::pair<Matrix, Matrix> > branches ;
-  double factor_k = 0.38 + 4*(0.1)/10;
+  double factor_k = 1.38 + 4*(0.1)/10;
   std::vector<double> K_chaine_cp = {2.e11*factor_k,1.2e11*factor_k, 0.97e11*factor_k,7.4e10*factor_k, 2.6e10*factor_k,  2.2e10*factor_k} ;
   for(size_t i = 0 ; i < K_chaine_cp.size() ; i++)
   {
     double tau = 0.02*std::pow(10., (double) i - 1 );
-    Matrix K_i = Tensor::cauchyGreen(K_chaine_cp[i], nu_elas,  SPACE_TWO_DIMENSIONAL , PLANE_STRESS, YOUNG_POISSON)  ;
-    Matrix Am_i = Tensor::cauchyGreen( K_chaine_cp[i]*tau, nu_elas,  SPACE_TWO_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON ) ;
+    Matrix K_i = Tensor::cauchyGreen(K_chaine_cp[i], nu_elas,  SPACE_THREE_DIMENSIONAL , PLANE_STRESS, YOUNG_POISSON)  ;
+    Matrix Am_i = Tensor::cauchyGreen( K_chaine_cp[i]*tau, nu_elas,  SPACE_THREE_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON ) ;
     branches.push_back(std::make_pair(K_i, Am_i)) ;
   }
   
@@ -143,18 +143,21 @@ int main(int argc, char *argv[])
   ///////////////////////////////////////////////////
     //std::cout << " I am a test "<< std::endl ;
     std::map<unsigned char,Form *> behaviourMap ;
+    behaviourMap[0] = new Stiffness(m0)  ; //water
     behaviourMap[6] = new Stiffness(m0)  ; //water
     behaviourMap[1] =new Stiffness( E_C3S_elas)  ;  // C3S
     behaviourMap[2] = new Stiffness(E_C2S_elas)  ;  // C2S
     behaviourMap[3] = new Stiffness(E_C3A_elas)   ;  // C3A
-  /*  behaviourMap[4] = new Viscoelasticity(PURE_ELASTICITY, E_C4AF_elas,0,0)  ;  // C4AF
+    behaviourMap[4] = new Viscoelasticity(PURE_ELASTICITY, E_C4AF_elas,0,0)  ;  // C4AF
     behaviourMap[5] = new Viscoelasticity(PURE_ELASTICITY, E_CS_elas,0,0)   ;  // C$  
+    behaviourMap[7] = new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches) ;
     behaviourMap[8] = new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches) ; // inner C-S-H 
+    behaviourMap[9] = new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches) ;
     behaviourMap[10] = new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches) ;  // outer C-S-H
     behaviourMap[11] = new Viscoelasticity(PURE_ELASTICITY, E_CH_elas,0,0)  ;//CH
     behaviourMap[12] = new Viscoelasticity(PURE_ELASTICITY, E_Aft_elas,0,0)  ;//Aft
     behaviourMap[12] = new Viscoelasticity(PURE_ELASTICITY, E_Ms_elas,0,0)  ;//Afm other
-    behaviourMap[13] = new Viscoelasticity(PURE_ELASTICITY, E_Ms_elas,0,0)  ;//Afm other*/
+    behaviourMap[13] = new Viscoelasticity(PURE_ELASTICITY, E_Ms_elas,0,0)  ;//Afm other
       
    /* behaviourMap[6] = new Viscoelasticity(PURE_ELASTICITY, m0, 0,0)  ; //water
     behaviourMap[1] =new Viscoelasticity(PURE_ELASTICITY, E_C3S_elas,0,0)  ;  // C3S
@@ -182,7 +185,7 @@ int main(int argc, char *argv[])
   // CONDITIONS AUX LIMITES      ////////////////////
   // Prendre garde à bien mettre AFTER_ /////////////
   ///////////////////////////////////////////////////
-  F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, -10.e6)) ;
+  F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, -30.e6)) ;
   F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT_AFTER)) ;
   F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_AFTER)) ;
   
@@ -226,17 +229,19 @@ int main(int argc, char *argv[])
   
   double time_step = 0.01 ;    
  
-  while(F.getCurrentTime() < 0.0126)
+  while(F.getCurrentTime() < 28)
   {
     time_step *= 1.25 ;
     F.setDeltaTime(time_step) ;
     F.step(); // we have a problem here
-      std::cout << " I am a test "<< std::endl ;
-    
-  std::cout << " =============== " << F.getAverageField( REAL_STRESS_FIELD)[0]  << " =============== " << F.getAverageField( REAL_STRESS_FIELD)[1]  << " =============== " 
+      //std::cout << " I am a test "<< std::endl ;
+    std::cout << "temps " <<  F.getCurrentTime() << std::endl ;
+   std::cout << " =============== " << F.getAverageField( REAL_STRESS_FIELD)[0]  << " =============== " << F.getAverageField( REAL_STRESS_FIELD)[1]  << " =============== " 
     << F.getAverageField( REAL_STRESS_FIELD)[2]    << " =============== " 
-    << " Strain " << F.getAverageField( TOTAL_STRAIN_FIELD)[0]  << " =============== " << F.getAverageField( TOTAL_STRAIN_FIELD)[1]  
-    << " =============== " << F.getAverageField( TOTAL_STRAIN_FIELD)[2]  << std::endl ;  
+    << " Strain "<< " =============== "  << F.getAverageField(  TOTAL_STRAIN_FIELD)[0]  << " =============== " << F.getAverageField(  TOTAL_STRAIN_FIELD)[1]  
+    << " =============== " << F.getAverageField(  TOTAL_STRAIN_FIELD)[2]  << " =============== " << F.getAverageField(  TOTAL_STRAIN_FIELD)[0]/F.getAverageField( REAL_STRESS_FIELD)[0] 
+    << " =============== " << F.getAverageField(  TOTAL_STRAIN_FIELD)[1]/F.getAverageField( REAL_STRESS_FIELD)[1]<< " =============== " 
+    << F.getAverageField(  TOTAL_STRAIN_FIELD)[2]/F.getAverageField( REAL_STRESS_FIELD)[2]<<std::endl ;  
   /*  std::cout << "temps " <<  F.getCurrentTime() << std::endl ;
    std::ofstream fichier_data(test_data.c_str(), std::ios::out | std::ios::app);
     fichier_data << F.getCurrentTime()<< " ; " <<F.getAverageField( REAL_STRESS_FIELD)[0]<< " ; " << F.getAverageField( REAL_STRESS_FIELD)[1]<< " ; "<< F.getAverageField( REAL_STRESS_FIELD)[2] 
@@ -245,12 +250,12 @@ int main(int argc, char *argv[])
     fichier_data.close();*/
     
     
-  std::string test = "creep_homo_mic" + strfile ;
+ /* std::string test = "creep_homo_mic" + strfile ;
   TriangleWriter writer(test.c_str(), &F, 1.) ;
   writer.getField(TOTAL_STRAIN_FIELD) ;
   writer.getField(TWFT_STIFFNESS) ;	 
   writer.getField(REAL_STRESS_FIELD) ;
-  writer.write() ;
+  writer.write() ;*/
   }
   }
   
