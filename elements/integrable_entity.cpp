@@ -1372,14 +1372,14 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         }
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
-            ret[0] =  0.5*atan2 ( 0.5*strains[2], strains[0] - strains[1]  ) ;
+            ret[0] =  0.5*atan2 ( strains[2], strains[0] - strains[1]  ) ;
 
         }
         else
         {
-            ret[0] = 0.5*atan2 ( 0.5*strains[3], strains[0] - strains[1] ) ;
-            ret[1] = 0.5*atan2 ( 0.5*strains[4], strains[0] - strains[2] ) ;
-            ret[2] = 0.5*atan2 ( 0.5*strains[5], strains[1] - strains[2] ) ;
+            ret[0] = 0.5*atan2 ( strains[3], strains[0] - strains[1] ) ;
+            ret[1] = 0.5*atan2 ( strains[4], strains[0] - strains[2] ) ;
+            ret[2] = 0.5*atan2 ( strains[5], strains[1] - strains[2] ) ;
         }
         if ( cleanup )
         {
@@ -1532,6 +1532,68 @@ void ElementState::getField ( FieldType f, const PointArray & p, Vector & ret, b
     {
         delete vm ;
     }
+}
+
+Matrix ElementState::spin(VirtualMachine * vm)
+{
+    Matrix ret(parent->spaceDimensions(),parent->spaceDimensions()) ;
+    bool cleanup = false ;
+    if(!vm)
+    {
+        vm = new VirtualMachine() ;
+        cleanup = true ;
+    }
+    int dims = parent->spaceDimensions() ;
+    size_t npoints = parent->getBoundingPoints().size() ;
+    Vector a(npoints*dims+parent->getEnrichmentFunctions().size()*dims) ; 
+    Point centre(1./(dims+1), 1./(dims+1)) ;
+    updateInverseJacobianCache(centre) ;
+    Vector disp(npoints*dims+parent->getEnrichmentFunctions().size()*dims) ;
+    Vector baseDisps = getDisplacements() ;
+    Vector enrDisps = getEnrichedDisplacements() ;
+    Matrix c(npoints*dims+parent->getEnrichmentFunctions().size()*dims,npoints*dims+parent->getEnrichmentFunctions().size()*dims) ;
+    Matrix rot(dims, dims) ;
+    if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+    {
+        for ( size_t j = 0 ; j < npoints; j++ )
+        {
+            double f_xi = vm ->deval ( parent->getShapeFunction( j ), XI, centre ) ;
+            double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, centre ) ;
+            a[j*2]   =  (*JinvCache)[1][0]*f_xi+(*JinvCache)[1][1]*f_eta ;
+            a[j*2+1] = -(*JinvCache)[0][0]*f_xi-(*JinvCache)[0][1]*f_eta ;
+            c[j*2][j*2+1]  = 1 ;
+            c[j*2+1][j*2]  = -1 ;
+            disp[j*2]      = baseDisps[j*2] ;
+            disp[j*2+1]    = baseDisps[j*2+1] ;
+        }
+        
+        for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size(); j++ )
+        {
+            double f_xi = vm ->deval ( parent->getEnrichmentFunction ( j ), XI, centre ) ;
+            double f_eta = vm ->deval ( parent->getEnrichmentFunction ( j ), ETA, centre ) ;
+            a[npoints*2+j*2]   =  (*JinvCache)[1][0]*f_xi+(*JinvCache)[1][1]*f_eta ;
+            a[npoints*2+j*2+1] = -(*JinvCache)[0][0]*f_xi-(*JinvCache)[0][1]*f_eta ;  
+            c[npoints*2+j*2][npoints*2+j*2+1]  = 1 ;
+            c[npoints*2+j*2+1][npoints*2+j*2]  = -1 ;
+            disp[npoints*2+j*2]                = enrDisps[j*2] ;
+            disp[npoints*2+j*2+1]              = enrDisps[j*2+1] ;
+        }
+        Vector t0 = (Vector)(c*a) ;
+        double as = std::inner_product(&t0[0], &t0[t0.size()], &disp[0], double(0)) ;
+        double bs = std::inner_product(&a[0], &a[a.size()], &disp[0], double(0)) ;
+        double theta = atan2(-bs, as) ;
+        rot[0][0] = cos(theta) ; rot[0][1] = sin(theta) ; 
+        rot[1][0] = -sin(theta) ; rot[1][0] = cos(theta) ; 
+    }
+    else if ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+    {
+    }
+    
+    if ( cleanup )
+    {
+        delete vm ;
+    }
+    return rot ;
 }
 
 void ElementState::getField ( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, VirtualMachine * vm, int ) 

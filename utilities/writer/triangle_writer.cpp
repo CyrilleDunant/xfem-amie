@@ -624,6 +624,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
         switch( field )
         {
 
+
         case TWFT_FLUX:
             gradient_flux.first.resize( 0 ) ;
 
@@ -779,6 +780,28 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
                     ret[0][iterator++] = x[id3 * dof + 1] ;
                 }
             }
+        }
+        else if( field == TWFT_SPIN)
+        {
+            for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
+            {
+                if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+                {
+                    double d = acos(i->getState().spin()[0][0]) ;
+                    
+                    ret[0][iterator] = d;
+                    ret[1][iterator] = d ;
+                    ret[2][iterator++] = d ;
+                    
+                }
+                else if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+                {
+                    ret[0][iterator] = 0;
+                    ret[1][iterator] = 0 ;
+                    ret[2][iterator++] = 0 ;
+                }
+            }
+            
         }
         else if( field == TWFT_SCALAR )
         {
@@ -1427,6 +1450,8 @@ int numberOfFields( TWFieldType field, size_t index , std::map<size_t, FieldType
         return 3 ;
     case TWFT_IMPOSED_STRESS_NORM:
         return 3 ;
+    case TWFT_SPIN:
+        return 3 ;
     case TWFT_CRACKS:
         return 6 ;
     case TWFT_FIELD_TYPE:
@@ -1468,6 +1493,8 @@ std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, Field
         return std::string("Stiffness Y") ;
     case TWFT_STIFFNESS_Z:
         return std::string("Stiffness Z") ;
+    case TWFT_SPIN:
+        return std::string("spin angle") ;
     case TWFT_ENRICHMENT:
         return std::string("Enrichment") ;
         /*		case TWFT_STRAIN:

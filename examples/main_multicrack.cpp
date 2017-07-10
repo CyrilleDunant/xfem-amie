@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 	double nu = 0.2 ;
 	double E_paste = 30e9 ;
 
-	double width = 0.12;
+	double width = 0.03;
 	double height = 0.12;
 	Sample sample(width, height , 0., 0.) ;
 
@@ -34,18 +34,18 @@ int main(int argc, char *argv[])
 	BranchedCrack * Crack1 = new BranchedCrack( a,  b);
 	Crack1->setEnrichementRadius(0.01);
 
-	featureTree->addFeature(&sample, Crack1);//MY
+// 	featureTree->addFeature(&sample, Crack1);//MY
 
 // 	sample.setBehaviour(new OrthotropicStiffness(E_paste, E_paste*.5,  E_paste*.5/(2.*1-nu*0.5),  nu, M_PI*.15)) ;
 	sample.setBehaviour(new PasteBehaviour(true, false, E_paste, nu)) ;
 
- 	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA , TOP, .001)) ;
-	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , TOP, 0)) ;
+//  	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA , TOP, .001)) ;
+	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , TOP, 0.01)) ;
 	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_RIGHT)) ;
 	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 
 	featureTree->setSamplingNumber(atof(argv[1])) ;
-	featureTree->setOrder(QUADRATIC) ;
+// 	featureTree->setOrder(QUADRATIC) ;
 	featureTree->setMaxIterationsPerStep(1);
 
 	
@@ -53,14 +53,14 @@ int main(int argc, char *argv[])
 	for(int v = 0 ; v < nsteps ; v++)
 	{
 
-		Crack1->print() ;
+// 		Crack1->print() ;
 		bool go_on = featureTree->step() ;
 
 		writerm.reset( featureTree ) ;
 // 		writerm.setGeometry(Crack1->getPrimitive());
-		writerm.getField( REAL_STRESS_FIELD ) ;
+// 		writerm.getField( REAL_STRESS_FIELD ) ;
 // 		writerm.getField( TWFT_INTERSECTION ) ;
-		writerm.getField( TWFT_ENRICHMENT ) ;
+		writerm.getField( TWFT_SPIN ) ;
 		writerm.append() ;
 // 		writerm.writeSvg(5, true) ;
 		

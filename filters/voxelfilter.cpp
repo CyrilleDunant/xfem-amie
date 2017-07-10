@@ -342,6 +342,7 @@ void VoxelFilter::read(const char * filename, Mesh<DelaunayTetrahedron, Delaunay
                     tet->index = eindex++ ;
                 tet->refresh(father) ;
                 elems.push_back(tet) ;
+// 		std::cout << (int)phase[i][j][k] << std::endl ;
                 elems.back()->setBehaviour(mesh,behaviourMap[phase[i][j][k]]->getCopy()) ;
 		//std::cout << "I am a test"<<(int)phase[i][j][k]<< std::endl ;
 

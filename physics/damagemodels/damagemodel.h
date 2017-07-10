@@ -85,7 +85,7 @@ protected:
     double damageDensityTolerance ;
     double fraction ;
     double trialRatio ;
-    double residualStiffnessFraction = 0 ;
+    double residualStiffnessFraction = 1e-6 ;
 
     Vector upState ;
     Vector downState ;

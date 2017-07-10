@@ -1291,13 +1291,17 @@ public:
              f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || 
              f0 == MECHANICAL_STRAIN_FIELD || 
              f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ||
+             f0 == TOTAL_STRAIN_FIELD || 
+             f0 == PRINCIPAL_TOTAL_STRAIN_FIELD ||
                
                 f1 == REAL_STRESS_FIELD || 
                 f1 == EFFECTIVE_STRESS_FIELD || 
                 f1 == PRINCIPAL_REAL_STRESS_FIELD || 
                 f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || 
                 f1 == MECHANICAL_STRAIN_FIELD || 
-                f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD
+                f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ||
+                f1 == TOTAL_STRAIN_FIELD || 
+                f1 == PRINCIPAL_TOTAL_STRAIN_FIELD 
            ) {
             //we first need to compute the strain field
             if ( !spaceTime ) {
@@ -1450,6 +1454,22 @@ public:
                     firstResultCache[thread] = stressCache[thread] ;
                 }
             }
+            if (f0 == TOTAL_STRAIN_FIELD) {
+	        firstResultCache[thread].resize( tsize ) ;
+                firstResultCache[thread] = strainCache[thread] ;
+	    }
+	    if (f1 == TOTAL_STRAIN_FIELD) {
+	        secondResultCache[thread].resize( tsize ) ;
+                secondResultCache[thread] = strainCache[thread] ;
+	    }
+            if(f0 == PRINCIPAL_TOTAL_STRAIN_FIELD) {
+	      firstResultCache[thread].resize ( psize );
+	      firstResultCache[thread] = toPrincipal( strainCache[thread], DOUBLE_OFF_DIAGONAL_VALUES) ;
+	    }
+	    if(f1 == PRINCIPAL_TOTAL_STRAIN_FIELD) {
+	      secondResultCache[thread].resize ( psize );
+	      secondResultCache[thread] = toPrincipal( strainCache[thread], DOUBLE_OFF_DIAGONAL_VALUES) ;
+	    }
             if ( f1 == EFFECTIVE_STRESS_FIELD ) {
                 secondResultCache[thread].resize ( tsize );
                 if ( !spaceTime ) {

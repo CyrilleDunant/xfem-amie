@@ -224,9 +224,10 @@ public:
 
     /** \brief return the linear enrichment interpolating factors for the displacement field at the given point*/
     std::vector<double> getEnrichedInterpolatingFactors ( const Point & p, bool local = false ) const ;
+    
+    virtual Matrix spin(VirtualMachine * vm = nullptr) ;
 
     virtual void step ( double dt, const Vector* d ) ;
-    virtual void elasticStep ( double dt, const Vector* d ) { } ;
 
     double getTime() const ;
     double getDeltaTime() const ;
@@ -388,12 +389,12 @@ struct IntegrableEntity : public Geometry
     virtual Function getZTransformAtCentralNodalTime() const ;//{ return getZTransform() ; }
     virtual Function getTTransformAtCentralNodalTime() const ;//{ return getTTransform() ; }
 
-    virtual	const std::valarray< Function >  & getShapeFunctions() const = 0 ;
-    virtual	std::valarray< Function >  & getShapeFunctions() = 0 ;
-    virtual	Function & getShapeFunction ( size_t i )  = 0 ;
-    virtual	const Function & getShapeFunction ( size_t i ) const = 0 ;
+    virtual const std::valarray< Function >  & getShapeFunctions() const = 0 ;
+    virtual std::valarray< Function >  & getShapeFunctions() = 0 ;
+    virtual Function & getShapeFunction ( size_t i )  = 0 ;
+    virtual const Function & getShapeFunction ( size_t i ) const = 0 ;
 
-    virtual	const std::vector< Function> & getEnrichmentFunctions() const = 0 ;
+    virtual const std::vector< Function> & getEnrichmentFunctions() const = 0 ;
     virtual const Function & getEnrichmentFunction ( size_t i ) const = 0;
 
     virtual Order getOrder() const  = 0 ;

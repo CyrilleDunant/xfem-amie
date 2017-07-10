@@ -52,7 +52,7 @@ struct WeibullDistributedStiffness : public LinearForm
     * @param rig Complete expression of the Cauchy-Green Strain Tensor
     * @param cri stress limit for the Mohr - Coulomb criterion to use
     */
-    WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt = PLANE_STRESS, double var = 0.2, double radius = 0.001, IsotropicMaterialParameters hooke = YOUNG_POISSON)  ;
+    WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt = PLANE_STRAIN, double var = 0.2, double radius = 0.001, IsotropicMaterialParameters hooke = YOUNG_POISSON)  ;
 
     void setNeighbourhoodRadius(double r) {
         materialRadius = r ;

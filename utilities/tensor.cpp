@@ -642,12 +642,16 @@ Matrix Tensor::orthotropicCauchyGreen(double E_1, double E_2, double G,  double 
 		nu31 = std::min(nu, sqrt(nu21)) ;
 		nupe = 1.-nu21*nu12-nu23*nu32-nu13*nu31-nu12*nu23*nu31-nu21*nu32*nu13 ;
 	    }
+	    //no softening or hardening due to nu
+	    double factor = nupe/((1-nu*nu)*(1.-nu32*nu23)) ;
+	    
 
             cg[0][0] = E_1*(1.-nu32*nu23)/nupe ;
             cg[0][1] = (nu21-nu23*nu31)*E_1/nupe ;
             cg[1][0] = cg[0][1] ;
             cg[1][1] = E_2*(1.-nu32*nu23)/nupe ;
             cg[2][2] = E_1*E_2/(E_2*(1.+nu12)*(1.-2.*nu12)+E_1*(1.+nu21)*(1.-2.*nu21)) ;
+	    cg *= factor ;
         }
         else if(E_1 > POINT_TOLERANCE*POINT_TOLERANCE)
         {

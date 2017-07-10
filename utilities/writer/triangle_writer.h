@@ -48,7 +48,8 @@ typedef enum
 	TWFT_CRACKS,
 	TWFT_INTERSECTION,
     TWFT_FIELD_TYPE,
-    TWFT_INTERNAL_VARIABLE
+    TWFT_INTERNAL_VARIABLE,
+    TWFT_SPIN
 } TWFieldType ;
 
 /** \brief utility class to write the values of various fields of a 2D sample in a text file. You need to use getField() to get your data before writing the file.*/

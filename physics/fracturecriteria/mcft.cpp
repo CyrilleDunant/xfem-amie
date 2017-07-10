@@ -108,37 +108,53 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Amie::ElementState& 
     if(tstrain < 0 || tstress < 0)
         return -1 ;
 
-    if(tstrain > tensionCritStrain && tstress < upVal)
+//     tpseudoYoung/youngModulus-pseudoYoung/youngModulus = deltad
+    //find the limit strain
+    double strain = tensionCritStrain ;
+    double upStress = upVal ;
+    double downStress = 0 ;
+    while(upStress-downStress > 1e-6)
     {
-        crackInitiated = true ;
-        double factor = 1 ;
+      double testMaxTension = upVal ;
+      double testStress = (upStress+downStress)*.5 ;
+      double strain = testStress/pseudoYoung ;
+      if(strain > tensionCritStrain)
+      {
+	  double factor = 1 ;
 
-        double mainCurve = 1./(1.+sqrt(value*(tstrain-deltaCriterion))) ;
+	  double mainCurve = 1./(1.+sqrt(value*(strain-deltaCriterion))) ;
 
-        if(tstrain < strain_ch*(1./(deltaCriterion/tensionCritStrain)))
-        {
-            factor = mainCurve ;
-        }
-        else
-        {
-            factor = mainCurve*exp(-1.5*(tstrain-strain_ch)/(strain_te-strain_ch)) ;
-        }
-        
-        maxTension *= factor ;
-
+	  if(strain < strain_ch*(1./(deltaCriterion/tensionCritStrain)))
+	  {
+	      factor = mainCurve ;
+	  }
+	  else if (strain < strain_te)
+	  {
+	      factor = mainCurve*(strain-strain_ch)/(strain_te-strain_ch) ;
+	  }
+	  else
+	    factor = 0 ;
+	  
+	  testMaxTension *= factor ;
+	 
+      } 
+      
+      if(testMaxTension > testStress)
+      {
+	downStress = testStress ;
+      }
+      else
+	upStress = testStress ;
     }
-    else
-        return -1.+std::max(std::abs(tstrain/tensionCritStrain), std::abs(tstress/upVal)) ;
-
-    double criterion0 = 0 ;
+    maxTension = (downStress+upStress)*.5 ;
     
-    if(maxTension > POINT_TOLERANCE)
-        return  std::max(std::abs(tstress/maxTension), std::abs(tstrain*pseudoYoung/maxTension))-1. ;
-    else
-        return tstress/upVal-1. ;
-
-
-    return -1.+criterion0 ; 
+    if(tstrain < POINT_TOLERANCE)
+      return -1 ;
+    
+    if(maxTension <  POINT_TOLERANCE)
+      return tstrain/strain_te -1. ;
+    
+    return tstress/maxTension-1. ;
 
 }
 
@@ -365,30 +381,20 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
     if(s.getParent()->getBehaviour()->getDamageModel()->fractured())
         return -1 ;
         
-    std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_TOTAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD , s,  t) ;
-    Vector first = sstrain.second ;
-    Vector second = sstrain.first ;
-
-    double tstrain = second.max();
-    double cstrain = second.min();
-
-    double tstress = first.max();
-    double cstress = first.min();
 
 
-    double pseudoYoung = youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max());
-    firstCompression = tstrain < 0 && tstress < 0;
-    secondCompression = cstrain < 0 && cstress < 0;
-    firstTension = tstrain > 0 && tstress > 0;
-    secondTension = cstrain > 0 && cstress > 0;
-    firstMet = false ;
-    secondMet = false ;
-// 	if(firstTension && secondTension)
+//     for(double d = 0 ; d < 1 ; d +=1./40)
+//     {
+//       for(double ld = 0  ; ld < 2e6 ; ld +=2e6/40)
+//       {
+// 	for(double str = 0  ; str < 5.*tensionCritStrain ; str +=5./40.*tensionCritStrain)
 // 	{
-// 		tstrain -= 0.5*(tstrain-(tstrain-cstrain)) ;
-// 		tstress -= 0.5*(tstress-(tstress-cstress)) ;
+// 	  std:: cout <<  getConcreteTensileCriterion(s, youngModulus*(1.-d), str, ld) << "  " << std::flush;
 // 	}
-
+// 	std::cout << std::endl ;
+//       }
+//     }
+//     exit(0) ;
 
     if(s.getParent()->getBehaviour()->getDamageModel()->getState().size() == 4)
     {
@@ -404,6 +410,19 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
            tpseudoYoung1 =  youngModulus*(1.-rc->getState()[2]-rc->damage2) ;
            cpseudoYoung1 =  youngModulus*(1.-rc->getState()[3]-rc->damage3) ;
 	}
+	
+	std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_MECHANICAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD , s,  t) ;
+	Vector first = sstrain.second ;
+	Vector second = sstrain.first ;
+
+	double tstrain = second.max();
+	double cstrain = second.min();
+
+	double tstress = first.max();
+	double cstress = first.min();
+
+	firstMet = false ;
+	secondMet = false ;
 
         double ccrit0 = -1 ;
         double tcrit0 = -1 ;
@@ -415,7 +434,7 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
         secondCompression = cstress < 0 ;
 
 
-        if(cpseudoYoung0 > POINT_TOLERANCE*youngModulus )
+        if(cpseudoYoung0 > .01*youngModulus )
         {
 
             ccrit0 = getConcreteCompressiveCriterion(s, cpseudoYoung0, cstrain, tstress, cstress) ;
@@ -424,7 +443,7 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
                 firstMet = true ;
         }
 
-        if(tpseudoYoung0 > POINT_TOLERANCE*youngModulus )
+        if(tpseudoYoung0 > .01*youngModulus )
         {
             tcrit0 = getConcreteTensileCriterion(s, tpseudoYoung0, tstrain, tstress) ;
 
@@ -444,7 +463,7 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
             firstTension = true ;
         }
 
-        if(cpseudoYoung1 > POINT_TOLERANCE*youngModulus )
+        if(cpseudoYoung1 > .01*youngModulus )
         {
             ccrit1 = getConcreteCompressiveCriterion(s, cpseudoYoung1, cstrain, tstress, cstress) ;
 
@@ -455,7 +474,7 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
             }
         }
 
-        if(tpseudoYoung1 > POINT_TOLERANCE*youngModulus )
+        if(tpseudoYoung1 > .01*youngModulus )
         {
             tcrit1 = getConcreteTensileCriterion(s, tpseudoYoung1, tstrain, tstress) ;
             if(tcrit1 > 0 && tcrit1 > ccrit0 && tcrit1 > tcrit0 && tcrit1 > ccrit1)
@@ -480,6 +499,23 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
     }
     else if (s.getParent()->getBehaviour()->getDamageModel()->getState().size() == 2)
     {
+      	std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_MECHANICAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD , s,  t) ;
+	Vector first = sstrain.second ;
+	Vector second = sstrain.first ;
+
+	double tstrain = second.max();
+	double cstrain = second.min();
+
+	double tstress = first.max();
+	double cstress = first.min();
+
+	firstCompression = tstrain < 0 && tstress < 0;
+	secondCompression = cstrain < 0 && cstress < 0;
+	firstTension = tstrain > 0 && tstress > 0;
+	secondTension = cstrain > 0 && cstress > 0;
+	firstMet = false ;
+	secondMet = false ;
+      
         double cpseudoYoung =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[1]) ;
         double tpseudoYoung =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[0]) ;
         double ccrit = -1 ;
@@ -500,6 +536,24 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
         return std::max(ccrit,tcrit) ;
     }
 
+    std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_MECHANICAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD , s,  t) ;
+    Vector first = sstrain.second ;
+    Vector second = sstrain.first ;
+
+    double tstrain = second.max();
+    double cstrain = second.min();
+
+    double tstress = first.max();
+    double cstress = first.min();
+
+
+    double pseudoYoung = youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max());
+    firstCompression = tstrain < 0 && tstress < 0;
+    secondCompression = cstrain < 0 && cstress < 0;
+    firstTension = tstrain > 0 && tstress > 0;
+    secondTension = cstrain > 0 && cstress > 0;
+    firstMet = false ;
+    secondMet = false ;
         
     if(pseudoYoung < 1e-9)
     {

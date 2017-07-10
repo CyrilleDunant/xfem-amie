@@ -93,10 +93,10 @@ struct StiffnessAndFracture : public LinearForm
     /** \brief return true if the damage state has been modfied*/
     virtual bool changed() const ;
 
-    /** \brief Return the (damaged) Stifness tensor*/
+    /** \brief Return the (damaged) Stiffness tensor*/
     virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
-    /** \brief Acessor, return the stifness criterion in use*/
+    /** \brief Acessor, return the stiffness criterion in use*/
     virtual FractureCriterion * getFractureCriterion() const ;
 
     virtual DamageModel * getDamageModel() const ;

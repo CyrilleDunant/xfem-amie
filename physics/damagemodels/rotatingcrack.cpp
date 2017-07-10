@@ -44,7 +44,7 @@ RotatingCrack::RotatingCrack ( double E, double nu ) :  E ( E ), nu ( nu )
     stiff = new OrthotropicStiffness ( E,E,E/ ( 1.-nu*nu ),nu, 0. ) ;
     roughsampling = true ;
     iterationcount = 0 ;
-    iterationNumber = 48 ;
+//     iterationNumber = 48 ;
     damageDensityTolerance =  std::max(0.25/pow(2.,iterationNumber/4), 1e-4) ; //1e-8 ;//1. / pow( 2., 14 );
     newtonIteration = true;
     
@@ -97,35 +97,76 @@ void RotatingCrack::step(ElementState & s, double maxscore)
         if ( change )
         {
 
-            double E_0 = E ;
-            double E_1 = E ;
-            double fs = firstTension  ? getState() [1] : getState() [1] ;
-            double ss = secondTension ? getState() [2] : getState() [2] ;
-
-            E_0 *=  1. - fs  ;
-            E_1 *=  1. - ss  ;
-
-            double nunu = nu ;
-            if ( getState().max() > POINT_TOLERANCE )
-            {
-                nunu = nu*exp ( -1./ ( 1.-std::max ( fs,ss ) ) ) ;
-                E_0 /= 1.-nunu*nunu ;
-                E_1 /= 1.-nunu*nunu ;
-            }
-
-            double G = E_0*E_1/ ( E_0+E_1 ) ;
-            if ( E_0+E_1 < POINT_TOLERANCE*E )
-            {
-                G = 0 ;
-            }
+//             double E_0 = E ;
+//             double E_1 = E ;
+//             double fs = firstTension  ? getState() [1] : getState() [1] ;
+//             double ss = secondTension ? getState() [2] : getState() [2] ;
+// 
+//             E_0 *=  1. - fs  ;
+//             E_1 *=  1. - ss  ;
+// 
+//             double nunu = nu ;
+//             if ( getState().max() > POINT_TOLERANCE )
+//             {
+//                 nunu = nu*exp ( -1./ ( 1.-std::max ( fs,ss ) ) ) ;
+//                 E_0 /= 1.-nunu*nunu ;
+//                 E_1 /= 1.-nunu*nunu ;
+//             }
+// 
+//             double G = E_0*E_1/ ( E_0+E_1 ) ;
+//             if ( E_0+E_1 < POINT_TOLERANCE*E )
+//             {
+//                 G = 0 ;
+//             }
             
-            stiff->setStiffness ( E_0, E_1, G, nunu ) ;        
+          double E_0 = E ;
+	  double E_1 = E ;
+	  
+// 	  if(firstTension && firstMet)
+// 	    damage0 += std::max(factor*std::min(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState(), mindelta), 0.) ;
+// 	  else if(firstMet)
+// 	    damage1 += std::max(factor*std::min(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState(), mindelta), 0.) ;
+// 	  
+// 	  if(secondTension && secondMet)
+// 	    damage2 += std::max(factor*std::min(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState(), mindelta), 0.) ;
+// 	  else if(secondMet)
+// 	    damage3 += std::max(factor*std::min(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState(), mindelta), 0.) ;
+// 	  
+	  double fs = getState() [0] ;
+	  if(!firstTension)
+	    fs = getState() [1] ;
+	  
+	  double ss = getState() [2] ;
+	  if(!secondTension)
+	    ss = getState() [3] ;
+	  
+
+	  
+	  E_0 *=  1. - ss  ;
+	  E_1 *=  1. - fs  ;
+
+	  double nunu = 0 ;//nu*(1.-std::max(1. - fs,1. - ss))/**(1.-std::max(1. - fs,1. - ss))*/ ;
+	  
+
+	  double G = E_0*E_1/ ( E_0+E_1 ) ;
+	  if ( E_0+E_1 < POINT_TOLERANCE*E )
+	  {
+	      G = 0 ;
+	  }
+
+	  stiff->setStiffness ( E_0, E_1, G, nunu ) ;  
+            
+//             stiff->setStiffness ( E_0, E_1, G, nunu ) ;        
             
         } 
     }
     else
     {
-
+	converged = true ;
+	change = false ;
+	alternate = false ;
+// 	 stiff->setAngle ( M_PI*.5 ) ;
+	 return ;
         double max = maxscore ;
         if(!needGlobalMaximumScore)
             max = s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(s)  ;
@@ -173,7 +214,7 @@ void RotatingCrack::step(ElementState & s, double maxscore)
             iterationcount = 0 ;         
             
 //             if(firstTension)
-                currentAngle = std::max(initialAngle-M_PI*.25, 0.) ;
+                currentAngle = std::max(initialAngle-M_PI*.5, 0.) ;
 
             stiff->setAngle ( currentAngle ) ;   
 
@@ -298,54 +339,63 @@ void RotatingCrack::step(ElementState & s, double maxscore)
     if(broken)
       return ;
     std::pair<double, double> delta = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , maxscore) ;
-    double mindelta = .2*std::abs(std::max(delta.first, 0.)) > std::abs(std::max(delta.second, 0.)) ? std::max(delta.first, 0.) :  std::max(delta.second, 0.) ;
-    if(getState().max() < 2.*damageDensityTolerance)
-      mindelta *= .01 ;
+    double mindelta = std::max(delta.first, delta.second) ;
+//     if(getState().max() < 2.*damageDensityTolerance)
+//       mindelta *= .01 ;
 //     mindelta *= 1.-(getState()-Vector({damage0, damage1,damage2, damage3})).max(), mindelta) ;
     
     computeDamageIncrement(s) ;
     
-    if(((s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() && 
-        std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) < .05*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()) 
-      || !s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()) )
-    {
+    if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() < 0 || !s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
+    { 
       return ;
     }
-    
-    if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() > .05*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() 
-      && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
+    else if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() >= 0)
     {
-
-	change = true ;
-
+     
+	double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 	double E_0 = E ;
 	double E_1 = E ;
-	double factor = 1 ;
+	double ddam = std::min(score, mindelta) ;
+	double maxIncrement = 0.5 ;
+	if(getState().max() < .01)
+	  maxIncrement = 0.001 ;
+// 	if(getState().max() < .9)
+// 	  ddam = std::min(ddam, (.9-getState().max())*.5+damageDensityTolerance) ;
 	
 	if(firstTension && firstMet)
-	  damage0 += std::max(factor*std::min(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState(), mindelta), 0.) ;
+	  damage0 = std::min(maxIncrement,ddam+damageDensityTolerance) ; 
 	else if(firstMet)
-	  damage1 += std::max(factor*std::min(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState(), mindelta), 0.) ;
+	  damage1 = std::min(maxIncrement,ddam+damageDensityTolerance) ; //ddam ;
 	
 	if(secondTension && secondMet)
-	  damage2 += std::max(factor*std::min(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState(), mindelta), 0.) ;
+	  damage2 = std::min(maxIncrement,ddam+damageDensityTolerance) ; //ddam ;
 	else if(secondMet)
-	  damage3 += std::max(factor*std::min(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState(), mindelta), 0.) ;
+	  damage3 = std::min(maxIncrement,ddam+damageDensityTolerance) ; //ddam ;
 	
-	double fs = std::min(std::max(damage1 + getState() [0], getState() [0]), 1.) ;
+// 	getState(true)[0]+=damage0*(1.-getState()[0])*0.5 ;
+// 	getState(true)[1]+=damage1*(1.-getState()[1])*0.5 ; 
+// 	getState(true)[2]+=damage2*(1.-getState()[2])*0.5 ; 
+// 	getState(true)[3]+=damage3*(1.-getState()[3])*0.5 ; 
+// 	for(size_t i = 0 ; i < 4 ; i++)
+// 	  getState(true)[i] = std::min(getState(true)[i], 1.) ;
+	
+	double fs = getState() [0]+damage0 ;
 	if(!firstTension)
-	  fs = std::min(std::max(damage0 + getState() [1], getState() [1]), 1.) ;
+	  fs =getState() [1]+damage1 ;
 	
-	double ss = std::min(std::max(damage2 + getState() [2], getState() [2]), 1.) ;
+	double ss = getState() [2]+damage2 ;
 	if(!secondTension)
-	  ss = std::min(std::max(damage3 + getState() [3], getState() [3]), 1.) ;
-	
-
+	  ss = getState() [3]+damage3 ;
 	
 	E_0 *=  1. - fs  ;
 	E_1 *=  1. - ss  ;
 
-	double nunu = nu*(1.-std::max(1. - fs,1. - ss))/**(1.-std::max(1. - fs,1. - ss))*/ ;
+	double maxd = std::max(fs,ss) ;
+	double r = (1.-maxd*2.) ;
+	double nunu = 0 ;//(r < .5)?nu*(1.-r*r*.25)*(1.-r*r*.25) : 0 ;
+// 	E_0 *= 1.26  ;
+// 	E_1 *= 1.26  ;
 	
 // 	if(E_0 < .1*E || E_1 < .1*E)
 // 	{
@@ -358,32 +408,22 @@ void RotatingCrack::step(ElementState & s, double maxscore)
 // 	  return ;
 // 	}
 
-	double G = E_0*E_1/ ( E_0+E_1 ) ;
-	if ( E_0+E_1 < POINT_TOLERANCE*E )
+	double G = 0.5*E_0*E_1/ ( E_0+E_1 ) ;
+	if ( std::min(E_0,E_1) < 0.3*E )
 	{
 	    G = 0 ;
 	}
 
 	stiff->setStiffness ( E_0, E_1, G, nunu ) ;  
+// 	if(getState().max() > .3)
+// 	{
+	    Vector ang(0.,1) ;
+	    s.getAverageField(PRINCIPAL_STRESS_ANGLE_FIELD, ang) ;
+// 	    std::cout << ang[0] << std::endl ;
+	    stiff->setAngle(ang[0]+ M_PI*.5);
+// 	}
 	
-	if(E_0+E_1 < .999*E)
-	{
-	    Vector ang(1) ;
-	    ang = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedField(PRINCIPAL_STRESS_ANGLE_FIELD, s) ;
-	    stiff->setAngle(ang[0]);
-	}
-	
-	getState(true)[0]+=std::max(damage0, 0.) ;
-	getState(true)[1]+=std::max(damage1, 0.) ; 
-	getState(true)[2]+=std::max(damage2, 0.) ; 
-	getState(true)[3]+=std::max(damage3, 0.) ; 
-	for(size_t i = 0 ; i < 4 ; i++)
-	  getState(true)[i] = std::min(getState(true)[i], 1.) ;
-	
-	damage0 = 0 ;
-	damage1 = 0 ;
-	damage2 = 0 ;
-	damage3 = 0 ;
+
     }
   }
 }
@@ -395,45 +435,37 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement ( ElementState
     
     es = &s ;
 
-    firstTension  = s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 0 ) ;
-    secondTension = s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 1 ) ;
-
-
-    if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionMet ( 0 ) )
+    if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() > 0)
     {
-        firstMet = true ;
+      firstTension  = s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 0 ) ;
+      secondTension = s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 1 ) ;
 
-            range[0] = getState() [0] ;
+      if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionMet ( 0 ) )
+      {
+	  firstMet = true ;
+          range[0] = getState() [0] ;
+      }
+      else
+      {
+	  range[1] = getState() [1] ;
+	  range[0] = getState() [0] ;
+	  firstMet = false ;
+      }
 
+      if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionMet ( 1 ) )
+      {
+	  secondMet = true ;
+          range[3] = getState() [3] ;
+      }
+      else
+      {
+	  range[3] = getState() [3] ;
+	  range[2] = getState() [2] ;
+	  secondMet = false ;
+      }
     }
-    else
-    {
-        range[1] = getState() [1] ;
-        range[0] = getState() [0] ;
-        firstMet = false ;
-    }
-
-    if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionMet ( 1 ) )
-    {
-        secondMet = true ;
-//         if ( secondTension )
-//         {
-            range[3] = getState() [3] ;
-//         }
-//         else
-//         {
-//             range[2] = getState() [2] ;
-//         }
-
-    }
-    else
-    {
-        range[3] = getState() [3] ;
-        range[2] = getState() [2] ;
-        secondMet = false ;
-    }
-
     return std::make_pair ( getState(),  range ) ;
+    
 }
 
 Matrix RotatingCrack::apply ( const Matrix &m, const Point & p , const IntegrableEntity * e , int g ) const
@@ -450,25 +482,25 @@ void  RotatingCrack::computeDelta ( ElementState &s )
     return ;
     if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 0 ) )
     {
-		firstTension = true ;
+	firstTension = true ;
         range[1] = getState() [1] ;
     }
 
     if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInCompression ( 0 ) )
     {
-		firstTension = false ;
+	firstTension = false ;
         range[0] = getState() [0] ;
     }
 
     if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 1 ) )
     {
-		secondTension = true ;
+	secondTension = true ;
         range[3] = getState() [3] ;
     }
 
     if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInCompression ( 1 ) )
     {
-		secondTension = false ;
+	secondTension = false ;
         range[2] = getState() [2] ;
     }
 
@@ -534,6 +566,24 @@ void RotatingCrack::postProcess()
 //       damage3 = 0 ;
 // 
 //     }
+  
+    if(converged && state[0] > 0 ||
+      newtonIteration /*&& 
+      es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() < .05*es->getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() && 
+      es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()*/
+    )
+  {
+    getState(true)[0] += damage0 ;
+    damage0 = 0 ;
+    getState(true)[1] += damage1 ;
+    damage1 = 0 ;
+    getState(true)[2] += damage2 ;
+    damage2 = 0 ;
+    getState(true)[3] += damage3 ;
+    damage3 = 0 ;
+    for(size_t i = 0 ; i < 4 ; i++)
+      getState(true)[i] = std::min(getState(true)[i], 1.) ;
+  }
 }
 
 RotatingCrack::~RotatingCrack()
@@ -563,7 +613,7 @@ FixedCrack::FixedCrack ( double E, double nu ) :  E ( E ), nu ( nu )
 
 int FixedCrack::getMode() const
 {
-    if ( es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() &&
+    if ( es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() && 
             ( (!firstTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 0 ))
               || (firstTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInCompression ( 0 ))
               || (!secondTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 1 ))

@@ -81,7 +81,6 @@ Assembly::Assembly()
     ndof = 1 ;
     dim = SPACE_THREE_DIMENSIONAL ;
     epsilon = default_solver_precision ;
-// 	multiplier_offset = 2 ;//bookmark...chk if =3
 }
 
 Assembly::~Assembly()
@@ -119,11 +118,9 @@ void Assembly::add(ElementarySurface * e, double scale)
     dim = SPACE_TWO_DIMENSIONAL ;
     ndof = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
     multiplier_offset =  ndof;
-//     if(coordinateIndexedMatrix == nullptr || e->behaviourUpdated || e->enrichmentUpdated)
-//     {
-        element2d.push_back(e) ;
-        scales.push_back(scale);
-//     }
+
+    element2d.push_back(e) ;
+    scales.push_back(scale);
 }
 
 void Assembly::add(ElementaryVolume * e, double scale)
@@ -138,16 +135,12 @@ void Assembly::add(ElementaryVolume * e, double scale)
 bool Assembly::nonLinearStep()
 {
 
-// 	if(displacements.size() == 0)
-// 		return ;
-
     bool nl = false ;
     std::set<std::pair<size_t, size_t> > nonlinmap ;
 
     for(size_t i = 0 ; i < element2d.size() ; i++)
     {
-// 		if(i%100 == 0)
-// 			std::cerr << "\r computing sparsness pattern... triangle " << i+1 << "/" << element2d.size() << std::flush ;
+
         if(element2d[i]->getNonLinearBehaviour() != nullptr)
         {
             element2d[i]->nonLinearStep(0, &displacements) ;
@@ -200,8 +193,6 @@ bool Assembly::nonLinearStep()
     {
         if(element2d[i]->getNonLinearBehaviour() != nullptr && element2d[i]->getNonLinearBehaviour()->hasInducedMatrix())
         {
-// 			if(i%100 == 0)
-// 				std::cerr << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
             if(element2d[i]->getNonLinearBehaviour()->isActive())
             {
                 std::vector<size_t> ids = element2d[i]->getDofIds() ;
@@ -253,8 +244,8 @@ bool Assembly::nonLinearStep()
 
                     if(!hasBC)
                     {
-                        nonLinearExternalForces[ids[j]*2] += /*nonLinearExternalForces[ids[j]*2]*0.2+*/forces[j*2]/**0.8*/ ;
-                        nonLinearExternalForces[ids[j]*2+1] += /*nonLinearExternalForces[ids[j]*2+1]*0.2+*/forces[j*2+1]/**0.8*/ ;
+                        nonLinearExternalForces[ids[j]*2] += forces[j*2] ;
+                        nonLinearExternalForces[ids[j]*2+1] += forces[j*2+1] ;
                     }
                 }
             }
@@ -326,10 +317,8 @@ void Assembly::setBoundaryConditions()
                                 if(id == (columnBlockIndex*stride+n))
                                 {
                                     double val = *(blockstart+(stride+stride%2)*n+m) ;
-//                                     double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
                                     externalForces[lineBlockIndex*stride+m] -= multipliers[p].getValue()*val ;
                                     naturalBoundaryConditionForces[lineBlockIndex*stride+m] -= multipliers[p].getValue()*val ;
-//                                     val = 0 ;
                                     *(blockstart+(stride+stride%2)*n+m) = 0 ;
                                 }
                             }
@@ -341,73 +330,15 @@ void Assembly::setBoundaryConditions()
                                 if((columnBlockIndex*stride+n) == id)
                                 {
                                     *(blockstart+(stride+stride%2)*n+m) = 1 ;
-//                                     getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] = 1 ;
                                 }
                                 else
                                 {
                                     *(blockstart+(stride+stride%2)*n+m) = 0 ;
-//                                     getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] = 0 ;
                                 }
                             }
                         }
                     }
                 }
-/*                else if(multipliers[p].type == SET_PROPORTIONAL_DISPLACEMENT && multipliers[p].coefs.size() == 1)
-                {
-                    int id = multipliers[p].getId() ;
-                    std::vector<int> allid = multipliers[p].getDofIds() ;
-                    Vector coefs = multipliers[p].coefs ;
-                    for(int m = 0 ; m < stride ; m++)
-                    {
-                        if( id != (lineBlockIndex*stride+m) && propid != (lineBlockIndex*stride+m))
-                        {
-                            for(int n = 0 ; n < stride ; n++)
-                            {
-                                if(id == (columnBlockIndex*stride+n))
-                                {
-                                    double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
-                                    externalForces[lineBlockIndex*stride+m] -= b*val ;
-                                    naturalBoundaryConditionForces[lineBlockIndex*stride+m] -= b*val ;
-                                    getMatrix()[lineBlockIndex*stride+m][ propid ] += a*val ;
-                                    val = 0 ;
-                                }
-                            }
-                        }
-                        else if( id == (lineBlockIndex*stride+m) )
-                        {
-                            for(int n = 0 ; n < stride ; n++)
-                            {
-                                if(propid == (columnBlockIndex*stride+n))
-                                {
-                                    // special case, must be handled once only
-                                    continue ;
-                                }
-                                double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
-                                if(id == (columnBlockIndex*stride+n)) // we are on the diagonal
-                                {
-                                    double kxx = getMatrix()[ propid ][ propid ] ;
-                                    double kxy = getMatrix()[ propid ][ id ] ;
-                                    double kyy = getMatrix()[ id ][ id ] ;
-                                    double kappa = kxy + a*kyy ;
-                                    if( std::abs(kappa) < POINT_TOLERANCE)
-                                        continue ;
-                                    getMatrix()[ propid ][ propid ] = kxx + a*kxy +2*a*kappa ;
-                                    getMatrix()[ id ][ propid ] = -kappa ;
-                                    getMatrix()[ propid ][ id ] = -kappa ;
-                                    getMatrix()[ id ][ id ] = kappa/a ;
-                                    externalForces[ id ] = kappa*b/a ;
-                                    naturalBoundaryConditionForces[ id ] = kappa*b/a ;
-                                    externalForces[ propid ] += a*f_id - 2*b*kappa ;
-                                    naturalBoundaryConditionForces[ propid ] += a*f_id- 2*b*kappa  ;                                }
-                                else
-                                {
-                                    getMatrix()[ propid ][ columnBlockIndex*stride+n ] += a*val ;
-                                    val = 0 ;
-                                }
-                            }
-                        }
-                    }
-                }*/
             }
 
 
@@ -431,10 +362,8 @@ void Assembly::setBoundaryConditions()
                                 if(id == (columnBlockIndex*stride+n))
                                 {
                                     double val = *(blockstart+(stride+stride%2)*n+m) ;
-//                                     double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
                                     externalForces[lineBlockIndex*stride+m] -= multipliers[p].getValue()*val ;
                                     naturalBoundaryConditionForces[lineBlockIndex*stride+m]  -= multipliers[p].getValue()*val ;
-//                                     val = 0 ;
                                      *(blockstart+(stride+stride%2)*n+m) = 0 ;
                                 }
                             }
@@ -456,67 +385,7 @@ void Assembly::setBoundaryConditions()
                         }
                     }
                 }
-/*                else if(multipliers[p].type == SET_PROPORTIONAL_DISPLACEMENT && multipliers[p].coefs.size() == 1)
-                {
-                    int id = multipliers[p].getId() ;
-                    int propid = multipliers[p].getDofIds()[0] ;
-                    double a = multipliers[p].coefs[0] ;
-                    double b = multipliers[p].getValue() ; // u_id = a * u_propid + b
-                    double f_id = externalForces[id] ;
-                    for(int m = 0 ; m < stride ; m++)
-                    {
-                        if( id != (lineBlockIndex*stride+m) && propid != (lineBlockIndex*stride+m))
-                        {
-                            for(int n = 0 ; n < stride ; n++)
-                            {
-                                if(id == (columnBlockIndex*stride+n))
-                                {
-                                    double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
-                                    externalForces[lineBlockIndex*stride+m] -= b*val ;
-                                    naturalBoundaryConditionForces[lineBlockIndex*stride+m] -= b*val ;
-                                    getMatrix()[lineBlockIndex*stride+m][ propid ] += a*val ;
-                                    val = 0 ;
-                                }
-                            }
-                        }
-                        else if( id == (lineBlockIndex*stride+m) )
-                        {
-                            for(int n = 0 ; n < stride ; n++)
-                            {
-                                if(propid == (columnBlockIndex*stride+n))
-                                {
-                                    // special case, must be handled once only
-                                    continue ;
-                                }
-                                double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
-                                if(id == (columnBlockIndex*stride+n)) // we are on the diagonal
-                                {
-                                    double kxx = getMatrix()[ propid ][ propid ] ;
-                                    double kxy = getMatrix()[ propid ][ id ] ;
-                                    double kyy = getMatrix()[ id ][ id ] ;
-                                    double kappa = kxy + a*kyy ;
-                                    if( std::abs(kappa) < POINT_TOLERANCE)
-                                        continue ;
-                                    getMatrix()[ propid ][ propid ] = kxx + a*kxy +2*a*kappa ;
-                                    getMatrix()[ id ][ propid ] = -kappa ;
-                                    getMatrix()[ propid ][ id ] = -kappa ;
-                                    getMatrix()[ id ][ id ] = kappa/a ;
-                                    externalForces[ id ] = kappa*b/a ;
-                                    naturalBoundaryConditionForces[ id ] = kappa*b/a ;
-                                    externalForces[ propid ] += a*f_id - 2*b*kappa ;
-                                    naturalBoundaryConditionForces[ propid ] += a*f_id- 2*b*kappa  ;
-                                }
-                                else
-                                {
-                                    getMatrix()[ propid ][ columnBlockIndex*stride+n ] += a*val ;
-                                    val = 0 ;
-                                }
-                            }
-                        }
-                    }
-                }*/
             }
-
         }
     }
 
@@ -657,7 +526,6 @@ void Assembly::checkZeroLines()
     
     if(zeroIds.size() == 0 || removeZeroOnlyLines)
     {
-//        double maxval = std::abs(getMatrix().array).max() ;
         int zerocount = 0 ;
         for(size_t i = 0 ; i < externalForces.size() ; i++)
         {
@@ -666,21 +534,11 @@ void Assembly::checkZeroLines()
             
             double v = std::abs(getMatrix()[i][i]) ;
             bool zeros =  v < 1e-12*std::abs(std::max(externalForces[i], 1.)) ;
-/*        size_t j = rowstart ;
-        while(zeros && (j < externalForces.size() ))
-        {
-            zeros = (std::abs(getMatrix()[i][j]) < POINT_TOLERANCE) ;
-            j++ ;
-        }*/
+
         if(zeros)// && (j==externalForces.size()))
         {
             zerocount++ ;
             zeroIds.push_back(i) ;
-//             for(size_t j = 0 ; j < externalForces.size() ; j++)
-//             {
-//                 getMatrix()[i][j] = 0 ;
-//                 getMatrix()[j][i] = 0 ;
-//             }
             }
         }
         std::cerr << "\r removing 0-only lines... " << externalForces.size() << "/" << externalForces.size() << " ( " << zerocount << " ) ... done. " << std::endl ;
@@ -1081,8 +939,6 @@ bool Assembly::make_final()
         std::cerr << " ...done" << std::endl ;
 
         //important to do in this order
-        
-            
 
         externalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
         naturalBoundaryConditionForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;

@@ -294,7 +294,7 @@ int main ( int argc, char *argv[] )
     double nu_steel = 0.01 ;
     double nu = 0.3 ;
     double E_paste = 37e9 ;
-    double E_steel_effective = M_PI*0.5*rebarDiametre*rebarDiametre*E_steel/(rebarDiametre*rebarDiametre)*.8 ;
+    double E_steel_effective = M_PI*0.5*rebarDiametre*rebarDiametre*E_steel/(rebarDiametre*rebarDiametre)*.75/**.8*(phi/0.4)*/ ;
 
     double halfSampleOffset = sampleLength*.25 ;
 
@@ -426,7 +426,7 @@ int main ( int argc, char *argv[] )
     samplestirrupbulk.getBehaviour()->setSource ( sample.getPrimitive() );
 
     int stirruplayer = 1 ;
-    int rebarlayer = 0 ;
+    int rebarlayer = -1 ;
 
     F.addFeature ( nullptr, &sample, rebarlayer, phi ) ;
     F.addFeature ( &samplebulk,&baserightbulk );
@@ -512,8 +512,8 @@ int main ( int argc, char *argv[] )
 
 
 // 	F.addPoint( new Point(platewidth, sampleHeight*.5)) ;
-    F.setMaxIterationsPerStep ( 60 );
-    F.thresholdScoreMet = 0.01 ;
+    F.setMaxIterationsPerStep ( 900 );
+    F.thresholdScoreMet = 0.001 ;
 
 
     F.addPoint ( new Point ( supportLever,                -sampleHeight*.5-plateHeight ) ) ;

@@ -70,7 +70,7 @@ void IsotropicLinearDamage::step( ElementState &s , double maxscore)
   {
     converged = true ;
     std::pair<double, double> delta = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , maxscore) ;
-    double mindelta = std::abs(delta.first) > std::abs(delta.second) ? delta.first :  delta.second ;
+    double mindelta = std::max(delta.first,delta.second) ;
     
     computeDamageIncrement(s) ;
     
@@ -86,7 +86,7 @@ void IsotropicLinearDamage::step( ElementState &s , double maxscore)
     {
       
 	change = true ;
-	damage = std::max(damage+std::min(mindelta, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()), 0.) ;
+	damage = std::min(std::max(damage+std::min(mindelta, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()*(1.-getState()[0]-damage)), 0.), 1.) ;
     }
   }
 }
@@ -154,6 +154,7 @@ void IsotropicLinearDamage::postProcess()
     )
   {
     getState(true)[0] += damage ;
+    getState(true)[0] = std::min(getState(true)[0], 1.) ;
     damage = 0 ;
   }
 }

@@ -35,6 +35,7 @@ public:
     Matrix paramBase ;
     bool transformset ;
     std::vector<Variable> v ;
+    double alpha ;
 
 public:
     /** \brief Constructor
@@ -46,7 +47,7 @@ public:
      * @param angle angle of the fibres
      * @param poissondefined dummy parameter
      */
-    OrthotropicStiffness(double E_1, double E_2, double nu_12,  double nu_21, double angle, bool poissondefined) ;
+//     OrthotropicStiffness(double E_1, double E_2, double nu_12,  double nu_21, double angle, bool poissondefined) ;
 
     OrthotropicStiffness(const OrthotropicStiffness * source) ;
 

@@ -96,7 +96,7 @@ FeatureTree::FeatureTree ( Feature *first, double fraction, int layer, size_t gr
     structuredMesh = false ;
     alternating = false ;
     maxScore = -1 ;
-    thresholdScoreMet = 1e-3 ;
+    thresholdScoreMet = 0 ;
 
     std::vector<Point> bbox = first->getBoundingBox() ;
     double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;
@@ -217,7 +217,7 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     stateConverged = false ;
     dtree = nullptr ;
     alternating = false ;
-    thresholdScoreMet = 1e-3 ;
+    thresholdScoreMet = 0 ;
     
     if(times.empty())
         dtree3D = new MicDerivedMesh(voxelSource, behaviourMap) ;
@@ -3080,10 +3080,7 @@ void FeatureTree::setElementBehaviours()
         }
         for ( auto i = layer2d.begin() ; i != layer2d.end() ; i++ )
         {
-            if ( i->first != -1 )
-            {
-                scalingFactors[i->first] /= remainder;
-            }
+             scalingFactors[i->first] /= (remainder*layer2d.size());
         }
        
         layer2d[-1] = dtree ;
@@ -3167,12 +3164,12 @@ void FeatureTree::updateElementBehaviours()
         double remainder = 0 ;
         for ( auto i = layer2d.begin() ; i != layer2d.end() ; i++ )
         {
-            if ( i->first != -1 )
-            {
-                remainder += scalingFactors[i->first] ;
-            }
+             remainder += scalingFactors[i->first] ;
         }
-        scalingFactors[-1] = 1.-remainder ;
+        for ( auto i = layer2d.begin() ; i != layer2d.end() ; i++ )
+        {
+             scalingFactors[i->first] /= (remainder*layer2d.size());
+        }
         layer2d[-1] = dtree ;
 
 
@@ -4439,7 +4436,7 @@ void FeatureTree::solve()
 
         if ( dtree )
         {
-            boundaryCondition[i]->apply ( K, dtree ) ;
+	    boundaryCondition[i]->apply ( K, dtree ) ;
         }
 
         if ( dtree3D )
@@ -5920,11 +5917,10 @@ bool FeatureTree::step(bool guided)
 
 bool FeatureTree::stepToCheckPoint( int iterations, double precision)
 {
-//     setDeltaTime ( realDeltaTime, false ) ;
     double initialscale = 1. ;
     for ( const auto & bc : boundaryCondition)
     {
-        initialscale  =std::min(bc->getScale(), initialscale) ;
+        initialscale  = std::min(bc->getScale(), initialscale) ;
     }
 
     int prevmaxit = maxitPerStep ;
@@ -5957,7 +5953,6 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
         double currentScale = 0.8 ;
         double highscale = 1. ;
         double bottomscale= 0. ;
-
         while(highscale-bottomscale > precision*initialscale)
         {
             currentScale = highscale*.8+bottomscale*.2 ;
@@ -6083,7 +6078,7 @@ Vector FeatureTree::getAverageField ( FieldType f, double t, int grid, int index
         Vector ret(0., fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL));
         for ( auto layer = layer2d.begin() ; layer!=layer2d.end() ; layer++ )
         {
-             ret += layer->second->getField ( f, cacheID, t, index ) ;
+             ret += layer->second->getField ( f, cacheID, t, index )*scalingFactors[layer->first]/layer2d.size() ;
         }
         return ret ;
     }

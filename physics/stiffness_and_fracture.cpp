@@ -80,9 +80,12 @@ void StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, con
 
 void StiffnessAndFracture::step(double timestep, ElementState & currentState, double maxscore)
 {
+//   if(timestep >= 0 && maxscore > 0)
+//   {
     dfunc->step(currentState, maxscore) ;
     currentState.getParent()->behaviourUpdated = dfunc->changed() ;
     currentState.getParent()->needAssembly = currentState.getParent()->behaviourUpdated ;
+//   }
 
 }
 

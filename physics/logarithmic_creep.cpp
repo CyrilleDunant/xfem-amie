@@ -53,10 +53,10 @@ LogarithmicCreep::LogarithmicCreep(double young, double poisson, double E_creep,
             placeMatrixInBlock(S,2,0,param) ;
             placeMatrixInBlock(C,1,2,param) ;
             placeMatrixInBlock(C,2,1,param) ;
-		placeMatrixInBlock( C+E*accumulator->getKelvinVoigtSpringReduction(), 1,1, param) ;
-		placeMatrixInBlock( E*tau*accumulator->getKelvinVoigtDashpotReduction(), 1,1, eta) ;
-		placeMatrixInBlock( C+R, 2,2, param) ;
-		placeMatrixInBlock( R*tau, 2,2, eta) ;
+	    placeMatrixInBlock( C+E*accumulator->getKelvinVoigtSpringReduction(), 1,1, param) ;
+	    placeMatrixInBlock( E*tau*accumulator->getKelvinVoigtDashpotReduction(), 1,1, eta) ;
+	    placeMatrixInBlock( C+R, 2,2, param) ;
+	    placeMatrixInBlock( R*tau, 2,2, eta) ;
 
 	model = GENERALIZED_KELVIN_VOIGT ;
         }

@@ -193,7 +193,7 @@ void step ( size_t nsteps, Sample * samplef )
 	}
 	else if(go_on)
 	{
-	  loadr->setData(loadr->getData()+.125e-4/**.005*/) ; //e-4*.25 is mostly OK
+	  loadr->setData(loadr->getData()+.125e-7/**.005*/) ; //e-4*.25 is mostly OK
 	  if(!setbc)
 	  {
 	    featureTree->addBoundaryCondition( loadr );
@@ -378,7 +378,8 @@ int main ( int argc, char *argv[] )
     StiffnessAndFracture  * pr = new StiffnessAndFracture(70e9,0.33, new NonLocalVonMises(30e6, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
     StiffnessAndFracture  * pg = new StiffnessAndFracture(30e9,0.2, new NonLocalVonMises(20e6, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
     
-    samplef.setBehaviour(pr);
+//     samplef.setBehaviour(pr);
+    samplef.setBehaviour(new ConcreteBehaviour());
 
     
     
@@ -397,6 +398,7 @@ int main ( int argc, char *argv[] )
 //     dynamic_cast<ConcreteBehaviour *> ( samplef.getBehaviour() )->materialRadius = mradius ;
 
     F.addBoundaryCondition ( loadr );
+    loadr->setActive(true);
 // 	F.addBoundaryCondition(loadt);
 
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA, BOTTOM ) ) ;
@@ -409,7 +411,7 @@ int main ( int argc, char *argv[] )
     F.setOrder ( LINEAR ) ;
 // F.addPoint(new Point(0, 0)) ;
 
-    F.setMaxIterationsPerStep ( 5 );
+    F.setMaxIterationsPerStep ( 500 );
     F.thresholdScoreMet = 0.001 ;
     
 
