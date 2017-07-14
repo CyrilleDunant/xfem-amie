@@ -71,12 +71,11 @@ class Buffer : public QList<FileBuffer>
 			if( !file.open( QIODevice::ReadOnly | QIODevice::Text ) )
 				return ;
 
-			QTextStream stream;
+			QTextStream stream(&file);
 			
-			stream.setDevice( &file );
 			QString type ;
 			stream >> type ;
-			file.close();
+			
 
 			if( type != "MULTI" )
 				return ;
@@ -89,12 +88,14 @@ class Buffer : public QList<FileBuffer>
 				stream >> type ;
 
 				if( type.size() > 0 )
+                {
 					files.push_back( path + type ) ;
+                    push_back(FileBuffer(files.back())) ;
+                }
 				else
 					go_on = false ;
 			}
-			for(int i = 0 ; i < files.size() ;i++)
-				push_back(FileBuffer(files[i])) ;
+			file.close();
 			
 		}
 		
