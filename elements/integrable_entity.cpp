@@ -1534,56 +1534,163 @@ void ElementState::getField ( FieldType f, const PointArray & p, Vector & ret, b
     }
 }
 
-Matrix ElementState::spin(VirtualMachine * vm)
+double ElementState::getGlobalTransformAngle() const
 {
-    Matrix ret(parent->spaceDimensions(),parent->spaceDimensions()) ;
+    return globalTransformAngle ;
+}
+
+const Matrix & ElementState::getGlobalTransform() const
+{
+    return globalTransform ;
+}
+
+const Matrix & ElementState::getInitialStress() const
+{
+    return globalStressMatrix ;
+}
+
+
+Matrix & ElementState::transform(VirtualMachine * vm)
+{   
+    int dims = parent->spaceDimensions() ;
+    size_t npoints = parent->getBoundingPoints().size() ;
+    
+    if(!transformed)
+    {
+        globalTransform.resize(dims*npoints, dims*npoints) ;
+        globalTransform = identity(dims*npoints) ;
+//         globalStressMatrix.resize(dims*npoints, dims*npoints) ; 
+        transformed = true ;
+        return globalTransform ;
+        
+    }        
+
+
     bool cleanup = false ;
     if(!vm)
     {
         vm = new VirtualMachine() ;
         cleanup = true ;
     }
-    int dims = parent->spaceDimensions() ;
-    size_t npoints = parent->getBoundingPoints().size() ;
-    Vector a(npoints*dims+parent->getEnrichmentFunctions().size()*dims) ; 
-    Point centre(1./(dims+1), 1./(dims+1)) ;
-    updateInverseJacobianCache(centre) ;
-    Vector disp(npoints*dims+parent->getEnrichmentFunctions().size()*dims) ;
-    Vector baseDisps = getDisplacements() ;
-    Vector enrDisps = getEnrichedDisplacements() ;
-    Matrix c(npoints*dims+parent->getEnrichmentFunctions().size()*dims,npoints*dims+parent->getEnrichmentFunctions().size()*dims) ;
-    Matrix rot(dims, dims) ;
+
+    Vector d(0.,dims) ; 
+    Vector c(0.,dims) ; 
+    Matrix rot(dims, dims);
+
     if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-    {
-        for ( size_t j = 0 ; j < npoints; j++ )
+    {    
+        Point centre(1./3, 1./3.) ;
+        Point gcentre = parent->getCenter() ;
+        double bs = 0 ;
+        double as = 0 ;
+        Vector xL(0., dims*npoints) ;
+        Vector cL(0., dims*npoints) ;
+        Vector dL(0., dims*npoints) ;
+                
+        for(size_t id = 0 ; id < npoints ; id++)
         {
-            double f_xi = vm ->deval ( parent->getShapeFunction( j ), XI, centre ) ;
-            double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, centre ) ;
-            a[j*2]   =  (*JinvCache)[1][0]*f_xi+(*JinvCache)[1][1]*f_eta ;
-            a[j*2+1] = -(*JinvCache)[0][0]*f_xi-(*JinvCache)[0][1]*f_eta ;
-            c[j*2][j*2+1]  = 1 ;
-            c[j*2+1][j*2]  = -1 ;
-            disp[j*2]      = baseDisps[j*2] ;
-            disp[j*2+1]    = baseDisps[j*2+1] ;
+//             Point lpoint = parent->inLocalCoordinates(parent->getBoundingPoint(id)) ;
+            double f_xi  = vm ->deval ( parent->getShapeFunction( id ),  XI, centre ) ;
+            double f_eta = vm ->deval ( parent->getShapeFunction( id ), ETA, centre ) ;
+            
+            d[0] =  (*JinvCache)[1][0]*f_xi+(*JinvCache)[1][1]*f_eta ;
+            d[1] = -(*JinvCache)[0][0]*f_xi-(*JinvCache)[0][1]*f_eta ;
+            
+            c[0] = -d[1] ;
+            c[1] =  d[0] ;
+            
+            Vector xy = {displacements[id*2+0] + parent->getBoundingPoint(id).getX() - gcentre.getX(), displacements[id*2+1] + parent->getBoundingPoint(id).getY() - gcentre.getY()} ;
+
+            as += c[0]*xy[0] +c[1]*xy[1] ;
+            bs += d[0]*xy[0] +d[1]*xy[1] ;          
+            
+            xL[id*dims]   =  xy[1] ;
+            xL[id*dims+1] = -xy[0] ;
+            cL[id*dims]   =   c[0] ;
+            cL[id*dims+1] =   c[1] ;
+            dL[id*dims]   =   d[0] ;
+            dL[id*dims+1] =   d[1] ;
+        }   
+        
+        globalTransformAngle = atan2(-bs, as) ;
+        double denom = (as*as+bs*bs) ;  
+
+        rot[0][0] =  cos(globalTransformAngle) ; rot[0][1] = sin(globalTransformAngle) ; 
+        rot[1][0] = -sin(globalTransformAngle) ; rot[1][1] = cos(globalTransformAngle) ;
+        Vector vT = (cL*bs-dL*as)/denom ;
+                                                 
+        Matrix T(vT ,xL) ;
+        globalTransform = T ;
+        Matrix E(dims*npoints, dims*npoints) ; 
+        
+        for(size_t id = 0 ; id < npoints ; id++)
+        {
+            E[id*dims][id*dims]    =  rot[1][0] ; E[id*dims][id*dims+1]    = rot[0][0] ;
+            E[id*dims+1][id*dims]  = -rot[0][0] ; E[id*dims+1][id*dims+1]  = rot[1][0] ;
+            globalTransform[id*dims][id*dims]    += rot[0][0] ; globalTransform[id*dims][id*dims+1]    += rot[0][1] ; 
+            globalTransform[id*dims+1][id*dims]  += rot[1][0] ; globalTransform[id*dims+1][id*dims+1]  += rot[1][1] ; 
+        }
+
+//         if(globalStressMatrix.numRows() != dims*npoints)
+        {
+            
+            globalStressMatrix.resize(dims*npoints, dims*npoints) ; 
+            
+            Vector ql(dims*npoints) ;
+        
+            std::vector<Variable> v = {XI, ETA} ;
+            Vector ret(3) ;
+            std::valarray<Matrix> jcache(*JinvCache, parent->getGaussPoints().gaussPoints.size()) ;
+            for(size_t id = 0 ; id < npoints ; id++)
+            {
+                Point lpoint = parent->inLocalCoordinates(parent->getBoundingPoint(id)) ;
+                getField ( REAL_STRESS_FIELD, lpoint, ret, true, vm ) ;
+                Vector f = vm->ieval(Gradient(parent->getShapeFunction( id )) * ret, parent->getGaussPoints(), jcache,v) ;
+                ql[id*2] = f[0] ;
+                ql[id*2+1] = f[1] ;
+            }
+                                    
+            Matrix gb = ((Matrix(dL,dL) - Matrix(cL, cL))*as*bs*2. + (Matrix(cL,dL) + Matrix(dL, cL))*(as*as-bs*bs))/denom ;
+            for(size_t id = 0 ; id < npoints ; id++)
+            {
+                Matrix ga(vT,vT) ;
+                Vector ec(npoints*dims) ;
+                
+                
+                for(size_t jd = 0 ; jd < npoints ; jd++)
+                {
+                    ec[jd*2]   = E[jd*2  ][id*2] ;
+                    ec[jd*2+1] = E[jd*2+1][id*2] ;
+                }
+                ga *= xL[id*2+1] ;
+                ga += Matrix(ec, vT) + Matrix(vT, ec) ;
+
+                globalStressMatrix += (ga+gb*xL[id*2+1])*ql[id*2] ;
+                
+                for(size_t jd = 0 ; jd < npoints ; jd++)
+                {
+                    ec[jd*2]   = E[jd*2  ][id*2+1] ;
+                    ec[jd*2+1] = E[jd*2+1][id*2+1] ;
+                }
+                ga = Matrix(vT,vT);
+                ga *= xL[id*2] ;
+                ga += Matrix(ec, vT) + Matrix(vT, ec) ;
+
+                globalStressMatrix += (ga+gb*xL[id*2])*ql[id*2+1] ;
+
+            }
+//             globalStressMatrix.print() ;
+//             exit(0) ;
+        }
+
+        
+        if ( cleanup )
+        {
+            delete vm ;
         }
         
-        for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size(); j++ )
-        {
-            double f_xi = vm ->deval ( parent->getEnrichmentFunction ( j ), XI, centre ) ;
-            double f_eta = vm ->deval ( parent->getEnrichmentFunction ( j ), ETA, centre ) ;
-            a[npoints*2+j*2]   =  (*JinvCache)[1][0]*f_xi+(*JinvCache)[1][1]*f_eta ;
-            a[npoints*2+j*2+1] = -(*JinvCache)[0][0]*f_xi-(*JinvCache)[0][1]*f_eta ;  
-            c[npoints*2+j*2][npoints*2+j*2+1]  = 1 ;
-            c[npoints*2+j*2+1][npoints*2+j*2]  = -1 ;
-            disp[npoints*2+j*2]                = enrDisps[j*2] ;
-            disp[npoints*2+j*2+1]              = enrDisps[j*2+1] ;
-        }
-        Vector t0 = (Vector)(c*a) ;
-        double as = std::inner_product(&t0[0], &t0[t0.size()], &disp[0], double(0)) ;
-        double bs = std::inner_product(&a[0], &a[a.size()], &disp[0], double(0)) ;
-        double theta = atan2(-bs, as) ;
-        rot[0][0] = cos(theta) ; rot[0][1] = sin(theta) ; 
-        rot[1][0] = -sin(theta) ; rot[1][0] = cos(theta) ; 
+        return globalTransform ;
+
     }
     else if ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
     {
@@ -1593,8 +1700,10 @@ Matrix ElementState::spin(VirtualMachine * vm)
     {
         delete vm ;
     }
-    return rot ;
+    
+    return globalTransform ;
 }
+
 
 void ElementState::getField ( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, VirtualMachine * vm, int ) 
 {

@@ -239,6 +239,7 @@ HydratingMechanicalCementPaste::~HydratingMechanicalCementPaste() {}
 
 bool HydratingMechanicalCementPaste::changed() const {
     return false ;
+ 
 }
 
 Matrix HydratingMechanicalCementPaste::getTensor(const Point & p, IntegrableEntity * e, int g) const

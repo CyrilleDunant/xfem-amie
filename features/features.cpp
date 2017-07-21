@@ -3482,8 +3482,7 @@ const Vector &FeatureTree::getDisplacements ( int g, bool stepTree )
     {
         state.setStateTo ( XFEM_STEPPED, false ) ;
     }
-
-    return  K->getDisplacements() ;
+    return K->getDisplacements() ;
 }
 
 Vector FeatureTree::getDisplacements ( Point * pt, int g , bool stepTree )
@@ -4453,7 +4452,14 @@ void FeatureTree::solve()
     K->setSSORIterations( nssor ) ;  
     solverConvergence = K->cgsolve ( ) ;
     
-    Vector r = K->getMatrix() * K->getDisplacements() - K->getForces() ;
+    Vector r = (K->getMatrix() * K->getDisplacements() - K->getForces()) ;
+    
+    for ( size_t i = 0 ; i <r.size() ; ++i )
+    {
+        if(std::abs(K->getDisplacements()[i]) > 1e-12)
+            r[i] /= K->getDisplacements()[i] ;
+    }
+        
     residualError = sqrt ( parallel_inner_product ( &r[0], &r[0], r.size() ) ) ;
 
 
@@ -5903,6 +5909,36 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
     
 //     if((solverConverged() && stateConverged && maxScore < thresholdScoreMet))
         iterationCounter += totit ;
+        
+    if(is2D())
+    {
+        for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+        {
+            #pragma omp parallel
+            {
+                #pragma omp single
+                {
+                    for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                    {
+                        i->behaviourUpdated = true ;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        #pragma omp parallel
+        {
+            #pragma omp single
+            {
+                for (  auto i = dtree3D->begin() ; i != dtree3D->end() ; i++  )
+                {
+                    i->behaviourUpdated = true ;
+                }
+            }
+        }
+    }
 
     return solverConverged() && stateConverged && maxScore < thresholdScoreMet ;
 

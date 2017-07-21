@@ -179,6 +179,10 @@ protected:
     Mesh< DelaunayTetrahedron, DelaunayTreeItem3D > *mesh3d ;
 
     void updateInverseJacobianCache(const Point &p) ;
+    Matrix globalTransform ;
+    Matrix globalStressMatrix ;
+    double globalTransformAngle = 0;
+    bool transformed = false ;
 public:
     Matrix * JinvCache ;
     /** \brief Construct the state of the argument*/
@@ -225,8 +229,10 @@ public:
     /** \brief return the linear enrichment interpolating factors for the displacement field at the given point*/
     std::vector<double> getEnrichedInterpolatingFactors ( const Point & p, bool local = false ) const ;
     
-    virtual Matrix spin(VirtualMachine * vm = nullptr) ;
-
+    double getGlobalTransformAngle() const ;
+    virtual Matrix & transform( VirtualMachine * vm = nullptr) ;
+    virtual const Matrix & getGlobalTransform() const ;
+    virtual const Matrix & getInitialStress() const ;
     virtual void step ( double dt, const Vector* d ) ;
 
     double getTime() const ;
@@ -336,7 +342,7 @@ struct GaussPointArray {
 struct IntegrableEntity : public Geometry
 {
 
-  
+    bool largeDeformations = false ;
     Order order ;
     ElementState * state ;
     std::vector<BoundaryCondition *> * boundaryConditionCache ;

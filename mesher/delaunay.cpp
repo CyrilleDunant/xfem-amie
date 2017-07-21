@@ -2451,7 +2451,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
     }
     needAssembly = true ;
     clearBoundaryConditions() ;
-
     size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
     if(        cachedElementaryMatrix.size() == 0
@@ -2470,7 +2469,8 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
         vm = new VirtualMachine() ;
     }
 
-    getState().updateInverseJacobianCache(Point( 1./3.,1./3.)) ;
+    getState().updateInverseJacobianCache(Point( 1./3.,1./3.)) ;   
+    
     
     std::valarray<Matrix> Jinv((*getState().JinvCache),  getGaussPoints().gaussPoints.size()) ;
     if(moved)
@@ -2491,19 +2491,27 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
 
     if(behaviour->isSymmetric())
     {
+//         Matrix elem(getShapeFunctions().size()*2., getShapeFunctions().size()*2.);
         for(size_t i = start ; i < getShapeFunctions().size() ; i++)
         {
-
             behaviour->apply(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], vm) ;
+//             elem[i*2][i*2]   = cachedElementaryMatrix[i][i][0][0] ; elem[i*2][i*2+1]   = cachedElementaryMatrix[i][i][0][1] ;
+//             elem[i*2+1][i*2] = cachedElementaryMatrix[i][i][1][0] ; elem[i*2+1][i*2+1] = cachedElementaryMatrix[i][i][1][1] ;
 
             for(size_t j = start ; j < i ; j++)
             {
                 behaviour->apply(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j], vm) ;
                 cachedElementaryMatrix[i][j].transpose(cachedElementaryMatrix[j][i]) ;
+//                 elem[i*2][j*2]   = cachedElementaryMatrix[i][j][0][0] ; elem[i*2][j*2+1]   = cachedElementaryMatrix[i][j][0][1] ;
+//                 elem[i*2+1][j*2] = cachedElementaryMatrix[i][j][1][0] ; elem[i*2+1][j*2+1] = cachedElementaryMatrix[i][j][1][1] ;
+//                 elem[j*2][i*2]   = cachedElementaryMatrix[j][i][0][0] ; elem[j*2][i*2+1]   = cachedElementaryMatrix[j][i][0][1] ;
+//                 elem[j*2+1][i*2] = cachedElementaryMatrix[j][i][1][0] ; elem[j*2+1][i*2+1] = cachedElementaryMatrix[j][i][1][1] ;
+                
             }
             for(size_t j = startEnriched ; j < getEnrichmentFunctions().size() ; j++)
-            {
+            {  
                 behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j+getShapeFunctions().size()], vm) ;
+                cachedElementaryMatrix[i][j+getShapeFunctions().size()] += cachedElementaryMatrix[i][j+getShapeFunctions().size()];
                 cachedElementaryMatrix[i][j+getShapeFunctions().size()].transpose(cachedElementaryMatrix[j+getShapeFunctions().size()][i]) ;
             }
         }
@@ -2518,6 +2526,29 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
                 cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()].transpose(cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()]) ;
             }
         }
+        
+//         getState().transform(vm) ;
+//         if(getState().globalStressMatrix.numRows())
+//         {
+//             Matrix transformt =  getState().globalTransform.transpose() ;
+//             elem =transformt*elem*getState().globalTransform+getState().globalStressMatrix;
+//             
+//             for(size_t i = start ; i < getShapeFunctions().size() ; i++)
+//             {
+//                 cachedElementaryMatrix[i][i][0][0] = elem[i*2][i*2]    ; cachedElementaryMatrix[i][i][0][1] = elem[i*2][i*2+1]  ;
+//                 cachedElementaryMatrix[i][i][1][0] = elem[i*2+1][i*2]  ; cachedElementaryMatrix[i][i][1][1] = elem[i*2+1][i*2+1]  ;
+// 
+//                 for(size_t j = start ; j < i ; j++)
+//                 {
+//                     cachedElementaryMatrix[i][j][0][0] = elem[i*2][j*2]    ; cachedElementaryMatrix[i][j][0][1] = elem[i*2][j*2+1]    ;
+//                     cachedElementaryMatrix[i][j][1][0] = elem[i*2+1][j*2]  ; cachedElementaryMatrix[i][j][1][1] = elem[i*2+1][j*2+1]  ;
+//                     cachedElementaryMatrix[j][i][0][0] = elem[j*2][i*2]    ; cachedElementaryMatrix[j][i][1][0] = elem[j*2+1][i*2]    ;
+//                     cachedElementaryMatrix[j][i][0][1] = elem[j*2][i*2+1]  ; cachedElementaryMatrix[j][i][1][1] = elem[j*2+1][i*2+1]  ;
+//                     
+//                 }
+//             }
+//         }
+   
     }
     else
     {

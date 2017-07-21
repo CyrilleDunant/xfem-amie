@@ -468,6 +468,7 @@ public:
 public:
 
     std::vector<Vector> intermediateStates ;
+    Vector displacementsOffset ;
 
     double averageDamageInFeatures(const std::vector<Feature *> & feats) {
         double area = 0 ;

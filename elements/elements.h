@@ -274,6 +274,7 @@ public:
     }
 
     friend class ElementarySurface ;
+    friend class ElementState ;
 
 } ;
 

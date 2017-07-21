@@ -38,6 +38,7 @@ features/enrichmentmanagers/crackmanager.cpp
 features/enrichmentmanagers/gelmanager.cpp 
 features/enrichmentbehaviour.cpp 
 features/enrichmentInclusion3d.cpp 
+features/incompatibleModes.cpp
 features/enrichmentInclusion.cpp 
 features/timeDependentEnrichmentInclusion.cpp 
 features/enrichmentRing.cpp 

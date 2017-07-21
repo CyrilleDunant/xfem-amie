@@ -7,8 +7,10 @@
 #include "../features/features.h"
 #include "../features/sample.h"
 #include "../features/crack.h"
+#include "../features/incompatibleModes.h"
 
 #include "../physics/materials/paste_behaviour.h"
+#include "../physics/stiffness.h"
 
 #include "../utilities/writer/triangle_writer.h"
 
@@ -19,12 +21,12 @@ FeatureTree * featureTree ;
 
 int main(int argc, char *argv[])
 {
-	int nsteps = 2 ;
+	int nsteps = 40 ;
 	double nu = 0.2 ;
 	double E_paste = 30e9 ;
 
-	double width = 0.03;
-	double height = 0.12;
+	double width = 0.12;
+	double height = 0.02;
 	Sample sample(width, height , 0., 0.) ;
 
 	featureTree = new FeatureTree(&sample) ;
@@ -37,12 +39,16 @@ int main(int argc, char *argv[])
 // 	featureTree->addFeature(&sample, Crack1);//MY
 
 // 	sample.setBehaviour(new OrthotropicStiffness(E_paste, E_paste*.5,  E_paste*.5/(2.*1-nu*0.5),  nu, M_PI*.15)) ;
-	sample.setBehaviour(new PasteBehaviour(true, false, E_paste, nu)) ;
+	sample.setBehaviour(new Stiffness(1000, 0.499)) ;
 
-//  	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA , TOP, .001)) ;
-	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , TOP, 0.01)) ;
-	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_RIGHT)) ;
-	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+    BoundingBoxDefinedBoundaryCondition *force = new BoundingBoxDefinedBoundaryCondition(SET_FORCE_ETA , BOTTOM_RIGHT, -5*0.02) ;
+    
+//  	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , RIGHT)) ;
+	featureTree->addBoundaryCondition(force) ;
+//     featureTree->addBoundaryCondition(new GlobalBoundaryCondition(SET_VOLUMIC_STRESS_ETA , -1e6)) ;
+	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , LEFT)) ;
+	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+//     featureTree->addFeature(nullptr,new IncompatibleModes()) ;
 
 	featureTree->setSamplingNumber(atof(argv[1])) ;
 // 	featureTree->setOrder(QUADRATIC) ;
@@ -50,22 +56,50 @@ int main(int argc, char *argv[])
 
 	
 	MultiTriangleWriter writerm( "displacements_enrichment_head", "displacements_enrichment", nullptr ) ;
-	for(int v = 0 ; v < nsteps ; v++)
-	{
+    
 
+    for(int v = 0 ; v < nsteps ; v++)
+    {
+        std::cout << featureTree->residualError << std::endl ;
 // 		Crack1->print() ;
-		bool go_on = featureTree->step() ;
+        bool go_on = featureTree->step() ;
 
-		writerm.reset( featureTree ) ;
-// 		writerm.setGeometry(Crack1->getPrimitive());
-// 		writerm.getField( REAL_STRESS_FIELD ) ;
-// 		writerm.getField( TWFT_INTERSECTION ) ;
-		writerm.getField( TWFT_SPIN ) ;
-		writerm.append() ;
-// 		writerm.writeSvg(5, true) ;
-		
-		if(!go_on)
-			break ;
-	}
+//         if(v%40 == 0 )
+        {
+            writerm.reset( featureTree ) ;
+            writerm.getField( TWFT_LARGE_DEFORMATION_TRANSFORM ) ;
+            writerm.getField( TWFT_LARGE_DEFORMATION_ANGLE ) ;
+            writerm.append() ;
+        }
+        
+        if(!go_on)
+            break ;
+    }
+        
+//     for(int i = 0 ; i < 10 ; i++)
+//     {
+//         force->setData(force->getData()*2.) ;
+//         for(int v = 0 ; v < nsteps ; v++)
+//         {
+//             std::cout << featureTree->residualError << std::endl ;
+//     // 		Crack1->print() ;
+//             bool go_on = featureTree->step() ;
+//             
+//             if(v%40 == 0)
+//             {
+//                 writerm.reset( featureTree ) ;
+//                 writerm.getField( TWFT_LARGE_DEFORMATION_TRANSFORM ) ;
+//                 writerm.getField( TWFT_LARGE_DEFORMATION_ANGLE ) ;
+//                 writerm.append() ;
+//             }
+// 
+//             
+//             if(!go_on)
+//                 break ;
+//         }            
+// 
+//     }
+        
+
 	return 0 ;
 }

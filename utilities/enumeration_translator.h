@@ -1211,7 +1211,7 @@ struct Enum
         if( type == "TWFT_CRACK_ANGLE") { return TWFT_CRACK_ANGLE ; }
         if( type == "TWFT_CRITERION") { return TWFT_CRITERION ; }
         if( type == "TWFT_STIFFNESS") { return TWFT_STIFFNESS ; }
-        if( type == "TWFT_SPIN") { return TWFT_SPIN ; }
+        if( type == "TWFT_SPIN") { return TWFT_LARGE_DEFORMATION_TRANSFORM ; }
         if( type == "TWFT_VISCOSITY") { return TWFT_VISCOSITY ; }
         if( type == "TWFT_STIFFNESS_X") { return TWFT_STIFFNESS_X ; }
         if( type == "TWFT_STIFFNESS_Y") { return TWFT_STIFFNESS_Y ; }
@@ -1237,7 +1237,8 @@ struct Enum
         switch(value)
         {
             case TWFT_COORDINATE: return "TWFT_COORDINATE" ;
-            case TWFT_SPIN: return "TWFT_SPIN" ;
+            case TWFT_LARGE_DEFORMATION_TRANSFORM: return "TWFT_LARGE_DEFORMATION_TRANSFORM" ;
+            case TWFT_LARGE_DEFORMATION_ANGLE: return "TWFT_LARGE_DEFORMATION_ANGLE" ;
             case TWFT_DISPLACEMENTS: return "TWFT_DISPLACEMENTS" ;
             case TWFT_SCALAR: return "TWFT_SCALAR" ;
             case TWFT_DOH: return "TWFT_DOH" ;

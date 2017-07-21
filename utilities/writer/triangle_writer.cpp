@@ -762,34 +762,86 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 
             int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / source->get2DMesh(layer)->begin()->timePlanes() ;
 
+           
             for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
             {
                 if(  i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
-                {
+                { 
+                    VirtualMachine vm ;
                     size_t dof = i->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
                     size_t id1 = i->getBoundingPoint( factor * 0 + time_offset ).getId() ;
                     size_t id2 = i->getBoundingPoint( factor * 1 + time_offset ).getId() ;
                     size_t id3 = i->getBoundingPoint( factor * 2 + time_offset ).getId() ;
 
-                    ret[5][iterator] = x[id1 * dof] ;
-                    ret[4][iterator] = x[id2 * dof] ;
-                    ret[3][iterator] = x[id3 * dof] ;
-                    ret[2][iterator] = x[id1 * dof + 1] ;
-                    ret[1][iterator] = x[id2 * dof + 1] ;
-                    ret[0][iterator++] = x[id3 * dof + 1] ;
+                    
+//                     ret[5][iterator] = x[id1 * dof] ;
+//                     ret[4][iterator] = x[id2 * dof] ;
+//                     ret[3][iterator] = x[id3 * dof] ;
+//                     ret[2][iterator] = x[id1 * dof + 1] ;
+//                     ret[1][iterator] = x[id2 * dof + 1] ;
+//                     ret[0][iterator++] = x[id3 * dof + 1] ;
+                    
+//                     Matrix tran =  i->getState().transform(&vm);//identity(2); ;// inverse2x2Matrix(i->getState().transform(&vm))
+                    Vector xy = { x[id1 * dof], x[id1 * dof + 1]} ;
+//                     xy = xy*tran ;
+                    ret[5][iterator] = xy[0] ;
+                    ret[2][iterator] = xy[1] ;
+                    
+                    xy = { x[id2 * dof], x[id2 * dof + 1]} ;
+//                     xy = xy*tran ;
+                    ret[4][iterator] = xy[0] ;
+                    ret[1][iterator] = xy[1] ;
+                    
+                    xy = { x[id3 * dof], x[id3 * dof + 1]} ;
+//                     xy = xy*tran ;
+                    ret[3][iterator] = xy[0] ;
+                    ret[0][iterator++] = xy[1] ;
                 }
             }
         }
-        else if( field == TWFT_SPIN)
+        else if( field == TWFT_LARGE_DEFORMATION_TRANSFORM)
         {
+            VirtualMachine vm ;
             for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
             {
                 if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
                 {
-                    double d = acos(i->getState().spin()[0][0]) ;
+                    if(i->getState().getGlobalTransform().numCols() == 0)
+                    {
+                            ret[0][iterator] = 0;
+                            ret[1][iterator] = 0 ;
+                            ret[2][iterator++] = 0 ;
+                            continue ;
+                    }
                     
-                    ret[0][iterator] = d;
+                    Matrix m = i->getState().getGlobalTransform() ;
+                    double d = sqrt(std::inner_product(&m.array()[0], &m.array()[m.array().size()], &m.array()[0], double(0))) ;
+                    
+                    ret[0][iterator] = d ;
+                    ret[1][iterator] = d ;
+                    ret[2][iterator++] = d ;
+                    
+                }
+                else if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+                {
+                    ret[0][iterator] = 0;
+                    ret[1][iterator] = 0 ;
+                    ret[2][iterator++] = 0 ;
+                }
+            }
+            
+        }
+        else if( field == TWFT_LARGE_DEFORMATION_ANGLE)
+        {
+            VirtualMachine vm ;
+            for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
+            {
+                if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+                {
+                    double d = 180.*i->getState().getGlobalTransformAngle()/M_PI ;
+                    
+                    ret[0][iterator] = d ;
                     ret[1][iterator] = d ;
                     ret[2][iterator++] = d ;
                     
@@ -1450,7 +1502,9 @@ int numberOfFields( TWFieldType field, size_t index , std::map<size_t, FieldType
         return 3 ;
     case TWFT_IMPOSED_STRESS_NORM:
         return 3 ;
-    case TWFT_SPIN:
+    case TWFT_LARGE_DEFORMATION_TRANSFORM:
+        return 3 ;
+    case TWFT_LARGE_DEFORMATION_ANGLE:
         return 3 ;
     case TWFT_CRACKS:
         return 6 ;
@@ -1493,7 +1547,7 @@ std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, Field
         return std::string("Stiffness Y") ;
     case TWFT_STIFFNESS_Z:
         return std::string("Stiffness Z") ;
-    case TWFT_SPIN:
+    case TWFT_LARGE_DEFORMATION_TRANSFORM:
         return std::string("spin angle") ;
     case TWFT_ENRICHMENT:
         return std::string("Enrichment") ;
@@ -1525,6 +1579,8 @@ std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, Field
         return std::string("Imposed Stress") ;
     case TWFT_CRACKS:
         return std::string("Crack Opening") ;
+    case TWFT_LARGE_DEFORMATION_ANGLE:
+         return std::string("Large deformation angle") ;
     case TWFT_FIELD_TYPE:
         return nameOfField(fieldsOther[index]) ;
     case TWFT_INTERNAL_VARIABLE:
