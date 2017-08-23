@@ -21,7 +21,7 @@ namespace Amie {
 */
 
 
-/*PARSE PrandtlReussPlasticStrain DamageModel --no-suffix 
+/*PARSE PrandtlReussPlasticStrain DamageModel --no-suffix
 */
 class PrandtlReussPlasticStrain final: public DamageModel
 {

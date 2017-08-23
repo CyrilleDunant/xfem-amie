@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 10/3/2017 at 10:24  */
+/* this is an auto-generated file created on 23/7/2017 at 17:19  */
 
 #ifndef __OBJECT_TRANSLATOR_H__
 #define __OBJECT_TRANSLATOR_H__
@@ -27,7 +27,7 @@ struct Object
     static void resetExternalMaterialLaw(ExternalMaterialLaw * target) ;
 
     // parsed from header file: ../elements/integrable_entity.h
-    static Form * getForm(std::string type, std::map<std::string, double> & values, std::map<std::string, FractureCriterion*> & fracturecriterions, std::map<std::string, DamageModel*> & damagemodels, std::map<std::string, std::string> & strings, std::map<std::string, ExternalMaterialLawList*> & externalmateriallawlists, std::map<std::string, LogCreepAccumulator*> & logcreepaccumulators) ;
+    static Form * getForm(std::string type, std::map<std::string, double> & values, std::map<std::string, FractureCriterion*> & fracturecriterions, std::map<std::string, DamageModel*> & damagemodels, std::map<std::string, std::string> & strings, std::map<std::string, LogCreepAccumulator*> & logcreepaccumulators, std::map<std::string, ExternalMaterialLawList*> & externalmateriallawlists) ;
     static bool isForm(std::string type) ;
     static void resetForm(Form * target) ;
 

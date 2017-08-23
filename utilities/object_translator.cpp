@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 10/3/2017 at 10:24  */
+/* this is an auto-generated file created on 23/7/2017 at 17:19  */
 
 #include "object_translator.h"
 #include "enumeration_translator.h"
@@ -9,6 +9,7 @@
 #include "../physics/stiffness_and_fracture.h"
 #include "../physics/void_form.h"
 #include "../physics/stiffness.h"
+#include "../physics/ageing_logarithmic_creep.h"
 #include "../physics/viscoelasticity_and_fracture.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
 #include "../physics/stiffness_with_imposed_stress.h"
@@ -23,6 +24,7 @@
 #include "../physics/materials/gel_behaviour.h"
 #include "../physics/damagemodels/prandtlgrauertplasticstrain.h"
 #include "../physics/damagemodels/spacetimefiberbasedplasticstrain.h"
+#include "../physics/damagemodels/fiberbasedisotropiclineardamage.h"
 #include "../physics/damagemodels/spacetimebadisotropiclineardamage.h"
 #include "../physics/damagemodels/spacetimefiberbasedbilineardamage.h"
 #include "../physics/damagemodels/spacetimefiberbasedfixedcrack.h"
@@ -226,7 +228,7 @@ namespace Amie
    
     }
 
-    Form * Object::getForm(std::string type, std::map<std::string, double> & values, std::map<std::string, FractureCriterion*> & fracturecriterions, std::map<std::string, DamageModel*> & damagemodels, std::map<std::string, std::string> & strings, std::map<std::string, ExternalMaterialLawList*> & externalmateriallawlists, std::map<std::string, LogCreepAccumulator*> & logcreepaccumulators)
+    Form * Object::getForm(std::string type, std::map<std::string, double> & values, std::map<std::string, FractureCriterion*> & fracturecriterions, std::map<std::string, DamageModel*> & damagemodels, std::map<std::string, std::string> & strings, std::map<std::string, LogCreepAccumulator*> & logcreepaccumulators, std::map<std::string, ExternalMaterialLawList*> & externalmateriallawlists)
     {
         // parsed from header file: ../physics/stiffness_and_fracture.h
         if( type == "StiffnessAndFracture" )
@@ -255,6 +257,20 @@ namespace Amie
             if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
             if( strings.find("material_parameters") == strings.end() ) { strings["material_parameters"] = "YOUNG_POISSON" ; } ; 
             return new WeibullDistributedElasticStiffness(values["young_modulus"], values["poisson_ratio"], values["variability"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"]), Enum::getIsotropicMaterialParameters(strings["material_parameters"])) ;
+        }
+   
+        // parsed from header file: ../physics/ageing_logarithmic_creep.h
+        if( type == "AgeingLogarithmicCreep" )
+        { 
+            if( values.find("creep_modulus") == values.end() ) { values["creep_modulus"] = -1 ; } ; 
+            if( values.find("creep_poisson") == values.end() ) { values["creep_poisson"] = -1 ; } ; 
+            if( values.find("creep_characteristic_time") == values.end() ) { values["creep_characteristic_time"] = -1 ; } ; 
+            if( values.find("recoverable_modulus") == values.end() ) { values["recoverable_modulus"] = -1 ; } ; 
+            if( values.find("recoverable_poisson") == values.end() ) { values["recoverable_poisson"] = -1 ; } ; 
+            if( logcreepaccumulators.find("accumulator") == logcreepaccumulators.end() ) { logcreepaccumulators["accumulator"] = new RealTimeLogCreepAccumulator() ; } ; 
+            if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
+            if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
+            return new AgeingLogarithmicCreep(values["young_modulus"], values["poisson_ratio"], values["creep_modulus"], values["creep_poisson"], values["creep_characteristic_time"], values["recoverable_modulus"], values["recoverable_poisson"], logcreepaccumulators["accumulator"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"])) ;
         }
    
         // parsed from header file: ../physics/viscoelasticity_and_fracture.h
@@ -432,6 +448,9 @@ namespace Amie
         if( type == "Stiffness" ) { return true ; }
         if( type == "WeibullDistributedElasticStiffness" ) { return true ; }
    
+        // parsed from header file: ../physics/ageing_logarithmic_creep.h
+        if( type == "AgeingLogarithmicCreep" ) { return true ; }
+   
         // parsed from header file: ../physics/viscoelasticity_and_fracture.h
         if( type == "ViscoelasticityAndFracture" ) { return true ; }
    
@@ -480,6 +499,8 @@ namespace Amie
         // parsed from header file: ../physics/void_form.h
    
         // parsed from header file: ../physics/stiffness.h
+   
+        // parsed from header file: ../physics/ageing_logarithmic_creep.h
    
         // parsed from header file: ../physics/viscoelasticity_and_fracture.h
    
@@ -534,6 +555,14 @@ namespace Amie
             if( values.find("maximum_damage") == values.end() ) { values["maximum_damage"] = 0.999 ; } ; 
             if( strings.find("fixed_orientation") == strings.end() ) { strings["fixed_orientation"] = "false" ; } ; 
             return new SpaceTimeFiberBasedPlasticDamage(strings["damage_function"], strings["requirements"], values["damage_increment"], values["time_tolerance"], values["maximum_damage"], Enum::getbool(strings["fixed_orientation"])) ;
+        }
+   
+        // parsed from header file: ../physics/damagemodels/fiberbasedisotropiclineardamage.h
+        if( type == "FiberBasedIsotropic" )
+        { 
+            if( values.find("damage_increment") == values.end() ) { values["damage_increment"] = 0.1 ; } ; 
+            if( values.find("maximum_damage") == values.end() ) { values["maximum_damage"] = 0.6 ; } ; 
+            return new FiberBasedIsotropicLinearDamage(values["damage_increment"], values["maximum_damage"]) ;
         }
    
         // parsed from header file: ../physics/damagemodels/spacetimebadisotropiclineardamage.h
@@ -602,6 +631,9 @@ namespace Amie
         if( type == "SpaceTimeFiberBasedPlasticStrain" ) { return true ; }
         if( type == "SpaceTimeFiberBasedPlasticDamage" ) { return true ; }
    
+        // parsed from header file: ../physics/damagemodels/fiberbasedisotropiclineardamage.h
+        if( type == "FiberBasedIsotropic" ) { return true ; }
+   
         // parsed from header file: ../physics/damagemodels/spacetimebadisotropiclineardamage.h
         if( type == "SpaceTimeFixedPointIsotropic" ) { return true ; }
         if( type == "SpaceTimeSequentialIsotropic" ) { return true ; }
@@ -629,6 +661,8 @@ namespace Amie
         // parsed from header file: ../physics/damagemodels/prandtlgrauertplasticstrain.h
    
         // parsed from header file: ../physics/damagemodels/spacetimefiberbasedplasticstrain.h
+   
+        // parsed from header file: ../physics/damagemodels/fiberbasedisotropiclineardamage.h
    
         // parsed from header file: ../physics/damagemodels/spacetimebadisotropiclineardamage.h
    

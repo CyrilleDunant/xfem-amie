@@ -1,4 +1,4 @@
-/* this is an auto-generated file created on 10/3/2017 at 10:24  */
+/* this is an auto-generated file created on 23/7/2017 at 17:19  */
 
 #ifndef __ENUMERATION_TRANSLATOR_H__
 #define __ENUMERATION_TRANSLATOR_H__
@@ -1211,7 +1211,6 @@ struct Enum
         if( type == "TWFT_CRACK_ANGLE") { return TWFT_CRACK_ANGLE ; }
         if( type == "TWFT_CRITERION") { return TWFT_CRITERION ; }
         if( type == "TWFT_STIFFNESS") { return TWFT_STIFFNESS ; }
-        if( type == "TWFT_SPIN") { return TWFT_LARGE_DEFORMATION_TRANSFORM ; }
         if( type == "TWFT_VISCOSITY") { return TWFT_VISCOSITY ; }
         if( type == "TWFT_STIFFNESS_X") { return TWFT_STIFFNESS_X ; }
         if( type == "TWFT_STIFFNESS_Y") { return TWFT_STIFFNESS_Y ; }
@@ -1229,6 +1228,8 @@ struct Enum
         if( type == "TWFT_INTERSECTION") { return TWFT_INTERSECTION ; }
         if( type == "TWFT_FIELD_TYPE") { return TWFT_FIELD_TYPE ; }
         if( type == "TWFT_INTERNAL_VARIABLE") { return TWFT_INTERNAL_VARIABLE ; }
+        if( type == "TWFT_LARGE_DEFORMATION_TRANSFORM") { return TWFT_LARGE_DEFORMATION_TRANSFORM ; }
+        if( type == "TWFT_LARGE_DEFORMATION_ANGLE") { return TWFT_LARGE_DEFORMATION_ANGLE ; }
         if(ok) { *ok = false ; }
         return TWFT_COORDINATE ;
     }
@@ -1237,8 +1238,6 @@ struct Enum
         switch(value)
         {
             case TWFT_COORDINATE: return "TWFT_COORDINATE" ;
-            case TWFT_LARGE_DEFORMATION_TRANSFORM: return "TWFT_LARGE_DEFORMATION_TRANSFORM" ;
-            case TWFT_LARGE_DEFORMATION_ANGLE: return "TWFT_LARGE_DEFORMATION_ANGLE" ;
             case TWFT_DISPLACEMENTS: return "TWFT_DISPLACEMENTS" ;
             case TWFT_SCALAR: return "TWFT_SCALAR" ;
             case TWFT_DOH: return "TWFT_DOH" ;
@@ -1264,6 +1263,8 @@ struct Enum
             case TWFT_INTERSECTION: return "TWFT_INTERSECTION" ;
             case TWFT_FIELD_TYPE: return "TWFT_FIELD_TYPE" ;
             case TWFT_INTERNAL_VARIABLE: return "TWFT_INTERNAL_VARIABLE" ;
+            case TWFT_LARGE_DEFORMATION_TRANSFORM: return "TWFT_LARGE_DEFORMATION_TRANSFORM" ;
+            case TWFT_LARGE_DEFORMATION_ANGLE: return "TWFT_LARGE_DEFORMATION_ANGLE" ;
         }
         return "TWFT_COORDINATE" ;
     }

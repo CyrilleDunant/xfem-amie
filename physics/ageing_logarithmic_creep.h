@@ -21,7 +21,7 @@
 namespace Amie
 {
 
-/*PARSE AgeingAgeingAgeingAgeingAgeingLogarithmicCreep Form 
+/*PARSE AgeingLogarithmicCreep Form 
     @value[young_modulus] // value of the Young modulus
     @value[poisson_ratio] // value of the Poisson ratio
     @value[creep_modulus] -1 // viscosity of the dashpot
