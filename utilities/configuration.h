@@ -9,6 +9,7 @@
 
 #include "../features/features.h"
 #include "../features/sample.h"
+#include "../features/crack.h"
 #include "../features/boundarycondition.h"
 #include "../features/microstructuregenerator.h"
 #include "../geometry/geometry_base.h"
@@ -230,6 +231,10 @@ public:
     InclusionFamily * getInclusionFamily(std::string type = std::string()) ;
 
     std::vector<BoundaryCondition *> getAllBoundaryConditions(FeatureTree * F) const ;
+
+    BranchedCrack * getCrack() const ;
+
+    std::vector<BranchedCrack *> getAllCracks() const ;
 
     bool bindInput( std::vector<std::string> & callers, std::string baseDirectory, std::vector<std::string> flags = std::vector<std::string>() ) ;
 

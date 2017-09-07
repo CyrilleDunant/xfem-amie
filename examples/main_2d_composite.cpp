@@ -157,6 +157,18 @@ int main(int argc, char *argv[])
         allFeatures = new InclusionFamilyTree( ) ;
     allFeatures->concatenate() ;
 
+    if(problem->hasChild("cracks"))
+    {
+        if(F.getOrder() >= LINEAR_TIME_LINEAR)
+        {
+            std::cout << "cannot use XFEM cracks with space-time finite elements, exiting now!" << std::endl;
+            return 0;
+        }
+        std::vector<BranchedCrack *> cracks = problem->getChild("cracks")->getAllCracks();
+        for(size_t i = 0; i < cracks.size(); i++)
+            F.addFeature( F.getFeature(0), cracks[i] );
+    }
+
     parser.setFeatureTree( &F ) ;
 
     F.step() ;

@@ -1011,7 +1011,7 @@ InclusionFamilyTree * ConfigTreeItem::makeInclusionFamilyTree( FeatureTree * F, 
         if(hasChild("surface_fraction"))
             addChild( new ConfigTreeItem( nullptr, "surface", getData("surface_fraction")*placement->area() ) ) ; 
 
-        InclusionFamily * inc = getInclusionFamily() ;
+        InclusionFamily * inc = getInclusionFamily( str ) ;
         if(hasChild("behaviour"))
         {
             std::vector<ConfigTreeItem *> forms = getAllChildren("behaviour") ;
@@ -1247,6 +1247,48 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
      }
      return ret ;
 }
+
+BranchedCrack * ConfigTreeItem::getCrack() const
+{
+    Point * a = new Point(0,0,0,0);
+    Point * b = new Point(0,0,0,0);
+    if(hasChild("start"))
+    {
+        a->setX(getData("start.x"));
+        a->setY(getData("start.y"));
+        a->setZ(getData("start.z"));
+    }
+    if(hasChild("end"))
+    {
+        b->setX(getData("end.x"));
+        b->setY(getData("end.y"));
+        b->setZ(getData("end.z"));
+    }
+
+    BranchedCrack * crack = new BranchedCrack(a, b);
+
+    if(hasChild("propagation_method"))
+    {
+        std::string propagation = getStringData("propagation_method");
+        if(propagation == std::string("SCORE"))
+            crack->setScorePropagationMethod();
+        else if(propagation == std::string("ENERGY"))
+            crack->setEnergyPropagationMethod();
+    }
+
+    return crack;
+}
+
+std::vector<BranchedCrack *> ConfigTreeItem::getAllCracks() const
+{
+    std::vector<BranchedCrack *> cracks;
+    std::vector<ConfigTreeItem *> items = getAllChildren("crack") ;
+    for(size_t i = 0; i < items.size(); i++)
+        cracks.push_back(items[i]->getCrack());
+
+    return cracks;
+}
+
 
 bool ConfigTreeItem::isAtTimeStep(int i, int nsteps) const
 {
