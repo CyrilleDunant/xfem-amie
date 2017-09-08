@@ -2441,6 +2441,64 @@ void DelaunayTriangle::refresh(const TriElement * father)
 // 	this->computeCenter() ;
 }
 
+std::valarray<std::valarray<Matrix> > DelaunayTriangle::getTangentElementaryMatrix(VirtualMachine * vm )
+{
+    
+    if(getState().globalTransform.size())
+    {
+        size_t dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
+        size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
+        size_t start = 0 ;
+        if(timePlanes() > 1)
+        {
+            start = getShapeFunctions().size() -  getShapeFunctions().size()/timePlanes() ;
+        }
+        std::valarray< Matrix > v_j(Matrix(ndofs, ndofs), dofCount) ;
+        std::valarray< std::valarray< Amie::Matrix > > tgmat(v_j,dofCount) ;
+
+        Matrix elem(getShapeFunctions().size()*2., getShapeFunctions().size()*2.);
+        for(size_t i = start ; i < getShapeFunctions().size() ; i++)
+        {
+            elem[i*2][i*2]   = cachedElementaryMatrix[i][i][0][0] ; elem[i*2][i*2+1]   = cachedElementaryMatrix[i][i][0][1] ;
+            elem[i*2+1][i*2] = cachedElementaryMatrix[i][i][1][0] ; elem[i*2+1][i*2+1] = cachedElementaryMatrix[i][i][1][1] ;
+
+            for(size_t j = start ; j < i ; j++)
+            {
+                elem[i*2][j*2]   = cachedElementaryMatrix[i][j][0][0] ; elem[i*2][j*2+1]   = cachedElementaryMatrix[i][j][0][1] ;
+                elem[i*2+1][j*2] = cachedElementaryMatrix[i][j][1][0] ; elem[i*2+1][j*2+1] = cachedElementaryMatrix[i][j][1][1] ;
+                elem[j*2][i*2]   = cachedElementaryMatrix[j][i][0][0] ; elem[j*2][i*2+1]   = cachedElementaryMatrix[j][i][0][1] ;
+                elem[j*2+1][i*2] = cachedElementaryMatrix[j][i][1][0] ; elem[j*2+1][i*2+1] = cachedElementaryMatrix[j][i][1][1] ;
+                
+            }
+        }
+        
+
+        Matrix transformt = getState().globalTransform.transpose() ;
+        elem = transformt*elem*getState().globalTransform; 
+        elem += getState().globalStressMatrix ;
+        
+        for(size_t i = start ; i < getShapeFunctions().size() ; i++)
+        {
+            tgmat[i][i][0][0] = elem[i*2][i*2]    ; tgmat[i][i][0][1] = elem[i*2][i*2+1]  ;
+            tgmat[i][i][1][0] = elem[i*2+1][i*2]  ; tgmat[i][i][1][1] = elem[i*2+1][i*2+1]  ;
+
+            for(size_t j = start ; j < i ; j++)
+            {
+                tgmat[i][j][0][0] = elem[i*2][j*2]    ; tgmat[i][j][0][1] = elem[i*2][j*2+1]    ;
+                tgmat[i][j][1][0] = elem[i*2+1][j*2]  ; tgmat[i][j][1][1] = elem[i*2+1][j*2+1]  ;
+                tgmat[j][i][0][0] = elem[j*2][i*2]    ; tgmat[j][i][1][0] = elem[j*2+1][i*2]    ;
+                tgmat[j][i][0][1] = elem[j*2][i*2+1]  ; tgmat[j][i][1][1] = elem[j*2+1][i*2+1]  ;
+                
+            }
+        }
+
+        
+        return tgmat ;
+    }
+    
+    return getCachedElementaryMatrix() ;
+}
+
 std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(VirtualMachine * vm )
 {
     size_t dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
@@ -2491,21 +2549,21 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
 
     if(behaviour->isSymmetric())
     {
-//         Matrix elem(getShapeFunctions().size()*2., getShapeFunctions().size()*2.);
+        Matrix elem(getShapeFunctions().size()*2., getShapeFunctions().size()*2.);
         for(size_t i = start ; i < getShapeFunctions().size() ; i++)
         {
             behaviour->apply(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], vm) ;
-//             elem[i*2][i*2]   = cachedElementaryMatrix[i][i][0][0] ; elem[i*2][i*2+1]   = cachedElementaryMatrix[i][i][0][1] ;
-//             elem[i*2+1][i*2] = cachedElementaryMatrix[i][i][1][0] ; elem[i*2+1][i*2+1] = cachedElementaryMatrix[i][i][1][1] ;
+            elem[i*2][i*2]   = cachedElementaryMatrix[i][i][0][0] ; elem[i*2][i*2+1]   = cachedElementaryMatrix[i][i][0][1] ;
+            elem[i*2+1][i*2] = cachedElementaryMatrix[i][i][1][0] ; elem[i*2+1][i*2+1] = cachedElementaryMatrix[i][i][1][1] ;
 
             for(size_t j = start ; j < i ; j++)
             {
                 behaviour->apply(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j], vm) ;
                 cachedElementaryMatrix[i][j].transpose(cachedElementaryMatrix[j][i]) ;
-//                 elem[i*2][j*2]   = cachedElementaryMatrix[i][j][0][0] ; elem[i*2][j*2+1]   = cachedElementaryMatrix[i][j][0][1] ;
-//                 elem[i*2+1][j*2] = cachedElementaryMatrix[i][j][1][0] ; elem[i*2+1][j*2+1] = cachedElementaryMatrix[i][j][1][1] ;
-//                 elem[j*2][i*2]   = cachedElementaryMatrix[j][i][0][0] ; elem[j*2][i*2+1]   = cachedElementaryMatrix[j][i][0][1] ;
-//                 elem[j*2+1][i*2] = cachedElementaryMatrix[j][i][1][0] ; elem[j*2+1][i*2+1] = cachedElementaryMatrix[j][i][1][1] ;
+                elem[i*2][j*2]   = cachedElementaryMatrix[i][j][0][0] ; elem[i*2][j*2+1]   = cachedElementaryMatrix[i][j][0][1] ;
+                elem[i*2+1][j*2] = cachedElementaryMatrix[i][j][1][0] ; elem[i*2+1][j*2+1] = cachedElementaryMatrix[i][j][1][1] ;
+                elem[j*2][i*2]   = cachedElementaryMatrix[j][i][0][0] ; elem[j*2][i*2+1]   = cachedElementaryMatrix[j][i][0][1] ;
+                elem[j*2+1][i*2] = cachedElementaryMatrix[j][i][1][0] ; elem[j*2+1][i*2+1] = cachedElementaryMatrix[j][i][1][1] ;
                 
             }
             for(size_t j = startEnriched ; j < getEnrichmentFunctions().size() ; j++)
@@ -2527,27 +2585,32 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
             }
         }
         
-//         getState().transform(vm) ;
-//         if(getState().globalStressMatrix.numRows())
-//         {
-//             Matrix transformt =  getState().globalTransform.transpose() ;
-//             elem =transformt*elem*getState().globalTransform+getState().globalStressMatrix;
-//             
-//             for(size_t i = start ; i < getShapeFunctions().size() ; i++)
-//             {
-//                 cachedElementaryMatrix[i][i][0][0] = elem[i*2][i*2]    ; cachedElementaryMatrix[i][i][0][1] = elem[i*2][i*2+1]  ;
-//                 cachedElementaryMatrix[i][i][1][0] = elem[i*2+1][i*2]  ; cachedElementaryMatrix[i][i][1][1] = elem[i*2+1][i*2+1]  ;
-// 
-//                 for(size_t j = start ; j < i ; j++)
-//                 {
-//                     cachedElementaryMatrix[i][j][0][0] = elem[i*2][j*2]    ; cachedElementaryMatrix[i][j][0][1] = elem[i*2][j*2+1]    ;
-//                     cachedElementaryMatrix[i][j][1][0] = elem[i*2+1][j*2]  ; cachedElementaryMatrix[i][j][1][1] = elem[i*2+1][j*2+1]  ;
-//                     cachedElementaryMatrix[j][i][0][0] = elem[j*2][i*2]    ; cachedElementaryMatrix[j][i][1][0] = elem[j*2+1][i*2]    ;
-//                     cachedElementaryMatrix[j][i][0][1] = elem[j*2][i*2+1]  ; cachedElementaryMatrix[j][i][1][1] = elem[j*2+1][i*2+1]  ;
-//                     
-//                 }
-//             }
-//         }
+        if(getState().globalTransform.size())
+        {
+
+            if(getState().globalStressMatrix.numRows())
+            {
+                Matrix transformt = getState().globalTransform.transpose() ;
+                elem =transformt*elem*getState().globalTransform ; 
+                if(getState().globalStressMatrix.size())
+                    elem += getState().globalStressMatrix ;
+                
+                for(size_t i = start ; i < getShapeFunctions().size() ; i++)
+                {
+                    cachedElementaryMatrix[i][i][0][0] = elem[i*2][i*2]    ; cachedElementaryMatrix[i][i][0][1] = elem[i*2][i*2+1]  ;
+                    cachedElementaryMatrix[i][i][1][0] = elem[i*2+1][i*2]  ; cachedElementaryMatrix[i][i][1][1] = elem[i*2+1][i*2+1]  ;
+
+                    for(size_t j = start ; j < i ; j++)
+                    {
+                        cachedElementaryMatrix[i][j][0][0] = elem[i*2][j*2]    ; cachedElementaryMatrix[i][j][0][1] = elem[i*2][j*2+1]    ;
+                        cachedElementaryMatrix[i][j][1][0] = elem[i*2+1][j*2]  ; cachedElementaryMatrix[i][j][1][1] = elem[i*2+1][j*2+1]  ;
+                        cachedElementaryMatrix[j][i][0][0] = elem[j*2][i*2]    ; cachedElementaryMatrix[j][i][1][0] = elem[j*2+1][i*2]    ;
+                        cachedElementaryMatrix[j][i][0][1] = elem[j*2][i*2+1]  ; cachedElementaryMatrix[j][i][1][1] = elem[j*2+1][i*2+1]  ;
+                        
+                    }
+                }
+            }
+        }
    
     }
     else
@@ -2772,68 +2835,6 @@ void DelaunayTriangle::scaleCachedElementaryMatrix(double s)
             cachedElementaryMatrix[i][j] *= s ;
         }
     }
-}
-
-std::valarray<std::valarray<Matrix> > DelaunayTriangle::getNonLinearElementaryMatrix()
-{
-    std::vector<size_t > dofs = getDofIds() ;
-    std::valarray<std::valarray<Matrix> > mother ;
-    int size = nonlinbehaviour->getNumberOfDegreesOfFreedom() ;
-    std::valarray< Matrix > v_j(Matrix(size, size), dofs.size()) ;
-    cachedElementaryMatrix.resize(dofs.size(),v_j) ;
-    if(!this->getNonLinearBehaviour()->isActive())
-    {
-        return mother ;
-    }
-
-    std::valarray<Matrix> Jinv ;
-    GaussPointArray gp = getSubTriangulatedGaussPoints() ;
-
-    if(moved)
-    {
-        Jinv.resize(gp.gaussPoints.size(), Matrix()) ;
-        for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
-        {
-            getInverseJacobianMatrix( gp.gaussPoints[i].first, Jinv[i] ) ;
-        }
-    }
-    else
-    {
-        Matrix J ;
-        getInverseJacobianMatrix(Point( 1./3.,1./3.) , J);
-        Jinv.resize(gp.gaussPoints.size(), J) ;
-    }
-
-
-    VirtualMachine vm ;
-
-    for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
-    {
-        nonlinbehaviour->apply(getShapeFunction(i), getShapeFunction(i),gp, Jinv, mother[i][i], &vm) ;
-
-        for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
-        {
-            nonlinbehaviour->apply(getShapeFunction(i), getShapeFunction(j),gp, Jinv, mother[i][j], &vm) ;
-            nonlinbehaviour->apply(getShapeFunction(j), getShapeFunction(i),gp, Jinv, mother[j][i], &vm) ;
-        }
-        for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
-        {
-            nonlinbehaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),gp, Jinv, mother[i][j+getShapeFunctions().size()], &vm) ;
-            nonlinbehaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),gp, Jinv, mother[j+getShapeFunctions().size()][i], &vm) ;
-        }
-    }
-    for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
-    {
-        nonlinbehaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),gp, Jinv, mother[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
-
-        for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
-        {
-            nonlinbehaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),gp, Jinv, mother[i+getShapeFunctions().size()][j+getShapeFunctions().size()], &vm) ;
-            nonlinbehaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),gp, Jinv, mother[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
-        }
-    }
-
-    return mother ;
 }
 
 std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
@@ -3114,59 +3115,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
     return *getCachedGaussPoints();
 }
 
-Vector DelaunayTriangle::getNonLinearForces()
-{
-    std::vector<size_t> dofs = getDofIds() ;
-    Vector forces(dofs.size()*2) ;
-
-    if(!this->getNonLinearBehaviour()->isActive())
-    {
-        forces = 0 ;
-        return forces ;
-    }
-
-    std::valarray<Matrix> Jinv ;
-
-    GaussPointArray gp  = getSubTriangulatedGaussPoints() ;
-
-    if(moved)
-    {
-        Jinv.resize(gp.gaussPoints.size(), Matrix()) ;
-        for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
-        {
-            getInverseJacobianMatrix( gp.gaussPoints[i].first, Jinv[i]) ;
-        }
-    }
-    else
-    {
-        Matrix J ;
-        getInverseJacobianMatrix(Point( 1./3.,1./3.) , J) ;
-        Jinv.resize(gp.gaussPoints.size(), J) ;
-    }
-
-    size_t numdof = getBehaviour()->getNumberOfDegreesOfFreedom() ;
-    Vector f(0., numdof) ;
-    for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
-    {
-
-        behaviour->getForces(this->getState(), getShapeFunction(i) ,gp, Jinv, f) ;
-
-        for(size_t j = 0 ; j < numdof ; j++)
-            forces[i*numdof+j]+=f[j];
-
-    }
-
-    for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
-    {
-        behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,gp, Jinv, f) ;
-
-        for(size_t j = 0 ; j < numdof ; j++)
-            forces[(i+getShapeFunctions().size())*numdof+j]+=f[j];
-    }
-
-
-    return forces ;
-}
 
 DelaunayDeadTriangle::~DelaunayDeadTriangle() { }
 

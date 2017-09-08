@@ -157,6 +157,7 @@ protected:
     Vector pstressAtGaussPoints ;
 
     Vector displacements ;
+    Vector linearDisplacements ;
     Vector enrichedDisplacements ;
     
     bool strainAtGaussPointsSet ;
@@ -181,6 +182,7 @@ protected:
     void updateInverseJacobianCache(const Point &p) ;
     Matrix globalTransform ;
     Matrix globalStressMatrix ;
+    Vector internalForces ;
     double globalTransformAngle = 0;
     bool transformed = false ;
 public:
@@ -230,9 +232,10 @@ public:
     std::vector<double> getEnrichedInterpolatingFactors ( const Point & p, bool local = false ) const ;
     
     double getGlobalTransformAngle() const ;
-    virtual Matrix & transform( VirtualMachine * vm = nullptr) ;
+    virtual Matrix & transform( VirtualMachine * vm = nullptr, std::valarray<double> * displacements = nullptr) ;
     virtual const Matrix & getGlobalTransform() const ;
     virtual const Matrix & getInitialStress() const ;
+    virtual const Vector & getInternalForces() const ;
     virtual void step ( double dt, const Vector* d ) ;
 
     double getTime() const ;
@@ -409,16 +412,13 @@ struct IntegrableEntity : public Geometry
     virtual std::vector<size_t> clearAllEnrichment() = 0;
     virtual const std::vector< size_t > getDofIds() const = 0;
 
-    virtual Form * getBehaviour() const = 0;
-    virtual NonLinearForm * getNonLinearBehaviour() const = 0;
-    
+    virtual Form * getBehaviour() const = 0;    
     virtual bool matrixUpdated() const = 0 ;
     
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix( VirtualMachine * vm = nullptr)  = 0 ;
+    virtual std::valarray<std::valarray<Matrix> > getTangentElementaryMatrix(VirtualMachine * vm = nullptr) = 0 ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr)  = 0 ;
-    virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix()  = 0 ;
 // 	virtual Vector getForces() = 0 ;
-    virtual Vector getNonLinearForces() = 0 ;
     virtual void applyBoundaryCondition ( Assembly * a ) ;
 
     virtual void adjustElementaryMatrix ( double previousTimeStep, double nextTimeStep ) { } ;

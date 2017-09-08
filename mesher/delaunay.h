@@ -166,12 +166,11 @@ public:
     virtual void refresh(const TriElement *) ;
     
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix( VirtualMachine * vm = nullptr) ;
+    virtual std::valarray<std::valarray<Matrix> > getTangentElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
-    virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix()  ;
     virtual void scaleCachedViscousElementaryMatrix(double s) ;
     virtual void scaleCachedElementaryMatrix(double s) ;
     virtual void adjustElementaryMatrix(double previousTimeStep, double nextTimeStep) ;
-    virtual Vector getNonLinearForces() ;
     virtual const GaussPointArray & getSubTriangulatedGaussPoints() ;
 //     virtual const GaussPointArray & getSubTriangulatedGaussPoints(const Function & f0, const Function & f1, Matrix &m) ;
 

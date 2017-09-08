@@ -53,7 +53,6 @@ protected:
     std::vector< Function > enrichfunc ;
     std::vector< const Geometry *> enrichmentSource ;
     Form * behaviour ;
-    NonLinearForm * nonlinbehaviour ;
 
 public:
 
@@ -96,16 +95,10 @@ public:
     
     virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) = 0 ;
 
-    virtual Vector getNonLinearForces() = 0 ;
-
     virtual Form * getBehaviour() const final;
     void setBehaviour( Mesh< DelaunayTriangle, DelaunayTreeItem >* msh, Form* f );
 
-    virtual NonLinearForm * getNonLinearBehaviour() const;
-    void setNonLinearBehaviour(NonLinearForm * f) ;
-
     virtual void step(double dt, const Vector * displacements) ;
-    virtual void nonLinearStep(double dt, const Vector * displacements) ;
 
     Order getOrder() const final;
     void setOrder(Order) ;
@@ -223,6 +216,7 @@ public:
     }
     
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
+    virtual std::valarray<std::valarray<Matrix> > getTangentElementaryMatrix(VirtualMachine * vm ) ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > & getCachedElementaryMatrix() {return cachedElementaryMatrix ;}
     virtual std::valarray<std::valarray<Matrix> > & getCachedViscousElementaryMatrix() {return cachedViscousElementaryMatrix ;}
@@ -230,7 +224,6 @@ public:
         cachedElementaryMatrix.resize(0);
         cachedViscousElementaryMatrix.resize(0) ;
     } ;
-    virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix(Vector * state)  ;
     virtual void getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2)  ;
     virtual void getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2, Matrix & t3) ;
 
@@ -250,9 +243,7 @@ public:
     virtual void print() const;
 
     virtual Point inLocalCoordinates(const Point &p) const final;
-    virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix() ;
 
-    virtual Vector getNonLinearForces()  ;
     virtual Function getXTransform() const final;
     virtual Function getYTransform() const final;
     virtual Function getXTransformAtCentralNodalTime() const final;
@@ -287,7 +278,6 @@ protected:
     virtual const GaussPointArray & genGaussPoints()= 0 ;
     Form * behaviour ;
     Order order ;
-    NonLinearForm * nonlinbehaviour ;
 
     std::valarray<std::valarray<Matrix> > cachedElementaryMatrix ;
     std::valarray<std::valarray<Matrix> > cachedViscousElementaryMatrix ;
@@ -311,12 +301,11 @@ public:
     virtual const GaussPointArray & getGaussPoints() = 0 ;
 
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) = 0;
+    virtual std::valarray<std::valarray<Matrix> > getTangentElementaryMatrix(VirtualMachine * vm = nullptr) = 0;
     virtual std::valarray<std::valarray<Matrix> > & getCachedElementaryMatrix() {return cachedElementaryMatrix ;}
     virtual std::valarray<std::valarray<Matrix> > & getCachedViscousElementaryMatrix() {return cachedViscousElementaryMatrix ;}
     virtual Form * getBehaviour() const final;
     virtual void setBehaviour( Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* msh, Form* f ) final;
-
-    virtual NonLinearForm * getNonLinearBehaviour() const ;
 
     virtual const std::valarray< Function > & getShapeFunctions() const = 0 ;
     virtual std::valarray< Function > & getShapeFunctions() = 0 ;
@@ -354,7 +343,6 @@ public:
 
 
     virtual void step(double dt, const Vector * displacements) ;
-    virtual void nonLinearStep(double dt, const Vector *displacements) ;
 
     virtual Order getOrder() const final;
     virtual void setOrder(Order) final;
@@ -385,12 +373,11 @@ public:
         return !(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() == getShapeFunctions().size()+getEnrichmentFunctions().size()) ;
     }
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
+    virtual std::valarray<std::valarray<Matrix> > getTangentElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
-    virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix() ;
     virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) ;
     virtual const std::valarray< Function > & getShapeFunctions() const ;
     virtual std::valarray< Function > & getShapeFunctions() ;
-    virtual Vector getNonLinearForces() ;
 
     void refresh(const TetrahedralElement * parent);
 
@@ -449,6 +436,7 @@ public:
         return !(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() == getShapeFunctions().size()+getEnrichmentFunctions().size()) ;
     }
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
+    virtual std::valarray<std::valarray<Matrix> > getTangentElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
 
 
@@ -459,8 +447,6 @@ public:
     void refresh(const HexahedralElement * parent);
     virtual void print()  const;
     virtual Point inLocalCoordinates(const Point & p) const ;
-    virtual Vector getNonLinearForces() ;
-    virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix() ;
     virtual const std::valarray< Function > & getShapeFunctions() const ;
     virtual std::valarray< Function > & getShapeFunctions()  ;
     bool visited ;

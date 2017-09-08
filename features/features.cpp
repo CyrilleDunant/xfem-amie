@@ -4450,7 +4450,7 @@ void FeatureTree::solve()
     if(epsilonA > 0)
         K->setEpsilon(epsilonA);   
     K->setSSORIterations( nssor ) ;  
-    solverConvergence = K->cgsolve ( ) ;
+    solverConvergence = tgsolve? K->tgsolve ( ) :  K->cgsolve() ;
     
     Vector r = (K->getMatrix() * K->getDisplacements() - K->getForces()) ;
     

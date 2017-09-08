@@ -21,13 +21,13 @@ FeatureTree * featureTree ;
 
 int main(int argc, char *argv[])
 {
-	int nsteps = 40 ;
+	int nsteps = 1 ;
 	double nu = 0.2 ;
 	double E_paste = 30e9 ;
 
 	double width = 0.12;
 	double height = 0.02;
-	Sample sample(width, height , 0., 0.) ;
+	Sample sample(width, height , width*.5, height*.5) ;
 
 	featureTree = new FeatureTree(&sample) ;
 	
@@ -39,9 +39,10 @@ int main(int argc, char *argv[])
 // 	featureTree->addFeature(&sample, Crack1);//MY
 
 // 	sample.setBehaviour(new OrthotropicStiffness(E_paste, E_paste*.5,  E_paste*.5/(2.*1-nu*0.5),  nu, M_PI*.15)) ;
-	sample.setBehaviour(new Stiffness(1000, 0.499)) ;
+	sample.setBehaviour(new Stiffness(100, 0.499)) ;
+    
 
-    BoundingBoxDefinedBoundaryCondition *force = new BoundingBoxDefinedBoundaryCondition(SET_FORCE_ETA , BOTTOM_RIGHT, -5*0.02) ;
+    BoundingBoxDefinedBoundaryCondition *force = new BoundingBoxDefinedBoundaryCondition(SET_FORCE_ETA , RIGHT, -.0006) ;
     
 //  	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , RIGHT)) ;
 	featureTree->addBoundaryCondition(force) ;
@@ -56,7 +57,7 @@ int main(int argc, char *argv[])
 
 	
 	MultiTriangleWriter writerm( "displacements_enrichment_head", "displacements_enrichment", nullptr ) ;
-    
+    featureTree->tgsolve = true ;
 
     for(int v = 0 ; v < nsteps ; v++)
     {
@@ -69,6 +70,7 @@ int main(int argc, char *argv[])
             writerm.reset( featureTree ) ;
             writerm.getField( TWFT_LARGE_DEFORMATION_TRANSFORM ) ;
             writerm.getField( TWFT_LARGE_DEFORMATION_ANGLE ) ;
+            writerm.getField( TWFT_LARGE_DEFORMATION_FORCES ) ;
             writerm.append() ;
         }
         

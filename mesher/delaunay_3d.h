@@ -178,12 +178,10 @@ public:
         return !(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() == getShapeFunctions().size()+getEnrichmentFunctions().size()) ;
     }
     
-    std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
-    std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
+    virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
+    virtual std::valarray<std::valarray<Matrix> > getTangentElementaryMatrix(VirtualMachine * vm = nullptr) ;
+    virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
     void clearElementaryMatrix() ;
-    std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix()  ;
-    Vector getNonLinearForces()  ;
-
     const GaussPointArray & getSubTriangulatedGaussPoints()  ;
 
     std::valarray<unsigned int> neighbourhood ;

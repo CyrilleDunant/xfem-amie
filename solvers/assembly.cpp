@@ -70,7 +70,6 @@ Assembly::Assembly()
     colstart = 0 ;
     ndofmax = 0 ;
     coordinateIndexedMatrix = nullptr ;
-    nonLinearPartialMatrix = nullptr;
     mask = nullptr ;
     multiplier_offset = 0 ;
     displacements.resize(0) ;
@@ -86,7 +85,6 @@ Assembly::Assembly()
 Assembly::~Assembly()
 {
     delete coordinateIndexedMatrix ;
-    delete nonLinearPartialMatrix ;
 }
 
 Vector & Assembly::getForces()
@@ -103,14 +101,6 @@ Vector & Assembly::getNaturalBoundaryConditionForces()
         make_final() ;
 
     return naturalBoundaryConditionForces ;
-}
-
-Vector & Assembly::getNonLinearForces()
-{
-    if(coordinateIndexedMatrix == nullptr)
-        make_final() ;
-
-    return nonLinearExternalForces ;
 }
 
 void Assembly::add(ElementarySurface * e, double scale)
@@ -132,132 +122,7 @@ void Assembly::add(ElementaryVolume * e, double scale)
     scales.push_back(scale);
 }
 
-bool Assembly::nonLinearStep()
-{
-
-    bool nl = false ;
-    std::set<std::pair<size_t, size_t> > nonlinmap ;
-
-    for(size_t i = 0 ; i < element2d.size() ; i++)
-    {
-
-        if(element2d[i]->getNonLinearBehaviour() != nullptr)
-        {
-            element2d[i]->nonLinearStep(0, &displacements) ;
-            nl = true ;
-        }
-
-        if(element2d[i]->getNonLinearBehaviour() != nullptr && element2d[i]->getNonLinearBehaviour()->hasInducedMatrix() )
-        {
-
-            if(element2d[i]->getNonLinearBehaviour()->isActive())
-            {
-
-                std::vector<size_t> ids = element2d[i]->getDofIds() ;
-                for(size_t j = 0 ; j< ids.size() ; j++)
-                {
-                    for(size_t k = 0 ; k< ids.size() ; k++)
-                    {
-                        nonlinmap.insert(std::make_pair(ids[j]*2, ids[k]*2)) ;
-                        nonlinmap.insert(std::make_pair(ids[j]*2+1, ids[k]*2)) ;
-                        nonlinmap.insert(std::make_pair(ids[j]*2, ids[k]*2+1)) ;
-                        nonlinmap.insert(std::make_pair(ids[j]*2+1, ids[k]*2+1)) ;
-                    }
-                }
-            }
-        }
-    }
-
-    std::valarray<unsigned int> nonlin_column_index((unsigned int)0, nonlinmap.size()) ;
-    std::valarray<unsigned int> nonlin_row_index((unsigned int)0, nonlinmap.size()) ;
-    size_t current = 0 ;
-    for(auto i = nonlinmap.begin() ; i != nonlinmap.end() ; ++i)
-    {
-        nonlin_row_index[current] = i->first ;
-        nonlin_column_index[current] = i->second ;
-        current++ ;
-    }
-
-
-    delete nonLinearPartialMatrix ;
-    nonLinearPartialMatrix = new CoordinateIndexedIncompleteSparseMatrix(nonlin_row_index, nonlin_column_index) ;
-    if(nonLinearExternalForces.size() != externalForces.size())
-    {
-        nonLinearExternalForces.resize(externalForces.size()) ;
-        nonLinearExternalForces = 0 ;
-    }
-
-    nonLinearExternalForces = 0 ;
-
-    for(size_t i = 0 ; i < element2d.size() ; i++)
-    {
-        if(element2d[i]->getNonLinearBehaviour() != nullptr && element2d[i]->getNonLinearBehaviour()->hasInducedMatrix())
-        {
-            if(element2d[i]->getNonLinearBehaviour()->isActive())
-            {
-                std::vector<size_t> ids = element2d[i]->getDofIds() ;
-                std::valarray<std::valarray<Matrix > > mother  = element2d[i]->getNonLinearElementaryMatrix();
-                for(size_t j = 0 ; j < ids.size() ; j++)
-                {
-                    getNonLinearMatrix()[ids[j]*2][ids[j]*2] += mother[j][j][0][0] ;
-                    getNonLinearMatrix()[ids[j]*2][ids[j]*2+1] += mother[j][j][0][1] ;
-                    getNonLinearMatrix()[ids[j]*2+1][ids[j]*2] += mother[j][j][1][0] ;
-                    getNonLinearMatrix()[ids[j]*2+1][ids[j]*2+1] += mother[j][j][1][1] ;
-                    for(size_t k = j+1 ; k < ids.size() ; k++)
-                    {
-                        getNonLinearMatrix()[ids[j]*2][ids[k]*2] += mother[j][k][0][0] ;
-                        getNonLinearMatrix()[ids[j]*2][ids[k]*2+1] += mother[j][k][0][1] ;
-                        getNonLinearMatrix()[ids[j]*2+1][ids[k]*2] += mother[j][k][1][0] ;
-                        getNonLinearMatrix()[ids[j]*2+1][ids[k]*2+1] += mother[j][k][1][1] ;
-
-                        getNonLinearMatrix()[ids[k]*2][ids[j]*2] += mother[k][j][0][0] ;
-                        getNonLinearMatrix()[ids[k]*2][ids[j]*2+1] += mother[k][j][0][1] ;
-                        getNonLinearMatrix()[ids[k]*2+1][ids[j]*2] += mother[k][j][1][0] ;
-                        getNonLinearMatrix()[ids[k]*2+1][ids[j]*2+1] += mother[k][j][1][1] ;
-                    }
-                }
-            }
-        }
-
-        if(element2d[i]->getNonLinearBehaviour() != nullptr )
-        {
-            if(element2d[i]->getNonLinearBehaviour()->isActive())
-            {
-                std::vector<size_t> ids = element2d[i]->getDofIds() ;
-
-                Vector forces = element2d[i]->getNonLinearForces() ;
-                nl = true ;
-                for(size_t j = 0 ; j < ids.size() ; j++)
-                {
-// 					std::cerr << forces[j*2] << ", " << forces[j*2+1] << std::endl ;
-
-                    bool hasBC = false;
-                    for(size_t k = 0 ; k < multipliers.size() ; k++)
-                    {
-                        if( (size_t)multipliers[k].getId() == ids[j]*2 ||
-                                (size_t)multipliers[k].getId() == ids[j]*2 + 1)
-                        {
-                            hasBC = true ;
-                            break ;
-                        }
-                    }
-
-                    if(!hasBC)
-                    {
-                        nonLinearExternalForces[ids[j]*2] += forces[j*2] ;
-                        nonLinearExternalForces[ids[j]*2+1] += forces[j*2+1] ;
-                    }
-                }
-            }
-        }
-    }
-
-    return nl ;
-// 	std::cerr << " ...done" << std::endl ;
-
-}
-
-void Assembly::setBoundaryConditions()
+void Assembly::setBoundaryConditions(bool clearElements)
 {
     std::valarray<int> multiplierIds(multipliers.size()) ;
     for(size_t i = 0 ; i < multiplierIds.size() ; i++)
@@ -504,11 +369,12 @@ void Assembly::setBoundaryConditions()
             prevDisplacements[id] = multipliers[p].value ;
     }
 
-    multipliers.clear() ;
-
-
-    element2d.clear() ;
-    element3d.clear() ;
+    if(clearElements)
+    {
+        multipliers.clear() ;
+        element2d.clear() ;
+        element3d.clear() ;
+    }
 
 
 // 	std::cerr << " ...done." << std::endl ;
@@ -556,7 +422,7 @@ void Assembly::checkZeroLines()
     
 }
 
-bool Assembly::make_final()
+bool Assembly::make_final(bool clearElements )
 {
     bool symmetric = true ;
     std::sort(multipliers.begin(), multipliers.end()) ;
@@ -942,13 +808,12 @@ bool Assembly::make_final()
 
         externalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
         naturalBoundaryConditionForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
-        nonLinearExternalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
         if(addToExternalForces.size() != externalForces.size())
         {
             addToExternalForces.resize(externalForces.size(), 0.) ; 
         }
         checkZeroLines() ;
-        setBoundaryConditions() ;
+        setBoundaryConditions(clearElements) ;
 
     }
     else
@@ -1345,13 +1210,12 @@ bool Assembly::make_final()
         //important to do in this order
         externalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
         naturalBoundaryConditionForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
-        nonLinearExternalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
         if(addToExternalForces.size() != externalForces.size())
         {
             addToExternalForces.resize(externalForces.size(), 0.) ; 
         }
         checkZeroLines() ;
-        setBoundaryConditions() ;
+        setBoundaryConditions(clearElements) ;
 
     }
 // 	std::cerr << smallestEigenValue(getMatrix()) << std::endl;
@@ -1372,11 +1236,6 @@ CoordinateIndexedSparseMatrix & Assembly::getMatrix()
 const CoordinateIndexedSparseMatrix & Assembly::getMatrix() const
 {
     return *coordinateIndexedMatrix ;
-}
-
-CoordinateIndexedIncompleteSparseMatrix & Assembly::getNonLinearMatrix()
-{
-    return *nonLinearPartialMatrix ;
 }
 
 void Assembly::print()
@@ -1523,8 +1382,6 @@ void Assembly::clear()
     multipliers.clear();
     delete coordinateIndexedMatrix ;
     coordinateIndexedMatrix = nullptr ;
-    delete nonLinearPartialMatrix ;
-    nonLinearPartialMatrix = nullptr ;
     delete boundaryMatrix ;
     boundaryMatrix = nullptr ;
     delete mask ;
@@ -1922,8 +1779,170 @@ bool Assembly::solve(Vector x0, size_t maxit, const bool verbose)
     return ret ;
 }
 
+void updateMatrix(Assembly * A,  Vector displacements, Vector & internalForces)
+{
+    VirtualMachine vm ;
+    internalForces = 0 ;
+    for(size_t i = 0 ; i < A->element2d.size() ; i++)
+    {           
+        A->element2d[i]->getState().step(0., &displacements) ;
+        A->element2d[i]->getState().transform(&vm, &displacements) ;
+        for(size_t j = 0 ; j <  A->element2d[i]->getBoundingPoints().size() ; j++)
+        {
+            internalForces[A->element2d[i]->getBoundingPoint(j).getId()*2  ] += A->element2d[i]->getState().getInternalForces()[j*2  ] ;
+            internalForces[A->element2d[i]->getBoundingPoint(j).getId()*2+1] += A->element2d[i]->getState().getInternalForces()[j*2+1] ;
+        }
+    }
+    Vector c(0., A->getMatrix().array.size()) ;
+    A->getMatrix().array = 0 ;
+    for(size_t i = 0 ; i < A->element2d.size() ; i++)
+    {
+        if(!A->element2d[i]->getBehaviour())
+            continue ;
+
+        std::valarray< std::valarray< Amie::Matrix > > ltgmatrix = A->element2d[i]->getTangentElementaryMatrix(&vm) ;
+        std::vector<size_t> ids = A->element2d[i]->getDofIds() ;
+        for(size_t j = 0 ; j < ids.size() ; j++)
+        {
+            ids[j] *= A->ndof ;
+        }
+        
+        for(size_t j = 0 ; j < ids.size() ; j++)
+        {
+            double * array_iterator = A->getMatrix()[ids[j]].getPointer(ids[j]) ;
+            double * c_iterator = &c[0]+(array_iterator-&A->getMatrix().array[0]) ;
+            //data is arranged column-major, with 2-aligned columns
+            
+            for(size_t m = 0 ; m < A->ndof ; m++)
+            {
+                for(size_t n = 0 ; n < A->ndof ; n++)
+                {
+                    double y = A->scales[i] * ltgmatrix[j][j][n][m] - *c_iterator ;
+                    double t = *array_iterator + y ;
+                    *c_iterator = (t-*array_iterator)-y ;
+                    *array_iterator = t ;
+                    array_iterator++ ;
+                    c_iterator++ ;
+                }
+            }
+
+            for(size_t k = j+1 ; k < ids.size() ; k++)
+            {
+                double * array_iterator0 = A->getMatrix()[ids[j]].getPointer(ids[k]) ;
+                double * array_iterator1 = A->getMatrix()[ids[k]].getPointer(ids[j]) ;
+                double * c_iterator0 = &c[0]+(array_iterator0-&A->getMatrix().array[0]) ;
+                double * c_iterator1 = &c[0]+(array_iterator1-&A->getMatrix().array[0]) ;
+                for(size_t m = 0 ; m < A->ndof ; m++)
+                {
+                    for(size_t n = 0 ; n < A->ndof ; n++)
+                    {
+                        double y0 = A->scales[i] * ltgmatrix[j][k][n][m] - *c_iterator0 ;
+                        double y1 = A->scales[i] * ltgmatrix[k][j][n][m] - *c_iterator1 ;
+                        double t0 = *array_iterator0 + y0 ;
+                        double t1 = *array_iterator1 + y1 ;
+                        *c_iterator0 = (t0-*array_iterator0)-y0 ;
+                        *c_iterator1 = (t1-*array_iterator1)-y1 ;
+                        *array_iterator0 = t0 ;
+                        *array_iterator1 = t1 ;
+                        array_iterator0++ ; 
+                        array_iterator1++ ;
+                        c_iterator0++ ;
+                        c_iterator1++ ;
+                    }
+                }   
+            }
+        }
+    }
+       
+}
+
+bool Assembly::tgsolve(int maxit, bool verbose)
+{
+    bool ret = true ;
+
+    VirtualMachine vm ;
+    
+    //first, initialise
+    make_final(false) ;
+    Vector deltaForce = externalForces-naturalBoundaryConditionForces ;
+    ConjugateGradient cg(this) ;
+    cg.nssor = nssor ;
+    if(rowstart > 0 || colstart > 0)
+    {
+        cg.rowstart = rowstart;
+        cg.colstart = colstart;
+    }
+
+    ret = cg.solve(displacements, nullptr, epsilon, -1, verbose) ;
+
+    if(cg.x.size() != displacements.size())
+        displacements.resize(cg.x.size()) ;
+    displacements = cg.x ; 
+
+    Vector internalForces = (Vector)(getMatrix()*displacements) ;
+    CoordinateIndexedSparseMatrix pmatrix = getMatrix() ;
+    Vector internalForcesInit = internalForces ;
+    Vector deltaDisplacements = cg.x ;
+
+    if(!ret)
+        return false ;
+    
+    Vector totalDisplacement = displacements ;
+    
+    
+    updateMatrix(this, totalDisplacement, internalForces) ;
+    addToExternalForces = -(Vector)(getMatrix()*displacements);
+    externalForces = 0 ;
+    setBoundaryConditions(false) ;
+    ret = cg.solve(displacements, nullptr, epsilon, -1, verbose) ;
+    displacements = cg.x ;
+    totalDisplacement += displacements ;
+//     
+    for(size_t i = 0 ;  i < 3 ; i++)
+    {
+        
+        updateMatrix(this, totalDisplacement, internalForces) ;
+        addToExternalForces = -(Vector)(getMatrix()*displacements) ;
+        externalForces = 0 ; 
+        setBoundaryConditions(false) ;
+        ret = cg.solve(displacements, nullptr, epsilon, -1, verbose) ;
+        displacements = cg.x ;
+        totalDisplacement += displacements ;
+    }
+//         
+//     internalForces = getMatrix()*displacements ;
+//     updateMatrix(this, displacements) ;
+// 
+//     externalForces = 0 ;
+//     addToExternalForces = (Vector)(getMatrix()*displacements) - internalForces -deltaForce;
+//     setBoundaryConditions(false) ;
+//     ret = cg.solve(displacements, nullptr, epsilon, -1, verbose) ;
+//     displacements = cg.x ;
+//     totalDisplacement += displacements ;
+
+    Vector xy(displacements.size()) ;
+    for(size_t i = 0 ; i < element2d.size() ; i++)
+    {     
+        xy[element2d[i]->getBoundingPoint(0).getId()*2] = element2d[i]->getBoundingPoint(0).getX() ;
+        xy[element2d[i]->getBoundingPoint(0).getId()*2+1] = element2d[i]->getBoundingPoint(0).getY() ;
+        xy[element2d[i]->getBoundingPoint(1).getId()*2] = element2d[i]->getBoundingPoint(1).getX() ;
+        xy[element2d[i]->getBoundingPoint(1).getId()*2+1] = element2d[i]->getBoundingPoint(1).getY() ;
+        xy[element2d[i]->getBoundingPoint(2).getId()*2] = element2d[i]->getBoundingPoint(2).getX() ;
+        xy[element2d[i]->getBoundingPoint(2).getId()*2+1] = element2d[i]->getBoundingPoint(2).getY() ;
+    }
+
+     for(size_t i = 0 ; i < xy.size()/2 ; i++)
+     {
+         std::cout << xy[i*2] << "  " << xy[i*2+1] << "  " << totalDisplacement[i*2] << "  " << totalDisplacement[i*2+1] << "  "<< internalForces[i*2] << "  "<< internalForces[i*2+1]  << std::endl ;
+     }
+
+    displacements = totalDisplacement ;
+    return true ;
+}
+
 bool Assembly::cgsolve(int maxit, bool verbose)
 {
+    
     bool ret = true ;
 
     timeval time0, time1 ;
@@ -1932,7 +1951,7 @@ bool Assembly::cgsolve(int maxit, bool verbose)
     if( make_final() )
     {
 
-        ConjugateGradientWithSecant cg(this) ;
+        ConjugateGradient cg(this) ;
         cg.nssor = nssor ;
         if(rowstart > 0 || colstart > 0)
         {
@@ -2312,12 +2331,6 @@ void ParallelAssembly::setBoundaryConditions()
         assembly[i].setBoundaryConditions() ;
 }
 
-bool ParallelAssembly::nonLinearStep()
-{
-    for( size_t i = 0 ; i < domains.size() ; i++ )
-        assembly[i].nonLinearStep() ;
-    return false ;
-}
 
 bool ParallelAssembly::solve(Vector x, size_t maxit, const bool verbose)
 {
@@ -2373,10 +2386,6 @@ const CoordinateIndexedSparseMatrix & ParallelAssembly::getMatrix(int i) const
     return assembly[i].getMatrix() ;
 }
 
-CoordinateIndexedIncompleteSparseMatrix & ParallelAssembly::getNonLinearMatrix(int i)
-{
-    return assembly[i].getNonLinearMatrix() ;
-}
 
 Vector & ParallelAssembly::getForces(int i)
 {
@@ -2388,10 +2397,6 @@ Vector & ParallelAssembly::getNaturalBoundaryConditionForces(int i)
     return assembly[i].getNaturalBoundaryConditionForces() ;
 }
 
-Vector & ParallelAssembly::getNonLinearForces(int i)
-{
-    return assembly[i].getNonLinearForces() ;
-}
 
 Vector & ParallelAssembly::getDisplacements(int i) 
 {

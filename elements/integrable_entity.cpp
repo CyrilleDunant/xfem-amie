@@ -1550,12 +1550,17 @@ const Matrix & ElementState::getInitialStress() const
 }
 
 
-Matrix & ElementState::transform(VirtualMachine * vm)
+const Vector & ElementState::getInternalForces() const
+{
+    return internalForces ;
+}
+
+Matrix & ElementState::transform(VirtualMachine * vm, std::valarray<double> * disps)
 {   
     int dims = parent->spaceDimensions() ;
     size_t npoints = parent->getBoundingPoints().size() ;
     
-    if(!transformed)
+/*    if(!transformed)
     {
         globalTransform.resize(dims*npoints, dims*npoints) ;
         globalTransform = identity(dims*npoints) ;
@@ -1563,7 +1568,7 @@ Matrix & ElementState::transform(VirtualMachine * vm)
         transformed = true ;
         return globalTransform ;
         
-    }        
+    }    */    
 
 
     bool cleanup = false ;
@@ -1593,13 +1598,21 @@ Matrix & ElementState::transform(VirtualMachine * vm)
             double f_xi  = vm ->deval ( parent->getShapeFunction( id ),  XI, centre ) ;
             double f_eta = vm ->deval ( parent->getShapeFunction( id ), ETA, centre ) ;
             
+            
             d[0] =  (*JinvCache)[1][0]*f_xi+(*JinvCache)[1][1]*f_eta ;
             d[1] = -(*JinvCache)[0][0]*f_xi-(*JinvCache)[0][1]*f_eta ;
             
             c[0] = -d[1] ;
             c[1] =  d[0] ;
             
-            Vector xy = {displacements[id*2+0] + parent->getBoundingPoint(id).getX() - gcentre.getX(), displacements[id*2+1] + parent->getBoundingPoint(id).getY() - gcentre.getY()} ;
+            Vector xy(2) ;
+            
+            if(!disps)
+                xy = {displacements[id*2+0] + parent->getBoundingPoint(id).getX() - parent->getBoundingPoint(0).getX()-displacements[0], 
+                      displacements[id*2+1] + parent->getBoundingPoint(id).getY() - parent->getBoundingPoint(0).getY()-displacements[1]} ;
+            else
+                xy = {(*disps)[parent->getBoundingPoint(id).getId()*2+0] + parent->getBoundingPoint(id).getX() - parent->getBoundingPoint(0).getX()-displacements[0], 
+                      (*disps)[parent->getBoundingPoint(id).getId()*2+1] + parent->getBoundingPoint(id).getY() - parent->getBoundingPoint(0).getY()-displacements[1]} ;
 
             as += c[0]*xy[0] +c[1]*xy[1] ;
             bs += d[0]*xy[0] +d[1]*xy[1] ;          
@@ -1613,75 +1626,83 @@ Matrix & ElementState::transform(VirtualMachine * vm)
         }   
         
         globalTransformAngle = atan2(-bs, as) ;
+
+//         std::cout << globalTransformAngle << std::endl ;
         double denom = (as*as+bs*bs) ;  
 
         rot[0][0] =  cos(globalTransformAngle) ; rot[0][1] = sin(globalTransformAngle) ; 
         rot[1][0] = -sin(globalTransformAngle) ; rot[1][1] = cos(globalTransformAngle) ;
+        
         Vector vT = (cL*bs-dL*as)/denom ;
                                                  
-        Matrix T(vT ,xL) ;
+        Matrix T(xL ,vT) ;
         globalTransform = T ;
-        Matrix E(dims*npoints, dims*npoints) ; 
         
         for(size_t id = 0 ; id < npoints ; id++)
         {
-            E[id*dims][id*dims]    =  rot[1][0] ; E[id*dims][id*dims+1]    = rot[0][0] ;
-            E[id*dims+1][id*dims]  = -rot[0][0] ; E[id*dims+1][id*dims+1]  = rot[1][0] ;
             globalTransform[id*dims][id*dims]    += rot[0][0] ; globalTransform[id*dims][id*dims+1]    += rot[0][1] ; 
             globalTransform[id*dims+1][id*dims]  += rot[1][0] ; globalTransform[id*dims+1][id*dims+1]  += rot[1][1] ; 
         }
+//         globalTransform.print() ;
 
-//         if(globalStressMatrix.numRows() != dims*npoints)
+
+            
+        Matrix elem(parent->getShapeFunctions().size()*2., parent->getShapeFunctions().size()*2.);
+        for(size_t i = 0 ; i < parent->getShapeFunctions().size() ; i++)
         {
-            
-            globalStressMatrix.resize(dims*npoints, dims*npoints) ; 
-            
-            Vector ql(dims*npoints) ;
-        
-            std::vector<Variable> v = {XI, ETA} ;
-            Vector ret(3) ;
-            std::valarray<Matrix> jcache(*JinvCache, parent->getGaussPoints().gaussPoints.size()) ;
-            for(size_t id = 0 ; id < npoints ; id++)
+            elem[i*2][i*2]   = parent->getElementaryMatrix()[i][i][0][0] ; elem[i*2][i*2+1]   = parent->getElementaryMatrix()[i][i][0][1] ;
+            elem[i*2+1][i*2] = parent->getElementaryMatrix()[i][i][1][0] ; elem[i*2+1][i*2+1] = parent->getElementaryMatrix()[i][i][1][1] ;
+
+            for(size_t j = 0 ; j < i ; j++)
             {
-                Point lpoint = parent->inLocalCoordinates(parent->getBoundingPoint(id)) ;
-                getField ( REAL_STRESS_FIELD, lpoint, ret, true, vm ) ;
-                Vector f = vm->ieval(Gradient(parent->getShapeFunction( id )) * ret, parent->getGaussPoints(), jcache,v) ;
-                ql[id*2] = f[0] ;
-                ql[id*2+1] = f[1] ;
+                elem[i*2][j*2]   = parent->getElementaryMatrix()[i][j][0][0] ; elem[i*2][j*2+1]   = parent->getElementaryMatrix()[i][j][0][1] ;
+                elem[i*2+1][j*2] = parent->getElementaryMatrix()[i][j][1][0] ; elem[i*2+1][j*2+1] = parent->getElementaryMatrix()[i][j][1][1] ;
+                elem[j*2][i*2]   = parent->getElementaryMatrix()[j][i][0][0] ; elem[j*2][i*2+1]   = parent->getElementaryMatrix()[j][i][0][1] ;
+                elem[j*2+1][i*2] = parent->getElementaryMatrix()[j][i][1][0] ; elem[j*2+1][i*2+1] = parent->getElementaryMatrix()[j][i][1][1] ;
+                
             }
-                                    
-            Matrix gb = ((Matrix(dL,dL) - Matrix(cL, cL))*as*bs*2. + (Matrix(cL,dL) + Matrix(dL, cL))*(as*as-bs*bs))/denom ;
-            for(size_t id = 0 ; id < npoints ; id++)
-            {
-                Matrix ga(vT,vT) ;
-                Vector ec(npoints*dims) ;
-                
-                
-                for(size_t jd = 0 ; jd < npoints ; jd++)
-                {
-                    ec[jd*2]   = E[jd*2  ][id*2] ;
-                    ec[jd*2+1] = E[jd*2+1][id*2] ;
-                }
-                ga *= xL[id*2+1] ;
-                ga += Matrix(ec, vT) + Matrix(vT, ec) ;
-
-                globalStressMatrix += (ga+gb*xL[id*2+1])*ql[id*2] ;
-                
-                for(size_t jd = 0 ; jd < npoints ; jd++)
-                {
-                    ec[jd*2]   = E[jd*2  ][id*2+1] ;
-                    ec[jd*2+1] = E[jd*2+1][id*2+1] ;
-                }
-                ga = Matrix(vT,vT);
-                ga *= xL[id*2] ;
-                ga += Matrix(ec, vT) + Matrix(vT, ec) ;
-
-                globalStressMatrix += (ga+gb*xL[id*2])*ql[id*2+1] ;
-
-            }
-//             globalStressMatrix.print() ;
-//             exit(0) ;
         }
+
+        internalForces.resize(dims*npoints, 0.) ;
+        internalForces = elem*displacements  ; 
+        
+//         if(!transformed)
+//         {
+        if(globalStressMatrix.numRows() != dims*npoints)
+            globalStressMatrix.resize(dims*npoints, dims*npoints) ; 
+        globalStressMatrix.array() = 0 ;
+        Matrix gb = ((Matrix(dL,dL) - Matrix(cL, cL))*as*bs*2. + (Matrix(cL,dL) + Matrix(dL, cL))*(as*as-bs*bs))/(denom*denom) ;
+        Vector e1 = {cos(globalTransformAngle), sin(globalTransformAngle)} ;
+        Vector e2 = {-sin(globalTransformAngle), cos(globalTransformAngle)} ;
+        Matrix vvt(vT,vT) ;
+        for(size_t id = 0 ; id < npoints ; id++)
+        {
+            Vector ec(0., npoints*dims) ;
+            
+            for(size_t jd = 0 ; jd < npoints ; jd++)
+            {
+                ec[jd*2]   = e2[0] ;
+                ec[jd*2+1] = e2[1] ;
+            }
+            Matrix g = vvt*xL[id*2+1] +gb*xL[id*2]+ Matrix(ec, vT) + Matrix(vT, ec) ;
+
+            globalStressMatrix += g*internalForces[id*2] ;
+            
+            ec = 0 ;
+            for(size_t jd = 0 ; jd < npoints ; jd++)
+            {
+                ec[jd*2]   = -e1[0] ;
+                ec[jd*2+1] = -e1[1] ;
+            }
+            g = vvt*-xL[id*2] +gb*xL[id*2+1] + Matrix(ec, vT) + Matrix(vT, ec) ;
+
+            globalStressMatrix += g*internalForces[id*2+1] ;
+
+        }
+        
+//         globalStressMatrix.print() ;
+//         transformed=true ;
+//         }
 
         
         if ( cleanup )
@@ -3247,6 +3268,7 @@ void ElementState::initialize ( Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * m
         ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
     }
     displacements.resize ( parent->getBoundingPoints().size() *ndofs, 0. ) ;
+    linearDisplacements.resize ( parent->getBoundingPoints().size() *ndofs, 0. ) ;
 
     if ( std::abs ( timePos - previousTimePos ) < POINT_TOLERANCE && std::abs ( timePos ) < POINT_TOLERANCE )
     {
@@ -3269,7 +3291,7 @@ void ElementState::initialize ( Mesh<DelaunayTriangle,DelaunayTreeItem> * msh)
         ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
     }
     displacements.resize ( parent->getBoundingPoints().size() *ndofs, 0. ) ;
-    displacements = 0 ;
+    linearDisplacements.resize ( parent->getBoundingPoints().size() *ndofs, 0. ) ;
 
     if ( std::abs ( timePos - previousTimePos ) < POINT_TOLERANCE && std::abs ( timePos ) < POINT_TOLERANCE )
     {
@@ -3307,17 +3329,18 @@ void ElementState::step ( double dt, const Vector *d )
         if ( displacements.size() != parent->getBoundingPoints().size() *ndofs)
         {
             displacements.resize ( parent->getBoundingPoints().size() *ndofs) ;
+            linearDisplacements.resize ( parent->getBoundingPoints().size() *ndofs) ;
         }
         
         if ( enrichedDisplacements.size() != parent->getEnrichmentFunctions().size() *ndofs )
         {
             enrichedDisplacements.resize ( parent->getEnrichmentFunctions().size() *ndofs ) ;
         }
-
+        
         for ( size_t i = 0 ; i < parent->getShapeFunctions().size() ; i++ )
         {
             for ( size_t j = 0 ; j < ndofs ; j++ )
-            {
+            { 
                 if ( ids[i] * ndofs + j < d->size() )
                 {
                     displacements[i * ndofs + j] = ( *d ) [ids[i] * ndofs + j] ;

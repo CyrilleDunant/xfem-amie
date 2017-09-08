@@ -226,7 +226,7 @@ struct MultiplierHasId
 */
 class Assembly
 {
-protected:
+public:
 
     std::vector<ElementarySurface *> element2d ;
     std::vector<ElementaryVolume *> element3d ;
@@ -246,14 +246,12 @@ protected:
     Vector prevDisplacements ;
     Vector realPrevDisplacements ;
     Vector externalForces ;
-    Vector nonLinearExternalForces ;
     Vector addToExternalForces ;
     CoordinateIndexedSparseMatrix * coordinateIndexedMatrix ;
     CoordinateIndexedSparseMaskMatrix * mask ;
-    CoordinateIndexedIncompleteSparseMatrix * nonLinearPartialMatrix ;
     std::map<std::pair<size_t, size_t>, double > * boundaryMatrix ;
 
-    bool make_final() ;
+    bool make_final(bool clearElements = true) ;
 
     size_t multiplier_offset ;
     size_t nssor = 32 ;
@@ -303,10 +301,8 @@ public:
     void printDiag() const ;
 
     /** \brief apply Boundary conditions*/
-    void setBoundaryConditions() ;
+    void setBoundaryConditions(bool clearElements = true) ;
 
-    /** \brief perform a sub-step in a non-linear problem*/
-    bool nonLinearStep() ;
 // 	Vector solve(size_t maxit = 1000) ;
 
     /** \brief Solve linear system*/
@@ -314,6 +310,9 @@ public:
 
     /** \brief Solve linear system using Preconditionned Conjugate Gradient (linear/non linear/biconjugate is automatically selected)*/
     bool cgsolve(int maxit = -1, bool verbose = true) ;
+    
+    /** \brief Solve non-linear system using Preconditionned Conjugate Gradient and a fixed point.*/
+    bool tgsolve(int maxit = -1, bool verbose = true) ;
 
     void setEpsilon(double e) {
         epsilon = e ;
@@ -327,7 +326,7 @@ public:
     bool mgprepare() ;
     bool mgsolve(LinearSolver * mg, Vector x0 = Vector(0), Preconditionner * pg = nullptr, int maxit = -1) ;
 
-    /** \brief Solve linear system using Conjugate Gradient (linear/non linear/biconjugate is automatically selected)*/
+    /** \brief Solve linear system using Conjugate Gradient without precontditionning (linear/non linear/biconjugate is automatically selected)*/
     bool cgnpsolve(Vector b, size_t maxit) ;
 
     /** \brief return assembled matrix*/
@@ -336,18 +335,12 @@ public:
     /** \brief return assembled matrix*/
     const CoordinateIndexedSparseMatrix & getMatrix() const;
 
-    /** \brief return non-linear part of the assembled matrix*/
-    CoordinateIndexedIncompleteSparseMatrix & getNonLinearMatrix() ;
-
     /** \brief return right-and-side vector*/
     Vector & getForces() ;
 
     /** \brief return virtual forces which come from imposed displacements BCs*/
     Vector & getNaturalBoundaryConditionForces() ;
-
-    /** \brief return right-and-side vector*/
-    Vector & getNonLinearForces() ;
-
+    
     /** \brief return result of the system*/
     Vector & getDisplacements() {
         return displacements ;
@@ -496,8 +489,6 @@ public:
     /** \brief apply Boundary conditions*/
     void setBoundaryConditions() ;
 
-    /** \brief perform a sub-step in a non-linear problem*/
-    bool nonLinearStep() ;
 //  Vector solve(size_t maxit = 1000) ;
 
     /** \brief Solve linear system*/
@@ -523,17 +514,12 @@ public:
     /** \brief return assembled matrix*/
     const CoordinateIndexedSparseMatrix & getMatrix(int i) const;
 
-    /** \brief return non-linear part of the assembled matrix*/
-    CoordinateIndexedIncompleteSparseMatrix & getNonLinearMatrix(int i) ;
-
     /** \brief return right-and-side vector*/
     Vector & getForces(int i) ;
 
     /** \brief return virtual forces which come from imposed displacements BCs*/
     Vector & getNaturalBoundaryConditionForces(int i) ;
 
-    /** \brief return right-and-side vector*/
-    Vector & getNonLinearForces(int i) ;
 
     /** \brief return result of the system*/
     Vector & getDisplacements(int i) ;

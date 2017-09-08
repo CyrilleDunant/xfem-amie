@@ -768,35 +768,15 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
                 if(  i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
                 { 
                     VirtualMachine vm ;
-                    size_t dof = i->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+                    Vector xy = i->getState().getDisplacements() ;
 
-                    size_t id1 = i->getBoundingPoint( factor * 0 + time_offset ).getId() ;
-                    size_t id2 = i->getBoundingPoint( factor * 1 + time_offset ).getId() ;
-                    size_t id3 = i->getBoundingPoint( factor * 2 + time_offset ).getId() ;
-
-                    
-//                     ret[5][iterator] = x[id1 * dof] ;
-//                     ret[4][iterator] = x[id2 * dof] ;
-//                     ret[3][iterator] = x[id3 * dof] ;
-//                     ret[2][iterator] = x[id1 * dof + 1] ;
-//                     ret[1][iterator] = x[id2 * dof + 1] ;
-//                     ret[0][iterator++] = x[id3 * dof + 1] ;
-                    
-//                     Matrix tran =  i->getState().transform(&vm);//identity(2); ;// inverse2x2Matrix(i->getState().transform(&vm))
-                    Vector xy = { x[id1 * dof], x[id1 * dof + 1]} ;
-//                     xy = xy*tran ;
                     ret[5][iterator] = xy[0] ;
+                    ret[0][iterator] = xy[5] ;
+                    ret[1][iterator] = xy[3] ;
+                    ret[3][iterator] = xy[4] ;
                     ret[2][iterator] = xy[1] ;
-                    
-                    xy = { x[id2 * dof], x[id2 * dof + 1]} ;
-//                     xy = xy*tran ;
-                    ret[4][iterator] = xy[0] ;
-                    ret[1][iterator] = xy[1] ;
-                    
-                    xy = { x[id3 * dof], x[id3 * dof + 1]} ;
-//                     xy = xy*tran ;
-                    ret[3][iterator] = xy[0] ;
-                    ret[0][iterator++] = xy[1] ;
+                    ret[4][iterator++] = xy[2] ;
+  
                 }
             }
         }
@@ -831,6 +811,76 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
                 }
             }
             
+        }
+        else if( field == TWFT_LARGE_DEFORMATION_STRESS)
+        {
+            VirtualMachine vm ;
+            for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
+            {
+                if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+                {
+                    if(i->getState().getInitialStress().numCols() == 0)
+                    {
+                            ret[0][iterator] = 0;
+                            ret[1][iterator] = 0 ;
+                            ret[2][iterator++] = 0 ;
+                            continue ;
+                    }
+                    
+                    Matrix m = i->getState().getInitialStress() ;
+                    double d = sqrt(std::inner_product(&m.array()[0], &m.array()[m.array().size()], &m.array()[0], double(0))) ;
+                    
+                    ret[0][iterator] = d ;
+                    ret[1][iterator] = d ;
+                    ret[2][iterator++] = d ;
+                    
+                }
+                else if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+                {
+                    ret[0][iterator] = 0;
+                    ret[1][iterator] = 0 ;
+                    ret[2][iterator++] = 0 ;
+                }
+            }  
+        }
+        else if( field == TWFT_LARGE_DEFORMATION_FORCES)
+        {
+            VirtualMachine vm ;
+            for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
+            {
+                if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+                {
+                    if(i->getState().getInternalForces().size() == 0)
+                    {
+                            ret[0][iterator] = 0;
+                            ret[1][iterator] = 0 ;
+                            ret[2][iterator] = 0 ;
+                            ret[3][iterator] = 0;
+                            ret[4][iterator] = 0 ;
+                            ret[5][iterator++] = 0 ;
+                            continue ;
+                    }
+                    
+                    Vector m = i->getState().getInternalForces() ;
+                    
+                    ret[0][iterator]   = sqrt(m[0]*m[0]+m[2]*m[2]+m[4]*m[4]) ;
+                    ret[1][iterator]   = sqrt(m[0]*m[0]+m[2]*m[2]+m[4]*m[4]) ;
+                    ret[2][iterator]   = sqrt(m[0]*m[0]+m[2]*m[2]+m[4]*m[4]) ;
+                    ret[3][iterator]   = sqrt(m[1]*m[1]+m[3]*m[3]+m[5]*m[5]) ;
+                    ret[4][iterator]   = sqrt(m[1]*m[1]+m[3]*m[3]+m[5]*m[5]) ;
+                    ret[5][iterator++] = sqrt(m[1]*m[1]+m[3]*m[3]+m[5]*m[5]) ;
+                    
+                }
+                else if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+                {
+                    ret[0][iterator]   = 0;
+                    ret[1][iterator]   = 0 ;
+                    ret[2][iterator]   = 0 ;
+                    ret[3][iterator]   = 0;
+                    ret[4][iterator]   = 0 ;
+                    ret[5][iterator++] = 0 ;
+                }
+            }  
         }
         else if( field == TWFT_LARGE_DEFORMATION_ANGLE)
         {
@@ -875,8 +925,8 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
                     size_t id2 = i->getBoundingPoint( factor * 1 + time_offset ).getId() ;
                     size_t id3 = i->getBoundingPoint( factor * 2 + time_offset ).getId() ;
 
-                    ret[2][iterator] = x[id1  ] ;
-                    ret[1][iterator] = x[id2  ] ;
+                    ret[2][iterator]   = x[id1 ] ;
+                    ret[1][iterator]   = x[id2 ] ;
                     ret[0][iterator++] = x[id3 ] ;
                 }
             }
@@ -1506,6 +1556,10 @@ int numberOfFields( TWFieldType field, size_t index , std::map<size_t, FieldType
         return 3 ;
     case TWFT_LARGE_DEFORMATION_ANGLE:
         return 3 ;
+    case TWFT_LARGE_DEFORMATION_STRESS:
+        return 3 ;
+    case TWFT_LARGE_DEFORMATION_FORCES:
+        return 6 ;
     case TWFT_CRACKS:
         return 6 ;
     case TWFT_FIELD_TYPE:
@@ -1581,6 +1635,10 @@ std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, Field
         return std::string("Crack Opening") ;
     case TWFT_LARGE_DEFORMATION_ANGLE:
          return std::string("Large deformation angle") ;
+    case TWFT_LARGE_DEFORMATION_FORCES:
+         return std::string("Large deformation forces") ;     
+    case TWFT_LARGE_DEFORMATION_STRESS:
+         return std::string("Large deformation stress") ;  
     case TWFT_FIELD_TYPE:
         return nameOfField(fieldsOther[index]) ;
     case TWFT_INTERNAL_VARIABLE:

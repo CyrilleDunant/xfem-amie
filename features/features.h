@@ -176,6 +176,7 @@ protected:
     bool damageConverged ;
     bool resetcalcul  = false; 
     bool spaceTimeFixed = false ;
+    
 
     bool elastic ;
     bool projectOnBoundaries ;
@@ -346,6 +347,8 @@ public:
     const std::vector<const Geometry *> getPartition() {
         return domains ;
     } ;
+    
+    bool tgsolve = false ;
 public:
     Vector instants ;
     

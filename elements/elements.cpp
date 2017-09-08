@@ -37,7 +37,6 @@ TetrahedralElement::~TetrahedralElement()
 
 ElementarySurface::ElementarySurface()
 {
-    nonlinbehaviour = nullptr ;
     behaviour = nullptr ;
     enrichmentUpdated = true ;
     behaviourUpdated = true ;
@@ -154,16 +153,6 @@ Form * ElementarySurface::getBehaviour() const
     return this->behaviour ;
 }
 
-NonLinearForm * ElementarySurface::getNonLinearBehaviour() const
-{
-    return this->nonlinbehaviour ;
-}
-
-NonLinearForm * ElementaryVolume::getNonLinearBehaviour() const
-{
-    return this->nonlinbehaviour ;
-}
-
 void ElementarySurface::setBehaviour( Mesh<DelaunayTriangle,DelaunayTreeItem> * msh, Form * f)
 {
     bool init = false ;
@@ -185,32 +174,17 @@ void ElementarySurface::setBehaviour( Mesh<DelaunayTriangle,DelaunayTreeItem> * 
 //	delete old ;
 }
 
-void ElementarySurface::setNonLinearBehaviour(NonLinearForm * f)
-{
-    this->nonlinbehaviour = f ;
-}
-
 void ElementarySurface::step(double dt, const Vector * displacements)
 {
     getState().step(dt, displacements) ;
 }
 
 
-void ElementarySurface::nonLinearStep(double dt, const Vector *displacements)
-{
-    getState().step(dt, displacements) ;
-}
-
 void ElementaryVolume::step(double dt, const Vector *displacements)
 {
     getState().step(dt, displacements) ;
 }
 
-
-void ElementaryVolume::nonLinearStep(double dt, const Vector * displacements)
-{
-    this->getState().step(dt, displacements) ;
-}
 
 // const std::vector<std::pair<size_t,const Function &> > ElementarySurface::getDofs() const
 // {
@@ -1733,14 +1707,14 @@ std::valarray<std::valarray<Matrix> > & TriElement::getElementaryMatrix(VirtualM
     return cachedElementaryMatrix ;
 }
 
+std::valarray<std::valarray<Matrix> > TriElement::getTangentElementaryMatrix(VirtualMachine * vm )
+{
+    return cachedElementaryMatrix ;
+}
+
 std::valarray<std::valarray<Matrix> > & TriElement::getViscousElementaryMatrix(VirtualMachine * vm )
 {
     return cachedViscousElementaryMatrix ;
-}
-
-std::valarray<std::valarray<Matrix> > TriElement::getNonLinearElementaryMatrix(Vector * state)
-{
-    return std::valarray<std::valarray<Matrix> >() ;
 }
 
 Function TriElement::jacobian() const
@@ -2437,18 +2411,6 @@ Point TriElement::inLocalCoordinates(const Point &p) const
 }
 
 
-std::valarray<std::valarray<Matrix> > TriElement::getNonLinearElementaryMatrix()
-{
-    return std::valarray<std::valarray<Matrix> >() ;
-}
-
-Vector TriElement::getNonLinearForces()
-{
-
-    return Vector(0) ;
-}
-
-
 const GaussPointArray & TetrahedralElement::genGaussPoints()
 {
     if(getCachedGaussPoints())
@@ -2997,14 +2959,14 @@ std::valarray<std::valarray<Matrix> > & TetrahedralElement::getElementaryMatrix(
     return cachedElementaryMatrix ;
 }
 
+std::valarray<std::valarray<Matrix> > TetrahedralElement::getTangentElementaryMatrix(VirtualMachine * vm)
+{
+    return cachedElementaryMatrix ;
+}
+
 std::valarray<std::valarray<Matrix> > & TetrahedralElement::getViscousElementaryMatrix(VirtualMachine * vm)
 {
     return cachedViscousElementaryMatrix ;
-}
-
-std::valarray<std::valarray<Matrix> > TetrahedralElement::getNonLinearElementaryMatrix()
-{
-    return std::valarray<std::valarray<Matrix> >() ;
 }
 
 Function TriElement::getXTransformAtCentralNodalTime() const
@@ -3067,11 +3029,6 @@ Function HexahedralElement::getZTransform() const
 // 	if(shapefunc)
 // 		return ZTransform( this->getBoundingPoints(), getShapeFunctions()) ;
     return ZTransform( this->getBoundingPoints(), HexahedralElement(getOrder()).getShapeFunctions()) ;
-}
-
-Vector TetrahedralElement::getNonLinearForces()
-{
-    return Vector(0) ;
 }
 
 void TetrahedralElement::refresh(const TetrahedralElement * parent)
@@ -3566,7 +3523,6 @@ std::vector<size_t> ElementarySurface::clearEnrichment(const Geometry * g)
 ElementaryVolume::ElementaryVolume(bool f )
 {
     behaviour = nullptr ;
-    nonlinbehaviour = nullptr ;
     enrichmentUpdated = true ;
     behaviourUpdated = true ;
 }
@@ -3832,6 +3788,10 @@ const std::vector< Function> & ElementaryVolume::getEnrichmentFunctions() const
 // 	return this->enrichfunc;
 // }
 
+std::valarray<std::valarray<Matrix> > HexahedralElement::getTangentElementaryMatrix(VirtualMachine * vm)
+{
+   return cachedElementaryMatrix ; 
+}
 
 std::valarray<std::valarray<Matrix> > & HexahedralElement::getElementaryMatrix(VirtualMachine * vm)
 {
@@ -4125,16 +4085,6 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 
     }
 
-}
-
-Vector HexahedralElement::getNonLinearForces()
-{
-    return Vector(0);
-}
-
-std::valarray<std::valarray<Amie::Matrix> >  HexahedralElement::getNonLinearElementaryMatrix()
-{
-    return std::valarray<std::valarray<Amie::Matrix> >(0);
 }
 
 void ElementaryVolume::setBehaviour( Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* msh, Form* f )
