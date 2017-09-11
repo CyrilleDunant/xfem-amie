@@ -1889,25 +1889,24 @@ bool Assembly::tgsolve(int maxit, bool verbose)
     
     Vector totalDisplacement = displacements ;
     
-    
     updateMatrix(this, totalDisplacement, internalForces) ;
-    addToExternalForces = -(Vector)(getMatrix()*displacements);
+    addToExternalForces = 0 ;(Vector)(getMatrix()*totalDisplacement);
     externalForces = 0 ;
     setBoundaryConditions(false) ;
     ret = cg.solve(displacements, nullptr, epsilon, -1, verbose) ;
     displacements = cg.x ;
     totalDisplacement += displacements ;
 //     
-    for(size_t i = 0 ;  i < 3 ; i++)
-    {
-        
+    for(size_t i = 0 ;  i < 12 ; i++)
+    { 
         updateMatrix(this, totalDisplacement, internalForces) ;
-        addToExternalForces = -(Vector)(getMatrix()*displacements) ;
+        addToExternalForces = 0 ;(Vector)(getMatrix()*totalDisplacement) ;
         externalForces = 0 ; 
         setBoundaryConditions(false) ;
         ret = cg.solve(displacements, nullptr, epsilon, -1, verbose) ;
         displacements = cg.x ;
         totalDisplacement += displacements ;
+        std::cout << std::abs(internalForces).max() << std::endl ;
     }
 //         
 //     internalForces = getMatrix()*displacements ;

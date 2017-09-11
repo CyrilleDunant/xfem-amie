@@ -1608,11 +1608,11 @@ Matrix & ElementState::transform(VirtualMachine * vm, std::valarray<double> * di
             Vector xy(2) ;
             
             if(!disps)
-                xy = {displacements[id*2+0] + parent->getBoundingPoint(id).getX() - parent->getBoundingPoint(0).getX()-displacements[0], 
-                      displacements[id*2+1] + parent->getBoundingPoint(id).getY() - parent->getBoundingPoint(0).getY()-displacements[1]} ;
+                xy = {displacements[id*2+0] + parent->getBoundingPoint(id).getX() - gcentre.getX(), 
+                      displacements[id*2+1] + parent->getBoundingPoint(id).getY() - gcentre.getY()} ;
             else
-                xy = {(*disps)[parent->getBoundingPoint(id).getId()*2+0] + parent->getBoundingPoint(id).getX() - parent->getBoundingPoint(0).getX()-displacements[0], 
-                      (*disps)[parent->getBoundingPoint(id).getId()*2+1] + parent->getBoundingPoint(id).getY() - parent->getBoundingPoint(0).getY()-displacements[1]} ;
+                xy = {(*disps)[parent->getBoundingPoint(id).getId()*2+0] + parent->getBoundingPoint(id).getX() - gcentre.getX(), 
+                      (*disps)[parent->getBoundingPoint(id).getId()*2+1] + parent->getBoundingPoint(id).getY() - gcentre.getY()} ;
 
             as += c[0]*xy[0] +c[1]*xy[1] ;
             bs += d[0]*xy[0] +d[1]*xy[1] ;          
@@ -1645,11 +1645,13 @@ Matrix & ElementState::transform(VirtualMachine * vm, std::valarray<double> * di
         }
 //         globalTransform.print() ;
 
-
-            
+    
         Matrix elem(parent->getShapeFunctions().size()*2., parent->getShapeFunctions().size()*2.);
+        Vector localDisplacements(displacements.size()) ;
         for(size_t i = 0 ; i < parent->getShapeFunctions().size() ; i++)
         {
+            localDisplacements[i*2  ] = rot[0][0]*displacements[i*2] + -rot[0][1]*displacements[i*2+1] ;
+            localDisplacements[i*2+1] = -rot[1][0]*displacements[i*2] + rot[1][1]*displacements[i*2+1] ;
             elem[i*2][i*2]   = parent->getElementaryMatrix()[i][i][0][0] ; elem[i*2][i*2+1]   = parent->getElementaryMatrix()[i][i][0][1] ;
             elem[i*2+1][i*2] = parent->getElementaryMatrix()[i][i][1][0] ; elem[i*2+1][i*2+1] = parent->getElementaryMatrix()[i][i][1][1] ;
 
@@ -1664,15 +1666,22 @@ Matrix & ElementState::transform(VirtualMachine * vm, std::valarray<double> * di
         }
 
         internalForces.resize(dims*npoints, 0.) ;
-        internalForces = elem*displacements  ; 
+        internalForces = elem*localDisplacements  ; 
         
+        Vector localInternalForces(internalForces.size()) ;
+        
+         for(size_t i = 0 ; i < parent->getShapeFunctions().size() ; i++)
+         {
+            localInternalForces[i*2  ] = rot[0][0]*internalForces[i*2] + -rot[0][1]*internalForces[i*2+1] ;
+            localInternalForces[i*2+1] = -rot[1][0]*internalForces[i*2] + rot[1][1]*internalForces[i*2+1] ;
+         }
 //         if(!transformed)
 //         {
         if(globalStressMatrix.numRows() != dims*npoints)
             globalStressMatrix.resize(dims*npoints, dims*npoints) ; 
         globalStressMatrix.array() = 0 ;
         Matrix gb = ((Matrix(dL,dL) - Matrix(cL, cL))*as*bs*2. + (Matrix(cL,dL) + Matrix(dL, cL))*(as*as-bs*bs))/(denom*denom) ;
-        Vector e1 = {cos(globalTransformAngle), sin(globalTransformAngle)} ;
+        Vector e1 = { cos(globalTransformAngle), sin(globalTransformAngle)} ;
         Vector e2 = {-sin(globalTransformAngle), cos(globalTransformAngle)} ;
         Matrix vvt(vT,vT) ;
         for(size_t id = 0 ; id < npoints ; id++)
@@ -1686,7 +1695,7 @@ Matrix & ElementState::transform(VirtualMachine * vm, std::valarray<double> * di
             }
             Matrix g = vvt*xL[id*2+1] +gb*xL[id*2]+ Matrix(ec, vT) + Matrix(vT, ec) ;
 
-            globalStressMatrix += g*internalForces[id*2] ;
+            globalStressMatrix += g*localInternalForces[id*2] ;
             
             ec = 0 ;
             for(size_t jd = 0 ; jd < npoints ; jd++)
@@ -1696,7 +1705,7 @@ Matrix & ElementState::transform(VirtualMachine * vm, std::valarray<double> * di
             }
             g = vvt*-xL[id*2] +gb*xL[id*2+1] + Matrix(ec, vT) + Matrix(vT, ec) ;
 
-            globalStressMatrix += g*internalForces[id*2+1] ;
+            globalStressMatrix += g*localInternalForces[id*2+1] ;
 
         }
         
