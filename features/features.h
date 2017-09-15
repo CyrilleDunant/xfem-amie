@@ -114,9 +114,12 @@ protected:
 
     std::set<long unsigned int> changedDofs ;
     std::vector<Vector> reportValues ; 
+    std::vector<double> initialPositions ;
     double samplingRestriction ;
     double surfaceSamplingFactor ;
     double minimumMeshDensity ;
+    
+    void updateMesh() ;
 
     std::vector<std::vector<double>> cachedVolumes ;
     std::vector<Point *> extraPoints ;
@@ -348,7 +351,7 @@ public:
         return domains ;
     } ;
     
-    bool tgsolve = false ;
+    bool largeStrains = false ;
 public:
     Vector instants ;
     

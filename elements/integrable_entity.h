@@ -179,13 +179,14 @@ protected:
     Mesh< DelaunayTriangle, DelaunayTreeItem > * mesh2d ;
     Mesh< DelaunayTetrahedron, DelaunayTreeItem3D > *mesh3d ;
 
-    void updateInverseJacobianCache(const Point &p) ;
+   
     Matrix globalTransform ;
     Matrix globalStressMatrix ;
     Vector internalForces ;
     double globalTransformAngle = 0;
     bool transformed = false ;
-public:
+public: 
+    void updateInverseJacobianCache(const Point &p) ;
     Matrix * JinvCache ;
     /** \brief Construct the state of the argument*/
     ElementState ( IntegrableEntity * ) ;

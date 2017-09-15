@@ -590,11 +590,11 @@ void ElementState::updateInverseJacobianCache(const Point & p)
 {
     if(!JinvCache || parent->isMoved())
     {
-	if(!JinvCache)
-	{
-	    JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
-	}
-	parent->getInverseJacobianMatrix ( p, (*JinvCache) ) ;
+        if(!JinvCache)
+        {
+            JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
+        }
+        parent->getInverseJacobianMatrix ( p, (*JinvCache) ) ;
     }
 }
 
@@ -746,7 +746,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             }
 
 	    
-	    updateInverseJacobianCache(*p_) ;
+            updateInverseJacobianCache(*p_) ;
             
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
             ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;
@@ -1625,7 +1625,7 @@ Matrix & ElementState::transform(VirtualMachine * vm, std::valarray<double> * di
             dL[id*dims+1] =   d[1] ;
         }   
         
-        globalTransformAngle = atan2(-bs, as) ;
+        globalTransformAngle = 2.*atan2(-bs, as) ;
 
 //         std::cout << globalTransformAngle << std::endl ;
         double denom = (as*as+bs*bs) ;  
@@ -1650,8 +1650,8 @@ Matrix & ElementState::transform(VirtualMachine * vm, std::valarray<double> * di
         Vector localDisplacements(displacements.size()) ;
         for(size_t i = 0 ; i < parent->getShapeFunctions().size() ; i++)
         {
-            localDisplacements[i*2  ] = rot[0][0]*displacements[i*2] + -rot[0][1]*displacements[i*2+1] ;
-            localDisplacements[i*2+1] = -rot[1][0]*displacements[i*2] + rot[1][1]*displacements[i*2+1] ;
+            localDisplacements[i*2  ] = rot[0][0]*displacements[i*2] + rot[0][1]*displacements[i*2+1] ;
+            localDisplacements[i*2+1] = rot[1][0]*displacements[i*2] + rot[1][1]*displacements[i*2+1] ;
             elem[i*2][i*2]   = parent->getElementaryMatrix()[i][i][0][0] ; elem[i*2][i*2+1]   = parent->getElementaryMatrix()[i][i][0][1] ;
             elem[i*2+1][i*2] = parent->getElementaryMatrix()[i][i][1][0] ; elem[i*2+1][i*2+1] = parent->getElementaryMatrix()[i][i][1][1] ;
 
@@ -1672,8 +1672,8 @@ Matrix & ElementState::transform(VirtualMachine * vm, std::valarray<double> * di
         
          for(size_t i = 0 ; i < parent->getShapeFunctions().size() ; i++)
          {
-            localInternalForces[i*2  ] = rot[0][0]*internalForces[i*2] + -rot[0][1]*internalForces[i*2+1] ;
-            localInternalForces[i*2+1] = -rot[1][0]*internalForces[i*2] + rot[1][1]*internalForces[i*2+1] ;
+            localInternalForces[i*2  ] = rot[0][0]*internalForces[i*2] + rot[0][1]*internalForces[i*2+1] ;
+            localInternalForces[i*2+1] = rot[1][0]*internalForces[i*2] + rot[1][1]*internalForces[i*2+1] ;
          }
 //         if(!transformed)
 //         {

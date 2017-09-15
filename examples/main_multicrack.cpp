@@ -11,6 +11,7 @@
 
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/stiffness.h"
+#include "../physics/stiffness_with_large_deformation.h"
 
 #include "../utilities/writer/triangle_writer.h"
 
@@ -21,7 +22,7 @@ FeatureTree * featureTree ;
 
 int main(int argc, char *argv[])
 {
-	int nsteps = 1 ;
+	int nsteps = 60*8 ;
 	double nu = 0.2 ;
 	double E_paste = 30e9 ;
 
@@ -39,40 +40,43 @@ int main(int argc, char *argv[])
 // 	featureTree->addFeature(&sample, Crack1);//MY
 
 // 	sample.setBehaviour(new OrthotropicStiffness(E_paste, E_paste*.5,  E_paste*.5/(2.*1-nu*0.5),  nu, M_PI*.15)) ;
-	sample.setBehaviour(new Stiffness(100, 0.499)) ;
+	sample.setBehaviour(new StiffnessWithLargeDeformation(100, 0.4999)) ;
     
 
-    BoundingBoxDefinedBoundaryCondition *force = new BoundingBoxDefinedBoundaryCondition(SET_FORCE_ETA , RIGHT, -.0006) ;
+    BoundingBoxDefinedBoundaryCondition *force = new BoundingBoxDefinedBoundaryCondition(SET_FORCE_ETA , RIGHT, -.0000) ;
     
 //  	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , RIGHT)) ;
 	featureTree->addBoundaryCondition(force) ;
 //     featureTree->addBoundaryCondition(new GlobalBoundaryCondition(SET_VOLUMIC_STRESS_ETA , -1e6)) ;
-	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , LEFT)) ;
+	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_LEFT)) ;
 	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 //     featureTree->addFeature(nullptr,new IncompatibleModes()) ;
 
 	featureTree->setSamplingNumber(atof(argv[1])) ;
 // 	featureTree->setOrder(QUADRATIC) ;
-	featureTree->setMaxIterationsPerStep(1);
+	featureTree->setMaxIterationsPerStep(1000);
 
 	
 	MultiTriangleWriter writerm( "displacements_enrichment_head", "displacements_enrichment", nullptr ) ;
-    featureTree->tgsolve = true ;
+    featureTree->largeStrains = true ;
 
     for(int v = 0 ; v < nsteps ; v++)
     {
+
+        force->setData(force->getData()-.00002) ;
         std::cout << featureTree->residualError << std::endl ;
 // 		Crack1->print() ;
         bool go_on = featureTree->step() ;
 
-//         if(v%40 == 0 )
+        if(go_on)
         {
             writerm.reset( featureTree ) ;
             writerm.getField( TWFT_LARGE_DEFORMATION_TRANSFORM ) ;
-            writerm.getField( TWFT_LARGE_DEFORMATION_ANGLE ) ;
-            writerm.getField( TWFT_LARGE_DEFORMATION_FORCES ) ;
+            writerm.getField( PRINCIPAL_REAL_STRESS_FIELD ) ;
+            writerm.getField( PRINCIPAL_MECHANICAL_STRAIN_FIELD ) ;
             writerm.append() ;
         }
+
         
         if(!go_on)
             break ;

@@ -1966,22 +1966,30 @@ bool Assembly::cgsolve(int maxit, bool verbose)
         std::cerr << "Time to solve (s) " << delta/1e6 << std::endl ;
 
         if(cg.x.size() != displacements.size())
-            displacements.resize(cg.x.size()) ;
-        displacements = cg.x ;
+            displacements.resize(cg.x.size(), 0.) ;
+        
+//         if(!incremental)
+//         {
+            displacements = cg.x ;
 
-        for(size_t i = 0 ; i < multipliersBuffer.size() ; i++)
-        {
-            if( multipliersBuffer[i].type == SET_PROPORTIONAL_DISPLACEMENT)
+            for(size_t i = 0 ; i < multipliersBuffer.size() ; i++)
             {
-                int id = multipliersBuffer[i].getId() ;
-                double offset = multipliersBuffer[i].getValue() ;
-                std::valarray<unsigned int> propid = multipliersBuffer[i].getDofIds() ;
-                Vector coefs = multipliersBuffer[i].coefs ;
-                displacements[id] = offset ;
-                for(size_t j = 0 ; j < propid.size() ; j++)
-                    displacements[id] += coefs[j]*displacements[ propid[j] ] ;
+                if( multipliersBuffer[i].type == SET_PROPORTIONAL_DISPLACEMENT)
+                {
+                    int id = multipliersBuffer[i].getId() ;
+                    double offset = multipliersBuffer[i].getValue() ;
+                    std::valarray<unsigned int> propid = multipliersBuffer[i].getDofIds() ;
+                    Vector coefs = multipliersBuffer[i].coefs ;
+                    displacements[id] = offset ;
+                    for(size_t j = 0 ; j < propid.size() ; j++)
+                        displacements[id] += coefs[j]*displacements[ propid[j] ] ;
+                }
             }
-        }
+//         }
+//         else
+//         {
+//             displacements += cg.x ;
+//         }
 
 
         if(rowstart > 0 || colstart > 0)

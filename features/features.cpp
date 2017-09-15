@@ -171,6 +171,8 @@ FeatureTree::FeatureTree ( Feature *first, double fraction, int layer, size_t gr
     projectOnBoundaries = true ;
 
     K = new Assembly() ;
+    if(largeStrains)
+        K->incremental = true ;
 
     if ( is2D() )
     {
@@ -239,6 +241,8 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     projectOnBoundaries = false ;
 
     K = new Assembly() ;
+    if(largeStrains)
+        K->incremental = true ;
     K->setSpaceDimension ( SPACE_THREE_DIMENSIONAL ) ;
 
 
@@ -4391,6 +4395,7 @@ void FeatureTree::solve()
     VirtualMachine vm ;
     if ( dtree )
     {
+
         std::cerr << "updating elementary matrices and induced BCs... " << std::flush ;
         for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
         {
@@ -4406,6 +4411,8 @@ void FeatureTree::solve()
     }
     else
     {
+
+        
         std::cerr << "updating elementary matrices and induced BCs... " << std::flush ;
         for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
         {
@@ -4450,7 +4457,7 @@ void FeatureTree::solve()
     if(epsilonA > 0)
         K->setEpsilon(epsilonA);   
     K->setSSORIterations( nssor ) ;  
-    solverConvergence = tgsolve? K->tgsolve ( ) :  K->cgsolve() ;
+    solverConvergence = /*tgsolve? K->tgsolve ( ) :*/  K->cgsolve() ;
     
     Vector r = (K->getMatrix() * K->getDisplacements() - K->getForces()) ;
     
@@ -4695,6 +4702,7 @@ bool FeatureTree::stepElements()
     {
         if ( is2D() )
         {
+            
             if(cachedVolumes.empty())
             {
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
@@ -4760,11 +4768,9 @@ bool FeatureTree::stepElements()
             }
 
 
-
             int fracturedCount = 0 ;
             int ccount = 0 ;
-
-
+            
             if ( !elastic )
             {
                 double maxScoreInit = -1;
@@ -4809,32 +4815,13 @@ bool FeatureTree::stepElements()
                                 }
                                 localStart = localEnd ;
                             }
-                                          
-//                             for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
-//                             {
-//                                 #pragma omp task firstprivate(i), shared(maxScoreInit)
-//                                 {
-//                                     if ( i.getPosition() % 200 == 0 )
-//                                         std::cerr << "\r checking for fractures (1)... " << i.getPosition() << "/" << i.size() << std::flush ;
-//                                     if ( i->getBehaviour()->getFractureCriterion() )
-//                                     {
-//                                         i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
-// 
-//                                         #pragma omp critical
-//                                         {
-//                                             maxScoreInit = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit ) ;
-//                                         }
-//                                     }
-//                                 }
-//                             }
+
                             
                         }
                     }
                 }
                 std::cerr << ". Maxscore = " << maxScoreInit <<" ...done. " << std::endl ;
 
-
-// 				std::stable_sort(elements.begin(), elements.end(), sortByScore) ;
 
                 lcounter = 0 ;
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
@@ -4962,6 +4949,7 @@ bool FeatureTree::stepElements()
                                         done = true ;
                                     }
                                 }
+                                
                                 if(done)
                                 {
                                     break ;
@@ -4972,10 +4960,10 @@ bool FeatureTree::stepElements()
                 }
                 double thresholdScore = 0 ;
                 if(foundCheckPoint)
-		{
-		   thresholdScore = thresholdScoreMet ;
-		   behaviourChange = false ;
-		}
+                {
+                    thresholdScore = thresholdScoreMet ;
+                    behaviourChange = false ;
+                }
 
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                 {
@@ -5029,7 +5017,7 @@ bool FeatureTree::stepElements()
                                         {
                                             maxScore = std::max (i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScore ) ;
                                             maxTolerance = std::max (i->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance ) ;
-					    i->getBehaviour()->getFractureCriterion()->setCheckpoint(true) ;
+                                            i->getBehaviour()->getFractureCriterion()->setCheckpoint(true) ;
                                         }
                                     }
                                 }
@@ -5069,6 +5057,8 @@ bool FeatureTree::stepElements()
 
                 std::cerr << " ...done. " << std::endl ;
             }
+        
+
         }
         else if ( is3D() )
         {
@@ -5336,7 +5326,9 @@ bool FeatureTree::stepElements()
 
             }
 
-            std::cerr << " ...done. " << std::endl ;
+
+           
+           std::cerr << " ...done. " << std::endl ;
 
         }
     }
@@ -5425,6 +5417,17 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
         behaviourUpdated = false;
         stitched = false ;
         renumbered = false ;
+        initialised = false ;
+        enriched = false ;
+        assembled = false ;
+        solved = false ;
+        behaviourStepped = false;
+        xfemStepped = false ;
+        featureStepped = false;
+    }
+    
+    if(ft->largeStrains)
+    {
         initialised = false ;
         enriched = false ;
         assembled = false ;
@@ -5754,13 +5757,15 @@ void FeatureTree::checkSpaceTimeConsistency()
 
 bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
 {
+    
     StateType lastStep = XFEM_STEPPED ;
-
+    
     bool ret = true ;
     size_t totit = 0 ;
     int notConvergedCounts = 0 ;
+    
 
-    if ( stateConverged && state.meshed && solverConverged() && !behaviourChanged() )
+    if ( stateConverged && state.meshed && solverConverged() && !behaviourChanged() )  
     {
         deltaTime = realDeltaTime ;
         now += deltaTime ;
@@ -5807,9 +5812,19 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
                 }
             }
         }
+        
+        
+        if(largeStrains)
+             updateMesh() ;
         state.setStateTo ( lastStep, true ) ;
+        if(largeStrains)
+        {
+            behaviourChange = behaviourChange || (std::abs(getDisplacements()).max() > 1e-4);   
+            std::cout << std::abs(getDisplacements()).max() << std::endl ;
+        }
         ++it ;
         deltaTime = 0 ;
+        
         if ( solverConverged() )
         {
             std::cout << "." << std::flush ;
@@ -5895,6 +5910,10 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
     {
         ret = false ;
     }
+    
+    if(largeStrains && !(std::abs(getDisplacements()).max() > 1e-4))
+        ret = false ;
+    
     std::cerr << std::endl ;
 
     if ( ret && !guided)
@@ -5939,16 +5958,107 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
             }
         }
     }
-
-    return solverConverged() && stateConverged && maxScore < thresholdScoreMet ;
+    
+    bool converged = solverConverged() && stateConverged && maxScore < thresholdScoreMet ;
+    
+    return converged ;
 
 }
 
-bool FeatureTree::step(bool guided)
+void FeatureTree::updateMesh()
 {
-    if(solverConverged() && stateConverged && maxScore < thresholdScoreMet)
+//     if(initialPositions.empty() && largeStrains && !needMeshing)
+//     {
+//         if(is2D()) 
+//         {
+//             std::cerr << " updating mesh" << std::endl ;
+// 
+//             for (  auto i = dtree->begin() ; i != dtree->end() ; i++  )
+//             {
+//                 for(size_t k = 0 ;  k < i->getBoundingPoints().size() ; k++)
+//                 {
+//                     initialPositions.push_back(i->getBoundingPoint(k).getX()) ;
+//                     initialPositions.push_back(i->getBoundingPoint(k).getY()) ;
+//                 }
+//             }  
+//         }
+//         
+//         if(is3D() )
+//         {
+//             std::cerr << " updating mesh" << std::endl ;
+//             for (  auto i = dtree3D->begin() ; i != dtree3D->end() ; i++  )
+//             {
+//                 for(size_t k = 0 ;  k < i->getBoundingPoints().size() ; k++)
+//                 {
+//                     initialPositions.push_back(i->getBoundingPoint(k).getX()) ;
+//                     initialPositions.push_back(i->getBoundingPoint(k).getY()) ;
+//                     initialPositions.push_back(i->getBoundingPoint(k).getZ()) ;
+//                 }
+//             }
+//         }
+//     }
+    
+    if(largeStrains && getDisplacements().size())
+    {
+        int pos = 0 ;
+        if(is2D()) 
+        {
+            std::cerr << " updating mesh" << std::endl ;
+
+            for (  auto i = dtree->begin() ; i != dtree->end() ; i++  )
+            {
+                for (  size_t k = 0 ; k < i->getBoundingPoints().size() ; k++  )
+                {
+                    i->getBoundingPoint(k).set(i->getBoundingPoint(k).getX()+getDisplacements()[i->getBoundingPoint(k).getId()*2  ]*.05,
+                                               i->getBoundingPoint(k).getY()+getDisplacements()[i->getBoundingPoint(k).getId()*2+1]*.05) ;
+                    pos +=2 ;    
+                    
+                }
+               
+                i->getElementaryMatrix().resize(0) ;
+                delete i->getState().JinvCache ;
+                i->getState().JinvCache = nullptr ;
+                delete i->cachedGps ;
+                i->cachedGps = nullptr ; 
+                i->getBehaviour()->step(0., i->getState(), 0) ;
+            }      
+        }
+        
+        if(is3D())
+        {
+            std::cerr << " updating mesh" << std::endl ;
+
+            for (  auto i = dtree3D->begin() ; i != dtree3D->end() ; i++  )
+            {
+                for (  size_t k = 0 ; k < i->getBoundingPoints().size() ; k++  )
+                {
+
+                    i->getBoundingPoint(k).set( i->getBoundingPoint(k).getX()+getDisplacements()[i->getBoundingPoint(k).getId()*3  ]*.05,
+                                                i->getBoundingPoint(k).getY()+getDisplacements()[i->getBoundingPoint(k).getId()*3+1]*.05,
+                                                i->getBoundingPoint(k).getZ()+getDisplacements()[i->getBoundingPoint(k).getId()*3+2]*.05
+                                                ) ;
+                    pos +=3 ;
+                }
+                
+                i->getElementaryMatrix().resize(0) ;
+                delete i->getState().JinvCache ;
+                i->getState().JinvCache = nullptr ;
+                delete i->cachedGps ;
+                i->cachedGps = nullptr ;
+                i->getBehaviour()->step(0., i->getState(), 0) ;
+            }
+        }
+    }
+}
+
+bool FeatureTree::step(bool guided)
+{   
+
+    if((solverConverged() && stateConverged && maxScore < thresholdScoreMet))
         iterationCounter = 0 ;
-    return stepInternal(guided, true) ;
+    bool ret = stepInternal(guided, true) ;
+    
+    return ret ;
 }
 
 bool FeatureTree::stepToCheckPoint( int iterations, double precision)

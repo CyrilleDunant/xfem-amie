@@ -252,6 +252,7 @@ public:
     std::map<std::pair<size_t, size_t>, double > * boundaryMatrix ;
 
     bool make_final(bool clearElements = true) ;
+    bool incremental = false ;
 
     size_t multiplier_offset ;
     size_t nssor = 32 ;
