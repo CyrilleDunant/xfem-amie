@@ -1172,8 +1172,7 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
             ret = new GeometryAndFaceDefinedSurfaceBoundaryCondition( Enum::getLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
                 dynamic_cast<Geometry *>(f->getFeature(index)), n, getData( "value", 0 ), (int) getData( "axis", 0 ) ) ;
         }
-
-        if(hasChild("restriction"))
+        else if(hasChild("restriction"))
         {
             double maxx = getData("restriction.top_right.x", 1.) ;
             double maxy = getData("restriction.top_right.y", 1.) ;
@@ -1183,20 +1182,23 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
                     Enum::getBoundingBoxPosition( getStringData( "position", "NOW" ) ), minx, maxx, miny, maxy,
                     getData( "value", 0 ), (int) getData( "axis", 0 ) ) ;
         }
-        if(hasChild("point"))
+        else if(hasChild("point"))
         {
             double x = getData("point.x", 0.) ;
             double y = getData("point.y", 0.) ;
             double z = getData("point.z", 0.) ;
             double t = getData("point.t", 0.) ;
             Point p(x,y,z,t) ;
-            return new BoundingBoxNearestNodeDefinedBoundaryCondition( Enum::getLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+            ret = new BoundingBoxNearestNodeDefinedBoundaryCondition( Enum::getLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
                     Enum::getBoundingBoxPosition( getStringData( "position", "NOW" ) ), p,
                     getData( "value", 0 ), getData( "axis", 0 ) ) ;
         }
-        ret = new BoundingBoxDefinedBoundaryCondition( Enum::getLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+	else
+	{
+            ret = new BoundingBoxDefinedBoundaryCondition( Enum::getLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
                 Enum::getBoundingBoxPosition( getStringData( "position", "NOW" ) ),
                 getData( "value", 0 ), getData( "axis", 0 ) ) ;
+	}
 
         if( hasChild("interpolation") )
             ret->setInterpolation( getStringData("interpolation") ) ;
@@ -1218,9 +1220,8 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
             Point n( getData("normal.x", 1 ), getData("normal.y", 0 )) ;
             ret = new GeometryAndFaceDefinedSurfaceBoundaryCondition( Enum::getLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
                 dynamic_cast<Geometry *>(f->getFeature(index)), n, t, (int) getData( "axis", 0 ) ) ;
-        }
-    
-        if(hasChild("restriction"))
+        }    
+        else if(hasChild("restriction"))
         {
             double maxx = getData("restriction.top_right.x", 1.) ;
             double maxy = getData("restriction.top_right.y", 1.) ;
@@ -1230,7 +1231,7 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
                     Enum::getBoundingBoxPosition( getStringData( "position", "NOW" ) ), minx, maxx, miny, maxy,
                     t, getData( "axis", 0 ) ) ;
         }
-        if(hasChild("point"))
+        else if(hasChild("point"))
         {
             double x = getData("point.x", 0.) ;
             double y = getData("point.y", 0.) ;
@@ -1241,9 +1242,12 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
                     Enum::getBoundingBoxPosition( getStringData( "position", "NOW" ) ), p,
                     t, getData( "axis", 0 ) ) ;
         }
-        ret = new BoundingBoxDefinedBoundaryCondition( Enum::getLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+	else
+	{
+            ret = new BoundingBoxDefinedBoundaryCondition( Enum::getLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
                 Enum::getBoundingBoxPosition( getStringData( "position", "NOW" ) ),
                 t, getData( "axis", 0 ) ) ;
+	}
      }
      return ret ;
 }

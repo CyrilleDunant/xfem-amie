@@ -171,7 +171,14 @@ int main(int argc, char *argv[])
 
     parser.setFeatureTree( &F ) ;
 
+    std::vector<BoundaryCondition * > bc_prestep;
+    if(problem->hasChild("prestep"))
+        bc_prestep = problem->getChild("prestep")->getAllBoundaryConditions(&F) ;
+
     F.step() ;
+
+    for (size_t i = 0; i < bc_prestep.size(); i++)
+        F.removeBoundaryCondition(bc_prestep[i]);
 
     std::vector<unsigned int> cacheIndex ;
     std::vector<unsigned int> aggCacheIndex ;
@@ -197,10 +204,6 @@ int main(int argc, char *argv[])
         exit(0) ;
     }
 
-    if(problem->hasChild("boundary_conditions"))
-        std::vector<BoundaryCondition * > bc = problem->getChild("boundary_conditions")->getAllBoundaryConditions(&F) ;
-
-
     MultiTriangleWriter * trg = nullptr ;
     if(problem->hasChildFromFullLabel("export.file_name"))
     {
@@ -214,6 +217,14 @@ int main(int argc, char *argv[])
         posts = problem->getChild("post_processor")->getAllPostProcessors(cacheIndex) ;
         postProcessFile = problem->getStringData("post_processor.file_name","file_not_found") ;
     }
+
+        if(problem->hasChild("output"))
+            problem->getChild("output")->writeOutput(&F, 0, instants.size(), cacheIndex, flags) ;
+        if(problem->hasChild("export"))
+            problem->getChild("export")->exportSvgTriangles(trg, &F, 0, instants.size(), flags) ;
+
+    if(problem->hasChild("boundary_conditions"))
+        std::vector<BoundaryCondition * > bc = problem->getChild("boundary_conditions")->getAllBoundaryConditions(&F) ;
 
     bool next = true ;
     for(size_t i = 1 ; i < instants.size() ; i++)

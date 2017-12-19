@@ -214,9 +214,9 @@ void Phase::expansionFromBehaviour(SpaceDimensionality dim)
 		return ;
 	}
 
-	Vector tmp = behaviour->getImposedStress( Point( 1. / 3, 1. / 3, 1. / 3 ) ) ;
+	Vector tmp = behaviour->getImposedStrain( Point( 1. / 3, 1. / 3, 1. / 3 ) ) ;
 	beta.resize( tmp.size() );
-	beta = tmp ;
+	beta = tmp * C;
 }
 
 void Phase::ruptureFromBehaviour(SpaceDimensionality dim)
