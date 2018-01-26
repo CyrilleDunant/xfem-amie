@@ -16,7 +16,7 @@ ExpansiveZone3D::ExpansiveZone3D(Feature *father, double radius, double x, doubl
     setBehaviour(new StiffnessWithImposedDeformation(tensor, def)) ;
 }
 
-ExpansiveZone3D::ExpansiveZone3D(Feature *father, double radius, double x, double y, double z, StiffnessWithImposedDeformation * exp) : EnrichmentInclusion3D(father, radius, x, y, z)
+ExpansiveZone3D::ExpansiveZone3D(Feature *father, double radius, double x, double y, double z, StiffnessWithImposedStress * exp) : EnrichmentInclusion3D(father, radius, x, y, z)
 {
     imposedDef.resize(6) ;
     imposedDef = exp->imposed ;

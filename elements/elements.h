@@ -31,14 +31,22 @@ double zTransform(const Point & p, const PointArray & points, const std::valarra
 Function TTransform(const PointArray & points ,const std::valarray< Function> &basis) ;
 double tTransform(const Point & p, const PointArray & points, const std::valarray<Function > & basis) ;
 Point coordinateTransform(const Point & p, const PointArray & points, const std::valarray<Function > & basis) ;
-Function dXTransform(const PointArray & points ,const std::valarray< Function> &basis, Variable v) ;
-Function dYTransform(const PointArray & points ,const std::valarray< Function> &basis, Variable v) ;
-Function dZTransform(const PointArray & points ,const std::valarray< Function> &basis, Variable v) ;
-Function dTTransform(const PointArray & points ,const std::valarray< Function> &basis, Variable v) ;
-double dXTransform(const PointArray & points ,const std::valarray< Function> &basis, Variable v, const Point & p ) ;
-double dYTransform(const PointArray & points ,const std::valarray< Function> &basis, Variable v, const Point & p ) ;
-double dZTransform(const PointArray & points ,const std::valarray< Function> &basis, Variable v, const Point & p ) ;
-double dTTransform(const PointArray & points ,const std::valarray< Function> &basis, Variable v, const Point & p ) ;
+Function dXTransform(const PointArray & points, const std::valarray< Function> &basis, Variable v) ;
+Function dYTransform(const PointArray & points, const std::valarray< Function> &basis, Variable v) ;
+Function dZTransform(const PointArray & points, const std::valarray< Function> &basis, Variable v) ;
+Function dTTransform(const PointArray & points, const std::valarray< Function> &basis, Variable v) ;
+Function XdXTransform(const Vector & disp, const std::valarray< Function> &basis, Variable v, int ndofs) ;
+Function XdYTransform(const Vector & disp, const std::valarray< Function> &basis, Variable v, int ndofs) ;
+Function XdZTransform(const Vector & disp, const std::valarray< Function> &basis, Variable v, int ndofs) ;
+Function XdTTransform(const Vector & disp, const std::valarray< Function> &basis, Variable v, int ndofs) ;
+double dXTransform(const PointArray & points, const std::valarray< Function> &basis, Variable v, const Point & p ) ;
+double dYTransform(const PointArray & points, const std::valarray< Function> &basis, Variable v, const Point & p ) ;
+double dZTransform(const PointArray & points, const std::valarray< Function> &basis, Variable v, const Point & p ) ;
+double dTTransform(const PointArray & points, const std::valarray< Function> &basis, Variable v, const Point & p ) ;
+double XdXTransform(const  Vector & disp, const std::valarray< Function> &basis, Variable v, const Point & p, int ndofs ) ;
+double XdYTransform(const  Vector & disp, const std::valarray< Function> &basis, Variable v, const Point & p, int ndofs ) ;
+double XdZTransform(const  Vector & disp, const std::valarray< Function> &basis, Variable v, const Point & p, int ndofs ) ;
+double XdTTransform(const  Vector & disp, const std::valarray< Function> &basis, Variable v, const Point & p, int ndofs ) ;
 
 
 

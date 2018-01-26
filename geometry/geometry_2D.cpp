@@ -652,7 +652,10 @@ bool Triangle::inCircumCircle(const Point *p) const
 
 double Triangle::area() const
 {
-    return cachedarea ;
+    int pointsInTimePlane = this->boundingPoints.size()/timePlanes() ;
+
+    return 0.5*std::abs((getBoundingPoint(0).getX()- getBoundingPoint(pointsInTimePlane/3).getX())*(getBoundingPoint(0).getY()- getBoundingPoint(2*pointsInTimePlane/3).getY()) - (getBoundingPoint(0)- getBoundingPoint(pointsInTimePlane/3)).getY()*(getBoundingPoint(0).getX()- getBoundingPoint(2*pointsInTimePlane/3).getX())) ;
+
 }
 
 

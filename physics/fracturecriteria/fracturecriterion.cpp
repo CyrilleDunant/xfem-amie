@@ -185,7 +185,7 @@ void FractureCriterion::initialiseCache( ElementState & s)
 // 	  std::cout << VirtualMachine().eval(smooth, x, s.getParent()->getCenter().getY()) << "  "<< VirtualMachine().eval(smoothalt, x, s.getParent()->getCenter().getY()) << std::endl ;
 // 	}
 // 	exit(0) ;
-        Circle epsilonAll( std::max(physicalCharacteristicRadius*3., s.getParent()->getRadius()*2. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
+        Circle epsilonAll( std::max(physicalCharacteristicRadius*6., s.getParent()->getRadius()*4. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         Circle epsilonReduced(physicalCharacteristicRadius*overlap+s.getParent()->getRadius()*1.5,s.getParent()->getCenter()) ;
         mesh2d = s.getMesh2D() ;
         cachecoreID = mesh2d->generateCache(&epsilonReduced, s.getParent()->getBehaviour()->getSource(), smooth) ;
@@ -203,7 +203,7 @@ void FractureCriterion::initialiseCache( ElementState & s)
 //         physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*1.5) ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
         Function smooth = getSmoothingKernelFunction( smoothingType, rrn ) ; 
-        Sphere epsilonAll( std::max(physicalCharacteristicRadius*3., s.getParent()->getRadius()*2. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
+        Sphere epsilonAll( std::max(physicalCharacteristicRadius*6., s.getParent()->getRadius()*4. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         Sphere epsilonReduced(physicalCharacteristicRadius*overlap+s.getParent()->getRadius()*1.5,s.getParent()->getCenter()) ;
         mesh3d = s.getMesh3D() ;
         cachecoreID = mesh3d->generateCache(&epsilonReduced, s.getParent()->getBehaviour()->getSource(), smooth) ;

@@ -768,14 +768,33 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
                 if(  i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
                 { 
                     VirtualMachine vm ;
-                    Vector xy = i->getState().getDisplacements() ;
+                    Vector d0(2) ;
+                    Vector d1(2) ;
+                    Vector d2(2) ;
 
-                    ret[5][iterator] = xy[0] ;
-                    ret[0][iterator] = xy[5] ;
-                    ret[1][iterator] = xy[3] ;
-                    ret[3][iterator] = xy[4] ;
-                    ret[2][iterator] = xy[1] ;
-                    ret[4][iterator++] = xy[2] ;
+                    size_t n = i->getBoundingPoints().size()/3 ;
+                    if(i->timePlanes() > 1)
+                        n /= i->timePlanes() ;
+                     
+                    
+                    i->getState().getField ( DISPLACEMENT_FIELD, i->getBoundingPoint(0), d0, false, &vm, 0 ) ;
+                    i->getState().getField ( DISPLACEMENT_FIELD, i->getBoundingPoint(n), d1, false, &vm, 0 ) ;
+                    i->getState().getField ( DISPLACEMENT_FIELD, i->getBoundingPoint(2*n), d2, false, &vm, 0 ) ;
+                    
+                    
+//                     ret[0][iterator] = d2[0] ;
+//                     ret[1][iterator] = d2[1] ;
+//                     ret[2][iterator] = d1[0] ;
+//                     ret[3][iterator] = d1[1] ;
+//                     ret[4][iterator] = d0[0] ;
+//                     ret[5][iterator++] = d0[1] ;
+                    
+                    ret[0][iterator] = d2[1] ;
+                    ret[1][iterator] = d1[1] ;
+                    ret[2][iterator] = d0[1] ;
+                    ret[3][iterator] = d2[0] ;
+                    ret[4][iterator] = d1[0] ;
+                    ret[5][iterator++] = d0[0] ;
   
                 }
             }
@@ -1190,6 +1209,52 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
             found = true ;
             break ;
         }
+        case TWFT_TRANSFORM:
+        {
+            
+            
+            Matrix largeDeformationTransform(2,2) ;
+            largeDeformationTransform[0][0] = XdXTransform(tri->getState().getDisplacements() ,tri->getShapeFunctions(), XI, tri->getCenter(), 2) ;
+            largeDeformationTransform[0][1] = XdXTransform(tri->getState().getDisplacements() ,tri->getShapeFunctions(), ETA, tri->getCenter(), 2) ;
+            largeDeformationTransform[1][0] = XdYTransform(tri->getState().getDisplacements() ,tri->getShapeFunctions(), XI, tri->getCenter(), 2) ;
+            largeDeformationTransform[1][1] = XdYTransform(tri->getState().getDisplacements() ,tri->getShapeFunctions(), ETA, tri->getCenter(), 2) ;
+            
+            double jlargeDef = 0.5*det(largeDeformationTransform)/tri->jacobianAtPoint(tri->getCenter()) ;
+            Matrix jInv(2,2) ;
+            tri->getInverseJacobianMatrix(tri->getCenter(),jInv) ;             
+            
+            double largeDeformationTransformc ;
+            largeDeformationTransformc = largeDeformationTransform[0][0]*jInv[0][0] + largeDeformationTransform[0][1]*jInv[0][1] ;
+            largeDeformationTransformc *= jlargeDef ;   
+            
+            ret[2] = largeDeformationTransformc ;
+            ret[1] = largeDeformationTransformc ;
+            ret[0] = largeDeformationTransformc ;
+
+
+            found = true ;
+            break ;
+        }
+        case TWFT_VOLUME:
+        {
+            VirtualMachine vm ;
+            Vector d0(2) ;
+            Vector d1(2) ;
+            Vector d2(2) ;
+            tri->getState().getField ( DISPLACEMENT_FIELD, *tri->first, d0, false, &vm, 0 ) ;
+            tri->getState().getField ( DISPLACEMENT_FIELD, *tri->second, d1, false, &vm, 0 ) ;
+            tri->getState().getField ( DISPLACEMENT_FIELD, *tri->third, d2, false, &vm, 0 ) ;
+            Triangle test(*tri->first+Point(d0[0], d0[1]), *tri->second+Point(d1[0], d1[1]), *tri->third+Point(d2[0], d2[1])) ;
+            
+            double v = tri->area()/test.area() -1 ;
+           
+            ret[2] = v;
+            ret[1] = v;
+            ret[0] = v;
+
+            found = true ;
+            break ;
+        }
         case TWFT_TRIANGLE_ANGLE:
         {
             Vector v(0., 1) ;
@@ -1514,6 +1579,10 @@ int numberOfFields( TWFieldType field, size_t index , std::map<size_t, FieldType
         return 3 ;
     case TWFT_CRACK_ANGLE:
         return 3 ;
+    case TWFT_TRANSFORM:
+        return 3 ;
+    case TWFT_VOLUME:
+        return 3 ;    
     case TWFT_STIFFNESS:
         return 3 ;
     case TWFT_VISCOSITY:
@@ -1587,10 +1656,14 @@ std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, Field
         return std::string("Degree Of Hydration") ;
     case TWFT_PRINCIPAL_ANGLE:
         return std::string("Angle of Principal Stresses") ;
+   case TWFT_VOLUME:
+        return std::string("Volume change") ;    
     case TWFT_TRIANGLE_ANGLE:
         return std::string("Triangle angle") ;
     case TWFT_CRACK_ANGLE:
         return std::string("Cracking Angle") ;
+    case TWFT_TRANSFORM:
+        return std::string("Transform") ;
     case TWFT_STIFFNESS:
         return std::string("Stiffness") ;
     case TWFT_VISCOSITY:
@@ -1613,10 +1686,6 @@ std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, Field
         return std::string("Principal Stress") ;
     case TWFT_INTERSECTION:
         return std::string("Intersection") ;
-        /*		case TWFT_STRAIN_AND_STRESS:
-        			return std::string("Strains and Stress") ;
-        		case TWFT_STRESS:
-        			return std::string("Stress") ;*/
     case TWFT_GRADIENT:
         return std::string("Gradient") ;
     case TWFT_GRADIENT_AND_FLUX:
@@ -1663,11 +1732,11 @@ std::string nameOfField(FieldType field)
     case ENRICHED_DISPLACEMENT_FIELD :
         return std::string("Enriched Displacements") ;
     case SPEED_FIELD :
-        return std::string("") ;
+        return std::string("Speed") ;
     case FLUX_FIELD :
-        return std::string("") ;
+        return std::string("Flux") ;
     case GRADIENT_FIELD :
-        return std::string("") ;
+        return std::string("Gradient") ;
     case TOTAL_STRAIN_FIELD :
         return std::string("Strain") ;
     case MECHANICAL_STRAIN_FIELD :
@@ -1695,13 +1764,13 @@ std::string nameOfField(FieldType field)
     case PRINCIPAL_REAL_STRESS_FIELD :
         return std::string("Principal Stress") ;
     case NON_ENRICHED_STRAIN_FIELD :
-        return std::string("") ;
+        return std::string("Strain (non-enriched)") ;
     case NON_ENRICHED_STRAIN_RATE_FIELD :
-        return std::string("") ;
+        return std::string("Strain rate (non-enriched)") ;
     case NON_ENRICHED_EFFECTIVE_STRESS_FIELD :
-        return std::string("") ;
+        return std::string("Stress (non-enriched)") ;
     case NON_ENRICHED_REAL_STRESS_FIELD :
-        return std::string("") ;
+        return std::string("Stress (real)") ;
     case VON_MISES_STRAIN_FIELD :
         return std::string("Von Mises Strain") ;
     case VON_MISES_REAL_STRESS_FIELD :

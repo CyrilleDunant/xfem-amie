@@ -882,7 +882,7 @@ public:
 		
 		if(std::isnan(v) || std::isnan(buffer[0]) || std::isnan(buffer[1]))
 		{
-		  std::cout << buffer[0] << "  " << buffer[1] << std::endl ;
+		  std::cout << "NAN field "<< buffer[0] << "  " << buffer[1] << std::endl ;
 		  exit(0) ;
 		}
             }

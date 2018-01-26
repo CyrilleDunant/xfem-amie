@@ -243,12 +243,12 @@ ConfigTreeItem * CommandLineParser::parseCommandLine( int argc, char *argv[], st
 	return input ;
 }
 
-void CommandLineParser::sendEmail( std::string subject, std::string body, std::string attachment)
+int CommandLineParser::sendEmail( std::string subject, std::string body, std::string attachment)
 {
 	if( strings["--send-email"].find("@") == std::string::npos)
 	{
 		std::cerr << "improper email address, can't send email to "+strings["--send-email"] << std::endl ;
-		return ;
+		return 0;
 	}
 
 	std::string mail = "(hostname & pwd & echo \""+body+"\") > .amie_message.tmp & mail -s \""+subject+"\" " ;
@@ -256,7 +256,7 @@ void CommandLineParser::sendEmail( std::string subject, std::string body, std::s
 		mail += "-a " + attachment + " ";
 	mail += strings["--send-email"]+" < .amie_message.tmp" ;
 
-	std::system(mail.c_str()) ;
+	return std::system(mail.c_str()) ;
 }
 
 void CommandLineParser::setNumThreads( int n )
@@ -380,14 +380,15 @@ void CommandLineParser::printHelp( )
 	std::cout << std::endl ;
 }
 
-void CommandLineParser::printVersion( )
+int CommandLineParser::printVersion( )
 {
 	std::cout << "current AMIE version: svn " << std::flush ;
-	std::system("svnversion ..") ;
+	int ret  = std::system("svnversion ..") ;
 	
 	struct stat attr ;
 	stat( command.c_str(), &attr ) ;
 	std::cout << "last compiled on: " << ctime(&attr.st_mtime) << std::endl ;
+    return ret ;
 
 }
 

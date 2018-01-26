@@ -1625,7 +1625,7 @@ Matrix & ElementState::transform(VirtualMachine * vm, std::valarray<double> * di
             dL[id*dims+1] =   d[1] ;
         }   
         
-        globalTransformAngle = 2.*atan2(-bs, as) ;
+        globalTransformAngle = atan2(-bs, as) ;
 
 //         std::cout << globalTransformAngle << std::endl ;
         double denom = (as*as+bs*bs) ;  

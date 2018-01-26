@@ -57,46 +57,61 @@ int main(int argc, char *argv[])
 {
     double nu = 0.2 ;
     double E = 1e5 ;
-    Matrix m0 =  Tensor::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
+    Matrix m0 =  Tensor::cauchyGreen(E,nu, SPACE_THREE_DIMENSIONAL);
 
     
     std::fstream time_and_densities(argv[2])   ;
     
     std::vector<double> timesd ;
+    std::vector<double> timesh ;
+    
     std::vector<double> densities ;                               
     
          
+//     while(!time_and_densities.eof())
+//     {
+//         double correction = .77 ; // sc is 1
+//         double t ;
+//         double d032,d040,d048,d032_,d040_,d048_ ;
+//         double p032, p040, p048 ;
+//         double sc032, sc040, sc048 ;
+//                            // 1      2       3       4       5       6      7        8       9        10        11       12       13
+//         time_and_densities >> t >> d032 >> d040 >> d048 >> p032 >> p040 >> p048 >> d032_ >> d040_ >> d048_ >> sc032 >> sc040 >> sc048;
+//         timesd.push_back(t) ;
+//         if(atoi(argv[3]) == 0)
+//         {
+//             densities.push_back(d032_ * correction);
+//         }
+//         else if(atoi(argv[3]) == 1)
+//         {
+//             densities.push_back(d040_ * correction);
+//         }
+//         else
+//         {
+//             densities.push_back(d048_ * correction );
+//         }
+//     }
     while(!time_and_densities.eof())
     {
-        double correction = .77 ; // sc is 1
-        double t ;
-        double d032,d040,d048,d032_,d040_,d048_ ;
-        double p032, p040, p048 ;
-        double sc032, sc040, sc048 ;
-                           // 1      2       3       4       5       6      7        8       9        10        11       12       13
-        time_and_densities >> t >> d032 >> d040 >> d048 >> p032 >> p040 >> p048 >> d032_ >> d040_ >> d048_ >> sc032 >> sc040 >> sc048;
-        timesd.push_back(t) ;
-        if(atoi(argv[3]) == 0)
-        {
-            densities.push_back(d032_ * correction);
-        }
-        else if(atoi(argv[3]) == 1)
-        {
-            densities.push_back(d040_ * correction);
-        }
-        else
-        {
-            densities.push_back(d048_ * correction );
-        }
-
+        double t ; 
+        time_and_densities >> t ;
+        timesh.push_back(t) ;
     }
+    for(double t = 0 ; t < 350 ; t++)
+    {
+	    double phi = 0.8202*pow(t, -0.073) ;
+	    densities.push_back((1+t/2400)*1.5/(1+exp(-100.*((1.-phi)-0.38))));
+	    timesd.push_back(t) ;
+	    
+    }
+    
     
     std::map<unsigned char,Form *> behaviourMap ;
     behaviourMap[0] = new Stiffness(m0) ;  // C3S
     behaviourMap[1] = new C3SBehaviour() ;  // C3S
     behaviourMap[6] = new CSHBehaviour(INNER_CSH, densities,std::vector<double>(),timesd) ; // inner C-S-H 
-    behaviourMap[7] = new CSHBehaviour(OUTER_CSH, densities,std::vector<double>(),timesd) ;  // outer C-S-H
-    behaviourMap[8] = new CHBehaviour() ; // CH 
+    behaviourMap[8] = new CSHBehaviour(OUTER_CSH, densities,std::vector<double>(),timesd) ;  // outer C-S-H
+    behaviourMap[9] = new CHBehaviour() ; // CH 
     
 //     behaviourMap[0] = new Stiffness(m0) ; // C3S
 //     behaviourMap[1] = new Stiffness(m0) ;  // C3S
@@ -109,7 +124,7 @@ int main(int argc, char *argv[])
 //     behaviourMap[2] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // CH ?
 //     behaviourMap[3] = new Viscoelasticity(PURE_ELASTICITY, m0) ;  // outer C-S-H
 //     behaviourMap[4] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // inner C-S-H
-    FeatureTree F( argv[1], behaviourMap, timesd ) ;
+    FeatureTree F( argv[1], behaviourMap, timesh, argv[1],0,new CSHBehaviour(OUTER_CSH, densities,std::vector<double>(),timesd) ) ;
     F.setDeltaTime(5);
     F.setOrder(LINEAR) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, FRONT, -1e-6)) ;

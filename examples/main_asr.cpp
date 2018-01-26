@@ -144,8 +144,8 @@ int main( int argc, char *argv[] )
 
     int nzones   = atof( argv[1] )  ;
     double dmax  = atof( argv[2] )  ;
-    double fact  = atof( argv[3] )*2.*restraintDepth/basesize  ;
-    double fact0 = atof( argv[4] )*2.*restraintDepth/basesize  ;
+    double fact  = atof( argv[3] )*8.*restraintDepth/basesize*(1.+0.3)  ;
+    double fact0 = atof( argv[4] )*8.*restraintDepth/basesize*(1.+0.3)  ;
 
     Sample sample( nullptr, basesize + restraintDepth, basesize + restraintDepth, 0, 0 ) ;
 
@@ -218,11 +218,11 @@ int main( int argc, char *argv[] )
 				            sample.getCenter().getX(), 
 				            sample.getCenter().getY() + basesize*.5 + restraintDepth * .25 ) ;
 					    
-    double Emin = std::max(std::max(fact, fact0)*sqrt(POINT_TOLERANCE),1e4) ;
+    double Emin = std::max(std::max(fact, fact0)*sqrt(POINT_TOLERANCE),1e4*restraintDepth/0.07) ;
     fact = std::max(fact, Emin) ;
     fact0 = std::max(fact0, Emin) ;
 
-    blocktop->setBehaviour( new OrthotropicStiffness(fact, fact0, (fact0+fact)*.5,  0., 0.))  ;
+    blocktop->setBehaviour( new OrthotropicStiffness(fact*restraintDepth/0.07, fact0*restraintDepth/0.07, (fact0+fact)*.5*restraintDepth/0.07,  0., 0.))  ;
     blocks.push_back(blocktop);
 
 
@@ -251,7 +251,7 @@ int main( int argc, char *argv[] )
                                               basesize, 
                                               sample.getCenter().getX() + ( basesize )*.5 + restraintDepth * .25, 
                                               sample.getCenter().getY() ) ;
-    blockright->setBehaviour( new OrthotropicStiffness(fact, fact0, (fact0+fact)*.5,  0., 0.)) ;
+    blockright->setBehaviour( new OrthotropicStiffness(fact*restraintDepth/0.07, fact0*restraintDepth/0.07, (fact0+fact)*.5*restraintDepth/0.07,  0., 0.)) ;
     blocks.push_back(blockright);
 
     F.addFeature( &sample, blockright );

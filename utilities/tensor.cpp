@@ -890,6 +890,21 @@ Matrix Tensor::isotropicTransverseCauchyGreen(double E_1, double E_3, double G_1
 }
 
 
+Matrix Tensor::rotate2ndOrderTensor2D( Matrix & tensor, double angle )
+{
+
+    Matrix r(2,2) ;
+    r[0][0] = cos(angle) ; r[1][1] = r[0][0] ;
+    r[1][0] = sin(angle) ; r[0][1] = -r[1][0] ;
+    Matrix rt = r ;
+    rt[1][0] = r[0][1] ;
+    rt[0][1] = r[1][0] ;
+
+    Matrix tmp = (r*tensor)*rt ;
+
+    return tmp ;
+}
+
 Vector Tensor::rotate2ndOrderTensor2D( Vector & tensor, double angle )
 {
     Matrix t(2,2) ;

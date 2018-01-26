@@ -1247,6 +1247,8 @@ struct Enum
             case TWFT_CRITERION: return "TWFT_CRITERION" ;
             case TWFT_STIFFNESS: return "TWFT_STIFFNESS" ;
             case TWFT_VISCOSITY: return "TWFT_VISCOSITY" ;
+            case TWFT_TRANSFORM: return "TWFT_TRANSFORM" ;
+            case TWFT_VOLUME: return "TWFT_VOLUME" ;
             case TWFT_STIFFNESS_X: return "TWFT_STIFFNESS_X" ;
             case TWFT_STIFFNESS_Y: return "TWFT_STIFFNESS_Y" ;
             case TWFT_STIFFNESS_Z: return "TWFT_STIFFNESS_Z" ;

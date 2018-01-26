@@ -177,6 +177,7 @@ physics/materials/steel_behaviour.cpp
 physics/materials/concrete_behaviour.cpp
 physics/materials/c3s_behaviour.cpp
 physics/materials/csh_behaviour.cpp
+physics/materials/ch_behaviour.cpp
 physics/materials/c3s_behaviour.cpp
 physics/materials/c2s_behaviour.cpp
 physics/materials/c3a_behaviour.cpp
@@ -419,8 +420,8 @@ target_link_libraries( irradiation Amie ${ALL_LINK_FLAGS})
 add_executable(asr_visco examples/main_asr_visco.cpp )
 target_link_libraries( asr_visco Amie ${ALL_LINK_FLAGS} )
 
-#add_executable(from_mic examples/main_from_mic.cpp )
-#target_link_libraries( from_mic Amie ${ALL_LINK_FLAGS} )
+add_executable(from_mic examples/main_from_mic.cpp )
+target_link_libraries( from_mic Amie ${ALL_LINK_FLAGS} )
 
 add_executable(creep_homogenization examples/main_creep_homogenization.cpp )
 target_link_libraries( creep_homogenization Amie ${ALL_LINK_FLAGS} )

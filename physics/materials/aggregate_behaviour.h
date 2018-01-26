@@ -32,7 +32,7 @@ struct AggregateBehaviour : public WeibullDistributedStiffness
     bool spaceTime ;
     bool elastic ;
 
-    AggregateBehaviour(bool elastic = false, bool st = false, double E=59e9, double nu=0.3, double up = 10e6, double r = 0.0004, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS,  double var = 0.2, int blocks = 0) ;
+    AggregateBehaviour(bool elastic = false, bool st = false, double E=59e9, double nu=0.3, double up = 30e6, double r = 0.0004, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS,  double var = 0.2, int blocks = 0) ;
 
     virtual Form * getCopy() const ;
 

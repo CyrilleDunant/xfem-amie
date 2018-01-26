@@ -9,6 +9,7 @@
 
 #include "enrichmentInclusion3d.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
+#include "../physics/stiffness_with_imposed_stress.h"
 
 namespace Amie
 {
@@ -40,7 +41,7 @@ public:
     * @param deformation Vector of the imposed strain
     */
     ExpansiveZone3D(Feature *father, double radius, double x, double y, double z, const Matrix & cgTensor, Vector deformation) ;
-    ExpansiveZone3D(Feature *father, double radius, double x, double y, double z, StiffnessWithImposedDeformation * exp) ;
+    ExpansiveZone3D(Feature *father, double radius, double x, double y, double z, StiffnessWithImposedStress * exp) ;
     virtual ~ExpansiveZone3D() ;
 
     /** \brief enrich elements and change their Behaviour if required*/

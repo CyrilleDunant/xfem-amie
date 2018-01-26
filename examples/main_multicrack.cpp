@@ -22,13 +22,14 @@ FeatureTree * featureTree ;
 
 int main(int argc, char *argv[])
 {
-	int nsteps = 60*8 ;
+    double div = 8 ;
+	int nsteps = 640*div ;
 	double nu = 0.2 ;
 	double E_paste = 30e9 ;
 
 	double width = 0.12;
-	double height = 0.02;
-	Sample sample(width, height , width*.5, height*.5) ;
+	double height = 0.01;
+	Sample sample(width, height , 0,0) ;
 
 	featureTree = new FeatureTree(&sample) ;
 	
@@ -40,40 +41,63 @@ int main(int argc, char *argv[])
 // 	featureTree->addFeature(&sample, Crack1);//MY
 
 // 	sample.setBehaviour(new OrthotropicStiffness(E_paste, E_paste*.5,  E_paste*.5/(2.*1-nu*0.5),  nu, M_PI*.15)) ;
-	sample.setBehaviour(new StiffnessWithLargeDeformation(100, 0.4999)) ;
+	sample.setBehaviour(new StiffnessWithLargeDeformation(100, 0.499)) ;
     
 
-    BoundingBoxDefinedBoundaryCondition *force = new BoundingBoxDefinedBoundaryCondition(SET_FORCE_ETA , RIGHT, -.0000) ;
+    BoundingBoxDefinedBoundaryCondition *force = new BoundingBoxDefinedBoundaryCondition(SET_FORCE_ETA , RIGHT, 0) ;
     
 //  	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , RIGHT)) ;
-	featureTree->addBoundaryCondition(force) ;
+    featureTree->addBoundaryCondition(force) ;
 //     featureTree->addBoundaryCondition(new GlobalBoundaryCondition(SET_VOLUMIC_STRESS_ETA , -1e6)) ;
-	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_LEFT)) ;
+	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , LEFT)) ;
 	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 //     featureTree->addFeature(nullptr,new IncompatibleModes()) ;
 
 	featureTree->setSamplingNumber(atof(argv[1])) ;
-// 	featureTree->setOrder(QUADRATIC) ;
-	featureTree->setMaxIterationsPerStep(1000);
+	featureTree->setOrder(LINEAR) ;
+	featureTree->setMaxIterationsPerStep(2000);
 
 	
 	MultiTriangleWriter writerm( "displacements_enrichment_head", "displacements_enrichment", nullptr ) ;
-    featureTree->largeStrains = true ;
+//     featureTree->largeStrains = true ;
 
     for(int v = 0 ; v < nsteps ; v++)
     {
-
-        force->setData(force->getData()-.00002) ;
-        std::cout << featureTree->residualError << std::endl ;
-// 		Crack1->print() ;
-        bool go_on = featureTree->step() ;
+        
+       
+        force->setData(-0.000001*v/div) ;
+        
+// 		Crack1->print() ; 
+        bool go_on = true ; 
+        go_on = featureTree->step() ;
+        featureTree->getAssembly (true ) ;
+        Vector err = featureTree->getDisplacements() ;
+        Vector perr = err ;
+        Vector delta = err-perr ;
+        double error = 0 ;
+        int iter = 0 ;
+        do
+        {
+//             perr = err ;
+            go_on = featureTree->step() ;
+//             featureTree->getAssembly (true ) ;
+//             err =  featureTree->getDisplacements() ;
+//             iter++ ;
+//             delta = err-perr ;
+//             error = sqrt(std::inner_product(&delta[0], &delta[delta.size()], &delta[0], 0.)) ;
+//             std::cout << iter << "  " << error << "  "<< featureTree->volumeVariation() <<std::endl ;
+        } while (!go_on) ;
+        std::cout << featureTree->getIterationCount() << "  " << featureTree->getResidualError() << "  "<< featureTree->volumeVariation() <<std::endl ;
+        
 
         if(go_on)
         {
             writerm.reset( featureTree ) ;
-            writerm.getField( TWFT_LARGE_DEFORMATION_TRANSFORM ) ;
+//             writerm.getField( TWFT_LARGE_DEFORMATION_TRANSFORM ) ;
             writerm.getField( PRINCIPAL_REAL_STRESS_FIELD ) ;
             writerm.getField( PRINCIPAL_MECHANICAL_STRAIN_FIELD ) ;
+            writerm.getField(TWFT_VOLUME) ;
+            writerm.getField(TWFT_TRANSFORM) ;
             writerm.append() ;
         }
 

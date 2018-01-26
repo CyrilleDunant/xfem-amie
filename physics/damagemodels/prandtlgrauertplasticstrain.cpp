@@ -429,7 +429,7 @@ bool PrandtlGrauertPlasticStrain::fractured(int direction) const
 
 void PrandtlGrauertPlasticStrain::postProcess()
 {
-    if(converged && es && state[0] > 0 ||
+    if((converged && es && state[0] > 0) ||
       newtonIteration /*&& 
       es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() < .05*es->getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() && 
       es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()*/

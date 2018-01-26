@@ -1947,7 +1947,8 @@ bool Assembly::cgsolve(int maxit, bool verbose)
     timeval time0, time1 ;
     gettimeofday(&time0, nullptr);
 
-    if( make_final() )
+    bool mf = make_final() ;
+    if( mf )
     {
 
         ConjugateGradient cg(this) ;
@@ -1968,28 +1969,22 @@ bool Assembly::cgsolve(int maxit, bool verbose)
         if(cg.x.size() != displacements.size())
             displacements.resize(cg.x.size(), 0.) ;
         
-//         if(!incremental)
-//         {
-            displacements = cg.x ;
 
-            for(size_t i = 0 ; i < multipliersBuffer.size() ; i++)
+        displacements = cg.x ;
+
+        for(size_t i = 0 ; i < multipliersBuffer.size() ; i++)
+        {
+            if( multipliersBuffer[i].type == SET_PROPORTIONAL_DISPLACEMENT)
             {
-                if( multipliersBuffer[i].type == SET_PROPORTIONAL_DISPLACEMENT)
-                {
-                    int id = multipliersBuffer[i].getId() ;
-                    double offset = multipliersBuffer[i].getValue() ;
-                    std::valarray<unsigned int> propid = multipliersBuffer[i].getDofIds() ;
-                    Vector coefs = multipliersBuffer[i].coefs ;
-                    displacements[id] = offset ;
-                    for(size_t j = 0 ; j < propid.size() ; j++)
-                        displacements[id] += coefs[j]*displacements[ propid[j] ] ;
-                }
+                int id = multipliersBuffer[i].getId() ;
+                double offset = multipliersBuffer[i].getValue() ;
+                std::valarray<unsigned int> propid = multipliersBuffer[i].getDofIds() ;
+                Vector coefs = multipliersBuffer[i].coefs ;
+                displacements[id] = offset ;
+                for(size_t j = 0 ; j < propid.size() ; j++)
+                    displacements[id] += coefs[j]*displacements[ propid[j] ] ;
             }
-//         }
-//         else
-//         {
-//             displacements += cg.x ;
-//         }
+        }
 
 
         if(rowstart > 0 || colstart > 0)
@@ -2006,6 +2001,7 @@ bool Assembly::cgsolve(int maxit, bool verbose)
     else
     {
         std::cerr << "non-symmetrical problem" << std::endl ;
+ 
         timeval time0, time1 ;
         gettimeofday(&time0, nullptr);
 
@@ -2015,8 +2011,36 @@ bool Assembly::cgsolve(int maxit, bool verbose)
         gettimeofday(&time1, nullptr);
         double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
         std::cerr << "Time to solve (s) " << delta/1e6 << std::endl ;
-        displacements.resize(cg.x.size()) ;
+        if(cg.x.size() != displacements.size())
+            displacements.resize(cg.x.size(), 0.) ;
+        
+
         displacements = cg.x ;
+
+        for(size_t i = 0 ; i < multipliersBuffer.size() ; i++)
+        {
+            if( multipliersBuffer[i].type == SET_PROPORTIONAL_DISPLACEMENT)
+            {
+                int id = multipliersBuffer[i].getId() ;
+                double offset = multipliersBuffer[i].getValue() ;
+                std::valarray<unsigned int> propid = multipliersBuffer[i].getDofIds() ;
+                Vector coefs = multipliersBuffer[i].coefs ;
+                displacements[id] = offset ;
+                for(size_t j = 0 ; j < propid.size() ; j++)
+                    displacements[id] += coefs[j]*displacements[ propid[j] ] ;
+            }
+        }
+
+
+
+        if(rowstart > 0 || colstart > 0)
+        {
+            for(size_t p = 0 ; p < prevDisplacements.size() ; p++)
+            {
+                displacements[p] = prevDisplacements[p] ;
+            }
+        }
+        addToExternalForces = 0 ;
     }
     return ret ;
 

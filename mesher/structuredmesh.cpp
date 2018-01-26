@@ -394,11 +394,13 @@ void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 
 }
 
-MicDerivedMesh::MicDerivedMesh(const char * voxelSource, std::map<unsigned char,Form *> behaviourMap) : Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>(SPACE_THREE_DIMENSIONAL)
+MicDerivedMesh::MicDerivedMesh(const char * voxelSource, std::map<unsigned char,Form *> behaviourMap, const char* origin, unsigned char originalmarker, Form * alternate) : Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>(SPACE_THREE_DIMENSIONAL), origin(origin), originalmarker(originalmarker), alternate(alternate)
 {
     VoxelFilter vx ;
     vx.behaviourMap = behaviourMap ;
     vx.read(voxelSource, this);
+    currentTime = 0 ;
+    currentMesh = 0 ;
     tree  = vx.getElements() ;
     single = true ;
 //     additionalPoints = vx.getPoints() ;
@@ -431,7 +433,7 @@ std::string makePixelName(const std::string & dirname, size_t v)
 
 }
 
-bool MicDerivedMesh::step( double dt )
+bool MicDerivedMesh::step( double dt)
 {
     currentTime+=dt ;
     if(single)
@@ -444,20 +446,23 @@ bool MicDerivedMesh::step( double dt )
     }
 
     int initalMesh = currentMesh ;
-    while(currentTime > times[currentMesh] && currentMesh < (int)times.size())
+    while(currentTime >= times[currentMesh] && currentMesh < (int)times.size())
         currentMesh++ ;
 
-    if(initalMesh != currentMesh)
+    //if(initalMesh != currentMesh)
     {
         VoxelFilter vx ;
         vx.behaviourMap = behaviourMap ;
-        vx.update(tree, makePixelName(voxelSource, currentMesh).c_str(), this);
+        if(origin)
+            vx.update(tree, makePixelName(voxelSource, currentMesh).c_str(), this, makePixelName(voxelSource, 0).c_str(), originalmarker, alternate);
+        else
+           vx.update(tree, makePixelName(voxelSource, currentMesh).c_str(), this, nullptr); 
         return true ;
     }
     return false ;
 }
 
-MicDerivedMesh::MicDerivedMesh(const char * voxelSource, std::map<unsigned char,Form *> behaviourMap, std::vector<double> times) : Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>(SPACE_THREE_DIMENSIONAL), times(times), voxelSource(voxelSource)
+MicDerivedMesh::MicDerivedMesh(const char * voxelSource, std::map<unsigned char,Form *> behaviourMap, std::vector<double> times, const char* origin, unsigned char originalmarker, Form * alternate) : Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>(SPACE_THREE_DIMENSIONAL), times(times), voxelSource(voxelSource), origin(origin), originalmarker(originalmarker), alternate(alternate)
 {
     this->behaviourMap = behaviourMap ;
     VoxelFilter vx ;

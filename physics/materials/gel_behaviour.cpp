@@ -10,7 +10,7 @@
 
 using namespace Amie ;
 
-GelBehaviour::GelBehaviour(bool st, double E, double nu, double alpha, SpaceDimensionality dim, planeType pt, int b) : StiffnessWithImposedDeformation(E,nu, alpha, dim, pt), spaceTime(st), freeblocks(b)
+GelBehaviour::GelBehaviour(bool st, double E, double nu, double alpha, SpaceDimensionality dim, planeType pt, int b) : StiffnessWithImposedStress( Tensor::cauchyGreen(E, nu, dim, pt), Vector({alpha,alpha, 0.})*Tensor::cauchyGreen(E, nu, dim, pt)), spaceTime(st), freeblocks(b)
 {
 
 }
@@ -18,7 +18,7 @@ GelBehaviour::GelBehaviour(bool st, double E, double nu, double alpha, SpaceDime
 Form * GelBehaviour::getCopy() const
 {
 	if(!spaceTime)
-		return new  StiffnessWithImposedDeformation(param, imposed);
+		return new  StiffnessWithImposedStress(param, imposed);
 
 	Matrix c = param ;
 	Vector a = imposed ;

@@ -58,6 +58,9 @@ protected:
     int currentMesh ;
     double currentTime ;
     std::string voxelSource ;
+    const char* origin; 
+    unsigned char originalmarker;
+    Form * alternate ;
 public:
 
     virtual int addToTree ( DelaunayTreeItem3D * toAdd ) ;
@@ -71,8 +74,8 @@ public:
     void addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep, const TetrahedralElement *father = nullptr) ;
     
 public:
-    MicDerivedMesh(const char * voxelSource, std::map<unsigned char,Form *> behaviourMap) ;
-    MicDerivedMesh(const char * voxelSource, std::map<unsigned char,Form *> behaviourMap, std::vector<double> times) ;
+    MicDerivedMesh(const char * voxelSource, std::map<unsigned char,Form *> behaviourMap, const char* origin, unsigned char originalmarker, Form * alternate) ;
+    MicDerivedMesh(const char * voxelSource, std::map<unsigned char,Form *> behaviourMap, std::vector<double> times, const char* origin, unsigned char originalmarker, Form * alternate) ;
     
     virtual ~MicDerivedMesh() {} ;
 
@@ -89,7 +92,7 @@ public:
     virtual size_t getLastNodeId() const {return global_counter ;};
     virtual size_t size() const {return tree.size() ;} ;
     
-    virtual bool step( double dt ) ;
+    virtual bool step( double dt) ;
 } ;
 
 }

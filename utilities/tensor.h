@@ -104,6 +104,9 @@ public:
 	static Matrix isotropicTransverseCauchyGreen(double E_1, double E_2, double G_12,  double nu_12, double nu_23, SpaceDimensionality dim, planeType pt) ;
 	static Vector rotate2ndOrderTensor2D( Vector & tensor, double angle ) ;
 	static Vector rotate2ndOrderTensor3D( Vector & tensor, Point angle, double tol = 1 ) ;
+    
+    static Matrix rotate2ndOrderTensor2D( Matrix & tensor, double angle ) ;
+    
 	static Matrix rotate4thOrderTensor2D( Matrix & tensor, double angle, double tol = 1 ) ;
 	static Matrix rotate4thOrderTensor3D( Matrix & tensor, Point angle, double tol = 1 ) ;
 	static Matrix to2D( Matrix & tensor, planeType pt, Variable var = ZETA) ;

@@ -22,6 +22,7 @@ ConjugateGradientWithSecant::ConjugateGradientWithSecant(Assembly * a, size_t n)
 
 bool ConjugateGradientWithSecant::solve(const Vector &x0, Preconditionner * precond , const double eps , const int maxit , bool verbose )
 {
+    return false ;
 // 	double sigma = 4;//(1.+sqrt(5.))/2. ; //secant parameter
 // 	size_t resetParameter = 16 ;
 // 	size_t maxSecantIteration = 16 ;

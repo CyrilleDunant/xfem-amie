@@ -147,7 +147,7 @@ bool IsotropicLinearDamageRate::fractured(int direction) const
 
 void IsotropicLinearDamage::postProcess()
 {
-  if(converged && state[0] > 0 ||
+  if((converged && state[0] > 0) ||
       newtonIteration /*&& 
       es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() < .05*es->getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() && 
       es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()*/

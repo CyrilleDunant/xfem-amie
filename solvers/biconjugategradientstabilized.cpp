@@ -13,7 +13,7 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 {
 	Preconditionner * P ;
 
-	
+	double vepsilon = epsilon*1e-1 ;
 	bool cleanup = false ;
 	
 	x.resize(assembly->getForces().size(), 0.) ;
@@ -40,7 +40,7 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 	double rho = std::inner_product(&r[0], &r[r.size()], &r_[0], double(0)) ;
 	
 	
-	if(std::abs(rho) < epsilon*epsilon)
+	if(std::abs(rho) < vepsilon*vepsilon)
 		return true ;
 	
 	Vector p(r) ;
@@ -54,7 +54,7 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 	
 	Vector s = r - v*alpha ;
 	
-	if(std::abs(s.max()) < epsilon)
+	if(std::abs(s.max()) < vepsilon)
 	{
 		x += p_*alpha ;
 		if(cleanup)
@@ -79,13 +79,13 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 	double err0 = sqrt( std::abs(parallel_inner_product(&r[0], &r[0], vsize))) ;
 	
 	int nit = 0 ;
-	int lastit = std::min(maxit, (int)assembly->getForces().size()/4) ;
+	int lastit = std::min(maxit, (int)assembly->getForces().size()*4) ;
 	if(maxit< 0)
 		lastit = assembly->getForces().size() ;
 	timeval time0, time1 ;
 	gettimeofday(&time0, nullptr);
 	
-	while(nit < lastit && std::abs(rho)*vsize*vsize > std::max(std::abs(err0)*epsilon*epsilon, epsilon*epsilon) )
+	while(nit < lastit && std::abs(rho)*vsize*vsize > std::max(std::abs(err0)*vepsilon*vepsilon, vepsilon*vepsilon) )
 	{
 		nit++ ;
 		
@@ -135,7 +135,7 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 	
 	if(verbose)
 	{
-		if(nit <= lastit && std::abs(rho) <= std::max(std::abs(err0)*epsilon*epsilon, epsilon*epsilon))
+		if(nit <= lastit && std::abs(rho) <= std::max(std::abs(err0)*vepsilon*vepsilon, vepsilon*vepsilon))
 			std::cerr << "\n BiCGStab " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 		else
 			std::cerr << "\n BiCGStab " << p.size() << " did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
@@ -144,5 +144,5 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 	if(cleanup)
 		delete P ;
 	
-	return nit < lastit && std::abs(rho) <= std::max(std::abs(err0)*epsilon*epsilon, epsilon*epsilon);
+	return nit < lastit && std::abs(rho) <= std::max(std::abs(err0)*vepsilon*vepsilon, vepsilon*vepsilon);
 }

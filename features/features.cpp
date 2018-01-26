@@ -204,7 +204,7 @@ FeatureTree::FeatureTree ( Feature *first, double fraction, int layer, size_t gr
 
 }
 
-FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form *> behaviourMap , const std::vector<double> & times ) :  state ( this ), nodes ( 0 ), grid ( nullptr ),grid3d ( nullptr )
+FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form *> behaviourMap , const std::vector<double> & times, const char* origin, unsigned char originalmarker, Form * alternate ) :  state ( this ), nodes ( 0 ), grid ( nullptr ),grid3d ( nullptr )
 {
     initialValue = 0 ;
     previousDeltaTime = 0 ;
@@ -222,9 +222,9 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     thresholdScoreMet = 0 ;
     
     if(times.empty())
-        dtree3D = new MicDerivedMesh(voxelSource, behaviourMap) ;
+        dtree3D = new MicDerivedMesh(voxelSource, behaviourMap,origin, originalmarker,alternate) ;
     else
-        dtree3D = new MicDerivedMesh(voxelSource, behaviourMap,times) ;
+        dtree3D = new MicDerivedMesh(voxelSource, behaviourMap, times,origin, originalmarker,alternate) ;
     structuredMesh = true ;
 
     father3D = nullptr;
@@ -5025,7 +5025,7 @@ bool FeatureTree::stepElements()
                         }
                     }
 
-                    std::cout << maxScore << "]" << std::flush ;
+                    std::cerr << maxScore << "]" << std::flush ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
                         if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE  && solverConverged() && !spaceTimeFixed)
@@ -5820,14 +5820,22 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
         if(largeStrains)
         {
             behaviourChange = behaviourChange || (std::abs(getDisplacements()).max() > 1e-4);   
-            std::cout << std::abs(getDisplacements()).max() << std::endl ;
+            std::cout << std::abs(getDisplacements()).max() << "  "<< std::flush ;
+//             if(std::abs(getDisplacements()).max() < 0.008)
+//             {
+//                 Vector tgt = std::abs(getDisplacements()) ;
+//                 std::sort(&tgt[0], &tgt[tgt.size()]) ;
+//                 for(size_t g = 0 ; g < 12 ; g++)
+//                     std::cout << tgt[tgt.size()-1-g] << "  " ;
+//                 std::cout << std::endl ;
+//             }
         }
         ++it ;
         deltaTime = 0 ;
         
         if ( solverConverged() )
         {
-            std::cout << "." << std::flush ;
+            std::cerr << "." << std::flush ;
             notConvergedCounts = 0 ;
 
             if(foundCheckPoint  && !(enrichmentChange || behaviourChanged() ) )
@@ -5840,9 +5848,9 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
             if(notConvergedCounts > 128)
             {
                 needexit = true ;
-                std::cout << "+" << std::flush ;
+                std::cerr << "+" << std::flush ;
             }
-            std::cout << ":" << std::flush ;
+            std::cerr << ":" << std::flush ;
         }
 
         if ( enrichmentChange || needMeshing )
@@ -6007,14 +6015,27 @@ void FeatureTree::updateMesh()
 
             for (  auto i = dtree->begin() ; i != dtree->end() ; i++  )
             {
+//                 i->moved = true ;
                 for (  size_t k = 0 ; k < i->getBoundingPoints().size() ; k++  )
                 {
-                    i->getBoundingPoint(k).set(i->getBoundingPoint(k).getX()+getDisplacements()[i->getBoundingPoint(k).getId()*2  ]*.05,
-                                               i->getBoundingPoint(k).getY()+getDisplacements()[i->getBoundingPoint(k).getId()*2+1]*.05) ;
+                    i->getBoundingPoint(k).set(i->getBoundingPoint(k).getX()+getDisplacements()[i->getBoundingPoint(k).getId()*2  ]*.005,
+                                               i->getBoundingPoint(k).getY()+getDisplacements()[i->getBoundingPoint(k).getId()*2+1]*.005) ;
                     pos +=2 ;    
                     
                 }
                
+//                 i->getBoundingPoint(0).set(i->getBoundingPoint(0).getX()+getDisplacements()[i->getBoundingPoint(0).getId()*2  ]*.05,
+//                                            i->getBoundingPoint(0).getY()+getDisplacements()[i->getBoundingPoint(0).getId()*2+1]*.05) ;
+//                 i->getBoundingPoint(2).set(i->getBoundingPoint(2).getX()+getDisplacements()[i->getBoundingPoint(2).getId()*2  ]*.05,
+//                                            i->getBoundingPoint(2).getY()+getDisplacements()[i->getBoundingPoint(2).getId()*2+1]*.05) ;   
+//                 i->getBoundingPoint(4).set(i->getBoundingPoint(4).getX()+getDisplacements()[i->getBoundingPoint(4).getId()*2  ]*.05,
+//                                            i->getBoundingPoint(4).getY()+getDisplacements()[i->getBoundingPoint(4).getId()*2+1]*.05) ;  
+//                 i->getBoundingPoint(1).set(i->getBoundingPoint(0).getX()*.5+i->getBoundingPoint(2).getX()*.5,
+//                                            i->getBoundingPoint(0).getY()*.5+i->getBoundingPoint(2).getY()*.5) ; 
+//                 i->getBoundingPoint(3).set(i->getBoundingPoint(2).getX()*.5+i->getBoundingPoint(4).getX()*.5,
+//                                            i->getBoundingPoint(2).getY()*.5+i->getBoundingPoint(4).getY()*.5) ; 
+//                 i->getBoundingPoint(5).set(i->getBoundingPoint(0).getX()*.5+i->getBoundingPoint(4).getX()*.5,
+//                                            i->getBoundingPoint(0).getY()*.5+i->getBoundingPoint(4).getY()*.5) ;                             
                 i->getElementaryMatrix().resize(0) ;
                 delete i->getState().JinvCache ;
                 i->getState().JinvCache = nullptr ;
@@ -6030,6 +6051,7 @@ void FeatureTree::updateMesh()
 
             for (  auto i = dtree3D->begin() ; i != dtree3D->end() ; i++  )
             {
+                i->moved = true ;
                 for (  size_t k = 0 ; k < i->getBoundingPoints().size() ; k++  )
                 {
 
@@ -6054,6 +6076,9 @@ void FeatureTree::updateMesh()
 bool FeatureTree::step(bool guided)
 {   
 
+    if(structuredMesh)
+        dtree3D->step(deltaTime) ;
+    
     if((solverConverged() && stateConverged && maxScore < thresholdScoreMet))
         iterationCounter = 0 ;
     bool ret = stepInternal(guided, true) ;
@@ -6212,6 +6237,55 @@ std::vector<Point *> FeatureTree::getNodes ()
     }
     std::sort ( pts.begin(), pts.end(), orderPointsByID ) ;
     return pts ;
+}
+
+double FeatureTree::volumeVariation() const
+{
+    
+    if ( is2D() )
+    {
+        VirtualMachine vm ;            
+        Vector d0(2) ;
+        Vector d1(2) ;
+        Vector d2(2) ;
+        double area = 0 ;
+        double areadef = 0 ;
+        for ( auto tri = dtree->begin() ; tri!=dtree->end() ; tri++ )
+        {            
+            tri->getState().getField ( DISPLACEMENT_FIELD, *tri->first, d0, false, &vm, 0 ) ;
+            tri->getState().getField ( DISPLACEMENT_FIELD, *tri->second, d1, false, &vm, 0 ) ;
+            tri->getState().getField ( DISPLACEMENT_FIELD, *tri->third, d2, false, &vm, 0 ) ;
+            
+            area += tri->area() ; 
+            Triangle test(*tri->first+Point(d0[0], d0[1]), *tri->second+Point(d1[0], d1[1]), *tri->third+Point(d2[0], d2[1])) ;
+            areadef += test.area() ;
+             
+        }
+        return areadef/area - 1. ;
+    }
+    
+        VirtualMachine vm ;            
+        Vector d0(3) ;
+        Vector d1(3) ;
+        Vector d2(3) ;
+        Vector d3(3) ;
+        double volume = 0 ;
+        double volumedef = 0 ;
+
+    for ( auto tet = dtree3D->begin() ; tet != dtree3D->end() ; tet++ )
+    {
+            tet->getState().getField ( DISPLACEMENT_FIELD, *tet->first, d0, false, &vm, 0 ) ;
+            tet->getState().getField ( DISPLACEMENT_FIELD, *tet->second, d1, false, &vm, 0 ) ;
+            tet->getState().getField ( DISPLACEMENT_FIELD, *tet->third, d2, false, &vm, 0 ) ;
+            tet->getState().getField ( DISPLACEMENT_FIELD, *tet->fourth, d3, false, &vm, 0 ) ;
+            
+            volume += tet->area() ; 
+            Tetrahedron test(*tet->first+Point(d0[0], d0[1]), *tet->second+Point(d1[0], d1[1]), *tet->third+Point(d2[0], d2[1]), *tet->fourth+Point(d3[0], d3[1])) ;
+            volumedef += test.area() ;
+    }
+    
+    return volumedef/volume - 1. ;
+
 }
 
 Vector FeatureTree::getAverageField ( FieldType f, double t, int grid, int index, int cacheID )

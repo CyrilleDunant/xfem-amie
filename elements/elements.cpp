@@ -4612,6 +4612,247 @@ Amie::Function dTTransform(const std::valarray<Amie::Point*> & points ,const std
     }
 }
 
+
+Amie::Function XdXTransform(const Vector & disp ,const std::valarray< Amie::Function> &basis, Amie::Variable v, int ndof)
+{
+    switch(v)
+    {
+    case XI:
+    {
+        Function der_x ;
+
+        assert(points.size() == basis.size()) ;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_x += basis[i].d(XI)*disp[i*ndof] ;
+        }
+
+        return der_x ;
+    }
+    case ETA:
+    {
+        Function der_y ;
+
+        assert(points.size() == basis.size()) ;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_y += basis[i].d(ETA)*disp[i*ndof] ;
+        }
+
+        return der_y ;
+    }
+    case ZETA:
+    {
+        Function der_z ;
+
+        assert(points.size() == basis.size()) ;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_z += basis[i].d(ZETA)*disp[i*ndof] ;
+        }
+
+        return der_z ;
+    }
+    case TIME_VARIABLE:
+    {
+        Function der_t ;
+
+        assert(points.size() == basis.size()) ;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_t += basis[i].d(TIME_VARIABLE)*disp[i*ndof] ;
+        }
+
+        return der_t ;
+    }
+    default:
+    {
+        std::cout << "*** dXTransform error ***" << std::endl ;
+        return Function() ;
+    }
+    }
+}
+
+Amie::Function XdYTransform(const Vector & disp ,const std::valarray< Amie::Function> &basis, Amie::Variable v, int ndofs)
+{
+    switch(v)
+    {
+    case XI:
+    {
+        Function der_x ;
+
+        assert(points.size() == basis.size()) ;
+        for(size_t i = 0 ; i < disp.size() ; i++)
+        {
+            der_x += basis[i].d(XI)*disp[i*ndofs+1] ;
+        }
+
+        return der_x ;
+    }
+    case ETA:
+    {
+        Function der_y ;
+
+        assert(points.size() == basis.size()) ;
+        for(size_t i = 0 ; i < disp.size() ; i++)
+        {
+            der_y += basis[i].d(ETA)*disp[i*ndofs+1] ;
+        }
+
+        return der_y ;
+    }
+    case ZETA:
+    {
+        Function der_z ;
+
+        assert(points.size() == basis.size()) ;
+        for(size_t i = 0 ; i < disp.size() ; i++)
+        {
+            der_z += basis[i].d(ZETA)*disp[i*ndofs+1] ;
+        }
+
+        return der_z ;
+    }
+    case TIME_VARIABLE:
+    {
+        Function der_t ;
+
+        assert(points.size() == basis.size()) ;
+        for(size_t i = 0 ; i < disp.size() ; i++)
+        {
+            der_t += basis[i].d(TIME_VARIABLE)*disp[i*ndofs+1] ;
+        }
+
+        return der_t ;
+    }
+    default:
+    {
+        std::cout << "*** dYTransform error ***" << std::endl ;
+        return Function() ;
+    }
+    }
+}
+
+Amie::Function XdZTransform(const Vector & disp ,const std::valarray< Amie::Function> &basis, Amie::Variable v, int ndofs)
+{
+    switch(v)
+    {
+    case XI:
+    {
+        Function der_x ;
+
+        assert(points.size() == basis.size()) ;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_x += basis[i].d(XI)*disp[i*ndofs+2] ;
+        }
+
+        return der_x ;
+    }
+    case ETA:
+    {
+        Function der_y ;
+
+        assert(points.size() == basis.size()) ;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_y += basis[i].d(ETA)*disp[i*ndofs+2] ;
+        }
+
+        return der_y ;
+    }
+    case ZETA:
+    {
+        Function der_z ;
+
+        assert(points.size() == basis.size()) ;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_z += basis[i].d(ZETA)*disp[i*ndofs+2] ;
+        }
+
+        return der_z ;
+    }
+    case TIME_VARIABLE:
+    {
+        Function der_t ;
+
+        assert(points.size() == basis.size()) ;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_t += basis[i].d(TIME_VARIABLE)*disp[i*ndofs+2] ;
+        }
+
+        return der_t ;
+    }
+    default:
+    {
+        std::cout << "*** dZTransform error ***" << std::endl ;
+        return Function() ;
+    }
+    }
+}
+
+Amie::Function XdTTransform(const Vector & disp ,const std::valarray< Amie::Function> &basis, Amie::Variable v, int ndofs)
+{
+    switch(v)
+    {
+    case XI:
+    {
+        Function der_x ;
+
+        assert(points.size() == basis.size()) ;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_x += basis[i].d(XI)*disp[i*ndofs+3] ;
+        }
+
+        return der_x ;
+    }
+    case ETA:
+    {
+        Function der_y ;
+
+        assert(points.size() == basis.size()) ;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_y += basis[i].d(ETA)*disp[i*ndofs+3] ;
+        }
+
+        return der_y ;
+    }
+    case ZETA:
+    {
+        Function der_z ;
+
+        assert(points.size() == basis.size()) ;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_z += basis[i].d(ZETA)*disp[i*ndofs+3] ;
+        }
+
+        return der_z ;
+    }
+    case TIME_VARIABLE:
+    {
+        Function der_t ;
+
+        assert(points.size() == basis.size()) ;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_t += basis[i].d(ZETA)*disp[i*ndofs+3] ;
+        }
+
+        return der_t ;
+    }
+    default:
+    {
+        std::cout << "*** dTTransform error ***" << std::endl ;
+        return Function() ;
+    }
+    }
+}
+
 double dXTransform(const std::valarray<Amie::Point*> & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Point & p)
 {
     switch(v)
@@ -4847,6 +5088,235 @@ double dTTransform(const std::valarray<Amie::Point*> & points ,const std::valarr
     }
     }
 }
+
+double XdXTransform(const Vector & disps ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Point & p, int ndofs)
+{
+ switch(v)
+    {
+    case XI:
+    {
+        VirtualMachine vm ;
+        double der_x = 0;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_x += vm.deval(basis[i],XI,p)*(disps[i*ndofs]) ;
+        }
+        return der_x ;
+    }
+    case ETA:
+    {
+        VirtualMachine vm ;
+        double der_y = 0 ;
+
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_y += vm.deval(basis[i],ETA, p)*(disps[i*ndofs]) ;
+        }
+
+        return der_y ;
+    }
+    case ZETA:
+    {
+        VirtualMachine vm ;
+        double der_z = 0 ;
+
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_z += vm.deval(basis[i],ZETA,p)*(disps[i*ndofs]) ;
+        }
+
+        return der_z ;
+    }
+    case TIME_VARIABLE:
+    {
+        VirtualMachine vm ;
+        double der_t = 0 ;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_t += vm.deval(basis[i],TIME_VARIABLE,p)*(disps[i*ndofs]) ;
+        }
+
+        return der_t ;
+    }
+    default:
+    {
+        std::cout << "*** dTTransform error ***" << std::endl ;
+        return 0 ;
+    }
+    }
+}
+
+double XdYTransform(const Vector & disps ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Point & p, int ndofs)
+{
+    switch(v)
+    {
+    case XI:
+    {
+        VirtualMachine vm ;
+        double der_x = 0;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_x += vm.deval(basis[i],XI,p)*(disps[i*ndofs+1]) ;
+        }
+        return der_x ;
+    }
+    case ETA:
+    {
+        VirtualMachine vm ;
+        double der_y = 0 ;
+
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_y += vm.deval(basis[i],ETA, p)*(disps[i*ndofs+1]) ;
+        }
+
+        return der_y ;
+    }
+    case ZETA:
+    {
+        VirtualMachine vm ;
+        double der_z = 0 ;
+
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_z += vm.deval(basis[i],ZETA,p)*(disps[i*ndofs+1]) ;
+        }
+
+        return der_z ;
+    }
+    case TIME_VARIABLE:
+    {
+        VirtualMachine vm ;
+        double der_t = 0 ;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_t += vm.deval(basis[i],TIME_VARIABLE,p)*(disps[i*ndofs+1]) ;
+        }
+
+        return der_t ;
+    }
+    default:
+    {
+        std::cout << "*** dTTransform error ***" << std::endl ;
+        return 0 ;
+    }
+    }
+}
+
+double XdZTransform(const Vector & disps ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Point & p, int ndofs)
+{
+    switch(v)
+    {
+    case XI:
+    {
+        VirtualMachine vm ;
+        double der_x = 0;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_x += vm.deval(basis[i],XI,p)*(disps[i*ndofs+2]) ;
+        }
+        return der_x ;
+    }
+    case ETA:
+    {
+        VirtualMachine vm ;
+        double der_y = 0 ;
+
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_y += vm.deval(basis[i],ETA, p)*(disps[i*ndofs+2]) ;
+        }
+
+        return der_y ;
+    }
+    case ZETA:
+    {
+        VirtualMachine vm ;
+        double der_z = 0 ;
+
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_z += vm.deval(basis[i],ZETA,p)*(disps[i*ndofs+2]) ;
+        }
+
+        return der_z ;
+    }
+    case TIME_VARIABLE:
+    {
+        VirtualMachine vm ;
+        double der_t = 0 ;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_t += vm.deval(basis[i],TIME_VARIABLE,p)*(disps[i*ndofs+2]) ;
+        }
+
+        return der_t ;
+    }
+    default:
+    {
+        std::cout << "*** dTTransform error ***" << std::endl ;
+        return 0 ;
+    }
+    }
+}
+
+double XdTTransform(const Vector & disps ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Point & p, int ndofs)
+{
+    switch(v)
+    {
+    case XI:
+    {
+        VirtualMachine vm ;
+        double der_x = 0;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_x += vm.deval(basis[i],XI,p)*(disps[i*ndofs+3]) ;
+        }
+        return der_x ;
+    }
+    case ETA:
+    {
+        VirtualMachine vm ;
+        double der_y = 0 ;
+
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_y += vm.deval(basis[i],ETA, p)*(disps[i*ndofs+3]) ;
+        }
+
+        return der_y ;
+    }
+    case ZETA:
+    {
+        VirtualMachine vm ;
+        double der_z = 0 ;
+
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_z += vm.deval(basis[i],ZETA,p)*(disps[i*ndofs+3]) ;
+        }
+
+        return der_z ;
+    }
+    case TIME_VARIABLE:
+    {
+        VirtualMachine vm ;
+        double der_t = 0 ;
+        for(size_t i = 0 ; i < basis.size() ; i++)
+        {
+            der_t += vm.deval(basis[i],TIME_VARIABLE,p)*(disps[i*ndofs+3]) ;
+        }
+
+        return der_t ;
+    }
+    default:
+    {
+        std::cout << "*** dTTransform error ***" << std::endl ;
+        return 0 ;
+    }
+    }
+}
+
 
 const GaussPointArray & HexahedralElement::genGaussPoints()
 {

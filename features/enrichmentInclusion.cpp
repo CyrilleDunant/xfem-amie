@@ -234,7 +234,6 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 
     if(disc.size() < 3)
     {
-
         DelaunayTriangle * toHomogenise = disc[0];
 
         disc.clear() ;
@@ -247,7 +246,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
         HomogeneisedBehaviour * hom2 = new HomogeneisedBehaviour(feat, toHomogenise) ;
         toHomogenise->setBehaviour(dtree,hom2) ;
         toHomogenise->getBehaviour()->setSource(getPrimitive()) ;
-
+        toHomogenise->behaviourUpdated = true ;
 
         return ;
     }

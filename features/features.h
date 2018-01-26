@@ -733,7 +733,7 @@ public:
      * In the first case, the voxelSource is a voxel file, in the second it is the directory where the µic pixel files are located.
      * 
      */
-    FeatureTree ( const char * voxelSource, std::map<unsigned char, Form *> behaviourMap, const std::vector<double> & times = std::vector<double>()) ;
+    FeatureTree ( const char * voxelSource, std::map<unsigned char, Form *> behaviourMap, const std::vector<double> & times = std::vector<double>(), const char* origin = nullptr, unsigned char originalmarker = 0, Form * alternate = nullptr) ;
     virtual ~FeatureTree() ;
 
     void dumpFeatures ( std::string filename ) ;
@@ -901,6 +901,8 @@ public:
     std::vector<double> getMedianMacroscopicStrain ( const Geometry * base, double tol = 0.001 ) ;
 
     std::vector<Point *> getNodes() ;
+    
+    double volumeVariation() const ;
 
     size_t numPoints() const ;
 

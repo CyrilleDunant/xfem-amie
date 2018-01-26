@@ -120,7 +120,7 @@ bool VoxelFilter::existsPath(std::vector<std::vector<std::vector<unsigned char> 
 }
 
 
-void VoxelFilter::update(std::vector< DelaunayTetrahedron* > & tree, const char* filename, Mesh <DelaunayTetrahedron, DelaunayTreeItem3D >* mesh )
+void VoxelFilter::update(std::vector< DelaunayTetrahedron* > & tree, const char* filename, Mesh <DelaunayTetrahedron, DelaunayTreeItem3D >* mesh , const char* origin, unsigned char originalmarker, Form * alternate)
 {
     if(behaviourMap.empty())
     {
@@ -129,10 +129,10 @@ void VoxelFilter::update(std::vector< DelaunayTetrahedron* > & tree, const char*
     }
 
     std::fstream file(filename) ;
+    std::fstream originalFile ;
     int r ;
     int c ;
     int s ;
-    r=1;
 
 
     std::string dummy ;
@@ -150,10 +150,16 @@ void VoxelFilter::update(std::vector< DelaunayTetrahedron* > & tree, const char*
         std::cerr << "could not open file !" << std::endl ;
         return ;
     }
+     std::cerr << "volume is " << r << " x " << c << " x " << s << std::endl ;
     long position = file.tellp() ;
     file.close() ;
     file.open(filename, std::ios::binary|std::ios::in) ;
     file.seekp(position)  ;
+    if(origin)
+    {
+        originalFile.open(origin, std::ios::binary|std::ios::in) ;
+        originalFile.seekp(position)  ; 
+    }
 
     int eindex = 0 ;
     for( int i = 0 ; i < r ; i++)
@@ -164,14 +170,33 @@ void VoxelFilter::update(std::vector< DelaunayTetrahedron* > & tree, const char*
             {
                 if(!file.eof())
                 {
-                    unsigned char behaviourKey ;
+//                     std::cout << "paf " << std::flush ;
+                    unsigned char behaviourKey, originalBehaviourKey ;
                     file >> behaviourKey ;
-                    tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
-                    tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
-                    tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
-                    tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
-                    tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
-                    tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
+//                     std::cout << "pof " << (int)behaviourKey << std::flush ;
+                    if(origin)
+                       originalFile >>  originalBehaviourKey ;
+//                     std::cout << "pif " << (int)behaviourKey <<"  "<< eindex << "  " << tree.size() << std::endl ;
+//                     if(eindex >= tree.size())
+//                         continue ;
+                    if(!origin || (origin && originalBehaviourKey != originalmarker))
+                    {
+                        tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
+                        tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
+                        tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
+                        tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
+                        tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
+                        tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
+                    }
+                    else
+                    {
+                        tree[eindex++]->setBehaviour(mesh,alternate->getCopy()) ;
+                        tree[eindex++]->setBehaviour(mesh,alternate->getCopy()) ;
+                        tree[eindex++]->setBehaviour(mesh,alternate->getCopy()) ;
+                        tree[eindex++]->setBehaviour(mesh,alternate->getCopy()) ;
+                        tree[eindex++]->setBehaviour(mesh,alternate->getCopy()) ;
+                        tree[eindex++]->setBehaviour(mesh,alternate->getCopy()) ;
+                    }
                 }
             }
         }
@@ -275,11 +300,9 @@ void VoxelFilter::read(const char * filename, Mesh<DelaunayTetrahedron, Delaunay
     file.close() ;
     file.open(filename, std::ios::binary|std::ios::in) ;
     file.seekp(position)  ;
-    r=1;
+
     std::cerr << "volume is " << r << " x " << c << " x " << s << std::endl ;
-//     r = 3 ;
-//     c = 3 ;
-//     s = 3 ;
+
     int index = 0 ;
     for( int i = 0 ; i < r+1 ; i++)
     {

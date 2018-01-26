@@ -64,7 +64,7 @@ Form * WeibullDistributedElasticStiffness::getCopy() const
     std::default_random_engine generator(std::rand());
     std::weibull_distribution< double > distribution(5, 1);
     double weib = distribution(generator) ;
-    double factor = 1 - variability + variability*weib ;
+    double factor = 1. - variability + variability*weib ;
     return new Stiffness( param*factor ) ;
 }
 

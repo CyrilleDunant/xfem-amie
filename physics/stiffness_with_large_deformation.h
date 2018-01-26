@@ -35,13 +35,16 @@ namespace Amie
 */
 struct StiffnessWithLargeDeformation : public LinearForm
 {
+    friend class Triangle ;
     std::vector<Variable> v ;
     Vector imposed ;
     bool active = false ;
     bool change = false ;
     double initialVolume ;
-    Function x ;
-    Function y ;
+    double poisson ; 
+    Matrix largeDeformationTransformc ;
+    double globalTransformAngle ;
+
     std::vector<double> initialPosition ;
     /** \brief Constructor
     *

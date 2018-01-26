@@ -82,11 +82,11 @@ public:
 	std::map<std::string, std::string> getDirectConfiguration() { return directConfig ; }
 
 	void setNumThreads(int n) ;
-	void sendEmail( std::string subject, std::string body, std::string attachment = std::string() ) ;
+	int sendEmail( std::string subject, std::string body, std::string attachment = std::string() ) ;
 
 	void printStatus() ;
 	void printHelp() ;
-	void printVersion() ;
+	int printVersion() ;
 	void printFormatedHelp( std::string arg, int max, int maxalias, std::string help, std::string lead, bool printAlias) ;
 
 	void setFeatureTree( FeatureTree * f) ;
