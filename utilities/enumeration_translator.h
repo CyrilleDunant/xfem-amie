@@ -190,10 +190,12 @@ struct Enum
             case FLUX_FIELD: return "FLUX_FIELD" ;
             case GRADIENT_FIELD: return "GRADIENT_FIELD" ;
             case TOTAL_STRAIN_FIELD: return "TOTAL_STRAIN_FIELD" ;
+            case TOTAL_FINITE_STRAIN_FIELD: return "TOTAL_FINITE_STRAIN_FIELD" ;
             case STRAIN_RATE_FIELD: return "STRAIN_RATE_FIELD" ;
             case MECHANICAL_STRAIN_FIELD: return "MECHANICAL_STRAIN_FIELD" ;
             case EFFECTIVE_STRESS_FIELD: return "EFFECTIVE_STRESS_FIELD" ;
             case REAL_STRESS_FIELD: return "REAL_STRESS_FIELD" ;
+            case REAL_FINITE_STRESS_FIELD: return "REAL_FINITE_STRESS_FIELD" ;
             case PRINCIPAL_TOTAL_STRAIN_FIELD: return "PRINCIPAL_TOTAL_STRAIN_FIELD" ;
             case PRINCIPAL_MECHANICAL_STRAIN_FIELD: return "PRINCIPAL_MECHANICAL_STRAIN_FIELD" ;
             case PRINCIPAL_EFFECTIVE_STRESS_FIELD: return "PRINCIPAL_EFFECTIVE_STRESS_FIELD" ;
@@ -1229,7 +1231,6 @@ struct Enum
         if( type == "TWFT_FIELD_TYPE") { return TWFT_FIELD_TYPE ; }
         if( type == "TWFT_INTERNAL_VARIABLE") { return TWFT_INTERNAL_VARIABLE ; }
         if( type == "TWFT_LARGE_DEFORMATION_TRANSFORM") { return TWFT_LARGE_DEFORMATION_TRANSFORM ; }
-        if( type == "TWFT_LARGE_DEFORMATION_ANGLE") { return TWFT_LARGE_DEFORMATION_ANGLE ; }
         if(ok) { *ok = false ; }
         return TWFT_COORDINATE ;
     }
@@ -1266,9 +1267,6 @@ struct Enum
             case TWFT_FIELD_TYPE: return "TWFT_FIELD_TYPE" ;
             case TWFT_INTERNAL_VARIABLE: return "TWFT_INTERNAL_VARIABLE" ;
             case TWFT_LARGE_DEFORMATION_TRANSFORM: return "TWFT_LARGE_DEFORMATION_TRANSFORM" ;
-            case TWFT_LARGE_DEFORMATION_ANGLE: return "TWFT_LARGE_DEFORMATION_ANGLE" ;
-            case TWFT_LARGE_DEFORMATION_FORCES: return "TWFT_LARGE_DEFORMATION_FORCES" ;
-            case TWFT_LARGE_DEFORMATION_STRESS: return "TWFT_LARGE_DEFORMATION_STRESS" ;
         }
         return "TWFT_COORDINATE" ;
     }

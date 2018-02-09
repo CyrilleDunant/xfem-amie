@@ -831,7 +831,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 gpe.gaussPoints[i].second *= edge.norm() *.5 ;
                 if(e->getOrder() >= CONSTANT_TIME_LINEAR)
                     gpe.gaussPoints[i].second *= .5 ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
 
@@ -925,7 +925,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 gpe.gaussPoints[i].second *= edge.norm() *.5 ;
                 if(e->getOrder() >= CONSTANT_TIME_LINEAR)
                     gpe.gaussPoints[i].second *= .5 ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
 
@@ -1024,7 +1024,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
                 {
-                    e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                    e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
                 }
             }
 
@@ -1139,7 +1139,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 gpe.gaussPoints[i].second *= edge.norm() *.5 ;
                 if(e->getOrder() >= CONSTANT_TIME_LINEAR)
                     gpe.gaussPoints[i].second *= .5 ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
             std::vector<Variable> v ( 2 ) ;
@@ -1259,7 +1259,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 gpe.gaussPoints[i].second *= edge.norm() /2 ;
                 if(e->getOrder() >= CONSTANT_TIME_LINEAR)
                     gpe.gaussPoints[i].second *= .5 ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
             std::vector<Variable> v ( 2 ) ;
@@ -1348,7 +1348,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 gpe.gaussPoints[i].second *= edge.norm() /2 ;
                 if(e->getOrder() >= CONSTANT_TIME_LINEAR)
                     gpe.gaussPoints[i].second *= .5 ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
             std::vector<Variable> v ( 2 ) ;
@@ -1771,7 +1771,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
             std::vector<Variable> v ( 3 ) ;
@@ -1864,7 +1864,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
             std::vector<Variable> v ( 3 ) ;
@@ -1957,7 +1957,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
             std::vector<Variable> v ( 3 ) ;
@@ -2498,7 +2498,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
             std::vector<Variable> v ( 3 ) ;
@@ -2612,7 +2612,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
             std::vector<Variable> v ( 3 ) ;
@@ -2726,7 +2726,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
             std::vector<Variable> v ( 3 ) ;
@@ -2840,7 +2840,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
             std::vector<Variable> v ( 3 ) ;
@@ -2966,7 +2966,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
             std::vector<Variable> v ( 3 ) ;
@@ -3123,7 +3123,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
             std::vector<Variable> v ( 3 ) ;
@@ -3826,7 +3826,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 gpe.gaussPoints[i].second *= edge.norm() *.5 ;
                 if(e->getOrder() >= CONSTANT_TIME_LINEAR)
                     gpe.gaussPoints[i].second *= .5 ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
             
 
@@ -3918,7 +3918,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 gpe.gaussPoints[i].second *= edge.norm() *.5 ;
                 if(e->getOrder() >= CONSTANT_TIME_LINEAR)
                     gpe.gaussPoints[i].second *= .5 ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
             
 
@@ -4007,7 +4007,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 gpe.gaussPoints[j].first = e->inLocalCoordinates ( gpe.gaussPoints[j].first ) ;
 //                 gpe.gaussPoints[j].second = edge.norm() *.5 ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[j].first, Jinve[j] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[j].first, Jinve[j] ) ;
             }
 
 
@@ -4128,7 +4128,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 gpe.gaussPoints[j].first = e->inLocalCoordinates ( gpe.gaussPoints[j].first ) ;
                 gpe.gaussPoints[j].second *= edge.norm() *.5 ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[j].first, Jinve[j] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[j].first, Jinve[j] ) ;
             }
 
 
@@ -4516,7 +4516,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t j = 0 ; j < gpe.gaussPoints.size() ; j++ )
             {
                 gpe.gaussPoints[j].first = e->inLocalCoordinates ( gpe.gaussPoints[j].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[j].first, Jinve[j] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[j].first, Jinve[j] ) ;
             }
             std::vector<Variable> v ( 3 ) ;
 
@@ -4628,7 +4628,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t j = 0 ; j < gpe.gaussPoints.size() ; j++ )
             {
                 gpe.gaussPoints[j].first = e->inLocalCoordinates ( gpe.gaussPoints[j].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[j].first, Jinve[j] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[j].first, Jinve[j] ) ;
             }
             std::vector<Variable> v ( 3 ) ;
 
@@ -4738,7 +4738,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t j = 0 ; j < gpe.gaussPoints.size() ; j++ )
             {
                 gpe.gaussPoints[j].first = e->inLocalCoordinates ( gpe.gaussPoints[j].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[j].first, Jinve[j] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[j].first, Jinve[j] ) ;
             }
 
             std::vector<Variable> v ( 3 ) ;
@@ -5050,7 +5050,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
             std::vector<Variable> v ( 3 ) ;
@@ -5162,7 +5162,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
             std::vector<Variable> v ( 3 ) ;
@@ -5274,7 +5274,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
             std::vector<Variable> v ( 3 ) ;
@@ -5386,7 +5386,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
             std::vector<Variable> v ( 3 ) ;
@@ -5512,7 +5512,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t j = 0 ; j < gpe.gaussPoints.size() ; j++ )
             {
                 gpe.gaussPoints[j].first = e->inLocalCoordinates ( gpe.gaussPoints[j].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[j].first, Jinve[j] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[j].first, Jinve[j] ) ;
             }
 
             std::vector<Variable> v ( 3 ) ;
@@ -5676,7 +5676,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t j = 0 ; j < gpe.gaussPoints.size() ; j++ )
             {
                 gpe.gaussPoints[j].first = e->inLocalCoordinates ( gpe.gaussPoints[j].first ) ;
-                e->getInverseJacobianMatrix ( gpe.gaussPoints[j].first, Jinve[j] ) ;
+                e->getState().getInverseJacobianMatrix ( gpe.gaussPoints[j].first, Jinve[j] ) ;
             }
 
             std::vector<Variable> v ( 3 ) ;
@@ -6485,7 +6485,7 @@ void BoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeI
 
         for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
         {
-            cache2d[i]->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+            cache2d[i]->getState().getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
         }
 
         for ( size_t j = 0 ; j < cache[i].size() ; j++ )
@@ -6514,7 +6514,7 @@ void BoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTr
 
         for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
         {
-            cache3d[i]->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+            cache3d[i]->getState().getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
         }
 
         for ( size_t j = 0 ; j < cache[i].size() ; j++ )
@@ -6598,7 +6598,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
             }
         }
 
-        double tol = std::min ( maxx - minx, maxy - miny ) * .0001 ;
+        double tol = std::max(std::min ( maxx - minx, maxy - miny ) * POINT_TOLERANCE, POINT_TOLERANCE) ;
 
         Point pmin ( minx,miny, 0., mint ) ;
         Point pmax ( maxx,maxy, 0., maxt ) ;
@@ -6631,7 +6631,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
 
         for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
         {
-            id.begin()->second.second->getInverseJacobianMatrix ( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+            id.begin()->second.second->getState().getInverseJacobianMatrix ( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
         }
 
         if ( !function )
@@ -6725,7 +6725,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
             }
         }
 
-        double tol = std::min ( std::min ( maxx - minx, maxy - miny ), maxz - minz ) * .0001 ;
+        double tol = std::max(std::min ( std::min ( maxx - minx, maxy - miny ), maxz - minz ) * POINT_TOLERANCE, POINT_TOLERANCE) ;
 
         Point pmin ( minx, miny, minz, mint ) ;
         Point pmax ( maxx, maxy, maxz, maxt ) ;
@@ -6758,7 +6758,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
 
         for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
         {
-            id.begin()->second.second->getInverseJacobianMatrix ( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+            id.begin()->second.second->getState().getInverseJacobianMatrix ( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
         }
 
         if ( !function )
@@ -7004,7 +7004,7 @@ void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriang
 
             for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
             {
-                i->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+                i->getState().getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
             }
 
 
@@ -7065,7 +7065,7 @@ void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrah
 
             for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
             {
-                i->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+                i->getState().getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
             }
 
             if ( !function )
@@ -7113,7 +7113,7 @@ void GlobalBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, Delau
 
             for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
             {
-                i->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+                i->getState().getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
             }
 
 
@@ -7240,7 +7240,7 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Me
             }
         }
 
-        double tol = std::min ( maxx - minx, maxy - miny ) * .0001 ;
+        double tol = std::max(std::min ( maxx - minx, maxy - miny ) * POINT_TOLERANCE, POINT_TOLERANCE) ;
 
         Point pmin ( minx,miny, 0., mint ) ;
         Point pmax ( maxx,maxy, 0., maxt ) ;
@@ -7353,7 +7353,7 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTri
         Point pmin ( minx, miny, 0., mint ) ;
         Point pmax ( maxx, maxy, 0., maxt ) ;
 
-        double tol = std::max ( std::min ( std::min ( maxx - minx, maxy - miny ), maxt-mint ) * .001, POINT_TOLERANCE ) ;
+        double tol = std::max ( std::min ( std::min ( maxx - minx, maxy - miny ), maxt-mint ) * POINT_TOLERANCE, POINT_TOLERANCE ) ;
 
         for ( auto i = t->begin() ; i != t->end() ; i++ )
         {
@@ -7467,7 +7467,7 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Me
             }
         }
 
-        double tol = std::min ( std::min ( maxx - minx, maxy - miny ), maxz - minz ) * .0001 ;
+        double tol = std::max(std::min ( std::min ( maxx - minx, maxy - miny ), maxz - minz ) * POINT_TOLERANCE, POINT_TOLERANCE );
 
         Point pmin ( minx,miny, minz, mint ) ;
         Point pmax ( maxx,maxy, maxz, maxt ) ;
@@ -7587,7 +7587,7 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTet
             }
         }
 
-        double tol = std::min ( std::min ( maxx - minx, maxy - miny ), maxz - minz ) * .0001 ;
+        double tol = std::max(std::min ( std::min ( maxx - minx, maxy - miny ), maxz - minz ) * POINT_TOLERANCE, POINT_TOLERANCE) ;
 
         Point pmin ( minx,miny, minz, mint ) ;
         Point pmax ( maxx,maxy, maxz, maxt ) ;
@@ -7622,7 +7622,7 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTet
 
                 for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
                 {
-                    i->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+                    i->getState().getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
                 }
                 if ( !function )
                 {
@@ -7716,7 +7716,7 @@ void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTria
 
                 for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
                 {
-                    i->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+                    i->getState().getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
                 }
 
                 if ( !id.empty() )
@@ -7780,7 +7780,7 @@ void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetr
 
         for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
         {
-            i->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+            i->getState().getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
         }
 
         if ( !function )

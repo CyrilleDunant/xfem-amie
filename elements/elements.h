@@ -65,7 +65,6 @@ protected:
 public:
 
     ElementarySurface() ;
-    virtual Function jacobian() const = 0;
     virtual ~ElementarySurface() ;
     virtual void clearElementaryMatrix() = 0 ;
     virtual void print()  const = 0 ;
@@ -101,7 +100,7 @@ public:
     virtual Point inLocalCoordinates(const Point & p) const  = 0;
 
     
-    virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) = 0 ;
+//     virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) = 0 ;
 
     virtual Form * getBehaviour() const final;
     void setBehaviour( Mesh< DelaunayTriangle, DelaunayTreeItem >* msh, Form* f );
@@ -224,7 +223,6 @@ public:
     }
     
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
-    virtual std::valarray<std::valarray<Matrix> > getTangentElementaryMatrix(VirtualMachine * vm ) ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > & getCachedElementaryMatrix() {return cachedElementaryMatrix ;}
     virtual std::valarray<std::valarray<Matrix> > & getCachedViscousElementaryMatrix() {return cachedViscousElementaryMatrix ;}
@@ -235,11 +233,11 @@ public:
     virtual void getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2)  ;
     virtual void getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2, Matrix & t3) ;
 
-    Function jacobian() const ;
+//     Function jacobian() const ;
 
-    double  jacobianAtPoint(const Point & p) const ;
+//     double  jacobianAtPoint(const Point & p) const ;
 
-    void getInverseJacobianMatrix(const Point & p, Matrix & ret) final;
+//     void getInverseJacobianMatrix(const Point & p, Matrix & ret) final;
 
     const GaussPointArray & getGaussPoints() final;
 
@@ -294,8 +292,8 @@ protected:
 public:
 
     ElementaryVolume(bool f = false) ;
-    virtual Function jacobian() const ;
-    double jacobianAtPoint(const Point & p) const ;
+//     virtual Function jacobian() const ;
+//     double jacobianAtPoint(const Point & p) const ;
     virtual ~ElementaryVolume() ;
 
     virtual bool isMoved() const ;
@@ -309,7 +307,6 @@ public:
     virtual const GaussPointArray & getGaussPoints() = 0 ;
 
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) = 0;
-    virtual std::valarray<std::valarray<Matrix> > getTangentElementaryMatrix(VirtualMachine * vm = nullptr) = 0;
     virtual std::valarray<std::valarray<Matrix> > & getCachedElementaryMatrix() {return cachedElementaryMatrix ;}
     virtual std::valarray<std::valarray<Matrix> > & getCachedViscousElementaryMatrix() {return cachedViscousElementaryMatrix ;}
     virtual Form * getBehaviour() const final;
@@ -338,7 +335,7 @@ public:
 
     virtual void setEnrichment(const Function &  p, Geometry * g) final;
 
-    virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) ;
+//     virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) ;
 
     virtual const PointArray & getBoundingPoints() const = 0;
     virtual PointArray & getBoundingPoints() = 0;
@@ -381,9 +378,8 @@ public:
         return !(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() == getShapeFunctions().size()+getEnrichmentFunctions().size()) ;
     }
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
-    virtual std::valarray<std::valarray<Matrix> > getTangentElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
-    virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) ;
+//     virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) ;
     virtual const std::valarray< Function > & getShapeFunctions() const ;
     virtual std::valarray< Function > & getShapeFunctions() ;
 
@@ -444,7 +440,6 @@ public:
         return !(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() == getShapeFunctions().size()+getEnrichmentFunctions().size()) ;
     }
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
-    virtual std::valarray<std::valarray<Matrix> > getTangentElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
 
 
@@ -476,7 +471,7 @@ public:
 
 void computeNeighbourhoodForStructuredHexahedralMesh(std::vector<HexahedralElement *> & vec) ;
 void burn(std::vector<HexahedralElement *> & vec) ;
-GaussPointArray gaussPointSet(Order order, const TriElement * t) ;
-GaussPointArray gaussPointSet(Order order, const TetrahedralElement * t) ;
+GaussPointArray gaussPointSet2D(Order order, const ElementState & s) ;
+GaussPointArray gaussPointSet3D(Order order, const ElementState & s) ;
 } 
 #endif // __ELEMENTS_H_

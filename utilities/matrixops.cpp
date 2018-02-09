@@ -536,7 +536,7 @@ Matrix inverse2x2Matrix(const Matrix &s)
 void invert2x2Matrix(Matrix &s)
 {
 
-    if(std::abs(s.array()[0]) < 1e-16)
+    if(std::abs(s.array()[0]) < 1e-24)
     {
         double a = s.array()[0] ;
         double b = s.array()[1] ;

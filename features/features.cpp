@@ -171,8 +171,8 @@ FeatureTree::FeatureTree ( Feature *first, double fraction, int layer, size_t gr
     projectOnBoundaries = true ;
 
     K = new Assembly() ;
-    if(largeStrains)
-        K->incremental = true ;
+//     if(largeStrains)
+//         K->incremental = true ;
 
     if ( is2D() )
     {
@@ -241,8 +241,8 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     projectOnBoundaries = false ;
 
     K = new Assembly() ;
-    if(largeStrains)
-        K->incremental = true ;
+//     if(largeStrains)
+//         K->incremental = true ;
     K->setSpaceDimension ( SPACE_THREE_DIMENSIONAL ) ;
 
 
@@ -807,13 +807,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                             dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE &&
-                                dtest < 0.1*tets[i]->getRadius()
-                           )
+                        if ( dtest < 0.1*tets[i]->getRadius() )
                         {
                             tets[i]->moved = true ;
 			    tets[i]->setCachedGaussPoints(nullptr) ;
@@ -866,13 +860,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                             dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE &&
-                                dtest < 0.1*tets[i]->getRadius()
-                           )
+                        if (dtest < 0.1*tets[i]->getRadius())
                         {
                             tets[i]->moved = true ;
 			    tets[i]->setCachedGaussPoints(nullptr) ;
@@ -924,13 +912,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                             dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE &&
-                                dtest < 0.1*tets[i]->getRadius()
-                           )
+                        if ( dtest < 0.1*tets[i]->getRadius())
                         {
                             tets[i]->moved = true ;
 			    tets[i]->setCachedGaussPoints(nullptr) ;
@@ -982,13 +964,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                             dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE &&
-                                dtest < 0.1*tets[i]->getRadius()
-                           )
+                        if ( dtest < 0.1*tets[i]->getRadius())
                         {
                             tets[i]->moved = true ;
 			    tets[i]->setCachedGaussPoints(nullptr) ;
@@ -1040,13 +1016,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                             dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE &&
-                                dtest < 0.1*tets[i]->getRadius()
-                           )
+                        if ( dtest < 0.1*tets[i]->getRadius())
                         {
                             tets[i]->moved = true ;
 			    tets[i]->setCachedGaussPoints(nullptr) ;
@@ -1098,13 +1068,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                             dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE &&
-                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE &&
-                                dtest < 0.1*tets[i]->getRadius()
-                           )
+                        if ( dtest < 0.1*tets[i]->getRadius())
                         {
                             tets[i]->moved = true ;
 			    tets[i]->setCachedGaussPoints(nullptr) ;
@@ -1221,11 +1185,7 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
                                 tree[j]->project ( &triangles[i]->getBoundingPoint ( k ) ) ;
                             }
 
-                            if ( triangles[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
-                                    triangles[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
-                                    triangles[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
-                                    triangles[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE
-                               )
+                            if ( true)
                             {
                                 triangles[i]->moved = true ;
 				triangles[i]->setCachedGaussPoints(nullptr) ;
@@ -1270,11 +1230,7 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
                                 tree[j]->project ( &triangles[i]->getBoundingPoint ( k ) ) ;
                             }
 
-                            if ( triangles[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
-                                    triangles[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
-                                    triangles[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
-                                    triangles[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE
-                               )
+                            if ( true)
                             {
                                 triangles[i]->moved = true ;
 				triangles[i]->setCachedGaussPoints(nullptr) ;
@@ -1319,11 +1275,7 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
                                 tree[j]->project ( &triangles[i]->getBoundingPoint ( k ) ) ;
                             }
 
-                            if ( triangles[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
-                                    triangles[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
-                                    triangles[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
-                                    triangles[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE
-                               )
+                            if ( true)
                             {
                                 triangles[i]->moved = true ;
 				triangles[i]->setCachedGaussPoints(nullptr) ;
@@ -4383,7 +4335,7 @@ void FeatureTree::elasticStep()
     elastic = prevElastic ;
 }
 
-void FeatureTree::solve()
+bool FeatureTree::solve()
 {
     if ( enrichmentChange || needMeshing )
     {
@@ -4393,6 +4345,44 @@ void FeatureTree::solve()
     timeval time0, time1 ;
     gettimeofday ( &time0, nullptr );
     VirtualMachine vm ;
+
+    gettimeofday ( &time0, nullptr );
+    Vector extrapolatedDisplacements = K->extrapolate() ;
+    int nlcount = extrapolatedDisplacements.size() == 0 ;
+    if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint) 
+    {
+        if ( dtree )
+        {
+
+            std::cerr << "updating jacobian matrices... " << std::flush ;
+            for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+            {
+                for ( auto i = j->second->begin() ; i != j->second->end() ; i++ )
+                {
+                    if(i.getPosition()%100 == 0)
+                        std::cerr << "\rupdating jacobian matrices... " << i.getPosition() +1 << "/"<< i.size()<< std::flush ;
+                    bool lp = !i->getState().prepare(extrapolatedDisplacements) ;
+                    nlcount += lp ;
+                }
+            }
+
+        }
+        else
+        {
+            std::cerr << "updating jacobian matrices...... " << std::flush ;
+            for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
+            {
+                if(i.getPosition()%100 == 0)
+                    std::cerr << "\rupdating jacobian matrices... " << i.getPosition() +1 << "/"<< i.size()<< std::flush ;
+                bool lp = !i->getState().prepare(extrapolatedDisplacements) ;
+                nlcount += lp ;
+            }
+        }
+    }
+    gettimeofday ( &time1, nullptr );
+    double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
+    std::cerr << "...done. Time (s) " << delta / 1e6 << " large displacement changes: " << nlcount <<std::endl ;
+    
     if ( dtree )
     {
 
@@ -4411,8 +4401,6 @@ void FeatureTree::solve()
     }
     else
     {
-
-        
         std::cerr << "updating elementary matrices and induced BCs... " << std::flush ;
         for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
         {
@@ -4422,12 +4410,10 @@ void FeatureTree::solve()
             i->applyBoundaryCondition ( K ) ;
         }
     }
-
-
+    
     gettimeofday ( &time1, nullptr );
-    double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
+    delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
     std::cerr << "...done. Time (s) " << delta / 1e6 << std::endl ;
-
     gettimeofday ( &time0, nullptr );
 
     std::cerr << "Applying boundary conditions... " << std::flush ;
@@ -4442,7 +4428,7 @@ void FeatureTree::solve()
 
         if ( dtree )
         {
-	    boundaryCondition[i]->apply ( K, dtree ) ;
+            boundaryCondition[i]->apply ( K, dtree ) ;
         }
 
         if ( dtree3D )
@@ -4454,18 +4440,14 @@ void FeatureTree::solve()
     delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
     std::cerr << "\rApplying boundary conditions... " << boundaryCondition.size() << "/" << boundaryCondition.size() << "...done  Time (s) " << delta / 1e6 << std::endl  ;
 
+    
+    
     if(epsilonA > 0)
         K->setEpsilon(epsilonA);   
     K->setSSORIterations( nssor ) ;  
-    solverConvergence = /*tgsolve? K->tgsolve ( ) :*/  K->cgsolve() ;
+    solverConvergence =  K->cgsolve() ;
     
     Vector r = (K->getMatrix() * K->getDisplacements() - K->getForces()) ;
-    
-    for ( size_t i = 0 ; i <r.size() ; ++i )
-    {
-        if(std::abs(K->getDisplacements()[i]) > 1e-12)
-            r[i] /= K->getDisplacements()[i] ;
-    }
         
     residualError = sqrt ( parallel_inner_product ( &r[0], &r[0], r.size() ) ) ;
 
@@ -4479,11 +4461,11 @@ void FeatureTree::solve()
             {
                 #pragma omp parallel
                 {
-#ifdef HAVE_OPENMP
+                    #ifdef HAVE_OPENMP
                     int numThreads = omp_get_num_threads() ;
-#else
+                    #else
                     int numThreads = 1 ;
-#endif
+                    #endif
                     size_t chunksize = std::max(j->second->begin().size()/(2*numThreads),(size_t)1) ;
                     size_t localEnd = 0 ;
                     int t = 0 ;
@@ -4519,11 +4501,11 @@ void FeatureTree::solve()
             {
                  #pragma omp parallel
                 {
-#ifdef HAVE_OPENMP
+                    #ifdef HAVE_OPENMP
                     int numThreads = omp_get_num_threads() ;
-#else
+                    #else
                     int numThreads = 1 ;
-#endif
+                    #endif
                     size_t chunksize = std::max(dtree3D->begin().size()/(2*numThreads),(size_t)1) ;
                     size_t localEnd = 0 ;
                     int t = 0 ;
@@ -4560,6 +4542,8 @@ void FeatureTree::solve()
     enrichmentChange = false ;
 
     std::cerr << " ...done" << std::endl ;
+    
+    return nlcount == 0 ;
 }
 
 void FeatureTree::stepXfem()
@@ -4942,6 +4926,16 @@ bool FeatureTree::stepElements()
                                 bool done = false ;
                                 #pragma omp task firstprivate(i)
                                 if (i->getBehaviour()->getDamageModel() && !i->getBehaviour()->getDamageModel()->converged )
+                                {
+                                    #pragma omp critical
+                                    {
+                                        foundCheckPoint = false ;
+                                        done = true ;
+                                    }
+                                }
+                                
+                                #pragma omp task firstprivate(i)
+                                if (i->getBehaviour()->changed() )
                                 {
                                     #pragma omp critical
                                     {
@@ -5426,16 +5420,16 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
         featureStepped = false;
     }
     
-    if(ft->largeStrains)
-    {
-        initialised = false ;
-        enriched = false ;
-        assembled = false ;
-        solved = false ;
-        behaviourStepped = false;
-        xfemStepped = false ;
-        featureStepped = false;
-    }
+//     if(ft->largeStrains)
+//     {
+//         initialised = false ;
+//         enriched = false ;
+//         assembled = false ;
+//         solved = false ;
+//         behaviourStepped = false;
+//         xfemStepped = false ;
+//         featureStepped = false;
+//     }
 
     if ( stepChanged )
     {
@@ -5582,8 +5576,12 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
 
     if ( !solved )
     {
-        ft->solve() ;
-        solved = true ;
+        solved = ft->solve() ;
+        while (!solved)
+        {
+            ft->assemble();
+            solved = ft->solve() ;
+        }
     }
     if ( s == SOLVED )
     {
@@ -5814,22 +5812,22 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
         }
         
         
-        if(largeStrains)
-             updateMesh() ;
+//         if(largeStrains)
+//              updateMesh() ;
         state.setStateTo ( lastStep, true ) ;
-        if(largeStrains)
-        {
-            behaviourChange = behaviourChange || (std::abs(getDisplacements()).max() > 1e-4);   
-            std::cout << std::abs(getDisplacements()).max() << "  "<< std::flush ;
-//             if(std::abs(getDisplacements()).max() < 0.008)
-//             {
-//                 Vector tgt = std::abs(getDisplacements()) ;
-//                 std::sort(&tgt[0], &tgt[tgt.size()]) ;
-//                 for(size_t g = 0 ; g < 12 ; g++)
-//                     std::cout << tgt[tgt.size()-1-g] << "  " ;
-//                 std::cout << std::endl ;
-//             }
-        }
+//         if(largeStrains)
+//         {
+//             behaviourChange = behaviourChange || (std::abs(getDisplacements()).max() > 1e-4);   
+//             std::cout << std::abs(getDisplacements()).max() << "  "<< std::flush ;
+// //             if(std::abs(getDisplacements()).max() < 0.008)
+// //             {
+// //                 Vector tgt = std::abs(getDisplacements()) ;
+// //                 std::sort(&tgt[0], &tgt[tgt.size()]) ;
+// //                 for(size_t g = 0 ; g < 12 ; g++)
+// //                     std::cout << tgt[tgt.size()-1-g] << "  " ;
+// //                 std::cout << std::endl ;
+// //             }
+//         }
         ++it ;
         deltaTime = 0 ;
         
@@ -5919,8 +5917,8 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
         ret = false ;
     }
     
-    if(largeStrains && !(std::abs(getDisplacements()).max() > 1e-4))
-        ret = false ;
+//     if(largeStrains && !(std::abs(getDisplacements()).max() > 1e-4))
+//         ret = false ;
     
     std::cerr << std::endl ;
 
@@ -6006,71 +6004,71 @@ void FeatureTree::updateMesh()
 //         }
 //     }
     
-    if(largeStrains && getDisplacements().size())
-    {
-        int pos = 0 ;
-        if(is2D()) 
-        {
-            std::cerr << " updating mesh" << std::endl ;
-
-            for (  auto i = dtree->begin() ; i != dtree->end() ; i++  )
-            {
+//     if(largeStrains && getDisplacements().size())
+//     {
+//         int pos = 0 ;
+//         if(is2D()) 
+//         {
+//             std::cerr << " updating mesh" << std::endl ;
+// 
+//             for (  auto i = dtree->begin() ; i != dtree->end() ; i++  )
+//             {
+// //                 i->moved = true ;
+//                 for (  size_t k = 0 ; k < i->getBoundingPoints().size() ; k++  )
+//                 {
+//                     i->getBoundingPoint(k).set(i->getBoundingPoint(k).getX()+getDisplacements()[i->getBoundingPoint(k).getId()*2  ]*.005,
+//                                                i->getBoundingPoint(k).getY()+getDisplacements()[i->getBoundingPoint(k).getId()*2+1]*.005) ;
+//                     pos +=2 ;    
+//                     
+//                 }
+//                
+// //                 i->getBoundingPoint(0).set(i->getBoundingPoint(0).getX()+getDisplacements()[i->getBoundingPoint(0).getId()*2  ]*.05,
+// //                                            i->getBoundingPoint(0).getY()+getDisplacements()[i->getBoundingPoint(0).getId()*2+1]*.05) ;
+// //                 i->getBoundingPoint(2).set(i->getBoundingPoint(2).getX()+getDisplacements()[i->getBoundingPoint(2).getId()*2  ]*.05,
+// //                                            i->getBoundingPoint(2).getY()+getDisplacements()[i->getBoundingPoint(2).getId()*2+1]*.05) ;   
+// //                 i->getBoundingPoint(4).set(i->getBoundingPoint(4).getX()+getDisplacements()[i->getBoundingPoint(4).getId()*2  ]*.05,
+// //                                            i->getBoundingPoint(4).getY()+getDisplacements()[i->getBoundingPoint(4).getId()*2+1]*.05) ;  
+// //                 i->getBoundingPoint(1).set(i->getBoundingPoint(0).getX()*.5+i->getBoundingPoint(2).getX()*.5,
+// //                                            i->getBoundingPoint(0).getY()*.5+i->getBoundingPoint(2).getY()*.5) ; 
+// //                 i->getBoundingPoint(3).set(i->getBoundingPoint(2).getX()*.5+i->getBoundingPoint(4).getX()*.5,
+// //                                            i->getBoundingPoint(2).getY()*.5+i->getBoundingPoint(4).getY()*.5) ; 
+// //                 i->getBoundingPoint(5).set(i->getBoundingPoint(0).getX()*.5+i->getBoundingPoint(4).getX()*.5,
+// //                                            i->getBoundingPoint(0).getY()*.5+i->getBoundingPoint(4).getY()*.5) ;                             
+//                 i->getElementaryMatrix().resize(0) ;
+//                 delete i->getState().JinvCache ;
+//                 i->getState().JinvCache = nullptr ;
+//                 delete i->cachedGps ;
+//                 i->cachedGps = nullptr ; 
+//                 i->getBehaviour()->step(0., i->getState(), 0) ;
+//             }      
+//         }
+//         
+//         if(is3D())
+//         {
+//             std::cerr << " updating mesh" << std::endl ;
+// 
+//             for (  auto i = dtree3D->begin() ; i != dtree3D->end() ; i++  )
+//             {
 //                 i->moved = true ;
-                for (  size_t k = 0 ; k < i->getBoundingPoints().size() ; k++  )
-                {
-                    i->getBoundingPoint(k).set(i->getBoundingPoint(k).getX()+getDisplacements()[i->getBoundingPoint(k).getId()*2  ]*.005,
-                                               i->getBoundingPoint(k).getY()+getDisplacements()[i->getBoundingPoint(k).getId()*2+1]*.005) ;
-                    pos +=2 ;    
-                    
-                }
-               
-//                 i->getBoundingPoint(0).set(i->getBoundingPoint(0).getX()+getDisplacements()[i->getBoundingPoint(0).getId()*2  ]*.05,
-//                                            i->getBoundingPoint(0).getY()+getDisplacements()[i->getBoundingPoint(0).getId()*2+1]*.05) ;
-//                 i->getBoundingPoint(2).set(i->getBoundingPoint(2).getX()+getDisplacements()[i->getBoundingPoint(2).getId()*2  ]*.05,
-//                                            i->getBoundingPoint(2).getY()+getDisplacements()[i->getBoundingPoint(2).getId()*2+1]*.05) ;   
-//                 i->getBoundingPoint(4).set(i->getBoundingPoint(4).getX()+getDisplacements()[i->getBoundingPoint(4).getId()*2  ]*.05,
-//                                            i->getBoundingPoint(4).getY()+getDisplacements()[i->getBoundingPoint(4).getId()*2+1]*.05) ;  
-//                 i->getBoundingPoint(1).set(i->getBoundingPoint(0).getX()*.5+i->getBoundingPoint(2).getX()*.5,
-//                                            i->getBoundingPoint(0).getY()*.5+i->getBoundingPoint(2).getY()*.5) ; 
-//                 i->getBoundingPoint(3).set(i->getBoundingPoint(2).getX()*.5+i->getBoundingPoint(4).getX()*.5,
-//                                            i->getBoundingPoint(2).getY()*.5+i->getBoundingPoint(4).getY()*.5) ; 
-//                 i->getBoundingPoint(5).set(i->getBoundingPoint(0).getX()*.5+i->getBoundingPoint(4).getX()*.5,
-//                                            i->getBoundingPoint(0).getY()*.5+i->getBoundingPoint(4).getY()*.5) ;                             
-                i->getElementaryMatrix().resize(0) ;
-                delete i->getState().JinvCache ;
-                i->getState().JinvCache = nullptr ;
-                delete i->cachedGps ;
-                i->cachedGps = nullptr ; 
-                i->getBehaviour()->step(0., i->getState(), 0) ;
-            }      
-        }
-        
-        if(is3D())
-        {
-            std::cerr << " updating mesh" << std::endl ;
-
-            for (  auto i = dtree3D->begin() ; i != dtree3D->end() ; i++  )
-            {
-                i->moved = true ;
-                for (  size_t k = 0 ; k < i->getBoundingPoints().size() ; k++  )
-                {
-
-                    i->getBoundingPoint(k).set( i->getBoundingPoint(k).getX()+getDisplacements()[i->getBoundingPoint(k).getId()*3  ]*.05,
-                                                i->getBoundingPoint(k).getY()+getDisplacements()[i->getBoundingPoint(k).getId()*3+1]*.05,
-                                                i->getBoundingPoint(k).getZ()+getDisplacements()[i->getBoundingPoint(k).getId()*3+2]*.05
-                                                ) ;
-                    pos +=3 ;
-                }
-                
-                i->getElementaryMatrix().resize(0) ;
-                delete i->getState().JinvCache ;
-                i->getState().JinvCache = nullptr ;
-                delete i->cachedGps ;
-                i->cachedGps = nullptr ;
-                i->getBehaviour()->step(0., i->getState(), 0) ;
-            }
-        }
-    }
+//                 for (  size_t k = 0 ; k < i->getBoundingPoints().size() ; k++  )
+//                 {
+// 
+//                     i->getBoundingPoint(k).set( i->getBoundingPoint(k).getX()+getDisplacements()[i->getBoundingPoint(k).getId()*3  ]*.05,
+//                                                 i->getBoundingPoint(k).getY()+getDisplacements()[i->getBoundingPoint(k).getId()*3+1]*.05,
+//                                                 i->getBoundingPoint(k).getZ()+getDisplacements()[i->getBoundingPoint(k).getId()*3+2]*.05
+//                                                 ) ;
+//                     pos +=3 ;
+//                 }
+//                 
+//                 i->getElementaryMatrix().resize(0) ;
+//                 delete i->getState().JinvCache ;
+//                 i->getState().JinvCache = nullptr ;
+//                 delete i->cachedGps ;
+//                 i->cachedGps = nullptr ;
+//                 i->getBehaviour()->step(0., i->getState(), 0) ;
+//             }
+//         }
+//     }
 }
 
 bool FeatureTree::step(bool guided)

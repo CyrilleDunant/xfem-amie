@@ -37,15 +37,14 @@ struct StiffnessWithLargeDeformation : public LinearForm
 {
     friend class Triangle ;
     std::vector<Variable> v ;
-    Vector imposed ;
     bool active = false ;
     bool change = false ;
-    double initialVolume ;
-    double poisson ; 
+    Vector lastConvergedDisplacements ;
     Matrix largeDeformationTransformc ;
-    double globalTransformAngle ;
+    double norm = 1. ;
 
     std::vector<double> initialPosition ;
+    void getInverseFiniteDeformationJacobianMatrix(const Point & p, Matrix & ret, ElementState & currentState) ;
     /** \brief Constructor
     *
     * @param rig Complete expression of the Cauchy-Green Strain Tensor
@@ -53,7 +52,7 @@ struct StiffnessWithLargeDeformation : public LinearForm
     */
     StiffnessWithLargeDeformation(const Matrix & rig) ;
 
-    StiffnessWithLargeDeformation(double E, double nu, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, IsotropicMaterialParameters hooke = YOUNG_POISSON) ;
+    StiffnessWithLargeDeformation(double E, double nu, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRAIN, IsotropicMaterialParameters hooke = YOUNG_POISSON) ;
 
     virtual ~StiffnessWithLargeDeformation() ;
 
@@ -77,14 +76,8 @@ struct StiffnessWithLargeDeformation : public LinearForm
     virtual Form * getCopy() const ;
 
     virtual bool hasInducedForces() const {
-        return true ;
+        return false ;
     }
-
-    /** \brief Return the Vector of imposed Stress at the considered point. As the imposed stress is uniform, the point is ignored*/
-    virtual Vector getImposedStress(const Point & p, IntegrableEntity * e, int g = -1) const ;
-    virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e, int g = -1) const ;
-
-    virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 
     virtual void step(double timestep, ElementState & currentState, double maxScore) ;
 

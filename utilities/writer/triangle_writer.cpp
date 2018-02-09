@@ -806,109 +806,12 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
             {
                 if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
                 {
-                    if(i->getState().getGlobalTransform().numCols() == 0)
-                    {
-                            ret[0][iterator] = 0;
-                            ret[1][iterator] = 0 ;
-                            ret[2][iterator++] = 0 ;
-                            continue ;
-                    }
+
                     
-                    Matrix m = i->getState().getGlobalTransform() ;
+                    Matrix m ; 
+                    i->getState().getInverseJacobianMatrix(Point(1./3,1./3.), m) ;
+                    
                     double d = sqrt(std::inner_product(&m.array()[0], &m.array()[m.array().size()], &m.array()[0], double(0))) ;
-                    
-                    ret[0][iterator] = d ;
-                    ret[1][iterator] = d ;
-                    ret[2][iterator++] = d ;
-                    
-                }
-                else if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
-                {
-                    ret[0][iterator] = 0;
-                    ret[1][iterator] = 0 ;
-                    ret[2][iterator++] = 0 ;
-                }
-            }
-            
-        }
-        else if( field == TWFT_LARGE_DEFORMATION_STRESS)
-        {
-            VirtualMachine vm ;
-            for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
-            {
-                if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
-                {
-                    if(i->getState().getInitialStress().numCols() == 0)
-                    {
-                            ret[0][iterator] = 0;
-                            ret[1][iterator] = 0 ;
-                            ret[2][iterator++] = 0 ;
-                            continue ;
-                    }
-                    
-                    Matrix m = i->getState().getInitialStress() ;
-                    double d = sqrt(std::inner_product(&m.array()[0], &m.array()[m.array().size()], &m.array()[0], double(0))) ;
-                    
-                    ret[0][iterator] = d ;
-                    ret[1][iterator] = d ;
-                    ret[2][iterator++] = d ;
-                    
-                }
-                else if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
-                {
-                    ret[0][iterator] = 0;
-                    ret[1][iterator] = 0 ;
-                    ret[2][iterator++] = 0 ;
-                }
-            }  
-        }
-        else if( field == TWFT_LARGE_DEFORMATION_FORCES)
-        {
-            VirtualMachine vm ;
-            for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
-            {
-                if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
-                {
-                    if(i->getState().getInternalForces().size() == 0)
-                    {
-                            ret[0][iterator] = 0;
-                            ret[1][iterator] = 0 ;
-                            ret[2][iterator] = 0 ;
-                            ret[3][iterator] = 0;
-                            ret[4][iterator] = 0 ;
-                            ret[5][iterator++] = 0 ;
-                            continue ;
-                    }
-                    
-                    Vector m = i->getState().getInternalForces() ;
-                    
-                    ret[0][iterator]   = sqrt(m[0]*m[0]+m[2]*m[2]+m[4]*m[4]) ;
-                    ret[1][iterator]   = sqrt(m[0]*m[0]+m[2]*m[2]+m[4]*m[4]) ;
-                    ret[2][iterator]   = sqrt(m[0]*m[0]+m[2]*m[2]+m[4]*m[4]) ;
-                    ret[3][iterator]   = sqrt(m[1]*m[1]+m[3]*m[3]+m[5]*m[5]) ;
-                    ret[4][iterator]   = sqrt(m[1]*m[1]+m[3]*m[3]+m[5]*m[5]) ;
-                    ret[5][iterator++] = sqrt(m[1]*m[1]+m[3]*m[3]+m[5]*m[5]) ;
-                    
-                }
-                else if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
-                {
-                    ret[0][iterator]   = 0;
-                    ret[1][iterator]   = 0 ;
-                    ret[2][iterator]   = 0 ;
-                    ret[3][iterator]   = 0;
-                    ret[4][iterator]   = 0 ;
-                    ret[5][iterator++] = 0 ;
-                }
-            }  
-        }
-        else if( field == TWFT_LARGE_DEFORMATION_ANGLE)
-        {
-            VirtualMachine vm ;
-            for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
-            {
-                if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
-                {
-                    double d = 180.*i->getState().getGlobalTransformAngle()/M_PI ;
                     
                     ret[0][iterator] = d ;
                     ret[1][iterator] = d ;
@@ -1213,7 +1116,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
         {
             
             
-            Matrix largeDeformationTransform(2,2) ;
+/*            Matrix largeDeformationTransform(2,2) ;
             largeDeformationTransform[0][0] = XdXTransform(tri->getState().getDisplacements() ,tri->getShapeFunctions(), XI, tri->getCenter(), 2) ;
             largeDeformationTransform[0][1] = XdXTransform(tri->getState().getDisplacements() ,tri->getShapeFunctions(), ETA, tri->getCenter(), 2) ;
             largeDeformationTransform[1][0] = XdYTransform(tri->getState().getDisplacements() ,tri->getShapeFunctions(), XI, tri->getCenter(), 2) ;
@@ -1225,11 +1128,56 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
             
             double largeDeformationTransformc ;
             largeDeformationTransformc = largeDeformationTransform[0][0]*jInv[0][0] + largeDeformationTransform[0][1]*jInv[0][1] ;
-            largeDeformationTransformc *= jlargeDef ;   
+            largeDeformationTransformc *= jlargeDef ;*/   
             
-            ret[2] = largeDeformationTransformc ;
-            ret[1] = largeDeformationTransformc ;
-            ret[0] = largeDeformationTransformc ;
+            Vector baseDisplacements = tri->getState().getDisplacements() ;
+//     for(size_t i = 0 ; i < currentState.getParent()->getBoundingPoints().size() ; i++)
+//     {
+//         Vector ldisp = {baseDisplacements[i*2], baseDisplacements[i*2+1]} ;
+//         ldisp = ldisp*rot ;
+//         baseDisplacements[i*2]   = ldisp[0] ;
+//         baseDisplacements[i*2+1] = ldisp[1] ;
+//     }
+    
+    Matrix largeDeformationTransform(2,2) ;
+//     largeDeformationTransform[0][0] = XdXTransform(baseDisplacements ,currentState.getParent()->getShapeFunctions(), XI , gcentre, 2) ;
+//     largeDeformationTransform[0][1] = XdYTransform(baseDisplacements ,currentState.getParent()->getShapeFunctions(), XI , gcentre, 2) ;
+//     largeDeformationTransform[1][0] = XdXTransform(baseDisplacements ,currentState.getParent()->getShapeFunctions(), ETA, gcentre, 2) ;
+//     largeDeformationTransform[1][1] = XdYTransform(baseDisplacements ,currentState.getParent()->getShapeFunctions(), ETA, gcentre, 2) ;
+    
+    PointArray rotatedPoints(tri->getBoundingPoints().size()) ;
+    for(size_t i = 0 ; i < rotatedPoints.size() ; i++)
+    {
+        rotatedPoints[i] = new Point(tri->getBoundingPoint(i)+Point(baseDisplacements[i*2],baseDisplacements[i*2+1] )/**rot*/) ;
+    }
+    
+    largeDeformationTransform[0][0] = dXTransform(rotatedPoints ,tri->getShapeFunctions(), XI , tri->getCenter()) ;
+    largeDeformationTransform[0][1] = dXTransform(rotatedPoints ,tri->getShapeFunctions(), ETA, tri->getCenter()) ;
+    largeDeformationTransform[1][0] = dYTransform(rotatedPoints ,tri->getShapeFunctions(), XI , tri->getCenter()) ;
+    largeDeformationTransform[1][1] = dYTransform(rotatedPoints ,tri->getShapeFunctions(), ETA, tri->getCenter()) ;
+    
+
+//     double j = 2.*currentState.getParent()->area() ;
+     
+//     std::cout << ".........." << std::endl ;
+//     invert2x2Matrix(Jinv) ; 
+//     invert2x2Matrix(largeDeformationTransform) ;
+//     largeDeformationTransform.print() ;
+//     std::cout << "..." << std::endl ;
+//     
+    Matrix largeDeformationTransformc(2,2) ;
+    Matrix Jinv(2,2) ;
+    tri->getState().getInverseJacobianMatrix(Point(1./3., 1./3.),Jinv ) ;
+    largeDeformationTransformc[0][0] =  largeDeformationTransform[0][0]* Jinv[0][0] + largeDeformationTransform[0][1]* Jinv[0][1] ;
+    largeDeformationTransformc[0][1] =  largeDeformationTransform[0][0]* Jinv[1][0] + largeDeformationTransform[0][1]* Jinv[1][1] ;
+    largeDeformationTransformc[1][0] =  largeDeformationTransform[1][0]* Jinv[0][0] + largeDeformationTransform[1][1]* Jinv[0][1] ;
+    largeDeformationTransformc[1][1] =  largeDeformationTransform[1][0]* Jinv[1][0] + largeDeformationTransform[1][1]* Jinv[1][1] ;
+    double J = det(largeDeformationTransformc) ;
+            
+            
+            ret[2] = largeDeformationTransformc[1][1]*J ;
+            ret[1] = largeDeformationTransformc[1][1]*J ;
+            ret[0] = largeDeformationTransformc[1][1]*J ;
 
 
             found = true ;
@@ -1623,12 +1571,6 @@ int numberOfFields( TWFieldType field, size_t index , std::map<size_t, FieldType
         return 3 ;
     case TWFT_LARGE_DEFORMATION_TRANSFORM:
         return 3 ;
-    case TWFT_LARGE_DEFORMATION_ANGLE:
-        return 3 ;
-    case TWFT_LARGE_DEFORMATION_STRESS:
-        return 3 ;
-    case TWFT_LARGE_DEFORMATION_FORCES:
-        return 6 ;
     case TWFT_CRACKS:
         return 6 ;
     case TWFT_FIELD_TYPE:
@@ -1702,12 +1644,6 @@ std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, Field
         return std::string("Imposed Stress") ;
     case TWFT_CRACKS:
         return std::string("Crack Opening") ;
-    case TWFT_LARGE_DEFORMATION_ANGLE:
-         return std::string("Large deformation angle") ;
-    case TWFT_LARGE_DEFORMATION_FORCES:
-         return std::string("Large deformation forces") ;     
-    case TWFT_LARGE_DEFORMATION_STRESS:
-         return std::string("Large deformation stress") ;  
     case TWFT_FIELD_TYPE:
         return nameOfField(fieldsOther[index]) ;
     case TWFT_INTERNAL_VARIABLE:
@@ -1739,6 +1675,8 @@ std::string nameOfField(FieldType field)
         return std::string("Gradient") ;
     case TOTAL_STRAIN_FIELD :
         return std::string("Strain") ;
+    case TOTAL_FINITE_STRAIN_FIELD :
+        return std::string("Finite Strain") ;    
     case MECHANICAL_STRAIN_FIELD :
         return std::string("Mechanical Strain") ;
     case STRAIN_RATE_FIELD :
@@ -1747,6 +1685,8 @@ std::string nameOfField(FieldType field)
         return std::string("Stress") ;
     case REAL_STRESS_FIELD :
         return std::string("Stress") ;
+    case REAL_FINITE_STRESS_FIELD :
+        return std::string("Finite Stress") ;    
     case IMPOSED_STRAIN_FIELD :
         return std::string("Imposed Strain") ;
     case IMPOSED_STRESS_FIELD :
@@ -1835,6 +1775,8 @@ int numberOfFields( FieldType field )
         return 6 ;
     case TOTAL_STRAIN_FIELD :
         return 9 ;
+    case TOTAL_FINITE_STRAIN_FIELD :
+        return 9 ;    
     case MECHANICAL_STRAIN_FIELD :
         return 9 ;
     case STRAIN_RATE_FIELD :
@@ -1851,6 +1793,8 @@ int numberOfFields( FieldType field )
         return 6 ;
     case REAL_STRESS_FIELD :
         return 9 ;
+    case REAL_FINITE_STRESS_FIELD :
+        return 9 ;    
     case PRINCIPAL_TOTAL_STRAIN_FIELD :
         return 6 ;
     case PRINCIPAL_MECHANICAL_STRAIN_FIELD :

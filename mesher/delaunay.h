@@ -166,7 +166,6 @@ public:
     virtual void refresh(const TriElement *) ;
     
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix( VirtualMachine * vm = nullptr) ;
-    virtual std::valarray<std::valarray<Matrix> > getTangentElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual void scaleCachedViscousElementaryMatrix(double s) ;
     virtual void scaleCachedElementaryMatrix(double s) ;

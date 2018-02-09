@@ -2474,20 +2474,16 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
         getSubTriangulatedGaussPoints() ;
     }
 
-    if(!getState().JinvCache ||isMoved())
-    {
-        if(getState().JinvCache)
-            delete getState().JinvCache ;
-        getState().JinvCache = new Matrix ( spaceDimensions()+(timePlanes()>1),spaceDimensions() +(timePlanes()>1)) ;
-        getInverseJacobianMatrix ( Point( .25,.25,.25), (*getState().JinvCache) ) ;
-    }
+
+    getState().updateInverseJacobianCache(Point( .25,.25,.25)) ;
+
     
     std::valarray<Matrix> Jinv((*getState().JinvCache),  getGaussPoints().gaussPoints.size()) ;
     if(moved)
     {
         for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
         {
-            getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
+            getState().getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
         }
     }
 
@@ -2619,20 +2615,14 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getViscousElementar
         getSubTriangulatedGaussPoints() ;
     }
 
-    if(!getState().JinvCache ||isMoved())
-    {
-        if(getState().JinvCache)
-            delete getState().JinvCache ;
-        getState().JinvCache = new Matrix (  spaceDimensions()+(timePlanes()>1), spaceDimensions()+(timePlanes()>1)) ; ;
-        getInverseJacobianMatrix ( Point( .25,.25,.25), (*getState().JinvCache) ) ;
-    }
+    getState().updateInverseJacobianCache(Point( .25,.25,.25)) ;
     
     std::valarray<Matrix> Jinv((*getState().JinvCache),  getGaussPoints().gaussPoints.size()) ;
     if(moved)
     {
         for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
         {
-            getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
+            getState().getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
         }
     }
 
@@ -2993,6 +2983,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
         tri = dt->getTetrahedrons( false ) ;
         double jac = volume() * 6. ;
 
+        Matrix J(3,3) ;
         for( size_t i = 0 ; i < tri.size() ; i++ )
         {
             GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
@@ -3009,7 +3000,10 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
                     gp_temp.gaussPoints[j].first.set( vm.eval( x, gp_temp.gaussPoints[j].first ), vm.eval( y, gp_temp.gaussPoints[j].first ), vm.eval( z, gp_temp.gaussPoints[j].first ) ) ;
                     if( !isFather && isMoved() )
-                        gp_temp.gaussPoints[j].second *= jacobianAtPoint( gp_temp.gaussPoints[j].first ) ;
+                    {
+                        getState().getInverseJacobianMatrix(gp_temp.gaussPoints[j].first, J) ;
+                        gp_temp.gaussPoints[j].second *= det(J) ;
+                    }
                     else
                         gp_temp.gaussPoints[j].second *= jac ;
 

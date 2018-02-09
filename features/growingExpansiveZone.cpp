@@ -90,7 +90,7 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 
         for( size_t j = 0 ; j < gp.gaussPoints.size() ;  j++ )
         {
-            disc[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+            disc[i]->getState().getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
         }
 
         size_t enrichedDofPerTimePlanes = disc[i]->getEnrichmentFunctions().size()/disc[i]->timePlanes() ;

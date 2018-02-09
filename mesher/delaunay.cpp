@@ -2441,72 +2441,14 @@ void DelaunayTriangle::refresh(const TriElement * father)
 // 	this->computeCenter() ;
 }
 
-std::valarray<std::valarray<Matrix> > DelaunayTriangle::getTangentElementaryMatrix(VirtualMachine * vm )
-{
-    
-    if(getState().globalTransform.size())
-    {
-        size_t dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
-        size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
-        size_t start = 0 ;
-        if(timePlanes() > 1)
-        {
-            start = getShapeFunctions().size() -  getShapeFunctions().size()/timePlanes() ;
-        }
-        std::valarray< Matrix > v_j(Matrix(ndofs, ndofs), dofCount) ;
-        std::valarray< std::valarray< Amie::Matrix > > tgmat(v_j,dofCount) ;
-
-        Matrix elem(getShapeFunctions().size()*2., getShapeFunctions().size()*2.);
-        for(size_t i = start ; i < getShapeFunctions().size() ; i++)
-        {
-            elem[i*2][i*2]   = cachedElementaryMatrix[i][i][0][0] ; elem[i*2][i*2+1]   = cachedElementaryMatrix[i][i][0][1] ;
-            elem[i*2+1][i*2] = cachedElementaryMatrix[i][i][1][0] ; elem[i*2+1][i*2+1] = cachedElementaryMatrix[i][i][1][1] ;
-
-            for(size_t j = start ; j < i ; j++)
-            {
-                elem[i*2][j*2]   = cachedElementaryMatrix[i][j][0][0] ; elem[i*2][j*2+1]   = cachedElementaryMatrix[i][j][0][1] ;
-                elem[i*2+1][j*2] = cachedElementaryMatrix[i][j][1][0] ; elem[i*2+1][j*2+1] = cachedElementaryMatrix[i][j][1][1] ;
-                elem[j*2][i*2]   = cachedElementaryMatrix[j][i][0][0] ; elem[j*2][i*2+1]   = cachedElementaryMatrix[j][i][0][1] ;
-                elem[j*2+1][i*2] = cachedElementaryMatrix[j][i][1][0] ; elem[j*2+1][i*2+1] = cachedElementaryMatrix[j][i][1][1] ;
-                
-            }
-        }
-        
-
-        Matrix transformt = getState().globalTransform.transpose() ;
-        elem = transformt*elem*getState().globalTransform; 
-        elem += getState().globalStressMatrix ;
-        
-        for(size_t i = start ; i < getShapeFunctions().size() ; i++)
-        {
-            tgmat[i][i][0][0] = elem[i*2][i*2]    ; tgmat[i][i][0][1] = elem[i*2][i*2+1]  ;
-            tgmat[i][i][1][0] = elem[i*2+1][i*2]  ; tgmat[i][i][1][1] = elem[i*2+1][i*2+1]  ;
-
-            for(size_t j = start ; j < i ; j++)
-            {
-                tgmat[i][j][0][0] = elem[i*2][j*2]    ; tgmat[i][j][0][1] = elem[i*2][j*2+1]    ;
-                tgmat[i][j][1][0] = elem[i*2+1][j*2]  ; tgmat[i][j][1][1] = elem[i*2+1][j*2+1]  ;
-                tgmat[j][i][0][0] = elem[j*2][i*2]    ; tgmat[j][i][1][0] = elem[j*2+1][i*2]    ;
-                tgmat[j][i][0][1] = elem[j*2][i*2+1]  ; tgmat[j][i][1][1] = elem[j*2+1][i*2+1]  ;
-                
-            }
-        }
-
-        
-        return tgmat ;
-    }
-    
-    return getCachedElementaryMatrix() ;
-}
-
 std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(VirtualMachine * vm )
 {
     size_t dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
 
-//     if(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() != 0 && cachedElementaryMatrix[0].size() == dofCount)
-//     {
-//         return cachedElementaryMatrix ;
-//     }
+    if(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() != 0 && cachedElementaryMatrix[0].size() == dofCount)
+    {
+        return cachedElementaryMatrix ;
+    }
     needAssembly = true ;
     clearBoundaryConditions() ;
     size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
@@ -2528,13 +2470,14 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
     }
 
     getState().updateInverseJacobianCache(Point( 1./3.,1./3.)) ;   
+//     std::cout <<"\n -> "<< getGaussPoints().gaussPoints.size() << std::endl ;
     
     std::valarray<Matrix> Jinv((*getState().JinvCache),  getGaussPoints().gaussPoints.size()) ;
     if(moved)
     {
         for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
         {
-            getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
+            getState().getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
         }
     }
 
@@ -2552,23 +2495,16 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
         for(size_t i = start ; i < getShapeFunctions().size() ; i++)
         {
             behaviour->apply(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], vm) ;
-//             elem[i*2][i*2]   = cachedElementaryMatrix[i][i][0][0] ; elem[i*2][i*2+1]   = cachedElementaryMatrix[i][i][0][1] ;
-//             elem[i*2+1][i*2] = cachedElementaryMatrix[i][i][1][0] ; elem[i*2+1][i*2+1] = cachedElementaryMatrix[i][i][1][1] ;
 
             for(size_t j = start ; j < i ; j++)
             {
                 behaviour->apply(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j], vm) ;
                 cachedElementaryMatrix[i][j].transpose(cachedElementaryMatrix[j][i]) ;
-//                 elem[i*2][j*2]   = cachedElementaryMatrix[i][j][0][0] ; elem[i*2][j*2+1]   = cachedElementaryMatrix[i][j][0][1] ;
-//                 elem[i*2+1][j*2] = cachedElementaryMatrix[i][j][1][0] ; elem[i*2+1][j*2+1] = cachedElementaryMatrix[i][j][1][1] ;
-//                 elem[j*2][i*2]   = cachedElementaryMatrix[j][i][0][0] ; elem[j*2][i*2+1]   = cachedElementaryMatrix[j][i][0][1] ;
-//                 elem[j*2+1][i*2] = cachedElementaryMatrix[j][i][1][0] ; elem[j*2+1][i*2+1] = cachedElementaryMatrix[j][i][1][1] ;
                 
             }
             for(size_t j = startEnriched ; j < getEnrichmentFunctions().size() ; j++)
             {  
                 behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j+getShapeFunctions().size()], vm) ;
-//                 cachedElementaryMatrix[i][j+getShapeFunctions().size()] = cachedElementaryMatrix[j+getShapeFunctions().size()][i];
                 cachedElementaryMatrix[i][j+getShapeFunctions().size()].transpose(cachedElementaryMatrix[j+getShapeFunctions().size()][i]) ;
             }
         }
@@ -2583,105 +2519,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
                 cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()].transpose(cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()]) ;
             }
         }
-        
-//         Vector d(0.,2) ; 
-//         Point centre(1./3, 1./3.) ;
-//         Point gcentre = getCenter() ;
-//         double bs = 0 ;
-//         double as = 0 ;
-//                 
-//         for(size_t id = 0 ; id < getBoundingPoints().size() ; id++)
-//         {
-//             double f_xi  = vm ->deval ( getShapeFunction( id ),  XI, centre ) ;
-//             double f_eta = vm ->deval ( getShapeFunction( id ), ETA, centre ) ;
-//             
-//             d[0] =  Jinv[0][1][0]*f_xi+Jinv[0][1][1]*f_eta ;
-//             d[1] = -Jinv[0][0][0]*f_xi-Jinv[0][0][1]*f_eta ;
-//             
-//             Vector xy = {getState().getDisplacements()[id*2+0] + getBoundingPoint(id).getX() - gcentre.getX(), 
-//                          getState().getDisplacements()[id*2+1] + getBoundingPoint(id).getY() - gcentre.getY()} ;
-// 
-//             as += -d[1]*xy[0] +d[0]*xy[1] ;
-//             bs +=  d[0]*xy[0] +d[1]*xy[1] ;          
-//             
-//         }   
-//         double globalTransformAngle = atan2(-bs, as) ;
-//        
-//         Matrix rot(2, 2);
-//         rot[0][0] =  cos(globalTransformAngle) ; rot[0][1] = sin(globalTransformAngle) ; 
-//         rot[1][0] = -sin(globalTransformAngle) ; rot[1][1] = cos(globalTransformAngle) ; 
-//         
-//         Vector baseDisplacements = getState().getDisplacements() ;
-//         for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
-//         {
-//             Vector ldisp = {baseDisplacements[i*2], baseDisplacements[i*2+1]} ;
-//             ldisp = ldisp*rot ;
-//             baseDisplacements[i*2]   = ldisp[0] ;
-//             baseDisplacements[i*2+1] = ldisp[1] ;
-//         }
-//         
-//         Matrix largeDeformationTransform(2,2) ;
-//         largeDeformationTransform[0][0] = XdXTransform(baseDisplacements ,getShapeFunctions(), XI , getCenter(), 2) ;
-//         largeDeformationTransform[0][1] = XdYTransform(baseDisplacements ,getShapeFunctions(), XI , getCenter(), 2) ;
-//         largeDeformationTransform[1][0] = XdXTransform(baseDisplacements ,getShapeFunctions(), ETA, getCenter(), 2) ;
-//         largeDeformationTransform[1][1] = XdYTransform(baseDisplacements ,getShapeFunctions(), ETA, getCenter(), 2) ;
-// 
-// 
-// //         if(std::abs(J) > 1e-6)
-// //         {
-// //             
-//             
-//             Matrix jInv(2,2) ;
-//             getInverseJacobianMatrix(getCenter(),jInv) ;
-//             double j = 2.*area() ;
-//             
-//             Matrix largeDeformationTransformc(2,2) ;
-//             largeDeformationTransformc[0][0] = 1.+largeDeformationTransform[0][0]*jInv[0][0]*j + largeDeformationTransform[0][1]*jInv[0][1]*j ;
-//             largeDeformationTransformc[0][1] =   +largeDeformationTransform[0][0]*jInv[1][0]*j + largeDeformationTransform[0][1]*jInv[1][1]*j ;
-//             largeDeformationTransformc[1][0] =   +largeDeformationTransform[1][0]*jInv[0][0]*j + largeDeformationTransform[1][1]*jInv[0][1]*j ;
-//             largeDeformationTransformc[1][1] = 1.+largeDeformationTransform[1][0]*jInv[1][0]*j + largeDeformationTransform[1][1]*jInv[1][1]*j ;
-//     //         inverse2x2Matrix(largeDeformationTransformc) ;
-//             double J = det(largeDeformationTransformc) ;
-//             largeDeformationTransformc /= J ;
-// //             std::cout << J << std::endl;
-// 
-//             for(size_t i = start ; i < getShapeFunctions().size()+getEnrichmentFunctions().size() ; i++)
-//             {
-//                 for(size_t j = start ; j < getShapeFunctions().size()+getEnrichmentFunctions().size() ; j++)
-//                 {
-//                     cachedElementaryMatrix[i][j] *= largeDeformationTransformc ;
-//                     cachedElementaryMatrix[i][j]  = Tensor::rotate2ndOrderTensor2D(cachedElementaryMatrix[i][j], globalTransformAngle) ;
-//                 }
-//             }
-//         }
-        
-        
-//         if(getState().globalTransform.size())
-//         {
-// 
-//             if(getState().globalStressMatrix.numRows())
-//             {
-//                 Matrix transformt = getState().globalTransform.transpose() ;
-//                 elem =transformt*elem*getState().globalTransform ; 
-//                 if(getState().globalStressMatrix.size())
-//                     elem += getState().globalStressMatrix ;
-//                 
-//                 for(size_t i = start ; i < getShapeFunctions().size() ; i++)
-//                 {
-//                     cachedElementaryMatrix[i][i][0][0] = elem[i*2][i*2]    ; cachedElementaryMatrix[i][i][0][1] = elem[i*2][i*2+1]  ;
-//                     cachedElementaryMatrix[i][i][1][0] = elem[i*2+1][i*2]  ; cachedElementaryMatrix[i][i][1][1] = elem[i*2+1][i*2+1]  ;
-// 
-//                     for(size_t j = start ; j < i ; j++)
-//                     {
-//                         cachedElementaryMatrix[i][j][0][0] = elem[i*2][j*2]    ; cachedElementaryMatrix[i][j][0][1] = elem[i*2][j*2+1]    ;
-//                         cachedElementaryMatrix[i][j][1][0] = elem[i*2+1][j*2]  ; cachedElementaryMatrix[i][j][1][1] = elem[i*2+1][j*2+1]  ;
-//                         cachedElementaryMatrix[j][i][0][0] = elem[j*2][i*2]    ; cachedElementaryMatrix[j][i][1][0] = elem[j*2+1][i*2]    ;
-//                         cachedElementaryMatrix[j][i][0][1] = elem[j*2][i*2+1]  ; cachedElementaryMatrix[j][i][1][1] = elem[j*2+1][i*2+1]  ;
-//                         
-//                     }
-//                 }
-//             }
-//         }
    
     }
     else
@@ -2760,7 +2597,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
     {
         for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
         {
-            getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
+            getState().getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
         }
     }
 
@@ -2875,12 +2712,7 @@ void DelaunayTriangle::adjustElementaryMatrix(double previousTimeStep, double ne
     if( getBehaviour() && !getBehaviour()->isViscous() )
         return ;
 
-    if( (getState().JinvCache ) ) 
-    {
-        delete (getState().JinvCache) ; 
-        getState().JinvCache = new Matrix (  spaceDimensions()+(timePlanes()>1), spaceDimensions()+(timePlanes()>1)) ;
-        getInverseJacobianMatrix ( Point( 1./3.,1./3.), (*getState().JinvCache) ) ;
-    }
+    getState().updateInverseJacobianCache(Point( 1./3.,1./3.)) ;
 
 //    getState().
 

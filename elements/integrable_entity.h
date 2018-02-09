@@ -70,10 +70,12 @@ typedef enum : char {
     FLUX_FIELD,
     GRADIENT_FIELD,
     TOTAL_STRAIN_FIELD,
+    TOTAL_FINITE_STRAIN_FIELD,
     STRAIN_RATE_FIELD,
     MECHANICAL_STRAIN_FIELD,
     EFFECTIVE_STRESS_FIELD,
     REAL_STRESS_FIELD,
+    REAL_FINITE_STRESS_FIELD,
     PRINCIPAL_TOTAL_STRAIN_FIELD,
     PRINCIPAL_MECHANICAL_STRAIN_FIELD,
     PRINCIPAL_EFFECTIVE_STRESS_FIELD,
@@ -157,13 +159,15 @@ protected:
     Vector pstressAtGaussPoints ;
 
     Vector displacements ;
-    Vector linearDisplacements ;
     Vector enrichedDisplacements ;
+    Vector localExtrapolatedDisplacements ;
     
     bool strainAtGaussPointsSet ;
     bool stressAtGaussPointsSet ;
     bool pstrainAtGaussPointsSet ;
     bool pstressAtGaussPointsSet ;
+    
+    bool largeDeformations ;
 
     double timePos ;
     double previousTimePos ;
@@ -178,15 +182,13 @@ protected:
 
     Mesh< DelaunayTriangle, DelaunayTreeItem > * mesh2d ;
     Mesh< DelaunayTetrahedron, DelaunayTreeItem3D > *mesh3d ;
-
+    
    
-    Matrix globalTransform ;
-    Matrix globalStressMatrix ;
-    Vector internalForces ;
-    double globalTransformAngle = 0;
-    bool transformed = false ;
+    
 public: 
     void updateInverseJacobianCache(const Point &p) ;
+    void getInverseJacobianMatrix(const Point & p, Matrix & ret, bool inital = false) const ;
+    
     Matrix * JinvCache ;
     /** \brief Construct the state of the argument*/
     ElementState ( IntegrableEntity * ) ;
@@ -232,12 +234,8 @@ public:
     /** \brief return the linear enrichment interpolating factors for the displacement field at the given point*/
     std::vector<double> getEnrichedInterpolatingFactors ( const Point & p, bool local = false ) const ;
     
-    double getGlobalTransformAngle() const ;
-    virtual Matrix & transform( VirtualMachine * vm = nullptr, std::valarray<double> * displacements = nullptr) ;
-    virtual const Matrix & getGlobalTransform() const ;
-    virtual const Matrix & getInitialStress() const ;
-    virtual const Vector & getInternalForces() const ;
     virtual void step ( double dt, const Vector* d ) ;
+    virtual bool prepare(const Vector &extrapolatedDisplacements) ;
 
     double getTime() const ;
     double getDeltaTime() const ;
@@ -363,7 +361,6 @@ struct IntegrableEntity : public Geometry
     bool needAssembly ;
 
     IntegrableEntity() ;
-    virtual void getInverseJacobianMatrix ( const Point &p, Matrix & ret ) = 0 ;
     virtual void getSecondJacobianMatrix ( const Point &p, Matrix & t1, Matrix & t2 ) {
         std::cout << "not implemented..." << std::endl ;
         exit ( 0 ) ;
@@ -417,7 +414,6 @@ struct IntegrableEntity : public Geometry
     virtual bool matrixUpdated() const = 0 ;
     
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix( VirtualMachine * vm = nullptr)  = 0 ;
-    virtual std::valarray<std::valarray<Matrix> > getTangentElementaryMatrix(VirtualMachine * vm = nullptr) = 0 ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr)  = 0 ;
 // 	virtual Vector getForces() = 0 ;
     virtual void applyBoundaryCondition ( Assembly * a ) ;

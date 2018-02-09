@@ -250,6 +250,9 @@ public:
     CoordinateIndexedSparseMatrix * coordinateIndexedMatrix ;
     CoordinateIndexedSparseMaskMatrix * mask ;
     std::map<std::pair<size_t, size_t>, double > * boundaryMatrix ;
+    
+    std::vector<Vector> displacementHistory ;
+    std::vector<Vector> forceHistory ;
 
     bool make_final(bool clearElements = true) ;
     bool incremental = false ;
@@ -267,6 +270,8 @@ public:
     size_t getMaxDofID() const ;
     size_t getMaxNodeID() const ;
     std::set<unsigned long int> updatedDofs ;
+    
+    Vector extrapolate(double factor = 1.) ;
 
     /** \brief add element to assembly*/
     void add(ElementarySurface * e, double scale = 1.) ;
@@ -311,9 +316,6 @@ public:
 
     /** \brief Solve linear system using Preconditionned Conjugate Gradient (linear/non linear/biconjugate is automatically selected)*/
     bool cgsolve(int maxit = -1, bool verbose = true) ;
-    
-    /** \brief Solve non-linear system using Preconditionned Conjugate Gradient and a fixed point.*/
-    bool tgsolve(int maxit = -1, bool verbose = true) ;
 
     void setEpsilon(double e) {
         epsilon = e ;

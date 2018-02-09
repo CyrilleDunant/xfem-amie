@@ -26,10 +26,10 @@ PrandtlGrauertPlasticStrain::PrandtlGrauertPlasticStrain(double c_psi, double ep
     tensilePlasticVariable = 0 ;
     inCompression = false ;
     inTension = false ;
-    newtonIteration = true ;
+    newtonIteration = false ;
     es = nullptr ;
     broken = false ;
-    factor = 1 ;
+    factor = .1 ;
 
 }
 
@@ -95,19 +95,19 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
 
 
         double norm = sqrt((imposedStrain*imposedStrain).sum()) ;
-	double onorm = factor*std::min(1.,sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())) ;
-	if(norm > POINT_TOLERANCE && onorm > POINT_TOLERANCE)
-	{
-	  imposedStrain /= norm ;
-	  imposedStrain *= onorm ;
-	}
-	
-	
+        double onorm = factor*std::min(1.,sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())) ;
+        if(norm > POINT_TOLERANCE && onorm > POINT_TOLERANCE)
+        {
+            imposedStrain /= norm ;
+            imposedStrain *= onorm ;
+        }
+
+
         inCompression = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(1) ;
         inTension = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(0) ;
-        
+
         double maxfact = std::max(damageDensityTolerance, std::min(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()*.5, 1.)) ;
-	return std::make_pair( Vector(0., 1), Vector(maxfact, 1)) ;
+        return std::make_pair( Vector(0., 1), Vector(maxfact, 1)) ;
     }
 
     return std::make_pair( Vector(0., 1), Vector(1., 1)) ;
@@ -197,134 +197,134 @@ void PrandtlGrauertPlasticStrain::computeDelta(ElementState & s)
 
 void PrandtlGrauertPlasticStrain::step( ElementState &s , double maxscore)
 {
-    
- if(!newtonIteration)
-    DamageModel::step(s, maxscore) ;
-  else
-  { 
-    converged = true ;
-    std::pair<double, double> delta = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , maxscore) ;
-    double mindelta = std::abs(delta.first) > std::abs(delta.second) ? delta.first :  delta.second ;
-    
-    computeDamageIncrement(s) ;
-    
-    if(std::abs(maxscore) < .5*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() && 
-      ((s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() && 
-        std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) < .05*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()) || !s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()))
-    {
-      change = false ;
-      return ;
-    }
-    
-    if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() > .05*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
-    {
-      if(std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) < .05*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance())
-      {
-	
-	change = false ;
-	return ;
-      }
-      
-	change = true ;
 
-       
-        Vector originalIstrain = getImposedStrain(s.getParent()->getCenter()) ;
-        Matrix stressMatrix(v.size(), v.size()) ;
-        Vector stress(3) ;
-        Vector strain(3) ;
+    if(!newtonIteration)
+        DamageModel::step(s, maxscore) ;
+    else
+    {
+        converged = true ;
+        std::pair<double, double> delta = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , maxscore) ;
+        double mindelta = std::abs(delta.first) > std::abs(delta.second) ? delta.first :  delta.second ;
+
+        computeDamageIncrement(s) ;
+
+        if(std::abs(maxscore) < .5*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() &&
+                ((s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() &&
+                  std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) < .05*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()) || !s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()))
+        {
+            change = false ;
+            return ;
+        }
+
+        if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() > .05*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
+        {
+            if(std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) < .05*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance())
+            {
+
+                change = false ;
+                return ;
+            }
+
+            change = true ;
+
+
+            Vector originalIstrain = getImposedStrain(s.getParent()->getCenter()) ;
+            Matrix stressMatrix(v.size(), v.size()) ;
+            Vector stress(3) ;
+            Vector strain(3) ;
 // 	s.getField(MECHANICAL_STRAIN_FIELD, EFFECTIVE_STRESS_FIELD,es->getParent()->getCenter(),strain,stress, false);
-        std::pair<Vector, Vector> ss = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( MECHANICAL_STRAIN_FIELD, REAL_STRESS_FIELD, s) ;
-        stress = ss.first ;
-        strain = ss.second ;
-        stressMatrix[0][0] = stress[0] ;
-        stressMatrix[1][1] = stress[1] ;
-        stressMatrix[0][1] = stress[2] ;
-        stressMatrix[1][0] = stress[2] ;
-        Matrix incrementalStrainMatrix(stressMatrix.numRows(), stressMatrix.numCols()) ;
+            std::pair<Vector, Vector> ss = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( MECHANICAL_STRAIN_FIELD, REAL_STRESS_FIELD, s) ;
+            stress = ss.first ;
+            strain = ss.second ;
+            stressMatrix[0][0] = stress[0] ;
+            stressMatrix[1][1] = stress[1] ;
+            stressMatrix[0][1] = stress[2] ;
+            stressMatrix[1][0] = stress[2] ;
+            Matrix incrementalStrainMatrix(stressMatrix.numRows(), stressMatrix.numCols()) ;
 
-        Matrix m_p(stressMatrix) ;
-        Matrix m_m(stressMatrix) ;
-        double delta = 1e-6*std::abs(plasticFlowPotential(stressMatrix)) ;
-        for(size_t i = 0 ; i < stressMatrix.numRows() ; i++)
-        {
-            for(size_t j = 0 ; j < stressMatrix.numCols() ; j++)
+            Matrix m_p(stressMatrix) ;
+            Matrix m_m(stressMatrix) ;
+            double delta = 1e-6*std::abs(plasticFlowPotential(stressMatrix)) ;
+            for(size_t i = 0 ; i < stressMatrix.numRows() ; i++)
             {
+                for(size_t j = 0 ; j < stressMatrix.numCols() ; j++)
+                {
 
-                m_p[i][j] += delta ;
-                m_m[i][j] -= delta ;
-                incrementalStrainMatrix[i][j] = (plasticFlowPotential(m_p)-plasticFlowPotential(m_m))/(2.*delta) ;
-                m_p[i][j] = stressMatrix[i][j] ;
-                m_m[i][j] = stressMatrix[i][j] ;
+                    m_p[i][j] += delta ;
+                    m_m[i][j] -= delta ;
+                    incrementalStrainMatrix[i][j] = (plasticFlowPotential(m_p)-plasticFlowPotential(m_m))/(2.*delta) ;
+                    m_p[i][j] = stressMatrix[i][j] ;
+                    m_m[i][j] = stressMatrix[i][j] ;
+                }
             }
-        }
-        imposedStrain[0] = incrementalStrainMatrix[0][0] ;
-        imposedStrain[1] = incrementalStrainMatrix[1][1] ;
-        imposedStrain[2] = 0.5*(incrementalStrainMatrix[0][1]+incrementalStrainMatrix[1][0]) ;
+            imposedStrain[0] = incrementalStrainMatrix[0][0] ;
+            imposedStrain[1] = incrementalStrainMatrix[1][1] ;
+            imposedStrain[2] = 0.5*(incrementalStrainMatrix[0][1]+incrementalStrainMatrix[1][0]) ;
 
 
-        double norm = sqrt((imposedStrain*imposedStrain).sum()) ;
-	double onorm = factor*std::min(1.,sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())) ;
-	if(norm > POINT_TOLERANCE && onorm > POINT_TOLERANCE)
-	{
-	  imposedStrain /= norm ;
-	  imposedStrain *= onorm ;
-	}
-	
-        state[0] += POINT_TOLERANCE ;
-	s.strainAtGaussPointsSet = false ;
-	s.stressAtGaussPointsSet = false ;
-        
-        ss = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( MECHANICAL_STRAIN_FIELD, REAL_STRESS_FIELD, s) ;
-        stress = ss.first ;
-        strain = ss.second ;
-        stressMatrix[0][0] = stress[0] ;
-        stressMatrix[1][1] = stress[1] ;
-        stressMatrix[0][1] = stress[2] ;
-        stressMatrix[1][0] = stress[2] ;
-        incrementalStrainMatrix = Matrix(stressMatrix.numRows(), stressMatrix.numCols()) ;
-
-        m_p = (stressMatrix) ;
-        m_m = (stressMatrix) ;
-        delta = 1e-6*std::abs(plasticFlowPotential(stressMatrix)) ;
-        for(size_t i = 0 ; i < stressMatrix.numRows() ; i++)
-        {
-            for(size_t j = 0 ; j < stressMatrix.numCols() ; j++)
+            double norm = sqrt((imposedStrain*imposedStrain).sum()) ;
+            double onorm = factor*std::min(1.,sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())) ;
+            if(norm > POINT_TOLERANCE && onorm > POINT_TOLERANCE)
             {
-
-                m_p[i][j] += delta ;
-                m_m[i][j] -= delta ;
-                incrementalStrainMatrix[i][j] = (plasticFlowPotential(m_p)-plasticFlowPotential(m_m))/(2.*delta) ;
-                m_p[i][j] = stressMatrix[i][j] ;
-                m_m[i][j] = stressMatrix[i][j] ;
+                imposedStrain /= norm ;
+                imposedStrain *= onorm ;
             }
+
+            state[0] += POINT_TOLERANCE ;
+            s.strainAtGaussPointsSet = false ;
+            s.stressAtGaussPointsSet = false ;
+
+            ss = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( MECHANICAL_STRAIN_FIELD, REAL_STRESS_FIELD, s) ;
+            stress = ss.first ;
+            strain = ss.second ;
+            stressMatrix[0][0] = stress[0] ;
+            stressMatrix[1][1] = stress[1] ;
+            stressMatrix[0][1] = stress[2] ;
+            stressMatrix[1][0] = stress[2] ;
+            incrementalStrainMatrix = Matrix(stressMatrix.numRows(), stressMatrix.numCols()) ;
+
+            m_p = (stressMatrix) ;
+            m_m = (stressMatrix) ;
+            delta = 1e-6*std::abs(plasticFlowPotential(stressMatrix)) ;
+            for(size_t i = 0 ; i < stressMatrix.numRows() ; i++)
+            {
+                for(size_t j = 0 ; j < stressMatrix.numCols() ; j++)
+                {
+
+                    m_p[i][j] += delta ;
+                    m_m[i][j] -= delta ;
+                    incrementalStrainMatrix[i][j] = (plasticFlowPotential(m_p)-plasticFlowPotential(m_m))/(2.*delta) ;
+                    m_p[i][j] = stressMatrix[i][j] ;
+                    m_m[i][j] = stressMatrix[i][j] ;
+                }
+            }
+            imposedStrain[0] = incrementalStrainMatrix[0][0] ;
+            imposedStrain[1] = incrementalStrainMatrix[1][1] ;
+            imposedStrain[2] = 0.5*(incrementalStrainMatrix[0][1]+incrementalStrainMatrix[1][0]) ;
+
+
+            norm = sqrt((imposedStrain*imposedStrain).sum()) ;
+            onorm = factor*std::min(1.,sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())) ;
+            if(norm > POINT_TOLERANCE && onorm > POINT_TOLERANCE)
+            {
+                imposedStrain /= norm ;
+                imposedStrain *= onorm ;
+            }
+
+            s.strainAtGaussPointsSet = false ;
+            s.stressAtGaussPointsSet = false ;
+
+            double pstate = state[0]-POINT_TOLERANCE ;
+            double schange = 0.001*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ; //0.001*std::min(mindelta, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) ;
+            state[0] += schange-POINT_TOLERANCE ; //s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()/*+mindelta)*0.5*/ ;
+
+            inCompression = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(1) ;
+            inTension = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(0) ;
+        } else {
+            change = false ;
+            return ;
         }
-        imposedStrain[0] = incrementalStrainMatrix[0][0] ;
-        imposedStrain[1] = incrementalStrainMatrix[1][1] ;
-        imposedStrain[2] = 0.5*(incrementalStrainMatrix[0][1]+incrementalStrainMatrix[1][0]) ;
-
-
-        norm = sqrt((imposedStrain*imposedStrain).sum()) ;
-        onorm = factor*std::min(1.,sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())) ;
-	if(norm > POINT_TOLERANCE && onorm > POINT_TOLERANCE)
-	{
-	  imposedStrain /= norm ;
-	  imposedStrain *= onorm ;
-	}
-        
-	s.strainAtGaussPointsSet = false ;
-	s.stressAtGaussPointsSet = false ;
-	
-        double pstate = state[0]-POINT_TOLERANCE ;
-        double schange = 0.001*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ; //0.001*std::min(mindelta, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) ;
-	state[0] += schange-POINT_TOLERANCE ; //s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()/*+mindelta)*0.5*/ ; 
-        
-        inCompression = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(1) ;
-        inTension = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(0) ;
-    }else{
-      change = false ;
-      return ;
     }
-  }
 }
 
 Matrix PrandtlGrauertPlasticStrain::apply(const Matrix & m, const Point & p , const IntegrableEntity * e, int g) const
@@ -345,16 +345,16 @@ std::vector<BoundaryCondition * > PrandtlGrauertPlasticStrain::getBoundaryCondit
     {
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, id, imp[0]));
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, id, imp[1]));
-	ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, id, imp[2]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, id, imp[2]));
     }
     if(v.size() == 3)
     {
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[0]));
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[1]));
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[2]));
-	ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[3]));
-	ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[4]));
-	ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[5]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[3]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[4]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp, Jinv, id, imp[5]));
 
     }
     return ret ;
@@ -365,14 +365,14 @@ Vector PrandtlGrauertPlasticStrain::getImposedStress(const Point & p) const
     if(v.size() == 2 /*&& !param*/)
         return Vector(0., 3) ;
 //     if(v.size() == 3 && !param)
-        return Vector(0., 6) ;
+    return Vector(0., 6) ;
 //     if(fractured())
 //     {
 //         if(v.size() == 2)
 //             return Vector(0., 3) ;
 //         return Vector(0., 6) ;
 //     }
-// 
+//
 //     return  (Vector)(*param*(1.-getDamage())*getImposedStrain(p)) ;
 }
 
@@ -423,17 +423,17 @@ double PrandtlGrauertPlasticStrain::getPlasticity() const
 bool PrandtlGrauertPlasticStrain::fractured(int direction) const
 {
 //     if(fraction < 0)
-        return false ;
+    return false ;
 //     return broken || getDamage() >= thresholdDamageDensity ;
 }
 
 void PrandtlGrauertPlasticStrain::postProcess()
 {
     if((converged && es && state[0] > 0) ||
-      newtonIteration /*&& 
-      es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() < .05*es->getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() && 
+            newtonIteration /*&&
+      es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() < .05*es->getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() &&
       es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()*/
-    )
+      )
     {
 
 // 		if(inCompression )

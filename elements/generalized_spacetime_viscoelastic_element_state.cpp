@@ -38,11 +38,11 @@ GaussPointArray GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGauss
     {
     case LINEAR_TIME_LINEAR:
     case LINEAR_TIME_QUADRATIC:
-        gp = gaussPointSet ( LINEAR, trg ) ;
+        gp = gaussPointSet2D ( LINEAR, trg ) ;
         break ;
     case QUADRATIC_TIME_LINEAR:
     case QUADRATIC_TIME_QUADRATIC:
-        gp = gaussPointSet ( QUADRATIC, trg ) ;
+        gp = gaussPointSet2D ( QUADRATIC, trg ) ;
         break ;
     default:
         std::cout << "order not handled in switch" << std::endl ;
@@ -79,11 +79,11 @@ GaussPointArray  GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaus
     {
     case LINEAR_TIME_LINEAR:
     case LINEAR_TIME_QUADRATIC:
-        gp = gaussPointSet ( LINEAR, tet ) ;
+        gp = gaussPointSet3D ( LINEAR, tet ) ;
         break ;
     case QUADRATIC_TIME_LINEAR:
     case QUADRATIC_TIME_QUADRATIC:
-        gp = gaussPointSet ( QUADRATIC, tet ) ;
+        gp = gaussPointSet3D ( QUADRATIC, tet ) ;
         break ;
     default:
         std::cout << "order not handled in switch" << std::endl ;
@@ -612,7 +612,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields ( F
             if(JinvCache)
                 delete JinvCache ;
             JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
-            parent->getInverseJacobianMatrix ( gp.gaussPoints[i].first, (*JinvCache) ) ;
+            getInverseJacobianMatrix ( gp.gaussPoints[i].first, (*JinvCache) ) ;
         }
 
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
@@ -1590,7 +1590,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 if(JinvCache)
                     delete JinvCache ;
                 JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
-                parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
+                getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
             ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;
@@ -2742,9 +2742,9 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 if(JinvCache)
                     delete JinvCache ;
                 JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
-                parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
+                getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
-            parent->getInverseJacobianMatrix( p_, (*JinvCache) ) ;
+            getInverseJacobianMatrix( p_, (*JinvCache) ) ;
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
             ret[1] = ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1] ;
         }
@@ -2779,7 +2779,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             }
 
             Matrix Jinv( 3, 3 ) ;
-            parent->getInverseJacobianMatrix( p_, Jinv ) ;
+            getInverseJacobianMatrix( p_, Jinv ) ;
             ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
             ret[1] = ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( x_zeta ) * Jinv[1][2];
             ret[2] = ( x_xi ) * Jinv[2][0] + ( x_eta ) * Jinv[2][1]  + ( x_zeta ) * Jinv[2][2];

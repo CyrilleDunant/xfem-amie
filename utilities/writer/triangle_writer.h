@@ -52,9 +52,6 @@ typedef enum
     TWFT_FIELD_TYPE,
     TWFT_INTERNAL_VARIABLE,
     TWFT_LARGE_DEFORMATION_TRANSFORM,
-    TWFT_LARGE_DEFORMATION_STRESS,
-    TWFT_LARGE_DEFORMATION_ANGLE,
-    TWFT_LARGE_DEFORMATION_FORCES
 } TWFieldType ;
 
 /** \brief utility class to write the values of various fields of a 2D sample in a text file. You need to use getField() to get your data before writing the file.*/

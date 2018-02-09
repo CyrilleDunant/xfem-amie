@@ -152,7 +152,7 @@ void step ( size_t nsteps, Sample * samplef )
     bool relaxed = false ;
     bool go_on = true ;
     bool setbc = true ;
-    
+
     std::fstream ldfile ;
     ldfile.open("loadStrain_m.txt", std::ios_base::in|std::ios_base::out|std::ios_base::trunc) ;
     featureTree->step() ;
@@ -166,53 +166,53 @@ void step ( size_t nsteps, Sample * samplef )
 // 	writer.getField ( IMPOSED_STRAIN_FIELD ) ;
 //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
     writer.getField ( TWFT_STIFFNESS ) ;
-    
+
 //             writer.getField ( TWFT_DAMAGE ) ;
     writer.append() ;
-    
+
     writerc.reset ( featureTree ) ;
     writerc.getField ( TWFT_CRITERION ) ;
     writerc.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
     writerc.getField ( TOTAL_STRAIN_FIELD ) ;
     writerc.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
 //     writerc.getField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
-  // 	    writerc.getField ( IMPOSED_STRAIN_FIELD ) ;
-  //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
+    // 	    writerc.getField ( IMPOSED_STRAIN_FIELD ) ;
+    //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
 //               writer.getField ( TWFT_DAMAGE ) ;
     writerc.getField ( TWFT_STIFFNESS ) ;
     writerc.append() ;
-	  
+
     for ( size_t v = 0 ; v < nsteps ; v++ )
     {
 
-	if(false && go_on && tries%every == 0 && tries)
-	{
-	  featureTree->removeBoundaryCondition( loadr );
-	  setbc = false ;
-	  relaxed = true ;
-	}
-	else if(go_on)
-	{
-	  loadr->setData(loadr->getData()+.125e-7/**.005*/) ; //e-4*.25 is mostly OK
-	  if(!setbc)
-	  {
-	    featureTree->addBoundaryCondition( loadr );
-	    setbc = true ;
-	  }
-	  relaxed = false ;
-	}
-	
+        if(false && go_on && tries%every == 0 && tries)
+        {
+            featureTree->removeBoundaryCondition( loadr );
+            setbc = false ;
+            relaxed = true ;
+        }
+        else if(go_on)
+        {
+            loadr->setData(loadr->getData()+.125e-5/**.005*/) ; //e-4*.25 is mostly OK
+            if(!setbc)
+            {
+                featureTree->addBoundaryCondition( loadr );
+                setbc = true ;
+            }
+            relaxed = false ;
+        }
+
         go_on = featureTree->step() ;
 
         if ( go_on )
-	  tries++ ;
+            tries++ ;
         else
-          nsteps++ ;
-	
-	if(false &&go_on && (tries+1)%every == 0 && tries)
-	  featureTree->thresholdScoreMet = 0.00001 ;
-	else
-	  featureTree->thresholdScoreMet = 0.01 ;
+            nsteps++ ;
+
+        if(false &&go_on && (tries+1)%every == 0 && tries)
+            featureTree->thresholdScoreMet = 0.00001 ;
+        else
+            featureTree->thresholdScoreMet = 0.01 ;
 
         double volume = 0 ;
         double xavg = 0 ;
@@ -220,74 +220,74 @@ void step ( size_t nsteps, Sample * samplef )
 
 //         if ( go_on )
 //         {
-	    Vector stemp(2) ;//= featureTree->getAverageField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
-	    Vector istemp(2); //= featureTree->getAverageField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
-	    Vector etemp(2) ;//= featureTree->getAverageField ( PRINCIPAL_MECHANICAL_STRAIN_FIELD ) ;
-	    Vector ietemp(2); //= featureTree->getAverageField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
-	    Point p(0.000,0.000) ;
-	    featureTree->get2DMesh()->getField ( PRINCIPAL_REAL_STRESS_FIELD, p, stemp ) ;
-	    featureTree->get2DMesh()->getField ( PRINCIPAL_IMPOSED_STRESS_FIELD, p, istemp ) ;
-	    featureTree->get2DMesh()->getField ( PRINCIPAL_MECHANICAL_STRAIN_FIELD,  p, etemp ) ;
-	    featureTree->get2DMesh()->getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD,  p, ietemp ) ;
-	  
-            displacements.push_back ( etemp[1] );
-            displacementsx.push_back ( etemp[0] );
-            loads.push_back ( stemp[1] );
-            loadsx.push_back ( stemp[0] );
-	    std::cout << "\naverage sigma11 : " << stemp[0]/1e6 << std::endl ;
-	    std::cout << "average sigma22 : " << stemp[1]/1e6 << std::endl ;
-	    std::cout << "average epsilon11 : " << etemp[0]*1e6 << std::endl ;
-	    std::cout << "average epsilon22 : " << etemp[1]*1e6 << std::endl ;
-	    std::cout << std::endl ;
-	    
-	    ldfile << go_on << "  " << stemp[0]/1e6 << "  " << stemp[1]/1e6 << "  " << etemp[0]*1e6 << "  " << etemp[1]*1e6 <<  "  " 
-	           << istemp[0]/1e6 << "  " << istemp[1]/1e6 << "  "  << ietemp[0]*1e6 << "  " << ietemp[1]*1e6 << "  " << featureTree->getIterationCount() << std::endl ;
+        Vector stemp(2) ;//= featureTree->getAverageField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
+        Vector istemp(2); //= featureTree->getAverageField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
+        Vector etemp(2) ;//= featureTree->getAverageField ( PRINCIPAL_MECHANICAL_STRAIN_FIELD ) ;
+        Vector ietemp(2); //= featureTree->getAverageField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
+        Point p(0.000,0.000) ;
+        featureTree->get2DMesh()->getField ( PRINCIPAL_REAL_STRESS_FIELD, p, stemp ) ;
+        featureTree->get2DMesh()->getField ( PRINCIPAL_IMPOSED_STRESS_FIELD, p, istemp ) ;
+        featureTree->get2DMesh()->getField ( PRINCIPAL_MECHANICAL_STRAIN_FIELD,  p, etemp ) ;
+        featureTree->get2DMesh()->getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD,  p, ietemp ) ;
 
-	  
+        displacements.push_back ( etemp[1] );
+        displacementsx.push_back ( etemp[0] );
+        loads.push_back ( stemp[1] );
+        loadsx.push_back ( stemp[0] );
+        std::cout << "\naverage sigma11 : " << stemp[0]/1e6 << std::endl ;
+        std::cout << "average sigma22 : " << stemp[1]/1e6 << std::endl ;
+        std::cout << "average epsilon11 : " << etemp[0]*1e6 << std::endl ;
+        std::cout << "average epsilon22 : " << etemp[1]*1e6 << std::endl ;
+        std::cout << std::endl ;
+
+        ldfile << go_on << "  " << stemp[0]/1e6 << "  " << stemp[1]/1e6 << "  " << etemp[0]*1e6 << "  " << etemp[1]*1e6 <<  "  "
+               << istemp[0]/1e6 << "  " << istemp[1]/1e6 << "  "  << ietemp[0]*1e6 << "  " << ietemp[1]*1e6 << "  " << featureTree->getIterationCount() << std::endl ;
+
+
 //         }
 
 // 	if (!relaxed)
 // 	{
-	  writer.reset ( featureTree ) ;
-	  writer.getField ( TWFT_CRITERION ) ;
-	  writer.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
-	  writer.getField ( TOTAL_STRAIN_FIELD ) ;
-	  writer.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
+        writer.reset ( featureTree ) ;
+        writer.getField ( TWFT_CRITERION ) ;
+        writer.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
+        writer.getField ( TOTAL_STRAIN_FIELD ) ;
+        writer.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
 // 	  writer.getField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
-  // 	writer.getField ( IMPOSED_STRAIN_FIELD ) ;
-  //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
-          writer.getField ( TWFT_STIFFNESS ) ;
-	  writer.append() ;
+        // 	writer.getField ( IMPOSED_STRAIN_FIELD ) ;
+        //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
+        writer.getField ( TWFT_STIFFNESS ) ;
+        writer.append() ;
 // 	}
 
         if ( go_on && !relaxed)
-	{
-	    writerc.reset ( featureTree ) ;
+        {
+            writerc.reset ( featureTree ) ;
             writerc.getField ( TWFT_CRITERION ) ;
             writerc.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
             writerc.getField ( TOTAL_STRAIN_FIELD ) ;
-	    writerc.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
+            writerc.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
 // 	    writerc.getField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
-	    writer.getField ( TWFT_STIFFNESS ) ;
+            writer.getField ( TWFT_STIFFNESS ) ;
 // 	    writerc.getField ( IMPOSED_STRAIN_FIELD ) ;
 //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
 //             writer.getField ( TWFT_DAMAGE ) ;
             writerc.append() ;
-	}
-	if(go_on && relaxed)
-	{
-	    writerr.reset ( featureTree ) ;
+        }
+        if(go_on && relaxed)
+        {
+            writerr.reset ( featureTree ) ;
             writerr.getField ( TWFT_CRITERION ) ;
             writerr.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
             writerr.getField ( TOTAL_STRAIN_FIELD ) ;
-	    writerr.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
+            writerr.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
 // 	    writerr.getField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
-	    writer.getField ( TWFT_STIFFNESS ) ;
+            writer.getField ( TWFT_STIFFNESS ) ;
 // 	    writerc.getField ( IMPOSED_STRAIN_FIELD ) ;
 //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
 //             writer.getField ( TWFT_DAMAGE ) ;
             writerr.append() ;
-	}
+        }
 
     }
     ldfile.close() ;
@@ -306,30 +306,30 @@ int main ( int argc, char *argv[] )
 //     double E_paste=12e9 ;
 //     AggregateBehaviour * agg = new AggregateBehaviour(true, false,E_agg, 0.3) ;
 //     PasteBehaviour * paste = new PasteBehaviour(true, false, E_paste*(1.-soft), 0.3*(1.-soft)) ;
-//     
+//
 //     Phase matrix(paste, 0.3) ;
-//     
+//
 //     Phase aggregate(agg,0.7 ) ;
-//     
+//
 //     MoriTanakaMatrixInclusionComposite mt(matrix,aggregate) ;
 //     std::cout << mt.getBehaviour()->getTensor(Point())[0][0] << std::endl ;
 //     delete agg ;
 //     delete paste ;
 //   }
 //   exit(0) ;
-  
+
 
     double compressionCrit = -32.6e6 ;
-    
+
     //http://www.scielo.br/scielo.php?script=sci_arttext&pid=S1517-70762010000200028
-    double mradius = .0024 ; // .010 ;//
+    double mradius = .0036 ; // .010 ;//
 
     // More or less a 5754 Al alloy
     double nu = 0.2 ; //0.33 ;
     double E = 30e9 ; //70e9 ;
 
 
-	Sample samplef(0.005, 0.021,  0, 0) ;
+    Sample samplef(0.005, 0.021,  0, 0) ;
 // 	Sample samplef(0.01, 0.01,  0, 0) ;
 //     Sample samplef ( 100, 100,  50, 50 ) ;
 
@@ -352,41 +352,41 @@ int main ( int argc, char *argv[] )
     Sample r0 ( 0.0015, 0.009,+0.001+0.0015*.5, 0 ) ;
     r0.setBehaviour ( new  VoidForm() ) ;
     F.addFeature ( &samplef, &r0 );
-    
+
     Inclusion i0(0.0015, samplef.width()*.5, 0.0045) ;
     i0.setBehaviour ( new  VoidForm() ) ;
     F.addFeature ( &samplef, &i0 );
-    
+
     Inclusion i1(0.0015, samplef.width()*.5, -0.0045) ;
     i1.setBehaviour ( new  VoidForm() ) ;
     F.addFeature ( &samplef, &i1 );
-    
+
     Sample r1 ( 0.0015, 0.009,-0.001-0.0015*.5, 0 ) ;
     r1.setBehaviour ( new  VoidForm() ) ;
     F.addFeature ( &samplef, &r1 );
-    
+
     Inclusion i2(0.0015, -samplef.width()*.5, 0.0045) ;
     i2.setBehaviour ( new  VoidForm() ) ;
     F.addFeature ( &samplef, &i2 );
-    
+
     Inclusion i3(0.0015, -samplef.width()*.5, -0.0045) ;
     i3.setBehaviour ( new  VoidForm() ) ;
     F.addFeature ( &samplef, &i3 );
 
-    
-    // More or less a 5754 Al alloy
-    StiffnessAndFracture  * pr = new StiffnessAndFracture(70e9,0.33, new NonLocalVonMises(30e6, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
-    StiffnessAndFracture  * pg = new StiffnessAndFracture(30e9,0.2, new NonLocalVonMises(20e6, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
-    
-//     samplef.setBehaviour(pr);
-    samplef.setBehaviour(new ConcreteBehaviour());
 
-    
-    
+    // More or less a 5754 Al alloy
+    StiffnessAndFracture  * pr = new StiffnessAndFracture(69e9,0.33, new NonLocalVonMises(220e6, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
+    StiffnessAndFracture  * pg = new StiffnessAndFracture(69e9,0.2, new NonLocalVonMises(220e6, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
+
+    samplef.setBehaviour(pg);
+//     samplef.setBehaviour(new ConcreteBehaviour());
+
+
+
     // 1:10 -> -0.063126
     // 1:5  -> -0.137859
-    //             0         0.25       0.5       1         2      
-    // 1:2  -> -0.341575  -0.558602 -0.630257 -0.689162 -0.784332 
+    //             0         0.25       0.5       1         2
+    // 1:2  -> -0.341575  -0.558602 -0.630257 -0.689162 -0.784332
     // 1:1  -> -0.412712
 //     EllipsoidalInclusion inclusion(&samplef, samplef.getCenter(), Point(0.,samplef.width()*.1), Point(samplef.height()*.1/2, 0.)) ;
 //     F.addFeature(&samplef, &inclusion);
@@ -398,6 +398,7 @@ int main ( int argc, char *argv[] )
 //     dynamic_cast<ConcreteBehaviour *> ( samplef.getBehaviour() )->materialRadius = mradius ;
 
     F.addBoundaryCondition ( loadr );
+    F.largeStrains = true ;
     loadr->setActive(true);
 // 	F.addBoundaryCondition(loadt);
 
@@ -411,11 +412,11 @@ int main ( int argc, char *argv[] )
     F.setOrder ( LINEAR ) ;
 // F.addPoint(new Point(0, 0)) ;
 
-    F.setMaxIterationsPerStep ( 500 );
-    F.thresholdScoreMet = 0.001 ;
-    
+    F.setMaxIterationsPerStep ( 2000 );
+    F.thresholdScoreMet = 0.01 ;
 
-    step ( 1500, &samplef ) ;
+
+    step ( 2500, &samplef ) ;
 
 
     return 0 ;

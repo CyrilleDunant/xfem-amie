@@ -1767,6 +1767,32 @@ void Assembly::fixPoint(size_t id, Amie::Variable v)
     setPointAlong(v, 0, id) ;
 }
 
+Vector Assembly::extrapolate(double factor)
+{
+    if(displacementHistory.size() < 2)
+    {
+        if(displacements.size())
+            return displacements ;
+        return Vector(0) ;
+    }
+    Vector dxdb(displacements.size()) ;
+    Vector df((forceHistory[forceHistory.size()-1]-forceHistory[forceHistory.size()-2])) ;
+    double dfs = std::sqrt(std::inner_product(&df[0], &df[df.size()], &df[0], 0.));
+    for(size_t i = 0 ; i < displacementHistory.size() ; i++)
+    {   
+        if(std::isnan(displacementHistory[displacementHistory.size()-1][i]))
+            displacementHistory[displacementHistory.size()-1][i] = 0 ;
+        dxdb[i] = (displacementHistory[displacementHistory.size()-1][i]-displacementHistory[displacementHistory.size()-2][i]) ;
+    }
+
+    
+//     std::cout << "  --> "<< dfs << std::endl ;
+        
+            
+    return displacementHistory[displacementHistory.size()-1] + dxdb*factor;
+
+}
+
 bool Assembly::solve(Vector x0, size_t maxit, const bool verbose)
 {
     if(coordinateIndexedMatrix == nullptr)
@@ -1779,165 +1805,6 @@ bool Assembly::solve(Vector x0, size_t maxit, const bool verbose)
     return ret ;
 }
 
-void updateMatrix(Assembly * A,  Vector displacements, Vector & internalForces)
-{
-    VirtualMachine vm ;
-    internalForces = 0 ;
-    for(size_t i = 0 ; i < A->element2d.size() ; i++)
-    {           
-        A->element2d[i]->getState().step(0., &displacements) ;
-        A->element2d[i]->getState().transform(&vm, &displacements) ;
-        for(size_t j = 0 ; j <  A->element2d[i]->getBoundingPoints().size() ; j++)
-        {
-            internalForces[A->element2d[i]->getBoundingPoint(j).getId()*2  ] += A->element2d[i]->getState().getInternalForces()[j*2  ] ;
-            internalForces[A->element2d[i]->getBoundingPoint(j).getId()*2+1] += A->element2d[i]->getState().getInternalForces()[j*2+1] ;
-        }
-    }
-    Vector c(0., A->getMatrix().array.size()) ;
-    A->getMatrix().array = 0 ;
-    for(size_t i = 0 ; i < A->element2d.size() ; i++)
-    {
-        if(!A->element2d[i]->getBehaviour())
-            continue ;
-
-        std::valarray< std::valarray< Amie::Matrix > > ltgmatrix = A->element2d[i]->getTangentElementaryMatrix(&vm) ;
-        std::vector<size_t> ids = A->element2d[i]->getDofIds() ;
-        for(size_t j = 0 ; j < ids.size() ; j++)
-        {
-            ids[j] *= A->ndof ;
-        }
-        
-        for(size_t j = 0 ; j < ids.size() ; j++)
-        {
-            double * array_iterator = A->getMatrix()[ids[j]].getPointer(ids[j]) ;
-            double * c_iterator = &c[0]+(array_iterator-&A->getMatrix().array[0]) ;
-            //data is arranged column-major, with 2-aligned columns
-            
-            for(size_t m = 0 ; m < A->ndof ; m++)
-            {
-                for(size_t n = 0 ; n < A->ndof ; n++)
-                {
-                    double y = A->scales[i] * ltgmatrix[j][j][n][m] - *c_iterator ;
-                    double t = *array_iterator + y ;
-                    *c_iterator = (t-*array_iterator)-y ;
-                    *array_iterator = t ;
-                    array_iterator++ ;
-                    c_iterator++ ;
-                }
-            }
-
-            for(size_t k = j+1 ; k < ids.size() ; k++)
-            {
-                double * array_iterator0 = A->getMatrix()[ids[j]].getPointer(ids[k]) ;
-                double * array_iterator1 = A->getMatrix()[ids[k]].getPointer(ids[j]) ;
-                double * c_iterator0 = &c[0]+(array_iterator0-&A->getMatrix().array[0]) ;
-                double * c_iterator1 = &c[0]+(array_iterator1-&A->getMatrix().array[0]) ;
-                for(size_t m = 0 ; m < A->ndof ; m++)
-                {
-                    for(size_t n = 0 ; n < A->ndof ; n++)
-                    {
-                        double y0 = A->scales[i] * ltgmatrix[j][k][n][m] - *c_iterator0 ;
-                        double y1 = A->scales[i] * ltgmatrix[k][j][n][m] - *c_iterator1 ;
-                        double t0 = *array_iterator0 + y0 ;
-                        double t1 = *array_iterator1 + y1 ;
-                        *c_iterator0 = (t0-*array_iterator0)-y0 ;
-                        *c_iterator1 = (t1-*array_iterator1)-y1 ;
-                        *array_iterator0 = t0 ;
-                        *array_iterator1 = t1 ;
-                        array_iterator0++ ; 
-                        array_iterator1++ ;
-                        c_iterator0++ ;
-                        c_iterator1++ ;
-                    }
-                }   
-            }
-        }
-    }
-       
-}
-
-bool Assembly::tgsolve(int maxit, bool verbose)
-{
-    bool ret = true ;
-
-    VirtualMachine vm ;
-    
-    //first, initialise
-    make_final(false) ;
-    Vector deltaForce = externalForces-naturalBoundaryConditionForces ;
-    ConjugateGradient cg(this) ;
-    cg.nssor = nssor ;
-    if(rowstart > 0 || colstart > 0)
-    {
-        cg.rowstart = rowstart;
-        cg.colstart = colstart;
-    }
-
-    ret = cg.solve(displacements, nullptr, epsilon, -1, verbose) ;
-
-    if(cg.x.size() != displacements.size())
-        displacements.resize(cg.x.size()) ;
-    displacements = cg.x ; 
-
-    Vector internalForces = (Vector)(getMatrix()*displacements) ;
-    CoordinateIndexedSparseMatrix pmatrix = getMatrix() ;
-    Vector internalForcesInit = internalForces ;
-    Vector deltaDisplacements = cg.x ;
-
-    if(!ret)
-        return false ;
-    
-    Vector totalDisplacement = displacements ;
-    
-    updateMatrix(this, totalDisplacement, internalForces) ;
-    addToExternalForces = 0 ;(Vector)(getMatrix()*totalDisplacement);
-    externalForces = 0 ;
-    setBoundaryConditions(false) ;
-    ret = cg.solve(displacements, nullptr, epsilon, -1, verbose) ;
-    displacements = cg.x ;
-    totalDisplacement += displacements ;
-//     
-    for(size_t i = 0 ;  i < 12 ; i++)
-    { 
-        updateMatrix(this, totalDisplacement, internalForces) ;
-        addToExternalForces = 0 ;(Vector)(getMatrix()*totalDisplacement) ;
-        externalForces = 0 ; 
-        setBoundaryConditions(false) ;
-        ret = cg.solve(displacements, nullptr, epsilon, -1, verbose) ;
-        displacements = cg.x ;
-        totalDisplacement += displacements ;
-        std::cout << std::abs(internalForces).max() << std::endl ;
-    }
-//         
-//     internalForces = getMatrix()*displacements ;
-//     updateMatrix(this, displacements) ;
-// 
-//     externalForces = 0 ;
-//     addToExternalForces = (Vector)(getMatrix()*displacements) - internalForces -deltaForce;
-//     setBoundaryConditions(false) ;
-//     ret = cg.solve(displacements, nullptr, epsilon, -1, verbose) ;
-//     displacements = cg.x ;
-//     totalDisplacement += displacements ;
-
-    Vector xy(displacements.size()) ;
-    for(size_t i = 0 ; i < element2d.size() ; i++)
-    {     
-        xy[element2d[i]->getBoundingPoint(0).getId()*2] = element2d[i]->getBoundingPoint(0).getX() ;
-        xy[element2d[i]->getBoundingPoint(0).getId()*2+1] = element2d[i]->getBoundingPoint(0).getY() ;
-        xy[element2d[i]->getBoundingPoint(1).getId()*2] = element2d[i]->getBoundingPoint(1).getX() ;
-        xy[element2d[i]->getBoundingPoint(1).getId()*2+1] = element2d[i]->getBoundingPoint(1).getY() ;
-        xy[element2d[i]->getBoundingPoint(2).getId()*2] = element2d[i]->getBoundingPoint(2).getX() ;
-        xy[element2d[i]->getBoundingPoint(2).getId()*2+1] = element2d[i]->getBoundingPoint(2).getY() ;
-    }
-
-     for(size_t i = 0 ; i < xy.size()/2 ; i++)
-     {
-         std::cout << xy[i*2] << "  " << xy[i*2+1] << "  " << totalDisplacement[i*2] << "  " << totalDisplacement[i*2+1] << "  "<< internalForces[i*2] << "  "<< internalForces[i*2+1]  << std::endl ;
-     }
-
-    displacements = totalDisplacement ;
-    return true ;
-}
 
 bool Assembly::cgsolve(int maxit, bool verbose)
 {
@@ -1955,13 +1822,12 @@ bool Assembly::cgsolve(int maxit, bool verbose)
         cg.nssor = nssor ;
         if(rowstart > 0 || colstart > 0)
         {
-
             cg.rowstart = rowstart;
             cg.colstart = colstart;
         }
 
 
-        ret = cg.solve(displacements, nullptr, epsilon, -1, verbose) ;
+        ret = cg.solve(extrapolate(), nullptr, epsilon, -1, verbose) ;
         gettimeofday(&time1, nullptr);
         double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
         std::cerr << "Time to solve (s) " << delta/1e6 << std::endl ;
@@ -1969,9 +1835,29 @@ bool Assembly::cgsolve(int maxit, bool verbose)
         if(cg.x.size() != displacements.size())
             displacements.resize(cg.x.size(), 0.) ;
         
-
         displacements = cg.x ;
+        if(displacementHistory.size() == 2)
+        {
+            displacementHistory[0] = displacementHistory[1] ;
+            displacementHistory[1] = displacements ;
+        }
+        else
+        {
+            displacementHistory.push_back(displacements*0.) ;
+            displacementHistory.push_back(displacements) ;
+        }
 
+        if(forceHistory.size() == 2)
+        {
+            forceHistory[0] = forceHistory[1] ;
+            forceHistory[1] = externalForces ;
+        }
+        else
+        {
+            forceHistory.push_back(externalForces*0.) ;
+            forceHistory.push_back(externalForces) ;
+        }
+        
         for(size_t i = 0 ; i < multipliersBuffer.size() ; i++)
         {
             if( multipliersBuffer[i].type == SET_PROPORTIONAL_DISPLACEMENT)
