@@ -13,17 +13,17 @@ Composite::Composite( DelaunayTetrahedron *tet, std::vector<Feature *> feats , I
 
 }
 
-Composite::Composite( Phase p , InclusionGeometryType t, double a, double b, double c) : Phase( p , t, a, b, c)
+Composite::Composite( const Phase & p ) : Phase( p)
 {
 
 }
 
-void Composite::apply(InclusionGeometryType t, double a, double b, double c)
+void Composite::apply()
 {
 
 }
 
-Matrix Composite::I4( Matrix C )
+Matrix Composite::I4( const Matrix &C )
 {
     Matrix I4( C.numRows(), C.numCols() ) ;
 
@@ -35,60 +35,95 @@ Matrix Composite::I4( Matrix C )
     return I4 ;
 }
 
-Matrix  Composite::eshelbyEllipsoid(Matrix C, double a, double b, double c)
+Matrix  Composite::eshelbyEllipsoid(const Matrix & C, double a, double b, double c)
 {
     Matrix S( C.numRows(), C.numCols() ) ;
     double nu = 0.2 ;
     double x = C[0][0] ;
     double y = C[0][1] ;
-    if(x+y > POINT_TOLERANCE)
+    if(std::abs(x+y) > POINT_TOLERANCE)
         nu = y / ( x + y ) ;
     else
         nu = 0 ;
-    
+
     double theta = asin(sqrt((a*a-c*c)/a*a)) ;
     double k =  (a*a-b*b) / (a*a - c*c) ;
-    
+
     double F = 0 ;
     double E = 0 ;
-    double dw = theta*1e-9 ;
-    for(double w = 0 ; w <= theta ; w += dw)
+    double Ec = 0 ;
+    double Fc = 0 ;
+    double dw = theta*1e-1 ;
+    double g0 = -1./sqrt(3) ;
+    double g1 = 1./sqrt(3) ;
+    for(double w = 0 ; w < theta-dw*.5 ; w += 2.*dw)
     {
-        
-        double d = 1.-k*sin(w)*sin(w) ;
-        if( d >0 )
+
+        double s0 = sin(w+g0*dw+w) ;
+        double d0 = 1.-k*s0*s0 ;
+        if( d0 >0 )
         {
-            double itemp = sqrt(d) ;
+            double itemp = sqrt(d0) ;
             if(itemp > POINT_TOLERANCE)
             {
-                F += dw / itemp ;
-                E += dw * itemp ;
+                double df = dw / itemp ;
+                double y = df - Fc ;
+                double t = F+y ;
+                Fc = (t- F) - y ;
+                F = t ;
+
+                double de = dw * itemp ;
+                y = de - Ec ;
+                t = E+y ;
+                Ec = (t- E) - y ;
+                E = t ;
+
+            }
+        }
+        double s1 = sin(w+g1*dw+w) ;
+        double d1 = 1.-k*s1*s1 ;
+        if( d1 >0 )
+        {
+            double itemp = sqrt(d1) ;
+            if(itemp > POINT_TOLERANCE)
+            {
+                double df = dw / itemp ;
+                double y = df - Fc ;
+                double t = F+y ;
+                Fc = (t- F) - y ;
+                F = t ;
+
+                double de = dw * itemp ;
+                y = de - Ec ;
+                t = E+y ;
+                Ec = (t- E) - y ;
+                E = t ;
             }
         }
     }
-    
+
     std::cout << F << "  " << E << std::endl ;
-    
+
     double I1 = 4.*M_PI*a*b*c / ((a*a-b*b)*sqrt(a*a-c*c))*(F-E) ;
     double I3 = 4.*M_PI*a*b*c / ((b*b-c*c)*sqrt(a*a-c*c))*(b*sqrt(a*a-c*c)/(a*c)-E) ;
     double I2 = 4.*M_PI-I1-I3 ;
-        
+
     double I12 = (I2-I1)/(a*a-b*b) ;
     double I11 = (3.*I1 + (c*c-b*b)*I12 - c*c*4.*M_PI/(a*a))/(3*(a*a-c*c));
     double I13 = 4.*M_PI/(a*a) - 3.*I11 - I12;
-    
+
     double I23 = (I3-I2)/(b*b-c*c) ;
     double I22 = (3.*I2 + (a*a-c*c)*I23 - a*a*4.*M_PI/(b*b))/(3*(b*b-a*a));
     double I21 = 4.*M_PI/(b*b) - 3.*I22 - I23;
-    
+
     double I31 = (I1-I3)/(c*c-a*a) ;
     double I33 = (3.*I3 + (b*b-a*a)*I31 - b*b*4.*M_PI/(c*c))/(3*(c*c-b*b));
     double I32 = 4.*M_PI/(c*c) - 3.*I33 - I31;
-    
+
 //     std::cout << I1 << "  " << I2 << "  " << I3 << "  " << I11 << "  "<< I22 << "  " << I33 << std::endl ;
 //     std::cout << I12 << "  " << I12 << "  " << I23 << "  " << I21 << "  "<< I23 << "  " << I32 << std::endl ;
-    
-    double Q =  3./(8.*M_PI*(1.-nu)) ;     
+
+    double Q =  3./(8.*M_PI*(1.-nu)) ;
     double R = (1.-2.*nu)/(8*M_PI*(1.-nu)) ;
     S[0][0] = Q*a*a*I11+R*I1 ;
     S[1][1] = Q*b*b*I22+R*I2 ;
@@ -104,36 +139,36 @@ Matrix  Composite::eshelbyEllipsoid(Matrix C, double a, double b, double c)
     S[3][3] = (a*a+b*b)*.5*Q*I12+0.5*R*(I1+I2) ;
     S[4][4] = (a*a+c*c)*.5*Q*I13+0.5*R*(I1+I3) ;
     S[5][5] = (b*b+c*c)*.5*Q*I23+0.5*R*(I2+I3) ;
-    
+
 //     S.print() ;
-    
+
     return S ;
-    
+
 }
 
-Matrix  Composite::eshelbyCylinder(Matrix C, double a, double b)
+Matrix  Composite::eshelbyCylinder(const Matrix & C, double a, double b)
 {
     Matrix S( C.numRows(), C.numCols() ) ;
     double nu = 0.2 ;
     double x = C[0][0] ;
     double y = C[0][1] ;
-    if(x+y > POINT_TOLERANCE)
+    if(std::abs(x+y) > POINT_TOLERANCE)
         nu = y / ( x + y ) ;
     else
         nu = 0 ;
-    
+
     S[0][0] = 1./(2.*(1.-nu))*((b*b+2.*a*b)/((a+b)*(a+b))+(1.-2.*nu)*b/(a+b)) ;
     S[1][1] = 1./(2.*(1.-nu))*((a*a+2.*a*b)/((a+b)*(a+b))+(1.-2.*nu)*a/(a+b)) ;
     S[2][2] = 0 ;
 
-    S[0][1] = 1./(2.*(1.-nu))*(b*b/((a+b)*(a+b))+(1.-2.*nu)*b/(a+b)) ;
+    S[0][1] = 1./(2.*(1.-nu))*(b*b/((a+b)*(a+b))-(1.-2.*nu)*b/(a+b)) ;
     S[0][2] = nu*b/((1.-nu)*(a+b)) ;
-    S[1][0] = 1./(2.*(1.-nu))*(a*a/((a+b)*(a+b))+(1.-2.*nu)*a/(a+b)) ;
+    S[1][0] = 1./(2.*(1.-nu))*(a*a/((a+b)*(a+b))-(1.-2.*nu)*a/(a+b)) ;
     S[1][2] = nu*a/((1.-nu)*(a+b)) ;
     S[2][0] = 0 ;
     S[2][1] = 0 ;
 
-    S[3][3] = 1./(1.-nu)*((b*b+a*a)/((a+b)*(a+b))+(1.-2.*nu))*.25 ;
+    S[3][3] = 1./(1.-nu)*((b*b+a*a)/((a+b)*(a+b))+(1.-2.*nu))*.5 ;
     S[4][4] = b/(2.*(a+b)) ;
     S[5][5] = a/(2.*(a+b)) ;
 //     double Ia = 4.*M_PI*b/(a+b) ;
@@ -143,10 +178,10 @@ Matrix  Composite::eshelbyCylinder(Matrix C, double a, double b)
 //     double Ibb =  4.*M_PI/(3.*b*b)-Iab ;
 //     std::cout << S[0][1] << "  " << 3./(8.*M_PI*(1.-nu))*b*b*Iab+(1.-2.*nu)/(8.*M_PI*(1.-nu))*Ia << std::endl ;
     return S ;
-    
+
 }
 
-Matrix Composite::eshelby( Matrix C )
+Matrix Composite::eshelby(const Matrix & C )
 {
     Matrix S( C.numRows(), C.numCols() ) ;
     double nu = 0.2 ;
@@ -192,12 +227,12 @@ Matrix Composite::eshelby( Matrix C )
         S[3][3] = Sijij ;
         S[4][4] = Sijij ;
         S[5][5] = Sijij ;
-        
-        S.print() ;
-        std::cout << std::endl ;
-        eshelbyEllipsoid( C,  a,  b,  c).print() ;
-        exit(0) ;
-        
+
+//         S.print() ;
+//         std::cout << std::endl ;
+//         eshelbyEllipsoid( C,  a,  b,  c).print() ;
+//         exit(0) ;
+
     }
 
     return S ;
@@ -231,13 +266,13 @@ void Composite::invertTensor( Matrix &m )
 MatrixInclusionComposite::MatrixInclusionComposite( DelaunayTriangle *tri, Feature *inc, InclusionGeometryType t, double a, double b, double c ) : Composite( tri, std::vector<Feature *>( 0 ), t, a, b, c )
 {
 
-    
+
     matrix = Phase( tri, t, a, b, c ) ;
-    inclusion = Phase( inc , tri , t, a, b, c) ;    
-    
+    inclusion = Phase( inc , tri , t, a, b, c) ;
+
     matrix.volume = std::max(matrix.volume, 1e-6) ;
-    inclusion.volume = std::max(inclusion.volume, 1e-6) ;    
-    volume = matrix.volume + inclusion.volume ; 
+    inclusion.volume = std::max(inclusion.volume, 1e-6) ;
+    volume = matrix.volume + inclusion.volume ;
     matrix.volume /= volume ;
     inclusion.volume /= volume ;
 
@@ -247,34 +282,31 @@ MatrixInclusionComposite::MatrixInclusionComposite( DelaunayTetrahedron *tet, Fe
 {
 
     matrix = Phase( tet, t, a, b, c ) ;
-    inclusion = Phase( inc, t, a, b, c ) ;    
-    
-    matrix.volume = std::max(matrix.volume, 1e-6) ;
-    inclusion.volume = std::max(inclusion.volume, 1e-6) ;    
-    volume = matrix.volume + inclusion.volume ; 
-    matrix.volume /= volume ;
-    inclusion.volume /= volume ;
-
-}
-
-MatrixInclusionComposite::MatrixInclusionComposite( Phase mat, Phase inc, InclusionGeometryType t, double a, double b, double c) : Composite( mat, t, a, b, c )
-{
-
-    matrix = Phase( mat, t, a, b, c ) ;
     inclusion = Phase( inc, t, a, b, c ) ;
 
     matrix.volume = std::max(matrix.volume, 1e-6) ;
-    inclusion.volume = std::max(inclusion.volume, 1e-6) ;    
-    volume = matrix.volume + inclusion.volume ; 
+    inclusion.volume = std::max(inclusion.volume, 1e-6) ;
+    volume = matrix.volume + inclusion.volume ;
+    matrix.volume /= volume ;
+    inclusion.volume /= volume ;
+
+}
+
+MatrixInclusionComposite::MatrixInclusionComposite( const Phase & mat, const Phase & inc) : Composite( mat), matrix(mat), inclusion(inc)
+{
+
+    matrix.volume = std::max(matrix.volume, 1e-6) ;
+    inclusion.volume = std::max(inclusion.volume, 1e-6) ;
+    volume = matrix.volume + inclusion.volume ;
     matrix.volume /= volume ;
     inclusion.volume /= volume ;
 
 }
 
 
-void MatrixInclusionComposite::apply(InclusionGeometryType t, double a, double b, double c)
+void MatrixInclusionComposite::apply()
 {
-    this->getStrainConcentrationTensor(t, a, b, c) ;
+    getStrainConcentrationTensor() ;
     Matrix I = Composite::I4( matrix.C ) ;
 
     inclusion.A = B * inclusion.volume + I * matrix.volume ;
@@ -284,7 +316,7 @@ void MatrixInclusionComposite::apply(InclusionGeometryType t, double a, double b
         matrix.A = ( I - inclusion.A * inclusion.volume ) / matrix.volume ;
     else
     {
-        matrix.A = ( I - inclusion.A * inclusion.volume ) / 1e-6 ;
+        matrix.A = ( I - inclusion.A * 1e-6 ) / 1e-6 ;
     }
 //     std::cout << "vmat = "<< matrix.volume << std::endl ;
 
@@ -296,7 +328,7 @@ void MatrixInclusionComposite::apply(InclusionGeometryType t, double a, double b
 
 }
 
-void MatrixInclusionComposite::getStrainConcentrationTensor(InclusionGeometryType t, double a, double b, double c)
+void MatrixInclusionComposite::getStrainConcentrationTensor()
 {
     B = Matrix( C.numRows(), C.numCols() ) ;
 }
@@ -311,15 +343,15 @@ DiluteMatrixInclusionComposite::DiluteMatrixInclusionComposite( DelaunayTetrahed
 
 }
 
-DiluteMatrixInclusionComposite::DiluteMatrixInclusionComposite( Phase mat, Phase inc , InclusionGeometryType t, double a, double b, double c ) : MatrixInclusionComposite( mat, inc, t, a, b, c )
+DiluteMatrixInclusionComposite::DiluteMatrixInclusionComposite( const Phase & mat, const Phase & inc ) : MatrixInclusionComposite( mat, inc)
 {
 
 }
 
-void DiluteMatrixInclusionComposite::getStrainConcentrationTensor(InclusionGeometryType t, double a, double b, double c)
+void DiluteMatrixInclusionComposite::getStrainConcentrationTensor()
 {
     MoriTanakaMatrixInclusionComposite mori( matrix, inclusion ) ;
-    mori.apply(t, a,b, c) ;
+    mori.apply() ;
 
     Matrix I = Composite::I4( mori.B ) ;
     B = I - ( mori.B * inclusion.volume ) ;
@@ -338,12 +370,12 @@ VoigtMatrixInclusionComposite::VoigtMatrixInclusionComposite( DelaunayTetrahedro
 
 }
 
-VoigtMatrixInclusionComposite::VoigtMatrixInclusionComposite( Phase mat, Phase inc, InclusionGeometryType t, double a, double b, double c ) : MatrixInclusionComposite( mat, inc, t, a, b, c )
+VoigtMatrixInclusionComposite::VoigtMatrixInclusionComposite( const Phase & mat, const Phase & inc) : MatrixInclusionComposite( mat, inc)
 {
 
 }
 
-void VoigtMatrixInclusionComposite::getStrainConcentrationTensor(InclusionGeometryType t, double a, double b, double c)
+void VoigtMatrixInclusionComposite::getStrainConcentrationTensor()
 {
     B = Composite::I4( C ) ;
 }
@@ -358,12 +390,12 @@ ReussMatrixInclusionComposite::ReussMatrixInclusionComposite( DelaunayTetrahedro
 
 }
 
-ReussMatrixInclusionComposite::ReussMatrixInclusionComposite( Phase mat, Phase inc, InclusionGeometryType t, double a, double b, double c ) : MatrixInclusionComposite( mat, inc, t, a, b, c )
+ReussMatrixInclusionComposite::ReussMatrixInclusionComposite( const Phase & mat, const Phase & inc) : MatrixInclusionComposite( mat, inc)
 {
 
 }
 
-void ReussMatrixInclusionComposite::getStrainConcentrationTensor(InclusionGeometryType t, double a, double b, double c)
+void ReussMatrixInclusionComposite::getStrainConcentrationTensor()
 {
     if(inclusion.C.array().max() > POINT_TOLERANCE)
     {
@@ -388,21 +420,21 @@ MoriTanakaMatrixInclusionComposite::MoriTanakaMatrixInclusionComposite( Delaunay
 
 }
 
-MoriTanakaMatrixInclusionComposite::MoriTanakaMatrixInclusionComposite( Phase mat, Phase inc, InclusionGeometryType t, double a, double b, double c ) : MatrixInclusionComposite( mat, inc, t, a, b, c )
+MoriTanakaMatrixInclusionComposite::MoriTanakaMatrixInclusionComposite( const Phase & mat, const Phase & inc ) : MatrixInclusionComposite( mat, inc )
 {
 
 }
 
-void MoriTanakaMatrixInclusionComposite::getStrainConcentrationTensor(InclusionGeometryType t, double a, double b, double c)
+void MoriTanakaMatrixInclusionComposite::getStrainConcentrationTensor()
 {
     if(matrix.C.array().max() > POINT_TOLERANCE)
     {
         Matrix I = Composite::I4( C ) ;
         Matrix S = Composite::eshelby( matrix.C ) ;
-        if(t == INCLUSION_IS_ELLIPSOID)
-            S = Composite::eshelbyEllipsoid( matrix.C, a, b, c ) ;
-       if(t == INCLUSION_IS_CYLINDER)
-            S = Composite::eshelbyCylinder( matrix.C, a, b) ; 
+        if(matrix.t == INCLUSION_IS_ELLIPSOID)
+            S = Composite::eshelbyEllipsoid( matrix.C, matrix.a, matrix.b, matrix.c ) ;
+        if(matrix.t == INCLUSION_IS_CYLINDER)
+            S = Composite::eshelbyCylinder( matrix.C, matrix.a, matrix.b) ;
 
         B = matrix.C ;
         Composite::invertTensor( B ) ;
@@ -429,26 +461,26 @@ InverseMoriTanakaMatrixInclusionComposite::InverseMoriTanakaMatrixInclusionCompo
 
 }
 
-InverseMoriTanakaMatrixInclusionComposite::InverseMoriTanakaMatrixInclusionComposite( Phase mat, Phase inc , InclusionGeometryType t, double a, double b, double c) : MatrixInclusionComposite( mat, inc, t, a, b, c )
+InverseMoriTanakaMatrixInclusionComposite::InverseMoriTanakaMatrixInclusionComposite( const Phase & mat, const Phase & inc ) : MatrixInclusionComposite( mat, inc)
 {
 
 }
 
-void InverseMoriTanakaMatrixInclusionComposite::getStrainConcentrationTensor(InclusionGeometryType t, double a, double b, double c)
+void InverseMoriTanakaMatrixInclusionComposite::getStrainConcentrationTensor()
 {
     if(matrix.C.array().max() > POINT_TOLERANCE)
     {
         Matrix I = Composite::I4( C ) ;
         Matrix S = Composite::eshelby( inclusion.C ) ;
-        if(t == INCLUSION_IS_ELLIPSOID)
+        if(inclusion.t == INCLUSION_IS_ELLIPSOID)
         {
-            S = Composite::eshelbyEllipsoid( inclusion.C, a, b, c ) ;
+            S = Composite::eshelbyEllipsoid( inclusion.C, inclusion.a, inclusion.b, inclusion.c ) ;
         }
-        if(t == INCLUSION_IS_CYLINDER)
+        if(inclusion.t == INCLUSION_IS_CYLINDER)
         {
-            S = Composite::eshelbyCylinder( inclusion.C, a, b) ;
+            S = Composite::eshelbyCylinder( inclusion.C, inclusion.a, inclusion.b) ;
         }
-        
+
 
         B = inclusion.C ;
         Composite::invertTensor( B ) ;
@@ -464,85 +496,104 @@ void InverseMoriTanakaMatrixInclusionComposite::getStrainConcentrationTensor(Inc
 
 BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite( DelaunayTriangle *tri, Feature *inc, InclusionGeometryType t, double a, double b, double c ) : MatrixInclusionComposite( tri, inc, t, a, b, c )
 {
-    crystals.first = matrix ;
-    crystals.second = inclusion ;
-    ReussMatrixInclusionComposite voigt( matrix, inclusion, t, a, b, c  ) ;
-    voigt.apply(t, a, b, c) ;
+
+    ReussMatrixInclusionComposite voigt( matrix, inclusion  ) ;
+    voigt.apply() ;
     fictious = voigt ;
 }
 
 BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite( DelaunayTetrahedron *tet, Feature *inc , InclusionGeometryType t, double a, double b, double c) : MatrixInclusionComposite( tet, inc, t, a, b, c )
 {
-    crystals.first = matrix ;
-    crystals.second = inclusion ;
-    ReussMatrixInclusionComposite voigt( matrix, inclusion, t, a, b, c  ) ;
-    voigt.apply(t, a, b, c) ;
+
+    ReussMatrixInclusionComposite voigt( matrix, inclusion ) ;
+    voigt.apply() ;
     fictious = voigt ;
 }
 
-BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite( Phase mat, Phase inc , InclusionGeometryType t, double a, double b, double c) : MatrixInclusionComposite( mat, inc, t, a, b, c )
+BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite( const Phase & mat, const Phase & inc) : MatrixInclusionComposite( mat, inc)
 {
-    crystals.first = matrix ;
-    crystals.second = inclusion ;
-    ReussMatrixInclusionComposite voigt( matrix, inclusion, t, a, b, c  ) ;
-    voigt.apply(t, a, b, c) ;
+
+    ReussMatrixInclusionComposite voigt( matrix, inclusion) ;
+    voigt.apply() ;
     fictious = static_cast<Phase>( voigt ) ;
 }
 
 
-BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite( Phase mat, Phase inc,  BiphasicSelfConsistentComposite hint, InclusionGeometryType t, double a, double b, double c) : MatrixInclusionComposite( mat, inc, t, a, b, c  )
+BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite( const Phase & mat, const Phase &inc,  const BiphasicSelfConsistentComposite & hint) : MatrixInclusionComposite( mat, inc )
 {
-    crystals.first = matrix ;
-    crystals.second = inclusion ;
     fictious = hint ;
-    
+
 //     std::cout << "vmat & vinc = "<< matrix.volume << "  " << inclusion.volume << std::endl ;
 }
-void BiphasicSelfConsistentComposite::getStrainConcentrationTensor(InclusionGeometryType t, double a, double b, double c)
+void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
 {
+//     std::cout << "sc composite" << std::endl ;
     double error = 1. ;
     Matrix S = inclusion.C ;
     Matrix I = Composite::I4( S ) ;
-    int iterations = 0 ;    
-    double nc1 = std::inner_product(&crystals.first.C.array()[0], &crystals.first.C.array()[crystals.first.C.array().size()], &crystals.first.C.array()[0], double(0)) ;
-    double nc2 = std::inner_product(&crystals.second.C.array()[0], &crystals.second.C.array()[crystals.second.C.array().size()], &crystals.second.C.array()[0], double(0)) ;
-    double maxnorm = std::max(nc1, nc2) ;
-    while( error > 1e-6 && ++iterations < 80000)
-    {
-        MoriTanakaMatrixInclusionComposite mtFictiousFirst(fictious, crystals.first, t, a, b, c ) ;
-        mtFictiousFirst.apply(t, a, b, c) ;
-        MoriTanakaMatrixInclusionComposite mtFictiousSecond(fictious, crystals.second, t, a, b, c ) ;
-        mtFictiousSecond.apply(t, a, b, c) ;
 
-        Matrix G = mtFictiousFirst.inclusion.A * crystals.first.volume ;
-        G += mtFictiousSecond.inclusion.A * crystals.second.volume ;
+    double nc1 = std::inner_product(&matrix.C.array()[0], &matrix.C.array()[matrix.C.array().size()], &matrix.C.array()[0], double(0)) ;
+    double nc2 = std::inner_product(&inclusion.C.array()[0], &inclusion.C.array()[inclusion.C.array().size()], &inclusion.C.array()[0], double(0)) ;
+    double maxnorm = std::max(nc1, nc2) ;
+
+    MoriTanakaMatrixInclusionComposite mtFictiousFirst(fictious, matrix) ;
+    mtFictiousFirst.apply() ;
+    MoriTanakaMatrixInclusionComposite mtFictiousSecond(fictious, inclusion) ;
+    mtFictiousSecond.apply() ;
+
+    Matrix Gp = mtFictiousFirst.inclusion.A * matrix.volume ;
+    Gp += mtFictiousSecond.inclusion.A * inclusion.volume ;
+    Composite::invertTensor( Gp ) ;
+    Gp *= mtFictiousSecond.inclusion.A ;
+    Matrix Sp = Gp ;
+
+    Gp *= inclusion.C * inclusion.volume  + matrix.C*(1.-inclusion.volume);
+
+    Vector K = fictious.C.array() - Gp.array() ;
+
+    error = std::inner_product(&K[0], &K[K.size()], &K[0], double(0))/maxnorm ;
+//         double n = std::inner_product(&G.array()[0], &G.array()[G.array().size()], &G.array()[0], double(0)) ;
+    fictious.C = Gp ;
+    double perror = error ;
+
+    do {
+        perror = error ;
+        MoriTanakaMatrixInclusionComposite mtFictiousFirst(fictious, matrix) ;
+        mtFictiousFirst.apply() ;
+        MoriTanakaMatrixInclusionComposite mtFictiousSecond(fictious, inclusion) ;
+        mtFictiousSecond.apply() ;
+
+        Matrix G = mtFictiousFirst.inclusion.A * matrix.volume ;
+        G += mtFictiousSecond.inclusion.A * inclusion.volume ;
         Composite::invertTensor( G ) ;
         G *= mtFictiousSecond.inclusion.A ;
         S = G ;
 
-        G *= ( crystals.second.C - crystals.first.C ) * crystals.second.volume ;
-        G += crystals.first.C ;
+        G *= inclusion.C * inclusion.volume  + matrix.C*(1.-inclusion.volume);
 
         Vector K = fictious.C.array() - G.array() ;
-
         error = std::inner_product(&K[0], &K[K.size()], &K[0], double(0))/maxnorm ;
-        double n = std::inner_product(&G.array()[0], &G.array()[G.array().size()], &G.array()[0], double(0)) ;
-        if(n < maxnorm*1.5)
-            fictious.C = G ;
-        else
-           fictious.C = G*.5/maxnorm ; 
-    }
+//         double n = std::inner_product(&G.array()[0], &G.array()[G.array().size()], &G.array()[0], double(0)) ;
+        fictious.C = G ;
 
-    B = I - S * inclusion.volume ;
+        if(error < perror && error > 1e-16 )
+        {
+            Gp = G ;
+            Sp = S ;
+        }
+    } while( error < perror && error > 1e-16 ) ;
+
+    fictious.C = Gp ;
+    B = I - Sp * inclusion.volume ;
     Composite::invertTensor( B ) ;
-    B *= S * matrix.volume ;
+    B *= Sp * matrix.volume ;
 }
 
 
 MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( DelaunayTriangle *tri, std::vector<Feature *> inc, InclusionGeometryType t, double a, double b, double c) : Composite( tri, inc , t, a, b, c )
 {
 
-    
+
     matrix = Phase( tri, t, a, b, c  ) ;
 
     for( size_t i = 0 ; i < inc.size() ; i++ )
@@ -584,25 +635,25 @@ MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( DelaunayTriangle *
 
     for( size_t i = 0 ; i < inclusions.size() ; i++ )
     {
-        grains.push_back( MoriTanakaMatrixInclusionComposite( matrix, inclusions[i], t, a, b, c ) ) ;
+        grains.push_back( MoriTanakaMatrixInclusionComposite( matrix, inclusions[i]) ) ;
         grains[i].volume /= 1. - matrix.volume ;
     }
 
 }
 
-MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( Phase p, std::vector<Phase> inc, InclusionGeometryType t, double a, double b, double c) : Composite( p , t, a, b, c )
+MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( const Phase & p, const std::vector<Phase> & inc) : Composite( p )
 {
 
-	matrix = p ;
-	
-	for(size_t i = 0 ; i < inc.size() ; i++)
-		inclusions.push_back( inc[i]) ;
+    matrix = p ;
 
-	for( size_t i = 0 ; i < inclusions.size() ; i++ )
-	{
-		grains.push_back( MoriTanakaMatrixInclusionComposite( matrix, inclusions[i], t, a, b, c) ) ;
-		grains[i].volume /= 1. - matrix.volume ;
-	}
+    for(size_t i = 0 ; i < inc.size() ; i++)
+        inclusions.push_back( inc[i]) ;
+
+    for( size_t i = 0 ; i < inclusions.size() ; i++ )
+    {
+        grains.push_back( MoriTanakaMatrixInclusionComposite( matrix, inclusions[i]) ) ;
+        grains[i].volume /= 1. - matrix.volume ;
+    }
 
 }
 
@@ -637,7 +688,7 @@ MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( DelaunayTetrahedro
 
     for( size_t i = 0 ; i < inclusions.size() ; i++ )
         matrix.volume -= inclusions[i].volume ;
-    
+
     matrix.volume = std::max(matrix.volume, 1e-6*tet->volume()) ;
 
     matrix.volume /= volume ;
@@ -647,16 +698,16 @@ MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( DelaunayTetrahedro
 
     for( size_t i = 0 ; i < inclusions.size() ; i++ )
     {
-        grains.push_back( MoriTanakaMatrixInclusionComposite( matrix, inclusions[i], t, a, b, c ) ) ;
+        grains.push_back( MoriTanakaMatrixInclusionComposite( matrix, inclusions[i]) ) ;
         grains[i].volume /= 1. - matrix.volume ;
     }
 
 }
 
-void MatrixMultiInclusionComposite::apply(InclusionGeometryType t, double a, double b, double c)
+void MatrixMultiInclusionComposite::apply()
 {
     for( size_t i = 0 ; i < grains.size() ; i++ )
-        grains[i].apply(t, a, b, c) ;
+        grains[i].apply() ;
 
     getStrainLocalizationTensor() ;
 
@@ -676,7 +727,7 @@ void MatrixMultiInclusionComposite::apply(InclusionGeometryType t, double a, dou
         beta += ( grains[i].A * ( grains[i].volume ) ) * grains[i].beta ;
 }
 
-void MatrixMultiInclusionComposite::getStrainLocalizationTensor()
+void MatrixMultiInclusionComposite::getStrainLocalizationTensor(InclusionGeometryType t, double a, double b, double c)
 {
     for( size_t i = 0 ; i < grains.size() ; i++ )
         grains[i].A = Matrix( C.numRows(), C.numCols() ) ;
@@ -732,7 +783,7 @@ VoigtMatrixMultiInclusionComposite::VoigtMatrixMultiInclusionComposite( std::vec
     grains.clear() ;
 }
 
-void VoigtMatrixMultiInclusionComposite::getStrainLocalizationTensor()
+void VoigtMatrixMultiInclusionComposite::getStrainLocalizationTensor(InclusionGeometryType t, double a, double b, double c)
 {
     for( size_t i = 0 ; i < grains.size() ; i++ )
         grains[i].A = Composite::I4( C ) ;
@@ -748,7 +799,7 @@ ReussMatrixMultiInclusionComposite::ReussMatrixMultiInclusionComposite( Delaunay
 
 }
 
-void ReussMatrixMultiInclusionComposite::getStrainLocalizationTensor()
+void ReussMatrixMultiInclusionComposite::getStrainLocalizationTensor(InclusionGeometryType t, double a, double b, double c)
 {
     C = Matrix( matrix.C.numRows(), matrix.C.numCols() ) ;
     bool zero = false ;
@@ -796,11 +847,11 @@ GeneralizedSelfConsistentComposite::GeneralizedSelfConsistentComposite( std::vec
 
 }
 
-void GeneralizedSelfConsistentComposite::apply(InclusionGeometryType t, double a, double b, double c)
+void GeneralizedSelfConsistentComposite::apply()
 {
     while( !converged() )
     {
-        makeGrains(t, a, b, c) ;
+        makeGrains() ;
 
         for( size_t i = 0 ; i < grains.size() ; i++ )
         {
@@ -810,7 +861,7 @@ void GeneralizedSelfConsistentComposite::apply(InclusionGeometryType t, double a
     }
 }
 
-void GeneralizedSelfConsistentComposite::makeGrains(InclusionGeometryType t, double a, double b, double c)
+void GeneralizedSelfConsistentComposite::makeGrains()
 {
     previous = Phase( matrix ) ;
 
@@ -829,7 +880,7 @@ void GeneralizedSelfConsistentComposite::makeGrains(InclusionGeometryType t, dou
 
     for( size_t i = 0 ; i < inclusions.size() ; i++ )
     {
-        grains.push_back( MoriTanakaMatrixInclusionComposite( matrix, inclusions[i], t, a, b, c ) ) ;
+        grains.push_back( MoriTanakaMatrixInclusionComposite( matrix, inclusions[i] ) ) ;
         grains[i].inclusion.volume = inclusions[i].volume ;
         grains[i].matrix.volume = 1. - inclusions[i].volume ;
     }

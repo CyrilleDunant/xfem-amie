@@ -116,7 +116,7 @@ Phase::Phase( Feature *f , DelaunayTriangle * tri,InclusionGeometryType t, doubl
 	A = Matrix( C.numRows(), C.numCols() ) ;
 }
 
-Phase::Phase( const Phase &p ,InclusionGeometryType t, double a, double b, double c): t(t), a(a), b(b), c(c)
+Phase::Phase( const Phase &p ): t(p.t), a(p.a), b(p.b), c(p.c)
 {
 	C.resize( p.C.numRows(), p.C.numCols() ) ;
 	C = p.C ;
@@ -134,14 +134,14 @@ Phase::Phase( const Phase &p ,InclusionGeometryType t, double a, double b, doubl
 	}
 }
 
-void Phase::apply(InclusionGeometryType t, double a, double b, double c)
+void Phase::apply()
 {
 
 }
 
 Form * Phase::getBehaviour()
 {
-	apply(t, a, b, c) ;
+	apply() ;
 	Matrix S = C ;
         
 //         S.print() ;

@@ -300,31 +300,31 @@ void step ( size_t nsteps, Sample * samplef )
 int main ( int argc, char *argv[] )
 {
     double nu = 0.23 ;
-    InclusionGeometryType t = INCLUSION_IS_SPHERE ;
+    InclusionGeometryType t = INCLUSION_IS_CYLINDER ;
     Stiffness * agg = new Stiffness(32e9, nu, SPACE_THREE_DIMENSIONAL) ;
-    Stiffness * paste = new Stiffness(1e4, 0., SPACE_THREE_DIMENSIONAL) ;
+    Stiffness * paste = new Stiffness(1e4, nu, SPACE_THREE_DIMENSIONAL) ;
     
-    double a = 1 ; double b = 0.999  ; double c = 0.998 ;
+    double a = 1e6 ; double b = 1.  ; double c = 0.998 ;
     
     Phase matrix(paste,0, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
     Phase aggregate(agg, 1.-0, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
     
     
     
-   BiphasicSelfConsistentComposite hint (aggregate, matrix, t, a, b, c) ;
-  for(double soft = 0.5 ; soft <= 1.001 ; soft += .001)
+   BiphasicSelfConsistentComposite hint (aggregate, matrix) ;
+  for(double soft = 0. ; soft <= 1.001 ; soft += .01)
   {
     
     Stiffness * agg = new Stiffness(32e9, nu, SPACE_THREE_DIMENSIONAL) ;
     Stiffness * paste = new Stiffness(1e4, 0., SPACE_THREE_DIMENSIONAL) ;
 
-    Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
-    Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+    Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL) ;
+    Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL) ;
 
 
-//     BiphasicSelfConsistentComposite mt(matrix,aggregate,  hint, t, a, b, c) ;
-    MoriTanakaMatrixInclusionComposite mt(matrix,aggregate, t, a, b, c) ;
-    std::cout << soft <<"  "<< std::max((1.-0.5*nu)*mt.getBehaviour()->getTensor(Point())[0][0]/1e9, 0.) << std::endl ;
+    BiphasicSelfConsistentComposite mt(matrix,aggregate,  hint) ;
+//     MoriTanakaMatrixInclusionComposite mt(matrix,aggregate) ;
+    std::cout << soft <<"  "<< std::max(mt.getBehaviour()->getTensor(Point())[0][0]/1e9, 0.) << std::endl ;
 //     hint=mt ;
 
     delete agg ;

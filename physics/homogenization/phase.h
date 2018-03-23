@@ -43,9 +43,9 @@ public:
 	Phase(Feature * f, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 	Phase(Feature * f, DelaunayTriangle * tri, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 	Phase(Form * behaviour, double f, SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
-	Phase(const Phase & p, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+	Phase(const Phase & p) ;
 
-	virtual void apply( InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+	virtual void apply() ;
 	Form * getBehaviour() ;
 	
 	void print() ;
