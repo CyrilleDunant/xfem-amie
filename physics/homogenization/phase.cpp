@@ -8,25 +8,26 @@
 
 using namespace Amie ;
 
-Phase::Phase()
+Phase::Phase(InclusionGeometryType t, double a, double b, double c): t(t), a(a), b(b), c(c)
 {
-	volume = 0 ;
+	volume = 1e-6 ;
 	C = Matrix( 6, 6 ) ;
 	beta = Vector( 3 ) ;
 	A = Matrix( 6, 6 ) ;
 }
 
-Phase::Phase( Form * b, double f, SpaceDimensionality dim)
+Phase::Phase( Form * f, double v, SpaceDimensionality dim,InclusionGeometryType t, double a, double b, double c): t(t), a(a), b(b), c(c)
 {
-	behaviour = b ;
-	volume = f ;
+	behaviour = f ;
+	volume = v ;
 	stiffnessFromBehaviour(dim) ;
 	expansionFromBehaviour(dim) ;
 	ruptureFromBehaviour(dim) ;
+    volume = std::max(volume, 1e-6) ;
 	A = Matrix( C.numRows(), C.numCols() ) ;
 }	
 
-Phase::Phase( DelaunayTriangle *tri )
+Phase::Phase( DelaunayTriangle *tri ,InclusionGeometryType t, double a, double b, double c): t(t), a(a), b(b), c(c)
 {
 	behaviour = tri->getBehaviour() ;
 	volume = tri->area() ;
@@ -49,20 +50,22 @@ Phase::Phase( DelaunayTriangle *tri )
 	stiffnessFromBehaviour() ;
 	expansionFromBehaviour() ;
 	ruptureFromBehaviour() ;
+    volume = std::max(volume, 1e-6) ;
 	A = Matrix( C.numRows(), C.numCols() ) ;
 }
 
-Phase::Phase( DelaunayTetrahedron *tet )
+Phase::Phase( DelaunayTetrahedron *tet ,InclusionGeometryType t, double a, double b, double c): t(t), a(a), b(b), c(c)
 {
 	behaviour = tet->getBehaviour() ;
 	volume = tet->volume() ;
 	stiffnessFromBehaviour() ;
 	expansionFromBehaviour() ;
 	ruptureFromBehaviour() ;
+    volume = std::max(volume, 1e-6) ;
 	A = Matrix( C.numRows(), C.numCols() ) ;
 }
 
-Phase::Phase( Feature *f )
+Phase::Phase( Feature *f ,InclusionGeometryType t, double a, double b, double c): t(t), a(a), b(b), c(c)
 {
 	behaviour = f->getBehaviour() ;
 
@@ -75,10 +78,11 @@ Phase::Phase( Feature *f )
 	stiffnessFromBehaviour() ;
 	expansionFromBehaviour() ;
 	ruptureFromBehaviour() ;
+     volume = std::max(volume, 1e-6) ;
 	A = Matrix( C.numRows(), C.numCols() ) ;
 }
 
-Phase::Phase( Feature *f , DelaunayTriangle * tri)
+Phase::Phase( Feature *f , DelaunayTriangle * tri,InclusionGeometryType t, double a, double b, double c): t(t), a(a), b(b), c(c)
 {
 	behaviour = f->getBehaviour() ;
 	
@@ -104,6 +108,7 @@ Phase::Phase( Feature *f , DelaunayTriangle * tri)
 	
 	if( f->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 		volume = f->volume() ;
+    volume = std::max(volume, 1e-6) ;
 	
 	stiffnessFromBehaviour() ;
 	expansionFromBehaviour() ;
@@ -111,7 +116,7 @@ Phase::Phase( Feature *f , DelaunayTriangle * tri)
 	A = Matrix( C.numRows(), C.numCols() ) ;
 }
 
-Phase::Phase( const Phase &p )
+Phase::Phase( const Phase &p ,InclusionGeometryType t, double a, double b, double c): t(t), a(a), b(b), c(c)
 {
 	C.resize( p.C.numRows(), p.C.numCols() ) ;
 	C = p.C ;
@@ -120,6 +125,7 @@ Phase::Phase( const Phase &p )
 	A.resize( p.A.numRows(), p.A.numCols() ) ;
 	A = p.A ;
 	volume = p.volume ;
+    volume = std::max(volume, 1e-6) ;
 	for(size_t i = 0 ; i < p.lambda.size() ; i++)
 	{
 	    Vector l(p.lambda[i].size()) ;
@@ -128,14 +134,14 @@ Phase::Phase( const Phase &p )
 	}
 }
 
-void Phase::apply()
+void Phase::apply(InclusionGeometryType t, double a, double b, double c)
 {
 
 }
 
 Form * Phase::getBehaviour()
 {
-	apply() ;
+	apply(t, a, b, c) ;
 	Matrix S = C ;
         
 //         S.print() ;
@@ -152,6 +158,10 @@ Form * Phase::getBehaviour()
 
 Phase &Phase::operator =( const Phase &p )
 {
+    t = p.t ;
+    a = p.a ;
+    b = p.b ;
+    c = p.c ;
 	C.resize( p.C.numRows(), p.C.numCols() ) ;
 	C = p.C ;
 	beta.resize( p.beta.size() ) ;
@@ -159,6 +169,7 @@ Phase &Phase::operator =( const Phase &p )
 	A.resize( p.A.numRows(), p.A.numCols() ) ;
 	A = p.A ;
 	volume = p.volume ;
+    volume = std::max(volume, 1e-6) ;
 	for(size_t i = 0 ; i < p.lambda.size() ; i++)
 	{
 	    Vector l(p.lambda[i].size()) ;

@@ -113,7 +113,8 @@ void DamageModel::step( ElementState &s , double maxscore)
     {
 
       
-      Vector ratios({0.0000062500, 0.0000125000, 0.0000250000, 0.0000500000, 0.0001000000, 0.0002137962, 0.0004570882, 0.0009772372, 0.0020892961, 0.0044668359, 0.0095499259, 0.0204173794, 0.0436515832, 0.0933254301, 0.2}) ;
+      Vector ratios({0.005555556, 0.006611570, 0.008000000, 0.009876543, 0.012500000, 0.016326531, 0.022222222, 0.032000000, 0.050000000, 0.088888889, 0.200000000, 0.800000000}) ;
+                    
 
       double globalAngleShift = std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->maxAngleShiftInNeighbourhood) ;
       int globalMode = s.getParent()->getBehaviour()->getFractureCriterion()->maxModeInNeighbourhood ;
@@ -122,12 +123,11 @@ void DamageModel::step( ElementState &s , double maxscore)
 
         states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.025, globalMode ) ) ;
 	
-	if(states.size()-2  < 8)
+	if(states.size()-2  < 12)
 	{
 	  trialRatio = ratios[states.size()-2] ;
 	  getState( true ) = downState + ( upState - downState ) *trialRatio ;
 	  return ;
-	  
 	}
 	double initialRatio = trialRatio ;
 	
@@ -152,9 +152,9 @@ void DamageModel::step( ElementState &s , double maxscore)
         bool shiftRoot = false ;
         bool modeRoot = false ;
         error = 10 ;
-	double minscore = currentScore ;
-	
-        for( size_t i = 1 ; i < states.size() ; i++ )
+        double minscore = currentScore ;
+        
+        for(  size_t i = 1 ; i < states.size() ; i++ )
         {
             currentDelta = states[i].delta ;
             currentScore = states[i].score ;
@@ -220,6 +220,19 @@ void DamageModel::step( ElementState &s , double maxscore)
             }
         }
         trialRatio = (minFraction+nextFraction)*.5  ;
+        if(deltaRoot)
+        {
+            trialRatio = (minFraction*std::abs(currentDelta)/(std::abs(prevDelta)+std::abs(currentDelta)) +nextFraction*std::abs(prevDelta)/(std::abs(prevDelta)+std::abs(currentDelta))) ;
+        }
+        else if(scoreRoot)
+        {
+            trialRatio = (minFraction*std::abs(currentScore)/(std::abs(prevScore)+std::abs(currentScore)) +nextFraction*std::abs(prevScore)/(std::abs(prevScore)+std::abs(currentScore))) ;
+        }
+        else if(proximityRoot)
+        {
+            trialRatio = (minFraction*std::abs(currentProximity)/(std::abs(prevProximity)+std::abs(currentProximity)) +nextFraction*std::abs(prevProximity)/(std::abs(prevProximity)+std::abs(currentProximity))) ;
+        }
+        
         
         if(!(deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot)) // we should then minimise the score or proximity.
 	{
@@ -313,7 +326,7 @@ DamageModel::DamageModel(): state(0)
     isNull = true ;
     haslimit = false ;
     error = 1 ;
-    iterationNumber = 24 ;
+    iterationNumber = 4 ;
 
     ctype = DISSIPATIVE ;
     fraction = -1 ;

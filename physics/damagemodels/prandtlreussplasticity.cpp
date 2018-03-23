@@ -406,13 +406,15 @@ Vector PrandtlReussPlasticStrain::getImposedStrain(const Point & p) const
 
 double PrandtlReussPlasticStrain::getDamage() const
 {
+//     return 0 ;
+  double eps_f = 0.0057 ;
+    double currentPlaticVariable = getPlasticity() ;
+    if(currentPlaticVariable >= factor)
+    {
+        return 1.-exp(-(currentPlaticVariable)/(eps_f*8.)) ;
+    }
+    
     return 0 ;
-//   double eps_f = 10 ;
-//     double currentPlaticVariable = getPlasticity() ;
-//     if(currentPlaticVariable >= factor)
-//     {
-//         return 1.-exp(-(currentPlaticVariable-factor)/(eps_f)) ;
-//     }
 //
 }
 

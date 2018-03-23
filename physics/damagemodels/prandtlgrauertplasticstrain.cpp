@@ -404,7 +404,7 @@ double PrandtlGrauertPlasticStrain::getDamage() const
     if(currentPlaticVariable >= kappa_0*factor)
     {
 // 		return std::max((currentPlaticVariable-kappa_0)/eps_f,0.) ;
-        return 1.-exp(-(currentPlaticVariable-kappa_0*factor)/(eps_f)) ;
+        return 1.-exp(-(currentPlaticVariable-kappa_0*factor)/(eps_f*16.)) ;
     }
     return 0 ;
 }

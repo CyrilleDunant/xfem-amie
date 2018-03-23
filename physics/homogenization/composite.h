@@ -6,17 +6,20 @@
 namespace Amie
 {
 
+    
 struct Composite : public Phase
 {
 public:
-    Composite(DelaunayTriangle * tri, std::vector<Feature *> feats);
-    Composite(DelaunayTetrahedron * tet, std::vector<Feature *> feats);
-    Composite(Phase p) ;
+    Composite(DelaunayTriangle * tri, std::vector<Feature *> feats, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1);
+    Composite(DelaunayTetrahedron * tet, std::vector<Feature *> feats, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1);
+    Composite(Phase p, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 
-    virtual void apply() ;
+    virtual void apply(InclusionGeometryType t, double a=1, double b=1, double c=1) ;
 
     static Matrix I4(Matrix C) ;
-    static Matrix eshelby(Matrix C) ;
+     Matrix eshelby(Matrix C) ;
+     Matrix eshelbyCylinder(Matrix C, double a, double b) ;
+     Matrix eshelbyEllipsoid(Matrix C, double a, double b, double c) ;
     static void invertTensor(Matrix & m) ;
 } ;
 
@@ -28,62 +31,62 @@ public:
     Matrix B ;
 
 public:
-    MatrixInclusionComposite(DelaunayTriangle * tri, Feature * inc) ;
-    MatrixInclusionComposite(DelaunayTetrahedron * tet, Feature * inc) ;
-    MatrixInclusionComposite(Phase mat, Phase inc) ;
+    MatrixInclusionComposite(DelaunayTriangle * tri, Feature * inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    MatrixInclusionComposite(DelaunayTetrahedron * tet, Feature * inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    MatrixInclusionComposite(Phase mat, Phase inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 
-    virtual void apply() ;
-    virtual void getStrainConcentrationTensor() ;
+    virtual void apply(InclusionGeometryType t, double a=1, double b=1, double c=1) ;
+    virtual void getStrainConcentrationTensor(InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 };
 
 struct DiluteMatrixInclusionComposite : public MatrixInclusionComposite
 {
 public:
-    DiluteMatrixInclusionComposite(DelaunayTriangle * tri, Feature * inc) ;
-    DiluteMatrixInclusionComposite(DelaunayTetrahedron * tet, Feature * inc) ;
-    DiluteMatrixInclusionComposite(Phase mat, Phase inc) ;
+    DiluteMatrixInclusionComposite(DelaunayTriangle * tri, Feature * inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    DiluteMatrixInclusionComposite(DelaunayTetrahedron * tet, Feature * inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    DiluteMatrixInclusionComposite(Phase mat, Phase inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 
-    virtual void getStrainConcentrationTensor() ;
+    virtual void getStrainConcentrationTensor(InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 };
 
 struct VoigtMatrixInclusionComposite : public MatrixInclusionComposite
 {
 public:
-    VoigtMatrixInclusionComposite(DelaunayTriangle * tri, Feature * inc) ;
-    VoigtMatrixInclusionComposite(DelaunayTetrahedron * tet, Feature * inc) ;
-    VoigtMatrixInclusionComposite(Phase mat, Phase inc) ;
+    VoigtMatrixInclusionComposite(DelaunayTriangle * tri, Feature * inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    VoigtMatrixInclusionComposite(DelaunayTetrahedron * tet, Feature * inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    VoigtMatrixInclusionComposite(Phase mat, Phase inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 
-    virtual void getStrainConcentrationTensor() ;
+    virtual void getStrainConcentrationTensor(InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 };
 
 struct ReussMatrixInclusionComposite : public MatrixInclusionComposite
 {
 public:
-    ReussMatrixInclusionComposite(DelaunayTriangle * tri, Feature * inc) ;
-    ReussMatrixInclusionComposite(DelaunayTetrahedron * tet, Feature * inc) ;
-    ReussMatrixInclusionComposite(Phase mat, Phase inc) ;
+    ReussMatrixInclusionComposite(DelaunayTriangle * tri, Feature * inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    ReussMatrixInclusionComposite(DelaunayTetrahedron * tet, Feature * inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    ReussMatrixInclusionComposite(Phase mat, Phase inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 
-    virtual void getStrainConcentrationTensor() ;
+    virtual void getStrainConcentrationTensor(InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 };
 
 struct MoriTanakaMatrixInclusionComposite : public MatrixInclusionComposite
 {
 public:
-    MoriTanakaMatrixInclusionComposite(DelaunayTriangle * tri, Feature * inc) ;
-    MoriTanakaMatrixInclusionComposite(DelaunayTetrahedron * tet, Feature * inc) ;
-    MoriTanakaMatrixInclusionComposite(Phase mat, Phase inc) ;
+    MoriTanakaMatrixInclusionComposite(DelaunayTriangle * tri, Feature * inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    MoriTanakaMatrixInclusionComposite(DelaunayTetrahedron * tet, Feature * inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    MoriTanakaMatrixInclusionComposite(Phase mat, Phase inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 
-    virtual void getStrainConcentrationTensor() ;
+    virtual void getStrainConcentrationTensor(InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 };
 
 struct InverseMoriTanakaMatrixInclusionComposite : public MatrixInclusionComposite
 {
 public:
-    InverseMoriTanakaMatrixInclusionComposite(DelaunayTriangle * tri, Feature * inc) ;
-    InverseMoriTanakaMatrixInclusionComposite(DelaunayTetrahedron * tet, Feature * inc) ;
-    InverseMoriTanakaMatrixInclusionComposite(Phase mat, Phase inc) ;
+    InverseMoriTanakaMatrixInclusionComposite(DelaunayTriangle * tri, Feature * inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    InverseMoriTanakaMatrixInclusionComposite(DelaunayTetrahedron * tet, Feature * inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    InverseMoriTanakaMatrixInclusionComposite(Phase mat, Phase inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 
-    virtual void getStrainConcentrationTensor() ;
+    virtual void getStrainConcentrationTensor(InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 };
 
 struct BiphasicSelfConsistentComposite : public MatrixInclusionComposite
@@ -93,12 +96,12 @@ public:
 	Phase fictious ;
 
 public:
-	BiphasicSelfConsistentComposite(DelaunayTriangle * tri, Feature * inc) ;
-	BiphasicSelfConsistentComposite(DelaunayTetrahedron * tet, Feature * inc) ;
-	BiphasicSelfConsistentComposite(Phase mat, Phase inc) ;
-        BiphasicSelfConsistentComposite(Phase mat, Phase inc, BiphasicSelfConsistentComposite hint) ;
+	BiphasicSelfConsistentComposite(DelaunayTriangle * tri, Feature * inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+	BiphasicSelfConsistentComposite(DelaunayTetrahedron * tet, Feature * inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+	BiphasicSelfConsistentComposite(Phase mat, Phase inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    BiphasicSelfConsistentComposite(Phase mat, Phase inc, BiphasicSelfConsistentComposite hint, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 
-	virtual void getStrainConcentrationTensor() ;
+	virtual void getStrainConcentrationTensor(InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 };
 
 struct MatrixMultiInclusionComposite : public Composite
@@ -109,22 +112,22 @@ public:
     std::vector<MoriTanakaMatrixInclusionComposite> grains ;
 
 public:
-    MatrixMultiInclusionComposite(DelaunayTriangle * tri, std::vector<Feature *> inc) ;
-    MatrixMultiInclusionComposite(DelaunayTetrahedron * tet, std::vector<Feature *> inc) ;
-    MatrixMultiInclusionComposite( Phase m, std::vector<Phase> inc ) ;
+    MatrixMultiInclusionComposite(DelaunayTriangle * tri, std::vector<Feature *> inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    MatrixMultiInclusionComposite(DelaunayTetrahedron * tet, std::vector<Feature *> inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    MatrixMultiInclusionComposite( Phase m, std::vector<Phase> inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1 ) ;
 
-    virtual void apply() ;
+    virtual void apply(InclusionGeometryType t, double a=1, double b=1, double c=1) ;
     virtual void getStrainLocalizationTensor() ;
 };
 
 struct VoigtMatrixMultiInclusionComposite : public MatrixMultiInclusionComposite
 {
 public:
-    VoigtMatrixMultiInclusionComposite(DelaunayTriangle * tri, std::vector<Feature *> inc) ;
-    VoigtMatrixMultiInclusionComposite(DelaunayTetrahedron * tet, std::vector<Feature *> inc) ;
-    VoigtMatrixMultiInclusionComposite(std::vector<DelaunayTriangle *> tri) ;
-    VoigtMatrixMultiInclusionComposite(std::vector<DelaunayTetrahedron *> tet) ;
-    VoigtMatrixMultiInclusionComposite( Phase m, std::vector<Phase> inc ) : MatrixMultiInclusionComposite(m, inc) { } ;
+    VoigtMatrixMultiInclusionComposite(DelaunayTriangle * tri, std::vector<Feature *> inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    VoigtMatrixMultiInclusionComposite(DelaunayTetrahedron * tet, std::vector<Feature *> inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    VoigtMatrixMultiInclusionComposite(std::vector<DelaunayTriangle *> tri, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    VoigtMatrixMultiInclusionComposite(std::vector<DelaunayTetrahedron *> tet, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    VoigtMatrixMultiInclusionComposite( Phase m, std::vector<Phase> inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1 ) : MatrixMultiInclusionComposite(m, inc, t, a, b, c) { } ;
 
     virtual void getStrainLocalizationTensor() ;
 };
@@ -132,9 +135,9 @@ public:
 struct ReussMatrixMultiInclusionComposite : public MatrixMultiInclusionComposite
 {
 public:
-    ReussMatrixMultiInclusionComposite(DelaunayTriangle * tri, std::vector<Feature *> inc) ;
-    ReussMatrixMultiInclusionComposite(DelaunayTetrahedron * tet, std::vector<Feature *> inc) ;
-    ReussMatrixMultiInclusionComposite( Phase m, std::vector<Phase> inc )  : MatrixMultiInclusionComposite(m, inc) { } ;
+    ReussMatrixMultiInclusionComposite(DelaunayTriangle * tri, std::vector<Feature *> inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    ReussMatrixMultiInclusionComposite(DelaunayTetrahedron * tet, std::vector<Feature *> inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    ReussMatrixMultiInclusionComposite( Phase m, std::vector<Phase> inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1 )  : MatrixMultiInclusionComposite(m, inc, t, a, b, c) { } ;
 
     virtual void getStrainLocalizationTensor() ;
 };
@@ -142,14 +145,14 @@ public:
 struct GeneralizedSelfConsistentComposite : public VoigtMatrixMultiInclusionComposite
 {
 public:
-    GeneralizedSelfConsistentComposite(std::vector<DelaunayTriangle *> tri) ;
-    GeneralizedSelfConsistentComposite(std::vector<DelaunayTetrahedron *> tet) ;
+    GeneralizedSelfConsistentComposite(std::vector<DelaunayTriangle *> tri, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    GeneralizedSelfConsistentComposite(std::vector<DelaunayTetrahedron *> tet, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 
-    virtual void apply() ;
+    virtual void apply(InclusionGeometryType t, double a=1, double b=1, double c=1) ;
 
 private:
     Phase previous ;
-    void makeGrains() ;
+    void makeGrains(InclusionGeometryType t, double a=1, double b=1, double c=1) ;
     bool converged() ;
 };
 

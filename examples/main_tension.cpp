@@ -193,7 +193,7 @@ void step ( size_t nsteps, Sample * samplef )
         }
         else if(go_on)
         {
-            loadr->setData(loadr->getData()+.125e-5/**.005*/) ; //e-4*.25 is mostly OK
+            loadr->setData(loadr->getData()+2e-5/**.005*/) ; //e-4*.25 is mostly OK
             if(!setbc)
             {
                 featureTree->addBoundaryCondition( loadr );
@@ -299,33 +299,47 @@ void step ( size_t nsteps, Sample * samplef )
 
 int main ( int argc, char *argv[] )
 {
+    double nu = 0.23 ;
+    InclusionGeometryType t = INCLUSION_IS_SPHERE ;
+    Stiffness * agg = new Stiffness(32e9, nu, SPACE_THREE_DIMENSIONAL) ;
+    Stiffness * paste = new Stiffness(1e4, 0., SPACE_THREE_DIMENSIONAL) ;
+    
+    double a = 1 ; double b = 0.999  ; double c = 0.998 ;
+    
+    Phase matrix(paste,0, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+    Phase aggregate(agg, 1.-0, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+    
+    
+    
+   BiphasicSelfConsistentComposite hint (aggregate, matrix, t, a, b, c) ;
+  for(double soft = 0.5 ; soft <= 1.001 ; soft += .001)
+  {
+    
+    Stiffness * agg = new Stiffness(32e9, nu, SPACE_THREE_DIMENSIONAL) ;
+    Stiffness * paste = new Stiffness(1e4, 0., SPACE_THREE_DIMENSIONAL) ;
 
-//   for(double soft = 0 ; soft < .6 ; soft += .05)
-//   {
-//     double E_agg=59e9 ;
-//     double E_paste=12e9 ;
-//     AggregateBehaviour * agg = new AggregateBehaviour(true, false,E_agg, 0.3) ;
-//     PasteBehaviour * paste = new PasteBehaviour(true, false, E_paste*(1.-soft), 0.3*(1.-soft)) ;
-//
-//     Phase matrix(paste, 0.3) ;
-//
-//     Phase aggregate(agg,0.7 ) ;
-//
-//     MoriTanakaMatrixInclusionComposite mt(matrix,aggregate) ;
-//     std::cout << mt.getBehaviour()->getTensor(Point())[0][0] << std::endl ;
-//     delete agg ;
-//     delete paste ;
-//   }
-//   exit(0) ;
+    Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+    Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+
+
+//     BiphasicSelfConsistentComposite mt(matrix,aggregate,  hint, t, a, b, c) ;
+    MoriTanakaMatrixInclusionComposite mt(matrix,aggregate, t, a, b, c) ;
+    std::cout << soft <<"  "<< std::max((1.-0.5*nu)*mt.getBehaviour()->getTensor(Point())[0][0]/1e9, 0.) << std::endl ;
+//     hint=mt ;
+
+    delete agg ;
+    delete paste ;
+  }
+  exit(0) ;
 
 
     double compressionCrit = -32.6e6 ;
 
     //http://www.scielo.br/scielo.php?script=sci_arttext&pid=S1517-70762010000200028
-    double mradius = .0036 ; // .010 ;//
+    double mradius = .0016 ; // .010 ;//
 
     // More or less a 5754 Al alloy
-    double nu = 0.2 ; //0.33 ;
+//     double nu = 0.2 ; //0.33 ;
     double E = 30e9 ; //70e9 ;
 
 
@@ -412,7 +426,7 @@ int main ( int argc, char *argv[] )
     F.setOrder ( LINEAR ) ;
 // F.addPoint(new Point(0, 0)) ;
 
-    F.setMaxIterationsPerStep ( 2000 );
+    F.setMaxIterationsPerStep ( 500 );
     F.thresholdScoreMet = 0.01 ;
 
 

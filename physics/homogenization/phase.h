@@ -9,9 +9,17 @@
 namespace Amie
 {
 
+typedef enum{
+
+INCLUSION_IS_SPHERE,
+INCLUSION_IS_ELLIPSOID,
+INCLUSION_IS_CYLINDER
+} InclusionGeometryType ;
+    
 /** Simple class containing basic information about behaviours*/
 struct Phase
 {
+
 private:
 	Form * behaviour ;
 
@@ -22,17 +30,22 @@ public:
 	double volume ;
 
 	Matrix A ;
+    
+    InclusionGeometryType t;
+    double a;
+    double b;
+    double c;
 
 public:
-	Phase() ;
-	Phase(DelaunayTriangle * tri) ;
-	Phase(DelaunayTetrahedron * tet) ;
-	Phase(Feature * f) ;
-	Phase(Feature * f, DelaunayTriangle * tri) ;
-	Phase(Form * behaviour, double f, SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
-	Phase(const Phase & p) ;
+	Phase(InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+	Phase(DelaunayTriangle * tri, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+	Phase(DelaunayTetrahedron * tet, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+	Phase(Feature * f, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+	Phase(Feature * f, DelaunayTriangle * tri, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+	Phase(Form * behaviour, double f, SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+	Phase(const Phase & p, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 
-	virtual void apply() ;
+	virtual void apply( InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
 	Form * getBehaviour() ;
 	
 	void print() ;
