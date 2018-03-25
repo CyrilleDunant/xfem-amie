@@ -93,6 +93,7 @@ struct BiphasicSelfConsistentComposite : public MatrixInclusionComposite
 {
 public:
 	Phase fictious ;
+    Phase hint ;
 
 public:
 	BiphasicSelfConsistentComposite(DelaunayTriangle * tri, Feature * inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
@@ -116,7 +117,7 @@ public:
     MatrixMultiInclusionComposite( const Phase &m, const std::vector<Phase> &inc) ;
 
     virtual void apply() ;
-    virtual void getStrainLocalizationTensor(InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    virtual void getStrainLocalizationTensor() ;
 };
 
 struct VoigtMatrixMultiInclusionComposite : public MatrixMultiInclusionComposite
@@ -128,7 +129,7 @@ public:
     VoigtMatrixMultiInclusionComposite(std::vector<DelaunayTetrahedron *> tet, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
     VoigtMatrixMultiInclusionComposite( const Phase &m, std::vector<Phase> &inc) : MatrixMultiInclusionComposite(m, inc) { } ;
 
-    virtual void getStrainLocalizationTensor(InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    virtual void getStrainLocalizationTensor() ;
 };
 
 struct ReussMatrixMultiInclusionComposite : public MatrixMultiInclusionComposite
@@ -138,7 +139,7 @@ public:
     ReussMatrixMultiInclusionComposite(DelaunayTetrahedron * tet, std::vector<Feature *> inc, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
     ReussMatrixMultiInclusionComposite( const Phase &m, std::vector<Phase> &inc)  : MatrixMultiInclusionComposite(m, inc) { } ;
 
-    virtual void getStrainLocalizationTensor(InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1) ;
+    virtual void getStrainLocalizationTensor() ;
 };
 
 struct GeneralizedSelfConsistentComposite : public VoigtMatrixMultiInclusionComposite

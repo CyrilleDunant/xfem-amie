@@ -155,6 +155,7 @@ physics/stiffness_with_imposed_deformation.cpp
 physics/stiffness_with_imposed_stress.cpp 
 physics/stiffness_with_large_deformation.cpp 
 physics/stiffness_with_imposed_deformation_and_fracture.cpp 
+physics/stiffness_with_large_strains_and_fracture.cpp
 physics/stiffness_with_imposed_stress_and_fracture.cpp 
 physics/stiffness_with_kinetics_imposed_deformation.cpp
 physics/stiffness_with_variable_imposed_deformation_and_fracture.cpp 

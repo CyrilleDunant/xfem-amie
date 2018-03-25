@@ -299,12 +299,13 @@ void step ( size_t nsteps, Sample * samplef )
 
 int main ( int argc, char *argv[] )
 {
-    double nu = 0.23 ;
-    InclusionGeometryType t = INCLUSION_IS_CYLINDER ;
+    double nu = 0.3 ;
+    double nu_mat = 0.01 ; //49997
+    InclusionGeometryType t = INCLUSION_IS_SPHERE ;
     Stiffness * agg = new Stiffness(32e9, nu, SPACE_THREE_DIMENSIONAL) ;
-    Stiffness * paste = new Stiffness(1e4, nu, SPACE_THREE_DIMENSIONAL) ;
+    Stiffness * paste = new Stiffness(1e6, nu_mat, SPACE_THREE_DIMENSIONAL) ;
     
-    double a = 1e6 ; double b = 1.  ; double c = 0.998 ;
+    double a = 1. ; double b = .05  ; double c = 0.049 ;
     
     Phase matrix(paste,0, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
     Phase aggregate(agg, 1.-0, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
@@ -312,23 +313,45 @@ int main ( int argc, char *argv[] )
     
     
    BiphasicSelfConsistentComposite hint (aggregate, matrix) ;
-  for(double soft = 0. ; soft <= 1.001 ; soft += .01)
+  for(double soft = 0. ; soft <= 1. ; soft += .01)
   {
     
     Stiffness * agg = new Stiffness(32e9, nu, SPACE_THREE_DIMENSIONAL) ;
-    Stiffness * paste = new Stiffness(1e4, 0., SPACE_THREE_DIMENSIONAL) ;
+    Stiffness * paste = new Stiffness(1e6, nu_mat, SPACE_THREE_DIMENSIONAL) ;
 
-    Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL) ;
-    Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL) ;
+    Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+    Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
 
+//     Phase matrix_sp(paste,soft, SPACE_THREE_DIMENSIONAL, INCLUSION_IS_SPHERE, a, b, c) ;
+//     Phase aggregate_sp(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, INCLUSION_IS_SPHERE, a, b, c) ;
+//     BiphasicSelfConsistentComposite mt_sp(matrix_sp,aggregate_sp, hint) ;
+//     mt_sp.getBehaviour()->getTensor(Point())[0][1] ;
+//     if(soft < .5 && false)
+//     {
+//         BiphasicSelfConsistentComposite mt(matrix,aggregate, hint) ;
+        MoriTanakaMatrixInclusionComposite mt(aggregate,matrix) ;
+        double nu_eff = mt.getBehaviour()->getTensor(Point())[0][1]/((mt.getBehaviour()->getTensor(Point())[0][0]+mt.getBehaviour()->getTensor(Point())[0][1])) ;
+        double E_eff = mt.getBehaviour()->getTensor(Point())[0][0]*(1.+nu_eff)*(1.-2.*nu_eff)/(1.-nu_eff) ;
+        std::cout << soft <<"  "<< std::max(E_eff, 0.)/1e9 <<"  " <<nu_eff << std::endl ;
+//         hint=mt ;
+    //     hint.getBehaviour()->getTensor(Point())[0][1] ;
 
-    BiphasicSelfConsistentComposite mt(matrix,aggregate,  hint) ;
-//     MoriTanakaMatrixInclusionComposite mt(matrix,aggregate) ;
-    std::cout << soft <<"  "<< std::max(mt.getBehaviour()->getTensor(Point())[0][0]/1e9, 0.) << std::endl ;
-//     hint=mt ;
-
-    delete agg ;
-    delete paste ;
+        delete agg ;
+        delete paste ;
+//     }
+//     else
+//     {
+//         BiphasicSelfConsistentComposite mt(aggregate,matrix, hint) ;
+//     //     MoriTanakaMatrixInclusionComposite mt(matrix,aggregate) ;
+//         double nu_eff = mt.getBehaviour()->getTensor(Point())[0][1]/((mt.getBehaviour()->getTensor(Point())[0][0]+mt.getBehaviour()->getTensor(Point())[0][1])) ;
+//         double E_eff = mt.getBehaviour()->getTensor(Point())[0][0]*(1.+nu_eff)*(1.-2.*nu_eff)/(1.-nu_eff) ;
+//         std::cout << soft <<"  "<< std::max(E_eff, 0.)/1e9 <<"  " <<nu_eff << std::endl ;
+//         hint=mt ;
+//     //     hint.getBehaviour()->getTensor(Point())[0][1] ;
+// 
+//         delete agg ;
+//         delete paste ;
+//     }
   }
   exit(0) ;
 

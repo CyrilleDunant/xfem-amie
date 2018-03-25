@@ -110,16 +110,23 @@ protected:
 //
 
     State state ;
+    
+    
+    
+protected:
+    void updateMesh() ;
+    std::vector<double> initialPositions ;
+    Vector largeStrainsForces ;
+    
 protected:
 
     std::set<long unsigned int> changedDofs ;
     std::vector<Vector> reportValues ; 
-    std::vector<double> initialPositions ;
     double samplingRestriction ;
     double surfaceSamplingFactor ;
     double minimumMeshDensity ;
     
-    void updateMesh() ;
+
 
     std::vector<std::vector<double>> cachedVolumes ;
     std::vector<Point *> extraPoints ;
