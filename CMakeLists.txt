@@ -344,7 +344,7 @@ message (STATUS "  found OpenMP")
 endif(OPENMP_FOUND)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
-	add_definitions ( "-std=c++11" )
+	add_definitions ( "-std=c++17" )
 endif(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
 
 if(DEBUG_BUILD EQUAL 1)

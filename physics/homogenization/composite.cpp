@@ -44,6 +44,11 @@ Matrix  Composite::eshelbyEllipsoid(const Matrix & C, double a, double b, double
     if(c > b)
         std::swap(c, b) ;
     
+    double pi4 = M_PI*4. ;
+    double aa = a*a ;
+    double bb = b*b ;
+    double cc = c*c ;
+    
     Matrix S( C.numRows(), C.numCols() ) ;
     double nu = 0.2 ;
     double x = C[0][0] ;
@@ -51,16 +56,16 @@ Matrix  Composite::eshelbyEllipsoid(const Matrix & C, double a, double b, double
     if(std::abs(x+y) > 1e-16)
         nu = y / ( x + y ) ;
     else
-        nu = 0.01 ;
+        nu = 0.0 ;
 
-    double theta = asin(sqrt((a*a-c*c)/a*a)) ;
-    double k =  (a*a-b*b) / (a*a - c*c) ;
+    double theta = asin(sqrt((aa-cc)/aa)) ;
+    double k =  (aa-bb) / (aa - cc) ;
 
     double F = 0 ;
     double E = 0 ;
     double Ec = 0 ;
     double Fc = 0 ;
-    double dw = theta*1e-1 ;
+    double dw = theta*1e-3 ;
     double g0 = -1./sqrt(3) ;
     double g1 = 1./sqrt(3) ;
     for(double w = 0 ; w < theta-dw*.5 ; w += 2.*dw)
@@ -108,46 +113,122 @@ Matrix  Composite::eshelbyEllipsoid(const Matrix & C, double a, double b, double
             }
         }
     }
+    
+    
+    if(std::abs(a-b) > 1e-6 && std::abs(c-b) > 1e-6) // general spheroid
+    {
+        double I1 = pi4*a*b*c / ((aa-bb)*sqrt(aa-cc))*(F-E) ;
+        double I3 = pi4*a*b*c / ((bb-cc)*sqrt(aa-cc))*(b*sqrt(aa-cc)/(a*c)-E) ;
+        double I2 = pi4-I1-I3 ;
+        
+        double I12 = (I2-I1)/(3.*(aa-bb)) ;      // +
+        double I13 = (I3-I1)/(3.*(aa-cc)) ;      // +
+        double I11= pi4/(3.*aa) - I12 - I13 ; // +
+        
+        double I23 = (I3-I2)/(3.*(bb-cc)) ;  //+
+        double I21 = (I1-I2)/(3.*(bb-aa)) ;  //+
+        double I22 = pi4/(3.*bb) - I21 - I23 ; // +
+        
+        double I31 = (I1-I3)/(3.*(cc-aa)) ; //+
+        double I32 = (I2-I3)/(3.*(cc-bb)) ; //+
+        double I33 = pi4/(3.*cc) - I31 - I32 ; // +
 
-//     std::cerr << F << "  " << E << std::endl ;
+        double Q = M_1_PI*3./(8.*(1.-nu)) ;
+        double R = M_1_PI*(1.-2.*nu)/(8.*(1.-nu)) ;
+        S[0][0] = Q*aa*I11+R*I1 ; // + 
+        S[1][1] = Q*bb*I22+R*I2 ; // + 
+        S[2][2] = Q*cc*I33+R*I3 ; // +
 
-    double I1 = 4.*M_PI*a*b*c / ((a*a-b*b)*sqrt(a*a-c*c))*(F-E) ;
-    double I3 = 4.*M_PI*a*b*c / ((b*b-c*c)*sqrt(a*a-c*c))*(b*sqrt(a*a-c*c)/(a*c)-E) ;
-    double I2 = 4.*M_PI-I1-I3 ;
+        S[0][1] = Q*bb*I12-R*I1 ; // +
+        S[0][2] = Q*cc*I13-R*I1 ; // +
+        S[1][0] = S[0][1] ;
+        S[1][2] = Q*cc*I23-R*I2 ; // +
+        S[2][0] = S[0][2] ;
+        S[2][1] = S[1][2] ;
 
-    double I12 = (I2-I1)/(a*a-b*b) ;
-    double I11 = (3.*I1 + (c*c-b*b)*I12 - c*c*4.*M_PI/(a*a))/(3*(a*a-c*c));
-    double I13 = 4.*M_PI/(a*a) - 3.*I11 - I12;
+        S[3][3] = (aa+bb)*.5*Q*I12+0.5*R*(I1+I2) ; // +
+        S[4][4] = (aa+cc)*.5*Q*I13+0.5*R*(I1+I3) ; // +
+        S[5][5] = (bb+cc)*.5*Q*I23+0.5*R*(I2+I3) ; // +
 
-    double I23 = (I3-I2)/(b*b-c*c) ;
-    double I22 = (3.*I2 + (a*a-c*c)*I23 - a*a*4.*M_PI/(b*b))/(3*(b*b-a*a));
-    double I21 = 4.*M_PI/(b*b) - 3.*I22 - I23;
+        return S ;
+    }
+    else if(std::abs(a-b) <= 1e-6) // oblate spheroid
+    {
+        
+        double I1 = 2.*M_PI*aa*c/pow(aa-cc, 3./2.)*(acos(c/a)-(c/a)*sqrt(1.-cc/(aa))) ;
+        double I2 = I1 ;
+        double I3 = 4.*M_PI-I1-I2 ;
+       
+        double I13 = (I3-I1)/(3.*(aa-cc)) ;      // +
+        double I12 = M_PI/(3.*aa)- I13 * .25  ;      // +
+        double I11= pi4/(3.*aa) - I12 - I13 ; // +
+        
+        double I23 = (I3-I2)/(3.*(bb-cc)) ;  //+
+        double I21 = M_PI/(3.*bb)- I23 * .25 ;  //+
+        double I22 = pi4/(3.*bb) - I21 - I23 ; // +
+        
+        double I31 = (I1-I3)/(3.*(cc-aa)) ; //+
+        double I32 = (I2-I3)/(3.*(cc-bb)) ; //+
+        double I33 = pi4/(3.*cc) - I31 - I32 ; // +
+        
+        double Q = M_1_PI*3./(8.*(1.-nu)) ;
+        double R = M_1_PI*(1.-2.*nu)/(8.*(1.-nu)) ;
+        S[0][0] = Q*aa*I11+R*I1 ; // + 
+        S[1][1] = Q*bb*I22+R*I2 ; // + 
+        S[2][2] = Q*cc*I33+R*I3 ; // +
 
-    double I31 = (I1-I3)/(c*c-a*a) ;
-    double I33 = (3.*I3 + (b*b-a*a)*I31 - b*b*4.*M_PI/(c*c))/(3*(c*c-b*b));
-    double I32 = 4.*M_PI/(c*c) - 3.*I33 - I31;
+        S[0][1] = Q*bb*I12-R*I1 ; // +
+        S[0][2] = Q*cc*I13-R*I1 ; // +
+        S[1][0] = S[0][1] ;
+        S[1][2] = Q*cc*I23-R*I2 ; // +
+        S[2][0] = S[0][2] ;
+        S[2][1] = S[1][2] ;
 
-//     std::cout << I1 << "  " << I2 << "  " << I3 << "  " << I11 << "  "<< I22 << "  " << I33 << std::endl ;
-//     std::cout << I12 << "  " << I12 << "  " << I23 << "  " << I21 << "  "<< I23 << "  " << I32 << std::endl ;
+        S[3][3] = (aa+bb)*.5*Q*I12+0.5*R*(I1+I2) ; // +
+        S[4][4] = (aa+cc)*.5*Q*I13+0.5*R*(I1+I3) ; // +
+        S[5][5] = (bb+cc)*.5*Q*I23+0.5*R*(I2+I3) ; // +
+        
+        return S ;
+    }
+    else // prolate case
+    {
+        double I3 = 2.*M_PI*a*cc/pow(aa-cc, 3./2.)*(a/c*sqrt(aa/(cc)-1)-acosh(a/c)) ;
+        double I2 = I3;
+        double I1 = 4.*M_PI-I3-I2 ;
+        
+       
+        double I12 = (I2-I1)/(3.*(aa-bb)) ;      // +
+        double I13 = (I3-I1)/(3.*(aa-cc)) ;      // +
+        double I11 = 4.*M_PI/(3.*aa) - I12 - I13 ; // +
+        
+        double I21 = (I1-I2)/(3.*(bb-aa)) ;  //+
+        double I23 = M_PI/(3.*bb)-I21*.25 ;  //+
+        double I22 = 4.*M_PI/(3.*bb) - I21 - I23 ; // +
 
-    double Q =  1./(8.*M_PI*(1.-nu)) ;
-    double R = (1.-2.*nu)/(8*M_PI*(1.-nu)) ;
-    S[0][0] = 3.*Q*a*a*I11+R*I1 ;
-    S[1][1] = 3.*Q*b*b*I22+R*I2 ;
-    S[2][2] = 3.*Q*c*c*I33+R*I3 ;
+        double I31 = (I1-I3)/(3.*(cc-aa)) ; //+
+        double I32 = M_PI/(3.*cc)-I31*.25 ; //+
+        double I33 = 4.*M_PI/(3.*cc) - I31 - I32 ; // +
 
-    S[0][1] = Q*b*b*I12-R*I1 ;
-    S[0][2] = Q*c*c*I13-R*I1 ;
-    S[1][0] = Q*a*a*I21-R*I2 ;
-    S[1][2] = Q*c*c*I23-R*I2 ;
-    S[2][0] = Q*a*a*I31-R*I3 ;
-    S[2][1] = Q*b*b*I32-R*I3 ;
+        double Q = M_1_PI*3./(8.*(1.-nu)) ;
+        double R = M_1_PI*(1.-2.*nu)/(8.*(1.-nu)) ;
+        S[0][0] = Q*aa*I11+R*I1 ; // + 
+        S[1][1] = Q*bb*I22+R*I2 ; // + 
+        S[2][2] = Q*cc*I33+R*I3 ; // +
 
-    S[3][3] = (a*a+b*b)*.5*Q*I12+0.5*R*(I1+I2) ;
-    S[4][4] = (a*a+c*c)*.5*Q*I13+0.5*R*(I1+I3) ;
-    S[5][5] = (b*b+c*c)*.5*Q*I23+0.5*R*(I2+I3) ;
+        S[0][1] = Q*bb*I12-R*I1 ; // +
+        S[0][2] = Q*cc*I13-R*I1 ; // +
+        S[1][0] = S[0][1] ;
+        S[1][2] = Q*cc*I23-R*I2 ; // +
+        S[2][0] = S[0][2] ;
+        S[2][1] = S[1][2] ;
 
-    return S ;
+        S[3][3] = (aa+bb)*.5*Q*I12+0.5*R*(I1+I2) ; // +
+        S[4][4] = (aa+cc)*.5*Q*I13+0.5*R*(I1+I3) ; // +
+        S[5][5] = (bb+cc)*.5*Q*I23+0.5*R*(I2+I3) ; // + 
+        
+        return S ;
+    }
+    
 
 }
 
@@ -160,28 +241,38 @@ Matrix  Composite::eshelbyCylinder(const Matrix & C, double a, double b)
     if(std::abs(x+y) > POINT_TOLERANCE)
         nu = y / ( x + y ) ;
     else
-        nu = 0.01 ;
+        nu = 0.00 ;
+    
+    double pi4 = M_PI*4. ;
+    double aa = a*a ;
+    double bb = b*b ;
+    
+    double I1 = pi4*b/(a+b) ;
+    double I2 = pi4*a/(a+b);
 
-    S[0][0] = 1./((1.-nu))*((b*b+2.*a*b)/((a+b)*(a+b))+(1.-2.*nu)*b/(a+b))*.5 ;
-    S[1][1] = 1./((1.-nu))*((a*a+2.*a*b)/((a+b)*(a+b))+(1.-2.*nu)*a/(a+b))*.5 ;
-    S[2][2] = 0 ;
+    double I12 = pi4/(3.*(a+b)*(a+b)) ;      // +
+    double I11 = 4.*M_PI/(3.*aa) - I12 ; // +
+    
+    double I21 = pi4/(3.*(a+b)*(a+b)) ;  //+
+    double I22 = 4.*M_PI/(3.*bb) - I21 ; // +
 
-    S[0][1] = 1./((1.-nu))*(b*b/((a+b)*(a+b))-(1.-2.*nu)*b/(a+b))*.5 ;
-    S[0][2] = nu*b/((1.-nu)*(a+b)) ;
-    S[1][0] = 1./((1.-nu))*(a*a/((a+b)*(a+b))-(1.-2.*nu)*a/(a+b))*.5 ;
-    S[1][2] = nu*a/((1.-nu)*(a+b)) ;
-    S[2][0] = 0 ;
-    S[2][1] = 0 ;
 
-    S[3][3] = 1./(1.-nu)*((b*b+a*a)/((a+b)*(a+b))+(1.-2.*nu))*.5 ;
-    S[4][4] = b/(2.*(a+b)) ;
-    S[5][5] = a/(2.*(a+b)) ;
-//     double Ia = 4.*M_PI*b/(a+b) ;
-//     double Ib = 4.*M_PI*a/(a+b) ;
-//     double Iab = 4.*M_PI/(3.*(a+b)*(a+b)) ;
-//     double Iaa =  4.*M_PI/(3.*a*a)-Iab ;
-//     double Ibb =  4.*M_PI/(3.*b*b)-Iab ;
-//     std::cout << S[0][1] << "  " << 3./(8.*M_PI*(1.-nu))*b*b*Iab+(1.-2.*nu)/(8.*M_PI*(1.-nu))*Ia << std::endl ;
+    double Q = M_1_PI*3./(8.*(1.-nu)) ;
+    double R = M_1_PI*(1.-2.*nu)/(8.*(1.-nu)) ;
+    S[0][0] = Q*aa*I11+R*I1 ; // + 
+    S[1][1] = Q*bb*I22+R*I2 ; // + 
+    S[2][2] = 0 ; // +
+
+    S[0][1] = Q*bb*I12-R*I1 ; // +
+    S[0][2] = -R*I1 ; // +
+    S[1][0] = S[0][1] ;
+    S[1][2] = -R*I2 ; // +
+    S[2][0] = S[0][2] ;
+    S[2][1] = S[1][2] ;
+
+    S[3][3] = (aa+bb)*.5*Q*I12+0.5*R*(I1+I2) ; // +
+    S[4][4] = 0.5*R*I1 ; // +
+    S[5][5] = 0.5*R*I2 ; // + 
     return S ;
 
 }
@@ -586,8 +677,12 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
     fictious.C = Gp ;
     perror = error ;
     double minerr = error ;
-    std::cerr << perror << std::endl ;
-    if(error > 1e-16 && error < 1e3)
+    std::cerr << perror << "  " << std::flush ;
+    
+    double nu_hint = inclusion.C[0][1]/((inclusion.C[0][0]+inclusion.C[0][1])) ;
+    double E_hint = inclusion.C[0][0]*(1.+nu_hint)*(1.-2.*nu_hint)/(1.-nu_hint) ;
+    
+    if(error > 1e-16 )
     {
         int count = 0 ;
         do {
@@ -605,27 +700,31 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
             Matrix S = G ;
 
             G *= inclusion.C * inclusion.volume  + matrix.C* matrix.volume;
-
+            
             Vector K = fictious.C.array() - G.array() ;
             error = sqrt(std::inner_product(&K[0], &K[K.size()], &K[0], double(0)))/maxnorm ;
-            fictious.C = G ;
-
+            
+            
             if(error < minerr)
             {
                 Gp = G ;
                 Sp = S ;
                 minerr = error ;
             }
+            
+            if(std::abs(error-minerr) < 1e-16 && G.array()[0] < fictious.C.array()[0])
+            {
+                Gp = G ;
+                Sp = S ;
+                minerr = error ;
+            }
+            fictious.C = G ;
+
                 
-        } while( (error < perror && error > 1e-16) || ++count < 8) ;
-                        
+        } while( ++count < 4092 ) ;       
         fictious.C = Gp ;
     }
-    else if(error >= 1e3)
-    {
-        fictious = hint ;
-        Sp = inclusion.C ;
-    }
+    std::cerr << minerr << std::endl ;
 
     B = I - Sp * inclusion.volume ;
     Composite::invertTensor( B ) ;
