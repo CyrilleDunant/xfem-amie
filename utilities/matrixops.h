@@ -603,6 +603,8 @@ Amie::Matrix inverse3x3Matrix(const Amie::Matrix &m) ;
 /** \brief in-place 3x3 matrix inversion*/
 void invert3x3Matrix(Amie::Matrix & m) ;
 
+void invert3x3SymetricMatrix(Amie::Matrix & m) ;
+
 /** \brief 4x4 matrix inversion*/
 Amie::Matrix inverse4x4Matrix(const Amie::Matrix &s) ;
 

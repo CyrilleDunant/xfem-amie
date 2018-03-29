@@ -701,6 +701,26 @@ void invert3x3Matrix(Matrix & m)
 
 }
 
+void invert3x3SymetricMatrix(Matrix & m)
+{
+    double m00 = m.array()[0] ;
+    double m01 =  m.array()[1] ;
+    double m02 =  m.array()[2] ;
+    double m11 =  m.array()[4] ;
+    double m12 =  m.array()[5] ;
+    double m22 =  m.array()[8] ;
+
+    double r11 = fma(m11,m22,-m12*m12) ;
+    double r21 = fma(m12,m02,-m01*m22) ;
+    double r31 = fma(m01,m12,-m11*m02) ;
+    double det = 1./fma(m00,(r11),fma( m01,r21, m02*r31)) ;
+
+    Vector v = {r11, r21, r31, r21, fma(m00,m22, - m02*m02), fma(m02,m01, - m00*m12), r31, fma(m01,m02, - m00*m12), fma(m11,m00, - m01*m01) } ;
+    v *= det ;
+    m.array() = v ;
+
+}
+
 Matrix inverse4x4Matrix(const Matrix &s)
 {
 
