@@ -375,7 +375,7 @@ protected:
     double radius ;
     double sqradius ;
 
-    std::vector<Point> getSamplingPointsOnSphere(double linearDensity, double radius, size_t iter = 100, size_t threshold = 500) const ;
+    
     virtual void project(Point * p, double r) const;
     void smooth(std::vector<Point> & points, double r, size_t iter = 100) const ;
 
@@ -439,6 +439,7 @@ public:
 
     static void dumpSampleBoundingPoints(double linearDensity, size_t iter = 50) ;
     static std::vector<Point> importStandardBoundingPoints(size_t n) ;
+    std::vector<Point> getSamplingPointsOnSphere(double linearDensity, double radius, size_t iter = 100, size_t threshold = 500) const ;
 
 } ;
 

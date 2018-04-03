@@ -1168,6 +1168,12 @@ Sphere::Sphere(double r,const Point p0 ) :radius(r) , sqradius(r*r)
     gType = SPHERE ;
 }
 
+Sphere::Sphere():radius(1.) , sqradius(1.)
+{
+    center = Point() ;
+    gType = SPHERE ;
+}
+
 void Sphere::dumpSampleBoundingPoints(double linearDensity, size_t iter)
 {
     Sphere sph(1.,0.,0.,0.) ;

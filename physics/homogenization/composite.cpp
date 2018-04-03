@@ -35,62 +35,75 @@ Matrix Composite::I4( const Matrix &C )
     return I4 ;
 }
 
+
 Matrix makeIsotropic(const Matrix & S)
 {
-//     return S ;
-    double A1 = 1./5. ;
-    double A2 = 1./15. ; 
-    double A3 = 1./5. ;
-    double A4 = 2./15. ;
-    double A5 = 2./15. ;
-    double A6 = -2./15. ;
-    double A7 = 2./15. ;
-    double A8 = 1./15. ;
-    double A9 = 1./5 ;
+    double r, s, t ;
+    r = 0.5 ;
+    s = (sqrt(5)+1)*.25 ;
+    t = (sqrt(5)-1)*.25 ;
+    std::valarray<Vector> directions = {{ r,  s,  t},//1
+                                        { r, -s,  t},//2
+                                        {-r,  s,  t},//3
+                                        {-r, -s,  t},//4
+                                        { t,  r,  s},//5
+                                        { t, -r,  s},//6
+                                        {-t,  r,  s},//7
+                                        {-t, -r,  s},//8
+                                        { s,  t,  r},//9
+                                        { s, -t,  r},//10
+                                        {-s,  t,  r},//11
+                                        {-s, -t,  r},//
+                                        { 1,  0,  0},//
+                                        { 0,  1,  0},//
+                                        { 0,  0,  1}//
+    } ;
+    Matrix acc(S.numRows(), S.numCols()) ;
+    Matrix res(S) ;
+
+//     do{
+        acc = 0 ;
+        for(size_t i = 0 ; i < directions.size() ;i++)
+        {
+            acc +=Tensor::rotate4thOrderTensor3D(res, Point(directions[i][0], directions[i][1], directions[i][2]))/directions.size() ;
+        }
+        
+        res = acc ;
+       
+//     } while (std::abs(res[0][0]-res[1][1]) > 1e-10 || std::abs(res[0][0]-res[2][2]) > 1e-10) ;
     
-    Matrix iso(S) ;
-    iso[0][0] =  A1*S[0][0] + 1./3.*A1*S[0][1] + A2*S[0][2] + 1./3.*A1*S[1][0]
-                +A1*S[1][1] + A2*S[1][2] + A2*S[2][0] + A2*S[2][1]+A3*S[2][2]
-                +2.*A2*S[3][3] + 2.*A2*S[4][4] + 2./3.*A1*S[5][5] ;
-    iso[1][1] = iso[0][0] ;
-   
-    iso[0][1] = 1./3.*A1*S[0][0]+A4*S[0][1]+A5*S[0][2]+A4*S[1][0] + 1./3.*A2*S[1][1]
-   +A5*S[1][2]+A5*S[2][0]+A5*S[2][1]+1./3.*A3*S[2][2]
-   -1./3.*A3*S[3][3]-1./3.*A3*S[4][4]+1./2.*A6*S[5][5] ;
-    iso[1][0] = iso[0][1] ;
-   
-    iso[0][2] = A2*S[0][0] + A5*S[0][1] + 2./3.*A3*S[0][2] + A5*S[1][0]
-   +A2*S[1][1]+A7*S[1][2]+2./3.*A3*S[2][0]+2./3.*A3*S[2][1]
-   +A8*S[2][2]-A8*S[3][3]-A8*S[4][4]-1./3.*A3*S[5][5] ;
-    iso[1][2] = iso[0][2] ;
-   
-    iso[2][0] = A2*S[0][0] + A5*S[0][1] + 2./3.*A3*S[0][2] + A5*S[1][0]
-   +A1*S[1][1]+2./3.*A3*S[1][2]+A7*S[2][0]+A7*S[3][1]
-   +A8*S[2][2]-A8*S[3][3]-A8*S[4][4]-1./3.*S[5][5] ;
-    iso[2][1] = iso[2][0] ;
+    return res;
     
-    iso[2][2] = A3*S[1][1]+1./3.*A3*S[0][1]+A8*S[0][2]+1./3.*S[1][0]
-    +A3*S[1][1]+A8*S[1][2]+A8*S[2][0]+A8*S[2][1]
-    +A9*S[2][2]+2.*A8*S[3][3]+2.*A8*S[4][4]+2./3.*A3*S[5][5] ;
     
-    iso[3][3] = 2.*(A2*S[0][0]-1./6.*A3*S[0][1]-1./2.*A8*S[0][2]
-        -1./6.*A3*S[1][0]+A2*S[1][1]-1./2.*A8*S[1][2]-1./2.*A8*S[2][0]
-        -1./2.*A8*S[2][1]+A8*S[2][2]+(1./2.*A7+1./3.*A3-1./2.*A8)*S[3][3]
-        +(1./2.*A7+1./3.*A3-1./2*A8)*S[4][4]+(A5-1./6.*A3)*S[5][5] ) ;
-    iso[4][4] = iso[3][3] ;
+}
+
+Matrix makeIsotropic(const Matrix & S, const std::vector<Point> & points)
+{
+    Matrix acc(S.numRows(), S.numCols()) ;
     
-    iso[5][5] = 2.*(1./3.*A1*S[0][0] + 1./4.*A6*S[0][1] - 1./6.*A3*S[0][2]
-        +1./4.*A6*S[1][0]+1./3.*A1*S[1][1]-1./6.*A3*S[1][2]-1./6.*A3*S[2][0]
-        -1./6.*A3*S[2][1]+1./3.*A3*S[2][2]+(A5-1./6.*A3)*S[3][3]
-        +(A5-1./6.*A3)*S[4][4]+(A4+1./4.*A6)*S[5][5] ) ;
+    Point avg ;  
+    int count = 0 ;
+    for(size_t i = 0 ; i < points.size() ;i++)
+    {
+        avg += points[i]/points.size() ;
+        if(points[i].getZ() < 0)
+            continue ;
+        
+        acc +=Tensor::rotate4thOrderTensor3D(S, points[i]) ;
+        count++ ;
+    }
     
-    return iso ;
+    std::cerr << acc[5][0] << "  " << avg.getX()<< "  "<< avg.getY()<< "  "<< avg.getZ() <<std::endl ;
+    
+    return acc/count;
+    
     
 }
 
 Matrix  Composite::eshelbyEllipsoid(const Matrix & C, double a, double b, double c)
 {
     
+
     if (b > a)
         std::swap(a,b) ;
     if(c > a)
@@ -227,7 +240,7 @@ Matrix  Composite::eshelbyEllipsoid(const Matrix & C, double a, double b, double
         S[4][4] = (aa+cc)*.5*Q*I13+0.5*R*(I1+I3) ; // +
         S[5][5] = (bb+cc)*.5*Q*I23+0.5*R*(I2+I3) ; // +
         
-        return makeIsotropic(S) ;
+        return S ;
     }
     else if(std::abs(a-b) <= 1e-6 && std::abs(c-b) > 1e-6) // oblate spheroid
     {
@@ -265,7 +278,7 @@ Matrix  Composite::eshelbyEllipsoid(const Matrix & C, double a, double b, double
         S[4][4] = (aa+cc)*.5*Q*I13+0.5*R*(I1+I3) ; // +
         S[5][5] = (aa+cc)*.5*Q*I23+0.5*R*(I2+I3) ; // +
         
-        return makeIsotropic(S) ;
+        return S ;
     }
     else if(std::abs(a-b) > 1e-6 && std::abs(c-b) <= 1e-6) //prolate spheroid
     {
@@ -303,12 +316,6 @@ Matrix  Composite::eshelbyEllipsoid(const Matrix & C, double a, double b, double
         S[4][4] = (aa+bb)*.5*Q*I13+0.5*R*(I1+I3) ; // +
         S[5][5] = (bb+bb)*.5*Q*I23+0.5*R*(I2+I3) ; // +
         return S ;
-//         S.print() ;
-//         makeIsotropic(S).print() ;
-//         eshelby(C).print() ;
-//         exit(0) ;
-//         
-//         return makeIsotropic(S) ;
     }
     else // it's a sphere
         return eshelby(C) ;
@@ -359,7 +366,7 @@ Matrix  Composite::eshelbyCylinder(const Matrix & C, double a, double b)
     S[4][4] = 0.5*R*I1 ; // +
     S[5][5] = 0.5*R*I2 ; // + 
     
-    return makeIsotropic(S) ;
+    return S ;
 
 }
 
@@ -488,12 +495,26 @@ MatrixInclusionComposite::MatrixInclusionComposite( const Phase & mat, const Pha
 
 void MatrixInclusionComposite::apply()
 {
+//     inclusion.volume = 0.5 ;
+//     matrix.volume = 0.5 ;
+//     for(double bb = 1. ; bb > -0.001 ; bb-=0.1)
+//     {
+//         std::cout << "---- " << bb << " ----" << std::endl ;
+//         b = bb ;
+//         c = bb ;
+//         matrix.t = INCLUSION_IS_ELLIPSOID ;
+//         matrix.b = bb ;
+//         matrix.c = bb ;
+//         inclusion.t = INCLUSION_IS_ELLIPSOID ;
+//         inclusion.b = bb ;
+//         inclusion.c = bb ;
     getStrainConcentrationTensor() ;
     Matrix I = Composite::I4( matrix.C ) ;
 
     inclusion.A = B * inclusion.volume + I * matrix.volume ;
     Composite::invertTensor( inclusion.A ) ;
     inclusion.A *= B ;
+    inclusion.A = makeIsotropic(inclusion.A) ;
     if(matrix.volume > 1e-16)
         matrix.A = ( I - inclusion.A * inclusion.volume ) / matrix.volume ;
     else
@@ -501,18 +522,14 @@ void MatrixInclusionComposite::apply()
         matrix.A =  I  ;
     }
 
+
     C =  ( matrix.A * matrix.volume ) * matrix.C  + ( inclusion.A * inclusion.volume ) * inclusion.C;
-    
-//             C[0][0] = (C[0][0]+C[1][1]+C[2][2])/3. ;
-//             C[1][1]=C[2][2]=C[0][0] ;
-//             C[0][1] = (C[0][1]+C[0][2]+C[1][2])/3. ;
-//             C[0][2]=C[1][2]=C[0][1] ;
-//             C[3][3] =(C[3][3]+C[4][4]+C[5][5])/3. ;
-//             C[4][4]=C[5][5]=C[3][3] ;
     
     beta.resize( matrix.beta.size(), 0. );
     beta = matrix.A * matrix.volume * matrix.beta ;
     beta += inclusion.A * inclusion.volume * inclusion.beta ;
+//     }
+//     exit(0) ;
 
 }
 
@@ -615,6 +632,7 @@ MoriTanakaMatrixInclusionComposite::MoriTanakaMatrixInclusionComposite( const Ph
 
 void MoriTanakaMatrixInclusionComposite::getStrainConcentrationTensor()
 {
+
     if(matrix.C.array().max() > 1e-16)
     {
         Matrix I = Composite::I4( C ) ;
@@ -623,7 +641,6 @@ void MoriTanakaMatrixInclusionComposite::getStrainConcentrationTensor()
             S = Composite::eshelbyEllipsoid( matrix.C, matrix.a, matrix.b, matrix.c ) ;
         if(matrix.t == INCLUSION_IS_CYLINDER)
             S = Composite::eshelbyCylinder( matrix.C, matrix.a, matrix.b) ;
-        
         B = matrix.C ;
         Composite::invertTensor( B ) ;
         B *= S * ( inclusion.C - matrix.C ) ;
@@ -695,10 +712,6 @@ BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite( DelaunayTriang
     B = I - S * inclusion.volume ;
     Composite::invertTensor( B ) ;
     B *= S * matrix.volume ;
-    
-//     B[1][0] = B[0][1] ;
-//     B[2][0] = B[0][2] ;
-//     B[2][1] = B[1][2] ;
 }
 
 BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite( DelaunayTetrahedron *tet, Feature *inc , InclusionGeometryType t, double a, double b, double c) : MatrixInclusionComposite( tet, inc, t, a, b, c )
@@ -758,49 +771,52 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
 {
 //     std::cout << "sc composite" << std::endl ;
     double error = 1. ;
-    double perror = 1. ;
     Matrix Sp = inclusion.C ;
     Matrix I = Composite::I4( Sp ) ;
     double nc1 = std::inner_product(&matrix.C.array()[0], &matrix.C.array()[matrix.C.array().size()], &matrix.C.array()[0], double(0)) ;
     double nc2 = std::inner_product(&inclusion.C.array()[0], &inclusion.C.array()[inclusion.C.array().size()], &inclusion.C.array()[0], double(0)) ;
     double maxnorm = std::max(nc1, nc2) ;
     Matrix Gp = inclusion.C ;
-    hint.C = inclusion.C ;
+//     hint.C = inclusion.C ;
 
     double minerr = error ;    
 
 
     int count = 0 ;
 
+//     matrix.volume = .5 ;
+//     inclusion.volume = .5 ;
     do 
     {
-
-        fictious.volume = inclusion.volume ;
-        MoriTanakaMatrixInclusionComposite mtFictiousFirst(fictious, matrix) ;
-        mtFictiousFirst.apply() ;
+//         std::cout << "--" << std::endl ;
         fictious.volume = matrix.volume ;
         MoriTanakaMatrixInclusionComposite mtFictiousSecond(fictious, inclusion) ;
         mtFictiousSecond.apply() ;
+//         std::cout << ">" << std::endl ;
+        fictious.volume = inclusion.volume ;
+        MoriTanakaMatrixInclusionComposite mtFictiousFirst(fictious, matrix) ;
+        mtFictiousFirst.apply() ;
+//          std::cout << ">" << std::endl ;
+        Matrix A0 = mtFictiousFirst.MatrixInclusionComposite::inclusion.A ;
+        Matrix A1 = mtFictiousSecond.MatrixInclusionComposite::inclusion.A ;
+//         std::cout <<"sc inclusion.A"<< std::endl ;
+//         A0.print();
+//         std::cout <<"sc inclusion.A"<< std::endl ;
+//         A1.print();
 
-        Matrix G = mtFictiousFirst.inclusion.A * matrix.volume + mtFictiousSecond.inclusion.A * inclusion.volume ;
+        Matrix G = A0 * matrix.volume + A1 * inclusion.volume ;
         Composite::invertTensor( G ) ;
-        G *= mtFictiousSecond.inclusion.A ;
+        G *= A1 ;
+        G = makeIsotropic(G) ;
         Matrix S = G ;
         Matrix del = inclusion.C - matrix.C  ;
         G *= del * inclusion.volume ; 
         G += matrix.C  ;
-        G= makeIsotropic(G) ;
-//         G[0][0] = (G[0][0]+G[1][1]+G[2][2])/3. ;
-//         G[1][1]=G[2][2]=G[0][0] ;
-//         G[0][1] = (G[0][1]+G[0][2]+G[1][2])/3. ;
-//         G[0][2]=G[1][2]=G[0][1] ;
-//         G[3][3] =(G[3][3]+G[4][4]+G[5][5])/3. ;
-//         G[4][4]=G[5][5]=G[3][3] ;
-
+//         G.print();
         Vector K = fictious.C.array() - G.array() ;
         error = std::abs(K).max()/maxnorm ;
         
-        if(error < minerr && G[0][0] > std::min(matrix.C[0][0], inclusion.C[0][0]) && G[0][0] < matrix.C[0][0]*matrix.volume+ inclusion.C[0][0]*inclusion.volume)
+        if(count == 0 || ((error < minerr) && G[0][0] > std::min(matrix.C[0][0], inclusion.C[0][0]) && G[0][0] < matrix.C[0][0]*matrix.volume+ inclusion.C[0][0]*inclusion.volume))
         {
             Gp = G ;
             Sp = S ;
@@ -808,10 +824,12 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
         }
 
         fictious.C = G ;
+    
 
+    } while( ++count < 512 && minerr > 1e-18) ; 
 
-    } while( ++count < 256 ) ; 
-
+//     exit(0) ;
+//     exit(0);
     
     fictious.C = Gp ;
     fictious.volume = inclusion.volume ;
