@@ -298,39 +298,77 @@ int main ( int argc, char *argv[] )
 {
     double nu = 0.25 ;
     double nu_mat = .01 ;
-    InclusionGeometryType t = INCLUSION_IS_ELLIPSOID ;
+    InclusionGeometryType t = INCLUSION_IS_SPHERE ;
     Stiffness * agg = new Stiffness(3.2, nu, SPACE_THREE_DIMENSIONAL) ;
-    Stiffness * paste = new Stiffness(3.2e-3, nu_mat, SPACE_THREE_DIMENSIONAL) ;
+    Stiffness * paste = new Stiffness(3.2e-8, nu_mat, SPACE_THREE_DIMENSIONAL) ;
     
-    double a = 1. ; double b = .1  ; double c = .1 ;
+    double a = 1. ; double b = 1./10  ; double c = 1./10 ;
     
     Phase matrix(paste,0, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
     Phase aggregate(agg, 1.-0, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
     
     
-  BiphasicSelfConsistentComposite hint (matrix, aggregate) ;
-  hint.apply() ;
-  double dphi = .1 ;
-  Matrix dC = hint.C ;
-  Matrix dC1 = hint.C ;
-  for(double soft = .0 ; soft <= 1.01 ; soft += dphi)
-  {
+    BiphasicSelfConsistentComposite hint (matrix, aggregate) ;
+    hint.apply() ;
+    double dphi = .1 ;
+    Matrix dC = hint.C ;
+    Matrix dC1 = hint.C ;
+    for(double soft = .0 ; soft <= .6 ; soft += dphi)
+    {
 
-    Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
-    Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+        Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+        Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
 
-    
-    Matrix C = BiphasicSelfConsistentComposite(matrix , aggregate, hint).getBehaviour()->getTensor(Point()) ;
-//       Matrix C =   ReussMatrixInclusionComposite(aggregate,matrix).getBehaviour()->getTensor(Point())  ;
-    double nu_eff = C[0][1]/((C[0][0]+C[0][1])) ;
-    double E_eff = C[0][0]*(1.+nu_eff)*(1.-2.*nu_eff)/(1.-nu_eff) ;
-    std::cout << soft <<"  "<< E_eff*10 <<"  " <<nu_eff << std::endl ;
-    
-//     C.print() ;
-//     dC1 = dC ;
-//     dC = C-hint.C ;
-    hint.C = C;
-  } 
+        
+        Matrix C = BiphasicSelfConsistentComposite(matrix , aggregate, hint).getBehaviour()->getTensor(Point()) ;
+    //       Matrix C =   ReussMatrixInclusionComposite(aggregate,matrix).getBehaviour()->getTensor(Point())  ;
+        double nu_eff = C[0][1]/((C[0][0]+C[0][1])) ;
+        double E_eff = C[0][0]*(1.+nu_eff)*(1.-2.*nu_eff)/(1.-nu_eff) ;
+        std::cout << soft <<"  "<< E_eff*10 <<"  " <<nu_eff << std::endl ;
+        
+    //     C.print() ;
+    //     dC1 = dC ;
+    //     dC = C-hint.C ;
+        hint.C = C;
+    } 
+    dphi= 0.01 ;
+    for(double soft = .6 ; soft <= .85 ; soft += dphi)
+    {
+
+        Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+        Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+
+        
+        Matrix C = BiphasicSelfConsistentComposite(matrix , aggregate, hint).getBehaviour()->getTensor(Point()) ;
+    //       Matrix C =   ReussMatrixInclusionComposite(aggregate,matrix).getBehaviour()->getTensor(Point())  ;
+        double nu_eff = C[0][1]/((C[0][0]+C[0][1])) ;
+        double E_eff = C[0][0]*(1.+nu_eff)*(1.-2.*nu_eff)/(1.-nu_eff) ;
+        std::cout << soft <<"  "<< E_eff*10 <<"  " <<nu_eff << std::endl ;
+        
+    //     C.print() ;
+    //     dC1 = dC ;
+    //     dC = C-hint.C ;
+        hint.C = C;
+    } 
+    dphi= 0.01 ;
+    for(double soft = .85 ; soft <= 1.01 ; soft += dphi)
+    {
+
+        Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+        Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+
+        
+        Matrix C = BiphasicSelfConsistentComposite(matrix , aggregate, hint).getBehaviour()->getTensor(Point()) ;
+    //       Matrix C =   ReussMatrixInclusionComposite(aggregate,matrix).getBehaviour()->getTensor(Point())  ;
+        double nu_eff = C[0][1]/((C[0][0]+C[0][1])) ;
+        double E_eff = C[0][0]*(1.+nu_eff)*(1.-2.*nu_eff)/(1.-nu_eff) ;
+        std::cout << soft <<"  "<< E_eff*10 <<"  " <<nu_eff << std::endl ;
+        
+    //     C.print() ;
+    //     dC1 = dC ;
+    //     dC = C-hint.C ;
+        hint.C = C;
+    } 
   
   
   delete agg ;

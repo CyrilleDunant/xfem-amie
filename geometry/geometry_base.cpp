@@ -35,6 +35,14 @@ Point::Point(const Point & p)
 }
 #endif
 
+Point::Point(const Vector & p)
+{
+    x = p[0] ;
+    y = p[1] ;
+    z = p.size()>2?p[2]:0 ;
+    t = p.size()>3?p[3]:0 ;
+    id = -1 ;
+}
 
     Point & operator*=( Point &p, const Matrix & m) {
 

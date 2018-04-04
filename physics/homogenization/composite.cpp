@@ -56,25 +56,25 @@ Matrix makeIsotropic(const Matrix & S)
                                         {-s, -t,  r},//
                                         { 1,  0,  0},//
                                         { 0,  1,  0},//
-                                        { 0,  0,  1}//
+                                        { 0,  0,  1} //
     } ;
     Matrix acc(S.numRows(), S.numCols()) ;
-    Matrix res(S) ;
+    
+    Matrix accc(S.numRows(), S.numCols()) ;
+    Matrix da(S.numRows(), S.numCols()) ;
+    Matrix y(S.numRows(), S.numCols()) ;
+    Matrix tmp(S.numRows(), S.numCols()) ;
 
-//     do{
-        acc = 0 ;
-        for(size_t i = 0 ; i < directions.size() ;i++)
-        {
-            acc +=Tensor::rotate4thOrderTensor3D(res, Point(directions[i][0], directions[i][1], directions[i][2]))/directions.size() ;
-        }
-        
-        res = acc ;
-       
-//     } while (std::abs(res[0][0]-res[1][1]) > 1e-10 || std::abs(res[0][0]-res[2][2]) > 1e-10) ;
+    for(size_t i = 0 ; i < directions.size() ;i++)
+    {
+        da = Tensor::rotate4thOrderTensor3D(S, directions[i]) ;
+        y = da - accc ;
+        tmp = acc+y ;
+        accc = (tmp- acc) - y ;
+        acc = tmp ;
+    }       
     
-    return res;
-    
-    
+    return acc/directions.size();
 }
 
 Matrix makeIsotropic(const Matrix & S, const std::vector<Point> & points)
@@ -111,7 +111,7 @@ Matrix  Composite::eshelbyEllipsoid(const Matrix & C, double a, double b, double
     if(c > b)
         std::swap(c, b) ;
     
-    double pi4 = M_PI*4. ;
+    double pi4 = M_PIf128*4. ;
     double aa = a*a ;
     double bb = b*b ;
     double cc = c*c ;
@@ -132,8 +132,8 @@ Matrix  Composite::eshelbyEllipsoid(const Matrix & C, double a, double b, double
     double E = 0 ;
     double Ec = 0 ;
     double Fc = 0 ;
-    double dw = theta*1e-2 ;
-    double g0 = -sqrt(3./5) ;
+    double dw = theta*1e-3 ;
+    double g0 = -sqrt(3./5) ; 
     double g1 = -g0 ;
     for(double w = 0 ; w < theta-dw*.5 ; w += 2.*dw)
     {
@@ -223,8 +223,8 @@ Matrix  Composite::eshelbyEllipsoid(const Matrix & C, double a, double b, double
         double I32 = (I2-I3)/(3.*(cc-bb)) ; //+
         double I33 = pi4/(3.*cc) - I31 - I32 ; // +
 
-        double Q = M_1_PI*3./(1.-nu)*.125 ;
-        double R = M_1_PI*(1.-2.*nu)/(1.-nu)*.125 ;
+        double Q = M_1_PIf128 *3./(1.-nu)*.125 ;
+        double R = M_1_PIf128*(1.-2.*nu)/(1.-nu)*.125 ;
         S[0][0] = Q*aa*I11+R*I1 ; // + 
         S[1][1] = Q*bb*I22+R*I2 ; // + 
         S[2][2] = Q*cc*I33+R*I3 ; // +
@@ -245,24 +245,24 @@ Matrix  Composite::eshelbyEllipsoid(const Matrix & C, double a, double b, double
     else if(std::abs(a-b) <= 1e-6 && std::abs(c-b) > 1e-6) // oblate spheroid
     {
         
-        double I1 = 2.*M_PI*aa*c/pow(aa-cc, 3./2.)*(acos(c/a)-(c/a)*sqrt(1.-cc/(aa))) ;
+        double I1 = 2.*M_PIf128*aa*c/pow(aa-cc, 3./2.)*(acos(c/a)-(c/a)*sqrt(1.-cc/(aa))) ;
         double I2 = I1 ;
-        double I3 = 4.*M_PI-I1-I2 ;
+        double I3 = 4.*M_PIf128-I1-I2 ;
        
         double I13 = (I3-I1)/(3.*(aa-cc)) ;      // +
-        double I12 = M_PI/(3.*aa)- I13 * .25  ;      // +
+        double I12 = M_PIf128/(3.*aa)- I13 * .25  ;      // +
         double I11= pi4/(3.*aa) - I12 - I13 ; // +
         
         double I23 = (I3-I2)/(3.*(aa-cc)) ;  //+
-        double I21 = M_PI/(3.*aa)- I23 * .25 ;  //+
+        double I21 = M_PIf128/(3.*aa)- I23 * .25 ;  //+
         double I22 = pi4/(3.*aa) - I21 - I23 ; // +
         
         double I31 = (I1-I3)/(3.*(cc-aa)) ; //+
         double I32 = (I2-I3)/(3.*(cc-aa)) ; //+
         double I33 = pi4/(3.*cc) - I31 - I32 ; // +
         
-        double Q = M_1_PI*3./(1.-nu)*.125 ;
-        double R = M_1_PI*(1.-2.*nu)/(1.-nu)*.125 ;
+        double Q = M_1_PIf128*3./(1.-nu)*.125 ;
+        double R = M_1_PIf128*(1.-2.*nu)/(1.-nu)*.125 ;
         S[0][0] = Q*aa*I11+R*I1 ; // + 
         S[1][1] = Q*aa*I22+R*I2 ; // + 
         S[2][2] = Q*cc*I33+R*I3 ; // +
@@ -282,25 +282,25 @@ Matrix  Composite::eshelbyEllipsoid(const Matrix & C, double a, double b, double
     }
     else if(std::abs(a-b) > 1e-6 && std::abs(c-b) <= 1e-6) //prolate spheroid
     {
-        double I3 = 2.*M_PI*a*cc/pow(aa-cc, 3./2.)*(a/c*sqrt(aa/(cc)-1)-acosh(a/c)) ;
+        double I3 = 2.*M_PIf128*a*cc/pow(aa-cc, 3./2.)*(a/c*sqrt(aa/(cc)-1)-acosh(a/c)) ;
         double I2 = I3;
-        double I1 = 4.*M_PI-I3-I2 ;
+        double I1 = 4.*M_PIf128-I3-I2 ;
         
        
         double I12 = (I2-I1)/(3.*(aa-bb)) ;      // +
         double I13 = (I3-I1)/(3.*(aa-bb)) ;      // +
-        double I11 = 4.*M_PI/(3.*aa) - I12 - I13 ; // +
+        double I11 = 4.*M_PIf128/(3.*aa) - I12 - I13 ; // +
         
         double I21 = (I1-I2)/(3.*(bb-aa)) ;  //+
-        double I23 = M_PI/(3.*bb)-I21*.25 ;  //+
-        double I22 = 4.*M_PI/(3.*bb) - I21 - I23 ; // +
+        double I23 = M_PIf128/(3.*bb)-I21*.25 ;  //+
+        double I22 = 4.*M_PIf128/(3.*bb) - I21 - I23 ; // +
 
         double I31 = (I1-I3)/(3.*(cc-aa)) ; //+
-        double I32 = M_PI/(3.*cc)-I31*.25 ; //+
-        double I33 = 4.*M_PI/(3.*cc) - I31 - I32 ; // +
+        double I32 = M_PIf128/(3.*cc)-I31*.25 ; //+
+        double I33 = 4.*M_PIf128/(3.*cc) - I31 - I32 ; // +
 
-        double Q = M_1_PI*3./(1.-nu)*.125 ;
-        double R = M_1_PI*(1.-2.*nu)/(1.-nu)*.125 ;
+        double Q = M_1_PIf128*3./(1.-nu)*.125 ;
+        double R = M_1_PIf128*(1.-2.*nu)/(1.-nu)*.125 ;
         S[0][0] = Q*aa*I11+R*I1 ; // + 
         S[1][1] = Q*bb*I22+R*I2 ; // + 
         S[2][2] = Q*bb*I33+R*I3 ; // +
@@ -437,7 +437,7 @@ void Composite::invertTensor( Matrix &m )
             m1[i][j] = m[i][j] ;
     }
 
-    invert3x3SymetricMatrix( m1 ) ;
+   invert3x3Matrix( m1 ) ;
 
     for( size_t i = 0 ; i < 3 ; i++ )
     {
@@ -495,19 +495,7 @@ MatrixInclusionComposite::MatrixInclusionComposite( const Phase & mat, const Pha
 
 void MatrixInclusionComposite::apply()
 {
-//     inclusion.volume = 0.5 ;
-//     matrix.volume = 0.5 ;
-//     for(double bb = 1. ; bb > -0.001 ; bb-=0.1)
-//     {
-//         std::cout << "---- " << bb << " ----" << std::endl ;
-//         b = bb ;
-//         c = bb ;
-//         matrix.t = INCLUSION_IS_ELLIPSOID ;
-//         matrix.b = bb ;
-//         matrix.c = bb ;
-//         inclusion.t = INCLUSION_IS_ELLIPSOID ;
-//         inclusion.b = bb ;
-//         inclusion.c = bb ;
+
     getStrainConcentrationTensor() ;
     Matrix I = Composite::I4( matrix.C ) ;
 
@@ -528,8 +516,7 @@ void MatrixInclusionComposite::apply()
     beta.resize( matrix.beta.size(), 0. );
     beta = matrix.A * matrix.volume * matrix.beta ;
     beta += inclusion.A * inclusion.volume * inclusion.beta ;
-//     }
-//     exit(0) ;
+
 
 }
 
@@ -777,32 +764,22 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
     double nc2 = std::inner_product(&inclusion.C.array()[0], &inclusion.C.array()[inclusion.C.array().size()], &inclusion.C.array()[0], double(0)) ;
     double maxnorm = std::max(nc1, nc2) ;
     Matrix Gp = inclusion.C ;
-//     hint.C = inclusion.C ;
 
     double minerr = error ;    
-
+    fictious.C = inclusion.C ;
 
     int count = 0 ;
 
-//     matrix.volume = .5 ;
-//     inclusion.volume = .5 ;
     do 
     {
-//         std::cout << "--" << std::endl ;
         fictious.volume = matrix.volume ;
         MoriTanakaMatrixInclusionComposite mtFictiousSecond(fictious, inclusion) ;
         mtFictiousSecond.apply() ;
-//         std::cout << ">" << std::endl ;
         fictious.volume = inclusion.volume ;
         MoriTanakaMatrixInclusionComposite mtFictiousFirst(fictious, matrix) ;
         mtFictiousFirst.apply() ;
-//          std::cout << ">" << std::endl ;
         Matrix A0 = mtFictiousFirst.MatrixInclusionComposite::inclusion.A ;
         Matrix A1 = mtFictiousSecond.MatrixInclusionComposite::inclusion.A ;
-//         std::cout <<"sc inclusion.A"<< std::endl ;
-//         A0.print();
-//         std::cout <<"sc inclusion.A"<< std::endl ;
-//         A1.print();
 
         Matrix G = A0 * matrix.volume + A1 * inclusion.volume ;
         Composite::invertTensor( G ) ;
@@ -812,7 +789,6 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
         Matrix del = inclusion.C - matrix.C  ;
         G *= del * inclusion.volume ; 
         G += matrix.C  ;
-//         G.print();
         Vector K = fictious.C.array() - G.array() ;
         error = std::abs(K).max()/maxnorm ;
         
@@ -827,9 +803,6 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
     
 
     } while( ++count < 512 && minerr > 1e-18) ; 
-
-//     exit(0) ;
-//     exit(0);
     
     fictious.C = Gp ;
     fictious.volume = inclusion.volume ;

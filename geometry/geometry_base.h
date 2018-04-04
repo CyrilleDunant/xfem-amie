@@ -496,6 +496,9 @@ public :
 
     /** \brief copy-constructor.*/
     Point(const Point & p) ;
+    
+    /** \brief copy-constructor.*/
+    Point(const Vector & p) ;
 
     /** \brief copy-constructor.*/
     Point& operator = (const Point & p) ;
