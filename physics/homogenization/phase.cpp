@@ -108,7 +108,7 @@ Phase::Phase( Feature *f , DelaunayTriangle * tri,InclusionGeometryType t, doubl
 	
 	if( f->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 		volume = f->volume() ;
-    volume = std::max(volume, 1e-6) ;
+    volume = std::max(volume, 1e-12) ;
 	
 	stiffnessFromBehaviour() ;
 	expansionFromBehaviour() ;
@@ -151,8 +151,8 @@ Form * Phase::getBehaviour()
 		invert3x3Matrix( S ) ;
 	
 	Vector alpha = S * beta ;
-//         std::cout << alpha[0] << std::endl ;
-//         S.print() ;
+        std::cout << alpha[0] << std::endl ;
+        S.print() ;
 	return new StiffnessWithImposedDeformation( C, alpha ) ;
 }
 

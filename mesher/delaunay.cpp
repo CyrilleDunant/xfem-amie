@@ -2840,6 +2840,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
         return *getCachedGaussPoints() ;
     }
     size_t numberOfRefinements = 0 ;
+    
 //     if(getEnrichmentFunctions().size() > getBoundingPoints().size())
 //         numberOfRefinements = 4 ;
     VirtualMachine vm ;
@@ -2927,7 +2928,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                     return *getCachedGaussPoints() ;
 
                 delete cachedGps ;
-                cachedGps = new GaussPointArray(monteCarloGaussPoints(128, this)) ;
+                cachedGps = new GaussPointArray(monteCarloGaussPoints(256, this)) ;
                 cachedGps->regularGrid = true ;
                 return *getCachedGaussPoints() ;
             }
@@ -2962,8 +2963,8 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 Function x = tri[i]->getXTransform() ;
                 Function y = tri[i]->getYTransform() ;
                                
-                GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
-//                  GaussPointArray gp_temp = monteCarloGaussPoints(32, tri[i]) ;
+//                 GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
+                 GaussPointArray gp_temp = monteCarloGaussPoints(32, tri[i]) ;
 
                 for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
                 {

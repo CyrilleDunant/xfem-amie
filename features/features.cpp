@@ -4381,7 +4381,9 @@ bool FeatureTree::solve()
     }
     gettimeofday ( &time1, nullptr );
     double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
-    std::cerr << "...done. Time (s) " << delta / 1e6 << " large displacement changes: " << nlcount <<std::endl ;
+    std::cerr << "...done. Time (s) " << delta / 1e6 << std::endl ;
+    if(largeStrains)
+        std::cerr << " large displacement changes: " << nlcount <<std::endl ;
     
     if ( dtree )
     {

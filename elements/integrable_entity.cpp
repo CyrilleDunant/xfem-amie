@@ -842,7 +842,6 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 y_eta += f_eta * enrichedDisplacements[j * 2 + 1] ;
             }
 
-	    
             updateInverseJacobianCache(*p_) ;
             
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
@@ -1192,7 +1191,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     case VON_MISES_STRAIN_FIELD:
     {
         Vector eps ( 0., ( size_t ) parent->spaceDimensions() ) ;
-        getField ( PRINCIPAL_TOTAL_STRAIN_FIELD, *p_, eps, true,vm ) ;
+        getField ( PRINCIPAL_MECHANICAL_STRAIN_FIELD, *p_, eps, true,vm ) ;
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
             ret[0] = ( 2. / 3. * ( eps[0] * eps[0] + eps[1] * eps[1] ) ) ;
@@ -2876,7 +2875,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
     else 
       w = 1 ;
 
-    if ( f == MECHANICAL_STRAIN_FIELD && ( f_ == EFFECTIVE_STRESS_FIELD || f_ == REAL_STRESS_FIELD ) )
+    if ( f == MECHANICAL_STRAIN_FIELD && ( f_ == REAL_STRESS_FIELD ) )
     {
 //       	#pragma omp critical
         if ( strainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) ||
@@ -2980,7 +2979,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
         return v*w ;
     }
     
-    if ( f == PRINCIPAL_TOTAL_STRAIN_FIELD && ( f_ == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD ) )
+    if ( f == PRINCIPAL_TOTAL_STRAIN_FIELD && ( f_ == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) )
     {
 //         #pragma omp critical
         if ( pstrainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) ||
@@ -3127,7 +3126,7 @@ void ElementState::getField ( FieldType f1, FieldType f2, const Point & p, Vecto
         }
         return ;
     }
-    if ( f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD && ( f2 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f2 == PRINCIPAL_REAL_STRESS_FIELD ) )
+    if ( f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD && ( f2 == PRINCIPAL_REAL_STRESS_FIELD ) )
     {
         Vector v1 ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         Vector v2 ( 0., v1.size() ) ;
@@ -3173,7 +3172,7 @@ void ElementState::getField ( FieldType f1, FieldType f2, const Point & p, Vecto
         }
         return ;
     }
-    if ( f2 == PRINCIPAL_MECHANICAL_STRAIN_FIELD && ( f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f1 == PRINCIPAL_REAL_STRESS_FIELD ) )
+    if ( f2 == PRINCIPAL_MECHANICAL_STRAIN_FIELD && ( f1 == PRINCIPAL_REAL_STRESS_FIELD ) )
     {
         Vector v1 ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         Vector v2 ( 0., v1.size() ) ;

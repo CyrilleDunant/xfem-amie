@@ -457,8 +457,8 @@ MatrixInclusionComposite::MatrixInclusionComposite( DelaunayTriangle *tri, Featu
     matrix = Phase( tri, t, a, b, c ) ;
     inclusion = Phase( inc , tri , t, a, b, c) ;
 
-    matrix.volume = std::max(matrix.volume, 1e-6) ;
-    inclusion.volume = std::max(inclusion.volume, 1e-6) ;
+    matrix.volume = std::max(matrix.volume, 1e-12) ;
+    inclusion.volume = std::max(inclusion.volume, 1e-12) ;
     volume = matrix.volume + inclusion.volume ;
     matrix.volume /= volume ;
     inclusion.volume /= volume ;
@@ -483,8 +483,8 @@ MatrixInclusionComposite::MatrixInclusionComposite( DelaunayTetrahedron *tet, Fe
 
 MatrixInclusionComposite::MatrixInclusionComposite( const Phase & mat, const Phase & inc) : Composite( mat), matrix(mat), inclusion(inc)
 {
-    matrix.volume = std::max(matrix.volume, 1e-6) ;
-    inclusion.volume = std::max(inclusion.volume, 1e-6) ;
+    matrix.volume = std::max(matrix.volume, 1e-12) ;
+    inclusion.volume = std::max(inclusion.volume, 1e-12) ;
     volume = matrix.volume + inclusion.volume ;
     matrix.volume /= volume ;
     inclusion.volume /= volume ;
