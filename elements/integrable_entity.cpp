@@ -1351,7 +1351,6 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 delete p_ ;
             return ;
         }
-        
         ret = ( Vector ) ( parent->getBehaviour()->getTensor ( *p_, parent ) * ret ) - parent->getBehaviour()->getImposedStress ( *p_, parent ) ;
 
         if ( cleanup )
@@ -1979,6 +1978,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         vm = new VirtualMachine() ;
     }
     const GaussPointArray & gp = parent->getGaussPoints() ;
+
     size_t blocks = parent->getBehaviour()->getNumberOfDegreesOfFreedom() / parent->spaceDimensions() ;
     if( fieldTypeElementarySize ( f, parent->spaceDimensions(), blocks ) != ret.size())
         ret.resize( fieldTypeElementarySize ( f, parent->spaceDimensions(), blocks ) , 0.) ;

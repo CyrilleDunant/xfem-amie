@@ -76,13 +76,15 @@ Vector BimaterialInterface::getImposedStress(const Point & p, IntegrableEntity *
                        vm.eval(ztransform, p.getX(), p.getY(), p.getZ(), p.getT()), 
                        vm.eval(ttransform, p.getX(), p.getY(), p.getZ(), p.getT())) ;
 
-
-    if(inGeometry->in(test))
+    Vector ret(0., inBehaviour->getTensor(test).size() == 9 ? 3 : 6) ;
+    if(inGeometry->in(test) && inBehaviour->hasInducedForces())
     {
-        return inBehaviour->getImposedStress(p,e,g) ;
+        ret = inBehaviour->getImposedStress(p,e,g) ;
     }
+    else if (outBehaviour->hasInducedForces())
+        ret = outBehaviour->getImposedStress(p,e,g) ;
     
-    return outBehaviour->getImposedStress(p,e,g) ;
+    return ret ;
 }
 
 Vector BimaterialInterface::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
@@ -93,10 +95,15 @@ Vector BimaterialInterface::getImposedStrain(const Point & p, IntegrableEntity *
                        vm.eval(ztransform, p.getX(), p.getY(), p.getZ(), p.getT()), 
                        vm.eval(ttransform, p.getX(), p.getY(), p.getZ(), p.getT())) ;
 
-    if(inGeometry->in(test))
-        inBehaviour->getImposedStrain(p,e,g) ;
+    Vector ret(0., inBehaviour->getTensor(test).size() == 9 ? 3 : 6) ;
+    if(inGeometry->in(test) && inBehaviour->hasInducedForces())
+    {
+        ret = inBehaviour->getImposedStrain(p,e,g) ;
+    }
+    else if (outBehaviour->hasInducedForces())
+        ret = outBehaviour->getImposedStrain(p,e,g) ;
     
-    return outBehaviour->getImposedStrain(p,e,g) ;
+    return ret ;
 }
 
 void BimaterialInterface::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const

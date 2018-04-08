@@ -1775,21 +1775,29 @@ Vector Assembly::extrapolate(double factor)
             return displacements ;
         return Vector(0) ;
     }
+    
+    if(displacementHistory.back().size() != displacements.size())
+    {
+        displacementHistory.clear() ;
+        return Vector(0) ;
+    }
+    
     Vector dxdb(displacements.size()) ;
+    
     Vector df((forceHistory[forceHistory.size()-1]-forceHistory[forceHistory.size()-2])) ;
-    double dfs = std::sqrt(std::inner_product(&df[0], &df[df.size()], &df[0], 0.));
-    for(size_t i = 0 ; i < displacementHistory.size() ; i++)
+//     double dfs = std::sqrt(std::inner_product(&df[0], &df[df.size()], &df[0], 0.));
+    for(size_t i = 0 ; i < displacementHistory.back().size() ; i++)
     {   
-        if(std::isnan(displacementHistory[displacementHistory.size()-1][i]))
-            displacementHistory[displacementHistory.size()-1][i] = 0 ;
-        dxdb[i] = (displacementHistory[displacementHistory.size()-1][i]-displacementHistory[displacementHistory.size()-2][i]) ;
+        if(std::isnan(displacementHistory.back()[i]))
+            displacementHistory.back()[i] = 0 ;
+        dxdb[i] = (displacementHistory.back()[i]-displacementHistory[displacementHistory.size()-2][i]) ;
     }
 
     
 //     std::cout << "  --> "<< dfs << std::endl ;
         
             
-    return displacementHistory[displacementHistory.size()-1] + dxdb*factor;
+    return displacementHistory.back() + dxdb*factor;
 
 }
 
