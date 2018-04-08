@@ -88,7 +88,7 @@ void step ( size_t nsteps, std::string app = std::string() )
 // 	}
 
         Vector stemp = featureTree->getAverageField ( GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD ) ;
-        Vector etemp = featureTree->getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD ) ;
+        Vector etemp = featureTree->getAverageField ( GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD ) ;
         Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD) ;
 
         std::cout << "current time :" << featureTree->getCurrentTime() << std::endl ;

@@ -1733,7 +1733,7 @@ std::string nameOfField(FieldType field)
         return std::string("") ;
     case GENERALIZED_VISCOELASTIC_SPEED_FIELD :
         return std::string("") ;
-    case GENERALIZED_VISCOELASTIC_STRAIN_FIELD :
+    case GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD :
         return std::string("") ;
     case GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD :
         return std::string("") ;
@@ -1741,13 +1741,13 @@ std::string nameOfField(FieldType field)
         return std::string("") ;
     case GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD :
         return std::string("") ;
-    case GENERALIZED_VISCOELASTIC_PRINCIPAL_STRAIN_FIELD :
+    case GENERALIZED_VISCOELASTIC_PRINCIPAL_TOTAL_STRAIN_FIELD :
         return std::string("") ;
     case GENERALIZED_VISCOELASTIC_PRINCIPAL_EFFECTIVE_STRESS_FIELD :
         return std::string("") ;
     case GENERALIZED_VISCOELASTIC_PRINCIPAL_REAL_STRESS_FIELD :
         return std::string("") ;
-    case GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD :
+    case GENERALIZED_VISCOELASTIC_NON_ENRICHED_TOTAL_STRAIN_FIELD :
         return std::string("") ;
     case GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_RATE_FIELD :
         return std::string("") ;
@@ -1833,7 +1833,7 @@ int numberOfFields( FieldType field )
         return 3 ;
     case GENERALIZED_VISCOELASTIC_SPEED_FIELD :
         return 6 ;
-    case GENERALIZED_VISCOELASTIC_STRAIN_FIELD :
+    case GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD :
         return 9 ;
     case GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD :
         return 9 ;
@@ -1841,13 +1841,13 @@ int numberOfFields( FieldType field )
         return 9;
     case GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD :
         return 9 ;
-    case GENERALIZED_VISCOELASTIC_PRINCIPAL_STRAIN_FIELD :
+    case GENERALIZED_VISCOELASTIC_PRINCIPAL_TOTAL_STRAIN_FIELD :
         return 6 ;
     case GENERALIZED_VISCOELASTIC_PRINCIPAL_EFFECTIVE_STRESS_FIELD :
         return 6 ;
     case GENERALIZED_VISCOELASTIC_PRINCIPAL_REAL_STRESS_FIELD :
         return 9 ;
-    case GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD :
+    case GENERALIZED_VISCOELASTIC_NON_ENRICHED_TOTAL_STRAIN_FIELD :
         return 9 ;
     case GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_RATE_FIELD :
         return 9 ;

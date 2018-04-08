@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
 	while(F.getCurrentTime() < maxTime)
 	{
 		F.step() ;
-		Vector strain = F.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD ) ;
+		Vector strain = F.getAverageField( GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD ) ;
 		Vector stress = F.getAverageField( REAL_STRESS_FIELD ) ;
 		std::cout << F.getCurrentTime() << "\t" ;
 		for(size_t j = 0 ; j < strain.size() ; j++)

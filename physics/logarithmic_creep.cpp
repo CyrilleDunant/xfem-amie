@@ -189,7 +189,7 @@ Vector LogarithmicCreepWithImposedDeformation::getImposedStrain(const Point & p,
         			return prevImposed*VirtualMachine().eval(f1, p_) + imposed*VirtualMachine().eval(f2, p_) ;
         		}*/
 //        std::cout << imposed[0]*(p.getT()+1)*0.5 + prevImposed[0]*(1-p.getT())*0.5 << std::endl ;
-	    return imposed*(p.getT()+1)*0.5 + prevImposed*(1-p.getT())*0.5 ;
+	    return imposed*(p.getT()+1)*0.5 + prevImposed*(1.-p.getT())*0.5 ;
     }
     return Vector(0., C.numCols()) ;
 }
@@ -331,21 +331,13 @@ void LogarithmicCreepWithImposedDeformationAndFracture::setFractureCriterion(Fra
 Vector LogarithmicCreepWithImposedDeformationAndFracture::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
     Vector epsilon = LogarithmicCreepWithImposedDeformation::getImposedStrain(p,e,g) ;
-    if( dfunc && dfunc->hasInducedForces() ) { epsilon += dfunc->getImposedStrain(p) ; }
+        if( dfunc && dfunc->hasInducedForces() ) { epsilon += dfunc->getImposedStrain(p) ; }
     return epsilon ;
 }
 
 Vector LogarithmicCreepWithImposedDeformationAndFracture::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
     Vector ret = LogarithmicCreepWithImposedDeformation::getImposedStrain(p,e,g)*0. ;
-/*     if(dfunc)
-     {
-         ret = dfunc->apply(C)*ret ;
-         if(dfunc->hasInducedForces())
-             ret += dfunc->getImposedStress(p) ;
-     }
-     else
-         ret = C*ret ;*/
 
     return ret ;
 }
@@ -463,7 +455,7 @@ std::vector<BoundaryCondition * > LogarithmicCreepWithImposedDeformationAndFract
     {
         istress = dfunc->apply(C) * imposed   ;
         if(dfunc->hasInducedForces())
-            istress += dfunc->getImposedStrain( gp.gaussPoints[0].first ) ;
+            istress += dfunc->apply(C) * dfunc->getImposedStrain( gp.gaussPoints[0].first )  ;
     }
     if(v.size() == 3)
     {

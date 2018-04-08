@@ -37,7 +37,7 @@ void StrainConsolidationLogCreepAccumulator::preProcess( double timeStep, Elemen
 
     Vector gstr(pstr.size()*3) ;
     gstr = 0 ;
-    dynamic_cast<GeneralizedSpaceTimeViscoElasticElementState &>(currentState).getAverageField( GENERALIZED_VISCOELASTIC_PRINCIPAL_STRAIN_FIELD, gstr, nullptr,  1 ) ;
+    dynamic_cast<GeneralizedSpaceTimeViscoElasticElementState &>(currentState).getAverageField( GENERALIZED_VISCOELASTIC_PRINCIPAL_TOTAL_STRAIN_FIELD, gstr, nullptr,  1 ) ;
     for(size_t i = 0 ; i < pstr.size() ; i++)
         pstr[i] = gstr[ pstr.size()+i ] ;
     

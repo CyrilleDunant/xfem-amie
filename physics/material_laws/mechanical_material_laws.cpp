@@ -214,7 +214,7 @@ void MineralMaterialLaw::preProcess( Matrix & stiffness, Point angle, planeType 
 {
     if(mineral.isValid())
     {
-        Matrix C = Tensor::rotate4thOrderTensor3D(mineral.stiffness, angle ) ;
+        Matrix C = Tensor::rotate4thOrderEshelbyTensor3D(mineral.stiffness, angle ) ;
         if( stiffness.numCols() == 3 )
         {
             stiffness = Tensor::to2D( C, plane, cuttingPlane ) ;

@@ -132,11 +132,11 @@ int main(int argc, char *argv[])
 		Point q( (theta-lastTheta)*M_PI, 0, 0 ) ;
 		lastTheta = theta ;
 
-		stiffnessRotated = Tensor::rotate4thOrderTensor3D( stiffness3D, theta*M_PI, 0, 0, 1 ) ;
+		stiffnessRotated = Tensor::rotate4thOrderStiffnessTensor3D( stiffness3D, theta*M_PI, 0, 0, -1 ) ;
 		if( theta == 0 )
-			incrementalStiffnessRotated = Tensor::rotate4thOrderTensor3D( stiffness3D, (theta-lastTheta)*M_PI, 0, 0, 1 ) ;
+			incrementalStiffnessRotated = Tensor::rotate4thOrderStiffnessTensor3D( stiffness3D, (theta-lastTheta)*M_PI, 0, 0, -1 ) ;
 		else
-			incrementalStiffnessRotated = Tensor::rotate4thOrderTensor3D( incrementalStiffnessRotated, (theta-lastTheta)*M_PI, 0, 0, 1 ) ;
+			incrementalStiffnessRotated = Tensor::rotate4thOrderStiffnessTensor3D( incrementalStiffnessRotated, (theta-lastTheta)*M_PI, 0, 0, -1 ) ;
 
 		shearRotated = Tensor::rotate2ndOrderTensor3D( shear, -p, -1. ) ;
 
@@ -188,11 +188,11 @@ int main(int argc, char *argv[])
 		Point q( (theta-lastTheta)*M_PI, 0, 0 ) ;
 		lastTheta = theta ;
 
-		stiffnessRotated = Tensor::rotate4thOrderTensor3D( stiffness3D, p, -1 ) ;
+		stiffnessRotated = Tensor::rotate4thOrderStiffnessTensor3D( stiffness3D, p.getX(), p.getY(), p.getZ(), -1 ) ;
 		if( theta == 0 )
-			incrementalStiffnessRotated = Tensor::rotate4thOrderTensor3D( stiffness3D, q, -1 ) ;
+			incrementalStiffnessRotated = Tensor::rotate4thOrderStiffnessTensor3D( stiffness3D, q.getX(), q.getY(), q.getZ(), -1 ) ;
 		else
-			incrementalStiffnessRotated = Tensor::rotate4thOrderTensor3D( incrementalStiffnessRotated, q, -1 ) ;
+			incrementalStiffnessRotated = Tensor::rotate4thOrderStiffnessTensor3D( incrementalStiffnessRotated, q.getX(), q.getY(), q.getZ(), -1 ) ;
 
 		Matrix realStiffnessRotated = stiffnessRotated ;
 		Matrix realStiffness = stiffness3D ;

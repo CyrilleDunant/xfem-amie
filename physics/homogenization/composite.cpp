@@ -67,7 +67,7 @@ Matrix makeIsotropic(const Matrix & S)
 
     for(size_t i = 0 ; i < directions.size() ;i++)
     {
-        da = Tensor::rotate4thOrderTensor3D(S, directions[i]) ;
+        da = Tensor::rotate4thOrderEshelbyTensor3D(S, directions[i]) ;
         y = da - accc ;
         tmp = acc+y ;
         accc = (tmp- acc) - y ;
@@ -89,7 +89,7 @@ Matrix makeIsotropic(const Matrix & S, const std::vector<Point> & points)
         if(points[i].getZ() < 0)
             continue ;
         
-        acc +=Tensor::rotate4thOrderTensor3D(S, points[i]) ;
+        acc +=Tensor::rotate4thOrderEshelbyTensor3D(S, points[i]) ;
         count++ ;
     }
     

@@ -63,11 +63,11 @@ size_t fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t bl
     case GENERALIZED_VISCOELASTIC_SPEED_FIELD :
         return (dim == SPACE_THREE_DIMENSIONAL) ? 3*blocks : 2*blocks ;
 
-    case GENERALIZED_VISCOELASTIC_STRAIN_FIELD:
+    case GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD:
     case GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD:
     case GENERALIZED_VISCOELASTIC_EFFECTIVE_STRESS_FIELD:
     case GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD:
-    case GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD:
+    case GENERALIZED_VISCOELASTIC_NON_ENRICHED_TOTAL_STRAIN_FIELD:
     case GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_RATE_FIELD:
     case GENERALIZED_VISCOELASTIC_NON_ENRICHED_EFFECTIVE_STRESS_FIELD:
     case GENERALIZED_VISCOELASTIC_NON_ENRICHED_REAL_STRESS_FIELD:
@@ -587,110 +587,239 @@ void ElementState::getExternalFieldAtGaussPoints ( Vector & nodalValues, int ext
 
 void ElementState::updateInverseJacobianCache(const Point & p)
 {
-    if(!JinvCache || parent->isMoved())
+    if(!JinvCache || parent->isMoved() || (JinvCache && JinvCache->numRows() != parent->spaceDimensions()+(parent->timePlanes()>1)))
     {
         if(!JinvCache)
         {
             JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
         } 
+        else
+        {
+            delete JinvCache ;
+            JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
+        }
     }
     getInverseJacobianMatrix ( p, (*JinvCache) ) ;
 }
 
 void ElementState::getInverseJacobianMatrix(const Point & p, Matrix & ret, bool initial) const
 {
-    if(getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+    if(parent->timePlanes() == 1)
     {
-        if(ret.isNull() || ret.size() != 4)
-            ret.resize(2,2) ;
-        
-        VirtualMachine vm ;
+        if(getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+        {
+            if(ret.isNull() || ret.size() != 4)
+                ret.resize(2,2) ;
             
-        ret.array() = 0 ;
-        if(localExtrapolatedDisplacements.size() == getParent()->getBoundingPoints().size()*2 && !initial)
-        {  
-            for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
-            {
-                double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
-                double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
+            VirtualMachine vm ;
                 
-                ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*2]) ;
-                ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*2+1]) ;
+            ret.array() = 0 ;
+            if(localExtrapolatedDisplacements.size() == getParent()->getBoundingPoints().size()*2 && !initial)
+            {  
+                for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
+                {
+                    double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
+                    double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
+                    
+                    ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*2]) ;
+                    ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*2+1]) ;
 
-                ret[1][0] += deta*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*2]) ;
-                ret[1][1] += deta*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*2+1]) ;
+                    ret[1][0] += deta*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*2]) ;
+                    ret[1][1] += deta*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*2+1]) ;
+                }
             }
+            else
+            {
+                for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
+                {
+                    double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
+                    double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
+                    
+                    ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()) ;
+                    ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()) ;
+
+                    ret[1][0] += deta*(getParent()->getBoundingPoint(i).getX()) ;
+                    ret[1][1] += deta*(getParent()->getBoundingPoint(i).getY()) ;
+                }
+            }
+
+            invert2x2Matrix(ret) ; 
         }
         else
         {
-            for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
-            {
-                double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
-                double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
-                
-                ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()) ;
-                ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()) ;
+            if(ret.isNull()|| ret.size() != 9)
+                ret.resize(3,3) ;
 
-                ret[1][0] += deta*(getParent()->getBoundingPoint(i).getX()) ;
-                ret[1][1] += deta*(getParent()->getBoundingPoint(i).getY()) ;
+
+            VirtualMachine vm ;
+            ret.array() = 0 ;
+
+            if(localExtrapolatedDisplacements.size() == getParent()->getBoundingPoints().size()*3 && !initial)
+            {  
+                for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
+                {
+                    double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
+                    double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
+                    double dzeta = vm.deval(getParent()->getShapeFunction(i), ZETA, p) ;
+
+                    ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*3]) ;
+                    ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*3+1]) ;
+                    ret[0][2] += dxi*(getParent()->getBoundingPoint(i).getZ()+localExtrapolatedDisplacements[i*3+2]) ;
+
+                    ret[1][0] += deta*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*3]) ;
+                    ret[1][1] += deta*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*3+1]) ;
+                    ret[1][2] += deta*(getParent()->getBoundingPoint(i).getZ()+localExtrapolatedDisplacements[i*3+2]) ;
+
+                    ret[2][0] += dzeta*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*3]) ;
+                    ret[2][1] += dzeta*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*3+1]) ;
+                    ret[2][2] += dzeta*(getParent()->getBoundingPoint(i).getZ()+localExtrapolatedDisplacements[i*3+2]) ;
+                }
             }
-        }
+            else
+            {
+                for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
+                {
+                    double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
+                    double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
+                    double dzeta = vm.deval(getParent()->getShapeFunction(i), ZETA, p) ;
 
-        invert2x2Matrix(ret) ; 
+                    ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()) ;
+                    ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()) ;
+                    ret[0][2] += dxi*(getParent()->getBoundingPoint(i).getZ()) ;
+
+                    ret[1][0] += deta*(getParent()->getBoundingPoint(i).getX()) ;
+                    ret[1][1] += deta*(getParent()->getBoundingPoint(i).getY()) ;
+                    ret[1][2] += deta*(getParent()->getBoundingPoint(i).getZ()) ;
+
+                    ret[2][0] += dzeta*(getParent()->getBoundingPoint(i).getX()) ;
+                    ret[2][1] += dzeta*(getParent()->getBoundingPoint(i).getY()) ;
+                    ret[2][2] += dzeta*(getParent()->getBoundingPoint(i).getZ()) ;
+                }
+            }
+
+            invert3x3Matrix(ret) ;
+        }
     }
     else
     {
-        if(ret.isNull()|| ret.size() != 9)
-            ret.resize(3,3) ;
+        if(getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+        {
+            if(ret.isNull() || ret.size() != 9)
+                ret.resize(3,3) ;
+            
+            VirtualMachine vm ;
+                
+            ret.array() = 0 ;
+            if(localExtrapolatedDisplacements.size() == getParent()->getBoundingPoints().size()*2 && !initial)
+            {  
+                for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
+                {
+                    double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
+                    double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
+                    
+                    ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*2]) ;
+                    ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*2+1]) ;
 
-
-        VirtualMachine vm ;
-        ret.array() = 0 ;
-
-        if(localExtrapolatedDisplacements.size() == getParent()->getBoundingPoints().size()*3 && !initial)
-        {  
-            for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
-            {
-                double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
-                double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
-                double dzeta = vm.deval(getParent()->getShapeFunction(i), ZETA, p) ;
-
-                ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*3]) ;
-                ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*3+1]) ;
-                ret[0][2] += dxi*(getParent()->getBoundingPoint(i).getZ()+localExtrapolatedDisplacements[i*3+2]) ;
-
-                ret[1][0] += deta*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*3]) ;
-                ret[1][1] += deta*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*3+1]) ;
-                ret[1][2] += deta*(getParent()->getBoundingPoint(i).getZ()+localExtrapolatedDisplacements[i*3+2]) ;
-
-                ret[2][0] += dzeta*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*3]) ;
-                ret[2][1] += dzeta*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*3+1]) ;
-                ret[2][2] += dzeta*(getParent()->getBoundingPoint(i).getZ()+localExtrapolatedDisplacements[i*3+2]) ;
+                    ret[1][0] += deta*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*2]) ;
+                    ret[1][1] += deta*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*2+1]) ;
+                    double dtau = vm.deval(getParent()->getShapeFunction(i), TIME_VARIABLE, p) ;
+                    ret[2][2] += dtau*(getParent()->getBoundingPoint(i).getT()) ;
+                }
             }
+            else
+            {
+                for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
+                {
+                    double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
+                    double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
+                    
+                    ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()) ;
+                    ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()) ;
+
+                    ret[1][0] += deta*(getParent()->getBoundingPoint(i).getX()) ;
+                    ret[1][1] += deta*(getParent()->getBoundingPoint(i).getY()) ;
+                    
+                     double dtau = vm.deval(getParent()->getShapeFunction(i), TIME_VARIABLE, p) ;
+                    ret[2][2] += dtau*(getParent()->getBoundingPoint(i).getT()) ;
+                }
+            }
+
+            invert3x3Matrix(ret) ; 
         }
         else
         {
-            for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
-            {
-                double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
-                double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
-                double dzeta = vm.deval(getParent()->getShapeFunction(i), ZETA, p) ;
+            if(ret.isNull()|| ret.size() != 16)
+                ret.resize(4,4) ;
 
-                ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()) ;
-                ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()) ;
-                ret[0][2] += dxi*(getParent()->getBoundingPoint(i).getZ()) ;
 
-                ret[1][0] += deta*(getParent()->getBoundingPoint(i).getX()) ;
-                ret[1][1] += deta*(getParent()->getBoundingPoint(i).getY()) ;
-                ret[1][2] += deta*(getParent()->getBoundingPoint(i).getZ()) ;
+            VirtualMachine vm ;
+            ret.array() = 0 ;
 
-                ret[2][0] += dzeta*(getParent()->getBoundingPoint(i).getX()) ;
-                ret[2][1] += dzeta*(getParent()->getBoundingPoint(i).getY()) ;
-                ret[2][2] += dzeta*(getParent()->getBoundingPoint(i).getZ()) ;
+            if(localExtrapolatedDisplacements.size() == getParent()->getBoundingPoints().size()*3 && !initial)
+            {  
+                for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
+                {
+                    double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
+                    double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
+                    double dzeta = vm.deval(getParent()->getShapeFunction(i), ZETA, p) ;
+
+                    ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*3]) ;
+                    ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*3+1]) ;
+                    ret[0][2] += dxi*(getParent()->getBoundingPoint(i).getZ()+localExtrapolatedDisplacements[i*3+2]) ;
+
+                    ret[1][0] += deta*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*3]) ;
+                    ret[1][1] += deta*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*3+1]) ;
+                    ret[1][2] += deta*(getParent()->getBoundingPoint(i).getZ()+localExtrapolatedDisplacements[i*3+2]) ;
+
+                    ret[2][0] += dzeta*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*3]) ;
+                    ret[2][1] += dzeta*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*3+1]) ;
+                    ret[2][2] += dzeta*(getParent()->getBoundingPoint(i).getZ()+localExtrapolatedDisplacements[i*3+2]) ;
+                    double dtau = vm.deval(getParent()->getShapeFunction(i), TIME_VARIABLE, p) ;
+                    ret[3][3] += dtau*(getParent()->getBoundingPoint(i).getT()) ;
+                }
             }
-        }
+            else
+            {
+                for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
+                {
+                    double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
+                    double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
+                    double dzeta = vm.deval(getParent()->getShapeFunction(i), ZETA, p) ;
 
-        invert3x3Matrix(ret) ;
+                    ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()) ;
+                    ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()) ;
+                    ret[0][2] += dxi*(getParent()->getBoundingPoint(i).getZ()) ;
+
+                    ret[1][0] += deta*(getParent()->getBoundingPoint(i).getX()) ;
+                    ret[1][1] += deta*(getParent()->getBoundingPoint(i).getY()) ;
+                    ret[1][2] += deta*(getParent()->getBoundingPoint(i).getZ()) ;
+
+                    ret[2][0] += dzeta*(getParent()->getBoundingPoint(i).getX()) ;
+                    ret[2][1] += dzeta*(getParent()->getBoundingPoint(i).getY()) ;
+                    ret[2][2] += dzeta*(getParent()->getBoundingPoint(i).getZ()) ;
+                    double dtau = vm.deval(getParent()->getShapeFunction(i), TIME_VARIABLE, p) ;
+                    ret[3][3] += dtau*(getParent()->getBoundingPoint(i).getT()) ;
+                }
+            }
+
+            Matrix m3(3, 3) ;
+            for(size_t i = 0 ; i < 3 ; i++)
+            {
+                for(size_t j = 0 ; j< 3 ; j++)
+                {
+                    m3[i][j] = ret[i][j] ;
+                }
+            }
+            invert3x3Matrix(m3);
+                        for(size_t i = 0 ; i < 3 ; i++)
+            {
+                for(size_t j = 0 ; j< 3 ; j++)
+                {
+                    ret[i][j] = m3[i][j] ;
+                }
+            }
+            ret[3][3] = 1./ret[3][3] ;
+        }
     }
 }
 

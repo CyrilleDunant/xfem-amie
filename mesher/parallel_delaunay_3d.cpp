@@ -843,7 +843,7 @@ Vector ParallelDelaunayTree3D::getSmoothedField ( FieldType f0, int cacheID, Int
                 DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
 
 
-                double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, t, coefs[cacheID][i] );
+                double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD, buffer, nullptr, t, coefs[cacheID][i] );
                 if ( !tmpstrain.size() ) {
                     tmpstrain.resize ( 0., buffer.size() );
                 }
@@ -957,8 +957,8 @@ std::pair<Vector, Vector> ParallelDelaunayTree3D::getSmoothedFields ( FieldType 
             Vector tmpstrain ;
             Vector tmpstrainrate ;
 
-            tmpstrain.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, spaceDimensions, blocks ), 0. ) ;
-            buffer.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, spaceDimensions, blocks ), 0. );
+            tmpstrain.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD, spaceDimensions, blocks ), 0. ) ;
+            buffer.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD, spaceDimensions, blocks ), 0. );
             tmpstrainrate.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, spaceDimensions, blocks ), 0. ) ;
             double sumFactors ( 0 ) ;
 
@@ -967,7 +967,7 @@ std::pair<Vector, Vector> ParallelDelaunayTree3D::getSmoothedFields ( FieldType 
                 DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
 
 
-                double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, t, coefs[cacheID][i] );
+                double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD, buffer, nullptr, t, coefs[cacheID][i] );
                 if ( !tmpstrain.size() ) {
                     tmpstrain.resize ( buffer.size(), 0. );
                 }

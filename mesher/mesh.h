@@ -1094,7 +1094,7 @@ public:
 //                Vector tmpstrain ;
 //                Vector tmpstrainrate ;
 
-                size_t bsize = fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, spaceDimensions, blocks ) ;
+                size_t bsize = fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD, spaceDimensions, blocks ) ;
                 if( bufferCache[thread].size() != bsize ) { bufferCache[thread].resize( bsize, 0. ) ; }
                 if( strainGenViscoCache[thread].size() != bsize ) { strainGenViscoCache[thread].resize( bsize, 0. ) ; }
                 if( strainRateGenViscoCache[thread].size() != bsize ) { strainRateGenViscoCache[thread].resize( bsize, 0. ) ; }
@@ -1106,7 +1106,7 @@ public:
                     if(ci->getBehaviour()->fractured() || ci->getBehaviour()->getSource() != e->getBehaviour()->getSource())
                         continue ;
 
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
                     strainGenViscoCache[thread] += bufferCache[thread]*v ;
                     sumFactors += v ;
                 }
@@ -1343,7 +1343,7 @@ public:
                     blocks = ci->getBehaviour()->getNumberOfDegreesOfFreedom() / spaceDimensions  ;
                 }
 
-                size_t bsize = fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, spaceDimensions, blocks ) ;
+                size_t bsize = fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD, spaceDimensions, blocks ) ;
                 if( strainGenViscoCache[thread].size() != bsize ) { strainGenViscoCache[thread].resize ( bsize, 0. ) ; }
                 if( bufferCache[thread].size() != bsize ) { bufferCache[thread].resize ( bsize, 0. ) ; }
                 if( strainRateGenViscoCache[thread].size() != bsize ) { strainRateGenViscoCache[thread].resize ( bsize, 0. ) ; }
@@ -1356,7 +1356,7 @@ public:
                     if(ci->getBehaviour()->fractured() || ci->getBehaviour()->getSource() != e->getBehaviour()->getSource())
                         continue ;
 
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
                     strainGenViscoCache[thread] += bufferCache[thread]*v ;
                     sumFactors += v ;
                 }

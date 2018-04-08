@@ -101,7 +101,7 @@ struct LogarithmicCreepWithImposedDeformation : public LogarithmicCreep
     virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
     virtual bool hasInducedForces() const {
-        return fixCreepVariable || imposed.size()>0 ;
+        return true ;
     }
 
     virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
@@ -150,7 +150,7 @@ struct LogarithmicCreepWithImposedDeformationAndFracture : public LogarithmicCre
     virtual void preProcess( double timeStep, ElementState & currentState ) ;
 
     virtual bool hasInducedForces() const {
-        return fixCreepVariable || imposed.size()>0 || (dfunc && dfunc->hasInducedForces() );
+        return true;
     }
 
     virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
