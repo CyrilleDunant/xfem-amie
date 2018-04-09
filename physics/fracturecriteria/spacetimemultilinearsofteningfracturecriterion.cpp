@@ -530,12 +530,6 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::gradeAt
                 }
 	}
 
-/*	if(t == -1 && tension > 0)
-	{
-		std::cout << currentState.first.min() << "\t" << currentState.first.max() << "\t"  << currentState.second.min() << "\t" << currentState.second.max() << std::endl ;
-		current.print() ;
-	}*/
-
 
 	current = Point( currentState.second.min()*renormStrain, currentState.first.min()*renormStress ) ;
 	direction.setVector( current ) ;

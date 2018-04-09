@@ -1796,7 +1796,7 @@ void Ellipse::project(Point * p) const
     {
 //		p->getX() += getMinorAxis().getX() ;
 //		p->getY() += getMinorAxis().getY() ;
-        p->print() ;
+//         p->print() ;
         return ;
     }
     else

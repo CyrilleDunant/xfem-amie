@@ -18,11 +18,6 @@ Composite::Composite( const Phase & p ) : Phase( p)
 
 }
 
-void Composite::apply()
-{
-
-}
-
 Matrix Composite::I4( const Matrix &C )
 {
     Matrix I4( C.numRows(), C.numCols() ) ;
@@ -417,11 +412,6 @@ Matrix Composite::eshelby(const Matrix & C )
         S[4][4] = Sijij ;
         S[5][5] = Sijij ;
 
-//         S.print() ;
-//         std::cout << std::endl ;
-//         eshelbyEllipsoid( C,  a,  b,  c).print() ;
-//         exit(0) ;
-
     }
 
     return S ;
@@ -472,8 +462,8 @@ MatrixInclusionComposite::MatrixInclusionComposite( DelaunayTetrahedron *tet, Fe
     matrix = Phase( tet, t, a, b, c ) ;
     inclusion = Phase( inc, t, a, b, c ) ;
 
-    matrix.volume = std::max(matrix.volume, 1e-6) ;
-    inclusion.volume = std::max(inclusion.volume, 1e-6) ;
+    matrix.volume = std::max(matrix.volume, 1e-12) ;
+    inclusion.volume = std::max(inclusion.volume, 1e-12) ;
     volume = matrix.volume + inclusion.volume ;
     matrix.volume /= volume ;
     inclusion.volume /= volume ;
@@ -752,11 +742,9 @@ BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite( const Phase & 
     Composite::invertTensor( B ) ;
     B *= S * matrix.volume ;
 
-//     std::cout << "vmat & vinc = "<< matrix.volume << "  " << inclusion.volume << std::endl ;
 }
 void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
 {
-//     std::cout << "sc composite" << std::endl ;
     double error = 1. ;
     Matrix Sp = inclusion.C ;
     Matrix I = Composite::I4( Sp ) ;
@@ -822,8 +810,6 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
 
 MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( DelaunayTriangle *tri, std::vector<Feature *> inc, InclusionGeometryType t, double a, double b, double c) : Composite( tri, inc , t, a, b, c )
 {
-
-
     matrix = Phase( tri, t, a, b, c  ) ;
 
     for( size_t i = 0 ; i < inc.size() ; i++ )
@@ -851,7 +837,6 @@ MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( DelaunayTriangle *
 
 
     volume = matrix.volume ;
-//     std::cout << "padoum " << matrix.volume << "  " << inclusions.size() << std::endl ;
 
     for( size_t i = 0 ; i < inclusions.size() ; i++ )
         matrix.volume -= inclusions[i].volume ;
@@ -936,10 +921,11 @@ MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( DelaunayTetrahedro
 
 void MatrixMultiInclusionComposite::apply()
 {
+   
     for( size_t i = 0 ; i < grains.size() ; i++ )
-        grains[i].apply() ;
-
-    getStrainLocalizationTensor() ;
+        grains[i].apply() ; 
+    
+    this->getStrainLocalizationTensor() ;
 
     C = Matrix( C.numRows(), C.numCols() ) ;
 

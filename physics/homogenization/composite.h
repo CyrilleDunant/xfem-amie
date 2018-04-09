@@ -14,8 +14,6 @@ public:
     Composite(DelaunayTetrahedron * tet, std::vector<Feature *> feats, InclusionGeometryType t = INCLUSION_IS_SPHERE, double a=1, double b=1, double c=1);
     Composite(const Phase & p) ;
 
-    virtual void apply() ;
-
     static Matrix I4(const Matrix & C) ;
      Matrix eshelby(const Matrix & C) ;
      Matrix eshelbyCylinder(const Matrix & C, double a, double b) ;

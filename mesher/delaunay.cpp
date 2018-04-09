@@ -1506,21 +1506,6 @@ void DelaunayTriangle::insert(std::valarray<bool> & visited,std::vector<Delaunay
             std::pair< Point*,  Point*> pp = commonEdge(getNeighbour(i)) ;
             if(!isAligned(p,pp.first,pp.second))
             {
-/*                {
-                    continue ;
-
-                 for(size_t j = 0 ; j < neighbour.size() ; j++)
-                 {
-                     getNeighbour(j)->print() ;
-            std::pair< Point*,  Point*> pq = commonEdge(getNeighbour(j)) ;
-                 pq.first->print() ;
-                 pq.second->print() ;
-                     std::cout << getNeighbour(j)->inCircumCircle(*p) <<std::endl ;
-                     std::cout << getNeighbour(j)->onCircumCircle(*p) <<std::endl ;
-                     std::cout << isAligned(p, pq.first, pq.second) << std::endl ;
-                    }
-                }*/
-
                 DelaunayTriangle *ss = new DelaunayTriangle(tree, this, p, pp.first, pp.second, p) ;
                 addSon(ss) ;
 
@@ -2123,27 +2108,6 @@ std::vector<DelaunayTreeItem *> DelaunayTree::addElements(std::vector<DelaunayTr
         {
             if(ret[j]->neighbour.size() != 3 )
             {
-/*                std::cout << "on exit" << std::endl ;
-                p->print() ;
-		std::cout << isAligned(*p, Point(1,0), Point(0,1)) << std::endl ;
-                std::cout << "ret" << std::endl ;
-                for(size_t i = 0 ; i < ret.size() ; i++)
-                {
-                    ret[i]->print() ;
-                    std::cout << "neighbour" << std::endl ;
-                    for(size_t k = 0 ; k < ret[i]->neighbour.size() ; k++)
-                         ret[i]->getNeighbour(k)->print() ;
-                    std::cout << "//neighbour" << std::endl ;
-                }
-                std::cout << "cons" << std::endl ;
-                for(size_t i = 0 ; i < cons.size() ; i++)
-                {
-                    cons[i]->print() ;
-                    std::cout << "neighbour" << std::endl ;
-                    for(size_t k = 0 ; k < cons[i]->neighbour.size() ; k++)
-                         cons[i]->getNeighbour(k)->print() ;
-                }
-            if(ret[j]->neighbour.size() != 3)*/
                 falseTopology = true ;
             }
         }

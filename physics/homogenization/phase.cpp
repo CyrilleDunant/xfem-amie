@@ -136,12 +136,12 @@ Phase::Phase( const Phase &p ): t(p.t), a(p.a), b(p.b), c(p.c)
 
 void Phase::apply()
 {
-
+    std::cout << "oops" << std::endl ;
 }
 
 Form * Phase::getBehaviour()
 {
-	apply() ;
+	this->apply() ;
 	Matrix S = C ;
         
 //         S.print() ;
@@ -150,9 +150,7 @@ Form * Phase::getBehaviour()
 	else
 		invert3x3Matrix( S ) ;
 	
-	Vector alpha = S * beta ;
-        std::cout << alpha[0] << std::endl ;
-        S.print() ;
+	Vector alpha = S * this->beta ;
 	return new StiffnessWithImposedDeformation( C, alpha ) ;
 }
 
@@ -226,8 +224,9 @@ void Phase::expansionFromBehaviour(SpaceDimensionality dim)
 	}
 
 	Vector tmp = behaviour->getImposedStrain( Point( 1. / 3, 1. / 3, 1. / 3 ) ) ;
+    
 	beta.resize( tmp.size() );
-	beta = tmp * C;
+	beta = tmp * C + behaviour->getImposedStress( Point( 1. / 3, 1. / 3, 1. / 3 ) );
 }
 
 void Phase::ruptureFromBehaviour(SpaceDimensionality dim)
