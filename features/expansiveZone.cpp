@@ -13,28 +13,24 @@
 #include "../physics/stiffness.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/materials/aggregate_behaviour.h"
+#include "../physics/stiffness_with_imposed_stress.h"
 
 namespace Amie {
 
-ExpansiveZone::ExpansiveZone( Feature *father, double radius, double x, double y, const Matrix &tensor, Vector def ) : EnrichmentInclusion( father, radius, x, y ),  imposedDef( def ), cgTensor( tensor )
+ExpansiveZone::ExpansiveZone( Feature *father, double radius, double x, double y, const Matrix &tensor, Vector def ) : EnrichmentInclusion( father, radius, x, y )
 {
-    Feature::setBehaviour( new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ) ;
+    Feature::setBehaviour( new StiffnessWithImposedStress( tensor, tensor*def ) ) ;
     isVirtualFeature = true ;
     homogeneized = false ;
 }
 
-ExpansiveZone::ExpansiveZone( Feature *father, double radius, double x, double y, Form * gel ) : EnrichmentInclusion( father, radius, x, y ), imposedDef(0., 3), cgTensor( 3,3 )
+ExpansiveZone::ExpansiveZone( Feature *father, double radius, double x, double y, Form * gel ) : EnrichmentInclusion( father, radius, x, y )
 {
     if(gel)
     {
-        cgTensor = gel->param ;
         Feature::setBehaviour( gel->getCopy() ) ;
     }
 
-    if(gel && dynamic_cast<StiffnessWithImposedDeformation *>(gel))
-    {
-        imposedDef= dynamic_cast<StiffnessWithImposedDeformation *>(gel)->imposed  ;
-    }
     isVirtualFeature = true ;
     homogeneized = false ;
 }
@@ -43,13 +39,8 @@ ExpansiveZone::~ExpansiveZone() {}
 
 void ExpansiveZone::setBehaviour(Form * const gel) 
 {
-    if(gel && dynamic_cast<StiffnessWithImposedDeformation *>(gel))
-    {
-        imposedDef= dynamic_cast<StiffnessWithImposedDeformation *>(gel)->imposed  ;
-    }
     if(gel)
     {
-        cgTensor = gel->param ;
         Feature::setBehaviour( gel->getCopy() ) ;
     }
 }
@@ -176,20 +167,19 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 
 void ExpansiveZone::setExpansion( Vector a )
 {
-    if(!dynamic_cast<StiffnessWithImposedDeformation *>(getBehaviour()))
+    if(!dynamic_cast<StiffnessWithImposedStress *>(getBehaviour()))
         return ;
-    imposedDef = a ;
     updated = true ;
 
     for( auto i = bimateralInterfaced.begin() ; i != bimateralInterfaced.end() ; i++ )
     {
         BimaterialInterface *interface = static_cast<BimaterialInterface *>( ( *i )->getBehaviour() ) ;
-        static_cast<StiffnessWithImposedDeformation *>( interface->inBehaviour )->imposed = a ;
+        static_cast<StiffnessWithImposedStress *>( interface->inBehaviour )->imposed = a ;
     }
 
     for( auto i = expansive.begin() ; i != expansive.end() ; i++ )
     {
-        static_cast<StiffnessWithImposedDeformation *>( ( *i )->getBehaviour() )->imposed = a ;
+        static_cast<StiffnessWithImposedStress *>( ( *i )->getBehaviour() )->imposed = a ;
     }
 }
 

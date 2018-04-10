@@ -4442,18 +4442,6 @@ bool FeatureTree::solve()
     delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
     std::cerr << "\rApplying boundary conditions... " << boundaryCondition.size() << "/" << boundaryCondition.size() << "...done  Time (s) " << delta / 1e6 << std::endl  ;
 
-    
-    
-    if(epsilonA > 0)
-        K->setEpsilon(epsilonA);   
-    K->setSSORIterations( nssor ) ;  
-    solverConvergence =  K->cgsolve() ;
-    
-    Vector r = (K->getMatrix() * K->getDisplacements() - K->getForces()) ;
-        
-    residualError = sqrt ( parallel_inner_product ( &r[0], &r[0], r.size() ) ) ;
-
-
     if(enrichmentChange)
     {
         if ( !elastic )
@@ -4542,10 +4530,19 @@ bool FeatureTree::solve()
         }
     }
     enrichmentChange = false ;
+    
+    if(epsilonA > 0)
+    K->setEpsilon(epsilonA);   
+    K->setSSORIterations( nssor ) ;  
+    solverConvergence =  K->cgsolve() ;
+    
+    Vector r = (K->getMatrix() * K->getDisplacements() - K->getForces()) ;
+        
+    residualError = sqrt ( parallel_inner_product ( &r[0], &r[0], r.size() ) ) ;
 
     std::cerr << " ...done" << std::endl ;
     
-    return nlcount == 0 ;
+    return (largeStrains && nlcount == 0) || (!largeStrains && solverConvergence) ;
 }
 
 void FeatureTree::stepXfem()
@@ -5813,23 +5810,8 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
             }
         }
         
-        
-//         if(largeStrains)
-//              updateMesh() ;
         state.setStateTo ( lastStep, true ) ;
-//         if(largeStrains)
-//         {
-//             behaviourChange = behaviourChange || (std::abs(getDisplacements()).max() > 1e-4);   
-//             std::cout << std::abs(getDisplacements()).max() << "  "<< std::flush ;
-// //             if(std::abs(getDisplacements()).max() < 0.008)
-// //             {
-// //                 Vector tgt = std::abs(getDisplacements()) ;
-// //                 std::sort(&tgt[0], &tgt[tgt.size()]) ;
-// //                 for(size_t g = 0 ; g < 12 ; g++)
-// //                     std::cout << tgt[tgt.size()-1-g] << "  " ;
-// //                 std::cout << std::endl ;
-// //             }
-//         }
+
         ++it ;
         deltaTime = 0 ;
         

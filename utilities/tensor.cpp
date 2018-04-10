@@ -1200,9 +1200,6 @@ Matrix Tensor::rotate4thOrderEshelbyTensor3D( const Matrix & tensor, Point angle
         }
 
         Tensor stiff(4,3) ;
-        double v = 0.5 ;
-        double w = 0.5 ;
-        double z = 0.5 ;
 
         stiff(0,0,0,0) = tensor[0][0] ;
         stiff(1,1,1,1) = tensor[1][1] ;
@@ -1433,9 +1430,6 @@ Matrix Tensor::rotate4thOrderStiffnessTensor3D( const Matrix & tensor, double ph
         }
 
         Tensor stiff(4,3) ;
-        double v = 0.5 ;
-        double w = 0.5 ;
-        double z = 0.5 ;
 
         stiff(0,0,0,0) = tensor[0][0] ;
         stiff(1,1,1,1) = tensor[1][1] ;

@@ -5,12 +5,13 @@
 #include "../dual_behaviour.h"
 #include "../../utilities/matrixops.h"
 #include "../fracturecriteria/mohrcoulomb.h"
+#include "../stiffness_with_imposed_stress.h"
 
 using namespace Amie ;
 
 Phase::Phase(InclusionGeometryType t, double a, double b, double c): t(t), a(a), b(b), c(c)
 {
-	volume = 1e-6 ;
+	volume = 1e-12 ;
 	C = Matrix( 6, 6 ) ;
 	beta = Vector( 3 ) ;
 	A = Matrix( 6, 6 ) ;
@@ -23,7 +24,7 @@ Phase::Phase( Form * f, double v, SpaceDimensionality dim,InclusionGeometryType 
 	stiffnessFromBehaviour(dim) ;
 	expansionFromBehaviour(dim) ;
 	ruptureFromBehaviour(dim) ;
-    volume = std::max(volume, 1e-6) ;
+    volume = std::max(volume, 1e-12) ;
 	A = Matrix( C.numRows(), C.numCols() ) ;
 }	
 
@@ -33,8 +34,8 @@ Phase::Phase( DelaunayTriangle *tri ,InclusionGeometryType t, double a, double b
 	volume = tri->area() ;
 	if(dynamic_cast<BimaterialInterface *>(behaviour))
 	{
-		int count = 0;
-		int out = 0 ;
+		double count = 0;
+		double out = 0 ;
 		for(double i = 0.00 ; i < 1. ; i+=0.01)
 		{
 			for(double j = 0.00 ; j < 1.-i ; j += 0.01)
@@ -50,7 +51,7 @@ Phase::Phase( DelaunayTriangle *tri ,InclusionGeometryType t, double a, double b
 	stiffnessFromBehaviour() ;
 	expansionFromBehaviour() ;
 	ruptureFromBehaviour() ;
-    volume = std::max(volume, 1e-6) ;
+    volume = std::max(volume, 1e-12) ;
 	A = Matrix( C.numRows(), C.numCols() ) ;
 }
 
@@ -61,7 +62,7 @@ Phase::Phase( DelaunayTetrahedron *tet ,InclusionGeometryType t, double a, doubl
 	stiffnessFromBehaviour() ;
 	expansionFromBehaviour() ;
 	ruptureFromBehaviour() ;
-    volume = std::max(volume, 1e-6) ;
+    volume = std::max(volume, 1e-12) ;
 	A = Matrix( C.numRows(), C.numCols() ) ;
 }
 
@@ -78,7 +79,7 @@ Phase::Phase( Feature *f ,InclusionGeometryType t, double a, double b, double c)
 	stiffnessFromBehaviour() ;
 	expansionFromBehaviour() ;
 	ruptureFromBehaviour() ;
-     volume = std::max(volume, 1e-6) ;
+     volume = std::max(volume, 1e-12) ;
 	A = Matrix( C.numRows(), C.numCols() ) ;
 }
 
@@ -89,19 +90,17 @@ Phase::Phase( Feature *f , DelaunayTriangle * tri,InclusionGeometryType t, doubl
 	if( f->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		volume = f->area() ;
+        
 		if(dynamic_cast<Circle *>(f))
 		{
 			Circle overlap(f->getRadius(), f->getCenter()) ;
-			overlap.sampleSurface(50./f->getRadius(), 1.) ;
-			int count = 0 ;
+			overlap.sampleSurface(75./f->getRadius(), 1.) ;
+			double count = 0 ;
 			for(size_t i = 0 ; i < overlap.getBoundingPoints().size() ; i++)
 				count += (int) tri->in(overlap.getBoundingPoint(i)) ;
 			for(size_t i = 0 ; i < overlap.getInPoints().size() ; i++)
 				count += (int) tri->in(overlap.getInPoint(i)) ;
-			volume *= count ;
-			volume /= overlap.getBoundingPoints().size() + overlap.getInPoints().size() ;
-
-			
+			volume *= count/(overlap.getBoundingPoints().size() + overlap.getInPoints().size()) ;
 		}
 		
 	}
@@ -125,7 +124,7 @@ Phase::Phase( const Phase &p ): t(p.t), a(p.a), b(p.b), c(p.c)
 	A.resize( p.A.numRows(), p.A.numCols() ) ;
 	A = p.A ;
 	volume = p.volume ;
-    volume = std::max(volume, 1e-6) ;
+    volume = std::max(volume, 1e-12) ;
 	for(size_t i = 0 ; i < p.lambda.size() ; i++)
 	{
 	    Vector l(p.lambda[i].size()) ;
@@ -142,16 +141,16 @@ void Phase::apply()
 Form * Phase::getBehaviour()
 {
 	this->apply() ;
-	Matrix S = C ;
+// 	Matrix S = C ;
         
 //         S.print() ;
-	if( S.size() == 36 )
-		invert6x6Matrix( S ) ;
-	else
-		invert3x3Matrix( S ) ;
+// 	if( S.size() == 36 )
+// 		invert6x6Matrix( S ) ;
+// 	else
+// 		invert3x3Matrix( S ) ;
 	
-	Vector alpha = S * this->beta ;
-	return new StiffnessWithImposedDeformation( C, alpha ) ;
+// 	Vector alpha = C * this->beta ;
+	return new StiffnessWithImposedStress( C, this->beta ) ;
 }
 
 Phase &Phase::operator =( const Phase &p )
@@ -167,7 +166,7 @@ Phase &Phase::operator =( const Phase &p )
 	A.resize( p.A.numRows(), p.A.numCols() ) ;
 	A = p.A ;
 	volume = p.volume ;
-    volume = std::max(volume, 1e-6) ;
+    volume = std::max(volume, 1e-12) ;
 	for(size_t i = 0 ; i < p.lambda.size() ; i++)
 	{
 	    Vector l(p.lambda[i].size()) ;
@@ -190,7 +189,7 @@ void Phase::stiffnessFromBehaviour(SpaceDimensionality dim)
 	if(dynamic_cast<BimaterialInterface *>(behaviour))
 	{
 		tmp = Matrix(tmp.numRows(), tmp.numCols()) ;
-		int count = 0;
+		int count = 1;
 		for(double i = 0.00 ; i < 1. ; i+=0.01)
 		{
 			for(double j = 0.00 ; j < 1.-i ; j += 0.01)
@@ -226,7 +225,8 @@ void Phase::expansionFromBehaviour(SpaceDimensionality dim)
 	Vector tmp = behaviour->getImposedStrain( Point( 1. / 3, 1. / 3, 1. / 3 ) ) ;
     
 	beta.resize( tmp.size() );
-	beta = tmp * C + behaviour->getImposedStress( Point( 1. / 3, 1. / 3, 1. / 3 ) );
+	beta = tmp*C + behaviour->getImposedStress( Point( 1. / 3, 1. / 3, 1. / 3 ) );
+//     std::cout << " c = " <<tmp[0] << " * " << C[0][0] << " + " << behaviour->getImposedStress( Point( 1. / 3, 1. / 3, 1. / 3 ) )[0] << " = " << beta[0] << std::endl ;
 }
 
 void Phase::ruptureFromBehaviour(SpaceDimensionality dim)

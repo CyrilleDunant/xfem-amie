@@ -24,7 +24,7 @@ namespace Amie
     @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
     @value[blocks] 0 // additional ghost blocks for viscoelastic simulations 
  */
-struct GelBehaviour : public StiffnessWithImposedStress
+struct GelBehaviour : public StiffnessWithImposedDeformation
 {
     bool spaceTime ;
     int freeblocks ;

@@ -260,7 +260,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         double delta = 1 ;
     #endif
 
-        std::cerr << "mflops: "<< 1e-6*nit*(2.*assembly->getMatrix().array.size()+4.*p.size())/delta << std::endl ;
+        std::cerr << "mflops: "<< nit*(2.*assembly->getMatrix().array.size()+4.*p.size())/delta << std::endl ;
 
         assign(r,assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
         double err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;

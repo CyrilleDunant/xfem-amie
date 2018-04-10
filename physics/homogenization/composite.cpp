@@ -505,7 +505,9 @@ void MatrixInclusionComposite::apply()
     
     beta.resize( matrix.beta.size(), 0. );
     beta = matrix.A * matrix.volume * matrix.beta ;
+//     std::cout <<" a = "<< matrix.A[0][0] <<  " * " << matrix.volume << " * " << matrix.beta[0] << std::endl ;
     beta += inclusion.A * inclusion.volume * inclusion.beta ;
+//     std::cout <<" b = "<< inclusion.A[0][0] <<" * " << inclusion.volume << " * "<< inclusion.beta[0] <<" = "<<beta[0] << std::endl ;
 
 
 }
@@ -708,8 +710,8 @@ BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite( DelaunayTetrah
 
 BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite( const Phase & mat, const Phase & inc) : MatrixInclusionComposite( mat, inc)
 {
-    matrix.volume = std::max(matrix.volume, 1e-6) ;
-    inclusion.volume = std::max(inclusion.volume, 1e-6) ;
+    matrix.volume = std::max(matrix.volume, 1e-12) ;
+    inclusion.volume = std::max(inclusion.volume, 1e-12) ;
     volume = matrix.volume + inclusion.volume ;
     matrix.volume /= volume ;
     inclusion.volume /= volume ;
@@ -729,8 +731,8 @@ BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite( const Phase & 
 
 BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite( const Phase & mat, const Phase &inc,  const BiphasicSelfConsistentComposite & hint) : MatrixInclusionComposite( mat, inc ),fictious(hint), hint(hint)
 {
-    matrix.volume = std::max(matrix.volume, 1e-6) ;
-    inclusion.volume = std::max(inclusion.volume, 1e-6) ;
+    matrix.volume = std::max(matrix.volume, 1e-12) ;
+    inclusion.volume = std::max(inclusion.volume, 1e-12) ;
     volume = matrix.volume + inclusion.volume ;
     matrix.volume /= volume ;
     inclusion.volume /= volume ;
@@ -814,45 +816,24 @@ MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( DelaunayTriangle *
 
     for( size_t i = 0 ; i < inc.size() ; i++ )
     {
-        if( inclusions.empty() )
-            inclusions.push_back( Phase( inc[i] , tri, t, a, b, c  ) ) ;
-
-        else
-        {
-            int found = -1 ;
-            Phase test( inc[i] ) ;
-
-            for( size_t j = 0 ; j < inclusions.size() ; j++ )
-            {
-                if( test.C == inclusions[j].C && test.beta[0] == inclusions[j].beta[0] )
-                    found = ( int ) j ;
-            }
-
-            if( found == -1 )
-                inclusions.push_back( test );
-            else
-                inclusions[found].volume += test.volume ;
-        }
+        inclusions.push_back( Phase( inc[i] , tri, t, a, b, c  ) ) ;
     }
-
-
     volume = matrix.volume ;
 
     for( size_t i = 0 ; i < inclusions.size() ; i++ )
         matrix.volume -= inclusions[i].volume ;
 
-    matrix.volume = std::max(matrix.volume, tri->area()*1e-6) ;
+    matrix.volume = std::max(matrix.volume, 1e-12) ;
     matrix.volume /= volume ;
-    matrix.volume = std::min(matrix.volume, 1. - 1e-6) ;
-
-    for( size_t i = 0 ; i < inclusions.size() ; i++ )
-        inclusions[i].volume /= volume ;
+    matrix.volume = std::min(matrix.volume, 1. - 1e-12) ;
 
     for( size_t i = 0 ; i < inclusions.size() ; i++ )
     {
         grains.push_back( MoriTanakaMatrixInclusionComposite( matrix, inclusions[i]) ) ;
-        grains[i].volume /= 1. - matrix.volume ;
+        grains[i].volume = inclusions[i].volume ;
     }
+//     std::cout << "vm = " << matrix.volume << ", vi = " << grains[0].volume << std::endl ;
+    volume = 1. ;
 
 }
 
@@ -860,14 +841,22 @@ MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( const Phase & p, c
 {
 
     matrix = p ;
+    volume = matrix.volume ;
 
     for(size_t i = 0 ; i < inc.size() ; i++)
         inclusions.push_back( inc[i]) ;
 
+    matrix.volume = std::max(matrix.volume, 1e-12) ;
+    matrix.volume /= volume ;
+    matrix.volume = std::min(matrix.volume, 1. - 1e-12) ;
+
+    for( size_t i = 0 ; i < inclusions.size() ; i++ )
+        inclusions[i].volume /= volume ;
+
     for( size_t i = 0 ; i < inclusions.size() ; i++ )
     {
         grains.push_back( MoriTanakaMatrixInclusionComposite( matrix, inclusions[i]) ) ;
-        grains[i].volume /= 1. - matrix.volume ;
+        grains[i].volume = inclusions[i].volume ;
     }
 
 }
@@ -940,7 +929,9 @@ void MatrixMultiInclusionComposite::apply()
     beta.resize( beta.size(), 0. );
 
     for( size_t i = 0 ; i < grains.size() ; i++ )
-        beta += ( grains[i].A * ( grains[i].volume ) ) * grains[i].beta ;
+        beta += ( grains[i].A * grains[i].volume ) * grains[i].beta ;
+    
+//     std::cout << beta[0] << std::endl ;
 }
 
 void MatrixMultiInclusionComposite::getStrainLocalizationTensor()

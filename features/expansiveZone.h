@@ -25,8 +25,6 @@ class ExpansiveZone :  public EnrichmentInclusion
 {
     std::set<DelaunayTriangle *> bimateralInterfaced ;
     std::set<DelaunayTriangle *> expansive ;
-    Vector imposedDef ;
-    Matrix cgTensor ;
     bool homogeneized ;
 
 public:
@@ -42,7 +40,7 @@ public:
     */
     ExpansiveZone(Feature *father, double radius, double x, double y, const Matrix & cgTensor, Vector deformation) ;
     ExpansiveZone(Feature *father, double radius, double x, double y, Form * gel) ;
-    ExpansiveZone(Feature *father, double radius, double x, double y) : EnrichmentInclusion( father, radius, x, y ), imposedDef(0., 3), cgTensor( 3,3 ), homogeneized(false) { isVirtualFeature = true ; } ;
+    ExpansiveZone(Feature *father, double radius, double x, double y) : EnrichmentInclusion( father, radius, x, y ),  homogeneized(false) { isVirtualFeature = true ; } ;
     virtual ~ExpansiveZone() ;
 
     /** \brief enrich elements and change their Behaviour if required*/
