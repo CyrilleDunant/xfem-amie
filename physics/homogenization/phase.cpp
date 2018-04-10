@@ -107,7 +107,7 @@ Phase::Phase( Feature *f , DelaunayTriangle * tri,InclusionGeometryType t, doubl
 	
 	if( f->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 		volume = f->volume() ;
-    volume = std::max(volume, 1e-12) ;
+    volume = std::max(volume, 1e-12)/tri->area() ;
 	
 	stiffnessFromBehaviour() ;
 	expansionFromBehaviour() ;

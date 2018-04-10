@@ -820,8 +820,8 @@ MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( DelaunayTriangle *
     }
     volume = matrix.volume ;
 
-    for( size_t i = 0 ; i < inclusions.size() ; i++ )
-        matrix.volume -= inclusions[i].volume ;
+    for( size_t i = 0 ; i < inc.size() ; i++ )
+        matrix.volume -= inc[i]->area() ;
 
     matrix.volume = std::max(matrix.volume, 1e-12) ;
     matrix.volume /= volume ;
