@@ -2038,7 +2038,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
 
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE))
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE))
             {
                 ret /= total ;
             }
@@ -2074,7 +2074,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     total += gp.gaussPoints[i].second ;
                 }
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2133,7 +2133,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
 
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2170,7 +2170,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     total += gp.gaussPoints[i].second ; 
                 }
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2209,7 +2209,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             {
                 getField (MECHANICAL_STRAIN_FIELD, gp.gaussPoints[i].first, tmp, true,vm, i ) ;
 
-		for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
+                for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
                 {
                     strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j] = tmp[j] ;
                 }
@@ -2229,7 +2229,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
 
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2267,7 +2267,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     total += gp.gaussPoints[i].second ;
                 }
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2320,7 +2320,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
 
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2355,7 +2355,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     total += gp.gaussPoints[i].second ;
                 }
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2409,7 +2409,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     total += gp.gaussPoints[i].second ;
                 }
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2445,7 +2445,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     total += gp.gaussPoints[i].second ;
                 }
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2500,7 +2500,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     total += gp.gaussPoints[i].second ;
                 }
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2536,7 +2536,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     total += gp.gaussPoints[i].second ;
                 }
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2590,7 +2590,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     total += gp.gaussPoints[i].second ;
                 }
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2626,7 +2626,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     total += gp.gaussPoints[i].second ;
                 }
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2682,7 +2682,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     total += gp.gaussPoints[i].second ;
                 }
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2718,7 +2718,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     total += gp.gaussPoints[i].second ;
                 }
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2775,7 +2775,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 total += gp.gaussPoints[i].second*w ;
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2816,7 +2816,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 total += gp.gaussPoints[i].second*w ;
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2874,7 +2874,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 total += gp.gaussPoints[i].second*w ;
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2920,7 +2920,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 total += gp.gaussPoints[i].second*w ;
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2952,7 +2952,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             ret += tmp*gp.gaussPoints[i].second*w ;
             total += gp.gaussPoints[i].second*w ;
         }
-        if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+        if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
         {
             ret /= total ;
         }
@@ -3048,7 +3048,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
                     total += gp.gaussPoints[i].second ;
                 }
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret_ /= total ;
                 ret /= total ;
@@ -3087,7 +3087,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
                     total += gp.gaussPoints[i].second ;
                 }
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret_ /= total ;
                 ret /= total ;
@@ -3152,7 +3152,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
                 }
 
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret_ /= total ;
                 ret /= total ;
@@ -3192,7 +3192,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
                     total += gp.gaussPoints[i].second ;
                 }
             }
-            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret_ /= total ;
                 ret /= total ;

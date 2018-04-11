@@ -28,12 +28,12 @@ double getSmoothingKernelSize( SmoothingFunctionType type )
     return 2.5 ;
     switch(type)
     {
-        case QUARTIC_COMPACT:
-           return 2.5 ;
-        case GAUSSIAN_NONCOMPACT:
-           return 2.5 ;
-        case LINEAR_COMPACT:
-           return 2.5 ;
+    case QUARTIC_COMPACT:
+        return 2.5 ;
+    case GAUSSIAN_NONCOMPACT:
+        return 2.5 ;
+    case LINEAR_COMPACT:
+        return 2.5 ;
     }
     return 1. ;
 }
@@ -42,19 +42,19 @@ Function getSmoothingKernelFunction( SmoothingFunctionType type, Function & rrn 
 {
     switch(type)
     {
-        case QUARTIC_COMPACT:
-	{
-	  rrn/=2. ;
-           return (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
-	}
-        case GAUSSIAN_NONCOMPACT:
-        {
-           return f_exp(rrn*-1) ;
-        }
-        case LINEAR_COMPACT:
-        {
-            return f_sqrt(1.-rrn)*f_positivity(1.-rrn) ;
-        }
+    case QUARTIC_COMPACT:
+    {
+        rrn/=2. ;
+        return (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+    }
+    case GAUSSIAN_NONCOMPACT:
+    {
+        return f_exp(rrn*-1) ;
+    }
+    case LINEAR_COMPACT:
+    {
+        return f_sqrt(1.-rrn)*f_positivity(1.-rrn) ;
+    }
     }
     return Function("1") ;
 }
@@ -71,7 +71,7 @@ FractureCriterion::FractureCriterion() :
     maxModeInNeighbourhood(-1),
     maxScoreInNeighbourhood(0),
     maxAngleShiftInNeighbourhood(0),
-    scoreTolerance(1e-2),
+    scoreTolerance(1e-3),
     checkpoint(true),
     inset(false),
     smoothingType(QUARTIC_COMPACT),
@@ -92,7 +92,7 @@ void FractureCriterion::setSmoothingFunctionType( SmoothingFunctionType type, bo
         overlap = getSmoothingKernelSize( smoothingType ) ;
 }
 
-void FractureCriterion::copyEssentialParameters( const FractureCriterion * frac ) 
+void FractureCriterion::copyEssentialParameters( const FractureCriterion * frac )
 {
     setScoreTolerance( frac->getScoreTolerance() ) ;
     setMaterialCharacteristicRadius( frac->getMaterialCharacteristicRadius() ) ;
@@ -106,7 +106,7 @@ Vector FractureCriterion::getSmoothedField(FieldType f0,  ElementState &s ,doubl
     if(!mesh2d && !mesh3d)
         initialiseCache(s) ;
 
-//   std::cout << "b" << std::endl ; 
+//   std::cout << "b" << std::endl ;
     if(mesh2d)
         return mesh2d->getSmoothedField(f0, cachecoreID, s.getParent(), t, restriction) ;
     return mesh3d->getSmoothedField(f0, cachecoreID, s.getParent(), t, restriction) ;
@@ -128,10 +128,10 @@ void FractureCriterion::updateRestriction(ElementState &s)
 {
     if(!restrictionSource || !needRestrictionUpdate)
         return ;
-    
+
     needRestrictionUpdate = false ;
     updateCache(s) ;
-    
+
     Function xtransform = s.getParent()->getXTransform() ;
     Function ytransform = s.getParent()->getYTransform() ;
     Function ztransform = Function("0") ;
@@ -142,16 +142,16 @@ void FractureCriterion::updateRestriction(ElementState &s)
         ttransform = s.getParent()->getTTransform() ;
     else
         ttransform = Function("0") ;
-    
+
     VirtualMachine vm ;
     restriction.clear();
-    
+
     for(size_t i= 0 ; i < s.getParent()->getGaussPoints().gaussPoints.size() ; i++)
     {
         Point p = s.getParent()->getGaussPoints().gaussPoints[i].first ;
-        Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()), 
-                           vm.eval(ytransform,  p.getX(), p.getY(), p.getZ(), p.getT()), 
-                           vm.eval(ztransform,  p.getX(), p.getY(), p.getZ(), p.getT()), 
+        Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()),
+                           vm.eval(ytransform,  p.getX(), p.getY(), p.getZ(), p.getT()),
+                           vm.eval(ztransform,  p.getX(), p.getY(), p.getZ(), p.getT()),
                            vm.eval(ttransform, p.getX(),p.getY(),p.getZ(),p.getT())) ;
 
         restriction.push_back(restrictionSource->in(test));
@@ -168,7 +168,7 @@ void FractureCriterion::setRestriction(const Geometry * g,ElementState &s)
 
 void FractureCriterion::initialiseCache( ElementState & s)
 {
-    physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*1.1) ; 
+    physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*1.1) ;
     if(s.getMesh2D())
     {
         Function x = Function("x")-s.getParent()->getCenter().getX() ;
@@ -177,9 +177,9 @@ void FractureCriterion::initialiseCache( ElementState & s)
         //it is desirable to always have a meaningful non-local law
 //         physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*1.5) ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-        Function smooth = getSmoothingKernelFunction( smoothingType, rrn ) ; 
-	
-// 	Function smoothalt = getSmoothingKernelFunction( QUARTIC_COMPACT, rrn ) ; 
+        Function smooth = getSmoothingKernelFunction( smoothingType, rrn ) ;
+
+// 	Function smoothalt = getSmoothingKernelFunction( QUARTIC_COMPACT, rrn ) ;
 // 	for(double x = -1 ; x < 1 ; x+= 0.01)
 // 	{
 // 	  std::cout << VirtualMachine().eval(smooth, x, s.getParent()->getCenter().getY()) << "  "<< VirtualMachine().eval(smoothalt, x, s.getParent()->getCenter().getY()) << std::endl ;
@@ -202,7 +202,7 @@ void FractureCriterion::initialiseCache( ElementState & s)
         Function rr = x*x+y*y+z*z ;
 //         physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*1.5) ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-        Function smooth = getSmoothingKernelFunction( smoothingType, rrn ) ; 
+        Function smooth = getSmoothingKernelFunction( smoothingType, rrn ) ;
         Sphere epsilonAll( std::max(physicalCharacteristicRadius*6., s.getParent()->getRadius()*4. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         Sphere epsilonReduced(physicalCharacteristicRadius*overlap+s.getParent()->getRadius()*1.5,s.getParent()->getCenter()) ;
         mesh3d = s.getMesh3D() ;
@@ -225,7 +225,7 @@ void FractureCriterion::updateCache( ElementState & s)
         Function y = Function("y")-s.getParent()->getCenter().getY() ;
         Function rr = x*x+y*y ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-        Function smooth =  getSmoothingKernelFunction( smoothingType, rrn ) ; 
+        Function smooth =  getSmoothingKernelFunction( smoothingType, rrn ) ;
 
         mesh2d = s.getMesh2D() ;
         mesh2d->updateCache(cachecoreID, s.getParent()->getBehaviour()->getSource(), smooth) ;
@@ -239,7 +239,7 @@ void FractureCriterion::updateCache( ElementState & s)
         Function z = Function("z")-s.getParent()->getCenter().getZ() ;
         Function rr = x*x+y*y+z*z ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-        Function smooth =  getSmoothingKernelFunction( smoothingType, rrn ) ; 
+        Function smooth =  getSmoothingKernelFunction( smoothingType, rrn ) ;
 
         mesh3d = s.getMesh3D() ;
         mesh3d->updateCache(cachecoreID, s.getParent()->getBehaviour()->getSource(), smooth) ;
@@ -298,14 +298,14 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
         // outside of the checkpoints, we only care about the order of the elements in
         // term of their score. At the checkpoint, we consider the elements which
         // have met their criterion
-        
+
         if( checkpoint ) //new iteration
         {
             inset = false ;
             inIteration = false ;
             damagingSet.clear();
             proximitySet.clear() ;
-// 	    initialScore = std::max(scoreAtState, scoreTolerance*scoreTolerance) ; 
+// 	    initialScore = std::max(scoreAtState, scoreTolerance*scoreTolerance) ;
 
             std::vector<unsigned int> newSet ;
             std::set<unsigned int> newProximity ;
@@ -323,7 +323,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                         continue ;
 
                     if(ci->getBehaviour()->fractured())
-                        continue ; 
+                        continue ;
 
                     if(thresholdScore-ci->getBehaviour()->getFractureCriterion()->scoreAtState <= scoreTolerance*initialScore &&
                             ci->getBehaviour()->getFractureCriterion()->met())
@@ -331,7 +331,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
 
 
                         if(ci == s.getParent() && met())
-                                inset = true ;
+                            inset = true ;
                         if(ci->getBehaviour()->getDamageModel()->getDelta() > POINT_TOLERANCE)
                             minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, ci->getBehaviour()->getDamageModel()->getDelta()) ;
 
@@ -348,7 +348,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                             foundmaxscore = true ;
                         }
                         else
-			  maxscore = std::max(ci->getBehaviour()->getFractureCriterion()->scoreAtState, maxscore) ;
+                            maxscore = std::max(ci->getBehaviour()->getFractureCriterion()->scoreAtState, maxscore) ;
                     }
                 }
             }
@@ -360,7 +360,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                     inIteration = true ;
                 return std::make_pair(0.,0.) ;
             }
-            
+
             inIteration = true ;
             if(!newSet.empty())
                 std::stable_sort(newSet.begin(), newSet.end());
@@ -396,7 +396,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
 // //                 }
 //                 maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, ci->getBehaviour()->getDamageModel()->getMode()) ;
 // //                 maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, ci->getBehaviour()->getDamageModel()->getAngleShift()) ;
-// 
+//
 //             }
 
 
@@ -555,7 +555,7 @@ void FractureCriterion::step(ElementState &s)
 {
     if(!mesh2d && !mesh3d )
         initialiseCache(s) ;
-    
+
     if(mesh2d)
         dynamic_cast<DelaunayTriangle *>(s.getParent())->getSubTriangulatedGaussPoints() ;
     if(mesh3d)

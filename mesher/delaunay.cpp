@@ -2928,7 +2928,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 Function y = tri[i]->getYTransform() ;
                                
 //                 GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
-                 GaussPointArray gp_temp = monteCarloGaussPoints(32, tri[i]) ;
+                 GaussPointArray gp_temp = monteCarloGaussPoints(512, tri[i]) ;
 
                 for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
                 {
@@ -2942,7 +2942,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 if(getCachedGaussPoints() && getCachedGaussPoints()->regularGrid)
                     return *getCachedGaussPoints() ;
                 delete cachedGps ;
-                cachedGps = new GaussPointArray(monteCarloGaussPoints(128, this)) ;
+                cachedGps = new GaussPointArray(monteCarloGaussPoints(512, this)) ;
                 cachedGps->regularGrid = true ;
                 return *getCachedGaussPoints() ;
             }

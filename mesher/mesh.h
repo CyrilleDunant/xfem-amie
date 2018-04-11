@@ -66,7 +66,9 @@ public:
     virtual std::vector<int> & getCache ( int cacheID ) {
         return caches[cacheID] ;
     } ;
-    int getAllElementsCacheID() const { return allElementsCacheID ; }
+    int getAllElementsCacheID() const {
+        return allElementsCacheID ;
+    }
     virtual int addToTree ( EABSTRACTTYPE * toAdd ) = 0 ;
     virtual EABSTRACTTYPE * getInTree ( int index ) const = 0 ;
     virtual std::vector<Point * > & getAdditionalPoints() = 0 ;
@@ -76,7 +78,9 @@ public:
     virtual double getInternalScale() const {
         return 1. ;
     } ;
-    virtual bool valid() const { return true ; }
+    virtual bool valid() const {
+        return true ;
+    }
 
 public:
     Mesh(SpaceDimensionality spaceDimensions) : spaceDimensions(spaceDimensions), allElementsCacheID(-1) {} ;
@@ -85,7 +89,7 @@ public:
     virtual std::vector<ETYPE *> getConflictingElements ( const Point  * p )  = 0;
     virtual std::vector<ETYPE *> getConflictingElements ( const Geometry * g ) = 0;
     virtual std::vector<ETYPE *> getNeighbourhood ( ETYPE * element ) const = 0 ;
-    virtual std::vector<ETYPE *> getConflictingElements ( const Segment  * s, double width = 0.001 )  
+    virtual std::vector<ETYPE *> getConflictingElements ( const Segment  * s, double width = 0.001 )
     {
         Point A = s->first() ;
         Point B = s->second() ;
@@ -192,7 +196,7 @@ public:
             }
         }
         if(!elements.empty())
-	  return elements.back() ;
+            return elements.back() ;
 
         return nullptr ;
     }
@@ -380,7 +384,7 @@ public:
 
         }
 
-    } 
+    }
 
     template <class ETARGETTYPE>
     /** \brief Return the displacements in source mesh projected on current mesh.
@@ -425,15 +429,15 @@ public:
                 bool on = true ;
                 if(side)
                 {
-                     on = false ;
-                     size_t count = 0 ;
-                     for(size_t i = 0 ; i < element->getBoundingPoints().size()/element->timePlanes() ; i++)
-                     {
-                         if( source->on(element->getBoundingPoint(i)) )
-                             count++ ;
-                     }
-                     if(count >= 2)
-                         on = true ;
+                    on = false ;
+                    size_t count = 0 ;
+                    for(size_t i = 0 ; i < element->getBoundingPoints().size()/element->timePlanes() ; i++)
+                    {
+                        if( source->on(element->getBoundingPoint(i)) )
+                            count++ ;
+                    }
+                    if(count >= 2)
+                        on = true ;
                 }
                 if(on)
                 {
@@ -575,21 +579,21 @@ public:
                     coefs[position].push_back ( std::vector<double>() ) ;
                     if(element->getOrder() >= CONSTANT_TIME_LINEAR)
                     {
-		      double a = (spaceDimensions == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
+                        double a = (spaceDimensions == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
                         if(source)
                         {
                             Function x = element->getXTransformAtCentralNodalTime() ;
                             Function y = element->getYTransformAtCentralNodalTime() ;
                             Function z = element->getZTransformAtCentralNodalTime() ;
-    //		            Function t = element->getTTransform() ;
-			    
+                            //		            Function t = element->getTTransform() ;
+
                             GaussPointArray gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
                             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
                                 double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
                                 double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
                                 double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
 
-                                coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, 0. )*a/gp.gaussPoints.size() );
+                                coefs[position].back().push_back ( std::max(vm.eval ( smoothing, xx, xy, xz, 0. )*a/gp.gaussPoints.size(), 0.) );
                             }
                         }
                         else
@@ -602,34 +606,36 @@ public:
                     }
                     else
                     {
-		      double a = (element->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
+                        double a = (element->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
                         if(source)
                         {
                             Function x = element->getXTransform() ;
                             Function y = element->getYTransform() ;
                             Function z = element->getZTransform() ;
                             GaussPointArray gp = element->getGaussPoints() ;
-			    
+
 
                             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
                                 double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
                                 double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
                                 double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
 
-                                coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, 0. )*a/gp.gaussPoints.size() );
+                                coefs[position].back().push_back ( std::max(vm.eval ( smoothing, xx, xy, xz, 0. )*a/gp.gaussPoints.size(), 0.) );
+                            }
+
+                            if(gp.gaussPoints.size() == 1)
+                            {
+                                coefs[position].back().back() = 0 ;
+                                for(size_t i = 0 ; i <  element->getBoundingPoints().size() ; i++)
+                                    coefs[position].back().back() +=  std::max(vm.eval ( smoothing, element->getBoundingPoint(i).x,  element->getBoundingPoint(i).y,  element->getBoundingPoint(i).z, 0. )*a , 0.);
+                                coefs[position].back().back() /= element->getBoundingPoints().size() ;
                             }
                             
-                            if(gp.gaussPoints.size() == 1)
-			    {
-			      coefs[position].back().back() = 0 ;
-			      for(size_t i = 0 ; i <  element->getBoundingPoints().size() ; i++)
-				coefs[position].back().back() +=  vm.eval ( smoothing, element->getBoundingPoint(i).x,  element->getBoundingPoint(i).y,  element->getBoundingPoint(i).z, 0. )*a ;
-			      coefs[position].back().back() /= element->getBoundingPoints().size() ;
-			    }
+//                             std::cout << element->getCenter().x << "  " << element->getCenter().y << "  " << coefs[position].back().back() << std::endl ;
                         }
                         else
                         {
-                           GaussPointArray gp = element->getGaussPoints() ;
+                            GaussPointArray gp = element->getGaussPoints() ;
 
                             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
                                 coefs[position].back().push_back ( a/gp.gaussPoints.size() );
@@ -640,107 +646,127 @@ public:
             }
         }
         double tot = 0 ;
-	for(size_t i = 0 ;  i < coefs[position].size() ; i++)
-	  for(size_t j = 0 ;  j < coefs[position][i].size() ; j++)
-	    tot += coefs[position][i][j] ; 
-	for(size_t i = 0 ;  i < coefs[position].size() ; i++)
-	  for(size_t j = 0 ;  j < coefs[position][i].size() ; j++) 
-	    coefs[position][i][j] /= tot ;
+        for(size_t i = 0 ;  i < coefs[position].size() ; i++)
+            for(size_t j = 0 ;  j < coefs[position][i].size() ; j++)
+                tot += coefs[position][i][j] ;
+        for(size_t i = 0 ;  i < coefs[position].size() ; i++)
+            for(size_t j = 0 ;  j < coefs[position][i].size() ; j++)
+                coefs[position][i][j] /= tot ;
+            
+//         exit(0) ;
         return position ;
     } ;
 
     virtual void updateCache ( size_t position, const Geometry * source = nullptr, Function smoothing = Function ( "1" ) ) {
 
-    #pragma omp critical
-    {
-        VirtualMachine vm ;
+        #pragma omp critical
+        {
+            VirtualMachine vm ;
 
-        size_t iter = 0 ;
-        for ( auto element = begin(position) ; element != end(position) ; element++ ) {
+            size_t iter = 0 ;
+            for ( auto element = begin(position) ; element != end(position) ; element++ ) {
 
 
-            coefs[position][iter].clear() ;
-            if ( (source && element->getBehaviour() && element->getBehaviour()->getSource() != source) || (element->getBehaviour() && element->getBehaviour()->type == VOID_BEHAVIOUR)) {
-                continue ;
-            }
-            if(element->getOrder() >= CONSTANT_TIME_LINEAR)
-            {
+                coefs[position][iter].clear() ;
+                if ( (source && element->getBehaviour() && element->getBehaviour()->getSource() != source) || (element->getBehaviour() && element->getBehaviour()->type == VOID_BEHAVIOUR)) {
+                    continue ;
+                }
+                if(element->getOrder() >= CONSTANT_TIME_LINEAR)
+                {
 
-                Function x = element->getXTransformAtCentralNodalTime() ;
-                Function y = element->getYTransformAtCentralNodalTime() ;
-                Function z = element->getZTransformAtCentralNodalTime() ;
+                    Function x = element->getXTransformAtCentralNodalTime() ;
+                    Function y = element->getYTransformAtCentralNodalTime() ;
+                    Function z = element->getZTransformAtCentralNodalTime() ;
 //                  Function t = element->getTTransform() ;
-                GaussPointArray gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
-		double a = (spaceDimensions == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
-                for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
-                    double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
-                    double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
-                    double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
+                    GaussPointArray gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
+                    double a = (spaceDimensions == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
+                    for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
+                        double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
+                        double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
+                        double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
 
-                    coefs[position][iter].push_back ( vm.eval ( smoothing, xx, xy, xz, 0. )*a/gp.gaussPoints.size() );
+                        coefs[position][iter].push_back ( std::max(vm.eval ( smoothing, xx, xy, xz, 0. )*a/gp.gaussPoints.size(), 0.) );
+                    }
                 }
-            }
-            else
-            {
-                Function x = element->getXTransform() ;
-                Function y = element->getYTransform() ;
-                Function z = element->getZTransform() ;
-                GaussPointArray gp = element->getGaussPoints() ;
-		double a = (element->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
+                else
+                {
+                    Function x = element->getXTransform() ;
+                    Function y = element->getYTransform() ;
+                    Function z = element->getZTransform() ;
+                    GaussPointArray gp = element->getGaussPoints() ;
+                    double a = (element->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
 
-                for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
-                    double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
-                    double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
-                    double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
+                    for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
+                        double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
+                        double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
+                        double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
 
-                    if(element->getBehaviour()->fractured())
-                        coefs[position][iter].push_back ( vm.eval ( smoothing, xx, xy, xz, 0. )*a/gp.gaussPoints.size() );
-                    else
-                        coefs[position][iter].push_back ( 0. );
+                        if(element->getBehaviour()->fractured())
+                            coefs[position][iter].push_back ( std::max(vm.eval ( smoothing, xx, xy, xz, 0. )*a/gp.gaussPoints.size(), 0.) );
+                        else
+                            coefs[position][iter].push_back ( 0. );
+                    }
+
+                    if(gp.gaussPoints.size() == 1)
+                    {
+                        coefs[position][iter].back() = 0 ;
+                        for(size_t i = 0 ; i <  element->getBoundingPoints().size() ; i++)
+                            coefs[position][iter].back() +=  std::max(vm.eval ( smoothing, element->getBoundingPoint(i).x,  element->getBoundingPoint(i).y,  element->getBoundingPoint(i).z, 0. )*a, 0.) ;
+                        coefs[position][iter].back() /= element->getBoundingPoints().size() ;
+                    }
+
                 }
-                
-		if(gp.gaussPoints.size() == 1)
-		{
-		  coefs[position][iter].back() = 0 ;
-		  for(size_t i = 0 ; i <  element->getBoundingPoints().size() ; i++)
-		    coefs[position][iter].back() +=  vm.eval ( smoothing, element->getBoundingPoint(i).x,  element->getBoundingPoint(i).y,  element->getBoundingPoint(i).z, 0. )*a ;
-		  coefs[position][iter].back() /= element->getBoundingPoints().size() ;
-		}
-
+                iter++ ;
             }
-            iter++ ;
+
+            double tot = 0 ;
+            for(size_t i = 0 ;  i < coefs[position].size() ; i++)
+                for(size_t j = 0 ;  j < coefs[position][i].size() ; j++)
+                    tot += coefs[position][i][j] ;
+            for(size_t i = 0 ;  i < coefs[position].size() ; i++)
+                for(size_t j = 0 ;  j < coefs[position][i].size() ; j++)
+                    coefs[position][i][j] /= tot ;
         }
-        
-        double tot = 0 ;
-        for(size_t i = 0 ;  i < coefs[position].size() ; i++)
-	  for(size_t j = 0 ;  j < coefs[position][i].size() ; j++)
-	    tot += coefs[position][i][j] ; 
-	for(size_t i = 0 ;  i < coefs[position].size() ; i++)
-	  for(size_t j = 0 ;  j < coefs[position][i].size() ; j++) 
-	    coefs[position][i][j] /= tot ;
-    }
 
     } ;
 
-    
+
     virtual unsigned int generateCache ()
     {
 //        std::cout << omp_get_max_threads() << std::endl ;
 #ifdef HAVE_OPENMP
-      int maxthread = std::max(omp_get_max_threads(), 8) ;
+        int maxthread = std::max(omp_get_max_threads(), 8) ;
 #else
-      int maxthread = 1 ;
+        int maxthread = 1 ;
 #endif
-      
-        if(strainCache.size() == 0) { strainCache.resize( maxthread, Vector(0) ) ; }
-        if(strainGenViscoCache.size() == 0) { strainGenViscoCache.resize( maxthread, Vector(0) ) ; }
-        if(strainRateGenViscoCache.size() == 0) { strainRateGenViscoCache.resize( maxthread, Vector(0) ) ; }
-        if(stressCache.size() == 0) { stressCache.resize( maxthread, Vector(0) ) ; }
-        if(stressGenViscoCache.size() == 0) { stressGenViscoCache.resize( maxthread, Vector(0) ) ; }
-        if(stressImposedCache.size() == 0) { stressImposedCache.resize( maxthread, Vector(0) ) ; }
-        if(bufferCache.size() == 0) { bufferCache.resize( maxthread, Vector(0) ) ; }
-        if(firstResultCache.size() == 0) { firstResultCache.resize( maxthread, Vector(0) ) ; }
-        if(secondResultCache.size() == 0) { secondResultCache.resize( maxthread, Vector(0) ) ; }
+
+        if(strainCache.size() == 0) {
+            strainCache.resize( maxthread, Vector(0) ) ;
+        }
+        if(strainGenViscoCache.size() == 0) {
+            strainGenViscoCache.resize( maxthread, Vector(0) ) ;
+        }
+        if(strainRateGenViscoCache.size() == 0) {
+            strainRateGenViscoCache.resize( maxthread, Vector(0) ) ;
+        }
+        if(stressCache.size() == 0) {
+            stressCache.resize( maxthread, Vector(0) ) ;
+        }
+        if(stressGenViscoCache.size() == 0) {
+            stressGenViscoCache.resize( maxthread, Vector(0) ) ;
+        }
+        if(stressImposedCache.size() == 0) {
+            stressImposedCache.resize( maxthread, Vector(0) ) ;
+        }
+        if(bufferCache.size() == 0) {
+            bufferCache.resize( maxthread, Vector(0) ) ;
+        }
+        if(firstResultCache.size() == 0) {
+            firstResultCache.resize( maxthread, Vector(0) ) ;
+        }
+        if(secondResultCache.size() == 0) {
+            secondResultCache.resize( maxthread, Vector(0) ) ;
+        }
 
         getElements() ;
         #pragma omp critical
@@ -862,34 +888,34 @@ public:
             for ( size_t i = 0 ; i < elems.size() && !blocks; i++ ) {
                 if(elems[i]->getBehaviour()->type == VOID_BEHAVIOUR)
                     continue ;
-                
+
                 blocks = elems[i]->getBehaviour()->getNumberOfDegreesOfFreedom() /spaceDimensions ;
             }
             Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
             Vector buffer ( ret ) ;
-	    Vector retcomp( ret ) ;
-	    Vector temp( ret ) ;
-	    Vector tempsum( ret ) ;
+            Vector retcomp( ret ) ;
+            Vector temp( ret ) ;
+            Vector tempsum( ret ) ;
             double w = 0 ;
             for ( size_t i = 0 ; i < elems.size() ; i++ ) {
 
                 double v = elems[i]->getState().getAverageField ( f, buffer, &vm, t, coefs, index ) ;
-		temp = buffer * v - retcomp ;
-		tempsum = ret+temp ;
-		retcomp = tempsum-ret-temp ;
-		ret = tempsum ;
-		w +=v ;
-		
-		if(std::isnan(v) || std::isnan(buffer[0]) || std::isnan(buffer[1]))
-		{
-		  std::cout << "NAN field "<< buffer[0] << "  " << buffer[1] << std::endl ;
-		  exit(0) ;
-		}
+                temp = buffer * v - retcomp ;
+                tempsum = ret+temp ;
+                retcomp = tempsum-ret-temp ;
+                ret = tempsum ;
+                w +=v ;
+
+                if(std::isnan(v) || std::isnan(buffer[0]) || std::isnan(buffer[1]))
+                {
+                    std::cout << "NAN field "<< buffer[0] << "  " << buffer[1] << std::endl ;
+                    exit(0) ;
+                }
             }
             if(w > POINT_TOLERANCE*POINT_TOLERANCE)
-	      ret /=w ;
-	    
-	    return ret ;
+                ret /=w ;
+
+            return ret ;
         }
         if(cacheID == -1)
             cacheID = allElementsCacheID ;
@@ -902,27 +928,27 @@ public:
         if( caches[cacheID].size() == 0)
             return ret ;
         Vector buffer ( ret ) ;
-	Vector retcomp( ret ) ;
-	Vector temp( ret ) ;
-	Vector tempsum( ret ) ;
+        Vector retcomp( ret ) ;
+        Vector temp( ret ) ;
+        Vector tempsum( ret ) ;
         double w = 0 ;
         for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
             double v = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->getState().getAverageField ( f, buffer, &vm, t, coefs[cacheID][i], index ) ;
-	    temp = buffer * v - retcomp ;
-	    tempsum = ret+temp ;
-	    retcomp = tempsum-ret-temp ;
+            temp = buffer * v - retcomp ;
+            tempsum = ret+temp ;
+            retcomp = tempsum-ret-temp ;
             ret = tempsum ;
             w +=v ;
         }
         if(w > POINT_TOLERANCE*POINT_TOLERANCE)
-	  ret /=w ;
-	
-	return ret ;
+            ret /=w ;
+
+        return ret ;
     }
-    
-    virtual Vector getField ( FieldType f, const Point & p, Vector & ret, double t = 1, int index = 0 ) 
+
+    virtual Vector getField ( FieldType f, const Point & p, Vector & ret, double t = 1, int index = 0 )
     {
-        ETYPE * e = getUniqueConflictingElement(&p) ;        
+        ETYPE * e = getUniqueConflictingElement(&p) ;
         Point p_ = p ;
         p_.t = t ;
         if(e && e->state)
@@ -946,7 +972,7 @@ public:
         Vector buffer ( ret ) ;
         double w = 0 ;
         if( caches[realCacheID].size() == 0)
-           return ret ;
+            return ret ;
 
         double realT = static_cast<ETYPE *>( getInTree ( caches[realCacheID][0] ) )->getBoundingPoint(0).getT()*(1.-t)/2. + static_cast<ETYPE *>( getInTree ( caches[realCacheID][0] ) )->getBoundingPoint( static_cast<ETYPE *>(getInTree ( caches[realCacheID][0] ))->getBoundingPoints().size()-1 ).getT()*(1.+t)/2. ;
 
@@ -974,7 +1000,7 @@ public:
         double ret = 0. ;
         double w = 0 ;
         if( caches[realCacheID].size() == 0)
-           return ret ;
+            return ret ;
 
         std::map<std::string, double> emptymap ;
 
@@ -1020,7 +1046,7 @@ public:
 #ifdef HAVE_OPENMP
         int thread = omp_get_thread_num() ;
 #else
-	int thread = 0 ;
+        int thread = 0 ;
 #endif
 
         if ( spaceDimensions == SPACE_THREE_DIMENSIONAL ) {
@@ -1033,10 +1059,6 @@ public:
         strainCache[thread] = 0 ;
         stressCache[thread] = 0 ;
         bufferCache[thread] = 0 ;
-//        Vector first ;
-//        Vector strain ;
-//        Vector stress ;
-//        Vector buffer ;
 
         bool spaceTime = e->getOrder() >= CONSTANT_TIME_LINEAR ;
         if(spaceTime) {
@@ -1047,23 +1069,30 @@ public:
         }
         VirtualMachine vm ;
         if (
-            f0 == REAL_STRESS_FIELD || 
-            f0 == EFFECTIVE_STRESS_FIELD || 
-            f0 == PRINCIPAL_REAL_STRESS_FIELD || 
-            f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
-            //we first need to compute the strain field 
-            if(strainCache[thread].size() != tsize ) { strainCache[thread].resize(tsize, 0.); }
-            if(bufferCache[thread].size() != tsize ) { bufferCache[thread].resize(tsize, 0.); }
+            f0 == REAL_STRESS_FIELD ||
+            f0 == EFFECTIVE_STRESS_FIELD ||
+            f0 == PRINCIPAL_REAL_STRESS_FIELD ||
+            f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ||
+            f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ||
+            f0 == PRINCIPAL_TOTAL_STRAIN_FIELD
+        ) {
+            //we first need to compute the strain field
+            if(bufferCache[thread].size() != tsize ) {
+                bufferCache[thread].resize(tsize, 0.);
+            }
             if ( !spaceTime ) {
                 double sumFactors ( 0 ) ;
-               
+                Vector corrector(strainCache[thread]) ;
+                Vector y(strainCache[thread]) ;
+                Vector tmp(strainCache[thread]) ;
+
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     IntegrableEntity *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
-                    
+
                     if(ci->getBehaviour()->fractured() || ci->getBehaviour()->getSource() != e->getBehaviour()->getSource())
                         continue ;
 //                     std::cout << "x" << std::endl ;
-                    double v = 0; 
+                    double v = 0;
 
                     if(e != ci  || restrict.empty()|| ( e == ci && (restrict.size() !=  coefs[cacheID][i].size())))
                         v = ci->getState().getAverageField ( TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
@@ -1073,17 +1102,23 @@ public:
 
                         for(size_t j = 0 ; j < restrict.size() ; j++)
                             effCoef[j] *= !restrict[j] ;
-                        
-                        v = ci->getState().getAverageField ( TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef ); 
-                    }                   
-                    strainCache[thread] += bufferCache[thread]*v ;
+
+                        v = ci->getState().getAverageField ( TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef );
+                    }
+                    y = bufferCache[thread]*v - corrector ;
+                    tmp = strainCache[thread] +y ;
+                    corrector = (tmp- strainCache[thread]) - y ;
+                    strainCache[thread] = tmp ;
+                    
                     sumFactors += v ;
 // 		    std::cout << "y" << std::endl ;
 
                 }
-                if(sumFactors > POINT_TOLERANCE*POINT_TOLERANCE)
+                if(sumFactors > POINT_TOLERANCE)
                     strainCache[thread] /= sumFactors ;
-                
+                else
+                    strainCache[thread] = 0 ;
+
             } else {
                 size_t blocks = 0 ;
                 for ( size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++ ) {
@@ -1095,9 +1130,15 @@ public:
 //                Vector tmpstrainrate ;
 
                 size_t bsize = fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD, spaceDimensions, blocks ) ;
-                if( bufferCache[thread].size() != bsize ) { bufferCache[thread].resize( bsize, 0. ) ; }
-                if( strainGenViscoCache[thread].size() != bsize ) { strainGenViscoCache[thread].resize( bsize, 0. ) ; }
-                if( strainRateGenViscoCache[thread].size() != bsize ) { strainRateGenViscoCache[thread].resize( bsize, 0. ) ; }
+                if( bufferCache[thread].size() != bsize ) {
+                    bufferCache[thread].resize( bsize, 0. ) ;
+                }
+                if( strainGenViscoCache[thread].size() != bsize ) {
+                    strainGenViscoCache[thread].resize( bsize, 0. ) ;
+                }
+                if( strainRateGenViscoCache[thread].size() != bsize ) {
+                    strainRateGenViscoCache[thread].resize( bsize, 0. ) ;
+                }
                 double sumFactors ( 0 ) ;
 
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
@@ -1119,20 +1160,26 @@ public:
                 strainGenViscoCache[thread] /= sumFactors ;
                 strainRateGenViscoCache[thread] /=sumFactors ;
 
-                double sum = 0 ; 
-                if(strainCache[thread].size() != tsize ) { strainCache[thread].resize(tsize, 0.); }
-                if(stressCache[thread].size() != tsize ) { stressCache[thread].resize(tsize, 0.); }
-                if(stressImposedCache[thread].size() != tsize ) { stressImposedCache[thread].resize(tsize, 0.); }
+                double sum = 0 ;
+                if(strainCache[thread].size() != tsize ) {
+                    strainCache[thread].resize(tsize, 0.);
+                }
+                if(stressCache[thread].size() != tsize ) {
+                    stressCache[thread].resize(tsize, 0.);
+                }
+                if(stressImposedCache[thread].size() != tsize ) {
+                    stressImposedCache[thread].resize(tsize, 0.);
+                }
                 Viscoelasticity * v = dynamic_cast<Viscoelasticity *>(e->getBehaviour()) ;
                 for ( unsigned int i = 0 ; i < tsize ; i++ ) {
-                     strainCache[thread][i] = strainGenViscoCache[thread][i] ;
-                     if( v->model >= MAXWELL && (f0 == MECHANICAL_STRAIN_FIELD || f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) )
-                          {
-                              for(size_t j = 1 ; j < strainGenViscoCache[thread].size()/strainCache[thread].size() ; j++)
-                                  strainCache[thread][i] -= strainGenViscoCache[thread][ j*tsize + i ] ;
-                          } 
-                     }
-                if(f0 != PRINCIPAL_MECHANICAL_STRAIN_FIELD) { 
+                    strainCache[thread][i] = strainGenViscoCache[thread][i] ;
+                    if( v->model >= MAXWELL && (f0 == MECHANICAL_STRAIN_FIELD || f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) )
+                    {
+                        for(size_t j = 1 ; j < strainGenViscoCache[thread].size()/strainCache[thread].size() ; j++)
+                            strainCache[thread][i] -= strainGenViscoCache[thread][ j*tsize + i ] ;
+                    }
+                }
+                if(f0 != PRINCIPAL_MECHANICAL_STRAIN_FIELD) {
                     Point p ;
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
@@ -1148,15 +1195,14 @@ public:
                         sum += e->getGaussPoints().gaussPoints[j].second ;
                     }
                     stressCache[thread] /= sum ;
-               }
+                }
             }
 
             if ( f0 == REAL_STRESS_FIELD ) {
                 firstResultCache[thread].resize ( tsize, 0. );
                 if ( !spaceTime ) {
-                    double sum = 0 ; 
+                    double sum = 0 ;
                     Point p ;
-// 		    std::cout << "z" << std::endl ;
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
                         if(!restrict.empty() && restrict.size() == e->getGaussPoints().gaussPoints.size())
@@ -1168,9 +1214,7 @@ public:
                     }
                     if(sum > POINT_TOLERANCE*POINT_TOLERANCE)
                         firstResultCache[thread] /= sum ;
-		    
-// 		    std::cout << "w" << std::endl ;
-                    
+
                 } else {
                     firstResultCache[thread] = stressCache[thread] ;
                 }
@@ -1178,7 +1222,20 @@ public:
             else if ( f0 == EFFECTIVE_STRESS_FIELD ) {
                 firstResultCache[thread].resize ( tsize );
                 if ( !spaceTime ) {
-                    firstResultCache[thread] = (strainCache[thread]-e->getBehaviour()->getImposedStrain( Point() ))*e->getBehaviour()->param ;
+                    double sum = 0 ;
+                    Point p ;
+                    for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                    {
+                        if(!restrict.empty() && restrict.size() == e->getGaussPoints().gaussPoints.size())
+                            if(restrict[j])
+                                continue ;
+                        p.set(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                        firstResultCache[thread] += ((strainCache[thread]-e->getBehaviour()->getImposedStrain( p ))*e->getBehaviour()->param-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
+                        sum += e->getGaussPoints().gaussPoints[j].second ;
+                    }
+                    if(sum > POINT_TOLERANCE*POINT_TOLERANCE)
+                        firstResultCache[thread] /= sum ;
+
                 } else {
                     firstResultCache[thread] = stressCache[thread] ;
                 }
@@ -1194,8 +1251,10 @@ public:
             else if ( f0 == PRINCIPAL_REAL_STRESS_FIELD ) {
                 firstResultCache[thread].resize ( psize, 0. );
                 if ( !spaceTime ) {
-                    if(stressCache[thread].size() != tsize ) { stressCache[thread].resize(tsize, 0.); }
-                    double sum = 0 ; 
+                    if(stressCache[thread].size() != tsize ) {
+                        stressCache[thread].resize(tsize, 0.);
+                    }
+                    double sum = 0 ;
                     Point p ;
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
@@ -1213,14 +1272,42 @@ public:
                     firstResultCache[thread] = toPrincipal( stressCache[thread] , SINGLE_OFF_DIAGONAL_VALUES) ;
                 }
             }
+            else if(f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD) {
+                firstResultCache[thread].resize ( psize, 0. );
+                if ( !spaceTime ) {
+                    if(stressCache[thread].size() != tsize ) {
+                        stressCache[thread].resize(tsize, 0.);
+                    }
+                    double sum = 0 ;
+                    Point p ;
+                    Vector istrain(0., tsize) ;
+                    for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                    {
+                        if(!restrict.empty() && restrict.size() == e->getGaussPoints().gaussPoints.size())
+                            if(restrict[j])
+                                continue ;
+                        istrain -= e->getBehaviour()->getImposedStrain( p )*e->getGaussPoints().gaussPoints[j].second;
+                        sum += e->getGaussPoints().gaussPoints[j].second ;
+                    }
+                    if(sum > POINT_TOLERANCE*POINT_TOLERANCE)
+                        istrain /= sum ;
+                    firstResultCache[thread] = toPrincipal( strainCache[thread] -istrain, DOUBLE_OFF_DIAGONAL_VALUES) ;
+                } else {
+                    firstResultCache[thread] = toPrincipal( strainCache[thread], DOUBLE_OFF_DIAGONAL_VALUES) ;
+                }
+            }
+            else if(f0 == PRINCIPAL_TOTAL_STRAIN_FIELD) {
+                firstResultCache[thread].resize ( psize, 0. );
+                firstResultCache[thread] = toPrincipal( strainCache[thread], DOUBLE_OFF_DIAGONAL_VALUES) ;
+            }
 
         } else {
             double sumFactors ( 0 ) ;
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
-                
+
                 double v = 0 ;
-                               
+
                 if(e != ci  || restrict.empty() || ( e == ci && (restrict.size() !=  coefs[cacheID][i].size())))
                     v = ci->getState().getAverageField ( f0, bufferCache[thread], &vm, t, coefs[cacheID][i], index );
                 else if(e == ci && restrict.size() ==  coefs[cacheID][i].size())
@@ -1229,16 +1316,16 @@ public:
 
                     for(size_t j = 0 ; j < restrict.size() ; j++)
                         effCoef[j] *= !restrict[j] ;
-                    
-                    v = ci->getState().getAverageField ( f0, bufferCache[thread], &vm, t, effCoef, index ); 
+
+                    v = ci->getState().getAverageField ( f0, bufferCache[thread], &vm, t, effCoef, index );
                 }
-                    
+
                 if ( firstResultCache[thread].size() != bufferCache[thread].size() ) {
                     firstResultCache[thread].resize ( bufferCache[thread].size(), 0. );
                 }
                 firstResultCache[thread] += bufferCache[thread]*v ;
                 sumFactors += v ;
-                
+
             }
             if(sumFactors > POINT_TOLERANCE*POINT_TOLERANCE)
                 firstResultCache[thread] /= sumFactors ;
@@ -1252,7 +1339,7 @@ public:
 #ifdef HAVE_OPENMP
         int thread = omp_get_thread_num() ;
 #else
-	int thread = 0 ;
+        int thread = 0 ;
 #endif
 
         firstResultCache[thread] = 0 ;
@@ -1285,37 +1372,42 @@ public:
         }
         VirtualMachine vm ;
         if (
-             f0 == REAL_STRESS_FIELD || 
-             f0 == EFFECTIVE_STRESS_FIELD || 
-             f0 == PRINCIPAL_REAL_STRESS_FIELD || 
-             f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || 
-             f0 == MECHANICAL_STRAIN_FIELD || 
-             f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ||
-             f0 == TOTAL_STRAIN_FIELD || 
-             f0 == PRINCIPAL_TOTAL_STRAIN_FIELD ||
-               
-                f1 == REAL_STRESS_FIELD || 
-                f1 == EFFECTIVE_STRESS_FIELD || 
-                f1 == PRINCIPAL_REAL_STRESS_FIELD || 
-                f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || 
-                f1 == MECHANICAL_STRAIN_FIELD || 
-                f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ||
-                f1 == TOTAL_STRAIN_FIELD || 
-                f1 == PRINCIPAL_TOTAL_STRAIN_FIELD 
-           ) {
+            f0 == REAL_STRESS_FIELD ||
+            f0 == EFFECTIVE_STRESS_FIELD ||
+            f0 == PRINCIPAL_REAL_STRESS_FIELD ||
+            f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ||
+            f0 == MECHANICAL_STRAIN_FIELD ||
+            f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ||
+            f0 == TOTAL_STRAIN_FIELD ||
+            f0 == PRINCIPAL_TOTAL_STRAIN_FIELD ||
+
+            f1 == REAL_STRESS_FIELD ||
+            f1 == EFFECTIVE_STRESS_FIELD ||
+            f1 == PRINCIPAL_REAL_STRESS_FIELD ||
+            f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ||
+            f1 == MECHANICAL_STRAIN_FIELD ||
+            f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ||
+            f1 == TOTAL_STRAIN_FIELD ||
+            f1 == PRINCIPAL_TOTAL_STRAIN_FIELD
+        ) {
             //we first need to compute the strain field
             if ( !spaceTime ) {
                 bufferCache[thread].resize ( tsize, 0. );
-                if(strainCache[thread].size() != tsize ) { strainCache[thread].resize ( tsize, 0. ); }
+                if(strainCache[thread].size() != tsize ) {
+                    strainCache[thread].resize ( tsize, 0. );
+                }
                 double sumFactors ( 0 ) ;
+                Vector corrector(strainCache[thread]) ;
+                Vector y(strainCache[thread]) ;
+                Vector tmp(strainCache[thread]) ;
 
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     IntegrableEntity *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
                     if(ci->getBehaviour()->fractured())
                         continue ;
                     if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
-                       
-                        double v = 0; 
+
+                        double v = 0;
 
                         if(e != ci  || restrict.empty()|| ( e == ci && (restrict.size() !=  coefs[cacheID][i].size())))
                             v = ci->getState().getAverageField ( TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
@@ -1325,17 +1417,22 @@ public:
 
                             for(size_t j = 0 ; j < restrict.size() ; j++)
                                 effCoef[j] *= !restrict[j] ;
-                            
-                            v = ci->getState().getAverageField ( TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef ); 
-                        } 
 
-                        strainCache[thread] += bufferCache[thread]*v ;
+                            v = ci->getState().getAverageField ( TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef );
+                        }
+
+                        y = bufferCache[thread]*v - corrector ;
+                        tmp = strainCache[thread] +y ;
+                        corrector = (tmp- strainCache[thread]) - y ;
+                        strainCache[thread] = tmp ;
                         sumFactors += v ;
                     }
                 }
-                if(sumFactors > POINT_TOLERANCE*POINT_TOLERANCE)
+                if(sumFactors > POINT_TOLERANCE)
                     strainCache[thread] /= sumFactors ;
-                
+                else
+                    strainCache[thread] = 0 ;
+
             } else {
                 size_t blocks = 0 ;
                 for ( size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++ ) {
@@ -1344,9 +1441,15 @@ public:
                 }
 
                 size_t bsize = fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD, spaceDimensions, blocks ) ;
-                if( strainGenViscoCache[thread].size() != bsize ) { strainGenViscoCache[thread].resize ( bsize, 0. ) ; }
-                if( bufferCache[thread].size() != bsize ) { bufferCache[thread].resize ( bsize, 0. ) ; }
-                if( strainRateGenViscoCache[thread].size() != bsize ) { strainRateGenViscoCache[thread].resize ( bsize, 0. ) ; }
+                if( strainGenViscoCache[thread].size() != bsize ) {
+                    strainGenViscoCache[thread].resize ( bsize, 0. ) ;
+                }
+                if( bufferCache[thread].size() != bsize ) {
+                    bufferCache[thread].resize ( bsize, 0. ) ;
+                }
+                if( strainRateGenViscoCache[thread].size() != bsize ) {
+                    strainRateGenViscoCache[thread].resize ( bsize, 0. ) ;
+                }
                 double sumFactors ( 0 ) ;
 
 
@@ -1368,18 +1471,22 @@ public:
                 strainGenViscoCache[thread] /= sumFactors ;
                 strainRateGenViscoCache[thread] /=sumFactors ;
 
-                double sum = 0 ; 
-                if(strainCache[thread].size() != tsize ) { strainCache[thread].resize ( tsize, 0. ); }
-                if(stressCache[thread].size() != tsize ) { stressCache[thread].resize ( tsize, 0. ); }
+                double sum = 0 ;
+                if(strainCache[thread].size() != tsize ) {
+                    strainCache[thread].resize ( tsize, 0. );
+                }
+                if(stressCache[thread].size() != tsize ) {
+                    stressCache[thread].resize ( tsize, 0. );
+                }
                 Viscoelasticity * v = dynamic_cast<Viscoelasticity *>(e->getBehaviour()) ;
                 for ( unsigned int i = 0 ; i < tsize ; i++ ) {
-                     strainCache[thread][i] = strainGenViscoCache[thread][i] ;
-                     if( v->model >= MAXWELL && (f0 == MECHANICAL_STRAIN_FIELD || f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD || f1 == MECHANICAL_STRAIN_FIELD || f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD) )
-                          {
-                              for(size_t j = 1 ; j < strainGenViscoCache[thread].size()/strainCache[thread].size() ; j++)
-                                  strainCache[thread][i] -= strainGenViscoCache[thread][ j*tsize + i ] ;
-                          } 
-                     }
+                    strainCache[thread][i] = strainGenViscoCache[thread][i] ;
+                    if( v->model >= MAXWELL && (f0 == MECHANICAL_STRAIN_FIELD || f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD || f1 == MECHANICAL_STRAIN_FIELD || f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD) )
+                    {
+                        for(size_t j = 1 ; j < strainGenViscoCache[thread].size()/strainCache[thread].size() ; j++)
+                            strainCache[thread][i] -= strainGenViscoCache[thread][ j*tsize + i ] ;
+                    }
+                }
                 Point p ;
                 for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                 {
@@ -1400,23 +1507,53 @@ public:
 
             if ( f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) {
                 firstResultCache[thread].resize ( psize );
-                firstResultCache[thread] = toPrincipal( strainCache[thread]-e->getBehaviour()->getImposedStrain( Point() ), DOUBLE_OFF_DIAGONAL_VALUES ) ;
+
+                Vector istrain( tsize, 0.) ;
+                Point p ;
+                double sum = 0. ;
+                for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                {
+                    if(!restrict.empty()&& restrict.size() == e->getGaussPoints().gaussPoints.size())
+                        if(restrict[j])
+                            continue ;
+                    p.set(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                    istrain += e->getBehaviour()->getImposedStrain( p)*e->getGaussPoints().gaussPoints[j].second ;
+                    sum += e->getGaussPoints().gaussPoints[j].second ;
+                }
+                istrain /= sum ;
+
+                firstResultCache[thread] = toPrincipal( strainCache[thread]-istrain, DOUBLE_OFF_DIAGONAL_VALUES ) ;
             }
             if ( f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) {
                 secondResultCache[thread].resize ( psize );
-                secondResultCache[thread] = toPrincipal ( strainCache[thread]-e->getBehaviour()->getImposedStrain( Point() ) , DOUBLE_OFF_DIAGONAL_VALUES ) ;
+
+                Vector istrain( tsize, 0.) ;
+                Point p ;
+                double sum = 0. ;
+                for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                {
+                    if(!restrict.empty()&& restrict.size() == e->getGaussPoints().gaussPoints.size())
+                        if(restrict[j])
+                            continue ;
+                    p.set(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                    istrain += e->getBehaviour()->getImposedStrain( p)*e->getGaussPoints().gaussPoints[j].second ;
+                    sum += e->getGaussPoints().gaussPoints[j].second ;
+                }
+                istrain /= sum ;
+
+                secondResultCache[thread] = toPrincipal ( strainCache[thread]-istrain , DOUBLE_OFF_DIAGONAL_VALUES ) ;
             }
             if ( f0 == REAL_STRESS_FIELD ) {
                 firstResultCache[thread].resize ( tsize, 0. );
                 if ( !spaceTime ) {
-                    double sum = 0 ; 
+                    double sum = 0 ;
                     Point p ;
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
                         if(!restrict.empty()&& restrict.size() == e->getGaussPoints().gaussPoints.size())
                             if(restrict[j])
                                 continue ;
-                        
+
                         p.set(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
                         firstResultCache[thread] += ((strainCache[thread]-e->getBehaviour()->getImposedStrain( p ))*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
                         sum += e->getGaussPoints().gaussPoints[j].second ;
@@ -1430,7 +1567,7 @@ public:
             if ( f1 == REAL_STRESS_FIELD ) {
                 secondResultCache[thread].resize ( tsize );
                 if ( !spaceTime ) {
-                    double sum = 0 ; 
+                    double sum = 0 ;
                     Point p ;
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
@@ -1449,31 +1586,61 @@ public:
             if ( f0 == EFFECTIVE_STRESS_FIELD ) {
                 firstResultCache[thread].resize ( tsize );
                 if ( !spaceTime ) {
-                    firstResultCache[thread] = (strainCache[thread]-e->getBehaviour()->getImposedStrain( Point() ))*e->getBehaviour()->param ;
+
+                    Vector istrain( tsize, 0.) ;
+                    Point p ;
+                    double sum = 0. ;
+                    for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                    {
+                        if(!restrict.empty()&& restrict.size() == e->getGaussPoints().gaussPoints.size())
+                            if(restrict[j])
+                                continue ;
+                        p.set(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                        istrain += e->getBehaviour()->getImposedStrain( p)*e->getGaussPoints().gaussPoints[j].second ;
+                        sum += e->getGaussPoints().gaussPoints[j].second ;
+                    }
+                    istrain /= sum ;
+
+                    firstResultCache[thread] = (strainCache[thread]-istrain)*e->getBehaviour()->param ;
                 } else {
                     firstResultCache[thread] = stressCache[thread] ;
                 }
             }
             if (f0 == TOTAL_STRAIN_FIELD) {
-	        firstResultCache[thread].resize( tsize ) ;
+                firstResultCache[thread].resize( tsize ) ;
                 firstResultCache[thread] = strainCache[thread] ;
-	    }
-	    if (f1 == TOTAL_STRAIN_FIELD) {
-	        secondResultCache[thread].resize( tsize ) ;
+            }
+            if (f1 == TOTAL_STRAIN_FIELD) {
+                secondResultCache[thread].resize( tsize ) ;
                 secondResultCache[thread] = strainCache[thread] ;
-	    }
+            }
             if(f0 == PRINCIPAL_TOTAL_STRAIN_FIELD) {
-	      firstResultCache[thread].resize ( psize );
-	      firstResultCache[thread] = toPrincipal( strainCache[thread], DOUBLE_OFF_DIAGONAL_VALUES) ;
-	    }
-	    if(f1 == PRINCIPAL_TOTAL_STRAIN_FIELD) {
-	      secondResultCache[thread].resize ( psize );
-	      secondResultCache[thread] = toPrincipal( strainCache[thread], DOUBLE_OFF_DIAGONAL_VALUES) ;
-	    }
+                firstResultCache[thread].resize ( psize );
+                firstResultCache[thread] = toPrincipal( strainCache[thread], DOUBLE_OFF_DIAGONAL_VALUES) ;
+            }
+            if(f1 == PRINCIPAL_TOTAL_STRAIN_FIELD) {
+                secondResultCache[thread].resize ( psize );
+                secondResultCache[thread] = toPrincipal( strainCache[thread], DOUBLE_OFF_DIAGONAL_VALUES) ;
+            }
             if ( f1 == EFFECTIVE_STRESS_FIELD ) {
                 secondResultCache[thread].resize ( tsize );
                 if ( !spaceTime ) {
-                    secondResultCache[thread] = (strainCache[thread]-e->getBehaviour()->getImposedStrain( Point() ))*e->getBehaviour()->param ;
+
+                    Vector istrain( tsize, 0.) ;
+                    Point p ;
+                    double sum = 0. ;
+                    for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                    {
+                        if(!restrict.empty()&& restrict.size() == e->getGaussPoints().gaussPoints.size())
+                            if(restrict[j])
+                                continue ;
+                        p.set(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                        istrain += e->getBehaviour()->getImposedStrain( p)*e->getGaussPoints().gaussPoints[j].second ;
+                        sum += e->getGaussPoints().gaussPoints[j].second ;
+                    }
+                    istrain /= sum ;
+
+                    secondResultCache[thread] = (strainCache[thread]-istrain)*e->getBehaviour()->param ;
                 } else {
                     secondResultCache[thread] = stressCache[thread] ;
                 }
@@ -1481,7 +1648,22 @@ public:
             if ( f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
                 firstResultCache[thread].resize ( psize );
                 if ( !spaceTime ) {
-                    firstResultCache[thread] = toPrincipal ( (strainCache[thread]-e->getBehaviour()->getImposedStrain( Point() ))*e->getBehaviour()->param, SINGLE_OFF_DIAGONAL_VALUES  ) ;
+
+                    Vector istrain( tsize, 0.) ;
+                    Point p ;
+                    double sum = 0. ;
+                    for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                    {
+                        if(!restrict.empty()&& restrict.size() == e->getGaussPoints().gaussPoints.size())
+                            if(restrict[j])
+                                continue ;
+                        p.set(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                        istrain += e->getBehaviour()->getImposedStrain( p)*e->getGaussPoints().gaussPoints[j].second ;
+                        sum += e->getGaussPoints().gaussPoints[j].second ;
+                    }
+                    istrain /= sum ;
+
+                    firstResultCache[thread] = toPrincipal ( (strainCache[thread]-istrain)*e->getBehaviour()->param, SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 } else {
                     firstResultCache[thread] = toPrincipal( stressCache[thread], SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 }
@@ -1489,7 +1671,22 @@ public:
             if ( f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
                 secondResultCache[thread].resize ( psize );
                 if ( !spaceTime ) {
-                    secondResultCache[thread] = toPrincipal( (strainCache[thread]-e->getBehaviour()->getImposedStrain( Point() ))*e->getBehaviour()->param , SINGLE_OFF_DIAGONAL_VALUES ) ;
+
+                    Vector istrain( tsize, 0.) ;
+                    Point p ;
+                    double sum = 0. ;
+                    for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                    {
+                        if(!restrict.empty()&& restrict.size() == e->getGaussPoints().gaussPoints.size())
+                            if(restrict[j])
+                                continue ;
+                        p.set(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                        istrain += e->getBehaviour()->getImposedStrain( p)*e->getGaussPoints().gaussPoints[j].second ;
+                        sum += e->getGaussPoints().gaussPoints[j].second ;
+                    }
+                    istrain /= sum ;
+
+                    secondResultCache[thread] = toPrincipal( (strainCache[thread]-istrain)*e->getBehaviour()->param , SINGLE_OFF_DIAGONAL_VALUES ) ;
                 } else {
                     secondResultCache[thread] = toPrincipal( stressCache[thread], SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 }
@@ -1498,7 +1695,7 @@ public:
                 firstResultCache[thread].resize ( psize );
                 if ( !spaceTime ) {
                     stressCache[thread].resize ( tsize, 0. );
-                    double sum = 0 ; 
+                    double sum = 0 ;
                     Point p ;
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
@@ -1520,7 +1717,7 @@ public:
                 secondResultCache[thread].resize ( psize );
                 if ( !spaceTime ) {
                     stressCache[thread].resize ( tsize, 0. );
-                    double sum = 0 ; 
+                    double sum = 0 ;
                     Point p ;
                     for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
                     {
@@ -1541,12 +1738,42 @@ public:
 
             if ( f0 == MECHANICAL_STRAIN_FIELD ) {
                 firstResultCache[thread].resize( tsize ) ;
-                firstResultCache[thread] = strainCache[thread]-e->getBehaviour()->getImposedStrain( Point() ) ;
+
+                Vector istrain( tsize, 0.) ;
+                Point p ;
+                double sum = 0. ;
+                for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                {
+                    if(!restrict.empty()&& restrict.size() == e->getGaussPoints().gaussPoints.size())
+                        if(restrict[j])
+                            continue ;
+                    p.set(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                    istrain += e->getBehaviour()->getImposedStrain( p)*e->getGaussPoints().gaussPoints[j].second ;
+                    sum += e->getGaussPoints().gaussPoints[j].second ;
+                }
+                istrain /= sum ;
+
+                firstResultCache[thread] = strainCache[thread]-istrain ;
             }
 
             if ( f1 == MECHANICAL_STRAIN_FIELD ) {
                 secondResultCache[thread].resize( tsize ) ;
-                secondResultCache[thread] = strainCache[thread]-e->getBehaviour()->getImposedStrain( Point() ) ;
+
+                Vector istrain( tsize, 0.) ;
+                Point p ;
+                double sum = 0. ;
+                for(size_t j = 0 ; j < e->getGaussPoints().gaussPoints.size() ; j++)
+                {
+                    if(!restrict.empty()&& restrict.size() == e->getGaussPoints().gaussPoints.size())
+                        if(restrict[j])
+                            continue ;
+                    p.set(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
+                    istrain += e->getBehaviour()->getImposedStrain( p)*e->getGaussPoints().gaussPoints[j].second ;
+                    sum += e->getGaussPoints().gaussPoints[j].second ;
+                }
+                istrain /= sum ;
+
+                secondResultCache[thread] = strainCache[thread]-istrain ;
             }
 
         } else {
@@ -1555,8 +1782,8 @@ public:
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
-               if(ci->getBehaviour()->fractured())
-                        continue ;
+                if(ci->getBehaviour()->fractured())
+                    continue ;
                 double v = ci->getState().getAverageField ( f0, bufferCache[thread], &vm, t, coefs[cacheID][i], index0 );
                 if ( !firstResultCache[thread].size() ) {
                     firstResultCache[thread].resize ( 0., bufferCache[thread].size() );
@@ -1566,9 +1793,9 @@ public:
             }
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
-		
+
                 if(ci->getBehaviour()->fractured())
-                        continue ;    
+                    continue ;
                 if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
                     double v = ci->getState().getAverageField ( f1, bufferCache[thread], &vm, t,coefs[cacheID][i], index1 );
                     if ( !secondResultCache[thread].size() ) {
@@ -1596,7 +1823,9 @@ public:
         size_t position ;
 
     public:
-        iterator( Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t cacheID, size_t position) : msh(msh), cacheID(cacheID), position(position) { /*msh->getElements() ;*/ } 
+        iterator( Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t cacheID, size_t position) : msh(msh), cacheID(cacheID), position(position) {
+            /*msh->getElements() ;*/
+        }
         iterator( Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t position) : msh(msh), position(position)
         {
 //             msh->getElements() ;
@@ -1697,16 +1926,16 @@ public:
 
     } ;
 
-    virtual const ETYPE * getElement(size_t cacheID, size_t position) const 
+    virtual const ETYPE * getElement(size_t cacheID, size_t position) const
     {
         return static_cast<const ETYPE *>(getInTree(caches[cacheID][position])) ;
     };
-    
-    virtual  ETYPE * getElement(size_t cacheID, size_t position)  
+
+    virtual  ETYPE * getElement(size_t cacheID, size_t position)
     {
         return static_cast<ETYPE *>(getInTree(caches[cacheID][position])) ;
     };
-    
+
     class const_iterator
     {
     private:
@@ -1816,40 +2045,40 @@ public:
     {
         return iterator(this, 0) ;
     }
-    
+
     const_iterator cbegin() const
     {
         return const_iterator(this, 0) ;
     }
-    
+
     iterator end()
     {
         if(allElementsCacheID == -1)
             allElementsCacheID = generateCache() ;
         return iterator(this,allElementsCacheID, caches[allElementsCacheID].size()) ;
     }
-    
+
     const_iterator cend() const
     {
 
         return const_iterator(this,allElementsCacheID, caches[allElementsCacheID].size()) ;
     }
-    
+
     iterator begin( size_t cacheID)
     {
         return iterator(this, cacheID, 0) ;
     }
-    
+
     const_iterator cbegin(size_t cacheID)
     {
         return const_iterator(this, cacheID, 0) ;
     }
-    
+
     iterator end(size_t cacheID)
     {
         return iterator(this,cacheID, caches[cacheID].size()) ;
     }
-    
+
     const_iterator cend(size_t cacheID)
     {
         return const_iterator(this,cacheID, caches[cacheID].size()) ;
