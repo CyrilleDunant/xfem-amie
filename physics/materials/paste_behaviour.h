@@ -38,7 +38,7 @@ struct PasteBehaviour : public WeibullDistributedStiffness
     double eta10 ;
     double eta300 ;
     //according to "Slow Crack Growth in Cement Paste" Nadeau, Mindess and Hay, ACI 1974, up = 12.7e6
-    PasteBehaviour(bool elastic = false, bool st = false, double E = 12e9, double nu = 0.3,  double up = 12.7e6, double shortTermCreepFactor = 3.6e9, double longTermCreepFactor = 4e9, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, double r = 0.0004, double var = 0.2, int blocks = 0) ;
+    PasteBehaviour(bool elastic = false, bool st = false, double E = 17e9, double nu = 0.3,  double up = 12.7e6, double shortTermCreepFactor = 3.6e9, double longTermCreepFactor = 4e9, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, double r = 0.0004, double var = 0.2, int blocks = 0) ;
 
     virtual Form * getCopy() const ;
 

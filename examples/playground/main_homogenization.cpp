@@ -99,8 +99,8 @@ int main(int argc, char *argv[])
 						{
 							for(size_t iif = 0 ; iif < f_inc.size() ; iif++)
 							{
-								StiffnessWithImposedDeformation matrixBehaviour( E_mat[imE], nu_mat[imn], a_mat[ima], d3 ) ;
-								StiffnessWithImposedDeformation inclusionBehaviour( E_inc[iiE], nu_inc[iin], a_inc[iia], d3 ) ;
+								                        StiffnessWithImposedStrain matrixBehaviour( E_mat[imE], nu_mat[imn], a_mat[ima], d3 ) ;
+								                        StiffnessWithImposedStrain inclusionBehaviour( E_inc[iiE], nu_inc[iin], a_inc[iia], d3 ) ;
 								Phase matrix( &matrixBehaviour, 1.-f_inc[iif] ) ;
 								Phase inclusion( &inclusionBehaviour, f_inc[iif] ) ;
 

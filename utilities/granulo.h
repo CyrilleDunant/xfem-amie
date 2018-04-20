@@ -239,7 +239,7 @@ public:
 	 * @param n number of generated zones
 	 * @param max maximum number of kept zones
 	 */
-	static std::vector<std::pair<ExpansiveZone *, Inclusion *> > get2DExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> aggregates, StiffnessWithImposedDeformation * behaviour, double radius, size_t n, size_t max, int maxPerAgg = -1) ;
+	static std::vector<std::pair<ExpansiveZone *, Inclusion *> > get2DExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> aggregates, StiffnessWithImposedStrain * behaviour, double radius, size_t n, size_t max, int maxPerAgg = -1) ;
 
 	static std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion *> > get2DGrowingExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> aggregates, ViscoelasticityAndImposedDeformation * behaviour, Function radius, double rmax, size_t n, size_t max, int maxPerAgg = -1) ;
 

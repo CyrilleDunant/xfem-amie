@@ -33,7 +33,7 @@ namespace Amie
     @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
     @string<IsotropicMaterialParameters>[material_parameters] YOUNG_POISSON // describes how to build the stiffness matrix
 */
-struct StiffnessWithImposedDeformation : public LinearForm
+struct StiffnessWithImposedStrain : public LinearForm
 {
     std::vector<Variable> v ;
     Vector imposed ;
@@ -44,11 +44,11 @@ struct StiffnessWithImposedDeformation : public LinearForm
     * @param rig Complete expression of the Cauchy-Green Strain Tensor
     * @param imposedDef Imposed deformation
     */
-    StiffnessWithImposedDeformation(const Matrix & rig, const Vector & imposedDef) ;
+    StiffnessWithImposedStrain(const Matrix & rig, const Vector & imposedDef) ;
 
-    StiffnessWithImposedDeformation(double E, double nu, double alpha, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, IsotropicMaterialParameters hooke = YOUNG_POISSON) ;
+    StiffnessWithImposedStrain(double E, double nu, double alpha, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, IsotropicMaterialParameters hooke = YOUNG_POISSON) ;
 
-    virtual ~StiffnessWithImposedDeformation() ;
+    virtual ~StiffnessWithImposedStrain() ;
 
     /** Apply the law.
     * @param p_i first basis polynomial.

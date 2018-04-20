@@ -609,29 +609,29 @@ public:
                         double a = (element->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
                         if(source)
                         {
-                            Function x = element->getXTransform() ;
-                            Function y = element->getYTransform() ;
-                            Function z = element->getZTransform() ;
+
                             GaussPointArray gp = element->getGaussPoints() ;
-
-
-                            for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
-                                double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
-                                double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
-                                double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
-
-                                coefs[position].back().push_back ( std::max(vm.eval ( smoothing, xx, xy, xz, 0. )*a/gp.gaussPoints.size(), 0.) );
-                            }
 
                             if(gp.gaussPoints.size() == 1)
                             {
-                                coefs[position].back().back() = 0 ;
+                                coefs[position].back().push_back(0) ;
                                 for(size_t i = 0 ; i <  element->getBoundingPoints().size() ; i++)
                                     coefs[position].back().back() +=  std::max(vm.eval ( smoothing, element->getBoundingPoint(i).x,  element->getBoundingPoint(i).y,  element->getBoundingPoint(i).z, 0. )*a , 0.);
                                 coefs[position].back().back() /= element->getBoundingPoints().size() ;
                             }
-                            
-//                             std::cout << element->getCenter().x << "  " << element->getCenter().y << "  " << coefs[position].back().back() << std::endl ;
+                            else
+                            {
+                                Function x = element->getXTransform() ;
+                                Function y = element->getYTransform() ;
+                                Function z = element->getZTransform() ;
+                                for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
+                                    double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
+                                    double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
+                                    double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
+
+                                    coefs[position].back().push_back ( std::max(vm.eval ( smoothing, xx, xy, xz, 0. )*a/gp.gaussPoints.size(), 0.) );
+                                }
+                            }                            
                         }
                         else
                         {
@@ -642,6 +642,15 @@ public:
                             }
                         }
                     }
+                    
+                    double tot = 0 ;
+                    for(size_t j = 0 ;  j < coefs[position].back().size() ; j++)
+                        tot += coefs[position].back()[j] ;
+                    if(tot < POINT_TOLERANCE*POINT_TOLERANCE && !coefs[position].back().empty() )
+                    {
+                        caches[position].pop_back() ;
+                        coefs[position].pop_back() ;
+                    } 
                 }
             }
         }
@@ -690,39 +699,69 @@ public:
                 }
                 else
                 {
-                    Function x = element->getXTransform() ;
-                    Function y = element->getYTransform() ;
-                    Function z = element->getZTransform() ;
+
                     GaussPointArray gp = element->getGaussPoints() ;
                     double a = (element->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ?element->area() : element->volume() ;
 
-                    for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
-                        double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
-                        double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
-                        double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
-
-                        if(element->getBehaviour()->fractured())
-                            coefs[position][iter].push_back ( std::max(vm.eval ( smoothing, xx, xy, xz, 0. )*a/gp.gaussPoints.size(), 0.) );
-                        else
-                            coefs[position][iter].push_back ( 0. );
-                    }
-
                     if(gp.gaussPoints.size() == 1)
                     {
-                        coefs[position][iter].back() = 0 ;
+                        coefs[position][iter].clear() ;
+                        coefs[position][iter].push_back(0) ;
                         for(size_t i = 0 ; i <  element->getBoundingPoints().size() ; i++)
                             coefs[position][iter].back() +=  std::max(vm.eval ( smoothing, element->getBoundingPoint(i).x,  element->getBoundingPoint(i).y,  element->getBoundingPoint(i).z, 0. )*a, 0.) ;
                         coefs[position][iter].back() /= element->getBoundingPoints().size() ;
                     }
+                    else
+                    {
+                        Function x = element->getXTransform() ;
+                        Function y = element->getYTransform() ;
+                        Function z = element->getZTransform() ;
+                        for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
+                            double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
+                            double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
+                            double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
 
+                            if(element->getBehaviour()->fractured())
+                                coefs[position][iter].push_back ( std::max(vm.eval ( smoothing, xx, xy, xz, 0. )*a/gp.gaussPoints.size(), 0.) );
+                            else
+                                coefs[position][iter].push_back ( 0. );
+                        }
+                    }
                 }
-                iter++ ;
+                
+//                 double tot = 0 ;
+//                 for(size_t j = 0 ;  j < coefs[position].back().size() ; j++)
+//                     tot += coefs[position].back()[j] ;
+//                 if(tot < POINT_TOLERANCE && !coefs[position].back().empty())
+//                 {
+//                     caches[position].pop_back() ;
+//                     coefs[position].pop_back() ;
+//                 }
+//                 else
+//                 {
+                    iter++ ;
+//                 }
+                
             }
 
             double tot = 0 ;
-            for(size_t i = 0 ;  i < coefs[position].size() ; i++)
+            for(int i = 0 ;  i < (int)coefs[position].size() ; i++)
+            {
+                double tmptot = 0 ;
                 for(size_t j = 0 ;  j < coefs[position][i].size() ; j++)
-                    tot += coefs[position][i][j] ;
+                    tmptot += coefs[position][i][j] ;
+                
+                if(tmptot < POINT_TOLERANCE*POINT_TOLERANCE && !caches[position].empty())
+                {
+                    caches[position].pop_back() ;
+                    coefs[position].pop_back() ;
+                    tot = 0 ;
+                    i = -1 ;
+                }
+                else
+                    tot += tmptot ; 
+                
+            }
             for(size_t i = 0 ;  i < coefs[position].size() ; i++)
                 for(size_t j = 0 ;  j < coefs[position][i].size() ; j++)
                     coefs[position][i][j] /= tot ;

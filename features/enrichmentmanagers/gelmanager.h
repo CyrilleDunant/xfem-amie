@@ -22,16 +22,17 @@ namespace Amie
     class GelManager : public EnrichmentManager
     {
     protected:
+        double steps = 0 ;
+        double totalSteps = 100 ;
         std::vector<std::pair<ExpansiveZone *, Feature *> > zones ;
-        int iterationCounter ;
         double deltaRadius ;
         double reactedArea ;
         double aggregateArea ;
         double reactiveFraction ;
         FeatureTree * ftree ;
     public:
-            GelManager(FeatureTree * ftree, double zonedensity, const std::vector<Feature *> & aggregates, double reactiveFraction = 0.1, double deltaRadius = -1, double initalRadius = 0.000000001) ;
-            GelManager( FeatureTree * f, InclusionFamily * zones, double reactiveFraction = 0.1, double deltaRadius = -1) ;
+            GelManager(FeatureTree * ftree, double zonedensity, const std::vector<Feature *> & aggregates, double reactiveFraction = 0.03) ;
+            GelManager( FeatureTree * f, InclusionFamily * zones, double reactiveFraction = 0.03) ;
             GelManager(FeatureTree * f) ;
               
             virtual bool step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) ;

@@ -9,9 +9,9 @@ GelManager::GelManager(FeatureTree * f) : deltaRadius(0), reactedArea(0), aggreg
 
 }
 
-GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vector<Feature *> & aggregates,double reactiveFraction, double dr, double initialRadius) :deltaRadius(dr), reactedArea(0),aggregateArea(0), reactiveFraction(reactiveFraction), ftree(ftree)
+GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vector<Feature *> & aggregates,double reactiveFraction) :deltaRadius(1e-5), reactedArea(0),aggregateArea(0), reactiveFraction(reactiveFraction), ftree(ftree)
 {
-    iterationCounter = 0 ;
+    double initialRadius = 1e-14 ;
     if(aggregates.empty())
         return ;
     double xmin = aggregates[0]->getCenter().getX()-aggregates[0]->getRadius() ;
@@ -110,7 +110,7 @@ GelManager::GelManager(FeatureTree * ftree, double zonedensity, const std::vecto
         zones[z].first->setRadius( deltaRadius*4 ) ;
 }
 
-GelManager::GelManager( FeatureTree * f, InclusionFamily * inc, double rf, double dr)  : deltaRadius(dr), reactedArea(0), aggregateArea(0), reactiveFraction(rf), ftree(f)
+GelManager::GelManager( FeatureTree * f, InclusionFamily * inc, double rf)  : deltaRadius(1e-5), reactedArea(0), aggregateArea(0), reactiveFraction(rf), ftree(f)
 {
     aggregateArea = 0 ;
     reactedArea = 0 ;
@@ -147,6 +147,60 @@ bool GelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTre
 {
     if(dt < POINT_TOLERANCE)
         return false ;
+    
+    
+    steps++ ;
+    
+    double targetArea = aggregateArea*reactiveFraction*steps/totalSteps ;
+    
+    double minArea = 0 ;
+    for( size_t z = 0 ; z < zones.size() ; z++ )
+    {
+        minArea += zones[z].first->area() ;
+    }
+    double mindr = 0 ;
+    double maxdr = deltaRadius ;
+    
+    double maxArea = 0 ;
+    for( size_t z = 0 ; z < zones.size() ; z++ )
+    {
+        maxArea += M_PI*(zones[z].first->getRadius()+maxdr)*(zones[z].first->getRadius()+maxdr) ;
+    }
+    while(maxArea < targetArea)
+    {
+        maxdr *= 1.5 ;
+        for( size_t z = 0 ; z < zones.size() ; z++ )
+        {
+            maxArea += M_PI*(zones[z].first->getRadius()+maxdr)*(zones[z].first->getRadius()+maxdr) ;
+        }
+    }
+    double dr = 0 ;
+    while(maxdr-mindr > 1e-12)
+    {
+        minArea = 0 ;
+        for( size_t z = 0 ; z < zones.size() ; z++ )
+        {
+            minArea +=  M_PI*(zones[z].first->getRadius()+mindr)*(zones[z].first->getRadius()+mindr) ;
+        }
+        maxArea = 0 ;
+        for( size_t z = 0 ; z < zones.size() ; z++ )
+        {
+            maxArea += M_PI*(zones[z].first->getRadius()+maxdr)*(zones[z].first->getRadius()+maxdr) ;
+        }
+        dr = (maxdr+mindr)*.5 ;
+        double currentArea = 0 ;
+        for( size_t z = 0 ; z < zones.size() ; z++ )
+        {
+            currentArea += M_PI*(zones[z].first->getRadius()+dr)*(zones[z].first->getRadius()+dr) ;
+        }
+        
+        if(currentArea > targetArea)
+            maxdr = dr ;
+        else
+            mindr = dr ;
+    }
+    deltaRadius = dr ;
+    
     
     Feature *current = nullptr ;
 
@@ -214,7 +268,7 @@ void GelManager::setDeltaRadius(double dr)
     deltaRadius = dr ;
 }
 
-FunctionBasedGelManager::FunctionBasedGelManager( FeatureTree * f, InclusionFamily * inc, std::string function, double rf) : GelManager(f, inc, rf, -1), radius(function)
+FunctionBasedGelManager::FunctionBasedGelManager( FeatureTree * f, InclusionFamily * inc, std::string function, double rf) : GelManager(f, inc, rf), radius(function)
 {
     reactiveFraction = rf ;
     aggregateArea = 0 ;
@@ -249,7 +303,7 @@ bool FunctionBasedGelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle
     return GelManager::step( dt, v, dtree ) ;
 }
 
-SpaceTimeGelManager::SpaceTimeGelManager( FeatureTree * f, InclusionFamily * inc, std::string r, double rf)  : GelManager(f, inc, rf, -1)
+SpaceTimeGelManager::SpaceTimeGelManager( FeatureTree * f, InclusionFamily * inc, std::string r, double rf)  : GelManager(f, inc, rf)
 {
     Function radius(r) ;
 

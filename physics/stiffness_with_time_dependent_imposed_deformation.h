@@ -25,7 +25,7 @@ namespace Amie
 	* The field param is the Cauchy-Green Strain Tensor
 	* The imposed deformation are given as a vector
 	*/
-	struct StiffnessWithTimeDependentImposedDeformation : public StiffnessWithImposedDeformation
+	struct StiffnessWithTimeDependentImposedDeformation : public StiffnessWithImposedStrain
 	{
 		std::vector<Variable> v ;
 		Vector imposed ;

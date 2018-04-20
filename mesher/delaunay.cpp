@@ -2927,8 +2927,8 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 Function x = tri[i]->getXTransform() ;
                 Function y = tri[i]->getYTransform() ;
                                
-//                 GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
-                 GaussPointArray gp_temp = monteCarloGaussPoints(512, tri[i]) ;
+                GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
+//                  GaussPointArray gp_temp = monteCarloGaussPoints(512, tri[i]) ;
 
                 for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
                 {
@@ -2937,7 +2937,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                     parentArea += gp_temp.gaussPoints[j].second ;
                 }
             }
-            if(tri.size() < 3 || std::abs(parentArea - 0.5) > 1e-4)
+            if(tri.size() < 3 || std::abs(parentArea - 0.5) > 1e-6)
             {
                 if(getCachedGaussPoints() && getCachedGaussPoints()->regularGrid)
                     return *getCachedGaussPoints() ;

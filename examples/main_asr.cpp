@@ -268,7 +268,7 @@ int main( int argc, char *argv[] )
         std::cout << "placed area = " <<  placed_area << std::endl ;
     }
 
-    gelManager = new GelManager(&F, nzones/baseGeometry.area(), feats, 0.5, 1e-5) ;
+    gelManager = new GelManager(&F, nzones/baseGeometry.area(), feats, 0.03) ;
     F.addManager(gelManager) ;
     F.setSamplingNumber( 60 ) ;
 

@@ -74,7 +74,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
     //first we get All the triangles affected
     std::vector<DelaunayTriangle *> & disc = EnrichmentInclusion::cache ;//dtree->getConflictingElements(getPrimitive()) ;
 
-    if( disc.size() == 1 )
+    if( disc.size() <= thresholdCacheSize )
     {
         homogeneized = true ;
         return ;
@@ -96,11 +96,6 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 
     for( size_t i = 0 ; i < ring.size() ; i++ )
     {
-	//for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
-	//{
-	//	if(!dynamic_cast<BimaterialInterface *>(ring[i]->getNeighbourhood(j)->getBehaviour()) &&ring[i]->getNeighbourhood(j)->getBehaviour()->getDamageModel() )
-	//		ring[i]->getNeighbourhood(j)->getBehaviour()->getDamageModel()->setResidualStiffnessFraction(.3) ;
-	//}
 
         if( bimateralInterfaced.find( ring[i] ) == bimateralInterfaced.end() )
         {            
@@ -117,8 +112,6 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
             else
             {
                 Form * selfBehaviour = getBehaviour()->getCopy() ;
-//                 if(ring[i]->getBehaviour()->getDamageModel())
-//                     selfBehaviour->param *= 1.-ring[i]->getBehaviour()->getDamageModel()->getState().max() ;
                 bi = new BimaterialInterface( getPrimitive(),
                                               selfBehaviour,
                                               ring[i]->getBehaviour()->getCopy() ) ;
@@ -131,14 +124,11 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
             bi->transform( ring[i] ) ;
             bi->setSource( src );
         }
-//         else if(ring[i]->getBehaviour()->getDamageModel())
+
+//         if(ring[i]->getBehaviour()->getFractureCriterion())
 //         {
-//             dynamic_cast<BimaterialInterface *> (ring[i]->getBehaviour())->inBehaviour->param = getBehaviour()->param*(1.-ring[i]->getBehaviour()->getDamageModel()->getState().max()) ;
+//             ring[i]->getBehaviour()->getFractureCriterion()->setRestriction(getPrimitive(),ring[i]->getState()) ;
 //         }
-        if(ring[i]->getBehaviour()->getFractureCriterion())
-        {
-                ring[i]->getBehaviour()->getFractureCriterion()->setRestriction(getPrimitive(),ring[i]->getState()) ;
-        }
 
 
         newInterface.insert( ring[i] ) ;
@@ -207,7 +197,7 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
     std::vector<DelaunayTriangle *> ring ;
     std::vector<DelaunayTriangle *> inDisc ;
 
-    if( disc.size() < 2 )
+    if( disc.size() < 4 )
         return ;
 
 
@@ -228,9 +218,10 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
             BimaterialInterface * bi = new BimaterialInterface( getPrimitive(),
                     inclusionBehaviour->getCopy(),
                     ring[i]->getBehaviour()->getCopy()) ;
+            bi->setSource( ring[i]->getBehaviour()->getSource() );
             ring[i]->setBehaviour(dtree, bi) ;
             bi->transform( ring[i] ) ;
-            bi->setSource( getPrimitive() );
+            
         }
 
         newInterface.insert( ring[i] ) ;
@@ -251,7 +242,7 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
 
     internal = newExpansive ;
 
-    if( disc.size() == 1 )
+    if( disc.size() <= thresholdCacheSize )
     {
         if( bimateralInterfaced.find( disc[0] ) == bimateralInterfaced.end() )
         {
@@ -259,6 +250,7 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
                     inclusionBehaviour->getCopy(),
                     disc[0]->getBehaviour()->getCopy()
                                                               ) ;
+            bi->setSource( disc[0]->getBehaviour()->getSource() );                                                  
             disc[0]->setBehaviour(dtree, bi) ;
             disc[0]->getBehaviour()->transform( disc[0]) ;
         }

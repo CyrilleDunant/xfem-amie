@@ -927,7 +927,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     {
         getField( TOTAL_STRAIN_FIELD, *p_, ret, true, vm) ;
         if(parent->getBehaviour() && parent->getBehaviour()->hasInducedForces())
-            ret -= parent->getBehaviour()->getImposedStrain(*p_) ;
+            ret -= parent->getBehaviour()->getImposedStrain(*p_, parent) ;
         if ( cleanup )
         {
             delete vm ;
@@ -1197,7 +1197,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     case PRINCIPAL_TOTAL_STRAIN_FIELD:
     {
         Vector strains ( 0.,(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ? 6 : 3 ) ;
-        getField ( MECHANICAL_STRAIN_FIELD, *p_, strains, true,vm ) ;
+        getField ( TOTAL_STRAIN_FIELD, *p_, strains, true,vm ) ;
 
         ret = toPrincipal ( strains, DOUBLE_OFF_DIAGONAL_VALUES  ) ;
         if ( cleanup )

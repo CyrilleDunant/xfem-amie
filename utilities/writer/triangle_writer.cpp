@@ -1102,11 +1102,12 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
         case TWFT_PRINCIPAL_ANGLE:
         {
             Vector v(0., 1) ;
-            tri->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, *tri->first, v, false , 0) ;
+            VirtualMachine vm ;
+            tri->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, *tri->first, v, false , &vm) ;
             ret[2] = 180.*v[0]/M_PI ;
-            tri->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, *tri->second, v, false, 0 ) ;
+            tri->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, *tri->second, v, false, &vm ) ;
             ret[1] = 180.*v[0]/M_PI ;
-            tri->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, *tri->third, v, false , 0) ;
+            tri->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, *tri->third, v, false , &vm) ;
             ret[0] = 180.*v[0]/M_PI ;
 
             found = true ;
@@ -1292,13 +1293,14 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
         case TWFT_PRINCIPAL_STRESS:
         {
             Vector v(0., 2) ;
-            tri->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, *tri->first, v, false, 0) ;
+            VirtualMachine vm ;
+            tri->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, *tri->first, v, false, &vm) ;
             ret[5] = v[1] ;
             ret[2] = v[0] ;
-            tri->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, *tri->second, v, false, 0) ;
+            tri->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, *tri->second, v, false, &vm) ;
             ret[4] = v[1] ;
             ret[1] = v[0] ;
-            tri->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, *tri->third, v, false, 0) ;
+            tri->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, *tri->third, v, false, &vm) ;
             ret[3] = v[1] ;
             ret[0] = v[0] ;
             found = true ;
@@ -1307,13 +1309,14 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
         case TWFT_PRINCIPAL_STRAIN:
         {
             Vector v(0., 2) ;
-            tri->getState().getField( PRINCIPAL_TOTAL_STRAIN_FIELD, *tri->first, v, false, 0) ;
+            VirtualMachine vm ;
+            tri->getState().getField( PRINCIPAL_TOTAL_STRAIN_FIELD, *tri->first, v, false, &vm) ;
             ret[5] = v[1] ;
             ret[2] = v[0] ;
-            tri->getState().getField( PRINCIPAL_TOTAL_STRAIN_FIELD, *tri->second, v, false, 0) ;
+            tri->getState().getField( PRINCIPAL_TOTAL_STRAIN_FIELD, *tri->second, v, false, &vm) ;
             ret[4] = v[1] ;
             ret[1] = v[0] ;
-            tri->getState().getField( PRINCIPAL_TOTAL_STRAIN_FIELD, *tri->third, v, false, 0) ;
+            tri->getState().getField( PRINCIPAL_TOTAL_STRAIN_FIELD, *tri->third, v, false, &vm) ;
             ret[3] = v[1] ;
             ret[0] = v[0] ;
             found = true ;
@@ -1433,7 +1436,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
         case TWFT_VON_MISES:
         {
             Vector v(0., 1) ;
-            tri->getState().getField( VON_MISES_REAL_STRESS_FIELD, *tri->first, v, false , 0) ;
+            tri->getState().getField( VON_MISES_REAL_STRESS_FIELD, *tri->first, v, false ) ;
             ret[2] = ret[1] = ret[0] = v[0] ;
             found = true ;
             break ;

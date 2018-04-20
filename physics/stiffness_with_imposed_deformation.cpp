@@ -15,7 +15,7 @@
 
 namespace Amie {
 
-StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(const Matrix & rig, const Vector & imposedDef) : LinearForm(rig, false, false, rig.numRows()/3+1) , imposed(imposedDef)
+StiffnessWithImposedStrain::StiffnessWithImposedStrain(const Matrix & rig, const Vector & imposedDef) : LinearForm(rig, false, false, rig.numRows()/3+1) , imposed(imposedDef)
 {
     v.push_back(XI) ;
     v.push_back(ETA) ;
@@ -24,7 +24,7 @@ StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(const Matrix & 
     this->time_d = false ;
 }
 
-StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(double E, double nu, double alpha, SpaceDimensionality dim, planeType pt, IsotropicMaterialParameters hooke) : LinearForm(Tensor::cauchyGreen(E, nu,dim, pt, hooke), false, false, dim),v(2)
+StiffnessWithImposedStrain::StiffnessWithImposedStrain(double E, double nu, double alpha, SpaceDimensionality dim, planeType pt, IsotropicMaterialParameters hooke) : LinearForm(Tensor::cauchyGreen(E, nu,dim, pt, hooke), false, false, dim),v(2)
 {
     v.push_back(XI) ;
     v.push_back(ETA) ;
@@ -47,40 +47,40 @@ StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(double E, doubl
     this->time_d = false ;
 }
 
-StiffnessWithImposedDeformation::~StiffnessWithImposedDeformation() { }
+StiffnessWithImposedStrain::~StiffnessWithImposedStrain() { }
 
-void StiffnessWithImposedDeformation::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
+void StiffnessWithImposedStrain::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
     vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v,ret) ;
 }
 
-bool StiffnessWithImposedDeformation::fractured() const
+bool StiffnessWithImposedStrain::fractured() const
 {
     return false ;
 }
 
-Form * StiffnessWithImposedDeformation::getCopy() const
+Form * StiffnessWithImposedStrain::getCopy() const
 {
-    StiffnessWithImposedDeformation * copy = new StiffnessWithImposedDeformation(param, imposed) ;
+    StiffnessWithImposedStrain * copy = new StiffnessWithImposedStrain(param, imposed) ;
 
     return copy ;
 }
 
-void StiffnessWithImposedDeformation::step(double timestep, ElementState & currentState, double maxscore)
+void StiffnessWithImposedStrain::step(double timestep, ElementState & currentState, double maxscore)
 {
 }
 
-Vector StiffnessWithImposedDeformation::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
+Vector StiffnessWithImposedStrain::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
     return imposed*0. ;
 }
 
-Vector StiffnessWithImposedDeformation::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
+Vector StiffnessWithImposedStrain::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
     return imposed ;
 }
 
-std::vector<BoundaryCondition * > StiffnessWithImposedDeformation::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+std::vector<BoundaryCondition * > StiffnessWithImposedStrain::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
     std::vector<BoundaryCondition * > ret ;
     if(v.size() == 2)

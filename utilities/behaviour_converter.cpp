@@ -133,7 +133,7 @@ bool BehaviourConverter::toSpaceTimeBehaviour( Feature * f, int maxBlocks )
 
      // generic elastic with imposed deformation behaviour
      // attempt space-time conversion
-     else if(dynamic_cast<StiffnessWithImposedDeformation *>(behaviour))
+     else if(dynamic_cast<StiffnessWithImposedStrain *>(behaviour))
      {
          Vector v = behaviour->getImposedStrain( p ) ;
          f->setBehaviour( new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, behaviour->getTensor( p ), v, maxBlocks-1 ) ) ;

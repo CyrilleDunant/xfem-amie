@@ -13,15 +13,15 @@ namespace Amie {
 
 ExpansiveZone3D::ExpansiveZone3D(Feature *father, double radius, double x, double y, double z, const Matrix & tensor, Vector def) : EnrichmentInclusion3D(father, radius, x, y, z),  imposedDef(def),cgTensor(tensor)
 {
-    setBehaviour(new StiffnessWithImposedDeformation(tensor, def)) ;
+    setBehaviour(new StiffnessWithImposedStrain(tensor, def)) ;
 }
 
-ExpansiveZone3D::ExpansiveZone3D(Feature *father, double radius, double x, double y, double z, StiffnessWithImposedStress * exp) : EnrichmentInclusion3D(father, radius, x, y, z)
+ExpansiveZone3D::ExpansiveZone3D(Feature *father, double radius, double x, double y, double z, StiffnessWithImposedStrain * exp) : EnrichmentInclusion3D(father, radius, x, y, z)
 {
     imposedDef.resize(6) ;
     imposedDef = exp->imposed ;
     cgTensor = exp->getTensor(Point(0,0,0,0)) ;
-    setBehaviour(new StiffnessWithImposedDeformation(cgTensor, imposedDef)) ;
+    setBehaviour(new StiffnessWithImposedStrain(cgTensor, imposedDef)) ;
 }
 
 
@@ -37,7 +37,7 @@ void ExpansiveZone3D::reset()
 
 void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* dtree)
 {
-    setBehaviour( new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ) ;
+    setBehaviour( new StiffnessWithImposedStrain( cgTensor, imposedDef ) ) ;
     EnrichmentInclusion3D::enrich(lastId, dtree) ;
     //first we get All the triangles affected
     std::vector<DelaunayTetrahedron *> & disc = EnrichmentInclusion3D::cache ;
@@ -64,14 +64,14 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
             if( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() ) )
             {
                 bi = new BimaterialInterface( getPrimitive(),
-                                              new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
+                                              new StiffnessWithImposedStrain( cgTensor, imposedDef ),
                                               dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->original->getCopy()
                                             ) ;
             }
             else
             {
                 bi = new BimaterialInterface( getPrimitive(),
-                                              new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
+                                              new StiffnessWithImposedStrain( cgTensor, imposedDef ),
                                               ring[i]->getBehaviour()->getCopy() ) ;
             }
 
@@ -90,7 +90,7 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
     {
         if( expansive.find( inDisc[i] ) == expansive.end() )
         {
-            StiffnessWithImposedDeformation * bi = new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ;
+            StiffnessWithImposedStrain * bi = new StiffnessWithImposedStrain( cgTensor, imposedDef ) ;
 //             delete inDisc[i]->getBehaviour() ;
             inDisc[i]->setBehaviour(dtree, bi ) ;
             inDisc[i]->getBehaviour()->setSource( getPrimitive() );

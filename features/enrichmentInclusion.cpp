@@ -232,21 +232,20 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
     updated = false ;
     std::vector<DelaunayTriangle *> & disc  = cache;
 
-    if(disc.size() < 4)
+    if(disc.size() <= thresholdCacheSize)
     {
-        DelaunayTriangle * toHomogenise = disc[0];
+        for(size_t i = 0 ; i < disc.size() ; i++)
+        {
+            DelaunayTriangle * toHomogenise = disc[i];
 
-        disc.clear() ;
-        disc.push_back(toHomogenise) ;
-        cache = disc ;
-        
-        std::vector< Feature *> feat ;
-        feat.push_back(this) ;
+            std::vector< Feature *> feat ;
+            feat.push_back(this) ;
 
-        HomogeneisedBehaviour * hom2 = new HomogeneisedBehaviour(feat, toHomogenise) ;
-        toHomogenise->setBehaviour(dtree,hom2) ;
-        toHomogenise->getBehaviour()->setSource(getPrimitive()) ;
-        toHomogenise->behaviourUpdated = true ;
+            HomogeneisedBehaviour * hom2 = new HomogeneisedBehaviour(feat, toHomogenise) ;
+            toHomogenise->setBehaviour(dtree,hom2) ;
+            toHomogenise->getBehaviour()->setSource(getPrimitive()) ;
+            toHomogenise->behaviourUpdated = true ;
+        }
 
         return ;
     }

@@ -754,7 +754,7 @@ std::vector<Inclusion *> PSDGenerator::get2DMortar(FeatureTree * F, Form * behav
     return inc ;
 }
 
-std::vector<std::pair<ExpansiveZone *, Inclusion *> > PSDGenerator::get2DExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> incs, StiffnessWithImposedDeformation * behaviour, double radius, size_t n, size_t max, int maxPerAgg)
+std::vector<std::pair<ExpansiveZone *, Inclusion *> > PSDGenerator::get2DExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> incs, StiffnessWithImposedStrain * behaviour, double radius, size_t n, size_t max, int maxPerAgg)
 {
     Feature * box = F->getFeature(0) ;
     Sample * sample = dynamic_cast<Sample *>(box) ;

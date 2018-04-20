@@ -39,7 +39,7 @@ int main( int argc, char *argv[] )
     box.setBehaviour( new Stiffness(C) ) ;
 
     FeatureTree F(&box) ;
-    ExpansiveZone * exp = new ExpansiveZone( &box, 0.02, 0,0, new StiffnessWithImposedDeformation( C*2, v ) ) ;
+    ExpansiveZone * exp = new ExpansiveZone( &box, 0.02, 0,0, new StiffnessWithImposedStrain( C*2, v ) ) ;
 //    Inclusion * iexp = new Inclusion( &box, 0.02, 0,0) ; iexp->setBehaviour(new StiffnessWithImposedDeformation( C*2, v ) ) ;
     F.addFeature(&box, exp) ;
 

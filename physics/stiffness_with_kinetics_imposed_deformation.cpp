@@ -15,7 +15,7 @@
 
 namespace Amie {
 
-StiffnessWithKineticsImposedDeformation::StiffnessWithKineticsImposedDeformation(const Matrix & rig, Vector imposedDef, Function k) : StiffnessWithImposedDeformation(rig, imposedDef), kinetics(k)
+StiffnessWithKineticsImposedDeformation::StiffnessWithKineticsImposedDeformation(const Matrix & rig, Vector imposedDef, Function k) : StiffnessWithImposedStrain(rig, imposedDef), kinetics(k)
 {
     v.push_back(XI);
     v.push_back(ETA);

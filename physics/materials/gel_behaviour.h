@@ -24,7 +24,7 @@ namespace Amie
     @string<planeType>[plane_type] PLANE_STRESS // 2D hypothesis (plane strain or plane stress)
     @value[blocks] 0 // additional ghost blocks for viscoelastic simulations 
  */
-struct GelBehaviour : public StiffnessWithImposedDeformation
+struct GelBehaviour : public StiffnessWithImposedStrain
 {
     bool spaceTime ;
     int freeblocks ;
@@ -38,7 +38,7 @@ struct GelBehaviour : public StiffnessWithImposedDeformation
     // Moon et al. values are 25 (0.35) GPa "Determination of the elastic properties of amorphous materials: Case study of alkali–silica reaction gel"
     // Chuanlin Hu, Bishnu P. Gautam, Daman K. Panesar, values are 25.7 (+/-7.2) "Nano-mechanical properties of alkali-silica reaction (ASR) productsin concrete measured by nano-indentation"
 
-    GelBehaviour(bool st=false, double E=20e9, double nu=0.35, double alpha= 0.069, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, int blocks = 0) ;
+    GelBehaviour(bool st=false, double E=20e9, double nu=0.35, double alpha= 0.0685, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, int blocks = 0) ;
 
     Form * getCopy() const ;
 } ;

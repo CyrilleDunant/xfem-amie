@@ -12,7 +12,7 @@
 namespace Amie
 {
 
-struct StiffnessWithImposedDeformation ;
+struct StiffnessWithImposedStrain ;
 
 /** \brief Expansive zone.
  *

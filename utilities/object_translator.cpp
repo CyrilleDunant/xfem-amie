@@ -291,7 +291,7 @@ namespace Amie
             if( strings.find("dimension") == strings.end() ) { strings["dimension"] = "SPACE_TWO_DIMENSIONAL" ; } ; 
             if( strings.find("plane_type") == strings.end() ) { strings["plane_type"] = "PLANE_STRESS" ; } ; 
             if( strings.find("material_parameters") == strings.end() ) { strings["material_parameters"] = "YOUNG_POISSON" ; } ; 
-            return new StiffnessWithImposedDeformation(values["young_modulus"], values["poisson_ratio"], values["imposed_deformation"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"]), Enum::getIsotropicMaterialParameters(strings["material_parameters"])) ;
+            return new StiffnessWithImposedStrain(values["young_modulus"], values["poisson_ratio"], values["imposed_deformation"], Enum::getSpaceDimensionality(strings["dimension"]), Enum::getplaneType(strings["plane_type"]), Enum::getIsotropicMaterialParameters(strings["material_parameters"])) ;
         }
    
         // parsed from header file: ../physics/stiffness_with_imposed_stress.h
@@ -1098,8 +1098,7 @@ namespace Amie
         if( type == "Gel" )
         { 
             if( values.find("reactive_fraction") == values.end() ) { values["reactive_fraction"] = 0.1 ; } ; 
-            if( values.find("radius_increment") == values.end() ) { values["radius_increment"] = -1 ; } ; 
-            return new GelManager(featuretrees["feature_tree"], inclusionfamilys["zones"], values["reactive_fraction"], values["radius_increment"]) ;
+            return new GelManager(featuretrees["feature_tree"], inclusionfamilys["zones"], values["reactive_fraction"]) ;
         }
         if( type == "FunctionBasedGel" )
         { 

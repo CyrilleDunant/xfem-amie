@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
 //             std::cout << prop << std::endl ;
 
             Vector alpha(0., 6) ;
-            behaviour = new StiffnessWithImposedDeformation(Tensor::cauchyGreen(10., .2, SPACE_THREE_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON ),alpha) ;
+            behaviour = new StiffnessWithImposedStrain(Tensor::cauchyGreen(10., .2, SPACE_THREE_DIMENSIONAL, PLANE_STRESS, YOUNG_POISSON ),alpha) ;
             break ;
         }
     }

@@ -52,7 +52,7 @@ void ExpansiveRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTree
 		if(interfaced.find(ring[i]) == interfaced.end())
 		{
 			ring[i]->setBehaviour(dtree, new TrimaterialInterface(&self, getPrimitive(),
-														ring[i]->getBehaviour()->getCopy(),new StiffnessWithImposedDeformation(cgTensor, imposedDef),
+														ring[i]->getBehaviour()->getCopy(),new StiffnessWithImposedStrain(cgTensor, imposedDef),
 														ring[i]->getBehaviour()->getCopy()
 														)) ;
 			ring[i]->getBehaviour()->transform(ring[i]) ;
@@ -66,7 +66,7 @@ void ExpansiveRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTree
 	{
 		if(expansive.find(ring[i]) == expansive.end())
 		{
-			inDisc[i]->setBehaviour(dtree, new StiffnessWithImposedDeformation(cgTensor, imposedDef)) ;
+			inDisc[i]->setBehaviour(dtree, new StiffnessWithImposedStrain(cgTensor, imposedDef)) ;
 		}
 		
 		newExpansive.insert(inDisc[i]) ;
@@ -77,7 +77,7 @@ void ExpansiveRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTree
 		if(biInterfaced.find(disc[0]) == biInterfaced.end())
 		{
 			disc[0]->setBehaviour(dtree, new BimaterialInterface(getPrimitive(),
-														new StiffnessWithImposedDeformation(cgTensor, imposedDef),
+														new StiffnessWithImposedStrain(cgTensor, imposedDef),
 														disc[0]->getBehaviour()->getCopy()
 														)) ;
 			disc[0]->getBehaviour()->transform(disc[0]) ;
