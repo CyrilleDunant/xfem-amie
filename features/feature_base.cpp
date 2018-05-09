@@ -20,7 +20,7 @@ Feature::Feature(Feature * father) :  m_f(father), behaviour(nullptr)
     isCompositeFeature = false ;
     isVirtualFeature = false ;
     isUpdated = false ;
-    behaviourSource = nullptr ;
+    behaviourSource = this ;
 
     layer = -1 ;
     if(father != nullptr)

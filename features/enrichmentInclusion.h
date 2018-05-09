@@ -28,7 +28,7 @@ class EnrichmentInclusion :  public EnrichmentFeature,  public Circle
 {
 protected:
     bool updated ;
-    int thresholdCacheSize = 3 ;
+    size_t thresholdCacheSize = 4 ;
     std::vector<DelaunayTriangle *> cache ;
     std::map<Mesh<DelaunayTriangle, DelaunayTreeItem> *,std::set<size_t> > freeIds ;
     Function functionTozero(const DelaunayTriangle * t) ;

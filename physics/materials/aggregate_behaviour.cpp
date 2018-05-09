@@ -53,7 +53,7 @@ Form * AggregateBehaviour::getCopy() const
 	{
 		if(!elastic)
 		{
-			copy = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8000.*up*factor, E), new FiberBasedIsotropicLinearDamage(0.1,0.699)) ;
+			copy = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8000.*up*factor), new FiberBasedIsotropicLinearDamage(0.1,0.699)) ;
 			copy->getFractureCriterion()->setMaterialCharacteristicRadius(materialRadius);
 		}
 		else

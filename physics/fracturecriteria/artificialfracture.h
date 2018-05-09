@@ -56,9 +56,7 @@ class DelaunayTetrahedron ;
 		 * @param r new radius
 		 */
 		virtual void setNeighbourhoodRadius(double r) { } ;
-		
-		virtual double getTensileLimit(const ElementState & s) const {return 2e6 ; } ;
-	
+			
 	};
 
 } ;

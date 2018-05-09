@@ -977,6 +977,10 @@ double  Rectangle::getRadius() const
 
 bool Rectangle::in(const Point & p) const
 {
+//     std::cout << "\n" ;
+//     std::cout << getCenter().getX() - 0.5*width() << "  " << p.getX() << "  "<< getCenter().getX() + 0.5*width() <<std::endl ;
+//     std::cout << getCenter().getY() - 0.5*height() << "  " << p.getY() << "  "<< getCenter().getY() + 0.5*height()<< std::endl ;
+//     std::cout << "\n" ;
     if(p.getX() < getCenter().getX() - 0.5*width()-POINT_TOLERANCE)
         return false ;
     if(p.getX()  > getCenter().getX() + 0.5*width()+POINT_TOLERANCE)

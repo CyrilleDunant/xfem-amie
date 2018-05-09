@@ -23,13 +23,15 @@ namespace Amie
     {
     protected:
         double steps = 0 ;
-        double totalSteps = 100 ;
+        double totalSteps = 200 ;
+        double initialArea = 0 ;
         std::vector<std::pair<ExpansiveZone *, Feature *> > zones ;
         double deltaRadius ;
         double reactedArea ;
         double aggregateArea ;
         double reactiveFraction ;
         FeatureTree * ftree ;
+        double areaForDr(double dr) const ;
     public:
             GelManager(FeatureTree * ftree, double zonedensity, const std::vector<Feature *> & aggregates, double reactiveFraction = 0.03) ;
             GelManager( FeatureTree * f, InclusionFamily * zones, double reactiveFraction = 0.03) ;

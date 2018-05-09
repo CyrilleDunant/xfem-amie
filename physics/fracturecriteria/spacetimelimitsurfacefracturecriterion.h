@@ -67,7 +67,6 @@ public:
 	virtual double grade(ElementState &s)  ;
         virtual double gradeAtTime(ElementState &s, double t)  ;
 
-	virtual double getTensileLimit(const ElementState & s) const ;
 
 } ;
 

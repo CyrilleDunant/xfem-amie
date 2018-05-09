@@ -69,9 +69,6 @@ public:
         return false ;
     }
 
-    virtual double getTensileLimit(const ElementState & s) const {
-        return upthreshold ;
-    } ;
 };
 
 }

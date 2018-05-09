@@ -262,38 +262,6 @@ double SpaceTimeLimitSurfaceFractureCriterion::gradeAtTime(ElementState &s, doub
     return std::max( -1., -1.+ stress/limit ) ;
 }
 
-double SpaceTimeLimitSurfaceFractureCriterion::getTensileLimit(const ElementState & s) const 
-{
-    VirtualMachine vm ;
-
-    double ycoor = 0 ;
-    double zcoor = 0 ;
-    double tcoor = 0 ;
-    double ucoor = 0 ;
-    double vcoor = 0 ;
-    double wcoor = 0 ;
-
-    if( needStringVariable )
-    {
-        std::map<std::string, double> copied = dynamic_cast<const GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(s).getVariables() ;
-        if( surfaceYCoordinate.length() > 0 )
-            ycoor = copied[surfaceYCoordinate] ;
-        if( surfaceZCoordinate.length() > 0 )
-            zcoor = copied[surfaceZCoordinate] ;
-        if( surfaceTCoordinate.length() > 0 )
-            tcoor = copied[surfaceTCoordinate] ;
-        if( surfaceUCoordinate.length() > 0 )
-            ucoor = copied[surfaceUCoordinate] ;
-        if( surfaceVCoordinate.length() > 0 )
-            vcoor = copied[surfaceVCoordinate] ;
-        if( surfaceWCoordinate.length() > 0 )
-            wcoor = copied[surfaceWCoordinate] ;
-    }
-
-    return std::max(0., vm.eval( 0., ycoor, zcoor, tcoor, ucoor, vcoor, wcoor )) ;
-
-}
-
 
 /*std::string SpaceTimeLimitSurfaceFractureCriterion::getStressMeasurementFunction( StressMeasurementFunction f, SpaceDimensionality dim) 
 {

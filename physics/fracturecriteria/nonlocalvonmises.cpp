@@ -18,7 +18,6 @@ namespace Amie {
 NonLocalVonMises::NonLocalVonMises(double thresh, double radius) : threshold(std::abs(thresh))
 {
     setMaterialCharacteristicRadius(radius);
-    met = false ;
 //     smoothingType = GAUSSIAN_NONCOMPACT ;
 //         smoothingType = GAUSSIAN_NONCOMPACT ;
 
@@ -31,32 +30,12 @@ NonLocalVonMises::~NonLocalVonMises()
 
 double NonLocalVonMises::grade(ElementState &s)
 {
-//   std::cout << "pif" << std::endl ;
-    met = false ;
-    Vector str(3) ;
-//     s.getField(PRINCIPAL_REAL_STRESS_FIELD, Point(), str, true);
-    str = getSmoothedField( EFFECTIVE_STRESS_FIELD, s )  ;
-    double tr = (str.size()==3)?(str[0]+str[1]):(str[0]+str[1]+str[2]) ;
-    
-    if(str.size()==3)
-    {
-      for(size_t i = 0 ; i < 2 ; i++)
-	str[i] -= tr/3. ;
-      
-    }
+    Vector str = getSmoothedField( PRINCIPAL_REAL_STRESS_FIELD, s )  ;
+    double vm = 0 ;
+    if(str.size() == 2)
+        vm = sqrt(str[0]*str[0]-str[0]*str[1]+str[1]*str[1]) ;
     else
-    {
-      for(size_t i = 0 ; i < 3 ; i++)
-	str[i] -= tr/3. ;
-
-    }
-
-//     double vm = (s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)? sqrt(str[0]*str[0]+str[1]*str[1]-str[0]*str[1]) : sqrt(str[0]*str[0]+str[1]*str[1]+str[2]*str[2]-str[0]*str[1]-str[0]*str[2]-str[1]*str[2]);
-    double vm = sqrt(3./2.*(str*str).sum()) ;
-//     std::cout << "\n" << vm << std::endl ;
-    if( vm >= threshold )
-        met = true ;
-
+        vm = sqrt(0.5*((str[0]-str[1])*(str[0]-str[1])+(str[1]-str[2])*(str[1]-str[2])+(str[2]-str[0])*(str[2]-str[0]))) ;
 
     return -1. + std::abs( vm / threshold );
 

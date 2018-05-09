@@ -77,8 +77,6 @@ namespace Amie {
 		virtual double grade(ElementState &s)  ;
 		double gradeAtTime(ElementState &s, double t) ;
 		
-		virtual double getTensileLimit(const ElementState & s) const {return threshold ;};
-
 		virtual void reset( double thr, double E, double nu, double Gf, double cstress, double cstrain, double r = -1, planeType = PLANE_STRESS) ;
 
 		virtual void reset( double thr, double E, double nu, double Gf) ;

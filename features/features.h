@@ -117,6 +117,7 @@ protected:
     void updateMesh() ;
     std::vector<double> initialPositions ;
     Vector largeStrainsForces ;
+    int largeStrainSteps ;
     
 protected:
 

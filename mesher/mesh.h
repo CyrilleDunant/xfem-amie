@@ -661,7 +661,7 @@ public:
         for(size_t i = 0 ;  i < coefs[position].size() ; i++)
             for(size_t j = 0 ;  j < coefs[position][i].size() ; j++)
                 coefs[position][i][j] /= tot ;
-            
+//         std::cout << coefs[position].size() << std::endl ;    
 //         exit(0) ;
         return position ;
     } ;
@@ -1119,11 +1119,14 @@ public:
             if(bufferCache[thread].size() != tsize ) {
                 bufferCache[thread].resize(tsize, 0.);
             }
+            if(strainCache[thread].size() != tsize ) {
+                strainCache[thread].resize(tsize, 0.);
+            }
             if ( !spaceTime ) {
                 double sumFactors ( 0 ) ;
-                Vector corrector(strainCache[thread]) ;
-                Vector y(strainCache[thread]) ;
-                Vector tmp(strainCache[thread]) ;
+                Vector corrector(0., tsize) ;
+                Vector y(0., tsize) ;
+                Vector tmp(0., tsize) ;
 
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     IntegrableEntity *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
@@ -1140,7 +1143,12 @@ public:
                         std::vector<double> effCoef = coefs[cacheID][i] ;
 
                         for(size_t j = 0 ; j < restrict.size() ; j++)
-                            effCoef[j] *= !restrict[j] ;
+                        {
+                            double val = 1. ;
+                            if(restrict[j])
+                                val = 0. ;
+                            effCoef[j] *= val ;
+                        }
 
                         v = ci->getState().getAverageField ( TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef );
                     }
@@ -1150,7 +1158,7 @@ public:
                     strainCache[thread] = tmp ;
                     
                     sumFactors += v ;
-// 		    std::cout << "y" << std::endl ;
+//                     std::cout << strainCache[thread][0] << "  "<< bufferCache[thread][0] << "  "<< v <<std::endl ;
 
                 }
                 if(sumFactors > POINT_TOLERANCE)
@@ -1280,7 +1288,7 @@ public:
                 }
             }
             else if ( f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
-                firstResultCache[thread].resize ( psize );
+                firstResultCache[thread].resize ( psize, 0.  );
                 if ( !spaceTime ) {
                     firstResultCache[thread] = toPrincipal( (strainCache[thread]-e->getBehaviour()->getImposedStrain( Point() ))*e->getBehaviour()->param , SINGLE_OFF_DIAGONAL_VALUES) ;
                 } else {
@@ -1436,9 +1444,9 @@ public:
                     strainCache[thread].resize ( tsize, 0. );
                 }
                 double sumFactors ( 0 ) ;
-                Vector corrector(strainCache[thread]) ;
-                Vector y(strainCache[thread]) ;
-                Vector tmp(strainCache[thread]) ;
+                Vector corrector(0., tsize) ;
+                Vector y(0., tsize) ;
+                Vector tmp(0., tsize) ;
 
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     IntegrableEntity *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
@@ -1455,7 +1463,12 @@ public:
                             std::vector<double> effCoef = coefs[cacheID][i] ;
 
                             for(size_t j = 0 ; j < restrict.size() ; j++)
-                                effCoef[j] *= !restrict[j] ;
+                            {
+                                double val = 1. ;
+                                if(restrict[j])
+                                    val = 0. ;
+                                effCoef[j] *= val ;
+                            }
 
                             v = ci->getState().getAverageField ( TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef );
                         }

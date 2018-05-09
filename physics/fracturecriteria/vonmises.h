@@ -46,9 +46,6 @@ public:
     */
     virtual double grade(ElementState &s)  ;
 
-    virtual double getTensileLimit(const ElementState & s) const {
-        return threshold ;
-    };
 };
 
 
@@ -82,9 +79,7 @@ public:
     */
     virtual double grade(ElementState &s)  ;
 
-    virtual double getTensileLimit(const ElementState & s) const {
-        return 20e9*threshold ;
-    };
+
 };
 
 }

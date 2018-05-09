@@ -3,6 +3,8 @@
 
 #include "boundarycondition.h"
 #include "../physics/damagemodels/damagemodel.h"
+#include "../physics/contactmodels/contactmodel.h"
+#include "../physics/collisiondetectors/collisiondetector.h"
 #include "../physics/viscoelasticity.h"
 #include "../features/features.h"
 #include "../physics/material_laws/material_laws.h"
@@ -32,9 +34,13 @@ BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition ( Lagra
 
 BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, const Function & d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ) { }
 
+BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, CollisionDetector * contactCondition, ContactModel * contactLaw )  : BoundaryCondition ( t, contactCondition, contactLaw ), pos ( pos ) { }
+
 BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp, double d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ),  xmin ( xm ), xmax ( xp ), ymin ( ym ), ymax ( yp ), zmin ( zm ), zmax ( zp )
 {
 }
+
+BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp,CollisionDetector * contactCondition, ContactModel * contactLaw )  : BoundaryCondition ( t, contactCondition, contactLaw ), pos ( pos ) { }
 
 BoundingBoxCycleDefinedBoundaryCondition::BoundingBoxCycleDefinedBoundaryCondition(std::vector<LoadingCycle> cycles, const std::vector<LagrangeMultiplierType> t, const std::vector<BoundingBoxPosition> & pos) : BoundaryCondition ( t.front(), 0 ), positions(pos), types(t), cycles(cycles), currentCycle(-1)
 { 
@@ -6476,8 +6482,20 @@ bool isOnBoundary ( BoundingBoxPosition pos, Point & test, Point & min, Point & 
 }
 
 
+
 void BoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t)
 {
+    if(condition == CONTACT_CONDITION)
+    {
+        for ( size_t i = 0 ; i < cache2d.size() ; ++i )
+        {
+            if(!cache2d[i]->getBehaviour()->contactModel)
+                cache2d[i]->getBehaviour()->contactModel = dynamic_cast<ContactModel *> (contactLaw->getCopy()) ;
+            if(!cache2d[i]->getBehaviour()->collisionDetection)
+                cache2d[i]->getBehaviour()->collisionDetection = dynamic_cast<CollisionDetector *> (collisionDetection->getCopy());
+        }
+        return ;
+    }
     for ( size_t i = 0 ; i < cache2d.size() ; ++i )
     {
         GaussPointArray gp = cache2d[i]->getGaussPoints() ;
@@ -6507,6 +6525,16 @@ void BoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeI
 
 void BoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)
 {
+    
+    if(condition == CONTACT_CONDITION)
+    {
+        for ( size_t i = 0 ; i < cache2d.size() ; ++i )
+        {
+            cache3d[i]->getBehaviour()->contactModel = contactLaw ;
+            cache3d[i]->getBehaviour()->collisionDetection = collisionDetection;
+        }
+        return ;
+    }
     for ( size_t i = 0 ; i < cache3d.size() ; ++i )
     {
         GaussPointArray gp = cache3d[i]->getGaussPoints() ;
@@ -7643,6 +7671,11 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTet
 BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const double & d, int a ) :  condition ( t ),data ( d ), scale ( 1 ), active(false), dataInterpolation(nullptr), axis ( a ), function ( false ) { }
 
 BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const Function & d, int a ) :  condition ( t ), scale ( 1 ), active(false), dataFunction ( d ), dataInterpolation(nullptr), axis ( a ), function ( true ) { }
+
+BoundaryCondition::BoundaryCondition(LagrangeMultiplierType t, CollisionDetector * contactCondition, ContactModel * contactLaw ): condition ( t ), scale ( 1 ),active(false), dataInterpolation(nullptr), axis ( 0 ), function ( true ),  collisionDetection (contactCondition), contactLaw(contactLaw) 
+{
+    
+}
 
 void BoundaryCondition::setScale ( double d )
 {

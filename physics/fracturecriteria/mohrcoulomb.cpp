@@ -17,7 +17,7 @@
 namespace Amie
 {
 
-MohrCoulomb::MohrCoulomb ( double up, double down, double E ): upVal(up), downVal(down), stiffness(E)
+MohrCoulomb::MohrCoulomb ( double up, double down): upVal(up), downVal(down)
 {
     metInTension = false ;
     metInCompression = false ;
@@ -57,7 +57,7 @@ FractureCriterion *MohrCoulomb::getCopy() const
     return new MohrCoulomb( *this ) ;
 }
 
-NonLocalMohrCoulomb::NonLocalMohrCoulomb( double up, double down, double E) : upVal( up ), downVal( down ), stiffness(E)
+NonLocalMohrCoulomb::NonLocalMohrCoulomb( double up, double down) : upVal( up ), downVal( down )
 {
     metInTension = false ;
     metInCompression = false ;
@@ -74,7 +74,7 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
     if( s.getParent()->getBehaviour()->fractured() )
         return -1 ;
 
-    Vector stress =  getSmoothedField(PRINCIPAL_REAL_STRESS_FIELD , s,  0.) ;
+    Vector stress =  getSmoothedField(PRINCIPAL_REAL_STRESS_FIELD , s) ;
     
     double maxStress = stress.max() ;
     double minStress = stress.min() ;
@@ -82,15 +82,11 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
     metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
     metInTension = !metInCompression ;
 
-    if( metInTension )
-    {   
-        return std::abs( maxStress/upVal )-1. ;
-    }
-
-    metInCompression = true ;
-    return std::abs( minStress/downVal )-1. ;
-
-
+//     if(std::abs(maxStress) > 1e-6 || std::abs(minStress) > 1e-6)
+//     {
+//         std::cout << maxStress << "  " << upVal <<" -> " << maxStress/upVal - 1. << " ; " <<minStress << "  " << downVal << " -> "<< minStress/downVal - 1. << std::endl ;
+//     }
+    return std::max(maxStress/upVal - 1., minStress/downVal - 1.) ;
 }
 
 double SpaceTimeNonLocalMohrCoulomb::grade( ElementState &s)
@@ -220,7 +216,7 @@ double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
             return -1 ;
         metInTension = true;
         metInCompression = false ;
-        return  maxStress/upVal ;
+        return  maxStress/upVal-1. ;
     }
 
     double  downStress = cfactor*downVal -0.01e6;
@@ -230,7 +226,7 @@ double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
             return -1 ;
         metInTension = false;
         metInCompression = true ;
-        return  std::abs(minStress/downVal) ;
+        return  std::abs(minStress/downVal)-1. ;
     }
 
 
@@ -239,12 +235,12 @@ double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
     if( maxStress > 0 )
     {
         metInTension = true;
-        scores.push_back(std::abs( maxStress / upStress )-1);
+        scores.push_back( maxStress / upStress-1.);
     }
     else if( minStress < 0 )
     {
         metInCompression = true ;
-        scores.push_back(std::abs( minStress / downStress )-1) ;
+        scores.push_back( minStress / downStress-1.) ;
     }
 
     std::sort(scores.begin(), scores.end()) ;

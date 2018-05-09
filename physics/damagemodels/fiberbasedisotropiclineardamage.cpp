@@ -42,7 +42,7 @@ Matrix FiberBasedIsotropicLinearDamage::apply(const Matrix & m, const Point & p,
         
     }
 
-    return m*(1.-state[0]) ;
+    return m*(1.-getState()[0]) ;
 }
 
 
@@ -78,16 +78,18 @@ void FiberBasedIsotropicLinearDamage::step( ElementState &s , double maxscore)
         converged = true ;
         return ;
     }
+//     std::cout << "\nWTF " << s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()<< std::endl ;
+    
     double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;//maxscore ;
     double maxScoreInNeighbourhood = s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(s) ;
 
     if(!fractured() && s.getParent()->getBehaviour()->getFractureCriterion()->met() && std::abs(score - maxScoreInNeighbourhood) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance())
     {
-        state += fibreFraction ;
+        getState(true) += fibreFraction ;
         for(size_t i = 0 ; i < state.size() ; i++)
         {
-            if(state[i] > 1)
-                state[i] = 1 ;
+            if(getState()[i] > 1)
+                getState(true)[i] = 1 ;
         }
         change = true ;
     }

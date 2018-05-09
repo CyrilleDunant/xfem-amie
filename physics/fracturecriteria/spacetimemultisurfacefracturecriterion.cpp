@@ -94,13 +94,6 @@ bool SpaceTimeMultiSurfaceFractureCriterion::directionMet(size_t direction, doub
     return t >= instants[direction] ;
 }
 
-double SpaceTimeMultiSurfaceFractureCriterion::getTensileLimit(const ElementState & s) const 
-{
-    double f = 0 ;
-    for(size_t i = 0 ; i < surfaces.size() ; i++)
-        f = std::max( f, surfaces[i]->getTensileLimit(s)) ;
-    return f ;
-}
 
 
 }

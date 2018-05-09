@@ -16,6 +16,8 @@
 #include "../utilities/enumeration_translator.h"
 #include "../physics/void_form.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
+#include "../physics/collisiondetectors/collisiondetector.h"
+#include "../physics/contactmodels/contactmodel.h"
 #include "../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/materials/gel_behaviour.h"
@@ -96,6 +98,7 @@ FeatureTree::FeatureTree ( Feature *first, double fraction, int layer, size_t gr
     structuredMesh = false ;
     alternating = false ;
     maxScore = -1 ;
+    largeStrainSteps = -1 ;
     thresholdScoreMet = 0 ;
 
     std::vector<Point> bbox = first->getBoundingBox() ;
@@ -211,6 +214,7 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     minDeltaTime = 0.001 ;
     epsilonA = -1 ;
     foundCheckPoint = true ;
+    largeStrainSteps = -1 ;
     averageDamage = 0 ;
     maxScore = -1 ;
     behaviourSet =true ;
@@ -3059,6 +3063,8 @@ void FeatureTree::setElementBehaviours()
                 Form * bf =  getElementBehaviour ( j, i->first );
                 if(bf && bf->getDamageModel() && bf->getDamageModel()->alternating)
                     setAlternating(true) ;
+                if(bf && bf->getContactModel() && bf->getContactModel()->alternating)
+                    setAlternating(true) ;
 
                 j->setBehaviour ( i->second, bf ) ;
 
@@ -3090,6 +3096,8 @@ void FeatureTree::setElementBehaviours()
             i->refresh ( father3D ) ;
             Form * bf =  getElementBehaviour ( i );
             if(bf && bf->getDamageModel() && bf->getDamageModel()->alternating)
+                setAlternating(true) ;
+            if(bf && bf->getContactModel() && bf->getContactModel()->alternating)
                 setAlternating(true) ;
 
             i->setBehaviour ( dtree3D, bf ) ;
@@ -4351,7 +4359,12 @@ bool FeatureTree::solve()
     int nlcount = extrapolatedDisplacements.size() == 0 ;
     if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint) 
     {
-        if ( dtree )
+        if(largeStrainSteps++ > 512)
+        {
+            nlcount = 0 ;
+            largeStrainSteps = -1 ;
+        }
+        else if ( dtree )
         {
 
             std::cerr << "updating jacobian matrices... " << std::flush ;
@@ -4367,7 +4380,7 @@ bool FeatureTree::solve()
             }
 
         }
-        else
+        else if(dtree3D)
         {
             std::cerr << "updating jacobian matrices...... " << std::flush ;
             for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
@@ -4379,6 +4392,9 @@ bool FeatureTree::solve()
             }
         }
     }
+    if(nlcount == 0)
+         largeStrainSteps = -1 ;
+    
     gettimeofday ( &time1, nullptr );
     double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
     std::cerr << "...done. Time (s) " << delta / 1e6 << std::endl ;
@@ -4672,7 +4688,12 @@ bool FeatureTree::stepElements()
                             if ( i->getBehaviour()->getDamageModel() )
                             {
                                 i->getBehaviour()->getDamageModel()->getState(true) = 0 ;
+                            }                        
+                            if ( i->getBehaviour()->getContactModel() )
+                            {
+                                i->getBehaviour()->getContactModel()->getState(true) = 0 ;
                             }
+                            
                         }
                     }
                 }
@@ -4790,6 +4811,11 @@ bool FeatureTree::stepElements()
                                             i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
                                             localmaxScore = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), localmaxScore ) ;
                                         }
+                                        if ( i->getBehaviour()->getCollisionDetection() )
+                                        {
+                                            i->getBehaviour()->getCollisionDetection()->step ( i->getState() ) ;
+                                            localmaxScore = std::max ( i->getBehaviour()->getCollisionDetection()->getScoreAtState(), localmaxScore ) ;
+                                        }
                                     }
                                     #pragma omp critical
                                     {
@@ -4829,7 +4855,20 @@ bool FeatureTree::stepElements()
                                         DamageModel * dmodel = i->getBehaviour()->getDamageModel() ;
                                         bool wasFractured = i->getBehaviour()->fractured() ;
                                         i->getBehaviour()->step ( deltaTime, i->getState(), maxScoreInit ) ;
-
+                                        
+                                        if(i->getBehaviour()->getContactModel())
+                                        {
+                                            i->getBehaviour()->getContactModel()->step(i->getState(), maxScoreInit) ;
+                                            i->behaviourUpdated = i->getBehaviour()->getContactModel()->changed() || i->behaviourUpdated;
+                                            i->needAssembly = i->behaviourUpdated ;
+                                            if(i->getBehaviour()->getContactModel()->changed())
+                                            {
+                                                #pragma omp atomic write
+                                                behaviourChange = true ;
+                                                #pragma omp atomic update
+                                                ccount++ ;
+                                            }
+                                        }
                                         if ( dmodel )
                                         {
                                             if ( !i->getBehaviour()->fractured() )
@@ -4906,6 +4945,15 @@ bool FeatureTree::stepElements()
                                             behaviourChange = true ;
                                         }
                                     }
+                                    if ( i->getBehaviour()->getContactModel() )
+                                    {
+                                        i->getBehaviour()->getContactModel()->postProcess() ;
+                                        if (i->getBehaviour()->getContactModel()->changed() )
+                                        {
+                                            #pragma omp atomic write
+                                            behaviourChange = true ;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -4925,6 +4973,15 @@ bool FeatureTree::stepElements()
                                 bool done = false ;
                                 #pragma omp task firstprivate(i)
                                 if (i->getBehaviour()->getDamageModel() && !i->getBehaviour()->getDamageModel()->converged )
+                                {
+                                    #pragma omp critical
+                                    {
+                                        foundCheckPoint = false ;
+                                        done = true ;
+                                    }
+                                }
+                                #pragma omp task firstprivate(i)
+                                if (i->getBehaviour()->getContactModel() && !i->getBehaviour()->getContactModel()->converged )
                                 {
                                     #pragma omp critical
                                     {
@@ -4978,6 +5035,15 @@ bool FeatureTree::stepElements()
                                             done = true ;
                                         }
                                     }
+                                    #pragma omp task firstprivate(i)
+                                    if ( i->getBehaviour()->getCollisionDetection() && i->getBehaviour()->getCollisionDetection()->met(thresholdScore) )
+                                    {
+                                        #pragma omp critical
+                                        {
+                                            behaviourChange = true ;
+                                            done = true ;
+                                        }
+                                    }
                                     if(done)
                                     {
                                         break ;
@@ -4992,7 +5058,7 @@ bool FeatureTree::stepElements()
 
                 if (foundCheckPoint )
                 {
-                    std::cerr << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
+                    std::cout << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
 
                     maxTolerance = 1 ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
@@ -5013,12 +5079,22 @@ bool FeatureTree::stepElements()
                                             i->getBehaviour()->getFractureCriterion()->setCheckpoint(true) ;
                                         }
                                     }
+                                    #pragma omp task firstprivate(i)
+                                    if ( i->getBehaviour()->getCollisionDetection() )
+                                    {
+                                        #pragma omp critical
+                                        {
+                                            maxScore = std::max (i->getBehaviour()->getCollisionDetection()->getScoreAtState(), maxScore ) ;
+                                            maxTolerance = std::max (i->getBehaviour()->getCollisionDetection()->getScoreTolerance(), maxTolerance ) ;
+                                            i->getBehaviour()->getCollisionDetection()->setCheckpoint(true) ;
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
 
-                    std::cerr << maxScore << "]" << std::flush ;
+                    std::cout << maxScore << "]" << std::flush ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
                         if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE  && solverConverged() && !spaceTimeFixed)
@@ -5129,6 +5205,16 @@ bool FeatureTree::stepElements()
                                 maxScoreInit = tmpmax ;
 
                             }
+                            
+                            if ( i->getBehaviour()->getCollisionDetection() )
+                            {
+                                i->getBehaviour()->getCollisionDetection()->step ( i->getState() ) ;
+                                #pragma omp flush(maxScoreInit)
+                                double tmpmax = std::max ( i->getBehaviour()->getCollisionDetection()->getScoreAtState(), maxScoreInit ) ;
+                                #pragma omp atomic write
+                                maxScoreInit = tmpmax ;
+
+                            }
                         }
                     }
                 }
@@ -5158,6 +5244,19 @@ bool FeatureTree::stepElements()
                                 bool wasFractured = i->getBehaviour()->fractured() ;
 
                                 i->getBehaviour()->step ( deltaTime, i->getState(), maxScoreInit ) ;
+                                if(i->getBehaviour()->getContactModel())
+                                {
+                                    i->getBehaviour()->getContactModel()->step(i->getState(), maxScoreInit) ;
+                                    i->behaviourUpdated = i->getBehaviour()->getContactModel()->changed() || i->behaviourUpdated;
+                                    i->needAssembly = i->behaviourUpdated ;
+                                    if(i->getBehaviour()->getContactModel()->changed())
+                                    {
+                                        #pragma omp atomic write
+                                        behaviourChange = true ;
+                                        #pragma omp atomic update
+                                        ccount++ ;
+                                    }
+                                }
                                 if ( dmodel )
                                 {
                                     if ( !i->getBehaviour()->fractured() )
@@ -5167,6 +5266,12 @@ bool FeatureTree::stepElements()
                                 }
                                 #pragma omp critical
                                 if ( i->getBehaviour()->changed() )
+                                {
+                                    behaviourChange = true ;
+                                    ccount++ ;
+                                }
+                                #pragma omp critical
+                                if ( i->getBehaviour()->getContactModel() && i->getBehaviour()->getContactModel()->changed() )
                                 {
                                     behaviourChange = true ;
                                     ccount++ ;
@@ -5217,6 +5322,18 @@ bool FeatureTree::stepElements()
                                     }
                                 }
                             }
+                            
+                            if ( i->getBehaviour()->getContactModel() )
+                            {
+                                i->getBehaviour()->getContactModel()->postProcess() ;
+                                if ( i->getBehaviour()->getContactModel()->changed() )
+                                {
+                                    #pragma omp critical
+                                    {
+                                        behaviourChange = true ;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -5229,6 +5346,12 @@ bool FeatureTree::stepElements()
                         maxScore = maxScoreInit ;
                         break ;
                     }
+                    if ( i->getBehaviour()->getContactModel() && !i->getBehaviour()->getContactModel()->converged )
+                    {
+                        foundCheckPoint = false ;
+                        maxScore = maxScoreInit ;
+                        break ;
+                    }
                 }
 
                 if ( !behaviourChange )
@@ -5236,6 +5359,11 @@ bool FeatureTree::stepElements()
                     for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
                     {
                         if ( i->getBehaviour()->getFractureCriterion() && i->getBehaviour()->getFractureCriterion()->met() )
+                        {
+                            behaviourChange = true ;
+                            break ;
+                        }
+                        if ( i->getBehaviour()->getCollisionDetection() && i->getBehaviour()->getCollisionDetection()->met() )
                         {
                             behaviourChange = true ;
                             break ;
@@ -5264,6 +5392,13 @@ bool FeatureTree::stepElements()
 //                         i->getBehaviour()->getFractureCriterion()->setCheckpoint ( true ) ;
                         maxScore = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScore ) ;
                         maxTolerance = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance ) ;
+
+                    }
+                    if (i->getBehaviour()->getCollisionDetection() )
+                    {
+//                         i->getBehaviour()->getFractureCriterion()->setCheckpoint ( true ) ;
+                        maxScore = std::max ( i->getBehaviour()->getCollisionDetection()->getScoreAtState(), maxScore ) ;
+                        maxTolerance = std::max ( i->getBehaviour()->getCollisionDetection()->getScoreTolerance(), maxTolerance ) ;
 
                     }
                 }
@@ -5817,7 +5952,7 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
         
         if ( solverConverged() )
         {
-            std::cerr << "." << std::flush ;
+            std::cout << "." << std::flush ;
             notConvergedCounts = 0 ;
 
             if(foundCheckPoint  && !(enrichmentChange || behaviourChanged() ) )
@@ -5830,9 +5965,9 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
             if(notConvergedCounts > 128)
             {
                 needexit = true ;
-                std::cerr << "+" << std::flush ;
+                std::cout << "+" << std::flush ;
             }
-            std::cerr << ":" << std::flush ;
+            std::cout << ":" << std::flush ;
         }
 
         if ( enrichmentChange || needMeshing )
@@ -5870,6 +6005,15 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
                             i->getBehaviour()->getDamageModel()->converged = true ;
                             i->getBehaviour()->getDamageModel()->alternate = true ;
                         }
+                        
+                        #pragma omp task firstprivate(i)
+                        if ( i->getBehaviour()->getContactModel() )
+                        {
+                            i->getBehaviour()->getCollisionDetection()->setCheckpoint ( true ) ;
+                            i->getBehaviour()->getContactModel()->alternateCheckpoint = false  ;
+                            i->getBehaviour()->getContactModel()->converged = true ;
+                            i->getBehaviour()->getContactModel()->alternate = true ;
+                        }
                     }
                 }
             }
@@ -5890,6 +6034,14 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
                         i->getBehaviour()->getDamageModel()->alternateCheckpoint = false  ;
                         i->getBehaviour()->getDamageModel()->converged = true ;
                         i->getBehaviour()->getDamageModel()->alternate = true ;
+                    }
+                    #pragma omp task firstprivate(i)
+                    if ( i->getBehaviour()->getContactModel() )
+                    {
+                        i->getBehaviour()->getCollisionDetection()->setCheckpoint ( true ) ;
+                        i->getBehaviour()->getContactModel()->alternateCheckpoint = false  ;
+                        i->getBehaviour()->getContactModel()->converged = true ;
+                        i->getBehaviour()->getContactModel()->alternate = true ;
                     }
                 }
             }
@@ -6130,6 +6282,14 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
                                 met = true ;
                             }
                         }
+                        if ( i->getBehaviour()->getCollisionDetection() )
+                        {
+                            i->getBehaviour()->getCollisionDetection()->step ( i->getState() ) ;
+                            if(i->getBehaviour()->getCollisionDetection()->met())
+                            {
+                                met = true ;
+                            }
+                        }
                     }
                 }
             }
@@ -6143,6 +6303,14 @@ bool FeatureTree::stepToCheckPoint( int iterations, double precision)
                     {
                         i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
                         if(i->getBehaviour()->getFractureCriterion()->met())
+                        {
+                            met = true ;
+                        }
+                    }
+                    if ( i->getBehaviour()->getCollisionDetection() )
+                    {
+                        i->getBehaviour()->getCollisionDetection()->step ( i->getState() ) ;
+                        if(i->getBehaviour()->getCollisionDetection()->met())
                         {
                             met = true ;
                         }
@@ -7123,6 +7291,14 @@ bool FeatureTree::isStable()
                         break ;
                     }
                 }
+                if ( i->getBehaviour() && i->getBehaviour()->getCollisionDetection() )
+                {
+                    if ( i->getBehaviour()->getCollisionDetection()->grade ( i->getState() ) > 0 )
+                    {
+                        stable = false ;
+                        break ;
+                    }
+                }
             }
 
         }
@@ -7134,6 +7310,14 @@ bool FeatureTree::isStable()
             if ( i->getBehaviour() && i->getBehaviour()->getFractureCriterion() )
             {
                 if ( i->getBehaviour()->getFractureCriterion()->grade ( i->getState() ) > 0 )
+                {
+                    stable = false ;
+                    break ;
+                }
+            }
+            if ( i->getBehaviour() && i->getBehaviour()->getCollisionDetection() )
+            {
+                if ( i->getBehaviour()->getCollisionDetection()->grade ( i->getState() ) > 0 )
                 {
                     stable = false ;
                     break ;

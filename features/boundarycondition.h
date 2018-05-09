@@ -20,9 +20,12 @@ namespace Amie {
 */
 
 struct LinearInterpolatedMaterialLaw ;
+class ContactModel ;
+class CollisionDetector ;
 
 class BoundaryCondition
 {
+    friend Form ;
 protected:
     LagrangeMultiplierType condition;
     double data ;
@@ -35,10 +38,14 @@ protected:
     std::vector<DelaunayTriangle *> cache2d ;
     std::vector<DelaunayTetrahedron *> cache3d ;
     std::vector<std::vector<Point> > cache ;
+    
+    CollisionDetector * collisionDetection ;
+    ContactModel * contactLaw  ;
 
 public:
     BoundaryCondition(LagrangeMultiplierType t, const double & d, int a = 0) ;
     BoundaryCondition(LagrangeMultiplierType t, const Function & d, int a = 0) ;
+    BoundaryCondition(LagrangeMultiplierType t, CollisionDetector * contactCondition, ContactModel * contactLaw ) ;
     
     virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t);
     
@@ -127,6 +134,7 @@ private:
 
 public:
     BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double d = 0, int a = 0 ) ;
+    BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, CollisionDetector * contactCondition, ContactModel * contactLaw ) ;
     BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, const Function & d, int a = 0 ) ;
     virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
     virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
@@ -188,6 +196,7 @@ public:
     BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, double d = 0, int a = 0 ) ;
     BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, double zm, double zp, const Function & d, int a = 0 ) ;
     BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, const Function & d, int a = 0 ) ;
+    BoundingBoxAndRestrictionDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp,CollisionDetector * contactCondition, ContactModel * contactLaw )  ;
     virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
     virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;

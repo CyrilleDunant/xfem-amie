@@ -91,7 +91,7 @@ public:
 
     virtual DamageModel * getCopy() const ;
 
-    virtual void preProcess( double timeStep, ElementState & currentState ) ;
+//     virtual void preProcess( double timeStep, ElementState & currentState ) ;
     virtual void postProcess() ;
     double getDamage() const ;
     double getPlasticity() const;

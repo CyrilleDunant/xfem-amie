@@ -29,7 +29,7 @@ PrandtlGrauertPlasticStrain::PrandtlGrauertPlasticStrain(double c_psi, double ep
     newtonIteration = false ;
     es = nullptr ;
     broken = false ;
-    factor = .1 ;
+    factor = .25 ;
 
 }
 
@@ -95,7 +95,7 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
 
 
         double norm = sqrt((imposedStrain*imposedStrain).sum()) ;
-        double onorm = factor*std::min(1.,sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())) ;
+        double onorm = factor*std::min(.1,sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())) ;
         if(norm > POINT_TOLERANCE && onorm > POINT_TOLERANCE)
         {
             imposedStrain /= norm ;
@@ -304,7 +304,7 @@ void PrandtlGrauertPlasticStrain::step( ElementState &s , double maxscore)
 
 
             norm = sqrt((imposedStrain*imposedStrain).sum()) ;
-            onorm = factor*std::min(1.,sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())) ;
+            onorm = factor*std::min(factor,sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())) ;
             if(norm > POINT_TOLERANCE && onorm > POINT_TOLERANCE)
             {
                 imposedStrain /= norm ;
@@ -397,7 +397,7 @@ Vector PrandtlGrauertPlasticStrain::getImposedStrain(const Point & p) const
 
 double PrandtlGrauertPlasticStrain::getDamage() const
 {
-
+//      return 0 ;
     //return std::min(topdamage*state[0]+bottomdamage*(1.-state[0]) + factor, 1.);
 
     double currentPlaticVariable = getPlasticity() ;

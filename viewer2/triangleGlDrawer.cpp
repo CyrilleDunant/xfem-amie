@@ -727,17 +727,17 @@ void TriangleGLDrawer::computeDisplayList()
 	{
 		for( size_t j = 0 ; j < numberOfPointsPerTriangle ; j++ )
 		{
-			if( ( *valuesAtPoint )[2 * j][i] > max_x )
-				max_x = ( *valuesAtPoint )[2 * j][i] ;
+			if( ( *valuesAtPoint )[2 * j][i] + ( *valuesAtPoint )[( 2 ) * numberOfPointsPerTriangle + j][i]> max_x )
+				max_x = ( *valuesAtPoint )[2 * j][i] + ( *valuesAtPoint )[( 2 ) * numberOfPointsPerTriangle + j][i];
 
-			if( ( *valuesAtPoint )[2 * j + 1][i] > max_y )
-				max_y = ( *valuesAtPoint )[2 * j + 1][i] ;
+			if( ( *valuesAtPoint )[2 * j + 1][i] + ( *valuesAtPoint )[( 3 ) * numberOfPointsPerTriangle + j][i]> max_y )
+				max_y = ( *valuesAtPoint )[2 * j + 1][i] + ( *valuesAtPoint )[( 2 ) * numberOfPointsPerTriangle + j][i];
 
-			if( ( *valuesAtPoint )[2 * j][i] < min_x )
-				min_x = ( *valuesAtPoint )[2 * j][i];
+			if( ( *valuesAtPoint )[2 * j][i] + ( *valuesAtPoint )[( 2 ) * numberOfPointsPerTriangle + j][i]< min_x )
+				min_x = ( *valuesAtPoint )[2 * j][i] + ( *valuesAtPoint )[( 2 ) * numberOfPointsPerTriangle + j][i];
 
-			if( ( *valuesAtPoint )[2 * j + 1][i] < min_y )
-				min_y = ( *valuesAtPoint )[2 * j + 1][i] ;
+			if( ( *valuesAtPoint )[2 * j + 1][i] + ( *valuesAtPoint )[( 3 ) * numberOfPointsPerTriangle + j][i]< min_y )
+				min_y = ( *valuesAtPoint )[2 * j + 1][i] + ( *valuesAtPoint )[( 2 ) * numberOfPointsPerTriangle + j][i];
 		}
 	}
 

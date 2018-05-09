@@ -68,7 +68,7 @@ double ConjugateGradient::ssorSmooth(Ssor * ssor, Vector * xcompensate, size_t m
 
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
-//     nssor = 0 ;
+//     nssor = 32 ;
     size_t attempts = 0 ;
     
     if(std::abs(assembly->getForces()).max() < eps*eps)

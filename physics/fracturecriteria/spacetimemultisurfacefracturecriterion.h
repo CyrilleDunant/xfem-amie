@@ -40,8 +40,7 @@ public:
 	virtual void updateCache( ElementState & s);
 
 	virtual bool directionMet(size_t direction, double t = 0) ;
-	
-        virtual double getTensileLimit(const ElementState & s) const ;
+
 
 } ;
 

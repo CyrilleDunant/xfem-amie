@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
     Vector a(3) ;
     a[0] =  0.0008+.002;
     a[1] =  0.0008+.002 ;
-    sample.setBehaviour(new WeibullStiffnessWithVariableImposedDeformationAndFracture(m0_paste,a, new MohrCoulomb(12500000, -12500000*8, E_paste))) ;
+    sample.setBehaviour(new WeibullStiffnessWithVariableImposedDeformationAndFracture(m0_paste,a, new MohrCoulomb(12500000, -12500000*8))) ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
     for(size_t i = 0 ; i < inclusions.size() ; i++)
     {

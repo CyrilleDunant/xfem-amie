@@ -69,7 +69,8 @@ Form * PasteBehaviour::getCopy() const
         }
         else
         {
-            copy = new StiffnessAndFracture(param*factor, new NonLocalLinearlyDecreasingMohrCoulomb(up*factor,-8000.*up*factor,up*factor*10/E,-8000.*up*factor*10/E,E), new FiberBasedIsotropicLinearDamage(0.1,0.699)) ;
+//             copy = new StiffnessAndFracture(param*factor, new /*LinearlyDecreasing*/NonLocalMohrCoulomb(up*factor,-8000.*up*factor/*,up*factor*10/E,-8000.*up*factor*10/E,E*/), new FiberBasedIsotropicLinearDamage(0.1,0.699)) ;
+            copy = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8000.*up*factor), new FiberBasedIsotropicLinearDamage(0.1,0.699)) ;
             copy->getFractureCriterion()->setMaterialCharacteristicRadius(materialRadius);
         }
     }

@@ -54,9 +54,7 @@ public:
 	 */
 	virtual FractureCriterion * getCopy() const;
 
-	virtual double getTensileLimit(const ElementState & s) const {return upVal*20e9 ; } ;
-
-        virtual void reset(double up) { upVal = up ;  }
+    virtual void reset(double up) { upVal = up ;  }
 };
 
 /*PARSE SpaceTimeNonLocalMaximumStrain FractureCriterion

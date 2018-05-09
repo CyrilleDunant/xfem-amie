@@ -459,15 +459,15 @@ void PrandtlReussPlasticStrain::postProcess()
     }
 }
 
-void PrandtlReussPlasticStrain::preProcess( double timeStep, ElementState & currentState )
-{
-    if( state[0] > POINT_TOLERANCE ) {
-        currentState.getParent()->behaviourForcesUpdated = true ;
-    }
-    else  {
-        currentState.getParent()->behaviourForcesUpdated = false ;
-    }
-}
+// void PrandtlReussPlasticStrain::preProcess( double timeStep, ElementState & currentState )
+// {
+//     if( state[0] > POINT_TOLERANCE ) {
+//         currentState.getParent()->behaviourForcesUpdated = true ;
+//     }
+//     else  {
+//         currentState.getParent()->behaviourForcesUpdated = false ;
+//     }
+// }
 
 PrandtlReussPlasticStrain::~PrandtlReussPlasticStrain()
 {

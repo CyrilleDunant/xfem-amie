@@ -590,6 +590,7 @@ void transform(Geometry * g, GeometricTransformationType transformation, const P
     switch(transformation)
     {
     case SCALE:
+    {
         if( p.getX() < POINT_TOLERANCE || p.getY() < POINT_TOLERANCE || ( g->spaceDimensions() == SPACE_THREE_DIMENSIONAL && p.getZ() < POINT_TOLERANCE) )
         {
             return ;
@@ -643,6 +644,7 @@ void transform(Geometry * g, GeometricTransformationType transformation, const P
         }
 
         break ;
+    }
     case ROTATE:
     {
 
@@ -692,8 +694,23 @@ void transform(Geometry * g, GeometricTransformationType transformation, const P
         break ;
     }
     case TRANSLATE:
+    {
         g->setCenter( g->getCenter() + p ) ;
+        
+        for(size_t i = 0 ; i < g->getInPoints().size() ; i++)
+        {
+            g->getInPoint(i).getX() += p.getX() ;
+            g->getInPoint(i).getY() += p.getY() ;
+            g->getInPoint(i).getZ() += p.getZ() ;
+        }
+        for(size_t i = 0 ; i < g->getBoundingPoints().size() ; i++)
+        {
+            g->getBoundingPoint(i).getX() +=  p.getX() ;
+            g->getBoundingPoint(i).getY() +=  p.getY() ;
+            g->getBoundingPoint(i).getZ() +=  p.getZ() ;
+        }
         break ;
+    }
     }
 }
 

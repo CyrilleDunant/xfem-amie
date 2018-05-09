@@ -10,6 +10,7 @@
 #include "../solvers/assembly.h"
 #include "../features/boundarycondition.h"
 #include "../physics/damagemodels/damagemodel.h"
+#include "../physics/contactmodels/contactmodel.h"
 #include <unistd.h>
 
 namespace Amie {
@@ -153,15 +154,24 @@ Vector Form::getImposedStrain ( const Point & p, IntegrableEntity * e, int g ) c
 
 bool Form::hasInducedForces() const
 {
-    return false || ( getDamageModel() && getDamageModel()->hasInducedForces() );
+    return false || ( getDamageModel() && getDamageModel()->hasInducedForces() ) || ( getContactModel() && getContactModel()->hasInducedForces() );
 }
 
 std::vector<BoundaryCondition * > Form::getBoundaryConditions ( const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv ) const
 {
+
     std::vector<BoundaryCondition * > ret ;
     if ( getDamageModel() && getDamageModel()->hasInducedBoundaryConditions() )
     {
-        return getDamageModel()->getBoundaryConditions ( s, id,  p_i, gp, Jinv ) ;
+        std::vector<BoundaryCondition * > tmp = getDamageModel()->getBoundaryConditions ( s, id,  p_i, gp, Jinv ) ;
+        if(!tmp.empty())
+            ret.insert(ret.end(), tmp.begin(), tmp.end() ) ;
+    }
+    if ( getContactModel() && getContactModel()->hasInducedBoundaryConditions() )
+    {
+        std::vector<BoundaryCondition * > tmp = getContactModel()->getBoundaryConditions ( s, id,  p_i, gp, Jinv ) ;
+        if(!tmp.empty())
+            ret.insert(ret.end(), tmp.begin(), tmp.end() ) ;
     }
 
     return  ret ;
@@ -228,37 +238,45 @@ void Form::getViscousTensorDotAtGaussPoints( const GaussPointArray & gp, const s
     }
 }
 
+void Form::preProcess ( double timeStep, ElementState & currentState ) 
+{ 
+} 
+
 void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
 {
-    if ( !getBehaviour() || !( (getBehaviour()->getDamageModel() && getBehaviour()->getDamageModel()->hasInducedBoundaryConditions()) || getBehaviour()->hasInducedForces()))
+    if ( !getBehaviour() || !( 
+        (getBehaviour()->getDamageModel() && getBehaviour()->getDamageModel()->hasInducedBoundaryConditions()) || 
+        getBehaviour()->hasInducedForces() || 
+        (getBehaviour()->getContactModel() && getBehaviour()->getContactModel()->hasInducedBoundaryConditions()) )
+    )
     {
         return ;
     }
     if ( getBehaviour()->type != VOID_BEHAVIOUR  )
     {
-        if ( boundaryConditionCache && !behaviourForcesUpdated )
-        {
-            for ( size_t i = 0 ; i < boundaryConditionCache->size() ; i++ )
-            {
-                if ( ( *boundaryConditionCache ) [i] )
-                {
-                    if ( get2DMesh() )
-                    {
-                        ( *boundaryConditionCache ) [i]->apply ( a, get2DMesh() ) ;
-                    }
-                    else
-                    {
-                        ( *boundaryConditionCache ) [i]->apply ( a, get3DMesh() ) ;
-                    }
-                }
-            }
-            
-            return ;
-        }
-        if( boundaryConditionCache && behaviourForcesUpdated ) 
-            boundaryConditionCache->clear() ;
-        else
-            boundaryConditionCache = new std::vector<BoundaryCondition *>() ;
+//         if ( boundaryConditionCache && !behaviourForcesUpdated )
+//         {
+//             for ( size_t i = 0 ; i < boundaryConditionCache->size() ; i++ )
+//             {
+//                 if ( ( *boundaryConditionCache ) [i] )
+//                 {
+//                     if ( get2DMesh() )
+//                     {
+//                         ( *boundaryConditionCache ) [i]->apply ( a, get2DMesh() ) ;
+//                     }
+//                     else
+//                     {
+//                         ( *boundaryConditionCache ) [i]->apply ( a, get3DMesh() ) ;
+//                     }
+//                 }
+//             }
+//             
+//             return ;
+//         }
+//         if( boundaryConditionCache && behaviourForcesUpdated ) 
+//             boundaryConditionCache->clear() ;
+//         else
+//             boundaryConditionCache = new std::vector<BoundaryCondition *>() ;
 
         int JinvSize = 3 ;
         if ( spaceDimensions() == SPACE_THREE_DIMENSIONAL && timePlanes() > 1 )
@@ -281,34 +299,40 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
         for ( size_t i = start ; i < getShapeFunctions().size() ; i++ )
         {
             std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions ( getState(), getBoundingPoint ( i ).getId(),  getShapeFunction ( i ), getGaussPoints(), Jinv );
-            boundaryConditionCache->insert(boundaryConditionCache->end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end()) ;
+
             for ( size_t j = 0 ; j < boundaryConditionCachetmp.size() ; j++ )
             {
                 if ( get2DMesh() )
                 {
                     boundaryConditionCachetmp[j]->apply ( a, get2DMesh() ) ;
+                    delete boundaryConditionCachetmp[j] ;
                 }
                 else
                 {
                     boundaryConditionCachetmp[j]->apply ( a, get3DMesh() ) ;
+                    delete boundaryConditionCachetmp[j] ;
                 } 
             }
+
         }
         for ( size_t i = start ; i < getEnrichmentFunctions().size() ; i++ )
         {
             std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions ( getState(), getEnrichmentFunction ( i ).getDofID(),  getEnrichmentFunction ( i ), getGaussPoints(), Jinv ) ;
-            boundaryConditionCache->insert(boundaryConditionCache->end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end()) ;
+
             for ( size_t j = 0 ; j < boundaryConditionCachetmp.size() ; j++ )
             {
                 if ( get2DMesh() )
                 {
                     boundaryConditionCachetmp[j]->apply ( a, get2DMesh() ) ;
+                    delete boundaryConditionCachetmp[j] ;
                 }
                 else
                 {
                     boundaryConditionCachetmp[j]->apply ( a, get3DMesh() ) ;
+                    delete boundaryConditionCachetmp[j] ;
                 }
             }
+
         }
 
     }
@@ -457,18 +481,27 @@ Vector toPrincipal ( const Vector & stressOrStrain, CompositionType t )
         if ( ret.size() == 2 )
         {
             double trace = stressOrStrain[0] + stressOrStrain[1] ;
+            
             double det = stressOrStrain[0]*stressOrStrain[1] - stressOrStrain[2]*stressOrStrain[2] ;
             double delta = std::sqrt(trace*trace - 4.*det) ;
             double angle =  0.5*std::atan2 ( stressOrStrain[2], stressOrStrain[0] - stressOrStrain[1] ) ;
-            if(std::cos(angle) < 0)
+            if(std::abs(trace) > 1e-12)
             {
-                ret[0] = (trace + delta)*.5 ;
-                ret[1] = (trace - delta)*.5 ;
+                if(std::cos(angle) < 0)
+                {
+                    ret[0] = (trace + delta)*.5 ;
+                    ret[1] = (trace - delta)*.5 ;
+                }
+                else
+                {
+                    ret[0] = (trace - delta)*.5 ;
+                    ret[1] = (trace + delta)*.5 ;
+                }
             }
             else
             {
-                ret[0] = (trace - delta)*.5 ;
-                ret[1] = (trace + delta)*.5 ;
+                    ret[0] = 0 ;
+                    ret[1] = 0 ;
             }
         }
         else if ( ret.size() == 3 )
@@ -507,15 +540,23 @@ Vector toPrincipal ( const Vector & stressOrStrain, CompositionType t )
             double det = stressOrStrain[0]*stressOrStrain[1] - 0.25*stressOrStrain[2]*stressOrStrain[2] ;
             double delta = std::sqrt(trace*trace - 4.*det) ;
             double angle =  0.5*std::atan2 (  0.5*stressOrStrain[2], stressOrStrain[0] - stressOrStrain[1] ) ;
-            if(std::cos(angle) < 0)
+            if(std::abs(trace) > 1e-12)
             {
-                ret[0] = (trace + delta)*.5 ;
-                ret[1] = (trace - delta)*.5 ;
+                if(std::cos(angle) < 0)
+                {
+                    ret[0] = (trace + delta)*.5 ;
+                    ret[1] = (trace - delta)*.5 ;
+                }
+                else
+                {
+                    ret[0] = (trace - delta)*.5 ;
+                    ret[1] = (trace + delta)*.5 ;
+                }
             }
             else
             {
-                ret[0] = (trace - delta)*.5 ;
-                ret[1] = (trace + delta)*.5 ;
+                ret[0] = 0 ;
+                ret[1] = 0 ;
             }
         }
         else if ( ret.size() == 3 )

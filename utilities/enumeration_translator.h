@@ -1142,6 +1142,7 @@ struct Enum
             case HORIZONTAL_PLANE_SECTIONS: return "HORIZONTAL_PLANE_SECTIONS" ;
             case nullptr_CONDITION: return "nullptr_CONDITION" ;
             case SET_GLOBAL_FORCE_VECTOR: return "SET_GLOBAL_FORCE_VECTOR" ;
+            case CONTACT_CONDITION : return "CONTACT_CONDITION" ;
         }
         return "GENERAL" ;
     }

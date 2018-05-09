@@ -128,6 +128,8 @@ class ElementaryVolume ;
 struct IntegrableEntity ;
 class FractureCriterion ;
 class DamageModel ;
+class CollisionDetector ;
+class ContactModel ;
 class VirtualMachine ;
 class BoundaryCondition ;
 template<class A, class B>
@@ -437,6 +439,7 @@ struct IntegrableEntity : public Geometry
  */
 class Form
 {
+    friend BoundaryCondition ;
 protected:
     bool time_d ;
     bool space_d ;
@@ -444,6 +447,9 @@ protected:
     size_t num_dof ;
 
     const Geometry * source ;
+    CollisionDetector * collisionDetection = nullptr;
+    ContactModel * contactModel = nullptr;
+    
 
 public:
 
@@ -559,16 +565,24 @@ public:
     virtual FractureCriterion * getFractureCriterion() const {
         return nullptr ;
     }
+    
+    virtual CollisionDetector * getCollisionDetection() const {
+        return collisionDetection ;
+    }
 
     virtual void setFractureCriterion ( FractureCriterion * frac ) { }
 
     virtual DamageModel * getDamageModel() const {
         return nullptr ;
     }
+    
+    virtual ContactModel * getContactModel() const {
+        return contactModel ;
+    }
 
     virtual ElementState * createElementState ( IntegrableEntity * e ) ;
 
-    virtual void preProcess ( double timeStep, ElementState & currentState ) { } ;
+    virtual void preProcess ( double timeStep, ElementState & currentState ) ;
 
 } ;
 

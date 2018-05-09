@@ -28,12 +28,8 @@ namespace Amie {
 	*/
 	class NonLocalVonMises : public FractureCriterion
 	{
-		bool met ;
 	public:
 		double threshold ;
-		virtual bool directionInTension(size_t direction, double t = 0) {return met ;}
-		virtual bool directionInCompression(size_t direction, double t = 0) {return met ;}
-		virtual bool directionMet(size_t direction, double t = 0) {return met;}
 	public:
 	/** \brief Constructor 
 	 * @param thres Set the maximum stress. 
@@ -55,7 +51,6 @@ namespace Amie {
 		
 		virtual void scale(double d ) { threshold *= d ;}
 		
-		virtual double getTensileLimit(const ElementState & s) const {return threshold ;};
 	};
 
 } 

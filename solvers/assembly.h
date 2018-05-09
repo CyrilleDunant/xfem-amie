@@ -92,6 +92,7 @@ typedef enum
     HORIZONTAL_PLANE_SECTIONS,
     nullptr_CONDITION,
     SET_GLOBAL_FORCE_VECTOR,
+    CONTACT_CONDITION
 } LagrangeMultiplierType ;
 
 /** \brief Abstract representation of a Boundary condition. Can be an actual Lagrange Multiplier, or a hint for set displacements or forces.*/

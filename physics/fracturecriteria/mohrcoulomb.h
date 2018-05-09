@@ -32,7 +32,6 @@ class MohrCoulomb : public FractureCriterion
 public:
 	double upVal ;
 	double downVal ;
-        double stiffness ;
 	bool metInCompression  ;
 	bool metInTension  ;
 	
@@ -43,7 +42,7 @@ public:
  * @param down Minimum stress (compression)
  * @param E Young's modulus
 */
-	MohrCoulomb(double up, double down, double E);
+	MohrCoulomb(double up, double down);
 
 	virtual ~MohrCoulomb();
 
@@ -57,7 +56,6 @@ public:
 */
 	virtual double grade(ElementState &s)  ;
 		
-	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
 };
 
 /*PARSE NonLocalMohrCoulomb FractureCriterion 
@@ -72,7 +70,6 @@ protected:
 public:
 	double upVal ;
 	double downVal ;
-	double stiffness ;
 	bool metInCompression  ;
 	bool metInTension  ;
 	
@@ -92,7 +89,7 @@ public:
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
 */
-	NonLocalMohrCoulomb(double up, double down, double E);
+	NonLocalMohrCoulomb(double up, double down);
 
 	virtual ~NonLocalMohrCoulomb();
 
@@ -108,7 +105,6 @@ public:
 
 	virtual void scale(double f) { upVal *=f ; downVal *= f ; } ;
 	
-	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
 };
 
 
@@ -128,7 +124,7 @@ public:
  * @param down Minimum stress (compression)
  * @param E young's Modulus
 */
-	SpaceTimeNonLocalMohrCoulomb(double up, double down, double E) : NonLocalMohrCoulomb(up, down, E) { } ;
+	SpaceTimeNonLocalMohrCoulomb(double up, double down) : NonLocalMohrCoulomb(up, down) { } ;
 
 	virtual ~SpaceTimeNonLocalMohrCoulomb() { } ;
 
@@ -191,7 +187,6 @@ public:
 
 	virtual void scale(double f) { upVal *=f ; downVal *= f ; } ;
 	
-	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
 };
 
 /*PARSE NonLocalExponentiallyDecreasingMohrCoulomb FractureCriterion 
@@ -252,8 +247,6 @@ public:
 	virtual double grade(ElementState &s)  ;
 
 	virtual void scale(double f) { upVal *=f ; downVal *= f ; } ;
-	
-	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
 };
 
 /*PARSE NonLocalInverseRootMohrCoulomb FractureCriterion 
@@ -304,7 +297,6 @@ public:
 
 	virtual void scale(double f) { upVal *=f ; } ;
 	
-	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
 };
 
 

@@ -1,17 +1,17 @@
 //
-// C++ Interface: damagemodel
+// C++ Interface: contact model
 //
 // Description:
 //
 //
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2008-2013
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2018-
 //
 // Copyright: See COPYING file that comes with this distribution
 //
 //
 
-#include "damagemodel.h"
-#include "../fracturecriteria/fracturecriterion.h"
+#include "contactmodel.h"
+#include "../collisiondetectors/collisiondetector.h"
 #include "../../mesher/delaunay.h"
 
 namespace Amie
@@ -19,17 +19,12 @@ namespace Amie
 
 /** \brief Damage model interface */
 
-void DamageModel::step( ElementState &s , double maxscore)
+void ContactModel::step( ElementState &s , double maxscore)
 {
     elementState = &s ;
     size_t maxit = iterationNumber ;
     if(alternating)
         maxit /=2 ;
-
-//     double phi = ( 1. + sqrt( 5. ) ) * .5 ;
-//     double resphi = 2. - phi ;   //goldensearch
-// 		resphi = .5 ;              //bisection
-// 		resphi = .1 ;                //down bias
 
     if( fraction < 0 )
     {
@@ -45,19 +40,21 @@ void DamageModel::step( ElementState &s , double maxscore)
     }
 
     change = false ;
-    if(!s.getParent()->getBehaviour()->getFractureCriterion())
+    if(!s.getParent()->getBehaviour()->getCollisionDetection() )
     {
         alternate = true ;
         converged = true ;
         return ;
     }
-    double max = needGlobalMaximumScore?maxscore:s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(s) ;
+    
 
-    std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , max) ;
-    double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;//maxscore ;
-    if( !s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
+    double max = maxscore ;
+//     std::cout << "a "<< converged << std::endl ;
+    std::pair<double, double> setChange = s.getParent()->getBehaviour()->getCollisionDetection()->setChange( s , max) ;
+    double score = s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState() ;//maxscore ;
+    if( !s.getParent()->getBehaviour()->getCollisionDetection()->isInDamagingSet() )
     {
-        s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
+        s.getParent()->getBehaviour()->getCollisionDetection()->setCheckpoint( false );
         alternateCheckpoint = false ;
         // this is necessary because we want to trigger side-effects
         //for example, plasticstrain gets a pointer to s
@@ -68,36 +65,27 @@ void DamageModel::step( ElementState &s , double maxscore)
     }
 
     std::pair<Vector, Vector> damageIncrement = computeDamageIncrement( s ) ;
-    
-    if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() || (alternateCheckpoint && alternating) ) // initiate iteration
+//     std::cout << "b "<< converged << std::endl ;
+    if( s.getParent()->getBehaviour()->getCollisionDetection()->isAtCheckpoint() || (alternateCheckpoint && alternating) ) // initiate iteration
     {
-
         initalState = state ;
         error = score ;
-        s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
+        s.getParent()->getBehaviour()->getCollisionDetection()->setCheckpoint( false );
         alternateCheckpoint = false ;
         states.clear() ;
         if(!fractured())
         {
-// 	    if(setChange.first < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance())
-// 	    {
-// 		converged = true ;
-// 		change = true ;
-// 		downState = damageIncrement.first ;
-// 		upState = damageIncrement.second ;
-// 		getState( true ) = downState+(upState-downState) * s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-// 	    }
-
             converged = false ;
             change = true ;
 
             downState = damageIncrement.first ;
             upState = damageIncrement.second ;
-            upState= downState+(upState-downState) * s.getParent()->getBehaviour()->getFractureCriterion()->getMinDeltaInNeighbourhood();
+            upState= downState+(upState-downState) * s.getParent()->getBehaviour()->getCollisionDetection()->getMinDeltaInNeighbourhood();
 
-            states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0., score, setChange.second, -M_PI*.025, -1 ) ) ;
+            states.push_back( PointState( s.getParent()->getBehaviour()->getCollisionDetection()->met(), setChange.first,0., score, setChange.second, -M_PI*.025, -1 ) ) ;
             trialRatio = 1. ;
             getState( true ) = upState ;
+//             std::cout << "c "<< converged << std::endl ;
 
         }
         else
@@ -105,33 +93,31 @@ void DamageModel::step( ElementState &s , double maxscore)
             converged = true ;
             alternate = true ;
         }
-//        std::cout << "\n-++-"<< damageIncrement.first[0] << "  ;  "<< damageIncrement.second[0] << "-++-" << std::endl ;  
-//       std::cout << "\n----"<< score << "  ;  "<< trialRatio << "----" << std::endl ;
 
     }
     else if( !converged )
     {
+//         std::cout << s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState()<< std::endl ;
 
-      
-      Vector ratios({0.0025, 0.005555556, 0.006611570, 0.008000000, 0.009876543, 0.012500000, 0.016326531, 0.022222222, 0.032000000, 0.050000000, 0.088888889, 0.200000000, 0.800000000}) ;
-                    
+        Vector ratios({0.0025, 0.005555556, 0.006611570, 0.008000000, 0.009876543, 0.012500000, 0.016326531, 0.022222222, 0.032000000, 0.050000000, 0.088888889, 0.200000000, 0.800000000}) ;
 
-      double globalAngleShift = std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->maxAngleShiftInNeighbourhood) ;
-      int globalMode = s.getParent()->getBehaviour()->getFractureCriterion()->maxModeInNeighbourhood ;
+
+        double globalAngleShift = std::abs(s.getParent()->getBehaviour()->getCollisionDetection()->getMaxAngleShiftInNeighbourhood()) ;
+        int globalMode = s.getParent()->getBehaviour()->getCollisionDetection()->getMaxAngleShiftInNeighbourhood() ;
 
         change = true ;
 
-        states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.025, globalMode ) ) ;
-	
-	if(states.size()-2  < 12)
-	{
-	  trialRatio = ratios[states.size()-2] ;
-	  getState( true ) = downState + ( upState - downState ) *trialRatio ;
-	  return ;
-	}
-	double initialRatio = trialRatio ;
-	
-	
+        states.push_back( PointState( s.getParent()->getBehaviour()->getCollisionDetection()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.025, globalMode ) ) ;
+
+        if(states.size()-2  < 12)
+        {
+            trialRatio = ratios[states.size()-2] ;
+            getState( true ) = downState + ( upState - downState ) *trialRatio ;
+            return ;
+        }
+        double initialRatio = trialRatio ;
+
+
         std::sort( states.begin(), states.end() ) ;
 
         double minFraction = states[0].fraction ;
@@ -153,7 +139,7 @@ void DamageModel::step( ElementState &s , double maxscore)
         bool modeRoot = false ;
         error = 10 ;
         double minscore = currentScore ;
-        
+
         for(  size_t i = 1 ; i < states.size() ; i++ )
         {
             currentDelta = states[i].delta ;
@@ -161,9 +147,9 @@ void DamageModel::step( ElementState &s , double maxscore)
             currentProximity = states[i].proximity ;
             currentShift = states[i].angleShift ;
             currentMode = states[i].mode ;
-	    minscore = std::min(minscore, currentScore);
+            minscore = std::min(minscore, currentScore);
             if(     ((currentDelta > 0    && prevDelta  < 0)     ||
-                    (currentDelta < 0     && prevDelta  > 0 ))   ||
+                     (currentDelta < 0     && prevDelta  > 0 ))   ||
                     (std::abs(currentDelta) < POINT_TOLERANCE && std::abs(prevDelta) < POINT_TOLERANCE) ||
                     ((currentScore > 0     && prevScore  < 0  )   ||
                      (currentScore < 0     && prevScore  > 0))    ||
@@ -177,15 +163,15 @@ void DamageModel::step( ElementState &s , double maxscore)
             {
                 deltaRoot = (currentDelta > 0     && prevDelta < 0)   ||
                             (currentDelta < 0     && prevDelta  > 0)  ||
-                            (std::abs(currentDelta) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5 && 
-                            std::abs(prevDelta) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5) ;
+                            (std::abs(currentDelta) < s.getParent()->getBehaviour()->getCollisionDetection()->getScoreTolerance()*.5 &&
+                             std::abs(prevDelta) < s.getParent()->getBehaviour()->getCollisionDetection()->getScoreTolerance()*.5) ;
                 if(deltaRoot)
                     error = std::min(error, std::abs(currentDelta-prevDelta)) ;
 
                 scoreRoot = (currentScore > 0     && prevScore  < 0 ) ||
                             (currentScore < 0     && prevScore  > 0 ) ||
-                            (std::abs(currentScore) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5  && 
-                            std::abs(prevScore)  < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5) ;
+                            (std::abs(currentScore) < s.getParent()->getBehaviour()->getCollisionDetection()->getScoreTolerance()*.5  &&
+                             std::abs(prevScore)  < s.getParent()->getBehaviour()->getCollisionDetection()->getScoreTolerance()*.5) ;
                 if(scoreRoot)
                     error = std::min(error, std::abs(currentScore-prevScore)) ;
 
@@ -232,29 +218,29 @@ void DamageModel::step( ElementState &s , double maxscore)
         {
             trialRatio = (minFraction*std::abs(currentProximity)/(std::abs(prevProximity)+std::abs(currentProximity)) +nextFraction*std::abs(prevProximity)/(std::abs(prevProximity)+std::abs(currentProximity))) ;
         }
-        
-        
+
+
         if(!(deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot)) // we should then minimise the score or proximity.
-	{
-	  double del = 0 ;
-	  double fac = std::min(std::max(.75/((std::abs(score) + std::abs(setChange.first) + std::abs(setChange.second) )), 0.25), 1.) ;
-	  if(std::max(setChange.first, setChange.second) > 4.*damageDensityTolerance)
-	  {
-	    if(setChange.first <= setChange.second && setChange.first <= score)
-	      del = fac*setChange.first ;
-	    else if(setChange.second <= setChange.first && setChange.second <= score)
-	      del = fac*setChange.second ;
-	    else 
-	      del = fac*score ;
-	  }
-	  else
-	    del = fac*score ;
-	    
-	  
-	  trialRatio = std::min(std::max(initialRatio + del, 0.), 1.) ;//initialRatio+damageDensityTolerance*.175 ;
-	  getState( true ) = downState + ( upState - downState ) *trialRatio /*+ damageDensityTolerance*.25*/;
-	  deltaRoot = true ;
-	}
+        {
+            double del = 0 ;
+            double fac = std::min(std::max(.75/((std::abs(score) + std::abs(setChange.first) + std::abs(setChange.second) )), 0.25), 1.) ;
+            if(std::max(setChange.first, setChange.second) > 4.*damageDensityTolerance)
+            {
+                if(setChange.first <= setChange.second && setChange.first <= score)
+                    del = fac*setChange.first ;
+                else if(setChange.second <= setChange.first && setChange.second <= score)
+                    del = fac*setChange.second ;
+                else
+                    del = fac*score ;
+            }
+            else
+                del = fac*score ;
+
+
+            trialRatio = std::min(std::max(initialRatio + del, 0.), 1.) ;//initialRatio+damageDensityTolerance*.175 ;
+            getState( true ) = downState + ( upState - downState ) *trialRatio /*+ damageDensityTolerance*.25*/;
+            deltaRoot = true ;
+        }
 
 
         if( states.size() > maxit-1 && (deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot))
@@ -296,7 +282,7 @@ void DamageModel::step( ElementState &s , double maxscore)
         }
         else if(states.size() > maxit-1)
         {
-	    std::cout << "ouch" << std::endl ;
+            std::cout << "ouch" << std::endl ;
             for(size_t i = 0 ; i <  state.size() ; i++)
             {
                 if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE)
@@ -315,80 +301,10 @@ void DamageModel::step( ElementState &s , double maxscore)
 }
 
 
-void DamageModel::postProcess()
-{
-}
-
-DamageModel::DamageModel(): state(0)
-{
-    elementState = nullptr ;
+ContactModel::ContactModel(): DamageModel() {
     change = false ;
-    isNull = true ;
-    haslimit = false ;
-    error = 1 ;
-    iterationNumber = 4 ;
-
-    ctype = DISSIPATIVE ;
-    fraction = -1 ;
-    converged = true ;
-    alternateCheckpoint = false ;
-    delta = 1 ;
-    effectiveDeltaFraction = 1 ;
-    alternate = true ;
-    alternating = false ;
-    needGlobalMaximumScore = true ;
-    // The exploration increment is crucial for finding
-    // the correct distribution of damage: the effect
-    // of damage increment on the distribution of
-    // fracture criterion scores is non-monotonic.
-    damageDensityTolerance =  1e-5 ; //std::max(0.25/pow(2.,iterationNumber), 0.5e-3) ; //1e-8 ;//1. / pow( 2., 14 );
-    thresholdDamageDensity = 1. ;
-    secondaryThresholdDamageDensity = 1. ;
-    allowBackSearch = false ;
-} 
-
-void DamageModel::copyEssentialParameters( const DamageModel * dam ) 
-{
-    thresholdDamageDensity = dam->getThresholdDamageDensity() ;
-    secondaryThresholdDamageDensity = dam->getSecondaryThresholdDamageDensity() ;
-    damageDensityTolerance = dam->getDamageDensityTolerance() ;
-    residualStiffnessFraction = dam->getResidualStiffnessFraction() ;
-    getState(true).resize(dam->getState().size()) ;
-    getState(true) = dam->getState() ;
+    iterationNumber = 32 ;
 }
 
-double DamageModel::getThresholdDamageDensity() const
-{
-    return thresholdDamageDensity ;
-}
 
-double DamageModel::getSecondaryThresholdDamageDensity() const
-{
-    return secondaryThresholdDamageDensity ;
 }
-
-Vector &DamageModel::getState( bool )
-{
-    return state ;
-}
-
-void DamageModel::setThresholdDamageDensity( double d )
-{
-    thresholdDamageDensity = d ;
-}
-
-void DamageModel::setSecondaryThresholdDamageDensity( double d )
-{
-    secondaryThresholdDamageDensity = d ;
-}
-
-void DamageModel::setDamageDensityTolerance( double d )
-{
-    damageDensityTolerance = d ;
-}
-
-bool DamageModel::changed() const
-{
-    return change ;
-}
-} 

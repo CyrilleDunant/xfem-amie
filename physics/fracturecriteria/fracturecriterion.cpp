@@ -71,7 +71,7 @@ FractureCriterion::FractureCriterion() :
     maxModeInNeighbourhood(-1),
     maxScoreInNeighbourhood(0),
     maxAngleShiftInNeighbourhood(0),
-    scoreTolerance(1e-3),
+    scoreTolerance(1e-2),
     checkpoint(true),
     inset(false),
     smoothingType(QUARTIC_COMPACT),
@@ -179,12 +179,6 @@ void FractureCriterion::initialiseCache( ElementState & s)
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
         Function smooth = getSmoothingKernelFunction( smoothingType, rrn ) ;
 
-// 	Function smoothalt = getSmoothingKernelFunction( QUARTIC_COMPACT, rrn ) ;
-// 	for(double x = -1 ; x < 1 ; x+= 0.01)
-// 	{
-// 	  std::cout << VirtualMachine().eval(smooth, x, s.getParent()->getCenter().getY()) << "  "<< VirtualMachine().eval(smoothalt, x, s.getParent()->getCenter().getY()) << std::endl ;
-// 	}
-// 	exit(0) ;
         Circle epsilonAll( std::max(physicalCharacteristicRadius*6., s.getParent()->getRadius()*4. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         Circle epsilonReduced(physicalCharacteristicRadius*overlap+s.getParent()->getRadius()*1.5,s.getParent()->getCenter()) ;
         mesh2d = s.getMesh2D() ;
@@ -214,6 +208,7 @@ void FractureCriterion::initialiseCache( ElementState & s)
 
     }
 }
+
 void FractureCriterion::updateCache( ElementState & s)
 {
     if(!mesh2d && !mesh3d)
@@ -248,7 +243,6 @@ void FractureCriterion::updateCache( ElementState & s)
 
     }
 }
-
 
 double FractureCriterion::getMaxScoreInNeighbourhood(ElementState & s)
 {
@@ -572,6 +566,7 @@ void FractureCriterion::step(ElementState &s)
     {
         scoreAtState = grade(s) ;
     }
+//     std::cout << scoreAtState << std::endl ;
     metAtStep = scoreAtState > 0 ;
 
 }

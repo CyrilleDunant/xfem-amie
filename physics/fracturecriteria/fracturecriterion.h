@@ -88,29 +88,33 @@ public:
         return metAtStep ;
     }
 
-    std::pair<Vector, Vector> getSmoothedFields(FieldType f0, FieldType f1,  ElementState &s ,double t = 0) ;
-    Vector getSmoothedField( FieldType f0,ElementState &s , double t = 0) ;
+    virtual std::pair<Vector, Vector> getSmoothedFields(FieldType f0, FieldType f1,  ElementState &s ,double t = 0) ;
+    virtual Vector getSmoothedField( FieldType f0,ElementState &s , double t = 0) ;
     
-    void setRestriction(const Geometry * g,ElementState &s) ;
-    void updateRestriction(ElementState &s) ;
+    virtual void setRestriction(const Geometry * g,ElementState &s) ;
+    virtual void updateRestriction(ElementState &s) ;
 
 public:
 
     Mesh<DelaunayTriangle, DelaunayTreeItem>  *mesh2d ;
     Mesh<DelaunayTetrahedron,DelaunayTreeItem3D>  *mesh3d ;
 
-    SmoothingFunctionType getSmoothingFunctionType() const { return smoothingType ; }
-    void setSmoothingFunctionType( SmoothingFunctionType smooth, bool over = true ) ;// { smoothingType = smooth ; }
-    void setSmoothingFunctionOverlap( double d ) { overlap = d ; }
-    double getSmoothingFunctionOverlap() const { return overlap ; }
+    virtual SmoothingFunctionType getSmoothingFunctionType() const { return smoothingType ; }
+    virtual void setSmoothingFunctionType( SmoothingFunctionType smooth, bool over = true ) ;// { smoothingType = smooth ; }
+    virtual void setSmoothingFunctionOverlap( double d ) { overlap = d ; }
+    virtual double getSmoothingFunctionOverlap() const { return overlap ; }
 
-    double getScoreTolerance() const {
+    virtual double getScoreTolerance() const {
         return scoreTolerance ;
     }
-    double getMinDeltaInNeighbourhood() const {
+    virtual double getMinDeltaInNeighbourhood() const {
         return minDeltaInNeighbourhood ;
     }
-    double getMaxScoreInNeighbourhood( ElementState& s ) ;
+    
+    virtual double getMaxAngleShiftInNeighbourhood() const {
+        return maxAngleShiftInNeighbourhood ;
+    }
+    virtual double getMaxScoreInNeighbourhood( ElementState& s ) ;
 
     FractureCriterion() ;
 
@@ -121,17 +125,17 @@ public:
 
     void step(ElementState& s) ;
     
-    bool isAtCheckpoint() const {
+    virtual bool isAtCheckpoint() const {
         return checkpoint ;
     }
-    bool isInDamagingSet() const {
+    virtual bool isInDamagingSet() const {
         return inset ;
     }
-    void setCheckpoint( bool c) {
+    virtual void setCheckpoint( bool c) {
         checkpoint = c ;
     }
 
-    void setScoreTolerance(double f) {
+    virtual void setScoreTolerance(double f) {
         scoreTolerance = f ;
     } ;
 
@@ -164,17 +168,15 @@ public:
 
 
     virtual void setMaterialCharacteristicRadius(double r) ;
-    double getMaterialCharacteristicRadius() const {
+    virtual double getMaterialCharacteristicRadius() const {
         return physicalCharacteristicRadius ;
     } ;
 
-    double getScoreAtState() const ;
+    virtual double getScoreAtState() const ;
 
-    double getScoreAtTimeStepEnd() const { return scoreAtTimeStepEnd < -1 ? getScoreAtState() : scoreAtTimeStepEnd ; }
-
-    virtual double getTensileLimit(const ElementState & s) const = 0 ;
+    virtual double getScoreAtTimeStepEnd() const { return scoreAtTimeStepEnd < -1 ? getScoreAtState() : scoreAtTimeStepEnd ; }
     
-    const std::vector<bool> & getRestriction() const {return restriction ;} ;
+    virtual const std::vector<bool> & getRestriction() const {return restriction ;} ;
 };
 
 } 

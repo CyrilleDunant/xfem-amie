@@ -57,8 +57,6 @@ public:
 	virtual double grade(ElementState &s)  ;
 
 	virtual void scale(double d) {upVal *= d ; downVal *= d ; };
-	
-	virtual double getTensileLimit(const ElementState & s) const {return upVal ; } ;
 };
 
 }

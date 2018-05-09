@@ -143,15 +143,72 @@ double GelManager::getAggregateArea() const
     return aggregateArea ;
 }
 
+
+double GelManager::areaForDr(double dr) const
+{
+    std::valarray<bool> mask(true, zones.size()) ;
+    size_t iterator = 0;
+    Feature *current = nullptr ;
+
+    if( !zones.empty() )
+        current = zones[0].second ;
+
+    double currentArea = 0 ;
+    int currentNumber = 0 ;
+    for( size_t z = 0 ; z < zones.size() ; z++ )
+    {
+//         if( zones[z].first->intersects( zones[z].second))
+//             continue ;
+        
+        zones[z].first->setRadius( zones[z].first->getRadius() + dr ) ;
+
+        if( zones[z].second == current )
+        {
+            currentArea += (zones[z].first->getRadius() + dr)*(zones[z].first->getRadius() + dr)*M_PI ;
+            currentNumber++ ;
+            
+        }
+        else
+        {
+            if( currentArea / zones[z - 1].second->area() > reactiveFraction )
+            {
+                for( int m = 0 ; m < currentNumber ; m++ )
+                {
+                    mask[iterator+m] = false ;
+                }
+            }
+            iterator+=currentNumber ;
+
+            currentArea = (zones[z].first->getRadius() + dr)*(zones[z].first->getRadius() + dr)*M_PI ;
+            currentNumber = 1 ;
+            current = zones[z].second ;
+        }
+    }
+    double ret = 0 ;
+    for( size_t z = 0 ; z < zones.size() ; z++ )
+        if(mask[z])
+            ret += (zones[z].first->getRadius() + dr)*(zones[z].first->getRadius() + dr)*M_PI ;
+    return ret ;
+}
+
 bool GelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree)
 {
     if(dt < POINT_TOLERANCE)
         return false ;
     
-    
+    if(steps == 0)
+    {
+        initialArea = 0 ;
+        for( size_t z = 0 ; z < zones.size() ; z++ )
+        {
+            initialArea += zones[z].first->area() ;
+        }
+        deltaRadius = initialArea*initialArea/(totalSteps*totalSteps) ;
+    }
     steps++ ;
     
-    double targetArea = aggregateArea*reactiveFraction*steps/totalSteps ;
+    double targetArea = initialArea + aggregateArea*reactiveFraction*steps/totalSteps ;
+//     std::cout << "target Area: " <<targetArea << " = "<< aggregateArea << "  "<< reactiveFraction << "  " << steps/totalSteps <<std::endl ;
     
     double minArea = 0 ;
     for( size_t z = 0 ; z < zones.size() ; z++ )
@@ -161,45 +218,28 @@ bool GelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTre
     double mindr = 0 ;
     double maxdr = deltaRadius ;
     
-    double maxArea = 0 ;
-    for( size_t z = 0 ; z < zones.size() ; z++ )
-    {
-        maxArea += M_PI*(zones[z].first->getRadius()+maxdr)*(zones[z].first->getRadius()+maxdr) ;
-    }
-    while(maxArea < targetArea)
-    {
-        maxdr *= 1.5 ;
-        for( size_t z = 0 ; z < zones.size() ; z++ )
-        {
-            maxArea += M_PI*(zones[z].first->getRadius()+maxdr)*(zones[z].first->getRadius()+maxdr) ;
-        }
-    }
+    double maxArea = areaForDr(maxdr) ;
+
+    
+    do {
+        maxdr *= 2. ;
+        maxArea = areaForDr(maxdr) ;
+//         std::cout << "max " <<maxArea << " vs " << targetArea << std::endl ;
+    } while(maxArea < targetArea) ;
     double dr = 0 ;
-    while(maxdr-mindr > 1e-12)
-    {
-        minArea = 0 ;
-        for( size_t z = 0 ; z < zones.size() ; z++ )
-        {
-            minArea +=  M_PI*(zones[z].first->getRadius()+mindr)*(zones[z].first->getRadius()+mindr) ;
-        }
-        maxArea = 0 ;
-        for( size_t z = 0 ; z < zones.size() ; z++ )
-        {
-            maxArea += M_PI*(zones[z].first->getRadius()+maxdr)*(zones[z].first->getRadius()+maxdr) ;
-        }
+    
+    do {
         dr = (maxdr+mindr)*.5 ;
-        double currentArea = 0 ;
-        for( size_t z = 0 ; z < zones.size() ; z++ )
-        {
-            currentArea += M_PI*(zones[z].first->getRadius()+dr)*(zones[z].first->getRadius()+dr) ;
-        }
+        double currentArea = areaForDr(dr) ;
+//         std::cout << currentArea << " vs " << targetArea << std::endl ;
         
         if(currentArea > targetArea)
             maxdr = dr ;
         else
             mindr = dr ;
-    }
-    deltaRadius = dr ;
+    } while(maxdr-mindr > 1e-32) ;
+    deltaRadius = (maxdr+mindr)*.5 ;
+//     std::cout << "increasing Delta: " << (maxdr+mindr)*.5 << std::endl ;
     
     
     Feature *current = nullptr ;
@@ -210,7 +250,7 @@ bool GelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTre
     double currentArea = 0 ;
     int currentNumber = 0 ;
     int stoppedReaction = 0 ;
-    reactedArea = 0 ;
+    
     
     for( size_t z = 0 ; z < zones.size() ; z++ )
     {
@@ -232,9 +272,7 @@ bool GelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTre
 
                 for( int m = 0 ; m < currentNumber ; m++ )
                 {
-                    reactedArea -= zones[z - 1 - m].first->area() ;
-                    zones[z - 1 - m].first->setRadius( zones[z - 1 - m].first->getRadius() - deltaRadius ) ;
-                    reactedArea += zones[z - 1 - m].first->area() ;
+                    zones[z - 1 - m].first->setRadius( std::max(zones[z - 1 - m].first->getRadius() - deltaRadius, sqrt((aggregateArea*reactiveFraction)/(zones.size()*totalSteps*M_PI)) ) ) ;
                 }
             }
 
@@ -242,10 +280,12 @@ bool GelManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTre
             currentNumber = 1 ;
             current = zones[z].second ;
         }
-
-        reactedArea += zones[z].first->area() ;
     }
+    reactedArea = 0 ;
+    for( size_t z = 0 ; z < zones.size() ; z++ )
+        reactedArea += zones[z].first->area() ;
     
+//     std::cout << "target area: " <<targetArea << "  resulting area: "<< reactedArea<< std::endl ;
     return true ;
 }
 

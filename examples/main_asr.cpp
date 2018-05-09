@@ -153,7 +153,7 @@ int main( int argc, char *argv[] )
     featureTree = &F ;
 
     double itzSize = 0.00005;
-    int inclusionNumber = 2500 ;1 ; 1500 ; 
+    int inclusionNumber = 1500 ;1 ; 1500 ; 
 
     Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
 
@@ -268,7 +268,7 @@ int main( int argc, char *argv[] )
         std::cout << "placed area = " <<  placed_area << std::endl ;
     }
 
-    gelManager = new GelManager(&F, nzones/baseGeometry.area(), feats, 0.03) ;
+    gelManager = new GelManager(&F, nzones/baseGeometry.area(), feats, 0.02) ;
     F.addManager(gelManager) ;
     F.setSamplingNumber( 60 ) ;
 

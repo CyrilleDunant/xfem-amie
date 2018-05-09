@@ -63,7 +63,7 @@ Form * SpatiallyDistributedStiffness::getCopy() const
 //	if(randomVar > 0.5)
     if(criteriona > 0)
     {
-        StiffnessAndFracture* copy = new StiffnessAndFracture( newTensor, new MohrCoulomb(crita,critb, param[0][0]) ) ;
+        StiffnessAndFracture* copy = new StiffnessAndFracture( newTensor, new NonLocalMohrCoulomb(crita,critb) ) ;
 
         return copy ;
     }

@@ -112,6 +112,10 @@ physics/damagemodels/lineardamage.cpp
 physics/damagemodels/prandtlgrauertplasticstrain.cpp
 physics/damagemodels/prandtlreussplasticity.cpp
 physics/damagemodels/rotatingcrack.cpp
+physics/contactmodels/linearcontactforce.cpp
+physics/contactmodels/contactmodel.cpp
+physics/collisiondetectors/geometrybasedcontact.cpp
+physics/collisiondetectors/collisiondetector.cpp
 physics/material_laws/logcreep_accumulator.cpp
 physics/material_laws/material_laws.cpp
 physics/material_laws/humidity_material_laws.cpp
@@ -430,8 +434,11 @@ target_link_libraries( creep_homogenization Amie ${ALL_LINK_FLAGS} )
 add_executable(creep_homogenization_mic examples/main_creep_homogenization_mic.cpp )
 target_link_libraries( creep_homogenization_mic Amie ${ALL_LINK_FLAGS} )
 
-add_executable(tension examples/main_tension.cpp )
-target_link_libraries( tension Amie ${ALL_LINK_FLAGS})
+add_executable(tension_plasticity examples/main_tension_plasticity.cpp )
+target_link_libraries( tension_plasticity Amie ${ALL_LINK_FLAGS})
+
+add_executable(wedge_plasticity examples/main_wedge_plasticity.cpp )
+target_link_libraries( wedge_plasticity Amie ${ALL_LINK_FLAGS})
 
 add_executable( pore_pressure examples/main_crystal_pressure.cpp )
 target_link_libraries( pore_pressure Amie ${ALL_LINK_FLAGS})
