@@ -22,14 +22,21 @@ class LinearContactForce final: public ContactModel
 public:
     Geometry * geo ;   
     double stiffness ;
+    double tangentStiffness ;
     Vector forces ;
     Vector deltaForce ;
+    Vector tangentForces ;
+    Vector tangentDeltaForce ;
+    bool reset = false ;
+    
+    ElementState * es = nullptr;
 public:
 
-    LinearContactForce(Geometry  *geo, double stiffness = 200e9) ;
+    LinearContactForce(Geometry  *geo, double stiffness = 500e9, double tangentStiffness = 50e9) ;
 
     virtual ~LinearContactForce();
 
+//     virtual void step( ElementState &s , double maxscore) ;
 
     virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s) /*override*/;
 

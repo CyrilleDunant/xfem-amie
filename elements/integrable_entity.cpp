@@ -154,7 +154,7 @@ Vector Form::getImposedStrain ( const Point & p, IntegrableEntity * e, int g ) c
 
 bool Form::hasInducedForces() const
 {
-    return false || ( getDamageModel() && getDamageModel()->hasInducedForces() ) || ( getContactModel() && getContactModel()->hasInducedForces() );
+    return false || ( getDamageModel() && getDamageModel()->hasInducedForces() );
 }
 
 std::vector<BoundaryCondition * > Form::getBoundaryConditions ( const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv ) const

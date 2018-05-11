@@ -4501,6 +4501,31 @@ bool FeatureTree::solve()
                         }
 
                     }
+                    #pragma omp single
+                    {
+                        while (localEnd < end)
+                        {
+                            size_t localStart = std::min(t*chunksize,end)  ;
+                            localEnd = std::min(localStart+chunksize,end) ;
+                            t++ ;
+                            #pragma omp task firstprivate(localStart,localEnd)
+                            {
+                                auto i = j->second->begin()+localStart ;
+                                for ( ; i.getPosition() < localEnd; i++)
+                                {
+                                    if ( i.getPosition() % 200 == 0 )
+                                        std::cerr << "\r updating Gauss points for fracture criterion... " << i.getPosition() << "/" << i.size() << std::flush ;
+                                    if ( i->getBehaviour()->getCollisionDetection() )
+                                    {
+                                        i->getBehaviour()->getCollisionDetection()->updateRestriction(i->getState()) ; 
+                                    }
+                                }
+
+                            }
+                            localStart = localEnd ;
+                        }
+
+                    }
                 }
             }
             else
@@ -4533,6 +4558,31 @@ bool FeatureTree::solve()
                                     if ( i->getBehaviour()->getFractureCriterion() )
                                     {
                                         i->getBehaviour()->getFractureCriterion()->updateRestriction(i->getState()) ; 
+                                    }
+                                }
+
+                            }
+                            localStart = localEnd ;
+                        }
+
+                    }
+                    #pragma omp single
+                    {
+                        while (localEnd < end)
+                        {
+                            size_t localStart = std::min(t*chunksize,end)  ;
+                            localEnd = std::min(localStart+chunksize,end) ;
+                            t++ ;
+                            #pragma omp task firstprivate(localStart,localEnd)
+                            {
+                                auto i = dtree3D->begin()+localStart ;
+                                for ( ; i.getPosition() < localEnd; i++)
+                                {
+                                    if ( i.getPosition() % 200 == 0 )
+                                        std::cerr << "\r updating Gauss points... " << i.getPosition() << "/" << i.size() << std::flush ;
+                                    if ( i->getBehaviour()->getCollisionDetection() )
+                                    {
+                                        i->getBehaviour()->getCollisionDetection()->updateRestriction(i->getState()) ; 
                                     }
                                 }
 
@@ -4669,7 +4719,7 @@ bool FeatureTree::stepElements()
     double maxTolerance = 1e-6 ;
     foundCheckPoint = true ;
     
-    if ( resetcalcul )
+    if ( resetcalcul && false)
     {
         deltaTime = 0 ;
         now = 0 ;
@@ -4761,15 +4811,14 @@ bool FeatureTree::stepElements()
                                 {
                                     std::cerr << "\r stepping through elements... " << i.getPosition() << "/" << i.size() << std::flush ;
                                 }
-                                i->step ( deltaTime, &K->getDisplacements() ) ;
-
-
+                                i->getState().step ( deltaTime, &K->getDisplacements() ) ;
                             }
                         }
                     }
                 }
                 std::cerr << " ...done" << std::endl ;
             }
+//             std::cout << "-----> "<< K->getDisplacements().min() << "  "<< K->getDisplacements().max() << std::endl ;
 
 
             int fracturedCount = 0 ;
@@ -4778,6 +4827,7 @@ bool FeatureTree::stepElements()
             if ( !elastic )
             {
                 double maxScoreInit = -1;
+
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                 {
                     #pragma omp parallel
@@ -4824,8 +4874,6 @@ bool FeatureTree::stepElements()
                                 }
                                 localStart = localEnd ;
                             }
-
-                            
                         }
                     }
                 }
@@ -4860,7 +4908,7 @@ bool FeatureTree::stepElements()
                                         {
                                             i->getBehaviour()->getContactModel()->step(i->getState(), maxScoreInit) ;
                                             i->behaviourUpdated = i->getBehaviour()->getContactModel()->changed() || i->behaviourUpdated;
-                                            i->needAssembly = i->behaviourUpdated ;
+                                            i->needAssembly = i->behaviourUpdated || i->needAssembly;
                                             if(i->getBehaviour()->getContactModel()->changed())
                                             {
                                                 #pragma omp atomic write
@@ -5093,6 +5141,7 @@ bool FeatureTree::stepElements()
                             }
                         }
                     }
+
 
                     std::cout << maxScore << "]" << std::flush ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )

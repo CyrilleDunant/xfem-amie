@@ -12,6 +12,7 @@
 
 #include "damagemodel.h"
 #include "../fracturecriteria/fracturecriterion.h"
+#include "../collisiondetectors/collisiondetector.h"
 #include "../../mesher/delaunay.h"
 
 namespace Amie
@@ -75,6 +76,8 @@ void DamageModel::step( ElementState &s , double maxscore)
         initalState = state ;
         error = score ;
         s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
+        if(s.getParent()->getBehaviour()->getCollisionDetection())
+            s.getParent()->getBehaviour()->getCollisionDetection()->setCheckpoint( false );
         alternateCheckpoint = false ;
         states.clear() ;
         if(!fractured())
@@ -326,7 +329,7 @@ DamageModel::DamageModel(): state(0)
     isNull = true ;
     haslimit = false ;
     error = 1 ;
-    iterationNumber = 4 ;
+    iterationNumber = 18 ;
 
     ctype = DISSIPATIVE ;
     fraction = -1 ;

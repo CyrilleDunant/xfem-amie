@@ -26,9 +26,6 @@ namespace Amie
 
 CollisionDetector::CollisionDetector() : FractureCriterion()
 {
-    scoreAtState = -1 ;
-    checkpoint = true ;
-    physicalCharacteristicRadius = 0 ;
 }
 
 
@@ -48,6 +45,11 @@ double CollisionDetector::getMaxScoreInNeighbourhood(ElementState & s)
                 double renormScore = i->getBehaviour()->getCollisionDetection()->scoreAtState ;
                 maxScore = std::max(maxScore, renormScore) ;
             }
+            if(i->getBehaviour()->getFractureCriterion())
+            {
+                double renormScore = i->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
+                maxScore = std::max(maxScore, renormScore) ;
+            }
         }
     }
     else
@@ -57,6 +59,11 @@ double CollisionDetector::getMaxScoreInNeighbourhood(ElementState & s)
             if(i->getBehaviour()->getCollisionDetection() )
             {
                 double renormScore = i->getBehaviour()->getCollisionDetection()->scoreAtState ;
+                maxScore = std::max(maxScore, renormScore) ;
+            }
+            if(i->getBehaviour()->getFractureCriterion())
+            {
+                double renormScore = i->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
                 maxScore = std::max(maxScore, renormScore) ;
             }
         }
@@ -84,6 +91,7 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
 
         if( checkpoint ) //new iteration
         {
+//             std::cout << "ccheckpoint " << thresholdScore << "  " << getScoreAtState() <<  std::endl ;
             inset = false ;
             inIteration = false ;
             damagingSet.clear();
@@ -116,7 +124,8 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
                         if(ci == s.getParent() && met())
                         {
                             inset = true ;
-                            
+                            if(ci->getBehaviour()->getFractureCriterion())
+                                ci->getBehaviour()->getFractureCriterion()->inset = true ;
                         }
                         if(ci->getBehaviour()->getContactModel()->getDelta() > POINT_TOLERANCE)
                             minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, ci->getBehaviour()->getContactModel()->getDelta()) ;
@@ -135,6 +144,9 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
                         }
                         else
                             maxscore = std::max(ci->getBehaviour()->getCollisionDetection()->getScoreAtState(), maxscore) ;
+                        
+                        if(ci->getBehaviour()->getFractureCriterion())
+                                maxscore = std::max(ci->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxscore) ;
                     }
                 }
             }
@@ -149,6 +161,9 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
             }
 
             inIteration = true ;
+            if(s.getParent()->getBehaviour()->getFractureCriterion())
+                s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
+                
             if(!newSet.empty())
                 std::stable_sort(newSet.begin(), newSet.end());
 
@@ -157,7 +172,11 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
             proximitySet.insert(proximitySet.end(), newProximity.begin(), newProximity.end()) ;
 
             for(size_t i = 0 ; i < proximitySet.size() ; i++)
+            {
                 static_cast<DelaunayTriangle *>( mesh2d->getInTree(proximitySet[i]))->getBehaviour()->getCollisionDetection()->inIteration = true ;
+                if(static_cast<DelaunayTriangle *>( mesh2d->getInTree(proximitySet[i]))->getBehaviour()->getFractureCriterion())
+                    static_cast<DelaunayTriangle *>( mesh2d->getInTree(proximitySet[i]))->getBehaviour()->getFractureCriterion()->inIteration = true ;
+            }
 
             return std::make_pair(scoreAtState - maxscore, thresholdScore - scoreAtState) ;
         }
@@ -186,6 +205,12 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
 
                         minscore = std::max(nls, minscore) ;
                     }
+                    if(ci->getBehaviour()->getDamageModel() && !ci->getBehaviour()->getDamageModel()->converged)
+                    {
+                        double nls = ci->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
+
+                        minscore = std::max(nls, minscore) ;
+                    }
                 }
             }
 
@@ -198,26 +223,25 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
         // term of their score. At the checkpoint, we consider the elements which
         // have met their criterion
 
-        if(checkpoint) //new iteration
+         if( checkpoint ) //new iteration
         {
             inset = false ;
             inIteration = false ;
             damagingSet.clear();
             proximitySet.clear() ;
+// 	    initialScore = std::max(scoreAtState, scoreTolerance*scoreTolerance) ;
 
             std::vector<unsigned int> newSet ;
             std::set<unsigned int> newProximity ;
 
-            initialScore = 1. ;
-            double minscore = thresholdScore ;
-            double maxscore = 0 ;
+            double maxscore = std::max(0.,thresholdScore) ;
             bool foundmaxscore = false ;
             minDeltaInNeighbourhood = 1 ;
             maxModeInNeighbourhood = -1 ;
             maxAngleShiftInNeighbourhood = 0 ;
             if(thresholdScore > 0 )
             {
-                for(auto ci = mesh3d->begin(cacheID) ; ci != mesh3d->end() ; ci++)
+                for(auto ci = mesh3d->begin(cacheID) ; ci != mesh3d->end(cacheID) ; ci++)
                 {
                     if(!ci->getBehaviour()->getContactModel())
                         continue ;
@@ -225,18 +249,23 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
                     if(ci->getBehaviour()->fractured())
                         continue ;
 
-                    if(std::abs(ci->getBehaviour()->getCollisionDetection()->getScoreAtState()-thresholdScore) <= scoreTolerance*initialScore*.25 &&
+                    if(thresholdScore-ci->getBehaviour()->getCollisionDetection()->getScoreAtState() <= getScoreTolerance()*initialScore &&
                             ci->getBehaviour()->getCollisionDetection()->met())
                     {
+  
+
                         if(ci == s.getParent() && met())
+                        {
                             inset = true ;
+                            if(ci->getBehaviour()->getFractureCriterion())
+                                ci->getBehaviour()->getFractureCriterion()->inset = true ;
+                        }
                         if(ci->getBehaviour()->getContactModel()->getDelta() > POINT_TOLERANCE)
                             minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, ci->getBehaviour()->getContactModel()->getDelta()) ;
 
                         maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, ci->getBehaviour()->getContactModel()->getMode()) ;
                         maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, ci->getBehaviour()->getContactModel()->getAngleShift()) ;
                         newSet.push_back(ci->index);
-                        minscore = std::min(ci->getBehaviour()->getCollisionDetection()->getScoreAtState(), thresholdScore) ;
                     }
                     else
                     {
@@ -246,10 +275,15 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
                             maxscore = ci->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
                             foundmaxscore = true ;
                         }
+                        else
+                            maxscore = std::max(ci->getBehaviour()->getCollisionDetection()->getScoreAtState(), maxscore) ;
+                        
+                        if(ci->getBehaviour()->getFractureCriterion())
+                                maxscore = std::max(ci->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxscore) ;
                     }
                 }
-            };
-
+            }
+            
             if(!inset)
             {
                 damagingSet.clear();
@@ -258,41 +292,35 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
                     inIteration = true ;
                 return std::make_pair(0.,0.) ;
             }
+
             inIteration = true ;
+            if(s.getParent()->getBehaviour()->getFractureCriterion())
+                s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
+                
             if(!newSet.empty())
                 std::stable_sort(newSet.begin(), newSet.end());
 
+
             damagingSet = newSet ;
             proximitySet.insert(proximitySet.end(), newProximity.begin(), newProximity.end()) ;
-            for(size_t i = 0 ; i < proximitySet.size() ; i++)
-                static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(proximitySet[i]))->getBehaviour()->getCollisionDetection()->inIteration = true ;
 
-            return std::make_pair(minscore - maxscore , thresholdScore - minscore ) ;
+            for(size_t i = 0 ; i < proximitySet.size() ; i++)
+            {
+                static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(proximitySet[i]))->getBehaviour()->getCollisionDetection()->inIteration = true ;
+                if(static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(proximitySet[i]))->getBehaviour()->getFractureCriterion())
+                    static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(proximitySet[i]))->getBehaviour()->getFractureCriterion()->inIteration = true ;
+            }
+
+            return std::make_pair(scoreAtState - maxscore, thresholdScore - scoreAtState) ;
         }
-        else if (inset && !s.getParent()->getBehaviour()->getContactModel()->converged)
+        else if (inset)
         {
             checkpoint = false ;
             DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(damagingSet[0])) ;
-            double maxscore = 0 ;
-            if(ci->getBehaviour()->getCollisionDetection())
-            {
-                maxscore = ci->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
-            }
-            maxModeInNeighbourhood = ci->getBehaviour()->getContactModel()->getMode() ;
-            maxAngleShiftInNeighbourhood = ci->getBehaviour()->getContactModel()->getAngleShift() ;
 
-            for(size_t i = 1 ; i < damagingSet.size() ; i++)
-            {
-                ci = static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(damagingSet[0])) ;
-                if(ci->getBehaviour()->getCollisionDetection())
-                {
-                    double nls = ci->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
-                    maxscore = std::min(maxscore,nls) ;
-                }
-                maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, ci->getBehaviour()->getContactModel()->getMode()) ;
-                maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, ci->getBehaviour()->getContactModel()->getAngleShift()) ;
+            maxModeInNeighbourhood = s.getParent()->getBehaviour()->getContactModel()->getMode() ;
+            maxAngleShiftInNeighbourhood = s.getParent()->getBehaviour()->getContactModel()->getAngleShift() ;
 
-            }
 
             double minscore = 0 ;
             if(!proximitySet.empty())
@@ -303,8 +331,14 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
 
                 for(size_t i = 1 ; i < proximitySet.size() ; i++)
                 {
-                    ci = static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(proximitySet[0])) ;
-                    if(ci->getBehaviour()->getCollisionDetection())
+                    ci = static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(proximitySet[i])) ;
+                    if(ci->getBehaviour()->getCollisionDetection() && !ci->getBehaviour()->getContactModel()->converged)
+                    {
+                        double nls = ci->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
+
+                        minscore = std::max(nls, minscore) ;
+                    }
+                    if(ci->getBehaviour()->getDamageModel() && !ci->getBehaviour()->getDamageModel()->converged)
                     {
                         double nls = ci->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
 
@@ -312,6 +346,8 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
                     }
                 }
             }
+
+            return std::make_pair(scoreAtState - minscore, thresholdScore - scoreAtState ) ;
         }
 
     }
@@ -340,7 +376,9 @@ void CollisionDetector::step(ElementState &s)
     if(checkpoint || inIteration)
     {
         scoreAtState = grade(s) ;
+//         std::cout << "cscore "<< scoreAtState << std::endl ;
     }
+
     metAtStep = scoreAtState > 0 ;    
 
 }

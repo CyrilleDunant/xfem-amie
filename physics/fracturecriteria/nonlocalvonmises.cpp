@@ -31,11 +31,19 @@ NonLocalVonMises::~NonLocalVonMises()
 double NonLocalVonMises::grade(ElementState &s)
 {
     Vector str = getSmoothedField( PRINCIPAL_REAL_STRESS_FIELD, s )  ;
+    
+//     int dim = s.getParent()->spaceDimensions() ;
+//     VirtualMachine vim ;
+//     Vector disp(dim) ;
+//     s.getField(PRINCIPAL_REAL_STRESS_FIELD,s.getParent()->getCenter(), disp,false,  &vim);
+    
     double vm = 0 ;
     if(str.size() == 2)
         vm = sqrt(str[0]*str[0]-str[0]*str[1]+str[1]*str[1]) ;
     else
         vm = sqrt(0.5*((str[0]-str[1])*(str[0]-str[1])+(str[1]-str[2])*(str[1]-str[2])+(str[2]-str[0])*(str[2]-str[0]))) ;
+
+//     std::cout << disp[0] << "  " << disp[1] << "  "<< std::endl ;
 
     return -1. + std::abs( vm / threshold );
 

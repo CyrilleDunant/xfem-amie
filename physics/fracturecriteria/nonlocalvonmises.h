@@ -26,7 +26,7 @@ namespace Amie {
 		@value[young_modulus] // Young modulus of the material
 		@value[material_characteristic_radius] // characteristic length for the non-local damage
 	*/
-	class NonLocalVonMises : public FractureCriterion
+	class NonLocalVonMises : virtual public FractureCriterion
 	{
 	public:
 		double threshold ;

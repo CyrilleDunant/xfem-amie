@@ -67,7 +67,7 @@ protected:
 
     double scoreTolerance ;
     bool checkpoint ;
-    bool inset ;
+    
     SmoothingFunctionType smoothingType ;
 
     double cachedInfluenceRatio ;
@@ -77,6 +77,7 @@ protected:
     
 public:
     bool inIteration ;
+    bool inset ;
 
     virtual bool directionInTension(size_t direction, double t = 0) {
         return true ;

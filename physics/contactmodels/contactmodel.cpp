@@ -48,7 +48,7 @@ void ContactModel::step( ElementState &s , double maxscore)
     }
     
 
-    double max = maxscore ;
+    double max = needGlobalMaximumScore?maxscore:s.getParent()->getBehaviour()->getCollisionDetection()->getMaxScoreInNeighbourhood(s) ;
 //     std::cout << "a "<< converged << std::endl ;
     std::pair<double, double> setChange = s.getParent()->getBehaviour()->getCollisionDetection()->setChange( s , max) ;
     double score = s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState() ;//maxscore ;
@@ -71,6 +71,8 @@ void ContactModel::step( ElementState &s , double maxscore)
         initalState = state ;
         error = score ;
         s.getParent()->getBehaviour()->getCollisionDetection()->setCheckpoint( false );
+        if(s.getParent()->getBehaviour()->getFractureCriterion())
+            s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
         alternateCheckpoint = false ;
         states.clear() ;
         if(!fractured())
@@ -99,7 +101,7 @@ void ContactModel::step( ElementState &s , double maxscore)
     {
 //         std::cout << s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState()<< std::endl ;
 
-        Vector ratios({0.0025, 0.005555556, 0.006611570, 0.008000000, 0.009876543, 0.012500000, 0.016326531, 0.022222222, 0.032000000, 0.050000000, 0.088888889, 0.200000000, 0.800000000}) ;
+        Vector ratios({0.0005, 0.00175, 0.0025, 0.005555556, 0.006611570, 0.008000000, 0.009876543, 0.012500000, 0.016326531, 0.022222222, 0.032000000, 0.050000000, 0.088888889, 0.200000000, 0.800000000}) ;
 
 
         double globalAngleShift = std::abs(s.getParent()->getBehaviour()->getCollisionDetection()->getMaxAngleShiftInNeighbourhood()) ;
@@ -302,8 +304,8 @@ void ContactModel::step( ElementState &s , double maxscore)
 
 
 ContactModel::ContactModel(): DamageModel() {
-    change = false ;
-    iterationNumber = 32 ;
+//     change = false ;
+//     iterationNumber = 64 ;
 }
 
 

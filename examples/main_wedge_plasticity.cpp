@@ -117,7 +117,7 @@ std::vector< double > cmod ;
 std::vector< double > idx ;
 
 
-Rectangle rect(0.035, 0.0279, 0.035+0.00005, 0.0279*.5+0.00005) ;
+Rectangle rect(0.035, 0.1, 0.035+0.00005, 0.1*.5+0.00005) ;
 BoundingBoxAndRestrictionDefinedBoundaryCondition * loadr = new BoundingBoxAndRestrictionDefinedBoundaryCondition ( SET_ALONG_XI, RIGHT,-1, 1,0.00005, 1) ;
 BoundingBoxAndRestrictionDefinedBoundaryCondition * loadf = new BoundingBoxAndRestrictionDefinedBoundaryCondition ( SET_ALONG_ETA, RIGHT,-1, 1,0.00005, 1) ;
 BoundingBoxDefinedBoundaryCondition * contact = new BoundingBoxDefinedBoundaryCondition(CONTACT_CONDITION, RIGHT, new GeometryBasedContact(&rect), new LinearContactForce(&rect)) ;
@@ -180,23 +180,23 @@ void step ( size_t nsteps, Sample * samplef )
     for ( size_t v = 0 ; v < nsteps ; v++ )
     {
 
-        if(false && go_on && tries%every == 0 && tries)
+        /*if(false && go_on && tries%every == 0 && tries)
         {
             featureTree->removeBoundaryCondition( loadr );
             setbc = false ;
             relaxed = true ;
         }
-        else if(go_on)
+        else */if(go_on)
         {
 //             std::cout << "moving!" << std::endl ;
             transform(&rect, TRANSLATE, Point(-0.024/tsteps, 0)) ;
 //             rect.getCenter().print() ;
 //             loadr->setData(loadr->getData()-/*1e9*1./nsteps*/0.024*1./tsteps) ;
-            if(!setbc)
-            {
-                featureTree->addBoundaryCondition( loadr );
-                setbc = true ;
-            }
+//             if(!setbc)
+//             {
+//                 featureTree->addBoundaryCondition( loadr );
+//                 setbc = true ;
+//             }
             relaxed = false ;
         }
 
@@ -207,10 +207,10 @@ void step ( size_t nsteps, Sample * samplef )
         else
             nsteps++ ;
 
-        if(false &&go_on && (tries+1)%every == 0 && tries)
-            featureTree->thresholdScoreMet = 0.00001 ;
-        else
-            featureTree->thresholdScoreMet = 0.01 ;
+//         if(false &&go_on && (tries+1)%every == 0 && tries)
+//             featureTree->thresholdScoreMet = 0.00001 ;
+//         else
+//             featureTree->thresholdScoreMet = 0.01 ;
 
         double volume = 0 ;
         double xavg = 0 ;
@@ -316,7 +316,7 @@ int main ( int argc, char *argv[] )
     StiffnessAndFracture  * pg = new StiffnessAndFracture(E, nu, new NonLocalVonMises(400e6, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
     Stiffness  * sf = new Stiffness(E, nu) ;
 
-    samplef.setBehaviour(sf);
+    samplef.setBehaviour(pg);
 
     
 //     F.addBoundaryCondition ( loadr );
@@ -325,8 +325,6 @@ int main ( int argc, char *argv[] )
     F.largeStrains = true ;
 //     loadr->setActive(true);
 // 	F.addBoundaryCondition(loadt);
-
-    
     
     
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA, BOTTOM ) ) ;
@@ -335,14 +333,14 @@ int main ( int argc, char *argv[] )
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
 
-    F.setOrder ( QUADRATIC ) ;
+    F.setOrder ( LINEAR ) ;
 // F.addPoint(new Point(0, 0)) ;
 
-    F.setMaxIterationsPerStep ( 500 );
-    F.thresholdScoreMet = 0.001 ;
+    F.setMaxIterationsPerStep ( 2000 );
+    F.thresholdScoreMet = 1e-3 ;
 
 
-    step ( 50, &samplef ) ;
+    step ( 5000, &samplef ) ;
 
 
     return 0 ;
