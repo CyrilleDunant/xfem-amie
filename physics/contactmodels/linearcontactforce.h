@@ -32,7 +32,7 @@ public:
     ElementState * es = nullptr;
 public:
 
-    LinearContactForce(Geometry  *geo, double stiffness = 500e9, double tangentStiffness = 50e9) ;
+    LinearContactForce(Geometry  *geo, double stiffness = 500e9, double tangentStiffness = 0.5) ;
 
     virtual ~LinearContactForce();
 

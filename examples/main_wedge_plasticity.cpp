@@ -117,7 +117,7 @@ std::vector< double > cmod ;
 std::vector< double > idx ;
 
 
-Rectangle rect(0.035, 0.1, 0.035+0.00005, 0.1*.5+0.00005) ;
+Rectangle rect(0.1, 0.2, 0.1*.5+0.035*.5+0.00005, 0.2*.5+0.00005) ;
 BoundingBoxAndRestrictionDefinedBoundaryCondition * loadr = new BoundingBoxAndRestrictionDefinedBoundaryCondition ( SET_ALONG_XI, RIGHT,-1, 1,0.00005, 1) ;
 BoundingBoxAndRestrictionDefinedBoundaryCondition * loadf = new BoundingBoxAndRestrictionDefinedBoundaryCondition ( SET_ALONG_ETA, RIGHT,-1, 1,0.00005, 1) ;
 BoundingBoxDefinedBoundaryCondition * contact = new BoundingBoxDefinedBoundaryCondition(CONTACT_CONDITION, RIGHT, new GeometryBasedContact(&rect), new LinearContactForce(&rect)) ;
@@ -316,7 +316,7 @@ int main ( int argc, char *argv[] )
     StiffnessAndFracture  * pg = new StiffnessAndFracture(E, nu, new NonLocalVonMises(400e6, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
     Stiffness  * sf = new Stiffness(E, nu) ;
 
-    samplef.setBehaviour(pg);
+    samplef.setBehaviour(sf);
 
     
 //     F.addBoundaryCondition ( loadr );
@@ -337,10 +337,10 @@ int main ( int argc, char *argv[] )
 // F.addPoint(new Point(0, 0)) ;
 
     F.setMaxIterationsPerStep ( 2000 );
-    F.thresholdScoreMet = 1e-3 ;
+    F.thresholdScoreMet = 1e-4 ;
 
 
-    step ( 5000, &samplef ) ;
+    step ( 50, &samplef ) ;
 
 
     return 0 ;

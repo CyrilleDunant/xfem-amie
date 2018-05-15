@@ -589,128 +589,116 @@ void transform(Geometry * g, GeometricTransformationType transformation, const P
 {
     switch(transformation)
     {
-    case SCALE:
-    {
-        if( p.getX() < POINT_TOLERANCE || p.getY() < POINT_TOLERANCE || ( g->spaceDimensions() == SPACE_THREE_DIMENSIONAL && p.getZ() < POINT_TOLERANCE) )
+        case SCALE:
         {
-            return ;
-        }
-        if(g->getGeometryType() == CIRCLE)
-        {
-            dynamic_cast<Circle *>(g)->setRadius( g->getRadius()*p.getX() );
-            return ;
-        }
-        if(g->getGeometryType() == SPHERE)
-        {
-            dynamic_cast<Sphere *>(g)->setRadius( g->getRadius()*p.getX() );
-            return ;
-        }
+            if( p.getX() < POINT_TOLERANCE || p.getY() < POINT_TOLERANCE || ( g->spaceDimensions() == SPACE_THREE_DIMENSIONAL && p.getZ() < POINT_TOLERANCE) )
+            {
+                return ;
+            }
+            if(g->getGeometryType() == CIRCLE)
+            {
+                dynamic_cast<Circle *>(g)->setRadius( g->getRadius()*p.getX() );
+                return ;
+            }
+            if(g->getGeometryType() == SPHERE)
+            {
+                dynamic_cast<Sphere *>(g)->setRadius( g->getRadius()*p.getX() );
+                return ;
+            }
 
-        for(size_t i = 0 ; i < g->getInPoints().size() ; i++)
-        {
-            g->getInPoint(i).getX() = (g->getCenter().getX() + g->getInPoint(i).getX() - g->getCenter().getX()) * p.getX() ;
-            g->getInPoint(i).getY() = (g->getCenter().getY() + g->getInPoint(i).getY() - g->getCenter().getY()) * p.getY() ;
-            g->getInPoint(i).getZ() = (g->getCenter().getZ() + g->getInPoint(i).getZ() - g->getCenter().getZ()) * p.getZ() ;
+            for(size_t i = 0 ; i < g->getInPoints().size() ; i++)
+            {
+                g->getInPoint(i).getX() = (g->getCenter().getX() + g->getInPoint(i).getX() - g->getCenter().getX()) * p.getX() ;
+                g->getInPoint(i).getY() = (g->getCenter().getY() + g->getInPoint(i).getY() - g->getCenter().getY()) * p.getY() ;
+                g->getInPoint(i).getZ() = (g->getCenter().getZ() + g->getInPoint(i).getZ() - g->getCenter().getZ()) * p.getZ() ;
+            }
+            for(size_t i = 0 ; i < g->getBoundingPoints().size() ; i++)
+            {
+                g->getBoundingPoint(i).getX() = g->getCenter().getX() + (g->getBoundingPoint(i).getX() - g->getCenter().getX()) * p.getX() ;
+                g->getBoundingPoint(i).getY() = g->getCenter().getY() + (g->getBoundingPoint(i).getY() - g->getCenter().getY()) * p.getY() ;
+                g->getBoundingPoint(i).getZ() = g->getCenter().getZ() + (g->getBoundingPoint(i).getZ() - g->getCenter().getZ()) * p.getZ() ;
+            }
+
+            if(g->getGeometryType() == ELLIPSE)
+            {
+                Point A = dynamic_cast<Ellipse *>(g)->getMajorAxis() ;
+                Point B = dynamic_cast<Ellipse *>(g)->getMinorAxis() ;
+                A.getX() *= p.getX() ;
+                A.getY() *= p.getY() ;
+                B.getX() *= p.getX() ;
+                B.getY() *= p.getY() ;
+                dynamic_cast<Ellipse *>(g)->setMajorAxis(A) ;
+                dynamic_cast<Ellipse *>(g)->setMinorAxis(B) ;
+            }
+
+            if(g->getGeometryType() == POLYGON)
+            {
+            std::valarray<Point> original = dynamic_cast<Polygon *>(g)->getOriginalPoints() ;
+            for(size_t i = 0 ; i < original.size() ; i++)
+            {
+            original[i].setX( g->getCenter().getX() + (original[i].getX()-g->getCenter().getX()) * p.getX() ) ;
+            original[i].setY( g->getCenter().getY() + (original[i].getY()-g->getCenter().getY()) * p.getY() ) ;
+            original[i].setZ( g->getCenter().getZ() + (original[i].getZ()-g->getCenter().getZ()) * p.getZ() ) ;
+            }
+            dynamic_cast<Polygon *>(g)->setOriginalPoints(original, true) ;
+            }
+
+            break ;
         }
-        for(size_t i = 0 ; i < g->getBoundingPoints().size() ; i++)
+        case ROTATE:
         {
-            g->getBoundingPoint(i).getX() = g->getCenter().getX() + (g->getBoundingPoint(i).getX() - g->getCenter().getX()) * p.getX() ;
-            g->getBoundingPoint(i).getY() = g->getCenter().getY() + (g->getBoundingPoint(i).getY() - g->getCenter().getY()) * p.getY() ;
-            g->getBoundingPoint(i).getZ() = g->getCenter().getZ() + (g->getBoundingPoint(i).getZ() - g->getCenter().getZ()) * p.getZ() ;
-        }
 
-        if(g->getGeometryType() == ELLIPSE)
+            if(g->getGeometryType() == CIRCLE)
+            {
+                return ;
+            }
+            if(g->getGeometryType() == SPHERE)
+            {
+                return ;
+            }
+
+            Matrix rotation = rotationMatrix( p.getX(), 0) ;
+            rotation *= rotationMatrix( p.getY(), 1 ) ;
+            rotation *= rotationMatrix( p.getZ(), 2 ) ;
+
+            Point c = g->getCenter() ;
+            c *= -1 ;
+            transform(g, TRANSLATE, c);
+
+            for(size_t i = 0 ; i < g->getInPoints().size() ; i++)
+                g->getInPoint(i) *= rotation ;
+            for(size_t i = 0 ; i < g->getBoundingPoints().size() ; i++)
+                g->getBoundingPoint(i) *= rotation ;
+
+            if(g->getGeometryType() == POLYGON)
+            {
+                std::valarray<Point> pts = dynamic_cast<Polygon *>(g)->getOriginalPoints() ;
+                for(size_t i = 0 ; i < pts.size() ; i++)
+                pts[i] *= rotation ;
+                dynamic_cast<Polygon *>(g)->setOriginalPoints(pts, true) ;
+            }
+
+            c *= -1 ;
+            transform(g, TRANSLATE, c);
+
+
+            if(g->getGeometryType() == ELLIPSE)
+            {
+                Point A = dynamic_cast<Ellipse *>(g)->getMajorAxis() ;
+                Point B = dynamic_cast<Ellipse *>(g)->getMinorAxis() ;
+                A *= rotation ;
+                B *= rotation;
+                dynamic_cast<Ellipse *>(g)->setMajorAxis(A) ;
+                dynamic_cast<Ellipse *>(g)->setMinorAxis(B) ;
+            }
+            break ;
+        }
+        case TRANSLATE:
         {
-            Point A = dynamic_cast<Ellipse *>(g)->getMajorAxis() ;
-            Point B = dynamic_cast<Ellipse *>(g)->getMinorAxis() ;
-            A.getX() *= p.getX() ;
-            A.getY() *= p.getY() ;
-            B.getX() *= p.getX() ;
-            B.getY() *= p.getY() ;
-            dynamic_cast<Ellipse *>(g)->setMajorAxis(A) ;
-            dynamic_cast<Ellipse *>(g)->setMinorAxis(B) ;
+            g->setCenter( g->getCenter() + p ) ;
+            
+            break ;
         }
-
-        if(g->getGeometryType() == POLYGON)
-        {
-	    std::valarray<Point> original = dynamic_cast<Polygon *>(g)->getOriginalPoints() ;
-	    for(size_t i = 0 ; i < original.size() ; i++)
-	    {
-		original[i].setX( g->getCenter().getX() + (original[i].getX()-g->getCenter().getX()) * p.getX() ) ;
-		original[i].setY( g->getCenter().getY() + (original[i].getY()-g->getCenter().getY()) * p.getY() ) ;
-		original[i].setZ( g->getCenter().getZ() + (original[i].getZ()-g->getCenter().getZ()) * p.getZ() ) ;
-	    }
-	    dynamic_cast<Polygon *>(g)->setOriginalPoints(original, true) ;
-        }
-
-        break ;
-    }
-    case ROTATE:
-    {
-
-        if(g->getGeometryType() == CIRCLE)
-        {
-            return ;
-        }
-        if(g->getGeometryType() == SPHERE)
-        {
-            return ;
-        }
-
-        Matrix rotation = rotationMatrix( p.getX(), 0) ;
-        rotation *= rotationMatrix( p.getY(), 1 ) ;
-        rotation *= rotationMatrix( p.getZ(), 2 ) ;
-
-        Point c = g->getCenter() ;
-        c *= -1 ;
-        transform(g, TRANSLATE, c);
-
-        for(size_t i = 0 ; i < g->getInPoints().size() ; i++)
-            g->getInPoint(i) *= rotation ;
-        for(size_t i = 0 ; i < g->getBoundingPoints().size() ; i++)
-            g->getBoundingPoint(i) *= rotation ;
-
-        if(g->getGeometryType() == POLYGON)
-        {
-            std::valarray<Point> pts = dynamic_cast<Polygon *>(g)->getOriginalPoints() ;
-            for(size_t i = 0 ; i < pts.size() ; i++)
-               pts[i] *= rotation ;
-            dynamic_cast<Polygon *>(g)->setOriginalPoints(pts, true) ;
-        }
-
-        c *= -1 ;
-        transform(g, TRANSLATE, c);
-
-
-        if(g->getGeometryType() == ELLIPSE)
-        {
-            Point A = dynamic_cast<Ellipse *>(g)->getMajorAxis() ;
-            Point B = dynamic_cast<Ellipse *>(g)->getMinorAxis() ;
-            A *= rotation ;
-            B *= rotation;
-            dynamic_cast<Ellipse *>(g)->setMajorAxis(A) ;
-            dynamic_cast<Ellipse *>(g)->setMinorAxis(B) ;
-        }
-        break ;
-    }
-    case TRANSLATE:
-    {
-        g->setCenter( g->getCenter() + p ) ;
-        
-        for(size_t i = 0 ; i < g->getInPoints().size() ; i++)
-        {
-            g->getInPoint(i).getX() += p.getX() ;
-            g->getInPoint(i).getY() += p.getY() ;
-            g->getInPoint(i).getZ() += p.getZ() ;
-        }
-        for(size_t i = 0 ; i < g->getBoundingPoints().size() ; i++)
-        {
-            g->getBoundingPoint(i).getX() +=  p.getX() ;
-            g->getBoundingPoint(i).getY() +=  p.getY() ;
-            g->getBoundingPoint(i).getZ() +=  p.getZ() ;
-        }
-        break ;
-    }
     }
 }
 

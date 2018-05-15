@@ -934,6 +934,21 @@ Rectangle::Rectangle(double x, double y, const Point &center) :  ConvexGeometry(
     boundingPoints[3] = new Point(bottomLeft) ;
 }
 
+void Rectangle::setCenter(const Point & newCenter)
+{
+    Point delta = newCenter-center ;
+    this->center = newCenter ;
+    topLeft += delta ;
+    topRight += delta ;
+    bottomRight += delta ;
+    bottomLeft += delta ;
+    for(size_t  i = 0 ; i < getInPoints().size() ; i++)
+        getInPoint(i) += delta ;
+    for(size_t  i = 0 ; i < getBoundingPoints().size() ; i++)
+        getBoundingPoint(i) += delta ;
+}
+
+
 Rectangle::Rectangle() :  ConvexGeometry(4), size_y(2), size_x(2)
 {
     gType = RECTANGLE ;
@@ -1011,29 +1026,30 @@ double Rectangle::height() const
 
 void Rectangle::project(Point * p) const
 {
-    Segment A(topLeft, bottomLeft) ;
-
-    Segment B(topLeft, topRight) ;
-
-    Segment C(topRight, bottomRight) ;
-
-    Segment D(bottomRight, bottomLeft) ;
+    Point p0(p->x, topLeft.y) ;
+    Point p1(p->x, bottomLeft.y) ;
+    Point p2(topLeft.x, p->y ) ;
+    Point p3(topRight.x, p->y ) ;
 
     std::map<double, Point> tries ;
-    Point p0 = A.project(*p) ;
-    Point p1 = B.project(*p) ;
-    Point p2 = C.project(*p) ;
-    Point p3 = D.project(*p) ;
-    tries[dist(p, &p0)] = p0 ;
-    tries[dist(p, &p1)] = p1 ;
-    tries[dist(p, &p2)] = p2 ;
-    tries[dist(p, &p3)] = p3 ;
+    if(in(p0))
+        tries[dist(p, &p0)] = p0 ;
+    if(in(p1))
+        tries[dist(p, &p1)] = p1 ;
+    if(in(p2))
+        tries[dist(p, &p2)] = p2 ;
+    if(in(p3))
+        tries[dist(p, &p3)] = p3 ;
+    tries[dist(p, &topLeft)] = topLeft ;
+    tries[dist(p, &topRight)] = topRight ;
+    tries[dist(p, &bottomLeft)] = bottomLeft ;
+    tries[dist(p, &bottomRight)] = bottomRight ;
     *p = tries.begin()->second ;
 }
 
 std::vector<Point> Rectangle::getSamplingBoundingPoints(double linearDensity) const
 {
-    double perimeter = 2*(size_x+size_y) ;
+    double perimeter = 2.*(size_x+size_y) ;
 
     size_t num_points = round(linearDensity*perimeter) ;
     double distanceBetweenPoints = perimeter/num_points ;

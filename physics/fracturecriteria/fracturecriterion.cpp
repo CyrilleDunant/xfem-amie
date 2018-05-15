@@ -431,7 +431,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                 }
             }
 
-            return std::make_pair(scoreAtState - minscore , thresholdScore - scoreAtState ) ;
+            return std::make_pair(scoreAtState - minscore , thresholdScore - scoreAtState - POINT_TOLERANCE) ;
         }
     }
     else
@@ -462,7 +462,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                     if(ci->getBehaviour()->fractured())
                         continue ;
 
-                    if(thresholdScore-ci->getBehaviour()->getFractureCriterion()->scoreAtState <= scoreTolerance*initialScore &&
+                    if(thresholdScore-ci->getBehaviour()->getFractureCriterion()->scoreAtState <= 4.*scoreTolerance*initialScore &&
                             ci->getBehaviour()->getFractureCriterion()->met())
                     {
 

@@ -17,6 +17,7 @@
 #include "../../physics/dual_behaviour.h"
 #include "../../physics/stiffness.h"
 #include "../../physics/materials/paste_behaviour.h"
+#include "../../physics/collisiondetectors/collisiondetector.h"
 #include "../../physics/logarithmic_creep_with_external_parameters.h"
 #include "../../elements/generalized_spacetime_viscoelastic_element_state.h"
 #include <iostream>
@@ -1275,6 +1276,13 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
             if( tri->getBehaviour() && tri->getBehaviour()->getFractureCriterion())
             {
                 double d = tri->getBehaviour()->getFractureCriterion()->getScoreAtTimeStepEnd() ;
+                ret[2] = d ;
+                ret[1] = d ;
+                ret[0] = d ;
+            }
+            else if( tri->getBehaviour() && tri->getBehaviour()->getCollisionDetection())
+            {
+                double d = tri->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
                 ret[2] = d ;
                 ret[1] = d ;
                 ret[0] = d ;

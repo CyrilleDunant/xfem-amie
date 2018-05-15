@@ -100,10 +100,6 @@ void ContactModel::step( ElementState &s , double maxscore)
     else if( !converged )
     {
 //         std::cout << s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState()<< std::endl ;
-
-        Vector ratios({0.0005, 0.00175, 0.0025, 0.005555556, 0.006611570, 0.008000000, 0.009876543, 0.012500000, 0.016326531, 0.022222222, 0.032000000, 0.050000000, 0.088888889, 0.200000000, 0.800000000}) ;
-
-
         double globalAngleShift = std::abs(s.getParent()->getBehaviour()->getCollisionDetection()->getMaxAngleShiftInNeighbourhood()) ;
         int globalMode = s.getParent()->getBehaviour()->getCollisionDetection()->getMaxAngleShiftInNeighbourhood() ;
 
@@ -111,7 +107,7 @@ void ContactModel::step( ElementState &s , double maxscore)
 
         states.push_back( PointState( s.getParent()->getBehaviour()->getCollisionDetection()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.025, globalMode ) ) ;
 
-        if(states.size()-2  < 12)
+        if(states.size()-2  < ratios.size())
         {
             trialRatio = ratios[states.size()-2] ;
             getState( true ) = downState + ( upState - downState ) *trialRatio ;
@@ -152,10 +148,8 @@ void ContactModel::step( ElementState &s , double maxscore)
             minscore = std::min(minscore, currentScore);
             if(     ((currentDelta > 0    && prevDelta  < 0)     ||
                      (currentDelta < 0     && prevDelta  > 0 ))   ||
-                    (std::abs(currentDelta) < POINT_TOLERANCE && std::abs(prevDelta) < POINT_TOLERANCE) ||
                     ((currentScore > 0     && prevScore  < 0  )   ||
                      (currentScore < 0     && prevScore  > 0))    ||
-                    (std::abs(currentScore) < POINT_TOLERANCE  && std::abs(prevScore)  < POINT_TOLERANCE) ||
                     ((currentProximity > 0 && prevProximity < 0 )  ||
                      (currentProximity < 0 && prevProximity > 0 )) ||
                     ((currentShift > 0     && prevShift < 0 )     ||
@@ -207,6 +201,7 @@ void ContactModel::step( ElementState &s , double maxscore)
                 }
             }
         }
+        
         trialRatio = (minFraction+nextFraction)*.5  ;
         if(deltaRoot)
         {
@@ -220,7 +215,7 @@ void ContactModel::step( ElementState &s , double maxscore)
         {
             trialRatio = (minFraction*std::abs(currentProximity)/(std::abs(prevProximity)+std::abs(currentProximity)) +nextFraction*std::abs(prevProximity)/(std::abs(prevProximity)+std::abs(currentProximity))) ;
         }
-
+        
 
         if(!(deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot)) // we should then minimise the score or proximity.
         {
@@ -240,9 +235,14 @@ void ContactModel::step( ElementState &s , double maxscore)
 
 
             trialRatio = std::min(std::max(initialRatio + del, 0.), 1.) ;//initialRatio+damageDensityTolerance*.175 ;
-            getState( true ) = downState + ( upState - downState ) *trialRatio /*+ damageDensityTolerance*.25*/;
+            
             deltaRoot = true ;
         }
+        
+        
+        trialRatio = std::max(std::min(trialRatio, 1.), 0.) ;
+//         std::cout << " ; "<<trialRatio << "  " << score <<std::endl ;
+        getState( true ) = downState + ( upState - downState ) *trialRatio /*+ damageDensityTolerance*.25*/;
 
 
         if( states.size() > maxit-1 && (deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot))

@@ -26,6 +26,7 @@ namespace Amie
 
 CollisionDetector::CollisionDetector() : FractureCriterion()
 {
+    scoreTolerance = 1e-2 ;
 }
 
 
@@ -116,7 +117,7 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
                     if(ci->getBehaviour()->fractured())
                         continue ;
 
-                    if(thresholdScore-ci->getBehaviour()->getCollisionDetection()->getScoreAtState() <= getScoreTolerance()*initialScore &&
+                    if(thresholdScore-ci->getBehaviour()->getCollisionDetection()->getScoreAtState() <= 4.*getScoreTolerance()*initialScore &&
                             ci->getBehaviour()->getCollisionDetection()->met())
                     {
   

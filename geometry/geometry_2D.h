@@ -102,15 +102,17 @@ protected:
 
     virtual void computeCenter() ;
 
-    Point topLeft ;
-    Point topRight ;
-    Point bottomLeft ;
-    Point bottomRight ;
+
 
     size_t numberOfPointsAlongX ;
     size_t numberOfPointsAlongY ;
 
-public:
+public:    
+    
+    Point topLeft ;
+    Point topRight ;
+    Point bottomLeft ;
+    Point bottomRight ;
 
     /** \brief constructor, build Rectangle from side length and center*/
     Rectangle(double x, double y, double originX, double originY) ;
@@ -155,6 +157,8 @@ public:
     virtual size_t sides() const {
         return 4 ;
     }
+    
+    virtual void setCenter(const Point & newCenter) ;
 
     /** \brief Return true if the argument is in*/
     virtual bool in(const Point & p) const;
