@@ -179,7 +179,7 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
                     static_cast<DelaunayTriangle *>( mesh2d->getInTree(proximitySet[i]))->getBehaviour()->getFractureCriterion()->inIteration = true ;
             }
 
-            return std::make_pair(scoreAtState - maxscore, thresholdScore - scoreAtState) ;
+            return std::make_pair(scoreAtState - maxscore, thresholdScore - scoreAtState - POINT_TOLERANCE) ;
         }
         else if (inset)
         {
@@ -208,14 +208,14 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
                     }
                     if(ci->getBehaviour()->getDamageModel() && !ci->getBehaviour()->getDamageModel()->converged)
                     {
-                        double nls = ci->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
+                        double nls = ci->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 
                         minscore = std::max(nls, minscore) ;
                     }
                 }
             }
 
-            return std::make_pair(scoreAtState - minscore, thresholdScore - scoreAtState ) ;
+            return std::make_pair(scoreAtState - minscore, thresholdScore - scoreAtState - POINT_TOLERANCE) ;
         }
     }
     else
@@ -250,7 +250,7 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
                     if(ci->getBehaviour()->fractured())
                         continue ;
 
-                    if(thresholdScore-ci->getBehaviour()->getCollisionDetection()->getScoreAtState() <= getScoreTolerance()*initialScore &&
+                    if(thresholdScore-ci->getBehaviour()->getCollisionDetection()->getScoreAtState() <= 4.*getScoreTolerance()*initialScore &&
                             ci->getBehaviour()->getCollisionDetection()->met())
                     {
   
@@ -341,14 +341,14 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
                     }
                     if(ci->getBehaviour()->getDamageModel() && !ci->getBehaviour()->getDamageModel()->converged)
                     {
-                        double nls = ci->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
+                        double nls = ci->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 
                         minscore = std::max(nls, minscore) ;
                     }
                 }
             }
 
-            return std::make_pair(scoreAtState - minscore, thresholdScore - scoreAtState ) ;
+            return std::make_pair(scoreAtState - minscore, thresholdScore - scoreAtState - scoreTolerance) ;
         }
 
     }
@@ -374,11 +374,8 @@ void CollisionDetector::step(ElementState &s)
         metAtStep = false ;
         return ;
     }
-    if(checkpoint || inIteration)
-    {
-        scoreAtState = grade(s) ;
-//         std::cout << "cscore "<< scoreAtState << std::endl ;
-    }
+
+    scoreAtState = grade(s) ;
 
     metAtStep = scoreAtState > 0 ;    
 

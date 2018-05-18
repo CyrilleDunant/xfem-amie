@@ -73,7 +73,7 @@ FractureCriterion::FractureCriterion() :
     maxModeInNeighbourhood(-1),
     maxScoreInNeighbourhood(0),
     maxAngleShiftInNeighbourhood(0),
-    scoreTolerance(1e-2),
+    scoreTolerance(2e-2),
     checkpoint(true),
     smoothingType(QUARTIC_COMPACT),
     cachedInfluenceRatio(1),
@@ -336,7 +336,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                     if(ci->getBehaviour()->fractured())
                         continue ;
 
-                    if(thresholdScore-ci->getBehaviour()->getFractureCriterion()->scoreAtState <= scoreTolerance*initialScore &&
+                    if(thresholdScore-ci->getBehaviour()->getFractureCriterion()->scoreAtState <= 4.*scoreTolerance*initialScore &&
                             ci->getBehaviour()->getFractureCriterion()->met())
                     {
 //                         std::cout << "met " << scoreAtState <<std::endl ;
@@ -431,12 +431,12 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                 }
             }
 
-            return std::make_pair(scoreAtState - minscore , thresholdScore - scoreAtState - POINT_TOLERANCE) ;
+            return std::make_pair(scoreAtState - minscore , thresholdScore - scoreAtState - scoreTolerance) ;
         }
     }
     else
     {
-             if( checkpoint ) //new iteration
+         if( checkpoint ) //new iteration
         {
             inset = false ;
             inIteration = false ;
@@ -557,7 +557,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                 }
             }
 
-            return std::make_pair(scoreAtState - minscore , thresholdScore - scoreAtState ) ;
+            return std::make_pair(scoreAtState - minscore , thresholdScore - scoreAtState - scoreTolerance) ;
         }
 
     }

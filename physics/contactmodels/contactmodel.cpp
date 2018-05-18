@@ -48,7 +48,7 @@ void ContactModel::step( ElementState &s , double maxscore)
     }
     
 
-    double max = needGlobalMaximumScore?maxscore:s.getParent()->getBehaviour()->getCollisionDetection()->getMaxScoreInNeighbourhood(s) ;
+    double max = maxscore ;
 //     std::cout << "a "<< converged << std::endl ;
     std::pair<double, double> setChange = s.getParent()->getBehaviour()->getCollisionDetection()->setChange( s , max) ;
     double score = s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState() ;//maxscore ;
@@ -71,8 +71,7 @@ void ContactModel::step( ElementState &s , double maxscore)
         initalState = state ;
         error = score ;
         s.getParent()->getBehaviour()->getCollisionDetection()->setCheckpoint( false );
-        if(s.getParent()->getBehaviour()->getFractureCriterion())
-            s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
+
         alternateCheckpoint = false ;
         states.clear() ;
         if(!fractured())
@@ -99,7 +98,6 @@ void ContactModel::step( ElementState &s , double maxscore)
     }
     else if( !converged )
     {
-//         std::cout << s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState()<< std::endl ;
         double globalAngleShift = std::abs(s.getParent()->getBehaviour()->getCollisionDetection()->getMaxAngleShiftInNeighbourhood()) ;
         int globalMode = s.getParent()->getBehaviour()->getCollisionDetection()->getMaxAngleShiftInNeighbourhood() ;
 
@@ -241,13 +239,11 @@ void ContactModel::step( ElementState &s , double maxscore)
         
         
         trialRatio = std::max(std::min(trialRatio, 1.), 0.) ;
-//         std::cout << " ; "<<trialRatio << "  " << score <<std::endl ;
         getState( true ) = downState + ( upState - downState ) *trialRatio /*+ damageDensityTolerance*.25*/;
 
 
         if( states.size() > maxit-1 && (deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot))
         {
-// 	  std::cout << "ah " << trialRatio << std::endl ;
 
             if(ctype == DISSIPATIVE)
             {

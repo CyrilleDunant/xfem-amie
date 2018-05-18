@@ -47,6 +47,8 @@ double GeometryBasedContact::grade(ElementState &s)
         double dz = test.z- base.z ;
         double nom = sqrt(dx*dx+dy*dy+dz*dz) ;
         
+//         std::cout << base.x << " " << base.y << "  " << nom << std::endl ;
+        
         if(geo->in(base))
         {
             num = std::max(nom, num) ;
@@ -56,7 +58,16 @@ double GeometryBasedContact::grade(ElementState &s)
             num = std::max(-nom, num) ;
         }
     }
-    return num ;
+    
+    LinearContactForce * cf = dynamic_cast<LinearContactForce *>(s.getParent()->getBehaviour()->getContactModel()) ;
+    if(cf && num < 0)
+    {
+        
+        if(std::abs(cf->forces+cf->deltaForce*cf->getState()[0]).max() > POINT_TOLERANCE)
+            return -num*1e4 ;
+    }
+    
+    return num>0?num*1e4:num ;
   
 }
 

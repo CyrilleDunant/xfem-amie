@@ -4860,12 +4860,15 @@ bool FeatureTree::stepElements()
                                         {
                                             i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
                                             localmaxScore = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), localmaxScore ) ;
+//                                             std::cout << "\nfscore "<< i->getBehaviour()->getFractureCriterion()->getScoreAtState() << std::endl ;
                                         }
                                         if ( i->getBehaviour()->getCollisionDetection() )
                                         {
                                             i->getBehaviour()->getCollisionDetection()->step ( i->getState() ) ;
                                             localmaxScore = std::max ( i->getBehaviour()->getCollisionDetection()->getScoreAtState(), localmaxScore ) ;
+//                                             std::cout << "cscore "<< i->getBehaviour()->getCollisionDetection()->getScoreAtState() << std::endl ;
                                         }
+                                        
                                     }
                                     #pragma omp critical
                                     {
@@ -4878,6 +4881,7 @@ bool FeatureTree::stepElements()
                     }
                 }
                 std::cerr << ". Maxscore = " << maxScoreInit <<" ...done. " << std::endl ;
+//                 exit(0) ;
 
 
                 lcounter = 0 ;

@@ -95,7 +95,7 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
 
 
         double norm = sqrt((imposedStrain*imposedStrain).sum()) ;
-        double onorm = 2.*sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())/(*param[0][0]) ;
+        double onorm = .5*sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())/(*param[0][0]) ;
         if(norm > POINT_TOLERANCE && onorm > POINT_TOLERANCE)
         {
             imposedStrain /= norm ;
@@ -106,7 +106,7 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
         inCompression = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(1) ;
         inTension = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(0) ;
 
-        double maxfact = std::max(damageDensityTolerance, std::min(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()*.5, 1.)) ;
+        double maxfact = 1. ; //std::max(damageDensityTolerance*5e2, std::min(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()*.5, 1.)) ;
         return std::make_pair( Vector(0., 1), Vector(maxfact, 1)) ;
     }
 
@@ -392,7 +392,7 @@ double PrandtlGrauertPlasticStrain::getDamage() const
     if(currentPlaticVariable >= kappa_0*factor)
     {
 // 		return std::max((currentPlaticVariable-kappa_0)/eps_f,0.) ;
-        return 1.-exp(-(currentPlaticVariable-kappa_0*factor)/(eps_f*64.)) ;
+        return 1.-exp(-(currentPlaticVariable-kappa_0*factor)/(eps_f*16.)) ;
     }
     return 0 ;
 }

@@ -76,20 +76,12 @@ void DamageModel::step( ElementState &s , double maxscore)
         initalState = state ;
         error = score ;
         s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
-        if(s.getParent()->getBehaviour()->getCollisionDetection())
-            s.getParent()->getBehaviour()->getCollisionDetection()->setCheckpoint( false );
+
         alternateCheckpoint = false ;
         states.clear() ;
         if(!fractured())
         {
-// 	    if(setChange.first < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance())
-// 	    {
-// 		converged = true ;
-// 		change = true ;
-// 		downState = damageIncrement.first ;
-// 		upState = damageIncrement.second ;
-// 		getState( true ) = downState+(upState-downState) * s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-// 	    }
+
 
             converged = false ;
             change = true ;
@@ -330,7 +322,7 @@ DamageModel::DamageModel(): state(0)
     isNull = true ;
     haslimit = false ;
     error = 1 ;
-    iterationNumber = ratios.size()+5 ;
+    iterationNumber = ratios.size()+6 ;
 
     ctype = DISSIPATIVE ;
     fraction = -1 ;
@@ -345,7 +337,7 @@ DamageModel::DamageModel(): state(0)
     // the correct distribution of damage: the effect
     // of damage increment on the distribution of
     // fracture criterion scores is non-monotonic.
-    damageDensityTolerance =  1e-5 ; //std::max(0.25/pow(2.,iterationNumber), 0.5e-3) ; //1e-8 ;//1. / pow( 2., 14 );
+    damageDensityTolerance =  1e-4 ; //std::max(0.25/pow(2.,iterationNumber), 0.5e-3) ; //1e-8 ;//1. / pow( 2., 14 );
     thresholdDamageDensity = 1. ;
     secondaryThresholdDamageDensity = 1. ;
     allowBackSearch = false ;
