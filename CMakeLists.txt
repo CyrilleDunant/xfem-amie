@@ -113,6 +113,7 @@ physics/damagemodels/prandtlgrauertplasticstrain.cpp
 physics/damagemodels/prandtlreussplasticity.cpp
 physics/damagemodels/rotatingcrack.cpp
 physics/contactmodels/linearcontactforce.cpp
+physics/contactmodels/linearcontactdisplacement.cpp
 physics/contactmodels/contactmodel.cpp
 physics/collisiondetectors/geometrybasedcontact.cpp
 physics/collisiondetectors/collisiondetector.cpp

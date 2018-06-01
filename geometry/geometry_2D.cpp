@@ -937,7 +937,7 @@ Rectangle::Rectangle(double x, double y, const Point &center) :  ConvexGeometry(
 void Rectangle::setCenter(const Point & newCenter)
 {
     Point delta = newCenter-center ;
-    this->center = newCenter ;
+    center = newCenter ;
     topLeft += delta ;
     topRight += delta ;
     bottomRight += delta ;

@@ -52,6 +52,8 @@ void ContactModel::step( ElementState &s , double maxscore)
 //     std::cout << "a "<< converged << std::endl ;
     std::pair<double, double> setChange = s.getParent()->getBehaviour()->getCollisionDetection()->setChange( s , max) ;
     double score = s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState() ;//maxscore ;
+    if(s.getParent()->getBehaviour()->getFractureCriterion())
+        score = std::max(score, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) ;
     if( !s.getParent()->getBehaviour()->getCollisionDetection()->isInDamagingSet() )
     {
         s.getParent()->getBehaviour()->getCollisionDetection()->setCheckpoint( false );
@@ -81,7 +83,7 @@ void ContactModel::step( ElementState &s , double maxscore)
 
             downState = damageIncrement.first ;
             upState = damageIncrement.second ;
-            upState= downState+(upState-downState) * s.getParent()->getBehaviour()->getCollisionDetection()->getMinDeltaInNeighbourhood();
+            upState = downState+(upState-downState) * s.getParent()->getBehaviour()->getCollisionDetection()->getMinDeltaInNeighbourhood();
 
             states.push_back( PointState( s.getParent()->getBehaviour()->getCollisionDetection()->met(), setChange.first,0., score, setChange.second, -M_PI*.025, -1 ) ) ;
             trialRatio = 1. ;

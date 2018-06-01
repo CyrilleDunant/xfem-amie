@@ -4990,20 +4990,28 @@ bool FeatureTree::stepElements()
 
                                     if ( i->getBehaviour()->getDamageModel() )
                                     {
-                                        i->getBehaviour()->getDamageModel()->postProcess() ;
-                                        if ( i->getBehaviour()->changed() )
+                                        if(!i->getBehaviour()->getCollisionDetection() || 
+                                            i->getBehaviour()->getCollisionDetection()->getScoreAtState() <= i->getBehaviour()->getFractureCriterion()->getScoreAtState()+i->getBehaviour()->getFractureCriterion()->getScoreTolerance())
                                         {
-                                            #pragma omp atomic write
-                                            behaviourChange = true ;
+                                            i->getBehaviour()->getDamageModel()->postProcess() ;
+                                            if ( i->getBehaviour()->changed() )
+                                            {
+                                                #pragma omp atomic write
+                                                behaviourChange = true ;
+                                            }
                                         }
                                     }
                                     if ( i->getBehaviour()->getContactModel() )
                                     {
-                                        i->getBehaviour()->getContactModel()->postProcess() ;
-                                        if (i->getBehaviour()->getContactModel()->changed() )
+                                        if(!i->getBehaviour()->getFractureCriterion() || 
+                                            i->getBehaviour()->getFractureCriterion()->getScoreAtState() <= i->getBehaviour()->getCollisionDetection()->getScoreAtState()+i->getBehaviour()->getFractureCriterion()->getScoreTolerance())
                                         {
-                                            #pragma omp atomic write
-                                            behaviourChange = true ;
+                                            i->getBehaviour()->getContactModel()->postProcess() ;
+                                            if (i->getBehaviour()->getContactModel()->changed() )
+                                            {
+                                                #pragma omp atomic write
+                                                behaviourChange = true ;
+                                            }
                                         }
                                     }
                                 }

@@ -16,7 +16,7 @@
 #include "../contactmodels/linearcontactforce.h"
 namespace Amie {
 
-GeometryBasedContact::GeometryBasedContact(Geometry *geo) : geo(geo)
+GeometryBasedContact::GeometryBasedContact(Geometry *geo, double delta) : geo(geo), delta(delta)
 {
 
 }
@@ -64,16 +64,16 @@ double GeometryBasedContact::grade(ElementState &s)
     {
         
         if(std::abs(cf->forces+cf->deltaForce*cf->getState()[0]).max() > POINT_TOLERANCE)
-            return -num*1e4 ;
+            return -num/delta ;
     }
     
-    return num>0?num*1e4:num ;
+    return num/delta ;
   
 }
 
 FractureCriterion * GeometryBasedContact::getCopy() const
 {
-    return new GeometryBasedContact(geo) ;
+    return new GeometryBasedContact(geo, delta) ;
 }
 
 

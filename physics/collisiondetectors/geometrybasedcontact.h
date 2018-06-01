@@ -26,12 +26,13 @@ namespace Amie {
 	{
     public:    
         Geometry *geo ;
+        double delta ;
         
 	public:
 	/** \brief Constructor 
 	 * @param thres Set the maximum stress. 
 	 */
-		GeometryBasedContact(Geometry *geo);
+		GeometryBasedContact(Geometry *geo, double delta);
 	
 		virtual ~GeometryBasedContact();
 

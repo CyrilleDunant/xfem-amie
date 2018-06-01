@@ -485,8 +485,8 @@ Vector toPrincipal ( const Vector & stressOrStrain, CompositionType t )
             double det = stressOrStrain[0]*stressOrStrain[1] - stressOrStrain[2]*stressOrStrain[2] ;
             double delta = std::sqrt(trace*trace - 4.*det) ;
             double angle =  0.5*std::atan2 ( stressOrStrain[2], stressOrStrain[0] - stressOrStrain[1] ) ;
-//             if(std::abs(trace) > 1e-12)
-//             {
+            if(std::abs(trace) > 1e-12)
+            {
                 if(std::cos(angle) < 0)
                 {
                     ret[0] = (trace + delta)*.5 ;
@@ -497,12 +497,12 @@ Vector toPrincipal ( const Vector & stressOrStrain, CompositionType t )
                     ret[0] = (trace - delta)*.5 ;
                     ret[1] = (trace + delta)*.5 ;
                 }
-//             }
-//             else
-//             {
-//                     ret[0] = 0 ;
-//                     ret[1] = 0 ;
-//             }
+            }
+            else
+            {
+                    ret[0] = 0 ;
+                    ret[1] = 0 ;
+            }
         }
         else if ( ret.size() == 3 )
         {
@@ -540,8 +540,8 @@ Vector toPrincipal ( const Vector & stressOrStrain, CompositionType t )
             double det = stressOrStrain[0]*stressOrStrain[1] - 0.25*stressOrStrain[2]*stressOrStrain[2] ;
             double delta = std::sqrt(trace*trace - 4.*det) ;
             double angle =  0.5*std::atan2 (  0.5*stressOrStrain[2], stressOrStrain[0] - stressOrStrain[1] ) ;
-//             if(std::abs(trace) > 1e-12)
-//             {
+            if(std::abs(trace) > 1e-12)
+            {
                 if(std::cos(angle) < 0)
                 {
                     ret[0] = (trace + delta)*.5 ;
@@ -552,12 +552,12 @@ Vector toPrincipal ( const Vector & stressOrStrain, CompositionType t )
                     ret[0] = (trace - delta)*.5 ;
                     ret[1] = (trace + delta)*.5 ;
                 }
-//             }
-//             else
-//             {
-//                 ret[0] = 0 ;
-//                 ret[1] = 0 ;
-//             }
+            }
+            else
+            {
+                ret[0] = 0 ;
+                ret[1] = 0 ;
+            }
         }
         else if ( ret.size() == 3 )
         {

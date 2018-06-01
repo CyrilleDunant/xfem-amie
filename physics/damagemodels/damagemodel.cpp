@@ -56,6 +56,8 @@ void DamageModel::step( ElementState &s , double maxscore)
 
     std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , max) ;
     double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;//maxscore ;
+    if(s.getParent()->getBehaviour()->getCollisionDetection())
+        score = std::max(score, s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState()) ;
     if( !s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
     {
         s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );

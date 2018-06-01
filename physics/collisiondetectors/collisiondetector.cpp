@@ -374,8 +374,10 @@ void CollisionDetector::step(ElementState &s)
         metAtStep = false ;
         return ;
     }
-
-    scoreAtState = grade(s) ;
+    if(checkpoint || inIteration)
+    {
+        scoreAtState = grade(s) ;
+    }
 
     metAtStep = scoreAtState > 0 ;    
 

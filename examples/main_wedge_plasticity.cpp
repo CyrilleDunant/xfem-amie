@@ -25,6 +25,7 @@
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/collisiondetectors/geometrybasedcontact.h"
 #include "../physics/contactmodels/linearcontactforce.h"
+#include "../physics/contactmodels/linearcontactdisplacement.h"
 #include "../physics/stiffness_and_fracture.h"
 #include "../physics/fraction_stiffness_and_fracture.h"
 #include "../physics/void_form.h"
@@ -120,7 +121,8 @@ std::vector< double > idx ;
 Rectangle rect(1, 1, 1.*.5+0.035*.5+0.00005, 1.*.5+0.00005) ;
 BoundingBoxAndRestrictionDefinedBoundaryCondition * loadr = new BoundingBoxAndRestrictionDefinedBoundaryCondition ( SET_ALONG_XI, RIGHT,-1, 1,0.00005, 1) ;
 BoundingBoxAndRestrictionDefinedBoundaryCondition * loadf = new BoundingBoxAndRestrictionDefinedBoundaryCondition ( SET_ALONG_ETA, RIGHT,-1, 1,0.00005, 1) ;
-BoundingBoxDefinedBoundaryCondition * contact = new BoundingBoxDefinedBoundaryCondition(CONTACT_CONDITION, RIGHT, new GeometryBasedContact(&rect), new LinearContactForce(&rect)) ;
+BoundingBoxDefinedBoundaryCondition * contact = new BoundingBoxDefinedBoundaryCondition(CONTACT_CONDITION, RIGHT, new GeometryBasedContact(&rect,0.024*1e-2), new LinearContactForce(&rect)) ;
+// BoundingBoxDefinedBoundaryCondition * contact = new BoundingBoxDefinedBoundaryCondition(CONTACT_CONDITION, RIGHT, new GeometryBasedContact(&rect,0.024*1e-2), new LinearContactDisplacement(&rect)) ;
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * loadf = new BoundingBoxAndRestrictionDefinedBoundaryCondition ( SET_ALONG_ETA, TOP,0.00005, 1,-1, 1) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,Point(.02, 0), 0) ;
 
@@ -189,7 +191,9 @@ void step ( size_t nsteps, Sample * samplef )
         else */if(go_on)
         {
 //             std::cout << "moving!" << std::endl ;
-            transform(&rect, TRANSLATE, Point(-0.024/tsteps, 0)) ;
+            rect.bottomLeft.print();
+            transform(&rect, TRANSLATE, Point(-0.024/tsteps, 0.)) ;
+            rect.bottomLeft.print();
 //             rect.getCenter().print() ;
 //             loadr->setData(loadr->getData()-/*1e9*1./nsteps*/0.024*1./tsteps) ;
 //             if(!setbc)
@@ -336,8 +340,8 @@ int main ( int argc, char *argv[] )
     F.setOrder ( LINEAR ) ;
 // F.addPoint(new Point(0, 0)) ;
 
-    F.setMaxIterationsPerStep ( 30000 );
-    F.thresholdScoreMet = 1e-3 ;
+    F.setMaxIterationsPerStep ( 10000 );
+    F.thresholdScoreMet = 1e-2 ;
 
 
     step ( 100, &samplef ) ;

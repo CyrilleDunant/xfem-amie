@@ -176,7 +176,7 @@ void LinearContactForce::postProcess()
                     tangentForces[i*3+2] += tangentDeltaForce[i*3+2]*(getState()[0]) ;
                 }
              }
-             else
+             else if(es->getParent()->getBehaviour()->getCollisionDetection()->isInDamagingSet())
              {
                 if(es->getParent()->spaceDimensions() == 2)
                 {
@@ -185,10 +185,10 @@ void LinearContactForce::postProcess()
                     forces[i*2+1] += deltaForce[i*2+1]*(getState()[0]) ;
                     tangentForces[i*2+1] += tangentDeltaForce[i*2+1]*(getState()[0]) ;
                     
-                    forces[i*2] *=.99 ;
-                    tangentForces[i*2] *=.99 ;
-                    forces[i*2+1] *=.99 ;
-                    tangentForces[i*2+1] *=.99 ;
+                    forces[i*2] *=.9995 ;
+                    tangentForces[i*2] *=.9995 ;
+                    forces[i*2+1] *=.9995 ;
+                    tangentForces[i*2+1] *=.9995 ;
                 }
                 else
                 {
@@ -199,12 +199,12 @@ void LinearContactForce::postProcess()
                     forces[i*3+2] += deltaForce[i*3+2]*(getState()[0]) ;
                     tangentForces[i*3+2] += tangentDeltaForce[i*3+2]*(getState()[0]) ;
                     
-                    forces[i*3] *=.99 ;
-                    tangentForces[i*3] *=.99 ;
-                    forces[i*3+1] *=.99 ;
-                    tangentForces[i*3+1] *=.99 ;
-                    forces[i*3+2] *=.99 ;
-                    tangentForces[i*3+2] *=.99 ;
+                    forces[i*3] *=.9995 ;
+                    tangentForces[i*3] *=.9995 ;
+                    forces[i*3+1] *=.9995 ;
+                    tangentForces[i*3+1] *=.9995 ;
+                    forces[i*3+2] *=.9995 ;
+                    tangentForces[i*3+2] *=.9995 ;
                 }
              }
         }
@@ -233,7 +233,7 @@ std::vector<BoundaryCondition * > LinearContactForce::getBoundaryConditions(cons
     if(forces.size() == 0)
         return ret ;
     
-    double factor = 1.*s.getParent()->getRadius();
+    double factor = s.getParent()->getRadius();
 
     int dim = s.getParent()->spaceDimensions() ;
 
@@ -280,7 +280,7 @@ LinearContactForce::~LinearContactForce()
 
 DamageModel * LinearContactForce::getCopy() const
 {
-    LinearContactForce * ret = new LinearContactForce(geo, stiffness) ;
+    LinearContactForce * ret = new LinearContactForce(geo, stiffness, tangentStiffness) ;
     ret->copyEssentialParameters( this ) ;
     return ret ;
 }

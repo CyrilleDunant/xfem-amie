@@ -45,7 +45,7 @@ double NonLocalVonMises::grade(ElementState &s)
 
 //     std::cout << disp[0] << "  " << disp[1] << "  "<< std::endl ;
 
-    return -1. + std::abs( vm / threshold );
+    return std::abs( vm / threshold )-1;
 
 }
 
