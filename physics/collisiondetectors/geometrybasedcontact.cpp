@@ -33,7 +33,7 @@ double GeometryBasedContact::grade(ElementState &s)
 //     Vector deltaForce(0., dim*s.getParent()->getBoundingPoints().size()) ;
     Vector disp(dim) ;
     
-    double num = -1 ;
+    double num = 0 ;
     
     for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
     {
@@ -51,23 +51,26 @@ double GeometryBasedContact::grade(ElementState &s)
         
         if(geo->in(base))
         {
-            num = std::max(nom, num) ;
+            num += nom ;
         }
         else
         { 
-            num = std::max(-nom, num) ;
+            num -= nom ;
         }
     }
+    num /= s.getParent()->getBoundingPoints().size() ;
+    
+    
     
     LinearContactForce * cf = dynamic_cast<LinearContactForce *>(s.getParent()->getBehaviour()->getContactModel()) ;
-    if(cf && num < 0)
+    if(cf && num < POINT_TOLERANCE)
     {
         
         if(std::abs(cf->forces+cf->deltaForce*cf->getState()[0]).max() > POINT_TOLERANCE)
-            return -num/delta ;
+            return -std::abs(num/delta-POINT_TOLERANCE) ;
     }
     
-    return num/delta ;
+    return num/delta -POINT_TOLERANCE;
   
 }
 

@@ -26,7 +26,7 @@ namespace Amie {
 		@value[young_modulus] // Young modulus of the material
 		@value[material_characteristic_radius] // characteristic length for the non-local damage
 	*/
-	class NonLocalVonMises : virtual public FractureCriterion
+	class NonLocalDeviatoricVonMises : virtual public FractureCriterion
 	{
 	public:
 		double threshold ;
@@ -34,9 +34,9 @@ namespace Amie {
 	/** \brief Constructor 
 	 * @param thres Set the maximum stress. 
 	 */
-		NonLocalVonMises(double thres, double radius);
+		  NonLocalDeviatoricVonMises(double thres, double radius);
 	
-		virtual ~NonLocalVonMises();
+		virtual ~NonLocalDeviatoricVonMises();
 
 	/** \brief Return a copy of this criterion
 	 */

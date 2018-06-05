@@ -432,8 +432,8 @@ int main ( int argc, char *argv[] )
 
 
     // More or less a 5754 Al alloy
-    StiffnessAndFracture  * pr = new StiffnessAndFracture(69e9,0.33, new NonLocalVonMises(220e6, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
-    StiffnessAndFracture  * pg = new StiffnessAndFracture(69e9,0.2, new NonLocalVonMises(220e6, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
+    StiffnessAndFracture  * pr = new StiffnessAndFracture(69e9,0.33, new NonLocalDeviatoricVonMises(220e6, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
+    StiffnessAndFracture  * pg = new StiffnessAndFracture(69e9,0.2, new NonLocalDeviatoricVonMises(220e6, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
 
     samplef.setBehaviour(pg);
 //     samplef.setBehaviour(new ConcreteBehaviour());

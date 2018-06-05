@@ -316,8 +316,8 @@ int main ( int argc, char *argv[] )
     featureTree = &F ;
 
 
-    StiffnessAndFracture  * pr = new StiffnessAndFracture(E, nu, new NonLocalVonMises(400e6, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
-    StiffnessAndFracture  * pg = new StiffnessAndFracture(E, nu, new NonLocalVonMises(400e6, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
+    StiffnessAndFracture  * pr = new StiffnessAndFracture(E, nu, new NonLocalDeviatoricVonMises(400e6, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
+    StiffnessAndFracture  * pg = new StiffnessAndFracture(E, nu, new NonLocalDeviatoricVonMises(400e6, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
     Stiffness  * sf = new Stiffness(E, nu) ;
 
     samplef.setBehaviour(pg);
@@ -336,6 +336,7 @@ int main ( int argc, char *argv[] )
 //     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,TOP_LEFT ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
+    F.addPoint(new Point(0.035*.5, 0.00005)); 
 
     F.setOrder ( LINEAR ) ;
 // F.addPoint(new Point(0, 0)) ;

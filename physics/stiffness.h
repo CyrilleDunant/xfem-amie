@@ -129,7 +129,7 @@ class PseudoPlastic : public LinearForm
 {
 protected:
     void fixLastDamage() ;
-    NonLocalVonMises  * vm ;
+    NonLocalDeviatoricVonMises  * vm ;
     bool initialised ;
     Vector imposedStrain ;
     Vector previousImposedStrain ;

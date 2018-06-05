@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
     //SpaceTimeFiberBasedIsotropicLinearDamage * dam_mod = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.05, 1e-9, 0.7 ) ;
     //IsotropicLinearDamage * dam_mod = new IsotropicLinearDamage() ;
     double mradius = 0.7 ;
-    StiffnessAndFracture * paste = new StiffnessAndFracture(E_kv, new NonLocalVonMises(2.0e6, mradius), new PrandtlGrauertPlasticStrain()) ;
+    StiffnessAndFracture * paste = new StiffnessAndFracture(E_kv, new NonLocalDeviatoricVonMises(2.0e6, mradius), new PrandtlGrauertPlasticStrain()) ;
     //dam_mod->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
     //StiffnessAndFracture * paste = new StiffnessAndFracture(E_kv, fail_crit ,dam_mod) ;
     //TimeUnderLoadLogCreepAccumulator * accu = new TimeUnderLoadLogCreepAccumulator();

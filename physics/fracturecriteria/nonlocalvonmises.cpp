@@ -15,7 +15,7 @@
 #include "../damagemodels/damagemodel.h"
 namespace Amie {
 
-NonLocalVonMises::NonLocalVonMises(double thresh, double radius) : threshold(std::abs(thresh))
+NonLocalDeviatoricVonMises::NonLocalDeviatoricVonMises(double thresh, double radius) : threshold(std::abs(thresh))
 {
     setMaterialCharacteristicRadius(radius);
 //     smoothingType = GAUSSIAN_NONCOMPACT ;
@@ -24,11 +24,11 @@ NonLocalVonMises::NonLocalVonMises(double thresh, double radius) : threshold(std
 }
 
 
-NonLocalVonMises::~NonLocalVonMises()
+NonLocalDeviatoricVonMises::~NonLocalDeviatoricVonMises()
 {
 }
 
-double NonLocalVonMises::grade(ElementState &s)
+double NonLocalDeviatoricVonMises::grade(ElementState &s)
 {
     Vector str = getSmoothedField( PRINCIPAL_REAL_STRESS_FIELD, s )  ;
     
@@ -36,6 +36,9 @@ double NonLocalVonMises::grade(ElementState &s)
 //     VirtualMachine vim ;
 //     Vector disp(dim) ;
 //     s.getField(PRINCIPAL_REAL_STRESS_FIELD,s.getParent()->getCenter(), disp,false,  &vim);
+    
+    double tr = str.sum() ;
+    str -= tr/str.size() ;
     
     double vm = 0 ;
     if(str.size() == 2)
@@ -45,13 +48,14 @@ double NonLocalVonMises::grade(ElementState &s)
 
 //     std::cout << disp[0] << "  " << disp[1] << "  "<< std::endl ;
 
-    return std::abs( vm / threshold )-1;
+    double v = std::abs( vm / threshold )-1;
+    return v;
 
 }
 
-FractureCriterion * NonLocalVonMises::getCopy() const
+FractureCriterion * NonLocalDeviatoricVonMises::getCopy() const
 {
-    NonLocalVonMises * ret = new NonLocalVonMises(threshold, getMaterialCharacteristicRadius()) ;
+    NonLocalDeviatoricVonMises * ret = new NonLocalDeviatoricVonMises(threshold, getMaterialCharacteristicRadius()) ;
     ret->copyEssentialParameters( this ) ;
     return ret ;
 }

@@ -20,6 +20,7 @@ LinearContactForce::LinearContactForce(Geometry  *geo, double stiffness, double 
 	isNull = false ;
 	state = 0 ;
     change = false ;
+    setConvergenceType(CONSERVATIVE);
 }
 
 std::pair< Vector, Vector > LinearContactForce::computeDamageIncrement(ElementState &s)
@@ -62,26 +63,26 @@ std::pair< Vector, Vector > LinearContactForce::computeDamageIncrement(ElementSt
 
         int count = 0 ;
         
-        double mindist = -1 ;
-        for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
-        {
-            s.getField(DISPLACEMENT_FIELD,s.getParent()->getBoundingPoint(i), disp,false,  &vm);
-            Point test(s.getParent()->getBoundingPoint(i) + disp) ;
-            Point base(test) ;
-            geo->project(&test);                    
-            
-            double dx = test.x- base.x ;
-            double dy = test.y- base.y ;
-            double dz = test.z- base.z ;
-            
-            double num = sqrt(dx*dx+dy*dy+dz*dz) ;
-            
-            if(geo->in(base))
-            {
-                if (num > mindist)
-                    mindist = num ;
-            }
-        }
+//         double mindist = -1 ;
+//         for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
+//         {
+//             s.getField(DISPLACEMENT_FIELD,s.getParent()->getBoundingPoint(i), disp,false,  &vm);
+//             Point test(s.getParent()->getBoundingPoint(i) + disp) ;
+//             Point base(test) ;
+//             geo->project(&test);                    
+//             
+//             double dx = test.x- base.x ;
+//             double dy = test.y- base.y ;
+//             double dz = test.z- base.z ;
+//             
+//             double num = sqrt(dx*dx+dy*dy+dz*dz) ;
+//             
+//             if(geo->in(base))
+//             {
+//                 if (num > mindist)
+//                     mindist = num ;
+//             }
+//         }
 //         std::cout << mindist << "  " << std::flush ;
         
         for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
@@ -98,15 +99,26 @@ std::pair< Vector, Vector > LinearContactForce::computeDamageIncrement(ElementSt
             double dz = test.z- base.z ;
             
             double num = sqrt(dx*dx+dy*dy+dz*dz) ;
+//             dx /= num ;
+//             dy /= num ;
+//             dz /= num ;
 
             if(geo->in(base))
             {  
 //                 std::cout << num << "  " << dx<< "  "<<std::flush ;
                 count++ ;
                 deltaForce[i*dim] = dx ;
+                if(std::abs(dx) < 1e-4 && std::abs(forces[i*dim]) >=  1e-4)
+                    deltaForce[i*dim] = forces[i*dim] ;
                 deltaForce[i*dim+1] = dy ;
+                if(std::abs(dy) < 1e-4 && std::abs(forces[i*dim+1]) >=  1e-4)
+                    deltaForce[i*dim+1] = forces[i*dim+1] ;
                 if(dim == 3)
+                {
                     deltaForce[i*dim+2] = dz ;
+                    if(std::abs(dz) < 1e-4 && std::abs(forces[i*dim+2]) >=  1e-4)
+                        deltaForce[i*dim+2] = forces[i*dim+2] ;
+                }
 
                 tangentDeltaForce[i*dim] = num*disp[0] ;
                 tangentDeltaForce[i*dim+1] = num*disp[1] ;
@@ -128,6 +140,7 @@ std::pair< Vector, Vector > LinearContactForce::computeDamageIncrement(ElementSt
                 
             }
         }
+        
 //         std::cout << std::endl ;
         
 //         if(count == 1)
@@ -149,16 +162,16 @@ void LinearContactForce::postProcess()
     if(converged && state[0] > POINT_TOLERANCE)
     {
 
-        Vector disp(es->getParent()->spaceDimensions()) ;
+//         Vector disp(es->getParent()->spaceDimensions()) ;
         for(size_t i = 0 ; i < es->getParent()->getBoundingPoints().size() ; i++)
         {
-            disp = {es->getDisplacements()[i*2], es->getDisplacements()[i*2+1]};
-            if(es->getParent()->spaceDimensions() == 3)
-                disp = {es->getDisplacements()[i*3], es->getDisplacements()[i*3+1], es->getDisplacements()[i*3+2]};
-            Point test(es->getParent()->getBoundingPoint(i) + disp) ;
-            
-             if(geo->in(test))
-             {
+//             disp = {es->getDisplacements()[i*2], es->getDisplacements()[i*2+1]};
+//             if(es->getParent()->spaceDimensions() == 3)
+//                 disp = {es->getDisplacements()[i*3], es->getDisplacements()[i*3+1], es->getDisplacements()[i*3+2]};
+//             Point test(es->getParent()->getBoundingPoint(i) + disp) ;
+//             
+//              if(geo->in(test))
+//              {
                 if(es->getParent()->spaceDimensions() == 2)
                 {
                     forces[i*2] += deltaForce[i*2]*(getState()[0]) ;
@@ -175,43 +188,74 @@ void LinearContactForce::postProcess()
                     forces[i*3+2] += deltaForce[i*3+2]*(getState()[0]) ;
                     tangentForces[i*3+2] += tangentDeltaForce[i*3+2]*(getState()[0]) ;
                 }
-             }
-             else if(es->getParent()->getBehaviour()->getCollisionDetection()->isInDamagingSet())
-             {
-                if(es->getParent()->spaceDimensions() == 2)
-                {
-                    forces[i*2] += deltaForce[i*2]*(getState()[0]) ;
-                    tangentForces[i*2] += tangentDeltaForce[i*2]*(getState()[0]) ;
-                    forces[i*2+1] += deltaForce[i*2+1]*(getState()[0]) ;
-                    tangentForces[i*2+1] += tangentDeltaForce[i*2+1]*(getState()[0]) ;
-                    
-                    forces[i*2] *=.9995 ;
-                    tangentForces[i*2] *=.9995 ;
-                    forces[i*2+1] *=.9995 ;
-                    tangentForces[i*2+1] *=.9995 ;
-                }
-                else
-                {
-                    forces[i*3] += deltaForce[i*3]*(getState()[0]) ;
-                    tangentForces[i*3] += tangentDeltaForce[i*3]*(getState()[0]) ;
-                    forces[i*3+1] += deltaForce[i*3+1]*(getState()[0]) ;
-                    tangentForces[i*3+1] += tangentDeltaForce[i*3+1]*(getState()[0]) ;
-                    forces[i*3+2] += deltaForce[i*3+2]*(getState()[0]) ;
-                    tangentForces[i*3+2] += tangentDeltaForce[i*3+2]*(getState()[0]) ;
-                    
-                    forces[i*3] *=.9995 ;
-                    tangentForces[i*3] *=.9995 ;
-                    forces[i*3+1] *=.9995 ;
-                    tangentForces[i*3+1] *=.9995 ;
-                    forces[i*3+2] *=.9995 ;
-                    tangentForces[i*3+2] *=.9995 ;
-                }
-             }
+//              }
+//              else 
+//              {
+//                 if(es->getParent()->spaceDimensions() == 2)
+//                 {
+//                     forces[i*2] += deltaForce[i*2]*(getState()[0]) ;
+//                     tangentForces[i*2] += tangentDeltaForce[i*2]*(getState()[0]) ;
+//                     forces[i*2+1] += deltaForce[i*2+1]*(getState()[0]) ;
+//                     tangentForces[i*2+1] += tangentDeltaForce[i*2+1]*(getState()[0]) ;
+//                     
+// //                     forces[i*2] *=.9995 ;
+// //                     tangentForces[i*2] *=.9995 ;
+// //                     forces[i*2+1] *=.9995 ;
+// //                     tangentForces[i*2+1] *=.9995 ;
+//                 }
+//                 else
+//                 {
+//                     forces[i*3] += deltaForce[i*3]*(getState()[0]) ;
+//                     tangentForces[i*3] += tangentDeltaForce[i*3]*(getState()[0]) ;
+//                     forces[i*3+1] += deltaForce[i*3+1]*(getState()[0]) ;
+//                     tangentForces[i*3+1] += tangentDeltaForce[i*3+1]*(getState()[0]) ;
+//                     forces[i*3+2] += deltaForce[i*3+2]*(getState()[0]) ;
+//                     tangentForces[i*3+2] += tangentDeltaForce[i*3+2]*(getState()[0]) ;
+//                     
+// //                     forces[i*3] *=.9995 ;
+// //                     tangentForces[i*3] *=.9995 ;
+// //                     forces[i*3+1] *=.9995 ;
+// //                     tangentForces[i*3+1] *=.9995 ;
+// //                     forces[i*3+2] *=.9995 ;
+// //                     tangentForces[i*3+2] *=.9995 ;
+//                 }
+//              }
         }
         
 
         getState(true)[0] = 0 ;
     }
+//     else if(converged && es->getParent()->getBehaviour()->getCollisionDetection()->isInDamagingSet())
+//     {
+//         Vector disp(es->getParent()->spaceDimensions()) ;
+//         for(size_t i = 0 ; i < es->getParent()->getBoundingPoints().size() ; i++)
+//         {
+//             disp = {es->getDisplacements()[i*2], es->getDisplacements()[i*2+1]};
+//             if(es->getParent()->spaceDimensions() == 3)
+//                 disp = {es->getDisplacements()[i*3], es->getDisplacements()[i*3+1], es->getDisplacements()[i*3+2]};
+//             Point test(es->getParent()->getBoundingPoint(i) + disp) ;
+//             
+//              if(!geo->in(test))
+//              {
+//                 if(es->getParent()->spaceDimensions() == 2)
+//                 {
+//                     forces[i*2] *=.995 ;
+//                     tangentForces[i*2] *=.995 ;
+//                     forces[i*2+1] *=.995 ;
+//                     tangentForces[i*2+1] *=.995 ;
+//                 }
+//                 else
+//                 {
+//                     forces[i*3] *=.995 ;
+//                     tangentForces[i*3] *=.995 ;
+//                     forces[i*3+1] *=.995 ;
+//                     tangentForces[i*3+1] *=.995 ;
+//                     forces[i*3+2] *=.995 ;
+//                     tangentForces[i*3+2] *=.995 ;
+//                 }
+//              }
+//         }
+//     }
 
 
 }
