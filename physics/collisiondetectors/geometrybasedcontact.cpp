@@ -34,6 +34,38 @@ double GeometryBasedContact::grade(ElementState &s)
     Vector disp(dim) ;
     
     double num = -1 ;
+    int count = 0 ;
+    
+//     s.getField(DISPLACEMENT_FIELD,s.getParent()->getCenter(), disp,false,  &vm);
+//     Point test(s.getParent()->getCenter() + disp) ;
+//     Point base(test) ;
+//     geo->project(&test);
+// 
+//     double dx = test.x- base.x ;
+//     double dy = test.y- base.y ;
+//     double dz = test.z- base.z ;
+//     double cnom = sqrt(dx*dx+dy*dy+dz*dz) ;
+//     bool cin = geo->in(base) ;
+    
+//     double inpoints = 0 ;
+//     double overlapPoints = 0 ;
+//     for(double i = -s.getParent()->getRadius() ; i < s.getParent()->getRadius() ; i += 0.05*s.getParent()->getRadius())
+//     {
+//         for(double j = -s.getParent()->getRadius() ; j < s.getParent()->getRadius() ; j += 0.05*s.getParent()->getRadius())
+//         {
+//             Point pt(i+s.getParent()->getCenter().getX(), j+s.getParent()->getCenter().getY()) ;
+//             if(s.getParent()->in(pt))
+//             {
+//                 inpoints++ ;
+//                 if(geo->in(pt))
+//                     overlapPoints++ ;
+//             }
+//         }
+//     }
+//     
+//     if(overlapPoints > 1)
+//         return overlapPoints/inpoints ;
+//     return -1 ;
     
     for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
     {
@@ -52,11 +84,18 @@ double GeometryBasedContact::grade(ElementState &s)
         if(geo->in(base))
         {
             num = std::max(nom, num) ;
+            count++ ;
         }
         else
         { 
             num = std::max(-nom, num) ;
         }
+    }
+    
+    if(count == 1)
+    {
+//         if(cin && cnom < num)
+            num = -1 ;
     }
     
     
