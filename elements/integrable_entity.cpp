@@ -66,6 +66,7 @@ size_t fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t bl
 
     case GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD:
     case GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD:
+    case GENERALIZED_VISCOELASTIC_MECHANICAL_STRAIN_FIELD:
     case GENERALIZED_VISCOELASTIC_EFFECTIVE_STRESS_FIELD:
     case GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD:
     case GENERALIZED_VISCOELASTIC_NON_ENRICHED_TOTAL_STRAIN_FIELD:
@@ -3540,7 +3541,8 @@ bool ElementState::prepare(const Vector &extrapolatedDisplacements)
         return true ;
         
     size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-    localExtrapolatedDisplacements.resize( parent->getBoundingPoints().size() *ndofs, 0.) ;
+    if(localExtrapolatedDisplacements.size() != parent->getBoundingPoints().size() *ndofs)
+        localExtrapolatedDisplacements.resize( parent->getBoundingPoints().size() *ndofs, 0.) ;
     
     std::vector< size_t > ids = parent->getDofIds() ;
 
@@ -3587,7 +3589,7 @@ bool ElementState::prepare(const Vector &extrapolatedDisplacements)
     Vector delta = pcache.array()-JinvCache->array() ;
     double err = sqrt(std::inner_product(&delta[0], &delta[delta.size()], &delta[0], 0.)) ;
     double volume = (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? parent->area() : parent->volume() ;
-    bool nochange = err < 1e-12/volume ;
+    bool nochange = err < 1e-14/volume ;
         
     parent->behaviourUpdated = !nochange ;
     parent->needAssembly = !nochange;

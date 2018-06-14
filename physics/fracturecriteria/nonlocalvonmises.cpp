@@ -38,6 +38,7 @@ double NonLocalDeviatoricVonMises::grade(ElementState &s)
 //     s.getField(PRINCIPAL_REAL_STRESS_FIELD,s.getParent()->getCenter(), disp,false,  &vim);
     
     double tr = str.sum() ;
+    
     str -= tr/str.size() ;
     
     double vm = 0 ;

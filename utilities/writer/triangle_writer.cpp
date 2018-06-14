@@ -1745,7 +1745,9 @@ std::string nameOfField(FieldType field)
     case GENERALIZED_VISCOELASTIC_SPEED_FIELD :
         return std::string("") ;
     case GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD :
-        return std::string("") ;
+        return std::string("Visco total strain field") ;
+    case GENERALIZED_VISCOELASTIC_MECHANICAL_STRAIN_FIELD :
+        return std::string("Visco mechanical strain field") ;    
     case GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD :
         return std::string("") ;
     case GENERALIZED_VISCOELASTIC_EFFECTIVE_STRESS_FIELD :
@@ -1851,6 +1853,8 @@ int numberOfFields( FieldType field )
     case GENERALIZED_VISCOELASTIC_EFFECTIVE_STRESS_FIELD :
         return 9;
     case GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD :
+        return 9 ;
+    case GENERALIZED_VISCOELASTIC_MECHANICAL_STRAIN_FIELD :
         return 9 ;
     case GENERALIZED_VISCOELASTIC_PRINCIPAL_TOTAL_STRAIN_FIELD :
         return 6 ;

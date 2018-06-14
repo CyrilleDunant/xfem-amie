@@ -306,7 +306,7 @@ int main ( int argc, char *argv[] )
 
     // More or less a 5754 Al alloy
 //     double nu = 0.2 ; //0.33 ;
-    double E = 134e3 ; //70e9 ;
+    double E = 134 ; //70e9 ;
     double nu = .3 ;
 
 
@@ -316,17 +316,17 @@ int main ( int argc, char *argv[] )
     featureTree = &F ;
 
 
-    StiffnessAndFracture  * pr = new StiffnessAndFracture(E, nu, new NonLocalDeviatoricVonMises(400, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
-    StiffnessAndFracture  * pg = new StiffnessAndFracture(E, nu, new NonLocalDeviatoricVonMises(400, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
+    StiffnessAndFracture  * pr = new StiffnessAndFracture(E, nu, new NonLocalDeviatoricVonMises(.400, mradius),new PrandtlReussPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
+    StiffnessAndFracture  * pg = new StiffnessAndFracture(E, nu, new NonLocalDeviatoricVonMises(.400, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
     Stiffness  * sf = new Stiffness(E, nu) ;
 
-    samplef.setBehaviour(sf);
+    samplef.setBehaviour(pg);
 
     
 //     F.addBoundaryCondition ( loadr );
 //     F.addBoundaryCondition ( loadf );
     F.addBoundaryCondition ( contact );
-    F.largeStrains = true ;
+    F.largeStrains = false ;
 //     loadr->setActive(true);
 // 	F.addBoundaryCondition(loadt);
     
@@ -345,7 +345,7 @@ int main ( int argc, char *argv[] )
     F.thresholdScoreMet = 1e-2 ;
 
 
-    step ( 100, &samplef ) ;
+    step ( 50, &samplef ) ;
 
 
     return 0 ;

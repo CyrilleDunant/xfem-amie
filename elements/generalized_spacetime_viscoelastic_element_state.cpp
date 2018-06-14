@@ -1526,6 +1526,176 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                                      ( x_eta )  * (*JinvCache)[1][1] +
                                      ( x_zeta ) * (*JinvCache)[1][2] );
             }
+
+        }
+
+        if ( cleanup )
+        {
+            delete vm ;
+        }
+        return ;
+    }
+    case GENERALIZED_VISCOELASTIC_MECHANICAL_STRAIN_FIELD:
+    {
+        if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+        {
+
+            Vector dx ( 0., totaldof ) ;
+            Vector dy ( 0., totaldof ) ;
+            Vector dt ( 0., totaldof ) ;
+
+            double x_xi = 0;
+            double x_eta = 0;
+            double y_xi = 0;
+            double y_eta = 0;
+
+            for ( size_t j = 0 ; j < parent->getShapeFunctions().size(); j++ )
+            {
+                double f_xi = vm->deval ( parent->getShapeFunction ( j ), XI, p_ ) ;
+                double f_eta = vm->deval ( parent->getShapeFunction ( j ), ETA, p_ ) ;
+                double f_tau = vm->deval ( parent->getShapeFunction ( j ), TIME_VARIABLE, p_ ) ;
+                for ( int i = 0 ; i < totaldof ; i++ )
+                {
+                    dx[i] += f_xi  * displacements[j * totaldof + i] ;
+                    dy[i] += f_eta * displacements[j * totaldof + i] ;
+                    dt[i] += f_tau * displacements[j * totaldof + i] ;
+                }
+
+            }
+
+            for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+            {
+                double f_xi = vm->deval ( parent->getEnrichmentFunction ( j ), XI, p_ ) ;
+                double f_eta = vm->deval ( parent->getEnrichmentFunction ( j ), ETA, p_ ) ;
+                double f_tau = vm->deval ( parent->getEnrichmentFunction ( j ), TIME_VARIABLE, p_ ) ;
+                for ( int i = 0 ; i < totaldof ; i++ )
+                {
+                    dx[i] += f_xi * enrichedDisplacements[j * totaldof + i] ;
+                    dy[i] += f_eta * enrichedDisplacements[j * totaldof + i] ;
+                    dt[i] += f_tau * enrichedDisplacements[j * totaldof + i] ;
+                }
+
+            }
+
+            updateInverseJacobianCache(p_);
+	    
+            for ( int i = 0 ; i < blocks ; i++ )
+            {
+                x_xi  = dx[ i * realdof + 0 ] ;
+                x_eta = dy[ i * realdof + 0 ] ;
+                y_xi  = dx[ i * realdof + 1 ] ;
+                y_eta = dy[ i * realdof + 1 ] ;
+                ret[i*3+0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;//+ x_tau * Jinv[0][2];
+                ret[i*3+1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;//+ y_tau * Jinv[1][2] ;
+                ret[i*3+2] = 0.5 * ( ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( y_xi ) * (*JinvCache)[0][0] + ( y_eta ) * (*JinvCache)[0][1] );
+            }
+            Vector istrain = parent->getBehaviour()->getImposedStrain(p_) ;
+            ret[0] -= istrain[0] ;
+            ret[1] -= istrain[1] ;
+            ret[2] -= istrain[2] ;
+
+        }
+        else if ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+        {
+            double x_xi = 0;
+            double x_eta = 0;
+            double x_zeta = 0;
+            double y_xi = 0;
+            double y_eta = 0;
+            double y_zeta = 0;
+            double z_xi = 0;
+            double z_eta = 0;
+            double z_zeta = 0;
+
+            Vector dx ( 0., totaldof ) ;
+            Vector dy ( 0., totaldof ) ;
+            Vector dz ( 0., totaldof ) ;
+
+            for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+            {
+                double f_xi = vm->deval ( parent->getShapeFunction ( j ), XI, p_ ) ;
+                double f_eta = vm->deval ( parent->getShapeFunction ( j ), ETA, p_ ) ;
+                double f_zeta = vm->deval ( parent->getShapeFunction ( j ), ZETA, p_ ) ;
+
+                for ( int i = 0 ; i < totaldof ; i++ )
+                {
+                    dx[i] += f_xi   * displacements[j * totaldof + i] ;
+                    dy[i] += f_eta  * displacements[j * totaldof + i] ;
+                    dz[i] += f_zeta * displacements[j * totaldof + i] ;
+                }
+
+                /*					x_xi   += f_xi   * x ;
+                					x_eta  += f_eta  * x ;
+                					x_zeta += f_zeta * x ;
+                					y_xi   += f_xi   * y ;
+                					y_eta  += f_eta  * y ;
+                					y_zeta += f_zeta * y ;
+                					z_xi   += f_xi   * z ;
+                					z_eta  += f_eta  * z ;
+                					z_zeta += f_zeta * z ;*/
+            }
+
+            for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+            {
+                double f_xi = vm->deval ( parent->getEnrichmentFunction ( j ), XI, p_ ) ;
+                double f_eta = vm->deval ( parent->getEnrichmentFunction ( j ), ETA, p_ ) ;
+                double f_zeta = vm->deval ( parent->getEnrichmentFunction ( j ), ZETA, p_ ) ;
+
+                for ( int i = 0 ; i < totaldof ; i++ )
+                {
+                    dx[i] += f_xi   * enrichedDisplacements[j * totaldof + i] ;
+                    dy[i] += f_eta  * enrichedDisplacements[j * totaldof + i] ;
+                    dz[i] += f_zeta * enrichedDisplacements[j * totaldof + i] ;
+                }
+
+                /*					x_xi += f_xi * x;
+                					x_eta += f_eta * x ;
+                					x_zeta += f_zeta * x ;
+                					y_xi += f_xi * y ;
+                					y_eta += f_eta * y ;
+                					y_zeta += f_zeta * y ;
+                					z_xi += f_xi * z ;
+                					z_eta += f_eta * z ;
+                					z_zeta += f_zeta * z ;*/
+            }
+
+            updateInverseJacobianCache(p_);
+            for ( int i = 0 ; i < blocks ; i++ )
+            {
+                x_xi   = dx[ i * realdof + 0 ] ;
+                x_eta  = dy[ i * realdof + 0 ] ;
+                x_zeta = dz[ i * realdof + 0 ] ;
+                y_xi   = dx[ i * realdof + 1 ] ;
+                y_eta  = dy[ i * realdof + 1 ] ;
+                y_zeta = dz[ i * realdof + 1 ] ;
+                z_xi   = dx[ i * realdof + 2 ] ;
+                z_eta  = dy[ i * realdof + 2 ] ;
+                z_zeta = dz[ i * realdof + 2 ] ;
+                ret[i*6+0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
+                ret[i*6+1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1]  + ( y_zeta ) * (*JinvCache)[1][2];
+                ret[i*6+2] = ( z_xi ) * (*JinvCache)[2][0] + ( z_eta ) * (*JinvCache)[2][1]  + ( z_zeta ) * (*JinvCache)[2][2];
+
+                ret[i*6+3] = 0.5 * ( ( y_xi ) * (*JinvCache)[2][0] +
+                                     ( y_eta ) * (*JinvCache)[2][1] +
+                                     ( y_zeta ) * (*JinvCache)[2][2] +
+                                     ( z_xi ) * (*JinvCache)[1][0] +
+                                     ( z_eta ) * (*JinvCache)[1][1] +
+                                     ( z_zeta ) * (*JinvCache)[1][2] );
+
+                ret[i*6+4] = 0.5 * ( ( x_xi ) * (*JinvCache)[2][0] +
+                                     ( x_eta ) * (*JinvCache)[2][1] +
+                                     ( x_zeta ) * (*JinvCache)[2][2] +
+                                     ( z_xi ) * (*JinvCache)[0][0] +
+                                     ( z_eta ) * (*JinvCache)[0][1] +
+                                     ( z_zeta ) * (*JinvCache)[0][2] );
+
+                ret[i*6+5] = 0.5 * ( ( y_xi )   * (*JinvCache)[0][0] +
+                                     ( y_eta )  * (*JinvCache)[0][1] +
+                                     ( y_zeta ) * (*JinvCache)[0][2] +
+                                     ( x_xi )   * (*JinvCache)[1][0] +
+                                     ( x_eta )  * (*JinvCache)[1][1] +
+                                     ( x_zeta ) * (*JinvCache)[1][2] );
+            }
             Vector istrain = parent->getBehaviour()->getImposedStrain(p_, parent) ;
             ret[0] -= istrain[0] ;
             ret[1] -= istrain[1] ;

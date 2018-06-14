@@ -29,11 +29,12 @@ public:
     Vector tangentDeltaForce ;
     Vector displacements ;
     bool reset = false ;
+    bool active = false ;
     
     ElementState * es = nullptr;
 public:
 
-    LinearContactForce(Geometry  *geo, double stiffness = 1000e3, double tangentStiffness = 0.5) ;
+    LinearContactForce(Geometry  *geo, double stiffness = 5e4, double tangentStiffness = 0.5) ;
 
     virtual ~LinearContactForce();
 

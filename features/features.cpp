@@ -4357,7 +4357,7 @@ bool FeatureTree::solve()
     gettimeofday ( &time0, nullptr );
     Vector extrapolatedDisplacements = K->extrapolate() ;
     int nlcount = extrapolatedDisplacements.size() == 0 ;
-    if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint) 
+    if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint /*&& deltaTime > POINT_TOLERANCE*/) 
     {
         if(largeStrainSteps++ > 512)
         {

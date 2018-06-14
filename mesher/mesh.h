@@ -1457,7 +1457,7 @@ public:
                         double v = 0;
 
                         if(e != ci  || restrict.empty()|| ( e == ci && (restrict.size() !=  coefs[cacheID][i].size())))
-                            v = ci->getState().getAverageField ( TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
+                            v = ci->getState().getAverageField ( MECHANICAL_STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
                         else if(e == ci && restrict.size() ==  coefs[cacheID][i].size())
                         {
                             std::vector<double> effCoef = coefs[cacheID][i] ;
@@ -1470,7 +1470,7 @@ public:
                                 effCoef[j] *= val ;
                             }
 
-                            v = ci->getState().getAverageField ( TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef );
+                            v = ci->getState().getAverageField ( MECHANICAL_STRAIN_FIELD, bufferCache[thread], &vm, t, effCoef );
                         }
 
                         y = bufferCache[thread]*v - corrector ;
@@ -1517,7 +1517,7 @@ public:
                 }
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_TOTAL_STRAIN_FIELD, bufferCache[thread], &vm, t, coefs[cacheID][i] );
                     strainRateGenViscoCache[thread] += bufferCache[thread]*v ;
                 }
                 strainGenViscoCache[thread] /= sumFactors ;
@@ -1574,7 +1574,7 @@ public:
                 }
                 istrain /= sum ;
 
-                firstResultCache[thread] = toPrincipal( strainCache[thread]-istrain, DOUBLE_OFF_DIAGONAL_VALUES ) ;
+                firstResultCache[thread] = toPrincipal( strainCache[thread]/*-istrain*/, DOUBLE_OFF_DIAGONAL_VALUES ) ;
             }
             if ( f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) {
                 secondResultCache[thread].resize ( psize );
@@ -1593,7 +1593,7 @@ public:
                 }
                 istrain /= sum ;
 
-                secondResultCache[thread] = toPrincipal ( strainCache[thread]-istrain , DOUBLE_OFF_DIAGONAL_VALUES ) ;
+                secondResultCache[thread] = toPrincipal ( strainCache[thread]/*-istrain*/ , DOUBLE_OFF_DIAGONAL_VALUES ) ;
             }
             if ( f0 == REAL_STRESS_FIELD ) {
                 firstResultCache[thread].resize ( tsize, 0. );
@@ -1607,7 +1607,7 @@ public:
                                 continue ;
 
                         p.set(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
-                        firstResultCache[thread] += ((strainCache[thread]-e->getBehaviour()->getImposedStrain( p ))*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
+                        firstResultCache[thread] += ((strainCache[thread]/*-e->getBehaviour()->getImposedStrain( p )*/)*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
                         sum += e->getGaussPoints().gaussPoints[j].second ;
                     }
                     if(sum > POINT_TOLERANCE*POINT_TOLERANCE)
@@ -1627,7 +1627,7 @@ public:
                             if(restrict[j])
                                 continue ;
                         p.set(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
-                        secondResultCache[thread] += ((strainCache[thread]-e->getBehaviour()->getImposedStrain( p ))*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
+                        secondResultCache[thread] += ((strainCache[thread]/*-e->getBehaviour()->getImposedStrain( p )*/)*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
                         sum += e->getGaussPoints().gaussPoints[j].second ;
                     }
                     secondResultCache[thread] /= sum ;
@@ -1653,7 +1653,7 @@ public:
                     }
                     istrain /= sum ;
 
-                    firstResultCache[thread] = (strainCache[thread]-istrain)*e->getBehaviour()->param ;
+                    firstResultCache[thread] = (strainCache[thread]/*-istrain*/)*e->getBehaviour()->param ;
                 } else {
                     firstResultCache[thread] = stressCache[thread] ;
                 }
@@ -1692,7 +1692,7 @@ public:
                     }
                     istrain /= sum ;
 
-                    secondResultCache[thread] = (strainCache[thread]-istrain)*e->getBehaviour()->param ;
+                    secondResultCache[thread] = (strainCache[thread]/*-istrain*/)*e->getBehaviour()->param ;
                 } else {
                     secondResultCache[thread] = stressCache[thread] ;
                 }
@@ -1715,7 +1715,7 @@ public:
                     }
                     istrain /= sum ;
 
-                    firstResultCache[thread] = toPrincipal ( (strainCache[thread]-istrain)*e->getBehaviour()->param, SINGLE_OFF_DIAGONAL_VALUES  ) ;
+                    firstResultCache[thread] = toPrincipal ( (strainCache[thread]/*-istrain*/)*e->getBehaviour()->param, SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 } else {
                     firstResultCache[thread] = toPrincipal( stressCache[thread], SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 }
@@ -1738,7 +1738,7 @@ public:
                     }
                     istrain /= sum ;
 
-                    secondResultCache[thread] = toPrincipal( (strainCache[thread]-istrain)*e->getBehaviour()->param , SINGLE_OFF_DIAGONAL_VALUES ) ;
+                    secondResultCache[thread] = toPrincipal( (strainCache[thread]/*-istrain*/)*e->getBehaviour()->param , SINGLE_OFF_DIAGONAL_VALUES ) ;
                 } else {
                     secondResultCache[thread] = toPrincipal( stressCache[thread], SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 }
@@ -1755,7 +1755,7 @@ public:
                             if(restrict[j])
                                 continue ;
                         p.set(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
-                        stressCache[thread] += ((strainCache[thread]-e->getBehaviour()->getImposedStrain( p) )*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
+                        stressCache[thread] += ((strainCache[thread]/*-e->getBehaviour()->getImposedStrain( p)*/ )*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
                         sum += e->getGaussPoints().gaussPoints[j].second ;
                     }
                     if(sum > POINT_TOLERANCE*POINT_TOLERANCE)
@@ -1777,7 +1777,7 @@ public:
                             if(restrict[j])
                                 continue ;
                         p.set(e->getGaussPoints().gaussPoints[j].first.x,e->getGaussPoints().gaussPoints[j].first.y,e->getGaussPoints().gaussPoints[j].first.z,t) ;
-                        stressCache[thread] += ((strainCache[thread]-e->getBehaviour()->getImposedStrain( p))*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
+                        stressCache[thread] += ((strainCache[thread]/*-e->getBehaviour()->getImposedStrain( p)*/)*e->getBehaviour()->getTensor ( p )-e->getBehaviour()->getImposedStress( p ))*e->getGaussPoints().gaussPoints[j].second;
                         sum += e->getGaussPoints().gaussPoints[j].second ;
                     }
                     if(sum > POINT_TOLERANCE*POINT_TOLERANCE)
@@ -1805,7 +1805,7 @@ public:
                 }
                 istrain /= sum ;
 
-                firstResultCache[thread] = strainCache[thread]-istrain ;
+                firstResultCache[thread] = strainCache[thread]/*-istrain*/ ;
             }
 
             if ( f1 == MECHANICAL_STRAIN_FIELD ) {
@@ -1825,7 +1825,7 @@ public:
                 }
                 istrain /= sum ;
 
-                secondResultCache[thread] = strainCache[thread]-istrain ;
+                secondResultCache[thread] = strainCache[thread]/*-istrain*/ ;
             }
 
         } else {

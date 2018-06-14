@@ -74,12 +74,12 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
         strain = ss.second ;
         stressMatrix[0][0] = stress[0] ;
         stressMatrix[1][1] = stress[1] ;
-        stressMatrix[0][1] = stress[2] ;
-        stressMatrix[1][0] = stress[2] ;
+        stressMatrix[0][1] = .5*stress[2] ;
+        stressMatrix[1][0] = .5*stress[2] ;
         Matrix incrementalStrainMatrix(stressMatrix.numRows(), stressMatrix.numCols()) ;
         Matrix m_p(stressMatrix) ;
         Matrix m_m(stressMatrix) ;
-        double delta = std::min(1e-6*std::abs(plasticFlowPotential(stressMatrix)), 1e-12) ;
+        double delta = std::min(1e-12*std::abs(plasticFlowPotential(stressMatrix)), 1e-12) ;
         for(size_t i = 0 ; i < stressMatrix.numRows() ; i++)
         {
             for(size_t j = 0 ; j < stressMatrix.numCols() ; j++)
@@ -115,8 +115,8 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
         strain = ss.second ;
         stressMatrix[0][0] = stress[0] ;
         stressMatrix[1][1] = stress[1] ;
-        stressMatrix[0][1] = stress[2] ;
-        stressMatrix[1][0] = stress[2] ;
+        stressMatrix[0][1] = .5*stress[2] ;
+        stressMatrix[1][0] = .5*stress[2] ;
 
         for(size_t i = 0 ; i < stressMatrix.numRows() ; i++)
         {
@@ -136,13 +136,13 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
 //         double tr = imposedStrain[0]+imposedStrain[1] ;
 //         imposedStrain[0] -= tr*.5 ;
 //         imposedStrain[1] -= tr*.5 ;
-        
+//         
         state[0] = 0 ;
         s.strainAtGaussPointsSet = false ;
         s.stressAtGaussPointsSet = false ;
 
         norm = sqrt((imposedStrain*imposedStrain).sum()) ;
-        onorm = sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())/(*param[0][0]) ;
+        onorm = 0.5*sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())/(*param[0][0]) ;
         if(norm > POINT_TOLERANCE && onorm > POINT_TOLERANCE)
         {
             imposedStrain /= norm ;
@@ -158,7 +158,7 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
 
         double maxfact = std::max(std::min(damageDensityTolerance*1e2, 1.), 
                                   std::min(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState(), 1.)) ;
-        return std::make_pair( Vector(0., 1), Vector(maxfact, 1)) ;
+        return std::make_pair( Vector(0., 1), Vector(1., 1)) ;
     }
 
     return std::make_pair( Vector(.0, 1), Vector(1., 1)) ;

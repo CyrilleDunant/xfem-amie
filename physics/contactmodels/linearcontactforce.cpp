@@ -40,91 +40,116 @@ std::pair< Vector, Vector > LinearContactForce::computeDamageIncrement(ElementSt
     if(tangentForces.size() != tangentDeltaForce.size())
         tangentForces.resize(deltaForce.size(), 0.) ;   
     
-//     if(s.getDeltaTime() > POINT_TOLERANCE)
-//         displacements = s.getDisplacements() ;
+    if(s.getDeltaTime() > POINT_TOLERANCE)
+        displacements = 0 ;
     
     if( s.getParent()->getBehaviour()->getCollisionDetection()->isInDamagingSet() && s.getParent()->getBehaviour()->getCollisionDetection()->isAtCheckpoint() )
-    {
-
-        VirtualMachine vm ;
-        
-        Vector disp(dim) ;
-        std::vector<Point> inpoint ;
-        for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
+    {   
+        if((s.getParent()->getBehaviour()->getFractureCriterion() && s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState() > s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) || !s.getParent()->getBehaviour()->getFractureCriterion())
         {
-            disp = {s.getDisplacements()[i*dim]-displacements[i*dim], s.getDisplacements()[i*dim+1]-displacements[i*dim+1]};
-            if(dim == 3)
-                disp = {s.getDisplacements()[i*dim]-displacements[i*dim], s.getDisplacements()[i*dim+1]-displacements[i*dim+1], s.getDisplacements()[i*dim+2]-displacements[i*dim+2]};
-            Point test(s.getParent()->getBoundingPoint(i) + disp) ;
-            Point base(test) ;
-            geo->project(&test);                    
-            
-            double dx = test.x- base.x ;
-            double dy = test.y- base.y ;
-            double dz = test.z- base.z ;
-            
-//             Point dir(dx, dy, dz) ;
-//             dir /= dir.norm() ;
-            Point norm(-dy, dx, 0) ;
-            norm /= norm.norm() ;
-            
-//             double num = sqrt(dx*dx+dy*dy+dz*dz) ;
+            Vector disp(dim) ;
 
-            if(geo->in(base))
-            {  
-//                 std::cout << num << "  " << dx<< "  "<<std::flush ;
-                deltaForce[i*dim] = dx ;
-                deltaForce[i*dim+1] = dy ;
-                if(dim == 3)
-                    deltaForce[i*dim+2] = dz ;
+            std::multimap<double, Point> mmap ;
+            int count = 0 ;
 
-                tangentDeltaForce[i*dim] = disp[0]*norm.getX() ;
-                tangentDeltaForce[i*dim+1] = disp[1]*norm.getY() ;
+            
+            for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
+            {
+                disp = {s.getDisplacements()[i*dim], s.getDisplacements()[i*dim+1]};
                 if(dim == 3)
-                    tangentDeltaForce[i*dim+2] = disp[2] ;
+                    disp = {s.getDisplacements()[i*dim], s.getDisplacements()[i*dim+1], s.getDisplacements()[i*dim+2]};
+                Point test(s.getParent()->getBoundingPoint(i) + disp) ;
+                Point base(s.getParent()->getBoundingPoint(i)+ disp) ;
+                geo->project(&test);                    
                 
-                inpoint.push_back(s.getParent()->getBoundingPoint(i)) ;
+                double dx = test.x- base.x ;
+                double dy = test.y- base.y ;
+                double dz = test.z- base.z ;
                 
+    //             Point dir(dx, dy, dz) ;
+    //             dir /= dir.norm() ;
+                Point norm(-dy, dx, 0) ;
+                double no = norm.norm() ;
+                mmap.insert(std::make_pair(no, base)) ;
+                norm /= no ;
+                
+    //             double num = sqrt(dx*dx+dy*dy+dz*dz) ;
+
+                
+                disp = {s.getDisplacements()[i*dim], s.getDisplacements()[i*dim+1]};
+                if(dim == 3)
+                    disp = {s.getDisplacements()[i*dim], s.getDisplacements()[i*dim+1], s.getDisplacements()[i*dim+2]};
+                active = false ;
+            
+            
+                if(geo->in(base)&& no < s.getParent()->getRadius())
+                {  
+                    count++ ;
+
+                    deltaForce[i*dim] = dx ;
+                    deltaForce[i*dim+1] = dy ;
+                    if(dim == 3)
+                        deltaForce[i*dim+2] = dz ;
+
+
+                    tangentDeltaForce[i*dim] = -disp[0]*norm.getX() ;
+                    tangentDeltaForce[i*dim+1] = -disp[1]*norm.getY() ;
+                    if(dim == 3)
+                        tangentDeltaForce[i*dim+2] = -disp[2]*norm.getZ() ;
+
+                }
+                else
+                {
+                    forces[i*dim] = 0 ;
+                    forces[i*dim+1] = 0 ;
+                    if(dim == 3)
+                        forces[i*dim+2] = 0 ;
+                }
             }
-            else //if(std::abs(forces[i*dim])+std::abs(forces[i*dim+1])+((dim == 3)?std::abs(forces[i*dim+2]):0.) > POINT_TOLERANCE)
-            { 
-                deltaForce[i*dim] = -forces[i*dim] ;
-                deltaForce[i*dim+1] = -forces[i*dim+1] ;
-                if(dim == 3)
-                    deltaForce[i*dim+2] = -forces[i*dim+2] ;
-                
-                tangentDeltaForce[i*dim] = 0 ;
-                tangentDeltaForce[i*dim+1] = 0 ;
-                if(dim == 3)
-                    tangentDeltaForce[i*dim+2] = 0 ;
-                
-            }
-        }
-        
-        if(inpoint.size() == 2)
-        {
-            double d = dist(inpoint[0], inpoint[1]) ;
+            
+            double d = dist(mmap.begin()->second, (++mmap.begin())->second) ;
+            if(count)
+                d *=count ;
             deltaForce *= d ;
+            
+//             deltaForce += forces *.1 ;
+//             forces *=.9 ;
+            
+            active = true ;
         }
         else
         {
-            deltaForce *= s.getParent()->getRadius() ;
+          active = false ;  
+          forces *= .1 ;
         }
+
     }
+    else if( s.getParent()->getBehaviour()->getCollisionDetection()->isAtCheckpoint())
+    {
+        active = false ;
+        forces *= .1 ;
+    }
+//     else if(s.getParent()->getBehaviour()->getCollisionDetection()->isAtCheckpoint())
+//     {
+// //         double scr = s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
+// //         if(scr < 0)
+// //             forces *= (std::max(scr, -1.)+1.) ;
+// //         else
+// //             forces *= (std::min(scr, 1.)-1.) ;
+//         forces = 0 ;
+//     }
+
    
 	return std::make_pair(Vector(0., 1), Vector(1., 1)) ;
 }
 
 void LinearContactForce::postProcess()
 {
-    if(converged)
-        displacements = es->getDisplacements() ;
     if(converged && state[0] > POINT_TOLERANCE)
     {
-
+        
         for(size_t i = 0 ; i < es->getParent()->getBoundingPoints().size() ; i++)
         {
-
             if(es->getParent()->spaceDimensions() == 2)
             {
                 forces[i*2] += deltaForce[i*2]*(getState()[0]) ;
@@ -142,11 +167,10 @@ void LinearContactForce::postProcess()
                 tangentForces[i*3+2] += tangentDeltaForce[i*3+2]*(getState()[0]) ;
             }
         }
-        
 
         getState(true)[0] = 0 ;
+        displacements = es->getDisplacements() ;
     }
-
 
 }
 
@@ -166,41 +190,115 @@ std::vector<BoundaryCondition * > LinearContactForce::getBoundaryConditions(cons
     std::vector<BoundaryCondition * > ret ;    
     if(forces.size() == 0)
         return ret ;
-    
-    double factor = 1.;
-
     int dim = s.getParent()->spaceDimensions() ;
-
-    for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
+    if( active || true )
     {
-        if(id != s.getParent()->getBoundingPoint(i).getId())
-            continue ;
+        double factor = 1.;
+
         
-        ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, s.getParent()->getBoundingPoint(i).getId(), 
-                                                        (   forces[dim*i]*stiffness+
-                                                            tangentForces[dim*i]*tangentStiffness*forces[dim*i+1]+
-                                                            (deltaForce[dim*i]*stiffness+deltaForce[dim*i]*tangentDeltaForce[dim*i]*tangentStiffness)*getState()[0] 
-                                                        )*factor
-                                                        )
-                        );
-        
-        ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, s.getParent()->getBoundingPoint(i).getId(), 
-                                                        (   forces[dim*i+1]*stiffness+
-                                                            forces[dim*i]*tangentForces[dim*i+1]*tangentStiffness+
-                                                            (deltaForce[dim*i+1]*stiffness+deltaForce[dim*i]*tangentDeltaForce[dim*i+1]*tangentStiffness)*getState()[0] 
-                                                        )*factor
-                                                        )
-                        );
-        
-        if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+
+        for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
         {
-                        ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ZETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, s.getParent()->getBoundingPoint(i).getId(), 
-                                                        (   forces[dim*i+2]*stiffness+
-                                                            tangentForces[dim*i+2]*tangentStiffness+
-                                                            (deltaForce[dim*i+2]*stiffness+tangentDeltaForce[dim*i+2]*tangentStiffness)*getState()[0] 
-                                                        )*factor
-                                                        )
-                        );
+            if(id != s.getParent()->getBoundingPoint(i).getId())
+                continue ;
+            
+    //         Vector disp(dim) ;
+    //         disp = {s.getDisplacements()[i*dim]-displacements[i*dim], s.getDisplacements()[i*dim+1]-displacements[i*dim+1]};
+    //         if(dim == 3)
+    //             disp = {s.getDisplacements()[i*dim]-displacements[i*dim], s.getDisplacements()[i*dim+1]-displacements[i*dim+1], s.getDisplacements()[i*dim+2]-displacements[i*dim+2]};
+            
+    //         if(!geo->in(s.getParent()->getBoundingPoint(i)+disp))
+    //             continue ;
+                
+
+            
+            ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, s.getParent()->getBoundingPoint(i).getId(), 
+                                                            (   forces[dim*i]*stiffness-
+                                                                tangentForces[dim*i]*stiffness*tangentStiffness*forces[dim*i+1]+
+                                                                (deltaForce[dim*i]*stiffness+deltaForce[dim*i]*tangentDeltaForce[dim*i]*tangentStiffness*stiffness)*getState()[0] 
+                                                            )*factor
+                                                            )
+                            );
+            
+            ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, s.getParent()->getBoundingPoint(i).getId(), 
+                                                            (   forces[dim*i+1]*stiffness+
+                                                                forces[dim*i]*stiffness*tangentForces[dim*i+1]*tangentStiffness+
+                                                                (deltaForce[dim*i+1]*stiffness+deltaForce[dim*i]*tangentDeltaForce[dim*i+1]*tangentStiffness*stiffness)*getState()[0] 
+                                                            )*factor
+                                                            )
+                            );
+            
+            if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+            {
+                            ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ZETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, s.getParent()->getBoundingPoint(i).getId(), 
+                                                            (   forces[dim*i+2]*stiffness+
+                                                                tangentForces[dim*i+2]*stiffness*tangentStiffness+
+                                                                (deltaForce[dim*i+2]*stiffness+tangentDeltaForce[dim*i+2]*stiffness*tangentStiffness)*getState()[0] 
+                                                            )*factor
+                                                            )
+                            );
+            }
+        }
+    }
+    else if(std::abs(forces).max() > POINT_TOLERANCE)
+    {
+        for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
+        {
+            if(id != s.getParent()->getBoundingPoint(i).getId())
+                continue ;
+            
+    //         Vector disp(dim) ;
+    //         disp = {s.getDisplacements()[i*dim]-displacements[i*dim], s.getDisplacements()[i*dim+1]-displacements[i*dim+1]};
+    //         if(dim == 3)
+    //             disp = {s.getDisplacements()[i*dim]-displacements[i*dim], s.getDisplacements()[i*dim+1]-displacements[i*dim+1], s.getDisplacements()[i*dim+2]-displacements[i*dim+2]};
+            
+    //         if(!geo->in(s.getParent()->getBoundingPoint(i)+disp))
+    //             continue ;
+                
+            double factor =0 ;
+
+            ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, s.getParent()->getBoundingPoint(i).getId(), 
+                                                            (   forces[dim*i]*stiffness-
+                                                                tangentForces[dim*i]*tangentStiffness*forces[dim*i+1]+
+                                                                (deltaForce[dim*i]*stiffness+deltaForce[dim*i]*tangentDeltaForce[dim*i]*stiffness*tangentStiffness)*getState()[0] 
+                                                            )*factor
+                                                            )
+                            );
+            
+            ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, s.getParent()->getBoundingPoint(i).getId(), 
+                                                            (   forces[dim*i+1]*stiffness+
+                                                                forces[dim*i]*tangentForces[dim*i+1]*tangentStiffness+
+                                                                (deltaForce[dim*i+1]*stiffness+deltaForce[dim*i]*tangentDeltaForce[dim*i+1]*stiffness*tangentStiffness)*getState()[0] 
+                                                            )*factor
+                                                            )
+                            );
+            
+            if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+            {
+                            ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ZETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, s.getParent()->getBoundingPoint(i).getId(), 
+                                                            (   forces[dim*i+2]*stiffness+
+                                                                tangentForces[dim*i+2]*stiffness*tangentStiffness+
+                                                                (deltaForce[dim*i+2]*stiffness+tangentDeltaForce[dim*i+2]*stiffness*tangentStiffness)*getState()[0] 
+                                                            )*factor
+                                                            )
+                            );
+            }
+            
+            
+//             ret.push_back(new DofDefinedBoundaryCondition(SET_ALONG_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, s.getParent()->getBoundingPoint(i).getId(), displacements[i*dim]
+//                                                             )
+//                             );
+//             
+//             ret.push_back(new DofDefinedBoundaryCondition(SET_ALONG_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, s.getParent()->getBoundingPoint(i).getId(), displacements[i*dim+1]
+//                                                             )
+//                             );
+//             
+//             if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+//             {
+//                             ret.push_back(new DofDefinedBoundaryCondition(SET_ALONG_ZETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, s.getParent()->getBoundingPoint(i).getId(),displacements[i*dim+2]
+//                                                             )
+//                             );
+//             }
         }
     }
 
