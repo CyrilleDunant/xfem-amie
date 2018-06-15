@@ -30,11 +30,13 @@ public:
     Vector displacements ;
     bool reset = false ;
     bool active = false ;
+    double refscore = 0 ;
+    double scorefactor = 1.;
     
     ElementState * es = nullptr;
 public:
 
-    LinearContactForce(Geometry  *geo, double stiffness = 5e4, double tangentStiffness = 0.5) ;
+    LinearContactForce(Geometry  *geo, double stiffness = 1e4, double tangentStiffness = 0.5) ;
 
     virtual ~LinearContactForce();
 

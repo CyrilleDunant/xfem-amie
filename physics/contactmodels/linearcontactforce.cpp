@@ -50,96 +50,69 @@ std::pair< Vector, Vector > LinearContactForce::computeDamageIncrement(ElementSt
             Vector disp(dim) ;
 
             std::multimap<double, Point> mmap ;
-            int count = 0 ;
+            size_t npoints = s.getParent()->getBoundingPoints().size() ;
+            active = false ;
+            deltaForce = 0 ;
+            tangentDeltaForce = 0 ;
+            refscore = s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
+            forces *= scorefactor ;
+            scorefactor = 1. ;
 
-            
             for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
             {
-                disp = {s.getDisplacements()[i*dim], s.getDisplacements()[i*dim+1]};
-                if(dim == 3)
-                    disp = {s.getDisplacements()[i*dim], s.getDisplacements()[i*dim+1], s.getDisplacements()[i*dim+2]};
-                Point test(s.getParent()->getBoundingPoint(i) + disp) ;
-                Point base(s.getParent()->getBoundingPoint(i)+ disp) ;
-                geo->project(&test);                    
+
+                Point test(.5*s.getParent()->getBoundingPoint(i) + .5*s.getParent()->getBoundingPoint((i+1)%npoints) + 
+                Vector({.5*s.getDisplacements()[i*dim]+.5*s.getDisplacements()[((i+1)%npoints)*dim], .5*s.getDisplacements()[i*dim+1]+.5*s.getDisplacements()[((i+1)%npoints)*dim+1]})) ;
+                Point base(test) ;
+                geo->project(&test);             
                 
                 double dx = test.x- base.x ;
                 double dy = test.y- base.y ;
-                double dz = test.z- base.z ;
-                
-    //             Point dir(dx, dy, dz) ;
-    //             dir /= dir.norm() ;
+
                 Point norm(-dy, dx, 0) ;
                 double no = norm.norm() ;
                 mmap.insert(std::make_pair(no, base)) ;
                 norm /= no ;
                 
-    //             double num = sqrt(dx*dx+dy*dy+dz*dz) ;
-
                 
-                disp = {s.getDisplacements()[i*dim], s.getDisplacements()[i*dim+1]};
-                if(dim == 3)
-                    disp = {s.getDisplacements()[i*dim], s.getDisplacements()[i*dim+1], s.getDisplacements()[i*dim+2]};
-                active = false ;
+                disp = {.5*s.getDisplacements()[i*dim]+.5*s.getDisplacements()[((i+1)%npoints)*dim], .5*s.getDisplacements()[i*dim+1]+.5*s.getDisplacements()[((i+1)%npoints)*dim+1]};
             
             
-                if(geo->in(base)&& no < s.getParent()->getRadius())
+                if(geo->in(base))
                 {  
-                    count++ ;
+                    double d = dist(s.getParent()->getBoundingPoint(i) ,s.getParent()->getBoundingPoint((i+1)%npoints))*.5 ;
 
-                    deltaForce[i*dim] = dx ;
-                    deltaForce[i*dim+1] = dy ;
-                    if(dim == 3)
-                        deltaForce[i*dim+2] = dz ;
+                    deltaForce[i*dim] += dx*d ;
+                    deltaForce[i*dim+1] += dy*d ;
 
+                    tangentDeltaForce[i*dim] += -disp[0]*norm.getX()*.5 ;
+                    tangentDeltaForce[i*dim+1] += -disp[1]*norm.getY()*.5 ;
+                    
+                    deltaForce[((i+1)%npoints)*dim] += dx*d ;
+                    deltaForce[((i+1)%npoints)*dim+1] += dy*d ;
 
-                    tangentDeltaForce[i*dim] = -disp[0]*norm.getX() ;
-                    tangentDeltaForce[i*dim+1] = -disp[1]*norm.getY() ;
-                    if(dim == 3)
-                        tangentDeltaForce[i*dim+2] = -disp[2]*norm.getZ() ;
+                    tangentDeltaForce[((i+1)%npoints)*dim] += -disp[0]*norm.getX()*.5 ;
+                    tangentDeltaForce[((i+1)%npoints)*dim+1] += -disp[1]*norm.getY()*.5 ;
+
 
                 }
-                else
-                {
-                    forces[i*dim] = 0 ;
-                    forces[i*dim+1] = 0 ;
-                    if(dim == 3)
-                        forces[i*dim+2] = 0 ;
-                }
+
             }
-            
-            double d = dist(mmap.begin()->second, (++mmap.begin())->second) ;
-            if(count)
-                d *=count ;
-            deltaForce *= d ;
-            
-//             deltaForce += forces *.1 ;
-//             forces *=.9 ;
-            
             active = true ;
         }
         else
         {
+          scorefactor = (s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState()+1)/(refscore+1) ;  
           active = false ;  
-          forces *= .1 ;
         }
 
     }
     else if( s.getParent()->getBehaviour()->getCollisionDetection()->isAtCheckpoint())
     {
+        scorefactor = (s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState()+1)/(refscore+1) ;  
         active = false ;
-        forces *= .1 ;
     }
-//     else if(s.getParent()->getBehaviour()->getCollisionDetection()->isAtCheckpoint())
-//     {
-// //         double scr = s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
-// //         if(scr < 0)
-// //             forces *= (std::max(scr, -1.)+1.) ;
-// //         else
-// //             forces *= (std::min(scr, 1.)-1.) ;
-//         forces = 0 ;
-//     }
 
-   
 	return std::make_pair(Vector(0., 1), Vector(1., 1)) ;
 }
 
@@ -147,6 +120,7 @@ void LinearContactForce::postProcess()
 {
     if(converged && state[0] > POINT_TOLERANCE)
     {
+        refscore = es->getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
         
         for(size_t i = 0 ; i < es->getParent()->getBoundingPoints().size() ; i++)
         {
@@ -194,8 +168,9 @@ std::vector<BoundaryCondition * > LinearContactForce::getBoundaryConditions(cons
     if( active || true )
     {
         double factor = 1.;
+        if(!active)
+            factor *= scorefactor ;
 
-        
 
         for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
         {
@@ -228,16 +203,16 @@ std::vector<BoundaryCondition * > LinearContactForce::getBoundaryConditions(cons
                                                             )
                             );
             
-            if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
-            {
-                            ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ZETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, s.getParent()->getBoundingPoint(i).getId(), 
-                                                            (   forces[dim*i+2]*stiffness+
-                                                                tangentForces[dim*i+2]*stiffness*tangentStiffness+
-                                                                (deltaForce[dim*i+2]*stiffness+tangentDeltaForce[dim*i+2]*stiffness*tangentStiffness)*getState()[0] 
-                                                            )*factor
-                                                            )
-                            );
-            }
+//             if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+//             {
+//                             ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ZETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, s.getParent()->getBoundingPoint(i).getId(), 
+//                                                             (   forces[dim*i+2]*stiffness+
+//                                                                 tangentForces[dim*i+2]*stiffness*tangentStiffness+
+//                                                                 (deltaForce[dim*i+2]*stiffness+tangentDeltaForce[dim*i+2]*stiffness*tangentStiffness)*getState()[0] 
+//                                                             )*factor
+//                                                             )
+//                             );
+//             }
         }
     }
     else if(std::abs(forces).max() > POINT_TOLERANCE)
