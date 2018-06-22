@@ -55,7 +55,7 @@ void DamageModel::step( ElementState &s , double maxscore)
     double max = needGlobalMaximumScore?maxscore:s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(s) ;
 
     std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , max) ;
-    double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;//maxscore ;
+    double score = maxscore ;
     if(s.getParent()->getBehaviour()->getCollisionDetection())
         score = std::max(score, s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState()) ;
     if( !s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
@@ -114,7 +114,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 
         change = true ;
 
-        states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.025, globalMode ) ) ;
+    states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.025, globalMode ) ) ;
 	
 	if(states.size()-2  < ratios.size()/*trialRatio < 1.001*/)
 	{

@@ -73,7 +73,7 @@ FractureCriterion::FractureCriterion() :
     maxModeInNeighbourhood(-1),
     maxScoreInNeighbourhood(0),
     maxAngleShiftInNeighbourhood(0),
-    scoreTolerance(2e-2),
+    scoreTolerance(2e-3),
     checkpoint(true),
     smoothingType(QUARTIC_COMPACT),
     cachedInfluenceRatio(1),
@@ -263,11 +263,6 @@ double FractureCriterion::getMaxScoreInNeighbourhood(ElementState & s)
                 double renormScore = i->getBehaviour()->getFractureCriterion()->scoreAtState ;
                 maxScore = std::max(maxScore, renormScore) ;
             }
-            if(i->getBehaviour()->getCollisionDetection())
-            {
-                double renormScore = i->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
-                maxScore = std::max(maxScore, renormScore) ;
-            }
         }
     }
     else
@@ -277,11 +272,6 @@ double FractureCriterion::getMaxScoreInNeighbourhood(ElementState & s)
             if(i->getBehaviour()->getFractureCriterion() && !i->getBehaviour()->fractured())
             {
                 double renormScore = i->getBehaviour()->getFractureCriterion()->scoreAtState ;
-                maxScore = std::max(maxScore, renormScore) ;
-            }
-            if(i->getBehaviour()->getCollisionDetection())
-            {
-                double renormScore = i->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
                 maxScore = std::max(maxScore, renormScore) ;
             }
         }
@@ -344,8 +334,6 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                         if(ci == s.getParent() && met())
                         {
                             inset = true ;
-                            if(ci->getBehaviour()->getCollisionDetection())
-                                ci->getBehaviour()->getCollisionDetection()->inset = true ;
                         }
                         if(ci->getBehaviour()->getDamageModel()->getDelta() > POINT_TOLERANCE)
                             minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, ci->getBehaviour()->getDamageModel()->getDelta()) ;
@@ -364,9 +352,6 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                         }
                         else
                             maxscore = std::max(ci->getBehaviour()->getFractureCriterion()->scoreAtState, maxscore) ;
-                        
-                         if(ci->getBehaviour()->getCollisionDetection())
-                             maxscore = std::max(ci->getBehaviour()->getCollisionDetection()->getScoreAtState(), maxscore) ;
                     }
                 }
             }
@@ -390,8 +375,6 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
             for(size_t i = 0 ; i < proximitySet.size() ; i++)
             {
                 static_cast<DelaunayTriangle *>( mesh2d->getInTree(proximitySet[i]))->getBehaviour()->getFractureCriterion()->inIteration = true ;
-                if(static_cast<DelaunayTriangle *>( mesh2d->getInTree(proximitySet[i]))->getBehaviour()->getCollisionDetection())
-                    static_cast<DelaunayTriangle *>( mesh2d->getInTree(proximitySet[i]))->getBehaviour()->getCollisionDetection()->inIteration = true ;
             }
 
 
@@ -419,12 +402,6 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                     if(ci->getBehaviour()->getFractureCriterion() && !ci->getBehaviour()->getDamageModel()->converged)
                     {
                         double nls = ci->getBehaviour()->getFractureCriterion()->scoreAtState ;
-
-                        minscore = std::max(nls, minscore) ;
-                    }
-                    if(ci->getBehaviour()->getContactModel() && !ci->getBehaviour()->getContactModel()->converged)
-                    {
-                        double nls = ci->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
 
                         minscore = std::max(nls, minscore) ;
                     }
@@ -470,8 +447,6 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                         if(ci == s.getParent() && met())
                         {
                             inset = true ;
-                            if(ci->getBehaviour()->getCollisionDetection())
-                                ci->getBehaviour()->getCollisionDetection()->inset = true ;
                         }
                         if(ci->getBehaviour()->getDamageModel()->getDelta() > POINT_TOLERANCE)
                             minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, ci->getBehaviour()->getDamageModel()->getDelta()) ;
@@ -491,8 +466,6 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                         else
                             maxscore = std::max(ci->getBehaviour()->getFractureCriterion()->scoreAtState, maxscore) ;
                         
-                         if(ci->getBehaviour()->getCollisionDetection())
-                             maxscore = std::max(ci->getBehaviour()->getCollisionDetection()->getScoreAtState(), maxscore) ;
                     }
                 }
             }
@@ -516,8 +489,6 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
             for(size_t i = 0 ; i < proximitySet.size() ; i++)
             {
                 static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(proximitySet[i]))->getBehaviour()->getFractureCriterion()->inIteration = true ;
-                if(static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(proximitySet[i]))->getBehaviour()->getCollisionDetection())
-                    static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(proximitySet[i]))->getBehaviour()->getCollisionDetection()->inIteration = true ;
             }
 
 
@@ -545,12 +516,6 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                     if(ci->getBehaviour()->getFractureCriterion() && !ci->getBehaviour()->getDamageModel()->converged)
                     {
                         double nls = ci->getBehaviour()->getFractureCriterion()->scoreAtState ;
-
-                        minscore = std::max(nls, minscore) ;
-                    }
-                    if(ci->getBehaviour()->getContactModel() && !ci->getBehaviour()->getContactModel()->converged)
-                    {
-                        double nls = ci->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
 
                         minscore = std::max(nls, minscore) ;
                     }
@@ -583,11 +548,11 @@ void FractureCriterion::step(ElementState &s)
         metAtStep = false ;
         return ;
     }
-    if(checkpoint || inIteration)
-    {
+//     if(checkpoint || inIteration)
+//     {
         scoreAtState = grade(s) ;
 //         std::cout << "score "<< scoreAtState << "  "<< getScoreAtState() <<std::endl ;
-    }
+//     }
 
 //     
     metAtStep = scoreAtState > 0 ;

@@ -4345,10 +4345,10 @@ void FeatureTree::elasticStep()
 
 bool FeatureTree::solve()
 {
-    if ( enrichmentChange || needMeshing )
-    {
+//     if ( enrichmentChange || needMeshing )
+//     {
         K->clear() ;
-    }
+//     }
 
     timeval time0, time1 ;
     gettimeofday ( &time0, nullptr );
@@ -4357,7 +4357,7 @@ bool FeatureTree::solve()
     gettimeofday ( &time0, nullptr );
     Vector extrapolatedDisplacements = K->extrapolate() ;
     int nlcount = extrapolatedDisplacements.size() == 0 ;
-    if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint /*&& deltaTime > POINT_TOLERANCE*/) 
+    if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint && deltaTime > POINT_TOLERANCE) 
     {
         if(largeStrainSteps++ > 512)
         {

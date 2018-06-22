@@ -1385,6 +1385,8 @@ void Assembly::clear()
     delete boundaryMatrix ;
     boundaryMatrix = nullptr ;
     delete mask ;
+    externalForces = 0 ;
+    addToExternalForces = 0 ;
     mask = nullptr ;
 }
 

@@ -51,7 +51,7 @@ void ContactModel::step( ElementState &s , double maxscore)
     double max = maxscore ;
 //     std::cout << "a "<< converged << std::endl ;
     std::pair<double, double> setChange = s.getParent()->getBehaviour()->getCollisionDetection()->setChange( s , max) ;
-    double score = s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState() ;//maxscore ;
+    double score = maxscore ;
     if(s.getParent()->getBehaviour()->getFractureCriterion())
         score = std::max(score, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()) ;
     if( !s.getParent()->getBehaviour()->getCollisionDetection()->isInDamagingSet() )

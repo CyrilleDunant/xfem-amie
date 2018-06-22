@@ -255,29 +255,27 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
     }
     if ( getBehaviour()->type != VOID_BEHAVIOUR  )
     {
-//         if ( boundaryConditionCache && !behaviourForcesUpdated )
-//         {
-//             for ( size_t i = 0 ; i < boundaryConditionCache->size() ; i++ )
-//             {
-//                 if ( ( *boundaryConditionCache ) [i] )
-//                 {
-//                     if ( get2DMesh() )
-//                     {
-//                         ( *boundaryConditionCache ) [i]->apply ( a, get2DMesh() ) ;
-//                     }
-//                     else
-//                     {
-//                         ( *boundaryConditionCache ) [i]->apply ( a, get3DMesh() ) ;
-//                     }
-//                 }
-//             }
-//             
-//             return ;
-//         }
-//         if( boundaryConditionCache && behaviourForcesUpdated ) 
-//             boundaryConditionCache->clear() ;
-//         else
-//             boundaryConditionCache = new std::vector<BoundaryCondition *>() ;
+        if ( boundaryConditionCache && !behaviourForcesUpdated )
+        {
+            for ( size_t i = 0 ; i < boundaryConditionCache->size() ; i++ )
+            {
+                if ( ( *boundaryConditionCache ) [i] )
+                {
+                    if ( get2DMesh() )
+                    {
+                        ( *boundaryConditionCache ) [i]->apply ( a, get2DMesh() ) ;
+                    }
+                    else
+                    {
+                        ( *boundaryConditionCache ) [i]->apply ( a, get3DMesh() ) ;
+                    }
+                }
+            }
+        }
+        if( boundaryConditionCache && behaviourForcesUpdated ) 
+            boundaryConditionCache->clear() ;
+        else
+            boundaryConditionCache = new std::vector<BoundaryCondition *>() ;
 
         int JinvSize = 3 ;
         if ( spaceDimensions() == SPACE_THREE_DIMENSIONAL && timePlanes() > 1 )

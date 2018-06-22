@@ -57,6 +57,8 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
     if(!param)
         param = new Matrix(s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())) ;
 
+//     if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
+//         previousCompressiveImposedStrain *= .99 ;
 
     if( s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() && s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
     {
@@ -142,7 +144,7 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
         s.stressAtGaussPointsSet = false ;
 
         norm = sqrt((imposedStrain*imposedStrain).sum()) ;
-        onorm = 0.5*sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())/(*param[0][0]) ;
+        onorm = 0.2*sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())/(*param[0][0]) ;
         if(norm > POINT_TOLERANCE && onorm > POINT_TOLERANCE)
         {
             imposedStrain /= norm ;
@@ -153,6 +155,10 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
 //         imposedStrain[0] -= tr*.5 ;
 //         imposedStrain[1] -= tr*.5 ;
 
+
+//         imposedStrain = 1.5*imposedStrain-0.5*originalIstrain ;
+
+        imposedStrain = 0.999*imposedStrain-0.001*previousCompressiveImposedStrain ;
         inCompression = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(1) ;
         inTension = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(0) ;
 
@@ -458,9 +464,11 @@ bool PrandtlGrauertPlasticStrain::fractured(int direction) const
 
 void PrandtlGrauertPlasticStrain::postProcess()
 {
-    if((converged && es && state[0] > 2.*getDamageDensityTolerance()) ||newtonIteration )
+    if((converged && es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() && state[0] > 1e-6) ||newtonIteration )
     {
-
+        
+//         std::cout << "more plasticity " << state[0] <<std::endl ;
+//         state[0] += 1e-2 ;
         previousCompressiveImposedStrain += imposedStrain * getState()[0] ;
         imposedStrain = imposedStrain * getState()[0] ;
         compressivePlasticVariable += sqrt(2./3.) * sqrt( imposedStrain[0]*imposedStrain[0] +
@@ -471,7 +479,7 @@ void PrandtlGrauertPlasticStrain::postProcess()
         state[0] = 0;
         imposedStrain = 0 ;
     }
-    else if((converged && es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()) ||newtonIteration )
+    else if(converged && es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
     {
 //         previousCompressiveImposedStrain *= .99995 ;
 //         imposedStrain = imposedStrain * getState()[0]*.99 ;
@@ -482,6 +490,10 @@ void PrandtlGrauertPlasticStrain::postProcess()
 
         state[0] = 0;
         imposedStrain = 0 ;
+    }
+    else if(converged && es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
+    {
+        previousCompressiveImposedStrain -= imposedStrain*getState()[0] ;
     }
 }
 

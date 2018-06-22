@@ -342,10 +342,10 @@ int main ( int argc, char *argv[] )
 // F.addPoint(new Point(0, 0)) ;
 
     F.setMaxIterationsPerStep ( 10000 );
-    F.thresholdScoreMet = 1e-2 ;
+    F.thresholdScoreMet = 1e-5 ;
 
 
-    step ( 50, &samplef ) ;
+    step ( 5000, &samplef ) ;
 
 
     return 0 ;

@@ -67,7 +67,7 @@ double GeometryBasedContact::grade(ElementState &s)
     if(count)
         num *= count ;
     
-    return num/delta;
+    return 2.*num/delta;
   
 }
 

@@ -86,7 +86,7 @@ protected:
     double fraction ;
     double trialRatio ;
     double residualStiffnessFraction = 1e-6 ;
-    Vector ratios = {0.0005,0.005,0.05} ;
+    Vector ratios = {0.005,0.05 ,0.5, 1.} ;
 
     Vector upState ;
     Vector downState ;
