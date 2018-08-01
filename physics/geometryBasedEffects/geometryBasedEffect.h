@@ -21,13 +21,13 @@ namespace Amie
 {
 
 
-class ContactModel : public DamageModel
+class GeometryBasedEffect : public DamageModel
 {
 
 public:
 
-    ContactModel();
-    virtual ~ContactModel() {};
+    GeometryBasedEffect();
+    virtual ~GeometryBasedEffect() {};
 
     virtual void step(ElementState & s, double maxscore)  ;
 

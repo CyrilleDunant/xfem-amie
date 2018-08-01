@@ -12,12 +12,12 @@
 #ifndef LINEARCONTACT_H
 #define LINEARCONTACT_H
 
-#include "contactmodel.h"
+#include "geometryBasedEffect.h"
 
 namespace Amie {
 
 
-class LinearContactForce final: public ContactModel
+class LinearContactForce final: public GeometryBasedEffect
 {
 public:
     Geometry * geo ;   

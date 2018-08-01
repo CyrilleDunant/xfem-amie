@@ -10,7 +10,7 @@
 //
 //
 #include "collisiondetector.h"
-#include "../contactmodels/contactmodel.h"
+#include "../geometryBasedEffects/geometryBasedEffect.h"
 #include "../../elements/generalized_spacetime_viscoelastic_element_state.h"
 #include "../../mesher/delaunay.h"
 #include "../../physics/viscoelasticity.h"
@@ -65,7 +65,7 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
 {
     stable = true ;
 
-    if( !s.getParent()->getBehaviour()->getContactModel())
+    if( !s.getParent()->getBehaviour()->getGeometryBasedEffect())
         return std::make_pair(0.,0.) ;
     if(!mesh2d && !mesh3d)
     {
@@ -103,7 +103,7 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
             {
                 for(auto ci = mesh2d->begin(cacheID) ; ci != mesh2d->end(cacheID) ; ci++)
                 {
-                    if(!ci->getBehaviour()->getContactModel())
+                    if(!ci->getBehaviour()->getGeometryBasedEffect())
                         continue ;
 
                     if(ci->getBehaviour()->fractured())
@@ -118,11 +118,11 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
                         {
                             inset = true ;
                         }
-                        if(ci->getBehaviour()->getContactModel()->getDelta() > POINT_TOLERANCE)
-                            minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, ci->getBehaviour()->getContactModel()->getDelta()) ;
+                        if(ci->getBehaviour()->getGeometryBasedEffect()->getDelta() > POINT_TOLERANCE)
+                            minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, ci->getBehaviour()->getGeometryBasedEffect()->getDelta()) ;
 
-                        maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, ci->getBehaviour()->getContactModel()->getMode()) ;
-                        maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, ci->getBehaviour()->getContactModel()->getAngleShift()) ;
+                        maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, ci->getBehaviour()->getGeometryBasedEffect()->getMode()) ;
+                        maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, ci->getBehaviour()->getGeometryBasedEffect()->getAngleShift()) ;
                         newSet.push_back(ci->index);
                     }
                     else
@@ -170,8 +170,8 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
             checkpoint = false ;
             DelaunayTriangle * ci = static_cast<DelaunayTriangle *>( mesh2d->getInTree(damagingSet[0])) ;
 
-            maxModeInNeighbourhood = s.getParent()->getBehaviour()->getContactModel()->getMode() ;
-            maxAngleShiftInNeighbourhood = s.getParent()->getBehaviour()->getContactModel()->getAngleShift() ;
+            maxModeInNeighbourhood = s.getParent()->getBehaviour()->getGeometryBasedEffect()->getMode() ;
+            maxAngleShiftInNeighbourhood = s.getParent()->getBehaviour()->getGeometryBasedEffect()->getAngleShift() ;
 
 
             double minscore = 0 ;
@@ -184,7 +184,7 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
                 for(size_t i = 1 ; i < proximitySet.size() ; i++)
                 {
                     ci = static_cast<DelaunayTriangle *>( mesh2d->getInTree(proximitySet[i])) ;
-                    if(ci->getBehaviour()->getCollisionDetection() && !ci->getBehaviour()->getContactModel()->converged)
+                    if(ci->getBehaviour()->getCollisionDetection() && !ci->getBehaviour()->getGeometryBasedEffect()->converged)
                     {
                         double nls = ci->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
 
@@ -226,7 +226,7 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
             {
                 for(auto ci = mesh3d->begin(cacheID) ; ci != mesh3d->end(cacheID) ; ci++)
                 {
-                    if(!ci->getBehaviour()->getContactModel())
+                    if(!ci->getBehaviour()->getGeometryBasedEffect())
                         continue ;
 
                     if(ci->getBehaviour()->fractured())
@@ -241,11 +241,11 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
                         {
                             inset = true ;
                         }
-                        if(ci->getBehaviour()->getContactModel()->getDelta() > POINT_TOLERANCE)
-                            minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, ci->getBehaviour()->getContactModel()->getDelta()) ;
+                        if(ci->getBehaviour()->getGeometryBasedEffect()->getDelta() > POINT_TOLERANCE)
+                            minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, ci->getBehaviour()->getGeometryBasedEffect()->getDelta()) ;
 
-                        maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, ci->getBehaviour()->getContactModel()->getMode()) ;
-                        maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, ci->getBehaviour()->getContactModel()->getAngleShift()) ;
+                        maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, ci->getBehaviour()->getGeometryBasedEffect()->getMode()) ;
+                        maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, ci->getBehaviour()->getGeometryBasedEffect()->getAngleShift()) ;
                         newSet.push_back(ci->index);
                     }
                     else
@@ -292,8 +292,8 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
             checkpoint = false ;
             DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(damagingSet[0])) ;
 
-            maxModeInNeighbourhood = s.getParent()->getBehaviour()->getContactModel()->getMode() ;
-            maxAngleShiftInNeighbourhood = s.getParent()->getBehaviour()->getContactModel()->getAngleShift() ;
+            maxModeInNeighbourhood = s.getParent()->getBehaviour()->getGeometryBasedEffect()->getMode() ;
+            maxAngleShiftInNeighbourhood = s.getParent()->getBehaviour()->getGeometryBasedEffect()->getAngleShift() ;
 
 
             double minscore = 0 ;
@@ -306,7 +306,7 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
                 for(size_t i = 1 ; i < proximitySet.size() ; i++)
                 {
                     ci = static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(proximitySet[i])) ;
-                    if(ci->getBehaviour()->getCollisionDetection() && !ci->getBehaviour()->getContactModel()->converged)
+                    if(ci->getBehaviour()->getCollisionDetection() && !ci->getBehaviour()->getGeometryBasedEffect()->converged)
                     {
                         double nls = ci->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
 

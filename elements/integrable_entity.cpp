@@ -10,7 +10,7 @@
 #include "../solvers/assembly.h"
 #include "../features/boundarycondition.h"
 #include "../physics/damagemodels/damagemodel.h"
-#include "../physics/contactmodels/contactmodel.h"
+#include "../physics/geometryBasedEffects/geometryBasedEffect.h"
 #include <unistd.h>
 
 namespace Amie {
@@ -168,9 +168,9 @@ std::vector<BoundaryCondition * > Form::getBoundaryConditions ( const ElementSta
         if(!tmp.empty())
             ret.insert(ret.end(), tmp.begin(), tmp.end() ) ;
     }
-    if ( getContactModel() && getContactModel()->hasInducedBoundaryConditions() )
+    if ( getGeometryBasedEffect() && getGeometryBasedEffect()->hasInducedBoundaryConditions() )
     {
-        std::vector<BoundaryCondition * > tmp = getContactModel()->getBoundaryConditions ( s, id,  p_i, gp, Jinv ) ;
+        std::vector<BoundaryCondition * > tmp = getGeometryBasedEffect()->getBoundaryConditions ( s, id,  p_i, gp, Jinv ) ;
         if(!tmp.empty())
             ret.insert(ret.end(), tmp.begin(), tmp.end() ) ;
     }
@@ -248,7 +248,7 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
     if ( !getBehaviour() || !( 
         (getBehaviour()->getDamageModel() && getBehaviour()->getDamageModel()->hasInducedBoundaryConditions()) || 
         getBehaviour()->hasInducedForces() || 
-        (getBehaviour()->getContactModel() && getBehaviour()->getContactModel()->hasInducedBoundaryConditions()) )
+        (getBehaviour()->getGeometryBasedEffect() && getBehaviour()->getGeometryBasedEffect()->hasInducedBoundaryConditions()) )
     )
     {
         return ;

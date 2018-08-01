@@ -10,7 +10,7 @@
 //
 //
 
-#include "contactmodel.h"
+#include "geometryBasedEffect.h"
 #include "../collisiondetectors/collisiondetector.h"
 #include "../../mesher/delaunay.h"
 
@@ -19,7 +19,7 @@ namespace Amie
 
 /** \brief Damage model interface */
 
-void ContactModel::step( ElementState &s , double maxscore)
+void GeometryBasedEffect::step( ElementState &s , double maxscore)
 {
     elementState = &s ;
     size_t maxit = iterationNumber ;
@@ -301,7 +301,7 @@ void ContactModel::step( ElementState &s , double maxscore)
 }
 
 
-ContactModel::ContactModel(): DamageModel() {
+GeometryBasedEffect::GeometryBasedEffect(): DamageModel() {
 //     change = false ;
 //     iterationNumber = 64 ;
 }

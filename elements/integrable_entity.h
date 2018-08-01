@@ -130,7 +130,7 @@ struct IntegrableEntity ;
 class FractureCriterion ;
 class DamageModel ;
 class CollisionDetector ;
-class ContactModel ;
+class GeometryBasedEffect ;
 class VirtualMachine ;
 class BoundaryCondition ;
 template<class A, class B>
@@ -449,7 +449,7 @@ protected:
 
     const Geometry * source ;
     CollisionDetector * collisionDetection = nullptr;
-    ContactModel * contactModel = nullptr;
+    GeometryBasedEffect * contactModel = nullptr;
     
 
 public:
@@ -577,7 +577,7 @@ public:
         return nullptr ;
     }
     
-    virtual ContactModel * getContactModel() const {
+    virtual GeometryBasedEffect * getGeometryBasedEffect() const {
         return contactModel ;
     }
 

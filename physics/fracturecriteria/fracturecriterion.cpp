@@ -12,7 +12,7 @@
 #include "fracturecriterion.h"
 #include "../damagemodels/damagemodel.h"
 #include "../collisiondetectors/collisiondetector.h"
-#include "../contactmodels/contactmodel.h"
+#include "../geometryBasedEffects/geometryBasedEffect.h"
 #include "../../elements/generalized_spacetime_viscoelastic_element_state.h"
 #include "../../mesher/delaunay.h"
 #include "../../physics/viscoelasticity.h"

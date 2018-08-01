@@ -3,7 +3,7 @@
 
 #include "boundarycondition.h"
 #include "../physics/damagemodels/damagemodel.h"
-#include "../physics/contactmodels/contactmodel.h"
+#include "../physics/geometryBasedEffects/geometryBasedEffect.h"
 #include "../physics/collisiondetectors/collisiondetector.h"
 #include "../physics/viscoelasticity.h"
 #include "../features/features.h"
@@ -34,13 +34,13 @@ BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition ( Lagra
 
 BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, const Function & d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ) { }
 
-BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, CollisionDetector * contactCondition, ContactModel * contactLaw )  : BoundaryCondition ( t, contactCondition, contactLaw ), pos ( pos ) { }
+BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, CollisionDetector * contactCondition, GeometryBasedEffect * contactLaw )  : BoundaryCondition ( t, contactCondition, contactLaw ), pos ( pos ) { }
 
 BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp, double d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ),  xmin ( xm ), xmax ( xp ), ymin ( ym ), ymax ( yp ), zmin ( zm ), zmax ( zp )
 {
 }
 
-BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp,CollisionDetector * contactCondition, ContactModel * contactLaw )  : BoundaryCondition ( t, contactCondition, contactLaw ), pos ( pos ) { }
+BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp,CollisionDetector * contactCondition, GeometryBasedEffect * contactLaw )  : BoundaryCondition ( t, contactCondition, contactLaw ), pos ( pos ) { }
 
 BoundingBoxCycleDefinedBoundaryCondition::BoundingBoxCycleDefinedBoundaryCondition(std::vector<LoadingCycle> cycles, const std::vector<LagrangeMultiplierType> t, const std::vector<BoundingBoxPosition> & pos) : BoundaryCondition ( t.front(), 0 ), positions(pos), types(t), cycles(cycles), currentCycle(-1)
 { 
@@ -6490,7 +6490,7 @@ void BoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeI
         for ( size_t i = 0 ; i < cache2d.size() ; ++i )
         {
             if(!cache2d[i]->getBehaviour()->contactModel)
-                cache2d[i]->getBehaviour()->contactModel = dynamic_cast<ContactModel *> (contactLaw->getCopy()) ;
+                cache2d[i]->getBehaviour()->contactModel = dynamic_cast<GeometryBasedEffect *> (contactLaw->getCopy()) ;
             if(!cache2d[i]->getBehaviour()->collisionDetection)
                 cache2d[i]->getBehaviour()->collisionDetection = dynamic_cast<CollisionDetector *> (collisionDetection->getCopy());
         }
@@ -7672,7 +7672,7 @@ BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const double & 
 
 BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const Function & d, int a ) :  condition ( t ), scale ( 1 ), active(false), dataFunction ( d ), dataInterpolation(nullptr), axis ( a ), function ( true ) { }
 
-BoundaryCondition::BoundaryCondition(LagrangeMultiplierType t, CollisionDetector * contactCondition, ContactModel * contactLaw ): condition ( t ), scale ( 1 ),active(false), dataInterpolation(nullptr), axis ( 0 ), function ( true ),  collisionDetection (contactCondition), contactLaw(contactLaw) 
+BoundaryCondition::BoundaryCondition(LagrangeMultiplierType t, CollisionDetector * contactCondition, GeometryBasedEffect * contactLaw ): condition ( t ), scale ( 1 ),active(false), dataInterpolation(nullptr), axis ( 0 ), function ( true ),  collisionDetection (contactCondition), contactLaw(contactLaw) 
 {
     
 }

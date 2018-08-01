@@ -13,7 +13,7 @@
 #include "geometrybasedcontact.h"
 #include "../../mesher/delaunay.h"
 #include "../damagemodels/damagemodel.h"
-#include "../contactmodels/linearcontactforce.h"
+#include "../geometryBasedEffects/linearcontactforce.h"
 namespace Amie {
 
 GeometryBasedContact::GeometryBasedContact(Geometry *geo, double delta) : geo(geo), delta(delta)

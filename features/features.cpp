@@ -17,7 +17,7 @@
 #include "../physics/void_form.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
 #include "../physics/collisiondetectors/collisiondetector.h"
-#include "../physics/contactmodels/contactmodel.h"
+#include "../physics/geometryBasedEffects/geometryBasedEffect.h"
 #include "../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/materials/gel_behaviour.h"
@@ -3063,7 +3063,7 @@ void FeatureTree::setElementBehaviours()
                 Form * bf =  getElementBehaviour ( j, i->first );
                 if(bf && bf->getDamageModel() && bf->getDamageModel()->alternating)
                     setAlternating(true) ;
-                if(bf && bf->getContactModel() && bf->getContactModel()->alternating)
+                if(bf && bf->getGeometryBasedEffect() && bf->getGeometryBasedEffect()->alternating)
                     setAlternating(true) ;
 
                 j->setBehaviour ( i->second, bf ) ;
@@ -3097,7 +3097,7 @@ void FeatureTree::setElementBehaviours()
             Form * bf =  getElementBehaviour ( i );
             if(bf && bf->getDamageModel() && bf->getDamageModel()->alternating)
                 setAlternating(true) ;
-            if(bf && bf->getContactModel() && bf->getContactModel()->alternating)
+            if(bf && bf->getGeometryBasedEffect() && bf->getGeometryBasedEffect()->alternating)
                 setAlternating(true) ;
 
             i->setBehaviour ( dtree3D, bf ) ;
@@ -4739,9 +4739,9 @@ bool FeatureTree::stepElements()
                             {
                                 i->getBehaviour()->getDamageModel()->getState(true) = 0 ;
                             }                        
-                            if ( i->getBehaviour()->getContactModel() )
+                            if ( i->getBehaviour()->getGeometryBasedEffect() )
                             {
-                                i->getBehaviour()->getContactModel()->getState(true) = 0 ;
+                                i->getBehaviour()->getGeometryBasedEffect()->getState(true) = 0 ;
                             }
                             
                         }
@@ -4911,12 +4911,12 @@ bool FeatureTree::stepElements()
                                         bool wasFractured = i->getBehaviour()->fractured() ;
                                         i->getBehaviour()->step ( deltaTime, i->getState(), maxScoreInit ) ;
                                         
-                                        if(i->getBehaviour()->getContactModel())
+                                        if(i->getBehaviour()->getGeometryBasedEffect())
                                         {
-                                            i->getBehaviour()->getContactModel()->step(i->getState(), contactMaxScoreInit) ;
-                                            i->behaviourUpdated = i->getBehaviour()->getContactModel()->changed() || i->behaviourUpdated;
+                                            i->getBehaviour()->getGeometryBasedEffect()->step(i->getState(), contactMaxScoreInit) ;
+                                            i->behaviourUpdated = i->getBehaviour()->getGeometryBasedEffect()->changed() || i->behaviourUpdated;
                                             i->needAssembly = i->behaviourUpdated || i->needAssembly;
-                                            if(i->getBehaviour()->getContactModel()->changed())
+                                            if(i->getBehaviour()->getGeometryBasedEffect()->changed())
                                             {
                                                 #pragma omp atomic write
                                                 behaviourChange = true ;
@@ -5000,10 +5000,10 @@ bool FeatureTree::stepElements()
                                             behaviourChange = true ;
                                         }
                                     }
-                                    if ( i->getBehaviour()->getContactModel() )
+                                    if ( i->getBehaviour()->getGeometryBasedEffect() )
                                     {
-                                        i->getBehaviour()->getContactModel()->postProcess() ;
-                                        if (i->getBehaviour()->getContactModel()->changed() )
+                                        i->getBehaviour()->getGeometryBasedEffect()->postProcess() ;
+                                        if (i->getBehaviour()->getGeometryBasedEffect()->changed() )
                                         {
                                             #pragma omp atomic write
                                             behaviourChange = true ;
@@ -5036,7 +5036,7 @@ bool FeatureTree::stepElements()
                                     }
                                 }
                                 #pragma omp task firstprivate(i)
-                                if (i->getBehaviour()->getContactModel() && !i->getBehaviour()->getContactModel()->converged )
+                                if (i->getBehaviour()->getGeometryBasedEffect() && !i->getBehaviour()->getGeometryBasedEffect()->converged )
                                 {
                                     #pragma omp critical
                                     {
@@ -5300,12 +5300,12 @@ bool FeatureTree::stepElements()
                                 bool wasFractured = i->getBehaviour()->fractured() ;
 
                                 i->getBehaviour()->step ( deltaTime, i->getState(), maxScoreInit ) ;
-                                if(i->getBehaviour()->getContactModel())
+                                if(i->getBehaviour()->getGeometryBasedEffect())
                                 {
-                                    i->getBehaviour()->getContactModel()->step(i->getState(), maxScoreInit) ;
-                                    i->behaviourUpdated = i->getBehaviour()->getContactModel()->changed() || i->behaviourUpdated;
+                                    i->getBehaviour()->getGeometryBasedEffect()->step(i->getState(), maxScoreInit) ;
+                                    i->behaviourUpdated = i->getBehaviour()->getGeometryBasedEffect()->changed() || i->behaviourUpdated;
                                     i->needAssembly = i->behaviourUpdated ;
-                                    if(i->getBehaviour()->getContactModel()->changed())
+                                    if(i->getBehaviour()->getGeometryBasedEffect()->changed())
                                     {
                                         #pragma omp atomic write
                                         behaviourChange = true ;
@@ -5327,7 +5327,7 @@ bool FeatureTree::stepElements()
                                     ccount++ ;
                                 }
                                 #pragma omp critical
-                                if ( i->getBehaviour()->getContactModel() && i->getBehaviour()->getContactModel()->changed() )
+                                if ( i->getBehaviour()->getGeometryBasedEffect() && i->getBehaviour()->getGeometryBasedEffect()->changed() )
                                 {
                                     behaviourChange = true ;
                                     ccount++ ;
@@ -5379,10 +5379,10 @@ bool FeatureTree::stepElements()
                                 }
                             }
                             
-                            if ( i->getBehaviour()->getContactModel() )
+                            if ( i->getBehaviour()->getGeometryBasedEffect() )
                             {
-                                i->getBehaviour()->getContactModel()->postProcess() ;
-                                if ( i->getBehaviour()->getContactModel()->changed() )
+                                i->getBehaviour()->getGeometryBasedEffect()->postProcess() ;
+                                if ( i->getBehaviour()->getGeometryBasedEffect()->changed() )
                                 {
                                     #pragma omp critical
                                     {
@@ -5402,7 +5402,7 @@ bool FeatureTree::stepElements()
                         maxScore = maxScoreInit ;
                         break ;
                     }
-                    if ( i->getBehaviour()->getContactModel() && !i->getBehaviour()->getContactModel()->converged )
+                    if ( i->getBehaviour()->getGeometryBasedEffect() && !i->getBehaviour()->getGeometryBasedEffect()->converged )
                     {
                         foundCheckPoint = false ;
                         maxScore = maxScoreInit ;
@@ -6064,12 +6064,12 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
                         }
                         
                         #pragma omp task firstprivate(i)
-                        if ( i->getBehaviour()->getContactModel() )
+                        if ( i->getBehaviour()->getGeometryBasedEffect() )
                         {
                             i->getBehaviour()->getCollisionDetection()->setCheckpoint ( true ) ;
-                            i->getBehaviour()->getContactModel()->alternateCheckpoint = false  ;
-                            i->getBehaviour()->getContactModel()->converged = true ;
-                            i->getBehaviour()->getContactModel()->alternate = true ;
+                            i->getBehaviour()->getGeometryBasedEffect()->alternateCheckpoint = false  ;
+                            i->getBehaviour()->getGeometryBasedEffect()->converged = true ;
+                            i->getBehaviour()->getGeometryBasedEffect()->alternate = true ;
                         }
                     }
                 }
@@ -6093,12 +6093,12 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
                         i->getBehaviour()->getDamageModel()->alternate = true ;
                     }
                     #pragma omp task firstprivate(i)
-                    if ( i->getBehaviour()->getContactModel() )
+                    if ( i->getBehaviour()->getGeometryBasedEffect() )
                     {
                         i->getBehaviour()->getCollisionDetection()->setCheckpoint ( true ) ;
-                        i->getBehaviour()->getContactModel()->alternateCheckpoint = false  ;
-                        i->getBehaviour()->getContactModel()->converged = true ;
-                        i->getBehaviour()->getContactModel()->alternate = true ;
+                        i->getBehaviour()->getGeometryBasedEffect()->alternateCheckpoint = false  ;
+                        i->getBehaviour()->getGeometryBasedEffect()->converged = true ;
+                        i->getBehaviour()->getGeometryBasedEffect()->alternate = true ;
                     }
                 }
             }
