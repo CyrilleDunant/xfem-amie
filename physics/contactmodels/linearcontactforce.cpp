@@ -48,7 +48,6 @@ std::pair< Vector, Vector > LinearContactForce::computeDamageIncrement(ElementSt
     
     if( s.getParent()->getBehaviour()->getCollisionDetection()->isInDamagingSet() && s.getParent()->getBehaviour()->getCollisionDetection()->isAtCheckpoint())
     {   
-
         Vector disp(dim) ;
 
         std::multimap<double, Point> mmap ;
@@ -87,14 +86,15 @@ std::pair< Vector, Vector > LinearContactForce::computeDamageIncrement(ElementSt
                 no = norm.norm() ;
                 norm /= no ;
                 
-//                     if(geo->in(AA))
-//                     {
-                    deltaForce[i*dim] += dx*d ;
-                    deltaForce[i*dim+1] += dy*d ;
+                deltaForce[i*dim] += .5*dx*d ;
+                deltaForce[i*dim+1] += .5*dy*d ;
+                deltaForce[((i+1)%npoints)*dim] += .5*dx*d ;
+                deltaForce[((i+1)%npoints)*dim+1] += .5*dy*d ;
 
-                    tangentDeltaForce[i*dim] = disp[0]*norm.getX() ;
-                    tangentDeltaForce[i*dim+1] = disp[1]*norm.getY() ;
-//                     }
+                tangentDeltaForce[i*dim] += .5*disp[0]*norm.getX() ;
+                tangentDeltaForce[i*dim+1] += .5*disp[1]*norm.getY() ;
+                tangentDeltaForce[((i+1)%npoints)*dim] += .5*disp[0]*norm.getX() ;
+                tangentDeltaForce[((i+1)%npoints)*dim+1] += .5*disp[1]*norm.getY() ;
                 
                 Point B(s.getParent()->getBoundingPoint(((i+1)%npoints))+Vector({s.getDisplacements()[((i+1)%npoints)*dim], s.getDisplacements()[((i+1)%npoints)*dim+1]})) ;
                 Point BB(B) ;
@@ -107,34 +107,28 @@ std::pair< Vector, Vector > LinearContactForce::computeDamageIncrement(ElementSt
                 no = norm.norm() ;
                 norm /= no ;
                 
-//                     if(geo->in(BB))
-//                     {
-                    deltaForce[((i+1)%npoints)*dim] += dx*d ;
-                    deltaForce[((i+1)%npoints)*dim+1] += dy*d ;
+                deltaForce[((i+1)%npoints)*dim] += dx*d ;
+                deltaForce[((i+1)%npoints)*dim+1] += dy*d ;
+                deltaForce[i*dim] += .5*dx*d ;
+                deltaForce[i*dim+1] += .5*dy*d ;
 
-                    tangentDeltaForce[((i+1)%npoints)*dim] = disp[0]*norm.getX() ;
-                    tangentDeltaForce[((i+1)%npoints)*dim+1] = disp[1]*norm.getY() ;
-//                     }
+                tangentDeltaForce[((i+1)%npoints)*dim] += .5*disp[0]*norm.getX() ;
+                tangentDeltaForce[((i+1)%npoints)*dim+1] += .5*disp[1]*norm.getY() ;
+                tangentDeltaForce[i*dim] += .5*disp[0]*norm.getX() ;
+                tangentDeltaForce[i*dim+1] += .5*disp[1]*norm.getY() ;
 
             }
 
         }
 
-        deltaForce = 0.9 *deltaForce+0.1*forces ;
-        tangentDeltaForce = 0.9*tangentDeltaForce+0.1*tangentForces ;
-    }
-//     else if (s.getParent()->getBehaviour()->getCollisionDetection()->isAtCheckpoint())
-//     {
-// //         if(active)
-// //         {
-//             forces *=.0 ;
-//             tangentForces *=.0 ;
-//             deltaForce *=0 ;
-//             tangentDeltaForce *=0;
-// //         }
-// //         active  = false ;
-//     }
+        deltaForce = 0.99 *deltaForce+0.01*forces ;
+        if(foundRefnorm)
+        {
+            double deltanorm = sqrt((deltaForce*deltaForce).sum()) ;
+            deltaForce = 0.999 *deltaForce/deltanorm*refnorm+0.001*refnorm*forces/sqrt((forces*forces).sum()) ;
+        }
 
+    }
 
 	return std::make_pair(Vector(0., 1), Vector(1., 1)) ;
 }
@@ -143,23 +137,46 @@ void LinearContactForce::postProcess()
 {
     if(converged && es && es->getParent()->getBehaviour()->getCollisionDetection()->isInDamagingSet() && state[0] > 1e-6)
     {
-        std::cout << "more contact " << state[0] << std::endl ;
-        refscore = es->getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState() ;
+        std::cout << "c" << std::flush ;
+        double sco = es->getParent()->getBehaviour()->getCollisionDetection()->getMaxScoreInNeighbourhood(*es) ;
+//         if(es->getParent()->getBehaviour()->getFractureCriterion())
+//             sco = std::min(sco,es->getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(*es)) ;
+//         if(sco > refscore)
+//             forces *= .95 ;
+            
+        refscore = sco ;
         forces += deltaForce*getState()[0] ;
         tangentForces += tangentDeltaForce*getState()[0] ;
-
+        
+//         if(state[0] < .5 && !foundRefnorm)
+//         {
+//             foundRefnorm = true ;
+//             refnorm = sqrt((forces*forces).sum()) ;
+//         }
+//         if(state[0] > .99 )
+//             foundRefnorm = false ;
         getState(true)[0] = 0 ;
 
 
         active = false ;
         displacements = es->getDisplacements() ;
     }
-    else if(converged&& es->getParent()->getBehaviour()->getCollisionDetection()->isInDamagingSet())
-    {
-//         forces -= deltaForce*getState()[0] ;
-//         tangentForces -= tangentDeltaForce*getState()[0] ;
-        active = false ;
-    }
+//     else if(converged&& !active && es)
+//     {
+//         double sco = es->getParent()->getBehaviour()->getCollisionDetection()->getMaxScoreInNeighbourhood(*es) ;
+// //         if(es->getParent()->getBehaviour()->getFractureCriterion())
+// //             sco = std::min(sco,es->getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(*es)) ;
+//         double d = std::max(std::max(sco+1, 0.)/(refscore+1), 1.) ;
+// //         double factor = std::min(std::max(es->getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState()+1, 0.)/(refscore+1), .1) ;
+// //         if(sco >  refscore)
+// //             forces *= .95 ;
+//         if(refscore > -1)
+//         {
+//             refscore = sco ;
+//             forces *= d ;
+//         }
+//         active = false ;
+//     }
 
 
 }
@@ -181,30 +198,22 @@ std::vector<BoundaryCondition * > LinearContactForce::getBoundaryConditions(cons
     if(forces.size() == 0)
         return ret ;
     int dim = s.getParent()->spaceDimensions() ;
-    double factor = 1.;
-    if(!active)
+    double factor = .01;
+    if(!active && std::abs(forces).max() > POINT_TOLERANCE)
     {
-        factor = std::max((s.getParent()->getBehaviour()->getCollisionDetection()->getScoreAtState()+1)/(refscore+1), .1) ;
+        double sco = es->getParent()->getBehaviour()->getCollisionDetection()->getMaxScoreInNeighbourhood(*es) ;
+//         if(es->getParent()->getBehaviour()->getFractureCriterion())
+//             sco = std::min(sco,es->getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(*es)) ;
+        double d =  std::max(std::max(sco+1, 0.)/(refscore+1), 1.) ;
+        
+        factor *= d ;        
     }
-//     if(!active)
-//     {
-//         return ret ;
-//     }
-//         factor = scorefactor ;
-
 
     for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
     {
         if(id != s.getParent()->getBoundingPoint(i).getId())
             continue ;
-//         
-        
-//         Vector disp = {s.getDisplacements()[i*dim], s.getDisplacements()[i*dim+1]};
-// 
-//         Point test(s.getParent()->getBoundingPoint(i) + disp) ;
-//         if(!geo->in(test))
-//             continue ;
-        
+
         ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp, Jinv, s.getParent()->getBoundingPoint(i).getId(), 
                                                         (   forces[dim*i]*stiffness-
                                                             tangentForces[dim*i]*stiffness*tangentStiffness*forces[dim*i+1]+

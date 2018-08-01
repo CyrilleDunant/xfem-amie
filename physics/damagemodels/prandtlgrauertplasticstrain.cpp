@@ -158,7 +158,9 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
 
 //         imposedStrain = 1.5*imposedStrain-0.5*originalIstrain ;
 
-        imposedStrain = 0.999*imposedStrain-0.001*previousCompressiveImposedStrain ;
+//         double pnorm = sqrt((previousCompressiveImposedStrain*imposedStrain).sum()) ;
+//         if(pnorm > POINT_TOLERANCE)
+//             imposedStrain = 0.9*imposedStrain-0.1*previousCompressiveImposedStrain*onorm/pnorm ;
         inCompression = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(1) ;
         inTension = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(0) ;
 
@@ -491,10 +493,10 @@ void PrandtlGrauertPlasticStrain::postProcess()
         state[0] = 0;
         imposedStrain = 0 ;
     }
-    else if(converged && es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
-    {
-        previousCompressiveImposedStrain -= imposedStrain*getState()[0] ;
-    }
+//     else if(converged && es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
+//     {
+//         previousCompressiveImposedStrain -= imposedStrain*getState()[0] ;
+//     }
 }
 
 PrandtlGrauertPlasticStrain::~PrandtlGrauertPlasticStrain()

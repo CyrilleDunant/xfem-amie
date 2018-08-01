@@ -34,6 +34,7 @@ double GeometryBasedContact::grade(ElementState &s)
     Vector disp(dim) ;
     
     double num = -1 ;
+    double init = false ;
     size_t npoints = s.getParent()->getBoundingPoints().size() ;
     int count = 0 ;
 
@@ -41,16 +42,17 @@ double GeometryBasedContact::grade(ElementState &s)
     {
 //         s.getField(DISPLACEMENT_FIELD,s.getParent()->getBoundingPoint(i), disp,false,  &vm);
         
-        Point test(.5*s.getParent()->getBoundingPoint(i) + .5*s.getParent()->getBoundingPoint((i+1)%npoints) + 
-        Vector({.5*s.getDisplacements()[i*dim]+.5*s.getDisplacements()[((i+1)%npoints)*dim], .5*s.getDisplacements()[i*dim+1]+.5*s.getDisplacements()[((i+1)%npoints)*dim+1]})) ;
+        Point test(s.getParent()->getBoundingPoint(i) + 
+        Vector({s.getDisplacements()[i*dim] ,s.getDisplacements()[i*dim+1] })) ;
         Point base(test) ;
         geo->project(&test);
+
 
         double dx = test.x- base.x ;
         double dy = test.y- base.y ;
         double dz = test.z- base.z ;
         double nom = sqrt(dx*dx+dy*dy+dz*dz) ;
-        
+
 //         std::cout << base.x << " " << base.y << "  " << nom << std::endl ;
         
         if(geo->in(base) )
@@ -60,14 +62,19 @@ double GeometryBasedContact::grade(ElementState &s)
         }
         else
         { 
+            if(!init)
+            {
+                num = -nom ;
+                init = true ;
+            }
             num = std::max(-nom, num) ;
         }
     }
     
-    if(count)
-        num *= count ;
+//     if(count)
+//         num /= count ;
     
-    return 2.*num/delta;
+    return num/delta;
   
 }
 

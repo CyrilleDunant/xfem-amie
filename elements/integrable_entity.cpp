@@ -274,7 +274,7 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
         }
         if( boundaryConditionCache && behaviourForcesUpdated ) 
             boundaryConditionCache->clear() ;
-        else
+        else if(!boundaryConditionCache)
             boundaryConditionCache = new std::vector<BoundaryCondition *>() ;
 
         int JinvSize = 3 ;
@@ -3555,7 +3555,7 @@ bool ElementState::prepare(const Vector &extrapolatedDisplacements)
         { 
             if ( ids[i] * ndofs + j < extrapolatedDisplacements.size() )
             {
-                localExtrapolatedDisplacements[i * ndofs + j] = extrapolatedDisplacements [ids[i] * ndofs + j] ;
+                localExtrapolatedDisplacements[i * ndofs + j] = localExtrapolatedDisplacements[i * ndofs + j]*0.9+extrapolatedDisplacements [ids[i] * ndofs + j]*0.1 ;
             }
             else
             {

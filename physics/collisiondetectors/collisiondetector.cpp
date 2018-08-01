@@ -81,6 +81,7 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
 
         if( checkpoint ) //new iteration
         {
+            
 //             std::cout << "ccheckpoint " << thresholdScore << "  " << getScoreAtState() <<  std::endl ;
             inset = false ;
             inIteration = false ;
@@ -96,6 +97,8 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
             minDeltaInNeighbourhood = 1 ;
             maxModeInNeighbourhood = -1 ;
             maxAngleShiftInNeighbourhood = 0 ;
+            if(s.getParent()->getBehaviour()->getFractureCriterion() && s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() > getScoreAtState())
+                return std::make_pair(0.,0.) ;
             if(thresholdScore > 0 )
             {
                 for(auto ci = mesh2d->begin(cacheID) ; ci != mesh2d->end(cacheID) ; ci++)
@@ -205,6 +208,7 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
             inIteration = false ;
             damagingSet.clear();
             proximitySet.clear() ;
+            
 // 	    initialScore = std::max(scoreAtState, scoreTolerance*scoreTolerance) ;
 
             std::vector<unsigned int> newSet ;
@@ -215,6 +219,9 @@ std::pair<double, double> CollisionDetector::setChange( ElementState &s, double 
             minDeltaInNeighbourhood = 1 ;
             maxModeInNeighbourhood = -1 ;
             maxAngleShiftInNeighbourhood = 0 ;
+            
+            if(s.getParent()->getBehaviour()->getFractureCriterion() && s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() > getScoreAtState())
+                return std::make_pair(0.,0.) ;
             if(thresholdScore > 0 )
             {
                 for(auto ci = mesh3d->begin(cacheID) ; ci != mesh3d->end(cacheID) ; ci++)

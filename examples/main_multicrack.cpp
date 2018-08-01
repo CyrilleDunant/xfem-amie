@@ -22,7 +22,7 @@ FeatureTree * featureTree ;
 
 int main(int argc, char *argv[])
 {
-	int nsteps = 1200 ;
+	int nsteps = 100 ;
 
 	double width = 0.12;
 	double height = 0.0025;
@@ -61,14 +61,14 @@ int main(int argc, char *argv[])
 
 	
 	MultiTriangleWriter writerm( "displacements_enrichment_head", "displacements_enrichment", nullptr ) ;
-    featureTree->largeStrains = true ;
+//     featureTree->largeStrains = true ;
     bool go_on = true ; 
     
     for(int v = 0 ; v < nsteps ; v++)
     {
        
         if(go_on)
-           force->setData(-(v+0.05*((double)rand()/RAND_MAX-0.5))*0.00001) ; //force->setData(-0.01*v/div) ;// 
+           force->setData(-0.01*v/nsteps) ;// force->setData(-(v+0.05*((double)rand()/RAND_MAX-0.5))*0.00001) ; //
         
         do
         {

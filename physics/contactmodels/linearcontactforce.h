@@ -32,11 +32,13 @@ public:
     bool active = false ;
     double refscore = 0 ;
     double scorefactor = 1.;
+    double refnorm = 1. ;
+    bool foundRefnorm = false ;
     
     ElementState * es = nullptr;
 public:
 
-    LinearContactForce(Geometry  *geo, double stiffness = 2e4, double tangentStiffness = 0.5) ;
+    LinearContactForce(Geometry  *geo, double stiffness = 10, double tangentStiffness = 0.5) ;
 
     virtual ~LinearContactForce();
 

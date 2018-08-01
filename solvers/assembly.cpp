@@ -1809,7 +1809,7 @@ Vector Assembly::extrapolate(double factor)
 //     }
         
             
-    return displacementHistory.back() /*+ dxdb*factor + dxxddb*factor*factor*.25*/;
+    return displacementHistory.back() + dxdb*factor*.5 + dxxddb*factor*factor*.25;
 
 }
 

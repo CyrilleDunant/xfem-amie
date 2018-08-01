@@ -4357,7 +4357,7 @@ bool FeatureTree::solve()
     gettimeofday ( &time0, nullptr );
     Vector extrapolatedDisplacements = K->extrapolate() ;
     int nlcount = extrapolatedDisplacements.size() == 0 ;
-    if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint && deltaTime > POINT_TOLERANCE) 
+    if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint /*&& deltaTime > POINT_TOLERANCE*/) 
     {
         if(largeStrainSteps++ > 512)
         {
@@ -4827,6 +4827,7 @@ bool FeatureTree::stepElements()
             if ( !elastic )
             {
                 double maxScoreInit = -1;
+                double contactMaxScoreInit = -1;
 
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                 {
@@ -4852,6 +4853,7 @@ bool FeatureTree::stepElements()
                                 {
                                     auto i = j->second->begin()+localStart ;
                                     double localmaxScore = -1 ;
+                                    double localcontactMaxscore = -1 ;
                                     for ( ; i.getPosition() < localEnd; i++)
                                     {
                                         if ( i.getPosition() % 200 == 0 )
@@ -4865,7 +4867,7 @@ bool FeatureTree::stepElements()
                                         if ( i->getBehaviour()->getCollisionDetection() )
                                         {
                                             i->getBehaviour()->getCollisionDetection()->step ( i->getState() ) ;
-                                            localmaxScore = std::max ( i->getBehaviour()->getCollisionDetection()->getScoreAtState(), localmaxScore ) ;
+                                            localcontactMaxscore = std::max ( i->getBehaviour()->getCollisionDetection()->getScoreAtState(), localcontactMaxscore ) ;
 //                                             std::cout << "cscore "<< i->getBehaviour()->getCollisionDetection()->getScoreAtState() << std::endl ;
                                         }
                                         
@@ -4873,6 +4875,7 @@ bool FeatureTree::stepElements()
                                     #pragma omp critical
                                     {
                                         maxScoreInit = std::max ( localmaxScore, maxScoreInit ) ;
+                                        contactMaxScoreInit = std::max ( contactMaxScoreInit, localcontactMaxscore ) ;
                                     }
                                 }
                                 localStart = localEnd ;
@@ -4910,7 +4913,7 @@ bool FeatureTree::stepElements()
                                         
                                         if(i->getBehaviour()->getContactModel())
                                         {
-                                            i->getBehaviour()->getContactModel()->step(i->getState(), maxScoreInit) ;
+                                            i->getBehaviour()->getContactModel()->step(i->getState(), contactMaxScoreInit) ;
                                             i->behaviourUpdated = i->getBehaviour()->getContactModel()->changed() || i->behaviourUpdated;
                                             i->needAssembly = i->behaviourUpdated || i->needAssembly;
                                             if(i->getBehaviour()->getContactModel()->changed())
@@ -4990,28 +4993,20 @@ bool FeatureTree::stepElements()
 
                                     if ( i->getBehaviour()->getDamageModel() )
                                     {
-                                        if(!i->getBehaviour()->getCollisionDetection() || 
-                                            i->getBehaviour()->getCollisionDetection()->getScoreAtState() <= i->getBehaviour()->getFractureCriterion()->getScoreAtState()+i->getBehaviour()->getFractureCriterion()->getScoreTolerance())
+                                        i->getBehaviour()->getDamageModel()->postProcess() ;
+                                        if ( i->getBehaviour()->changed() )
                                         {
-                                            i->getBehaviour()->getDamageModel()->postProcess() ;
-                                            if ( i->getBehaviour()->changed() )
-                                            {
-                                                #pragma omp atomic write
-                                                behaviourChange = true ;
-                                            }
+                                            #pragma omp atomic write
+                                            behaviourChange = true ;
                                         }
                                     }
                                     if ( i->getBehaviour()->getContactModel() )
                                     {
-                                        if(!i->getBehaviour()->getFractureCriterion() || 
-                                            i->getBehaviour()->getFractureCriterion()->getScoreAtState() <= i->getBehaviour()->getCollisionDetection()->getScoreAtState()+i->getBehaviour()->getFractureCriterion()->getScoreTolerance())
+                                        i->getBehaviour()->getContactModel()->postProcess() ;
+                                        if (i->getBehaviour()->getContactModel()->changed() )
                                         {
-                                            i->getBehaviour()->getContactModel()->postProcess() ;
-                                            if (i->getBehaviour()->getContactModel()->changed() )
-                                            {
-                                                #pragma omp atomic write
-                                                behaviourChange = true ;
-                                            }
+                                            #pragma omp atomic write
+                                            behaviourChange = true ;
                                         }
                                     }
                                 }
@@ -5434,6 +5429,7 @@ bool FeatureTree::stepElements()
             }
 
             maxScore = -1. ;
+            double maxscoreContact = -1 ;
 
             if ( !elastic && foundCheckPoint )
             {
@@ -5458,7 +5454,7 @@ bool FeatureTree::stepElements()
                     if (i->getBehaviour()->getCollisionDetection() )
                     {
 //                         i->getBehaviour()->getFractureCriterion()->setCheckpoint ( true ) ;
-                        maxScore = std::max ( i->getBehaviour()->getCollisionDetection()->getScoreAtState(), maxScore ) ;
+                        maxscoreContact = std::max ( i->getBehaviour()->getCollisionDetection()->getScoreAtState(), maxscoreContact ) ;
                         maxTolerance = std::max ( i->getBehaviour()->getCollisionDetection()->getScoreTolerance(), maxTolerance ) ;
 
                     }

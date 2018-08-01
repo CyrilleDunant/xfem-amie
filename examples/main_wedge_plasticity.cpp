@@ -195,7 +195,7 @@ void step ( size_t nsteps, Sample * samplef )
             transform(&rect, TRANSLATE, Point(-0.024/tsteps, 0.)) ;
             rect.bottomLeft.print();
 //             rect.getCenter().print() ;
-//             loadr->setData(loadr->getData()-/*1e9*1./nsteps*/0.024*1./tsteps) ;
+            loadr->setData(loadr->getData()-/*1e9*1./nsteps*/0.024/tsteps) ;
 //             if(!setbc)
 //             {
 //                 featureTree->addBoundaryCondition( loadr );
@@ -204,7 +204,8 @@ void step ( size_t nsteps, Sample * samplef )
             relaxed = false ;
         }
 
-        go_on = featureTree->step() ;
+//         for(size_t i = 0 ; i < 5000 ; i++)
+            go_on = featureTree->step() ;
 
         if ( go_on )
             tries++ ;
@@ -251,45 +252,34 @@ void step ( size_t nsteps, Sample * samplef )
 
 // 	if (!relaxed)
 // 	{
-        writer.reset ( featureTree ) ;
-        writer.getField ( TWFT_CRITERION ) ;
-        writer.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
-        writer.getField ( TOTAL_STRAIN_FIELD ) ;
-        writer.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
-// 	  writer.getField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
-        // 	writer.getField ( IMPOSED_STRAIN_FIELD ) ;
-        //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
-        writer.getField ( TWFT_STIFFNESS ) ;
-        writer.append() ;
-// 	}
+        if(v%10 == 0)
+        {
+            writer.reset ( featureTree ) ;
+            writer.getField ( TWFT_CRITERION ) ;
+            writer.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
+            writer.getField ( TOTAL_STRAIN_FIELD ) ;
+            writer.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
+    // 	  writer.getField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
+            // 	writer.getField ( IMPOSED_STRAIN_FIELD ) ;
+            //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
+            writer.getField ( TWFT_STIFFNESS ) ;
+            writer.append() ;
+    // 	}
 
-        if ( go_on && !relaxed)
-        {
-            writerc.reset ( featureTree ) ;
-            writerc.getField ( TWFT_CRITERION ) ;
-            writerc.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
-            writerc.getField ( TOTAL_STRAIN_FIELD ) ;
-            writerc.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
-// 	    writerc.getField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
-            writer.getField ( TWFT_STIFFNESS ) ;
-// 	    writerc.getField ( IMPOSED_STRAIN_FIELD ) ;
-//             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
-//             writer.getField ( TWFT_DAMAGE ) ;
-            writerc.append() ;
-        }
-        if(go_on && relaxed)
-        {
-            writerr.reset ( featureTree ) ;
-            writerr.getField ( TWFT_CRITERION ) ;
-            writerr.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
-            writerr.getField ( TOTAL_STRAIN_FIELD ) ;
-            writerr.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
-// 	    writerr.getField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
-            writer.getField ( TWFT_STIFFNESS ) ;
-// 	    writerc.getField ( IMPOSED_STRAIN_FIELD ) ;
-//             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
-//             writer.getField ( TWFT_DAMAGE ) ;
-            writerr.append() ;
+            if ( go_on && !relaxed)
+            {
+                writerc.reset ( featureTree ) ;
+                writerc.getField ( TWFT_CRITERION ) ;
+                writerc.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
+                writerc.getField ( TOTAL_STRAIN_FIELD ) ;
+                writerc.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
+    // 	    writerc.getField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
+                writer.getField ( TWFT_STIFFNESS ) ;
+    // 	    writerc.getField ( IMPOSED_STRAIN_FIELD ) ;
+    //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
+    //             writer.getField ( TWFT_DAMAGE ) ;
+                writerc.append() ;
+            }
         }
 
     }
@@ -320,13 +310,13 @@ int main ( int argc, char *argv[] )
     StiffnessAndFracture  * pg = new StiffnessAndFracture(E, nu, new NonLocalDeviatoricVonMises(.400, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
     Stiffness  * sf = new Stiffness(E, nu) ;
 
-    samplef.setBehaviour(pg);
+    samplef.setBehaviour(sf);
 
     
-//     F.addBoundaryCondition ( loadr );
+    F.addBoundaryCondition ( loadr );
 //     F.addBoundaryCondition ( loadf );
-    F.addBoundaryCondition ( contact );
-    F.largeStrains = false ;
+//     F.addBoundaryCondition ( contact );
+    F.largeStrains = true ;
 //     loadr->setActive(true);
 // 	F.addBoundaryCondition(loadt);
     
@@ -342,7 +332,7 @@ int main ( int argc, char *argv[] )
 // F.addPoint(new Point(0, 0)) ;
 
     F.setMaxIterationsPerStep ( 10000 );
-    F.thresholdScoreMet = 1e-5 ;
+    F.thresholdScoreMet = 1e-8 ;
 
 
     step ( 5000, &samplef ) ;
