@@ -117,6 +117,7 @@ physics/geometryBasedEffects/linearcontactdisplacement.cpp
 physics/geometryBasedEffects/geometryBasedEffect.cpp
 physics/collisiondetectors/geometrybasedcontact.cpp
 physics/collisiondetectors/collisiondetector.cpp
+physics/nonlinearboundaryconditions/contactboundarycondition.cpp
 physics/material_laws/logcreep_accumulator.cpp
 physics/material_laws/material_laws.cpp
 physics/material_laws/humidity_material_laws.cpp

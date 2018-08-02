@@ -1996,7 +1996,7 @@ void TriElement::getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2
                 Tensor tp(getBoundingPoint(i), var) ;
                 for(int b = 0 ; b < 3 ; b++)
                 {
-                    tn2(a,b) = vm.ddeval( getShapeFunction(i), var[a], var[b], p, 100*default_derivation_delta) ;
+                    tn2(a,b) = vm.ddeval( getShapeFunction(i), var[a], var[b], p, 100.*default_derivation_delta) ;
                     tj1(a,b) += tn1(a) * tp(b) ;
                     for(int c = 0 ; c < 3 ; c++)
                     {
