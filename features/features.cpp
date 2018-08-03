@@ -541,6 +541,18 @@ void FeatureTree::addBoundaryCondition ( BoundaryCondition *bc )
     boundaryCondition.push_back ( bc ) ;
 }
 
+void FeatureTree::addContactCondition ( ContactBoundaryCondition * bc )
+{
+    contacts.push_back ( bc ) ;
+}
+
+void FeatureTree::removeContactCondition ( ContactBoundaryCondition * bc )
+{
+    std::vector<ContactBoundaryCondition *>::iterator toDelete = std::find ( contacts.begin(), contacts.end(), bc ) ;
+    if(toDelete != contacts.end())
+        contacts.erase ( toDelete ) ;
+}
+
 void FeatureTree::removeBoundaryCondition ( BoundaryCondition *bc )
 {
     std::vector<BoundaryCondition *>::iterator toDelete = std::find ( boundaryCondition.begin(), boundaryCondition.end(), bc ) ;
@@ -4343,6 +4355,34 @@ void FeatureTree::elasticStep()
     elastic = prevElastic ;
 }
 
+void FeatureTree::updateContacts ()
+{
+    if(!contacts.empty())
+    {
+        std::cout << "Updating Contact conditions." << std::endl ;
+
+        for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
+        {
+            (*i)->reInitialise () ;
+        }
+
+    }
+}
+
+void FeatureTree::stepContacts ()
+{
+    if(!contacts.empty())
+    {
+        std::cout << "Updating Contact conditions." << std::endl ;
+
+        for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
+        {
+            (*i)->update() ;
+        }
+
+    }
+}
+
 bool FeatureTree::solve()
 {
 //     if ( enrichmentChange || needMeshing )
@@ -4414,6 +4454,17 @@ bool FeatureTree::solve()
                 i->getElementaryMatrix(&vm) ;
                 i->applyBoundaryCondition ( K ) ;
             }
+        }
+        
+        if(!contacts.empty())
+        {
+            std::cerr << "\nApplying Contact conditions" << std::flush ;
+
+            for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
+            {
+                (*i)->applyBoundaryConditions ( K, dtree ) ;
+            }
+
         }
 
     }
@@ -4719,7 +4770,7 @@ bool FeatureTree::stepElements()
     double maxTolerance = 1e-6 ;
     foundCheckPoint = true ;
     
-    if ( resetcalcul && false)
+    if ( resetCalculation && false)
     {
         deltaTime = 0 ;
         now = 0 ;
@@ -4749,14 +4800,13 @@ bool FeatureTree::stepElements()
                 }
             }
         }
-        resetcalcul = false ;
+        resetCalculation = false ;
     }
 
     if ( solverConvergence )
     {
         if ( is2D() )
         {
-            
             if(cachedVolumes.empty())
             {
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
@@ -4823,6 +4873,18 @@ bool FeatureTree::stepElements()
 
             int fracturedCount = 0 ;
             int ccount = 0 ;
+            
+//             elastic = true ;
+//             for(auto ct : contacts)
+//             {
+//                 ct->update();
+//                 if(!ct->converged())
+//                 {
+//                     elastic = false ;
+//                     behaviourChange = true ;
+//                     foundCheckPoint = false ;
+//                 }
+//             }
             
             if ( !elastic )
             {
@@ -7633,6 +7695,13 @@ void FeatureTree::initializeElements( )
             }
         }
     }
+    
+    std::cerr << "\r initialising... contact " << 0 << "/" << contacts.size() << std::endl ;
+    for (auto c : contacts)
+    {
+        c->initialise(dtree);
+    }
+    std::cerr << "\r initialising... contacts " << contacts.size() << "/" << contacts.size() << std::endl ;
 
 }
 

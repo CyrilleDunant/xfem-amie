@@ -10,8 +10,8 @@
 //
 //
 
-#ifndef CONTACT_CONDITION
-#define CONTACT_CONDITION
+#ifndef CONTACT_CONDITION_H
+#define CONTACT_CONDITION_H
 
 #include "../../geometry/geometry_base.h"
 #include "../../mesher/mesh.h"
@@ -37,12 +37,17 @@ namespace Amie
         
         bool conv ;
         double baselength = -1. ;
+        double scale = 1. ;
         
     public: 
-        ContactBoundaryCondition(Mesh<DelaunayTriangle,DelaunayTreeItem> * mesh, Geometry * geo) ;
+        ContactBoundaryCondition(Geometry * geo) ;
         
-        void update(Mesh<DelaunayTriangle,DelaunayTreeItem> * mesh) ;
-        std::vector<BoundaryCondition *> getBoundaryconditions(Mesh<DelaunayTriangle,DelaunayTreeItem> * mesh)  ;
+        void initialise(Mesh<DelaunayTriangle,DelaunayTreeItem> * mesh) ;
+        void reInitialise() ;
+        void update() ;
+        void applyBoundaryConditions(Assembly * a, Mesh<DelaunayTriangle,DelaunayTreeItem> * mesh)  ;
+        
+        void setScale(double s) ;
         
         bool converged() const ;
     } ;

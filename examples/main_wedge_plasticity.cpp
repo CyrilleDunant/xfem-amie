@@ -193,6 +193,7 @@ void step ( size_t nsteps, Sample * samplef )
 //             std::cout << "moving!" << std::endl ;
             rect.bottomLeft.print();
             transform(&rect, TRANSLATE, Point(-0.024/tsteps, 0.)) ;
+            featureTree->updateContacts() ;
             rect.bottomLeft.print();
 //             rect.getCenter().print() ;
             loadr->setData(loadr->getData()-/*1e9*1./nsteps*/0.024/tsteps) ;
@@ -204,8 +205,11 @@ void step ( size_t nsteps, Sample * samplef )
             relaxed = false ;
         }
 
-//         for(size_t i = 0 ; i < 5000 ; i++)
+        for(size_t i = 0 ; i < 500 ; i++)
+        {
             go_on = featureTree->step() ;
+            featureTree->stepContacts() ;
+        }
 
         if ( go_on )
             tries++ ;
@@ -313,14 +317,14 @@ int main ( int argc, char *argv[] )
     samplef.setBehaviour(sf);
 
     
-    F.addBoundaryCondition ( loadr );
+//     F.addBoundaryCondition ( loadr );
 //     F.addBoundaryCondition ( loadf );
 //     F.addBoundaryCondition ( contact );
-    F.largeStrains = true ;
+    F.largeStrains = false ;
 //     loadr->setActive(true);
 // 	F.addBoundaryCondition(loadt);
-    
-    
+//     transform(&rect, TRANSLATE, Point(-0.024/200, 0.)) ;
+    F.addContactCondition(new ContactBoundaryCondition(&rect));
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA, BOTTOM ) ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT ) ) ;
 //     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,TOP_LEFT ) ) ;
@@ -335,7 +339,7 @@ int main ( int argc, char *argv[] )
     F.thresholdScoreMet = 1e-8 ;
 
 
-    step ( 5000, &samplef ) ;
+    step ( 500, &samplef ) ;
 
 
     return 0 ;

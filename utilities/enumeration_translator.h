@@ -1077,8 +1077,9 @@ struct Enum
         if( type == "SET_TANGENT_STRESS") { return SET_TANGENT_STRESS ; }
         if( type == "VERTICAL_PLANE_SECTIONS") { return VERTICAL_PLANE_SECTIONS ; }
         if( type == "HORIZONTAL_PLANE_SECTIONS") { return HORIZONTAL_PLANE_SECTIONS ; }
-        if( type == "nullptr_CONDITION") { return nullptr_CONDITION ; }
+        if( type == "NULL_CONDITION") { return NULL_CONDITION ; }
         if( type == "SET_GLOBAL_FORCE_VECTOR") { return SET_GLOBAL_FORCE_VECTOR ; }
+        if( type == "CONTACT_CONDITION") { return CONTACT_CONDITION ; }
         if(ok) { *ok = false ; }
         return GENERAL ;
     }
@@ -1141,7 +1142,7 @@ struct Enum
             case SET_TANGENT_STRESS: return "SET_TANGENT_STRESS" ;
             case VERTICAL_PLANE_SECTIONS: return "VERTICAL_PLANE_SECTIONS" ;
             case HORIZONTAL_PLANE_SECTIONS: return "HORIZONTAL_PLANE_SECTIONS" ;
-            case nullptr_CONDITION: return "nullptr_CONDITION" ;
+            case NULL_CONDITION: return "NULL_CONDITION" ;
             case SET_GLOBAL_FORCE_VECTOR: return "SET_GLOBAL_FORCE_VECTOR" ;
             case CONTACT_CONDITION : return "CONTACT_CONDITION" ;
         }

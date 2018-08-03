@@ -17,6 +17,7 @@
 #include "../utilities/samplingcriterion.h"
 #include "../utilities/grid.h"
 #include "../physics/void_form.h"
+#include "../physics/nonlinearboundaryconditions/contactboundarycondition.h"
 #include "../physics/viscoelasticity.h"
 #include "../physics/damagemodels/damagemodel.h"
 #include "../solvers/assembly.h"
@@ -134,6 +135,7 @@ protected:
     std::vector<Point *> nodes ;
 
     std::vector< BoundaryCondition * > boundaryCondition ;
+    std::vector< ContactBoundaryCondition *> contacts ;
     /** \brief Contains all the features. */
     std::vector<Feature *> tree ;
     std::vector<EnrichmentManager *> enrichmentManagers ;
@@ -185,7 +187,7 @@ protected:
     bool enrichmentChange ;
     bool stateConverged ;
     bool damageConverged ;
-    bool resetcalcul  = false; 
+    bool resetCalculation  = false; 
     bool spaceTimeFixed = false ;
     
 
@@ -476,6 +478,12 @@ public:
 
     void addBoundaryCondition ( BoundaryCondition * bc ) ;
     void removeBoundaryCondition ( BoundaryCondition * bc ) ;
+    void addContactCondition ( ContactBoundaryCondition * bc ) ;
+    void removeContactCondition ( ContactBoundaryCondition * bc ) ;
+    
+    void updateContacts () ;
+    void stepContacts () ;
+    
     void resetBoundaryConditions() ;
     void scaleBoundaryConditions ( double scale ) ;
 
@@ -781,7 +789,7 @@ public:
 
     //Reset the displacements, stresses and damage of the simulation  and the currenttime
     void reset () {
-      resetcalcul = true ; 
+        resetCalculation = true ; 
     }
     
 
