@@ -217,7 +217,9 @@ void ContactBoundaryCondition::reInitialise()
         if(stiffnesses.find(pt->first) == stiffnesses.end())
             stiffnesses[pt->first] = 0 ;
         else
-            stiffnesses[pt->first] *= 1.+ dist(movedPoint,movedPoint)/sqrt(disps[0]*disps[0]+disps[1]*disps[1]);
+        {
+            stiffnesses[pt->first] *= 1.+ dist(movedPoint,proj)/sqrt(disps[0]*disps[0]+disps[1]*disps[1]);
+        }
   
     }
     
@@ -281,14 +283,17 @@ void ContactBoundaryCondition::update()
                     stiffnesses[pt->first] -= nerr/dsderr ;
                 else
                     stiffnesses[pt->first] += nerr/dsderr ; 
-                
-                if(stiffnesses[pt->first] > 0)
-                    stiffnesses[pt->first] = 0 ;
 
                 errors[pt->first] = nerr ;
-                currentError  += nerr ;
+                currentError += nerr ;
                 done.insert(pt->first) ;
-
+                if(stiffnesses[pt->first] > 0)
+                {
+                    stiffnesses[pt->first] = 0 ;
+                    errors[pt->first] = 0 ;
+                    previousStiffnesses[pt->first] = 0 ;
+                    previousErrors[pt->first] = 0 ;
+                }
             }
         }
     }
