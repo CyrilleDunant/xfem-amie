@@ -109,7 +109,7 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
             imposedStrain *= onorm ;
         }
         
-        state[0] = POINT_TOLERANCE ;
+        state[0] = std::max(damageDensityTolerance*2.,POINT_TOLERANCE) ;
         s.strainAtGaussPointsSet = false ;
         s.stressAtGaussPointsSet = false ;
         ss = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( MECHANICAL_STRAIN_FIELD, REAL_STRESS_FIELD, s) ;
@@ -139,17 +139,24 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
 //         imposedStrain[0] -= tr*.5 ;
 //         imposedStrain[1] -= tr*.5 ;
 //         
-        state[0] = 0 ;
-        s.strainAtGaussPointsSet = false ;
-        s.stressAtGaussPointsSet = false ;
+
 
         norm = sqrt((imposedStrain*imposedStrain).sum()) ;
-        onorm = 0.2*sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())/(*param[0][0]) ;
+        onorm = sqrt(((strain-originalIstrain)*(strain-originalIstrain)).sum())/(*param[0][0]) ;
         if(norm > POINT_TOLERANCE && onorm > POINT_TOLERANCE)
         {
             imposedStrain /= norm ;
             imposedStrain *= onorm ;
-        }
+        }        
+        
+        s.strainAtGaussPointsSet = false ;
+        s.stressAtGaussPointsSet = false ;
+        double dscore = s.getParent()->getBehaviour()->getFractureCriterion()->grade(s) ;
+        
+        state[0] = 0 ;
+        
+        if(dscore > s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState())
+            imposedStrain *=-1 ;
         
 //         tr = imposedStrain[0]+imposedStrain[1] ;
 //         imposedStrain[0] -= tr*.5 ;
@@ -166,7 +173,7 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
 
         double maxfact = std::max(std::min(damageDensityTolerance*1e2, 1.), 
                                   std::min(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState(), 1.)) ;
-        return std::make_pair( Vector(0., 1), Vector(1., 1)) ;
+        return std::make_pair( Vector(0., 1), Vector(maxfact, 1)) ;
     }
 
     return std::make_pair( Vector(.0, 1), Vector(1., 1)) ;
