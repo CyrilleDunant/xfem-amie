@@ -31,13 +31,18 @@ namespace Amie
         std::map<const Point *, Point> normalVectors ;
         std::map<const Point *, double> distances ;
         std::map<const Point *, double> stiffnesses ;
+        std::map<const Point *, double> previousStiffnesses ;
         std::map<const Point *, DelaunayTriangle * > affectedElements ;
+        
+        std::map<const Point *, double> errors ;
+        std::map<const Point *, double> previousErrors ;
+        std::map<const Point *, bool> positions ;
         
         std::vector<DelaunayTriangle *> edgeElements ;
         
-        bool conv ;
-        double baselength = -1. ;
+        bool conv = true ;
         double scale = 1. ;
+        double currentError = 0 ;
         
     public: 
         ContactBoundaryCondition(Geometry * geo) ;
@@ -50,6 +55,9 @@ namespace Amie
         void setScale(double s) ;
         
         bool converged() const ;
+        double error() const ;
+        
+        void print() ;
     } ;
 }
 

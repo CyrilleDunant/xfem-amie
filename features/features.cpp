@@ -4359,13 +4359,12 @@ void FeatureTree::updateContacts ()
 {
     if(!contacts.empty())
     {
-        std::cout << "Updating Contact conditions." << std::endl ;
+        std::cerr << "Updating Contact conditions." << std::endl ;
 
         for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
         {
             (*i)->reInitialise () ;
         }
-
     }
 }
 
@@ -4373,22 +4372,35 @@ void FeatureTree::stepContacts ()
 {
     if(!contacts.empty())
     {
-        std::cout << "Updating Contact conditions." << std::endl ;
+        std::cerr << "Updating Contact conditions." << std::endl ;
 
         for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
         {
             (*i)->update() ;
         }
-
     }
+}
+
+bool FeatureTree::contactsConverged()
+{
+    
+    if(!contacts.empty())
+    {
+        for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
+        {
+            if(!(*i)->converged())
+                return false ;
+        }
+    }
+    return true ; 
 }
 
 bool FeatureTree::solve()
 {
-//     if ( enrichmentChange || needMeshing )
-//     {
+    if ( enrichmentChange || needMeshing )
+    {
         K->clear() ;
-//     }
+    }
 
     timeval time0, time1 ;
     gettimeofday ( &time0, nullptr );
@@ -4396,13 +4408,15 @@ bool FeatureTree::solve()
 
     gettimeofday ( &time0, nullptr );
     Vector extrapolatedDisplacements = K->extrapolate() ;
-    int nlcount = extrapolatedDisplacements.size() == 0 ;
-    if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint /*&& deltaTime > POINT_TOLERANCE*/) 
+    int nlcount = 0 ;
+    largeStrainConverged = true ;
+    if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint && contactsConverged()) 
     {
-        if(largeStrainSteps++ > 512)
+        if(largeStrainSteps++ > 2048)
         {
             nlcount = 0 ;
             largeStrainSteps = -1 ;
+            std::cout << "large strain error... " << std::endl ;
         }
         else if ( dtree )
         {
@@ -4432,8 +4446,14 @@ bool FeatureTree::solve()
             }
         }
     }
+    
     if(nlcount == 0)
+    {
          largeStrainSteps = -1 ;
+         largeStrainConverged = true ;
+    }
+    else
+       largeStrainConverged = false ; 
     
     gettimeofday ( &time1, nullptr );
     double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
@@ -4456,14 +4476,24 @@ bool FeatureTree::solve()
             }
         }
         
+        
+        
         if(!contacts.empty())
         {
-            std::cerr << "\nApplying Contact conditions" << std::flush ;
-
-            for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
+            std::cerr << "\nApplying Contact conditions " << std::flush ;
+            if(nlcount == 0 && foundCheckPoint && largeStrainConverged)
             {
-                (*i)->applyBoundaryConditions ( K, dtree ) ;
+                std::cerr << " (stepping) " << std::flush ;
+                stepContacts() ;
             }
+            
+            double err = 0 ;
+            for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
+            {  
+                (*i)->applyBoundaryConditions ( K, dtree ) ;
+                err = std::max((*i)->error(), err) ;
+            }
+            std::cerr << err << std::flush ;
 
         }
 
@@ -4659,7 +4689,7 @@ bool FeatureTree::solve()
 
     std::cerr << " ...done" << std::endl ;
     
-    return (largeStrains && nlcount == 0) || (!largeStrains && solverConvergence) ;
+    return (largeStrains && largeStrainConverged && contactsConverged()) || (!largeStrains && solverConvergence) ;
 }
 
 void FeatureTree::stepXfem()
@@ -4874,17 +4904,16 @@ bool FeatureTree::stepElements()
             int fracturedCount = 0 ;
             int ccount = 0 ;
             
-//             elastic = true ;
+//             bool contactConverged = true ;
 //             for(auto ct : contacts)
 //             {
-//                 ct->update();
 //                 if(!ct->converged())
 //                 {
-//                     elastic = false ;
-//                     behaviourChange = true ;
-//                     foundCheckPoint = false ;
+//                     contactConverged = false ;
+//                     break ;
 //                 }
 //             }
+            
             
             if ( !elastic )
             {
@@ -5828,13 +5857,17 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
     }
 
     if ( !solved )
-    {
+    { 
+        bool elasticInit = ft->elastic ;
+        ft->elastic = true ;
         solved = ft->solve() ;
         while (!solved)
         {
             ft->assemble();
             solved = ft->solve() ;
+            ft->stepElements() ; 
         }
+        ft->elastic = elasticInit ;
     }
     if ( s == SOLVED )
     {

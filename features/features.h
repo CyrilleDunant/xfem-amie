@@ -189,6 +189,7 @@ protected:
     bool damageConverged ;
     bool resetCalculation  = false; 
     bool spaceTimeFixed = false ;
+    bool largeStrainConverged = false ;
     
 
     bool elastic ;
@@ -483,6 +484,7 @@ public:
     
     void updateContacts () ;
     void stepContacts () ;
+    bool contactsConverged() ;
     
     void resetBoundaryConditions() ;
     void scaleBoundaryConditions ( double scale ) ;

@@ -49,6 +49,9 @@ void ContactBoundaryCondition::initialise(Mesh<DelaunayTriangle,DelaunayTreeItem
             {
                 VoidItem = element->getNeighbour ( j ) ;
             }
+            
+            if(VoidItem)
+                break ;
         }
 
         if ( element->getBehaviour()->type == VOID_BEHAVIOUR )
@@ -92,24 +95,23 @@ void ContactBoundaryCondition::initialise(Mesh<DelaunayTriangle,DelaunayTreeItem
         Point proj(*pt->first) ;
         baseGeometry->project(&proj);
         double inSign = (baseGeometry->in(*pt->first))?-1.:1 ;
-        double pdist = inSign*dist(&proj, pt->first) ;
         Point nbase = proj - *pt->first ;
         double nbasenorm = nbase.norm() ;
         if(nbasenorm  < POINT_TOLERANCE)
         {
-           nbase =  proj - (*pt->first+baseGeometry->getCenter())*.5 ;
+           nbase =  proj - (*pt->first*.95-baseGeometry->getCenter()*.05) ;
            nbasenorm = nbase.norm() ;
            inSign = -1 ;
         }
         normalVectors[pt->first] = nbase/nbasenorm*inSign ;        
-        referencePoints[pt->first] = *pt->first+normalVectors[pt->first]*(baselength) ;
-        stiffnesses[pt->first] = pt->second ;
-        
+        referencePoints[pt->first] = proj-normalVectors[pt->first] ;
+        stiffnesses[pt->first] = 0 ;
+        distances[pt->first] = dist(*pt->first, referencePoints[pt->first]) ;
     }
     
     for(auto pt = contactPointsAndTributary.begin() ; pt != contactPointsAndTributary.end() ; pt++)
     {
-        std::cout << (pt->first)->getX() << "  " << (pt->first)->getY() << "  "<< normalVectors[pt->first].getX() << "  "<< normalVectors[pt->first].getY() << "  "<<stiffnesses[pt->first] << std::endl;
+        std::cout << (pt->first)->getX() << "  " << (pt->first)->getY() << "  "<< normalVectors[pt->first].getX() << "  "<< normalVectors[pt->first].getY() << "  "<<stiffnesses[pt->first]*pt->second << std::endl;
     }
     
 }
@@ -117,11 +119,14 @@ void ContactBoundaryCondition::initialise(Mesh<DelaunayTriangle,DelaunayTreeItem
 
 void ContactBoundaryCondition::reInitialise()
 {
-    contactPointsAndTributary.clear() ;
-    affectedElements.clear() ;
-    stiffnesses.clear() ;
-    normalVectors.clear() ;
-    referencePoints.clear() ;
+//     contactPointsAndTributary.clear() ;
+//     affectedElements.clear() ;
+//     stiffnesses.clear() ;
+//     normalVectors.clear() ;
+//     referencePoints.clear() ;
+    
+    Vector disps(2) ;
+    VirtualMachine vm ;
     
     for(auto element : edgeElements)
     {
@@ -140,35 +145,53 @@ void ContactBoundaryCondition::reInitialise()
             {
                 VoidItem = element->getNeighbour ( j ) ;
             }
+            
+            if(VoidItem)
+                break ;
         }
         
         std::pair<Point *, Point*> commonSurface = element->commonEdge ( VoidItem ) ;
-        double d = dist(commonSurface.first, commonSurface.second) ;
+        
         auto pt0 = contactPointsAndTributary.find(commonSurface.first) ;
         auto pt1 = contactPointsAndTributary.find(commonSurface.second) ;
-        if(pt0 == contactPointsAndTributary.end() && baseGeometry->in(*commonSurface.first))
+        
+        element->getState().getField(DISPLACEMENT_FIELD, *commonSurface.first ,disps, false, &vm, 0) ;
+        Point movedPoint0 = *commonSurface.first+disps;
+        element->getState().getField(DISPLACEMENT_FIELD, *commonSurface.second ,disps, false, &vm, 0) ;
+        Point movedPoint1 = *commonSurface.second+disps;
+        double d = dist(movedPoint0, movedPoint1) ;
+        
+        if(pt0 == contactPointsAndTributary.end() && baseGeometry->in(movedPoint0))
         {
             contactPointsAndTributary[commonSurface.first] = d*.5 ;
             affectedElements[commonSurface.first] = element ;
         }
-        else if(baseGeometry->in(*commonSurface.first))
+        else if(baseGeometry->in(movedPoint0))
         {
             pt0->second += d*.5 ; 
         }
         
-        if(pt1 == contactPointsAndTributary.end()&& baseGeometry->in(*commonSurface.second))
+        if(pt1 == contactPointsAndTributary.end() && baseGeometry->in(movedPoint1))
         {
             contactPointsAndTributary[commonSurface.second] = d*.5 ;
             affectedElements[commonSurface.second] = element ;
         }
-        else if(baseGeometry->in(*commonSurface.second))
+        else if(baseGeometry->in(movedPoint1))
         {
             pt1->second += d*.5 ; 
         }
     }
     
-    Vector disps(2) ;
-    VirtualMachine vm ;
+//     for(auto pt = stiffnesses.begin() ; pt != stiffnesses.end() ; pt++)
+//     {
+//         auto search  = contactPointsAndTributary.find(pt->first) ;
+//         if(search == contactPointsAndTributary.end())
+//         {
+//             stiffnesses.erase(pt) ;
+//             pt = stiffnesses.begin() ;
+//         }
+//     }
+    
     //now we have all the relevant points. Onto the normals
     for(auto pt = contactPointsAndTributary.begin() ; pt != contactPointsAndTributary.end() ; pt++)
     {
@@ -177,26 +200,34 @@ void ContactBoundaryCondition::reInitialise()
         Point proj(movedPoint) ;
         baseGeometry->project(&proj);
         double inSign = (baseGeometry->in(movedPoint))?-1.:1 ;
-        double pdist = inSign*dist(&proj, pt->first) ;
-        Point nbase = proj - *pt->first ;
+        Point nbase = proj - movedPoint ;
         double nbasenorm = nbase.norm() ;
         if(nbasenorm  < POINT_TOLERANCE)
         {
-           nbase =  proj - (movedPoint+baseGeometry->getCenter())*.5 ;
+           nbase =  proj - (movedPoint*.95-baseGeometry->getCenter()*.05) ;
            nbasenorm = nbase.norm() ;
            inSign = -1 ;
         }
+        
         normalVectors[pt->first] = nbase/nbasenorm*inSign ;
-        referencePoints[pt->first] = movedPoint+normalVectors[pt->first]*baselength ;
-        stiffnesses[pt->first] += pt->second ;
-
+        
+        referencePoints[pt->first] = proj-normalVectors[pt->first] ;
+        distances[pt->first] = dist(*pt->first, referencePoints[pt->first]) ;
+        
+        if(stiffnesses.find(pt->first) == stiffnesses.end())
+            stiffnesses[pt->first] = 0 ;
+        else
+            stiffnesses[pt->first] *= 1.+ dist(movedPoint,movedPoint)/sqrt(disps[0]*disps[0]+disps[1]*disps[1]);
+  
     }
     
-    for(auto pt = contactPointsAndTributary.begin() ; pt != contactPointsAndTributary.end() ; pt++)
-    {
-        std::cout << (pt->first)->getX() << "  " << (pt->first)->getY() << "  "<< normalVectors[pt->first].getX() << "  "<< normalVectors[pt->first].getY() << "  "<<stiffnesses[pt->first] << std::endl;
-    }
-
+//     update() ;
+    currentError = 0 ;
+    
+    errors.clear() ;
+    positions.clear() ;
+    previousStiffnesses.clear() ;
+    previousErrors.clear() ;
 }
 
 bool ContactBoundaryCondition::converged() const
@@ -210,52 +241,96 @@ void ContactBoundaryCondition::update()
     VirtualMachine vm ;
     
     conv = true ;
-    double threshold = 1e-12 ;
-    
-    for(auto element: edgeElements)
+    double threshold = 1e-6 ;
+    std::set<const Point * > done ;
+    currentError = 0 ;
+// std::cout << std::endl;
+    for(auto element: affectedElements)
     {
-        for(size_t i = 0 ; i < element->getBoundingPoints().size() ; i++)
+        for(size_t i = 0 ; i < element.second->getBoundingPoints().size() ; i++)
         {
-            auto pt = contactPointsAndTributary.find( &element->getBoundingPoint(i)) ;
-            if(pt != contactPointsAndTributary.end())
-            {
-                element->getState().getField(DISPLACEMENT_FIELD, *pt->first,disps, false, &vm, 0) ;
+            auto pt = contactPointsAndTributary.find( &element.second->getBoundingPoint(i)) ;
+            if(pt != contactPointsAndTributary.end() && done.find(element.first) == done.end())
+            {                
+                element.second->getState().getField(DISPLACEMENT_FIELD, *pt->first,disps, false, &vm, 0) ;
                 Point movedPoint = *pt->first+disps;
                 Point proj(movedPoint) ;
-                baseGeometry->project(&proj); ;
-                double initstf = stiffnesses[pt->first] ;
-                double fac = dist(referencePoints[pt->first], movedPoint)/dist(proj, referencePoints[pt->first]) ;
-                double nxtstf = initstf*fac ;
-                if(nxtstf <  threshold)
+                baseGeometry->project(&proj);
+
+                double nerr = dist(proj, movedPoint) ;
+                double pstiff = stiffnesses[pt->first] ;               
+                double perr = errors[pt->first] ;  
+                double dsderr = 1.;
+                
+                if(pstiff < perr || std::abs(pstiff) < 1e-7)
                 {
-                    stiffnesses[pt->first] = threshold ; 
+                    pstiff = 1. ;
                 }
-                else if(std::abs((initstf-nxtstf)) / nxtstf < threshold )
+                else if(previousStiffnesses.find(pt->first) != previousStiffnesses.end() )
                 {
-                    stiffnesses[pt->first] = nxtstf ;
-                }
+                    if(std::abs(perr-previousErrors[pt->first]) > 1e-7)
+                        dsderr = (pstiff-previousStiffnesses[pt->first])/(perr-previousErrors[pt->first]) ;  
+                }                
+                previousStiffnesses[pt->first] = pstiff ;
+                previousErrors[pt->first] = perr ;
+
+                bool isIn = baseGeometry->in(movedPoint) ;
+                
+                //Newton
+                if(isIn)
+                    stiffnesses[pt->first] -= nerr/dsderr ;
                 else
-                {
-                    stiffnesses[pt->first] = nxtstf ;
-                    conv = false ;
-                }
+                    stiffnesses[pt->first] += nerr/dsderr ; 
+                
+                if(stiffnesses[pt->first] > 0)
+                    stiffnesses[pt->first] = 0 ;
+
+                errors[pt->first] = nerr ;
+                currentError  += nerr ;
+                done.insert(pt->first) ;
+
             }
         }
     }
     
+    conv = currentError < threshold ;
+  
+}
+
+
+void ContactBoundaryCondition::print()
+{
+    
+    Vector disps(2) ;
+    VirtualMachine vm ;
+    std::cout << std::endl;
     for(auto pt = contactPointsAndTributary.begin() ; pt != contactPointsAndTributary.end() ; pt++)
     {
-        std::cout << (pt->first)->getX() << "  " << (pt->first)->getY() << "  "<< normalVectors[pt->first].getX() << "  "<< normalVectors[pt->first].getY() << "  "<< stiffnesses[pt->first] << std::endl;
+        affectedElements[pt->first]->getState().getField(DISPLACEMENT_FIELD, *pt->first,disps, false, &vm, 0) ;
+        Point movedPoint = *pt->first+disps;
+        double d = dist(referencePoints[pt->first], movedPoint) ;
+        double force  = d*stiffnesses[pt->first]*scale*pt->second ;
+        
+        
+        std::cout << movedPoint.getX() << "  " << movedPoint.getY() << "  "<< normalVectors[pt->first].getX() << "  "<< normalVectors[pt->first].getY() << "  "<< force << "  "<< errors[pt->first] << std::endl;
     }
+}
+
+double ContactBoundaryCondition::error() const
+{
+    return currentError ;
 }
 
 void ContactBoundaryCondition::applyBoundaryConditions( Assembly * a, Mesh<DelaunayTriangle,DelaunayTreeItem> * mesh) 
 {
     std::vector<BoundaryCondition *> ret ;
+    Vector disps(2) ;
+    VirtualMachine vm ;
     for(auto pt : contactPointsAndTributary)
     {
-        double d = dist(referencePoints[pt.first], *pt.first) ;
-        double force  = -d*stiffnesses[pt.first]*scale ;
+        affectedElements[pt.first]->getState().getField(DISPLACEMENT_FIELD, *pt.first,disps, false, &vm, 0) ;
+        double d = dist(referencePoints[pt.first], *pt.first+disps) ;
+        double force  = d*stiffnesses[pt.first]*scale/**pt.second*/ ;
         
         int JinvSize = 3 ;
         if ( affectedElements[pt.first]->spaceDimensions() == SPACE_THREE_DIMENSIONAL && affectedElements[pt.first]->timePlanes() > 1 )

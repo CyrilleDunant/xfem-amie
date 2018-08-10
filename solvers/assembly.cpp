@@ -1798,18 +1798,18 @@ Vector Assembly::extrapolate(double factor)
     Vector dxxddb(0., displacements.size()) ;
     
 //     std::cout << "  --> "<< dfs << std::endl ;
-//     if(displacementHistory.size() >=3 )
-//     {
-//         for(size_t i = 0 ; i < displacementHistory.back().size() ; i++)
-//         {   
-//             if(std::isnan(displacementHistory.back()[i]))
-//                 displacementHistory.back()[i] = 0 ;
-//             dxxddb[i] = (displacementHistory.back()[i]+2.*displacementHistory[displacementHistory.size()-2][i]-displacementHistory[displacementHistory.size()-3][i]) ;
-//         }
-//     }
+    if(displacementHistory.size() >=3 )
+    {
+        for(size_t i = 0 ; i < displacementHistory.back().size() ; i++)
+        {   
+            if(std::isnan(displacementHistory.back()[i]))
+                displacementHistory.back()[i] = 0 ;
+            dxxddb[i] = (displacementHistory.back()[i]+2.*displacementHistory[displacementHistory.size()-2][i]-displacementHistory[displacementHistory.size()-3][i]) ;
+        }
+    }
         
             
-    return displacementHistory.back() + dxdb*factor*.5 + dxxddb*factor*factor*.25;
+    return displacementHistory.back() + dxdb*factor + dxxddb*factor*factor;
 
 }
 

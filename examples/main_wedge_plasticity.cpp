@@ -122,6 +122,8 @@ Rectangle rect(1, 1, 1.*.5+0.035*.5+0.00005, 1.*.5+0.00005) ;
 BoundingBoxAndRestrictionDefinedBoundaryCondition * loadr = new BoundingBoxAndRestrictionDefinedBoundaryCondition ( SET_ALONG_XI, RIGHT,-1, 1,0.00005, 1) ;
 BoundingBoxAndRestrictionDefinedBoundaryCondition * loadf = new BoundingBoxAndRestrictionDefinedBoundaryCondition ( SET_ALONG_ETA, RIGHT,-1, 1,0.00005, 1) ;
 BoundingBoxDefinedBoundaryCondition * contact = new BoundingBoxDefinedBoundaryCondition(CONTACT_CONDITION, RIGHT, new GeometryBasedContact(&rect,0.024*1e-2), new LinearContactForce(&rect)) ;
+
+ContactBoundaryCondition * contactRect = new ContactBoundaryCondition(&rect) ;
 // BoundingBoxDefinedBoundaryCondition * contact = new BoundingBoxDefinedBoundaryCondition(CONTACT_CONDITION, RIGHT, new GeometryBasedContact(&rect,0.024*1e-2), new LinearContactDisplacement(&rect)) ;
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * loadf = new BoundingBoxAndRestrictionDefinedBoundaryCondition ( SET_ALONG_ETA, TOP,0.00005, 1,-1, 1) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,Point(.02, 0), 0) ;
@@ -204,12 +206,8 @@ void step ( size_t nsteps, Sample * samplef )
 //             }
             relaxed = false ;
         }
+        go_on = featureTree->step() ;
 
-        for(size_t i = 0 ; i < 500 ; i++)
-        {
-            go_on = featureTree->step() ;
-            featureTree->stepContacts() ;
-        }
 
         if ( go_on )
             tries++ ;
@@ -221,9 +219,6 @@ void step ( size_t nsteps, Sample * samplef )
 //         else
 //             featureTree->thresholdScoreMet = 0.01 ;
 
-        double volume = 0 ;
-        double xavg = 0 ;
-        double yavg = 0 ;
 
 //         if ( go_on )
 //         {
@@ -247,6 +242,8 @@ void step ( size_t nsteps, Sample * samplef )
         std::cout << "average epsilon22 : " << etemp[1]*1e6 << std::endl ;
         std::cout << "max score : " << featureTree->maxScore << std::endl ;
         std::cout << std::endl ;
+        
+        contactRect->print() ;
 
         ldfile << go_on << "  " << stemp[0]/1e6 << "  " << stemp[1]/1e6 << "  " << etemp[0]*1e6 << "  " << etemp[1]*1e6 <<  "  "
                << istemp[0]/1e6 << "  " << istemp[1]/1e6 << "  "  << ietemp[0]*1e6 << "  " << ietemp[1]*1e6 << "  " << featureTree->getIterationCount() << std::endl ;
@@ -256,7 +253,7 @@ void step ( size_t nsteps, Sample * samplef )
 
 // 	if (!relaxed)
 // 	{
-        if(v%10 == 0)
+        if(true || v%10 == 0)
         {
             writer.reset ( featureTree ) ;
             writer.getField ( TWFT_CRITERION ) ;
@@ -314,32 +311,32 @@ int main ( int argc, char *argv[] )
     StiffnessAndFracture  * pg = new StiffnessAndFracture(E, nu, new NonLocalDeviatoricVonMises(.400, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
     Stiffness  * sf = new Stiffness(E, nu) ;
 
-    samplef.setBehaviour(sf);
+    samplef.setBehaviour(pg);
 
     
 //     F.addBoundaryCondition ( loadr );
 //     F.addBoundaryCondition ( loadf );
 //     F.addBoundaryCondition ( contact );
-    F.largeStrains = false ;
+    F.largeStrains = true ;
 //     loadr->setActive(true);
 // 	F.addBoundaryCondition(loadt);
 //     transform(&rect, TRANSLATE, Point(-0.024/200, 0.)) ;
-    F.addContactCondition(new ContactBoundaryCondition(&rect));
+    F.addContactCondition(contactRect);
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA, BOTTOM ) ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT ) ) ;
 //     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,TOP_LEFT ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
-    F.addPoint(new Point(0.035*.5, 0.00005)); 
+//     F.addPoint(new Point(0.035*.5, 0.00005)); 
 
     F.setOrder ( LINEAR ) ;
 // F.addPoint(new Point(0, 0)) ;
 
-    F.setMaxIterationsPerStep ( 10000 );
+    F.setMaxIterationsPerStep ( 5000 );
     F.thresholdScoreMet = 1e-8 ;
 
 
-    step ( 500, &samplef ) ;
+    step ( 50, &samplef ) ;
 
 
     return 0 ;

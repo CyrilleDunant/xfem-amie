@@ -3586,8 +3586,8 @@ bool ElementState::prepare(const Vector &extrapolatedDisplacements)
         updateInverseJacobianCache(Point(1./4., 1./4., 1./4.)) ;
     Vector delta = pcache.array()-JinvCache->array() ;
     double err = sqrt(std::inner_product(&delta[0], &delta[delta.size()], &delta[0], 0.)) ;
-    double volume = (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? parent->area() : parent->volume() ;
-    bool nochange = err < 1e-14/volume ;
+    double volume = (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? sqrt(parent->area()) : pow(parent->volume(), 1./3.) ;
+    bool nochange = err < 1e-7/volume ;
         
     parent->behaviourUpdated = !nochange ;
     parent->needAssembly = !nochange;
