@@ -47,19 +47,19 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
     if(!es)
     {
         es = &s ;
-//         setConvergenceType(DISSIPATIVE);
+        setConvergenceType(DISSIPATIVE);
     }
 
     if(!param)
         param = new Matrix(s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())) ;
 
 
-    if( s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() /*&& s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint()*/)
+    if( s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() && s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
     {
-        double initialState = state[0] ;
         Vector originalIstrain = getImposedStrain(s.getParent()->getCenter()) ;
         Vector stress(previousImposedStrain.size()) ;
         Vector strain(previousImposedStrain.size()) ;
+        state[0] = 0 ;
         std::pair<Vector,Vector> str = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( REAL_STRESS_FIELD,MECHANICAL_STRAIN_FIELD, s )  ;
         stress = str.first ;
         strain = str.second ;
@@ -75,7 +75,7 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
                 strain[i] -= trstra/2. ;
             }
 
-            stress[2] *= .5 ;
+            stress[2] *= 2. ;
         }
         else
         {
@@ -85,80 +85,38 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
                 strain[i] -= trstra/3. ;
             }
 
-            stress[3] *= .5 ;
-            stress[4] *= .5 ;
-            stress[5] *= .5 ;
+            stress[3] *= 2. ;
+            stress[4] *= 2. ;
+            stress[5] *= 2. ;
         }
 
         imposedStrain = stress ;
 
         double norm = sqrt((imposedStrain*imposedStrain).sum()) ;
-        double onorm = factor*std::abs(strain-originalIstrain).max() ;
-        if(norm > POINT_TOLERANCE )
+        double onorm = std::max(2.*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState(), 1e-2)*sqrt((strain*strain).sum()) ;
+        if(norm > POINT_TOLERANCE*POINT_TOLERANCE && onorm > POINT_TOLERANCE*POINT_TOLERANCE)
         {
             imposedStrain /= norm ;
-        }
-        if(onorm > POINT_TOLERANCE)
             imposedStrain *= onorm ;
-
-        //we need to flow in the right direction
-        state[0] += POINT_TOLERANCE ;
+        } 
+        else
+            imposedStrain = previousImposedStrain*1e-3 ;
+        
+        state[0] = damageDensityTolerance ;
         s.strainAtGaussPointsSet = false ;
         s.stressAtGaussPointsSet = false ;
-//         s.getField( REAL_STRESS_FIELD, MECHANICAL_STRAIN_FIELD,Point(), stress, strain, true) ;
-        str = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( REAL_STRESS_FIELD,MECHANICAL_STRAIN_FIELD, s )  ;
-        stress = str.first ;
-        strain = str.second ;
-
-        tr = (stress.size()==3)?(stress[0]+stress[1]):(stress[0]+stress[1]+stress[2]) ;
-        if(stress.size()==3)
-        {
-            for(size_t i = 0 ; i < 2 ; i++)
-                stress[i] -= tr/2. ;
-
-            stress[2] *= .5 ;
-        }
-        else
-        {
-            for(size_t i = 0 ; i < 3 ; i++)
-                stress[i] -= tr/3. ;
-
-            stress[3] *= .5 ;
-            stress[4] *= .5 ;
-            stress[5] *= .5 ;
-        }
-
-        imposedStrain = stress ;
-
-        norm = sqrt((imposedStrain*imposedStrain).sum()) ;
-        onorm = factor*std::abs(strain-originalIstrain).max() ;
-        if(norm > POINT_TOLERANCE )
-        {
-            imposedStrain /= norm ;
-        }
-        else
-        {
-            imposedStrain = 0 ;
-        }
-        if(onorm > POINT_TOLERANCE)
-            imposedStrain *= onorm ;
-            
-// 	std::cout << imposedStrain[0] << "  " << imposedStrain[1] << "  " << imposedStrain[2] << std::endl ;
-//
-        state[0] = initialState ;
-
-        s.strainAtGaussPointsSet = false ;
-        s.stressAtGaussPointsSet = false ;
+        
+        double dscore = s.getParent()->getBehaviour()->getFractureCriterion()->grade(s) ;
+        if(dscore > s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState())
+            imposedStrain *=-1 ;
+        
+        state[0] = 0 ;
 
         inCompression = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(1) ;
         inTension = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(0) ;
-        double maxfact = std::max(damageDensityTolerance, std::min(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState(), 1.)) ;
-        
-        for(size_t i = 0 ; i < imposedStrain.size() ; i++)
-        {
-            if(std::isnan(imposedStrain[i]))
-               imposedStrain[i] = 0 ;        
-        }
+        double scope = 1. ;//std::max(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState(), 0.) ;
+        double maxfact = std::max(std::min(damageDensityTolerance*1e2, 1.), 
+                            std::min(scope, 1.)) ;
         
         return std::make_pair( Vector(0., 1), Vector(maxfact, 1)) ;
     }
@@ -435,11 +393,7 @@ bool PrandtlReussPlasticStrain::fractured(int direction) const
 
 void PrandtlReussPlasticStrain::postProcess()
 {
-    if((converged && es && state[0] > 0) ||
-            newtonIteration /*&&
-      es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() < .05*es->getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() &&
-      es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()*/
-      )
+    if((converged && es && state[0] > 0) ||newtonIteration )
     {
 
         Vector delta = imposedStrain * getState()[0] - imposedStrainAccumulator ;
@@ -450,12 +404,14 @@ void PrandtlReussPlasticStrain::postProcess()
         plasticVariable += sqrt(2./3.) * sqrt( imposedStrain[0]*imposedStrain[0] +
                                                imposedStrain[1]*imposedStrain[1] +
                                                imposedStrain[2]*imposedStrain[2] ) ;
-//         if(plasticVariable > 1e-2)
-//             broken = true ;
-// 	factor = std::min(std::max(1e-6, state[0]*2.*.25+factor*.75), 0.5) ;
         state[0] = 0;
         imposedStrain = 0 ;
 
+    }
+    else if(converged && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
+    {
+        state[0] = 0;
+        imposedStrain = 0 ;
     }
 }
 

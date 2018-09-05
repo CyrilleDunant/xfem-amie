@@ -186,6 +186,7 @@ protected:
     bool setBehaviours ;
     bool enrichmentChange ;
     bool stateConverged ;
+    bool contactsStateConverged ;
     bool damageConverged ;
     bool resetCalculation  = false; 
     bool spaceTimeFixed = false ;

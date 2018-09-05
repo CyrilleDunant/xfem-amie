@@ -3587,7 +3587,8 @@ bool ElementState::prepare(const Vector &extrapolatedDisplacements)
     Vector delta = pcache.array()-JinvCache->array() ;
     double err = sqrt(std::inner_product(&delta[0], &delta[delta.size()], &delta[0], 0.)) ;
     double volume = (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? sqrt(parent->area()) : pow(parent->volume(), 1./3.) ;
-    bool nochange = err < 1e-7/volume ;
+    bool nochange = err*volume < 1e-7 ;
+//     std::cout << err*volume << std::endl ;
         
     parent->behaviourUpdated = !nochange ;
     parent->needAssembly = !nochange;

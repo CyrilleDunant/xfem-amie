@@ -157,7 +157,7 @@ void DamageModel::step( ElementState &s , double maxscore)
             currentProximity = states[i].proximity ;
             currentShift = states[i].angleShift ;
             currentMode = states[i].mode ;
-	    minscore = std::min(minscore, currentScore);
+            minscore = std::min(minscore, currentScore);
             if(     ((currentDelta > 0    && prevDelta  < 0)     ||
                     (currentDelta < 0     && prevDelta  > 0 ))   ||
                     ((currentScore > 0     && prevScore  < 0  )   ||
@@ -229,36 +229,43 @@ void DamageModel::step( ElementState &s , double maxscore)
         }
         
         
-    if(!(deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot)) // we should then minimise the score or proximity.
-	{
-	  double del = 0 ;
-	  double fac = std::min(std::max(.75/((std::abs(score) + std::abs(setChange.first) + std::abs(setChange.second) )), 0.25), 1.) ;
-	  if(std::max(setChange.first, setChange.second) > 4.*damageDensityTolerance)
-	  {
-	    if(setChange.first <= setChange.second && setChange.first <= score)
-	      del = fac*setChange.first ;
-	    else if(setChange.second <= setChange.first && setChange.second <= score)
-	      del = fac*setChange.second ;
-	    else 
-	      del = fac*score ;
-	  }
-	  else
-	    del = fac*score ;
-	    
-	  
-	  trialRatio = 1e-3 ; //std::min(std::max(initialRatio + del, 0.), 1.) ;//initialRatio+damageDensityTolerance*.175 ;
-// 	  std::cout << "! "<< trialRatio << std::endl ;
-	  deltaRoot = true ;
-	}
-	trialRatio = std::max(std::min(trialRatio, 1.), 0.) ;
-//     std::cout << trialRatio << "  " << score <<std::endl ;
-	getState( true ) = downState + ( upState - downState ) *trialRatio /*+ damageDensityTolerance*.25*/;
+//         if(!(deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot)) // we should then minimise the score or proximity.
+//         {
+//             double del = 0 ;
+//             double fac = std::min(std::max(.75/((std::abs(score) + std::abs(setChange.first) + std::abs(setChange.second) )), 0.25), 1.) ;
+//             if(std::max(setChange.first, setChange.second) > 4.*damageDensityTolerance)
+//             {
+//                 if(setChange.first <= setChange.second && setChange.first <= score)
+//                 del = fac*setChange.first ;
+//                 else if(setChange.second <= setChange.first && setChange.second <= score)
+//                 del = fac*setChange.second ;
+//                 else 
+//                 del = fac*score ;
+//             }
+//             else
+//                 del = fac*score ;
+//                 
+//             
+//             trialRatio = 1e-3 ; //std::min(std::max(initialRatio + del, 0.), 1.) ;//initialRatio+damageDensityTolerance*.175 ;
+//         // 	  std::cout << "! "<< trialRatio << std::endl ;
+//             deltaRoot = true ;
+//         }
+        trialRatio = std::max(std::min(trialRatio, 1.), 0.) ;
+    //     std::cout << trialRatio << "  " << score <<std::endl ;
+        getState( true ) = downState + ( upState - downState ) *trialRatio /*+ damageDensityTolerance*.25*/;
 
 
         if( states.size() > maxit-1 && (deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot))
         {
 // 	  std::cout << "ah " << trialRatio << std::endl ;
 
+            double initalScore = states[0].score ;
+
+            if(score > initalScore)
+            {
+                state = downState ;
+            }
+            
             if(ctype == DISSIPATIVE)
             {
                 for(size_t i = 0 ; i <  state.size() ; i++)
@@ -294,12 +301,12 @@ void DamageModel::step( ElementState &s , double maxscore)
         }
         else if(states.size() > maxit-1)
         {
-	    std::cout << "ouch" << std::endl ;
+            std::cout << "\033[1;31m\'\033[0m" << std::flush ;
             for(size_t i = 0 ; i <  state.size() ; i++)
             {
                 if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE)
                 {
-                    state[i] = downState[i] + 1e-4;
+                    state[i] = downState[i] + ( upState[i] - downState[i] ) *1e-2;
                     state[i] = std::min(state[i], 1.) ;
                 }
             }
@@ -334,7 +341,7 @@ DamageModel::DamageModel(): state(0)
     effectiveDeltaFraction = 1 ;
     alternate = true ;
     alternating = false ;
-    needGlobalMaximumScore = true ;
+    needGlobalMaximumScore = false ;
     // The exploration increment is crucial for finding
     // the correct distribution of damage: the effect
     // of damage increment on the distribution of

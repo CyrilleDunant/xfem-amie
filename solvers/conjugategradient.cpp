@@ -160,6 +160,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         if(std::isnan(err0))
         {
             assembly->print() ;
+            std::cout << "NaN error" << std::endl ;
             exit(0) ;
         }
         

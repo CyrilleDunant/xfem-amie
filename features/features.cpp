@@ -93,6 +93,7 @@ FeatureTree::FeatureTree ( Feature *first, double fraction, int layer, size_t gr
     behaviourSet =false ;
     damageConverged = false ;
     stateConverged = false ;
+    contactsStateConverged = false ;
     dtree = nullptr ;
     dtree3D = nullptr ;
     structuredMesh = false ;
@@ -221,6 +222,7 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     damageConverged = true ;
     iterationCounter = 0 ;
     stateConverged = false ;
+    contactsStateConverged = false ;
     dtree = nullptr ;
     alternating = false ;
     thresholdScoreMet = 0 ;
@@ -4395,6 +4397,7 @@ bool FeatureTree::contactsConverged()
     return true ; 
 }
 
+
 bool FeatureTree::solve()
 {
     if ( enrichmentChange || needMeshing )
@@ -4410,9 +4413,10 @@ bool FeatureTree::solve()
     Vector extrapolatedDisplacements = K->extrapolate() ;
     int nlcount = 0 ;
     largeStrainConverged = true ;
-    if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint && contactsConverged()) 
+    if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint && contactsConverged() /*&& deltaTime > POINT_TOLERANCE*/) 
     {
-        if(largeStrainSteps++ > 2048)
+            
+        if(largeStrainSteps++ > 512)
         {
             nlcount = 0 ;
             largeStrainSteps = -1 ;
@@ -4481,7 +4485,7 @@ bool FeatureTree::solve()
         if(!contacts.empty())
         {
             std::cerr << "\nApplying Contact conditions " << std::flush ;
-            if(nlcount == 0 && foundCheckPoint && largeStrainConverged)
+            if(foundCheckPoint && largeStrainConverged)
             {
                 std::cerr << " (stepping) " << std::flush ;
                 stepContacts() ;
@@ -5274,7 +5278,10 @@ bool FeatureTree::stepElements()
                 std::cerr << " ...done. " << std::endl ;
             }
         
-
+//             if(!elastic && foundCheckPoint)
+//                 updateContacts();
+        
+            
         }
         else if ( is3D() )
         {
@@ -5524,6 +5531,7 @@ bool FeatureTree::stepElements()
 
             if ( !elastic && foundCheckPoint )
             {
+//                 updateContacts();
                 std::cerr << "[" << averageDamage << " ; " << std::flush ;
 
                 maxTolerance = 1 ;
@@ -5663,12 +5671,28 @@ bool FeatureTree::stepElements()
         }
     }
 
-    stateConverged = foundCheckPoint && maxScore < maxTolerance ;
+    
 
     if ( behaviourChange )
     {
         residualError = 1e9 ;
     }
+    
+    contactsStateConverged = true ;
+    if(!contacts.empty())
+    {
+        for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
+        {  
+            if(!(*i)->verifyConvergence())
+            {
+                contactsStateConverged = false ;
+                break ;
+            }
+        }
+    }
+    
+    stateConverged = foundCheckPoint && maxScore < maxTolerance && contactsStateConverged;
+    
     return stateConverged;
 }
 
@@ -6107,7 +6131,7 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
             std::cout << "." << std::flush ;
             notConvergedCounts = 0 ;
 
-            if(foundCheckPoint  && !(enrichmentChange || behaviourChanged() ) )
+            if(foundCheckPoint && contactsStateConverged && !(enrichmentChange || behaviourChanged() ) )
                 needexit = true ;
         }
         else

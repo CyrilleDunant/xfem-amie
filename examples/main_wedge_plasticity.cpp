@@ -208,7 +208,6 @@ void step ( size_t nsteps, Sample * samplef )
         }
         go_on = featureTree->step() ;
 
-
         if ( go_on )
             tries++ ;
         else
@@ -260,9 +259,6 @@ void step ( size_t nsteps, Sample * samplef )
             writer.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
             writer.getField ( TOTAL_STRAIN_FIELD ) ;
             writer.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
-    // 	  writer.getField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
-            // 	writer.getField ( IMPOSED_STRAIN_FIELD ) ;
-            //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
             writer.getField ( TWFT_STIFFNESS ) ;
             writer.append() ;
     // 	}
@@ -274,11 +270,7 @@ void step ( size_t nsteps, Sample * samplef )
                 writerc.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
                 writerc.getField ( TOTAL_STRAIN_FIELD ) ;
                 writerc.getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
-    // 	    writerc.getField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
                 writer.getField ( TWFT_STIFFNESS ) ;
-    // 	    writerc.getField ( IMPOSED_STRAIN_FIELD ) ;
-    //             writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
-    //             writer.getField ( TWFT_DAMAGE ) ;
                 writerc.append() ;
             }
         }
@@ -311,18 +303,18 @@ int main ( int argc, char *argv[] )
     StiffnessAndFracture  * pg = new StiffnessAndFracture(E, nu, new NonLocalDeviatoricVonMises(.400, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
     Stiffness  * sf = new Stiffness(E, nu) ;
 
-    samplef.setBehaviour(pg);
+    samplef.setBehaviour(pr);
 
-    
 //     F.addBoundaryCondition ( loadr );
 //     F.addBoundaryCondition ( loadf );
 //     F.addBoundaryCondition ( contact );
-    F.largeStrains = true ;
+    F.largeStrains = false ;
 //     loadr->setActive(true);
 // 	F.addBoundaryCondition(loadt);
 //     transform(&rect, TRANSLATE, Point(-0.024/200, 0.)) ;
     F.addContactCondition(contactRect);
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA, BOTTOM ) ) ;
+//     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, BOTTOM ) ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT ) ) ;
 //     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,TOP_LEFT ) ) ;
 
@@ -333,10 +325,10 @@ int main ( int argc, char *argv[] )
 // F.addPoint(new Point(0, 0)) ;
 
     F.setMaxIterationsPerStep ( 5000 );
-    F.thresholdScoreMet = 1e-8 ;
+    F.thresholdScoreMet = 0.08 ;
 
 
-    step ( 50, &samplef ) ;
+    step ( 500, &samplef ) ;
 
 
     return 0 ;

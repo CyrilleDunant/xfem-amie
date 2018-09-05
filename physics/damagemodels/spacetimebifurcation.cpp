@@ -174,7 +174,10 @@ Matrix SpaceTimeBifurcationAndDamage::apply(const Matrix & m, const Point & p,co
 void SpaceTimeBifurcationAndDamage::step( ElementState &s , double maxscore)
 {
     if(!secondary)
+    {
+        std::cout << "space-time bifurcation: not secondary" << std::endl ;
         exit(0) ;
+    }
 
     elementState = &s ;
     converged = true ;
