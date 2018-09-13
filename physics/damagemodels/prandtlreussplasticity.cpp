@@ -30,6 +30,7 @@ PrandtlReussPlasticStrain::PrandtlReussPlasticStrain() : imposedStrain(0.,3), pr
     factor = .5 ;
     allowBackSearch = false ;
     newtonIteration = false ;
+    damageDensityTolerance = 1e-1 ;
 
 }
 
@@ -93,7 +94,7 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
         imposedStrain = stress ;
 
         double norm = sqrt((imposedStrain*imposedStrain).sum()) ;
-        double onorm = std::max(2.*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState(), 1e-2)*sqrt((strain*strain).sum()) ;
+        double onorm = std::max(0.5*std::min(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState(), 1.), 1e-2)*sqrt((strain*strain).sum()) ;
         if(norm > POINT_TOLERANCE*POINT_TOLERANCE && onorm > POINT_TOLERANCE*POINT_TOLERANCE)
         {
             imposedStrain /= norm ;
@@ -102,7 +103,7 @@ std::pair<Vector, Vector> PrandtlReussPlasticStrain::computeDamageIncrement(Elem
         else
             imposedStrain = previousImposedStrain*1e-3 ;
         
-        state[0] = damageDensityTolerance ;
+        state[0] = 1e-2;
         s.strainAtGaussPointsSet = false ;
         s.stressAtGaussPointsSet = false ;
         
@@ -258,6 +259,7 @@ int PrandtlReussPlasticStrain::getMode() const
 
 double PrandtlReussPlasticStrain::getAngleShift() const
 {
+    return 0;
     if(!es)
         return 0 ;
 
@@ -364,7 +366,7 @@ Vector PrandtlReussPlasticStrain::getImposedStrain(const Point & p) const
 
 double PrandtlReussPlasticStrain::getDamage() const
 {
-//     return 0 ;
+    return 0 ;
   double eps_f = 0.0057 ;
     double currentPlaticVariable = getPlasticity() ;
     if(currentPlaticVariable >= factor)

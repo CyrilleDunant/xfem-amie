@@ -4390,7 +4390,7 @@ bool FeatureTree::contactsConverged()
     {
         for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
         {
-            if(!(*i)->converged())
+            if(!(*i)->verifyConvergence())
                 return false ;
         }
     }
@@ -4485,7 +4485,7 @@ bool FeatureTree::solve()
         if(!contacts.empty())
         {
             std::cerr << "\nApplying Contact conditions " << std::flush ;
-            if(foundCheckPoint && largeStrainConverged)
+            if(largeStrainConverged)
             {
                 std::cerr << " (stepping) " << std::flush ;
                 stepContacts() ;
@@ -4692,8 +4692,8 @@ bool FeatureTree::solve()
     residualError = sqrt ( parallel_inner_product ( &r[0], &r[0], r.size() ) ) ;
 
     std::cerr << " ...done" << std::endl ;
-    
-    return (largeStrains && largeStrainConverged && contactsConverged()) || (!largeStrains && solverConvergence) ;
+//     std::cout << largeStrains << "  " << largeStrainConverged << "  " << contactsConverged() << std::endl ;
+    return  ((largeStrains && largeStrainConverged ) || !largeStrains ) && solverConvergence&& contactsConverged();
 }
 
 void FeatureTree::stepXfem()
@@ -5884,13 +5884,14 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
     { 
         bool elasticInit = ft->elastic ;
         ft->elastic = true ;
-        solved = ft->solve() ;
-        while (!solved)
+        bool go = true ;
+        while (go)
         {
             ft->assemble();
-            solved = ft->solve() ;
+            go = !ft->solve() ;
             ft->stepElements() ; 
         }
+        solved = true ;
         ft->elastic = elasticInit ;
     }
     if ( s == SOLVED )

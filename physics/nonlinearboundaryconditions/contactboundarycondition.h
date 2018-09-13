@@ -63,7 +63,7 @@ namespace Amie
         bool converged() const ;
         double error() const ;
         
-        void print() ;
+        void print() const;
     } ;
 }
 

@@ -306,7 +306,7 @@ void DamageModel::step( ElementState &s , double maxscore)
             {
                 if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE)
                 {
-                    state[i] = downState[i] + ( upState[i] - downState[i] ) *1e-2;
+                    state[i] = downState[i] + ( upState[i] - downState[i] ) *.1;
                     state[i] = std::min(state[i], 1.) ;
                 }
             }

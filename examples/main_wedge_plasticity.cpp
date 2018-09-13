@@ -303,12 +303,12 @@ int main ( int argc, char *argv[] )
     StiffnessAndFracture  * pg = new StiffnessAndFracture(E, nu, new NonLocalDeviatoricVonMises(.400, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
     Stiffness  * sf = new Stiffness(E, nu) ;
 
-    samplef.setBehaviour(pr);
+    samplef.setBehaviour(pg);
 
 //     F.addBoundaryCondition ( loadr );
 //     F.addBoundaryCondition ( loadf );
 //     F.addBoundaryCondition ( contact );
-    F.largeStrains = false ;
+    F.largeStrains = true ;
 //     loadr->setActive(true);
 // 	F.addBoundaryCondition(loadt);
 //     transform(&rect, TRANSLATE, Point(-0.024/200, 0.)) ;
@@ -325,7 +325,7 @@ int main ( int argc, char *argv[] )
 // F.addPoint(new Point(0, 0)) ;
 
     F.setMaxIterationsPerStep ( 5000 );
-    F.thresholdScoreMet = 0.08 ;
+    F.thresholdScoreMet = 0.01 ;
 
 
     step ( 500, &samplef ) ;
