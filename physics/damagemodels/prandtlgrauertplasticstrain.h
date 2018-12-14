@@ -46,6 +46,7 @@ public:
     bool inCompression ;
     bool inTension ;
     bool newtonIteration ;
+    bool forceDeviatoric ;
     
     ElementState * es ;
 

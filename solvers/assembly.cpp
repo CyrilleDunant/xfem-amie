@@ -812,7 +812,7 @@ bool Assembly::make_final(bool clearElements )
         {
             addToExternalForces.resize(externalForces.size(), 0.) ; 
         }
-        checkZeroLines() ;
+//         checkZeroLines() ;
         setBoundaryConditions(clearElements) ;
 
     }
@@ -1214,7 +1214,7 @@ bool Assembly::make_final(bool clearElements )
         {
             addToExternalForces.resize(externalForces.size(), 0.) ; 
         }
-        checkZeroLines() ;
+//         checkZeroLines() ;
         setBoundaryConditions(clearElements) ;
 
     }
@@ -1809,7 +1809,7 @@ Vector Assembly::extrapolate(double factor)
     }
         
             
-    return displacementHistory.back() + dxdb*factor + dxxddb*factor*factor;
+    return displacementHistory.back() + dxdb*factor + 0.5*dxxddb*factor*factor;
 
 }
 

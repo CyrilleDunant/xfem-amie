@@ -23,8 +23,9 @@ PrandtlGrauertPlasticStrain::PrandtlGrauertPlasticStrain(double c_psi, double ep
     v.push_back(ETA);
     param = nullptr ;
     compressivePlasticVariable = 0 ;
-    damageDensityTolerance = 2e-3 ;
+    damageDensityTolerance = 2e-2 ;
     tensilePlasticVariable = 0 ;
+    forceDeviatoric=true ;
     inCompression = false ;
     inTension = false ;
     newtonIteration = false ;
@@ -155,6 +156,7 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
         imposedStrain[0] = incrementalStrainMatrix[0][0] ;
         imposedStrain[1] = incrementalStrainMatrix[1][1] ;
         imposedStrain[2] = (incrementalStrainMatrix[0][1]+incrementalStrainMatrix[1][0]) ;
+        
 
         norm = sqrt((imposedStrain*imposedStrain).sum()) ;
         onorm = 0.25*sqrt((strain*strain).sum()) ;
@@ -184,6 +186,14 @@ std::pair<Vector, Vector> PrandtlGrauertPlasticStrain::computeDamageIncrement(El
 
         double maxfact = std::max(std::min(damageDensityTolerance*1e2, 1.), 
                                   std::min(std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()), 1.)) ;
+                                  
+                                  
+        if(forceDeviatoric)
+        {
+           double tr = imposedStrain[0] + imposedStrain[1] ;
+           imposedStrain[0] -= 0.5*tr ;
+           imposedStrain[1] -= 0.5*tr ;
+        }
         return std::make_pair( Vector(0., 1), Vector(maxfact, 1)) ;
     }
 
@@ -455,14 +465,15 @@ Vector PrandtlGrauertPlasticStrain::getImposedStrain(const Point & p) const
 
 double PrandtlGrauertPlasticStrain::getDamage() const
 {
-//      return 0 ;
+    if(forceDeviatoric)
+        return 0 ;
     //return std::min(topdamage*state[0]+bottomdamage*(1.-state[0]) + factor, 1.);
 
     double currentPlaticVariable = getPlasticity() ;
     if(currentPlaticVariable >= kappa_0*factor)
     {
 // 		return std::max((currentPlaticVariable-kappa_0)/eps_f,0.) ;
-        return 1.-exp(-(currentPlaticVariable-kappa_0*factor)/(eps_f*400)) ;
+        return 1.-exp(-(currentPlaticVariable-kappa_0*factor)/(eps_f*800)) ;
     }
     return 0 ;
 }

@@ -243,7 +243,7 @@ void Form::preProcess ( double timeStep, ElementState & currentState )
 { 
 } 
 
-void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
+void IntegrableEntity::applyBoundaryCondition ( Assembly *a, VirtualMachine * vm )
 {
     if ( !getBehaviour() || !( 
         (getBehaviour()->getDamageModel() && getBehaviour()->getDamageModel()->hasInducedBoundaryConditions()) || 
@@ -263,11 +263,11 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
                 {
                     if ( get2DMesh() )
                     {
-                        ( *boundaryConditionCache ) [i]->apply ( a, get2DMesh() ) ;
+                        ( *boundaryConditionCache ) [i]->apply ( a, get2DMesh(), vm ) ;
                     }
                     else
                     {
-                        ( *boundaryConditionCache ) [i]->apply ( a, get3DMesh() ) ;
+                        ( *boundaryConditionCache ) [i]->apply ( a, get3DMesh(), vm ) ;
                     }
                 }
             }
@@ -303,12 +303,12 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
             {
                 if ( get2DMesh() )
                 {
-                    boundaryConditionCachetmp[j]->apply ( a, get2DMesh() ) ;
+                    boundaryConditionCachetmp[j]->apply ( a, get2DMesh(), vm ) ;
                     delete boundaryConditionCachetmp[j] ;
                 }
                 else
                 {
-                    boundaryConditionCachetmp[j]->apply ( a, get3DMesh() ) ;
+                    boundaryConditionCachetmp[j]->apply ( a, get3DMesh(), vm ) ;
                     delete boundaryConditionCachetmp[j] ;
                 } 
             }
@@ -322,12 +322,12 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
             {
                 if ( get2DMesh() )
                 {
-                    boundaryConditionCachetmp[j]->apply ( a, get2DMesh() ) ;
+                    boundaryConditionCachetmp[j]->apply ( a, get2DMesh(), vm ) ;
                     delete boundaryConditionCachetmp[j] ;
                 }
                 else
                 {
-                    boundaryConditionCachetmp[j]->apply ( a, get3DMesh() ) ;
+                    boundaryConditionCachetmp[j]->apply ( a, get3DMesh(), vm ) ;
                     delete boundaryConditionCachetmp[j] ;
                 }
             }
@@ -625,41 +625,41 @@ void ElementState::getExternalFieldAtGaussPoints ( Vector & nodalValues, int ext
     }
 }
 
-void ElementState::updateInverseJacobianCache(const Point & p)
+void ElementState::updateInverseJacobianCache(const Point & p, VirtualMachine * vm)
 {
+
     if(!JinvCache || parent->isMoved() || (JinvCache && JinvCache->numRows() != parent->spaceDimensions()+(parent->timePlanes()>1)))
     {
-        if(!JinvCache)
-        {
-            JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
-        } 
-        else
-        {
-            delete JinvCache ;
-            JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
-        }
+        delete JinvCache ;
+        JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
     }
-    getInverseJacobianMatrix ( p, (*JinvCache) ) ;
+    getInverseJacobianMatrix ( p, (*JinvCache), vm ) ;
+//     if(changed)
+//         *JinvCache *= f/JinvCache->froebeniusNorm() ;
 }
 
-void ElementState::getInverseJacobianMatrix(const Point & p, Matrix & ret, bool initial) const
+void ElementState::getInverseJacobianMatrix(const Point & p, Matrix & ret, VirtualMachine * vm) const
 {
+    bool cleanup = false ;
+    if(!vm)
+    {
+        vm = new VirtualMachine() ;
+        cleanup = true ;
+    }
     if(parent->timePlanes() == 1)
     {
         if(getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
         {
             if(ret.isNull() || ret.size() != 4)
                 ret.resize(2,2) ;
-            
-            VirtualMachine vm ;
-                
+                            
             ret.array() = 0 ;
-            if(localExtrapolatedDisplacements.size() == getParent()->getBoundingPoints().size()*2 && !initial)
+            if(localExtrapolatedDisplacements.size() == getParent()->getBoundingPoints().size()*2 )
             {  
                 for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
                 {
-                    double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
-                    double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
+                    double dxi = vm->deval(getParent()->getShapeFunction(i), XI, p) ;
+                    double deta = vm->deval(getParent()->getShapeFunction(i), ETA, p) ;
                     
                     ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*2]) ;
                     ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*2+1]) ;
@@ -672,8 +672,8 @@ void ElementState::getInverseJacobianMatrix(const Point & p, Matrix & ret, bool 
             {
                 for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
                 {
-                    double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
-                    double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
+                    double dxi = vm->deval(getParent()->getShapeFunction(i), XI, p) ;
+                    double deta = vm->deval(getParent()->getShapeFunction(i), ETA, p) ;
                     
                     ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()) ;
                     ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()) ;
@@ -691,16 +691,15 @@ void ElementState::getInverseJacobianMatrix(const Point & p, Matrix & ret, bool 
                 ret.resize(3,3) ;
 
 
-            VirtualMachine vm ;
             ret.array() = 0 ;
 
-            if(localExtrapolatedDisplacements.size() == getParent()->getBoundingPoints().size()*3 && !initial)
+            if(localExtrapolatedDisplacements.size() == getParent()->getBoundingPoints().size()*3)
             {  
                 for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
                 {
-                    double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
-                    double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
-                    double dzeta = vm.deval(getParent()->getShapeFunction(i), ZETA, p) ;
+                    double dxi = vm->deval(getParent()->getShapeFunction(i), XI, p) ;
+                    double deta = vm->deval(getParent()->getShapeFunction(i), ETA, p) ;
+                    double dzeta = vm->deval(getParent()->getShapeFunction(i), ZETA, p) ;
 
                     ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*3]) ;
                     ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*3+1]) ;
@@ -719,9 +718,9 @@ void ElementState::getInverseJacobianMatrix(const Point & p, Matrix & ret, bool 
             {
                 for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
                 {
-                    double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
-                    double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
-                    double dzeta = vm.deval(getParent()->getShapeFunction(i), ZETA, p) ;
+                    double dxi = vm->deval(getParent()->getShapeFunction(i), XI, p) ;
+                    double deta = vm->deval(getParent()->getShapeFunction(i), ETA, p) ;
+                    double dzeta = vm->deval(getParent()->getShapeFunction(i), ZETA, p) ;
 
                     ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()) ;
                     ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()) ;
@@ -746,23 +745,21 @@ void ElementState::getInverseJacobianMatrix(const Point & p, Matrix & ret, bool 
         {
             if(ret.isNull() || ret.size() != 9)
                 ret.resize(3,3) ;
-            
-            VirtualMachine vm ;
-                
+                            
             ret.array() = 0 ;
-            if(localExtrapolatedDisplacements.size() == getParent()->getBoundingPoints().size()*2 && !initial)
+            if(localExtrapolatedDisplacements.size() == getParent()->getBoundingPoints().size()*2 )
             {  
                 for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
                 {
-                    double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
-                    double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
+                    double dxi = vm->deval(getParent()->getShapeFunction(i), XI, p) ;
+                    double deta = vm->deval(getParent()->getShapeFunction(i), ETA, p) ;
                     
                     ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*2]) ;
                     ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*2+1]) ;
 
                     ret[1][0] += deta*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*2]) ;
                     ret[1][1] += deta*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*2+1]) ;
-                    double dtau = vm.deval(getParent()->getShapeFunction(i), TIME_VARIABLE, p) ;
+                    double dtau = vm->deval(getParent()->getShapeFunction(i), TIME_VARIABLE, p) ;
                     ret[2][2] += dtau*(getParent()->getBoundingPoint(i).getT()) ;
                 }
             }
@@ -770,8 +767,8 @@ void ElementState::getInverseJacobianMatrix(const Point & p, Matrix & ret, bool 
             {
                 for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
                 {
-                    double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
-                    double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
+                    double dxi = vm->deval(getParent()->getShapeFunction(i), XI, p) ;
+                    double deta = vm->deval(getParent()->getShapeFunction(i), ETA, p) ;
                     
                     ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()) ;
                     ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()) ;
@@ -779,7 +776,7 @@ void ElementState::getInverseJacobianMatrix(const Point & p, Matrix & ret, bool 
                     ret[1][0] += deta*(getParent()->getBoundingPoint(i).getX()) ;
                     ret[1][1] += deta*(getParent()->getBoundingPoint(i).getY()) ;
                     
-                     double dtau = vm.deval(getParent()->getShapeFunction(i), TIME_VARIABLE, p) ;
+                     double dtau = vm->deval(getParent()->getShapeFunction(i), TIME_VARIABLE, p) ;
                     ret[2][2] += dtau*(getParent()->getBoundingPoint(i).getT()) ;
                 }
             }
@@ -791,17 +788,15 @@ void ElementState::getInverseJacobianMatrix(const Point & p, Matrix & ret, bool 
             if(ret.isNull()|| ret.size() != 16)
                 ret.resize(4,4) ;
 
-
-            VirtualMachine vm ;
             ret.array() = 0 ;
 
-            if(localExtrapolatedDisplacements.size() == getParent()->getBoundingPoints().size()*3 && !initial)
+            if(localExtrapolatedDisplacements.size() == getParent()->getBoundingPoints().size()*3 )
             {  
                 for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
                 {
-                    double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
-                    double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
-                    double dzeta = vm.deval(getParent()->getShapeFunction(i), ZETA, p) ;
+                    double dxi = vm->deval(getParent()->getShapeFunction(i), XI, p) ;
+                    double deta = vm->deval(getParent()->getShapeFunction(i), ETA, p) ;
+                    double dzeta = vm->deval(getParent()->getShapeFunction(i), ZETA, p) ;
 
                     ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*3]) ;
                     ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*3+1]) ;
@@ -814,7 +809,7 @@ void ElementState::getInverseJacobianMatrix(const Point & p, Matrix & ret, bool 
                     ret[2][0] += dzeta*(getParent()->getBoundingPoint(i).getX()+localExtrapolatedDisplacements[i*3]) ;
                     ret[2][1] += dzeta*(getParent()->getBoundingPoint(i).getY()+localExtrapolatedDisplacements[i*3+1]) ;
                     ret[2][2] += dzeta*(getParent()->getBoundingPoint(i).getZ()+localExtrapolatedDisplacements[i*3+2]) ;
-                    double dtau = vm.deval(getParent()->getShapeFunction(i), TIME_VARIABLE, p) ;
+                    double dtau = vm->deval(getParent()->getShapeFunction(i), TIME_VARIABLE, p) ;
                     ret[3][3] += dtau*(getParent()->getBoundingPoint(i).getT()) ;
                 }
             }
@@ -822,9 +817,9 @@ void ElementState::getInverseJacobianMatrix(const Point & p, Matrix & ret, bool 
             {
                 for(size_t i = 0 ; i < getParent()->getBoundingPoints().size() ; i++)
                 {
-                    double dxi = vm.deval(getParent()->getShapeFunction(i), XI, p) ;
-                    double deta = vm.deval(getParent()->getShapeFunction(i), ETA, p) ;
-                    double dzeta = vm.deval(getParent()->getShapeFunction(i), ZETA, p) ;
+                    double dxi = vm->deval(getParent()->getShapeFunction(i), XI, p) ;
+                    double deta = vm->deval(getParent()->getShapeFunction(i), ETA, p) ;
+                    double dzeta = vm->deval(getParent()->getShapeFunction(i), ZETA, p) ;
 
                     ret[0][0] += dxi*(getParent()->getBoundingPoint(i).getX()) ;
                     ret[0][1] += dxi*(getParent()->getBoundingPoint(i).getY()) ;
@@ -837,7 +832,7 @@ void ElementState::getInverseJacobianMatrix(const Point & p, Matrix & ret, bool 
                     ret[2][0] += dzeta*(getParent()->getBoundingPoint(i).getX()) ;
                     ret[2][1] += dzeta*(getParent()->getBoundingPoint(i).getY()) ;
                     ret[2][2] += dzeta*(getParent()->getBoundingPoint(i).getZ()) ;
-                    double dtau = vm.deval(getParent()->getShapeFunction(i), TIME_VARIABLE, p) ;
+                    double dtau = vm->deval(getParent()->getShapeFunction(i), TIME_VARIABLE, p) ;
                     ret[3][3] += dtau*(getParent()->getBoundingPoint(i).getT()) ;
                 }
             }
@@ -861,6 +856,9 @@ void ElementState::getInverseJacobianMatrix(const Point & p, Matrix & ret, bool 
             ret[3][3] = 1./ret[3][3] ;
         }
     }
+    
+    if(cleanup)
+        delete vm ;
 }
 
 
@@ -1011,7 +1009,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 y_eta += f_eta * enrichedDisplacements[j * 2 + 1] ;
             }
 
-            updateInverseJacobianCache(*p_) ;
+            if(!JinvCache)
+                updateInverseJacobianCache(*p_, vm) ;
             
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
             ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;
@@ -1068,8 +1067,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 z_eta += f_eta * z ;
                 z_zeta += f_zeta * z ;
             }
-
-            updateInverseJacobianCache(*p_) ;
+            if(!JinvCache)
+                updateInverseJacobianCache(*p_, vm) ;
 
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
             ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1]  + ( y_zeta ) * (*JinvCache)[1][2];
@@ -1283,8 +1282,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                     y_eta += f_eta * displacements[j * 2 + 1] ;
                 }
             }
-
-            updateInverseJacobianCache(*p_) ;
+            if(!JinvCache)
+                updateInverseJacobianCache(*p_, vm) ;
 	    
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
             ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;
@@ -1321,8 +1320,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 z_eta  += f_eta  * z ;
                 z_zeta += f_zeta * z ;
             }
-
-            updateInverseJacobianCache(*p_) ;
+            if(!JinvCache)
+                updateInverseJacobianCache(*p_, vm) ;
 	    
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
             ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1]  + ( y_zeta ) * (*JinvCache)[1][2];
@@ -1864,8 +1863,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 x_eta += f_eta * enrichedDisplacements[j] ;
 
             }
-
-            updateInverseJacobianCache(*p_) ;
+            if(!JinvCache)
+                updateInverseJacobianCache(*p_, vm) ;
             
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
             ret[1] = ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1] ;
@@ -1899,8 +1898,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 x_eta += f_eta * x ;
                 x_zeta += f_zeta * x ;
             }
-
-            updateInverseJacobianCache(*p_) ;
+            if(!JinvCache)
+                updateInverseJacobianCache(*p_, vm) ;
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
             ret[1] = ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( x_zeta ) * (*JinvCache)[1][2];
             ret[2] = ( x_xi ) * (*JinvCache)[2][0] + ( x_eta ) * (*JinvCache)[2][1]  + ( x_zeta ) * (*JinvCache)[2][2];
@@ -3531,7 +3530,7 @@ void ElementState::initialize ( Mesh<DelaunayTriangle,DelaunayTreeItem> * msh)
     pstressAtGaussPointsSet = false ;
 }
 
-bool ElementState::prepare(const Vector &extrapolatedDisplacements)
+bool ElementState::prepare(const Vector &extrapolatedDisplacements, VirtualMachine * vm)
 {
     if ( !parent->getBehaviour() )
         return true ;
@@ -3555,7 +3554,7 @@ bool ElementState::prepare(const Vector &extrapolatedDisplacements)
         { 
             if ( ids[i] * ndofs + j < extrapolatedDisplacements.size() )
             {
-                localExtrapolatedDisplacements[i * ndofs + j] = localExtrapolatedDisplacements[i * ndofs + j]*0.9+extrapolatedDisplacements [ids[i] * ndofs + j]*0.1 ;
+                localExtrapolatedDisplacements[i * ndofs + j] = /*localExtrapolatedDisplacements[i * ndofs + j]*0.001+*/extrapolatedDisplacements [ids[i] * ndofs + j]/**0.999*/ ;
             }
             else
             {
@@ -3567,9 +3566,9 @@ bool ElementState::prepare(const Vector &extrapolatedDisplacements)
     if(!JinvCache)
     {
         if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-            updateInverseJacobianCache(Point(1./3., 1./3.)) ;
+            updateInverseJacobianCache(Point(1./3., 1./3.), vm) ;
         if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
-            updateInverseJacobianCache(Point(1./4., 1./4., 1./4.)) ;
+            updateInverseJacobianCache(Point(1./4., 1./4., 1./4.), vm) ;
         
         parent->behaviourUpdated = true ;
         parent->needAssembly = true;
@@ -3579,15 +3578,15 @@ bool ElementState::prepare(const Vector &extrapolatedDisplacements)
         return false ;
     }
     
-    Matrix pcache = *JinvCache ;
+    Vector pcache = JinvCache->array() ;
     if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-        updateInverseJacobianCache(Point(1./3., 1./3.)) ;
+        updateInverseJacobianCache(Point(1./3., 1./3.), vm) ;
     if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
-        updateInverseJacobianCache(Point(1./4., 1./4., 1./4.)) ;
-    Vector delta = pcache.array()-JinvCache->array() ;
-    double err = sqrt(std::inner_product(&delta[0], &delta[delta.size()], &delta[0], 0.)) ;
-    double volume = (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? sqrt(parent->area()) : pow(parent->volume(), 1./3.) ;
-    bool nochange = err*volume < 1e-7 ;
+        updateInverseJacobianCache(Point(1./4., 1./4., 1./4.), vm) ;
+    pcache -= JinvCache->array() ;
+    double err = std::inner_product(&pcache[0], &pcache[pcache.size()], &pcache[0], 0.) ;
+    double volume = (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? parent->area() : parent->volume() ;
+    bool nochange = err*volume < 1e-14 ;
 //     std::cout << err*volume << std::endl ;
         
     parent->behaviourUpdated = !nochange ;

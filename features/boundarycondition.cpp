@@ -47,16 +47,16 @@ BoundingBoxCycleDefinedBoundaryCondition::BoundingBoxCycleDefinedBoundaryConditi
     currentBC = new BoundingBoxDefinedBoundaryCondition(t.front(), pos.front(), 0.) ;
 }
 
-void BoundingBoxCycleDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t)
+void BoundingBoxCycleDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm)
 {
     if(currentCycle < 0)
     {
-        currentBC->apply(a, t);
+        currentBC->apply(a, t, vm);
         currentCycle++ ;
         return ;
     }
     currentBC->setData(cycles[currentCycle].getValue());
-    currentBC->apply(a, t);
+    currentBC->apply(a, t, vm);
     if(cycles[currentCycle].isAtEnd())
     {
         delete currentBC ;
@@ -65,17 +65,17 @@ void BoundingBoxCycleDefinedBoundaryCondition::apply(Assembly * a, Mesh<Delaunay
     }
 }
 
-void BoundingBoxCycleDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)
+void BoundingBoxCycleDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)
 {
     if(currentCycle < 0)
     {
-        currentBC->apply(a, t);
+        currentBC->apply(a, t, vm);
         currentCycle++ ;
         return ;
     }
     
     currentBC->setData(cycles[currentCycle].getValue());
-    currentBC->apply(a, t);
+    currentBC->apply(a, t, vm);
     if(cycles[currentCycle].isAtEnd())
     {
         delete currentBC ;
@@ -138,7 +138,7 @@ DofDefinedBoundaryCondition::DofDefinedBoundaryCondition ( LagrangeMultiplierTyp
     std::copy ( &Jinv[0], &Jinv[Jinv.size()], & ( *this->Jinv ) [0] ) ;
 }
 
-void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a, int axis = 0 )
+void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a, VirtualMachine * vm, int axis = 0 )
 {
     if ( e->getBehaviour()->type == VOID_BEHAVIOUR || e->getBehaviour()->fractured())
     {
@@ -151,7 +151,6 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
         nTimePlanes = e->timePlanes() ;
     }
 
-    VirtualMachine vm ;
     int n = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
     
 
@@ -1283,7 +1282,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
             {
                 double f = 0. ;
-                f = vm.ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gpe, Jinve, v ) ;
+                f = vm->ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gpe, Jinve, v ) ;
                 a->addForceOn ( XI, f, id[i] ) ;
             }
 
@@ -1372,7 +1371,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
             {
                 double f = 0. ;
-                f = vm.ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gpe, Jinve, v ) ;
+                f = vm->ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gpe, Jinve, v ) ;
                 a->addForceOn ( XI, f, id[i] ) ;
             }
 
@@ -1385,14 +1384,13 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
     }
 }
 
-void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a, int axis = 0 )
+void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a, VirtualMachine * vm, int axis = 0 )
 {
     if ( e->getBehaviour()->type == VOID_BEHAVIOUR || e->getBehaviour()->fractured())
     {
         return ;
     }
 
-    VirtualMachine vm ;
     int n = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
     for ( size_t i = 0 ; i < id.size() ; i++ )
     {
@@ -1602,7 +1600,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
             {
                 double f = 0. ;
-                f = vm.ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v ) ;
+                f = vm->ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v ) ;
                 a->addForceOn ( XI, f, id[i] ) ;
             }
 
@@ -1653,7 +1651,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
             {
                 double f = 0. ;
-                f = vm.ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v ) ;
+                f = vm->ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v ) ;
                 a->addForceOn ( XI, f, id[i] ) ;
             }
 
@@ -1704,7 +1702,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
             {
                 double f = 0. ;
-                f = vm.ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v ) ;
+                f = vm->ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v ) ;
                 a->addForceOn ( XI, f, id[i] ) ;
             }
 
@@ -3233,7 +3231,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
     }
 }
 
-void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a, int axis = 0 )
+void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a, VirtualMachine * vm, int axis = 0 )
 {
     std::vector<size_t> ids ;
 
@@ -3242,10 +3240,10 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
         ids.push_back ( id[i].getId() );
     }
 
-    apply2DBC ( e,gp,Jinv, ids, condition, data, a, axis ) ;
+    apply2DBC ( e,gp,Jinv, ids, condition, data, a, vm, axis ) ;
 }
 
-void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a, int axis = 0 )
+void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a, VirtualMachine * vm, int axis = 0 )
 {
     std::vector<size_t> ids ;
 
@@ -3254,10 +3252,10 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
         ids.push_back ( id[i].getId() );
     }
 
-    apply3DBC ( e, gp, Jinv, ids, condition, data, a, axis ) ;
+    apply3DBC ( e, gp, Jinv, ids, condition, data, a, vm, axis ) ;
 }
 
-void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, const Function & data, Assembly * a, int axis = 0 )
+void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, const Function & data, Assembly * a, VirtualMachine * vm, int axis = 0 )
 {
 
     if ( e->getBehaviour()->type == VOID_BEHAVIOUR || e->getBehaviour()->fractured())
@@ -3271,7 +3269,6 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
         nTimePlanes = e->timePlanes() ;
     }
 
-    VirtualMachine vm ;
     int n = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
     
 
@@ -3298,9 +3295,9 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
         case SET_ALONG_XI:
             if(n > 2)
-                a->setPointAlongIndexedAxis( 0, vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlongIndexedAxis( 0, vm->eval ( data, id[i] ), id[i].getId() ) ;
             else
-                a->setPointAlong ( XI, vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlong ( XI, vm->eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case INCREMENT_ALONG_XI:
@@ -3308,9 +3305,9 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 break ;
 
             if(n > 2)
-                a->setPointAlongIndexedAxis( 0, a->getPreviousDisplacements()[ id[i].getId()*n ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlongIndexedAxis( 0, a->getPreviousDisplacements()[ id[i].getId()*n ] + vm->eval ( data, id[i] ), id[i].getId() ) ;
             else
-                a->setPointAlong ( XI, a->getPreviousDisplacements()[ id[i].getId()*n ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlong ( XI, a->getPreviousDisplacements()[ id[i].getId()*n ] + vm->eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case FIX_ALONG_ETA:
@@ -3342,20 +3339,20 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
         case SET_ALONG_ETA:
             if(n > 2)
-                a->setPointAlongIndexedAxis( 1, vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlongIndexedAxis( 1, vm->eval ( data, id[i] ), id[i].getId() ) ;
             else
-                a->setPointAlong ( ETA, vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlong ( ETA, vm->eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case SET_PROPORTIONAL_DISPLACEMENT_XI_ETA:
         {
-            a->setPointProportional( XI, ETA, vm.eval(data, id[i]), 0., id[i].getId() ) ;
+            a->setPointProportional( XI, ETA, vm->eval(data, id[i]), 0., id[i].getId() ) ;
             break ;
         }
 
         case SET_PROPORTIONAL_DISPLACEMENT_ETA_XI:
         {
-            a->setPointProportional( ETA, XI, vm.eval(data, id[i]), 0., id[i].getId() ) ;
+            a->setPointProportional( ETA, XI, vm->eval(data, id[i]), 0., id[i].getId() ) ;
             break ;
         }
 
@@ -3475,13 +3472,13 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                return ;
 
             if(std::abs(vec.getX()) < POINT_TOLERANCE)
-               a->setPointAlong( XI, vm.eval(data, id[i]), id[i].getId() ) ;
+               a->setPointAlong( XI, vm->eval(data, id[i]), id[i].getId() ) ;
             else if(std::abs(vec.getY()) < POINT_TOLERANCE)
-               a->setPointAlong( ETA, vm.eval(data, id[i]), id[i].getId() ) ;
+               a->setPointAlong( ETA, vm->eval(data, id[i]), id[i].getId() ) ;
             else
             {
                double slope = vec.getY()/vec.getX() ;
-               double normx = vm.eval(data, id[i])/std::sqrt( 1.+(1./slope)*(1./slope)) ;
+               double normx = vm->eval(data, id[i])/std::sqrt( 1.+(1./slope)*(1./slope)) ;
 //               double normalSlope = norm.getY()/norm.getX() ;
                a->setPointProportional( ETA, XI, slope, normx*(-slope-1./slope), id[i].getId() ) ;
             }
@@ -3604,13 +3601,13 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                return ;
 
             if(std::abs(vec.getX()) < POINT_TOLERANCE)
-               a->setPointAlong( ETA, vm.eval(data, id[i]), id[i].getId() ) ;
+               a->setPointAlong( ETA, vm->eval(data, id[i]), id[i].getId() ) ;
             else if(std::abs(vec.getY()) < POINT_TOLERANCE)
-               a->setPointAlong( XI, vm.eval(data, id[i]), id[i].getId() ) ;
+               a->setPointAlong( XI, vm->eval(data, id[i]), id[i].getId() ) ;
             else
             {
                double slope = norm.getY()/norm.getX() ;
-               double tanx = vm.eval(data, id[i])/std::sqrt( 1.+(1./slope)*(1./slope)) ;
+               double tanx = vm->eval(data, id[i])/std::sqrt( 1.+(1./slope)*(1./slope)) ;
                a->setPointProportional( ETA, XI, slope, tanx*(-slope-1./slope), id[i].getId() ) ;
             }
             break ;
@@ -3621,20 +3618,20 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 break ;
 
             if(n > 2)
-                a->setPointAlongIndexedAxis( 1, a->getPreviousDisplacements()[ id[i].getId()*n+1 ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlongIndexedAxis( 1, a->getPreviousDisplacements()[ id[i].getId()*n+1 ] + vm->eval ( data, id[i] ), id[i].getId() ) ;
             else
-                a->setPointAlong ( ETA, a->getPreviousDisplacements()[ id[i].getId()*n+1 ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlong ( ETA, a->getPreviousDisplacements()[ id[i].getId()*n+1 ] + vm->eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case INCREMENT_ALONG_INDEXED_AXIS:
             if( a->getPreviousDisplacements().size() == 0 )
                 break ;
 
-            a->setPointAlongIndexedAxis( axis, a->getPreviousDisplacements()[ id[i].getId()*n + axis ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+            a->setPointAlongIndexedAxis( axis, a->getPreviousDisplacements()[ id[i].getId()*n + axis ] + vm->eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case SET_ALONG_INDEXED_AXIS:
-            a->setPointAlongIndexedAxis ( axis, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            a->setPointAlongIndexedAxis ( axis, vm->eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case SET_FORCE_XI:
@@ -3644,7 +3641,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 break ;
             }
 
-            a->setForceOn ( XI,  vm.eval ( data, id[i] ), id[i].getId() ) ;
+            a->setForceOn ( XI,  vm->eval ( data, id[i] ), id[i].getId() ) ;
 
             break ;
 
@@ -3654,7 +3651,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 break ;
             }
 
-            a->setForceOn ( ETA,  vm.eval ( data, id[i] ), id[i].getId() ) ;
+            a->setForceOn ( ETA,  vm->eval ( data, id[i] ), id[i].getId() ) ;
 
             break ;
 
@@ -4231,13 +4228,13 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             }
             Vector imposed ( 3 ) ;
             imposed[0] = 0 ;
-            imposed[1] = vm.eval ( data, id[i] ) ; ;
+            imposed[1] = vm->eval ( data, id[i] ) ; ;
             imposed[2] = 0 ;
 
             for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
             {
                 double f = 0. ;
-                f = vm.ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v ) ;
+                f = vm->ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v ) ;
                 a->addForceOn ( XI, f, id[i].getId() ) ;
             }
 
@@ -4250,14 +4247,13 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
     }
 }
 
-void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, const Function & data, Assembly * a, int axis = 0 )
+void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, const Function & data, Assembly * a, VirtualMachine * vm, int axis = 0 )
 {
     if ( e->getBehaviour()->type == VOID_BEHAVIOUR || e->getBehaviour()->fractured())
     {
         return ;
     }
 
-    VirtualMachine vm ;
     int n = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
     for ( size_t i = 0 ; i < id.size() ; i++ )
     {
@@ -4277,9 +4273,9 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
         case SET_ALONG_XI:
             if(n > 3)
-                a->setPointAlongIndexedAxis( 0, vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlongIndexedAxis( 0, vm->eval ( data, id[i] ), id[i].getId() ) ;
             else
-                a->setPointAlong ( XI, vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlong ( XI, vm->eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case INCREMENT_ALONG_XI:
@@ -4287,9 +4283,9 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 break ;
 
             if(n > 3)
-                a->setPointAlongIndexedAxis( 0, a->getPreviousDisplacements()[ id[i].getId()*n ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlongIndexedAxis( 0, a->getPreviousDisplacements()[ id[i].getId()*n ] + vm->eval ( data, id[i] ), id[i].getId() ) ;
             else
-                a->setPointAlong ( XI, a->getPreviousDisplacements()[ id[i].getId()*n ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlong ( XI, a->getPreviousDisplacements()[ id[i].getId()*n ] + vm->eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case FIX_ALONG_ETA:
@@ -4321,9 +4317,9 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
         case SET_ALONG_ETA:
             if(n > 3)
-                a->setPointAlongIndexedAxis( 1, vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlongIndexedAxis( 1, vm->eval ( data, id[i] ), id[i].getId() ) ;
             else
-                a->setPointAlong ( ETA, vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlong ( ETA, vm->eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case INCREMENT_ALONG_ETA:
@@ -4331,9 +4327,9 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 break ;
 
             if(n > 3)
-                a->setPointAlongIndexedAxis( 1, a->getPreviousDisplacements()[ id[i].getId()*n + 1 ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlongIndexedAxis( 1, a->getPreviousDisplacements()[ id[i].getId()*n + 1 ] + vm->eval ( data, id[i] ), id[i].getId() ) ;
             else
-                a->setPointAlong ( ETA, a->getPreviousDisplacements()[ id[i].getId()*n + 1] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlong ( ETA, a->getPreviousDisplacements()[ id[i].getId()*n + 1] + vm->eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case FIX_ALONG_ZETA:
@@ -4345,9 +4341,9 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
         case SET_ALONG_ZETA:
             if(n > 3)
-                a->setPointAlongIndexedAxis( 2, vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlongIndexedAxis( 2, vm->eval ( data, id[i] ), id[i].getId() ) ;
             else
-                a->setPointAlong ( ZETA, vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlong ( ZETA, vm->eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case INCREMENT_ALONG_ZETA:
@@ -4355,55 +4351,55 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 break ;
 
             if(n > 3)
-                a->setPointAlongIndexedAxis( 2, a->getPreviousDisplacements()[ id[i].getId()*n + 2 ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlongIndexedAxis( 2, a->getPreviousDisplacements()[ id[i].getId()*n + 2 ] + vm->eval ( data, id[i] ), id[i].getId() ) ;
             else
-                a->setPointAlong ( ZETA, a->getPreviousDisplacements()[ id[i].getId()*n + 2] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+                a->setPointAlong ( ZETA, a->getPreviousDisplacements()[ id[i].getId()*n + 2] + vm->eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case SET_ALONG_INDEXED_AXIS:
-            a->setPointAlongIndexedAxis ( axis, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            a->setPointAlongIndexedAxis ( axis, vm->eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case INCREMENT_ALONG_INDEXED_AXIS:
             if( a->getPreviousDisplacements().size() == 0 )
                 break ;
 
-            a->setPointAlongIndexedAxis( axis , a->getPreviousDisplacements()[ id[i].getId()*n + axis ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+            a->setPointAlongIndexedAxis( axis , a->getPreviousDisplacements()[ id[i].getId()*n + axis ] + vm->eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case SET_PROPORTIONAL_DISPLACEMENT_XI_ETA:
         {
-            a->setPointProportional( XI, ETA, vm.eval(data, id[i]), 0., id[i].getId() ) ;
+            a->setPointProportional( XI, ETA, vm->eval(data, id[i]), 0., id[i].getId() ) ;
             break ;
         }
 
         case SET_PROPORTIONAL_DISPLACEMENT_ETA_XI:
         {
-            a->setPointProportional( ETA, XI, vm.eval(data, id[i]), 0., id[i].getId() ) ;
+            a->setPointProportional( ETA, XI, vm->eval(data, id[i]), 0., id[i].getId() ) ;
             break ;
         }
 
         case SET_PROPORTIONAL_DISPLACEMENT_XI_ZETA:
         {
-            a->setPointProportional( XI, ZETA, vm.eval(data, id[i]), 0., id[i].getId() ) ;
+            a->setPointProportional( XI, ZETA, vm->eval(data, id[i]), 0., id[i].getId() ) ;
             break ;
         }
 
         case SET_PROPORTIONAL_DISPLACEMENT_ZETA_XI:
         {
-            a->setPointProportional( ZETA, XI, vm.eval(data, id[i]), 0., id[i].getId() ) ;
+            a->setPointProportional( ZETA, XI, vm->eval(data, id[i]), 0., id[i].getId() ) ;
             break ;
         }
 
         case SET_PROPORTIONAL_DISPLACEMENT_ZETA_ETA:
         {
-            a->setPointProportional( ZETA, ETA, vm.eval(data, id[i]), 0., id[i].getId() ) ;
+            a->setPointProportional( ZETA, ETA, vm->eval(data, id[i]), 0., id[i].getId() ) ;
             break ;
         }
 
         case SET_PROPORTIONAL_DISPLACEMENT_ETA_ZETA:
         {
-            a->setPointProportional( ETA, ZETA, vm.eval(data, id[i]), 0., id[i].getId() ) ;
+            a->setPointProportional( ETA, ZETA, vm->eval(data, id[i]), 0., id[i].getId() ) ;
             break ;
         }
 
@@ -4414,7 +4410,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 break ;
             }
 
-            a->setForceOn ( XI, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            a->setForceOn ( XI, vm->eval ( data, id[i] ), id[i].getId() ) ;
 
             break ;
 
@@ -4424,7 +4420,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 break ;
             }
 
-            a->setForceOn ( ETA, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            a->setForceOn ( ETA, vm->eval ( data, id[i] ), id[i].getId() ) ;
 
             break ;
 
@@ -4434,7 +4430,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 break ;
             }
 
-            a->setForceOn ( ZETA, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            a->setForceOn ( ZETA, vm->eval ( data, id[i] ), id[i].getId() ) ;
 
             break ;
 
@@ -4989,7 +4985,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 v.push_back ( TIME_VARIABLE ) ;
             }
             Vector imposed ( 3 ) ;
-            imposed[0] = vm.eval ( data, id[i] ) ;
+            imposed[0] = vm->eval ( data, id[i] ) ;
             imposed[1] = 0 ;
             imposed[2] = 0 ;
 
@@ -4997,7 +4993,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
             {
                 double f = 0. ;
-                f = vm.ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v ) ;
+                f = vm->ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v ) ;
                 a->addForceOn ( XI, f, id[i].getId() ) ;
             }
 
@@ -5223,7 +5219,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             coefs.push_back( std::make_pair( ETA, (transform[0][1]*invTransform[1][1]+transform[0][2]*invTransform[2][1])/coef ) ) ;
             coefs.push_back( std::make_pair( ZETA, (transform[0][1]*invTransform[1][2]+transform[0][2]*invTransform[2][2])/coef ) ) ;
 
-            a->setPointProportional( XI, coefs, transform[0][0]*vm.eval(data, id[i])/coef, id[i].getId() ) ;
+            a->setPointProportional( XI, coefs, transform[0][0]*vm->eval(data, id[i])/coef, id[i].getId() ) ;
 
             return ;
         }
@@ -5447,7 +5443,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             coefs.push_back( std::make_pair( ETA, (transform[0][0]*invTransform[0][1]+transform[0][2]*invTransform[2][1])/coef ) ) ;
             coefs.push_back( std::make_pair( ZETA, (transform[0][0]*invTransform[0][2]+transform[0][2]*invTransform[2][2])/coef ) ) ;
 
-            a->setPointProportional( XI, coefs, transform[0][1]*vm.eval(data, id[i])/coef, id[i].getId() ) ;
+            a->setPointProportional( XI, coefs, transform[0][1]*vm->eval(data, id[i])/coef, id[i].getId() ) ;
 
             return ;
         }
@@ -5534,7 +5530,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             Vector normal = edge.normalv ( e->getCenter() ) ;
             Vector imposed ( 6 ) ;
             imposed[0] = 0 ;
-            imposed[1] = vm.eval ( data, id[i] ) ;
+            imposed[1] = vm->eval ( data, id[i] ) ;
             imposed[2] = 0 ;
             imposed[3] = 0 ;
             imposed[4] = 0 ;
@@ -5697,7 +5693,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
             Vector normal = edge.normalv ( e->getCenter() ) ;
             Vector imposed ( 6 ) ;
-            imposed[0] = vm.eval ( data, id[i] ) ;
+            imposed[0] = vm->eval ( data, id[i] ) ;
             imposed[1] = 0 ;
             imposed[2] = 0 ;
             imposed[3] = 0 ;
@@ -5771,7 +5767,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
             for ( size_t k = 0 ; k < shapeFunctions.size() ; ++k )
             {
-                imposed[0] = vm.eval ( data, id[k] ) ;
+                imposed[0] = vm->eval ( data, id[k] ) ;
                 istr = transform* ( imposed ) ;
                 Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( istr, shapeFunctions[k], gpe, Jinve, v, false, normal ) ;
 
@@ -5821,13 +5817,13 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             }
             Vector imposed ( 3 ) ;
             imposed[0] = 0 ;
-            imposed[1] = vm.eval ( data, id[i] ) ;
+            imposed[1] = vm->eval ( data, id[i] ) ;
             imposed[2] = 0 ;
 
             for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
             {
                 double f = 0. ;
-                f = vm.ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v ) ;
+                f = vm->ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v ) ;
                 a->addForceOn ( XI, f, id[i].getId() ) ;
             }
 
@@ -5873,12 +5869,12 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             Vector imposed ( 3 ) ;
             imposed[0] = 0 ;
             imposed[1] = 0 ;
-            imposed[2] = vm.eval ( data, id[i] ) ;
+            imposed[2] = vm->eval ( data, id[i] ) ;
 
             for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
             {
                 double f = 0. ;
-                f = vm.ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v ) ;
+                f = vm->ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v ) ;
                 a->addForceOn ( XI, f, id[i].getId() ) ;
             }
 
@@ -6066,7 +6062,7 @@ void applyHorizontalPlaneSections ( double topX, double bottomX, Assembly * a, M
 }
 
 
-void PlaneSectionsBoundaryConditions::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
+void PlaneSectionsBoundaryConditions::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm )
 {
     if ( !isVertical )
     {
@@ -6078,20 +6074,20 @@ void PlaneSectionsBoundaryConditions::apply ( Assembly * a, Mesh<DelaunayTriangl
     }
 }
 
-void PlaneSectionsBoundaryConditions::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
+void PlaneSectionsBoundaryConditions::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm )
 {
 
 }
 
 
-void DofDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
+void DofDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm )
 {
     if ( !function )
     {
         std::vector<size_t> id_ ;
         id_.push_back ( id );
 
-        apply2DBC ( surface,*gp, *Jinv, id_, condition, data*getScale(), a, axis ) ;
+        apply2DBC ( surface,*gp, *Jinv, id_, condition, data*getScale(), a, vm, axis ) ;
     }
     else
     {
@@ -6103,14 +6099,14 @@ void DofDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, D
             {
                 id_.push_back ( surface->getBoundingPoint ( i ) );
                 Function effective = dataFunction*getScale() ;
-                apply2DBC ( surface,*gp,*Jinv, id_, condition, effective, a, axis ) ;
+                apply2DBC ( surface,*gp,*Jinv, id_, condition, effective, a, vm, axis ) ;
                 return ;
             }
         }
     }
 }
 
-void DofDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
+void DofDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm )
 {
     if ( surface )
     {
@@ -6122,7 +6118,7 @@ void DofDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron
         std::vector<size_t> id_ ;
         id_.push_back ( id );
 
-        apply3DBC ( volume,*gp,*Jinv,  id_, condition, data*getScale(),  a , axis ) ;
+        apply3DBC ( volume,*gp,*Jinv,  id_, condition, data*getScale(),  a, vm , axis ) ;
     }
     else
     {
@@ -6134,14 +6130,14 @@ void DofDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron
             {
                 id_.push_back ( volume->getBoundingPoint ( i ) );
                 Function effective = dataFunction*getScale() ;
-                apply3DBC ( volume,*gp, *Jinv, id_, condition, effective, a, axis ) ;
+                apply3DBC ( volume,*gp, *Jinv, id_, condition, effective, a, vm, axis ) ;
                 return ;
             }
         }
     }
 }
 
-void ElementDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
+void ElementDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm )
 {
     if ( volume )
     {
@@ -6184,7 +6180,7 @@ void ElementDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangl
 
 }
 
-void ElementDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
+void ElementDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm )
 {
     if ( surface )
     {
@@ -6483,7 +6479,7 @@ bool isOnBoundary ( BoundingBoxPosition pos, Point & test, Point & min, Point & 
 
 
 
-void BoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t)
+void BoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm)
 {
     if(condition == CONTACT_CONDITION)
     {
@@ -6513,17 +6509,17 @@ void BoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeI
 
         if ( !function )
         {
-            apply2DBC ( cache2d[i],gp,Jinv, cache[i], condition, data*getScale(), a, axis ) ;
+            apply2DBC ( cache2d[i],gp,Jinv, cache[i], condition, data*getScale(), a, vm, axis ) ;
         }
         else
         {
             Function effective = dataFunction*getScale() ;
-            apply2DBC ( cache2d[i],gp,Jinv, cache[i], condition, effective, a, axis ) ;
+            apply2DBC ( cache2d[i],gp,Jinv, cache[i], condition, effective, a, vm, axis ) ;
         }
     }
 }
 
-void BoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)
+void BoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)
 {
     
     if(condition == CONTACT_CONDITION)
@@ -6552,18 +6548,18 @@ void BoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTr
 
         if ( !function )
         {
-            apply3DBC ( cache3d[i],gp,Jinv, cache[i], condition, data*getScale(), a, axis ) ;
+            apply3DBC ( cache3d[i],gp,Jinv, cache[i], condition, data*getScale(), a, vm, axis ) ;
         }
         else
         {
             Function effective = dataFunction*getScale() ;
-            apply3DBC ( cache3d[i],gp,Jinv, cache[i], condition, effective, a, axis ) ;
+            apply3DBC ( cache3d[i],gp,Jinv, cache[i], condition, effective, a, vm, axis ) ;
         }
     }
 }
 
 
-void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
+void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm )
 {
 
     if ( cache.empty() )
@@ -6664,21 +6660,21 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
 
         if ( !function )
         {
-            apply2DBC ( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a , axis ) ;
+            apply2DBC ( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a, vm , axis ) ;
         }
         else
         {
             Function effective = dataFunction*getScale() ;
-            apply2DBC ( id.begin()->second.second,gp,Jinv, target, condition, effective, a , axis ) ;
+            apply2DBC ( id.begin()->second.second,gp,Jinv, target, condition, effective, a, vm , axis ) ;
         }
 
 
     }
 
-    BoundaryCondition::apply(a,t);
+    BoundaryCondition::apply(a,t, vm);
 }
 
-void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
+void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm )
 {
     if ( cache.empty() )
     {
@@ -6791,18 +6787,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
 
         if ( !function )
         {
-            apply3DBC ( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a , axis ) ;
+            apply3DBC ( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a, vm , axis ) ;
         }
         else
         {
             Function effective = dataFunction*getScale() ;
-            apply3DBC ( id.begin()->second.second,gp,Jinv, target, condition, effective, a, axis ) ;
+            apply3DBC ( id.begin()->second.second,gp,Jinv, target, condition, effective, a, vm, axis ) ;
         }
 
 
     }
     
-    BoundaryCondition::apply(a,t);
+    BoundaryCondition::apply(a,t, vm);
 
 }
 
@@ -6810,7 +6806,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
 GeometryAndFaceDefinedSurfaceBoundaryCondition::GeometryAndFaceDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & normal, double d , int a ) : BoundaryCondition ( t, d, a ), domain ( source ),faceNormal(normal/normal.norm()) { }
 GeometryAndFaceDefinedSurfaceBoundaryCondition::GeometryAndFaceDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & normal, const Function & d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ),faceNormal(normal/normal.norm()) { }
 
-void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
+void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm )
 {
     if ( cache2d.empty() )
     {
@@ -6854,10 +6850,10 @@ void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<
         }
     }
 
-    BoundaryCondition::apply(a,t);
+    BoundaryCondition::apply(a,t, vm);
 }
 
-void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
+void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm )
 {
     if ( cache.empty() )
     {
@@ -6897,14 +6893,14 @@ void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<
         }
     }
     
-    BoundaryCondition::apply(a,t);
+    BoundaryCondition::apply(a,t, vm);
 }
 
 GeometryDefinedSurfaceBoundaryCondition::GeometryDefinedSurfaceBoundaryCondition ( LagrangeMultiplierType t, Geometry * source, double d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ) { }
 
 GeometryDefinedSurfaceBoundaryCondition::GeometryDefinedSurfaceBoundaryCondition ( LagrangeMultiplierType t, Geometry * source, const Function & d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ) { }
 
-void GeometryDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
+void GeometryDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm )
 {
     if ( cache2d.empty() )
     {
@@ -6940,10 +6936,10 @@ void GeometryDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<Delauna
         }
     }
 
-    BoundaryCondition::apply(a,t);
+    BoundaryCondition::apply(a,t, vm);
 }
 
-void GeometryDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
+void GeometryDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm )
 {
 
     if ( cache3d.empty() )
@@ -6977,7 +6973,7 @@ void GeometryDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<Delauna
         }
     }
 
-    BoundaryCondition::apply(a,t);
+    BoundaryCondition::apply(a,t, vm);
 }
 
 
@@ -6990,7 +6986,7 @@ GlobalBoundaryCondition::GlobalBoundaryCondition ( LagrangeMultiplierType t, dou
 
 GlobalBoundaryCondition::GlobalBoundaryCondition ( LagrangeMultiplierType t, const Function & d, int a ) : BoundaryCondition ( t, d, a ) { }
 
-void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
+void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm )
 {
     if ( cache.empty() )
     {
@@ -7038,20 +7034,20 @@ void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriang
 
             if ( !function )
             {
-                apply2DBC ( i,gp, Jinv, id, condition, data*getScale(), a ) ;
+                apply2DBC ( i,gp, Jinv, id, condition, data*getScale(), a,vm ) ;
             }
             else
             {
                 Function effective = dataFunction*getScale() ;
-                apply2DBC ( i,gp, Jinv, id, condition, effective, a ) ;
+                apply2DBC ( i,gp, Jinv, id, condition, effective, a, vm ) ;
             }
         }
     }
 
-    BoundaryCondition::apply(a,t);
+    BoundaryCondition::apply(a,t, vm);
 }
 
-void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
+void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm )
 {
     if ( cache.empty() )
     {
@@ -7098,20 +7094,20 @@ void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrah
 
             if ( !function )
             {
-                apply3DBC ( i,gp,Jinv, id, condition, data*getScale(), a ) ;
+                apply3DBC ( i,gp,Jinv, id, condition, data*getScale(), a, vm ) ;
             }
             else
             {
                 Function effective = dataFunction*getScale() ;
-                apply3DBC ( i,gp, Jinv, id, condition, effective, a ) ;
+                apply3DBC ( i,gp, Jinv, id, condition, effective, a, vm ) ;
             }
         }
     }
 
-    BoundaryCondition::apply(a,t);
+    BoundaryCondition::apply(a,t, vm);
 }
 
-void GlobalBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
+void GlobalBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm )
 {
     if ( cache.empty() )
     {
@@ -7147,20 +7143,20 @@ void GlobalBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, Delau
 
             if ( !function )
             {
-                apply2DBC ( i,gp, Jinv, id, condition, data*getScale(), a ) ;
+                apply2DBC ( i,gp, Jinv, id, condition, data*getScale(), a, vm ) ;
             }
             else
             {
                 Function effective = dataFunction*getScale() ;
-                apply2DBC ( i,gp, Jinv, id, condition, effective, a ) ;
+                apply2DBC ( i,gp, Jinv, id, condition, effective, a, vm ) ;
             }
         }
     }
 
-    BoundaryCondition::apply(a,t);
+    BoundaryCondition::apply(a,t, vm);
 }
 
-void GlobalBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
+void GlobalBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm )
 {
     if ( cache.empty() )
     {
@@ -7193,13 +7189,13 @@ void GlobalBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, De
         std::cerr << "\r dof " <<t->begin().size() << "/" << t->begin().size() << std::endl ;
     }
 
-    BoundaryCondition::apply(a,t);
+    BoundaryCondition::apply(a,t, vm);
 }
 
 
 
 
-void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
+void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm )
 {
     if ( cache.empty() )
     {
@@ -7305,10 +7301,10 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Me
 
     }
 
-    BoundaryCondition::apply(a,t);
+    BoundaryCondition::apply(a,t, vm);
 }
 
-void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
+void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm )
 {
 
     if ( cache.empty() )
@@ -7407,11 +7403,11 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTri
 
     }
 
-    BoundaryCondition::apply(a,t);
+    BoundaryCondition::apply(a,t, vm);
 
 }
 
-void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
+void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm )
 {
     if ( cache.empty() )
     {
@@ -7528,11 +7524,11 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Me
         }
     }
     
-    BoundaryCondition::apply(a,t);
+    BoundaryCondition::apply(a,t, vm);
 
 }
 
-void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
+void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm )
 {
     if ( cache.empty() )
     {
@@ -7654,18 +7650,18 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTet
                 }
                 if ( !function )
                 {
-                    apply3DBC ( i,gp,Jinv, cache.back(), condition, data*getScale(), a , axis ) ;
+                    apply3DBC ( i,gp,Jinv, cache.back(), condition, data*getScale(), a, vm , axis ) ;
                 }
                 else
                 {
                     Function effective = dataFunction*getScale() ;
-                    apply3DBC ( i,gp,Jinv, cache.back(), condition, effective, a , axis ) ;
+                    apply3DBC ( i,gp,Jinv, cache.back(), condition, effective, a, vm , axis ) ;
                 }
             }
         }
     }
 
-    BoundaryCondition::apply(a,t);
+    BoundaryCondition::apply(a,t, vm);
 }
 
 BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const double & d, int a ) :  condition ( t ),data ( d ), scale ( 1 ), active(false), dataInterpolation(nullptr), axis ( a ), function ( false ) { }
@@ -7690,7 +7686,7 @@ double BoundaryCondition::getScale() const
 
 ProjectionDefinedBoundaryCondition::ProjectionDefinedBoundaryCondition ( LagrangeMultiplierType t, const Point & dir, double d, int a ) : BoundaryCondition ( t, d, a ), direction ( dir ) { }
 
-void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
+void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm )
 {
 
     for ( auto i = t->begin() ; i != t->end()  ; i++  )
@@ -7756,12 +7752,12 @@ void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTria
                 {
                     if ( !function )
                     {
-                        apply2DBC ( i,gp,Jinv, id, condition, data*getScale(), a ) ;
+                        apply2DBC ( i,gp,Jinv, id, condition, data*getScale(), a, vm ) ;
                     }
                     else
                     {
                         Function effective = dataFunction*getScale() ;
-                        apply2DBC ( i,gp,Jinv, id, condition, effective, a ) ;
+                        apply2DBC ( i,gp,Jinv, id, condition, effective, a, vm ) ;
                     }
                 }
             }
@@ -7769,7 +7765,7 @@ void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTria
     }
 }
 
-void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
+void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm )
 {
 
     for ( auto i = t->begin() ; i != t->end()  ; i++  )
@@ -7818,12 +7814,12 @@ void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetr
 
         if ( !function )
         {
-            apply3DBC ( i,gp,Jinv, id, condition, data*getScale(), a ) ;
+            apply3DBC ( i,gp,Jinv, id, condition, data*getScale(), a, vm ) ;
         }
         else
         {
             Function effective = dataFunction*getScale() ;
-            apply3DBC ( i,gp,Jinv, id, condition, effective, a ) ;
+            apply3DBC ( i,gp,Jinv, id, condition, effective, a, vm ) ;
         }
     }
 }
@@ -7835,7 +7831,7 @@ TimeContinuityBoundaryCondition::TimeContinuityBoundaryCondition ( double i ) : 
     previousDisp.resize ( 0 ) ;
 }
 
-void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
+void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm )
 {
 //     t->getAdditionalPoints() ;
     auto j = t->begin() ;
@@ -7923,7 +7919,7 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangl
 
 }
 
-void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
+void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm )
 {
     auto j = t->begin() ;
     size_t dof = 0 ;
@@ -7993,12 +7989,12 @@ void GlobalForceBoundaryCondition::setDataVector ( Vector & data )
     dataVector = data ;
 }
 
-void GlobalForceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
+void GlobalForceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm )
 {
     a->addForceVector ( dataVector ) ;
 }
 
-void GlobalForceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
+void GlobalForceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm )
 {
     a->addForceVector ( dataVector ) ;
 }

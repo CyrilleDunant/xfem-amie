@@ -47,9 +47,9 @@ public:
     BoundaryCondition(LagrangeMultiplierType t, const Function & d, int a = 0) ;
     BoundaryCondition(LagrangeMultiplierType t, CollisionDetector * contactCondition, GeometryBasedEffect * contactLaw ) ;
     
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t);
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm);
     
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t);
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm);
     
     virtual void setData(double newval) {
         data = newval ;
@@ -100,8 +100,8 @@ class PlaneSectionsBoundaryConditions final: public BoundaryCondition
     double downlimit ;
 public:
     PlaneSectionsBoundaryConditions(bool isVertical, double down, double up, int a = 0) :BoundaryCondition(GENERAL, 0.),  isVertical(isVertical), uplimit(up), downlimit(down) { }
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm) ;
 } ;
 
 
@@ -109,8 +109,8 @@ class NullBoundaryCondition final: public BoundaryCondition
 {
 public:
     NullBoundaryCondition() : BoundaryCondition(NULL_CONDITION, 0.) { }
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) {}
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) {}
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) {}
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm) {}
 } ;
 
 /** \brief Boundary condition object for usage in multigrid solver. Work in Progress*/
@@ -122,8 +122,8 @@ private:
 public:
     ProjectionDefinedBoundaryCondition(LagrangeMultiplierType t,const Point & direction, double d = 0, int a = 0) ;
     ProjectionDefinedBoundaryCondition(LagrangeMultiplierType t,const Point & direction, const Function & d, int a = 0 ) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)  ;
 } ;
 
 /** \brief Boundary condition object for usage in multigrid solver.*/
@@ -136,8 +136,8 @@ public:
     BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double d = 0, int a = 0 ) ;
     BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, CollisionDetector * contactCondition, GeometryBasedEffect * contactLaw ) ;
     BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, const Function & d, int a = 0 ) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)  ;
 } ;
 
 typedef enum {
@@ -180,8 +180,8 @@ private:
 
 public:
     BoundingBoxCycleDefinedBoundaryCondition(std::vector<LoadingCycle> cycles, const std::vector<LagrangeMultiplierType> t, const std::vector<BoundingBoxPosition> & pos) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)  ;
 } ;
 
 /** \brief Boundary condition object for usage in multigrid solver.*/
@@ -197,8 +197,8 @@ public:
     BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, double zm, double zp, const Function & d, int a = 0 ) ;
     BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, const Function & d, int a = 0 ) ;
     BoundingBoxAndRestrictionDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp,CollisionDetector * contactCondition, GeometryBasedEffect * contactLaw )  ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)  ;
 } ;
 
 class BoundingBoxNearestNodeDefinedBoundaryCondition final: public BoundaryCondition
@@ -210,8 +210,8 @@ private:
 public:
     BoundingBoxNearestNodeDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, Point nearest, double d = 0, int a = 0 ) ;
     BoundingBoxNearestNodeDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, Point nearest, const Function & d, int a = 0 ) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)  ;
 } ;
 
 /** \brief Boundary condition applied on points on the surface of specified geometry*/
@@ -223,8 +223,8 @@ protected:
 public:
     GeometryDefinedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, double d = 0, int a = 0) ;
     GeometryDefinedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Function & d, int a = 0) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)  ;
 } ;
 
 /** \brief Boundary condition applied on points in specified geometry*/
@@ -235,8 +235,8 @@ protected:
 public:
     GeometryDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, double d = 0, int a = 0) ;
     GeometryDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Function & d, int a = 0) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)  ;
 } ;
 
 
@@ -249,8 +249,8 @@ protected:
 public:
     GeometryAndFaceDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & normal, double d = 0, int a = 0) ;
     GeometryAndFaceDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & normal, const Function & d, int a = 0) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)  ;
 } ;
 
 /** \brief Boundary condition applied on points in specified geometry*/
@@ -262,8 +262,8 @@ protected:
 public:
     GeometryDefinedSurfaceAndRestrictionsBoundaryCondition(LagrangeMultiplierType t, Geometry * source, double d = 0, int a = 0) ;
     GeometryDefinedSurfaceAndRestrictionsBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Function & d, int a = 0) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)  ;
 } ;
 
 /** \brief Boundary condition object for usage in multigrid solver. Work in Progress*/
@@ -276,8 +276,8 @@ private:
 public:
     GeometryProjectedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & from,  const Point & direction, double d = 0 , int a = 0) ;
     GeometryProjectedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & from,  const Point & direction, const Function & d , int a = 0) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)  ;
 } ;
 
 
@@ -290,8 +290,8 @@ protected:
 public:
     ElementDefinedBoundaryCondition(ElementarySurface * surface) ;
     ElementDefinedBoundaryCondition(ElementaryVolume * volume) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)  ;
 } ;
 
 /** \brief Boundary condition for single Dofs*/
@@ -308,8 +308,8 @@ public:
     DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, double d = 0, int a = 0 ) ;
     DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d, int a = 0 ) ;
     DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d, int a = 0 ) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)  ;
     virtual ~DofDefinedBoundaryCondition() {
         delete gp ;
         delete Jinv ;
@@ -328,8 +328,8 @@ public:
     double instant ;
     double minDeltaTime ;
     TimeContinuityBoundaryCondition(double initialValue = 0) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)  ;
 
 } ;
 
@@ -342,8 +342,8 @@ public:
     GlobalForceBoundaryCondition(Vector & data) ;
 
     void setDataVector(Vector & d) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)  ;
 } ;
 
 class GlobalBoundaryCondition final: public BoundaryCondition
@@ -353,8 +353,8 @@ public:
     
     GlobalBoundaryCondition(LagrangeMultiplierType t, double d = 0, int a = 0) ;
     GlobalBoundaryCondition(LagrangeMultiplierType t,  const Function & d, int a = 0) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t, VirtualMachine * vm) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, VirtualMachine * vm)  ;
 } ;
 
 

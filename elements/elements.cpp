@@ -546,7 +546,7 @@ GaussPointArray gaussPointSet2D(Order order, const ElementState & s)
     Matrix J(2,2) ;
     for(size_t i = 0 ; i < fin.size() ; i++)
     {
-        s.getInverseJacobianMatrix(fin[i].first, J/*, true*/);
+        s.getInverseJacobianMatrix(fin[i].first, J);
         fin[i].second /= det(J);
     }
 
@@ -639,7 +639,7 @@ GaussPointArray gaussPointSet3D(Order order, const ElementState  & s)
     Matrix J (3,3) ;
     for(size_t i = 0 ; i < fin.size() ; i++)
     {
-        s.getInverseJacobianMatrix(fin[i].first, J/*, true*/) ;
+        s.getInverseJacobianMatrix(fin[i].first, J) ;
         fin[i].second /= det(J) ;
     }
 
@@ -933,7 +933,7 @@ const GaussPointArray & TriElement::genGaussPoints()
     Matrix J(2,2) ;
     for(size_t i = 0 ; i < fin.size() ; i++)
     {
-        getState().getInverseJacobianMatrix(fin[i].first, J/*, true*/) ;
+        getState().getInverseJacobianMatrix(fin[i].first, J) ;
 //         std::cout << "area = "<< area() << ", det = "<< 1./det(J) << std::endl ;
         fin[i].second /= det(J);
     }
@@ -2459,7 +2459,7 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
     Matrix J(3,3) ;
     for(size_t i = 0 ; i < fin.size() ; i++)
     {
-        getState().getInverseJacobianMatrix(fin[i].first, J/*, true*/) ;
+        getState().getInverseJacobianMatrix(fin[i].first, J) ;
         fin[i].second /= det(J) ;
     }
 
@@ -5298,7 +5298,7 @@ const GaussPointArray & HexahedralElement::genGaussPoints()
     Matrix J(3,3) ;
     for(size_t i = 0 ; i < fin.size() ; i++)
     {
-        getState().getInverseJacobianMatrix(fin[i].first, J/*, true*/) ;
+        getState().getInverseJacobianMatrix(fin[i].first, J) ;
         fin[i].second /= det(J) ;
     }
 

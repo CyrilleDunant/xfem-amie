@@ -189,8 +189,8 @@ protected:
    
     
 public: 
-    void updateInverseJacobianCache(const Point &p) ;
-    void getInverseJacobianMatrix(const Point & p, Matrix & ret, bool inital = false) const ;
+    void updateInverseJacobianCache(const Point &p, VirtualMachine * vm = nullptr) ;
+    void getInverseJacobianMatrix(const Point & p, Matrix & ret, VirtualMachine * vm = nullptr) const ;
     
     Matrix * JinvCache ;
     /** \brief Construct the state of the argument*/
@@ -238,7 +238,7 @@ public:
     std::vector<double> getEnrichedInterpolatingFactors ( const Point & p, bool local = false ) const ;
     
     virtual void step ( double dt, const Vector* d ) ;
-    virtual bool prepare(const Vector &extrapolatedDisplacements) ;
+    virtual bool prepare(const Vector &extrapolatedDisplacements, VirtualMachine * vm = nullptr) ;
 
     double getTime() const ;
     double getDeltaTime() const ;
@@ -419,7 +419,7 @@ struct IntegrableEntity : public Geometry
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix( VirtualMachine * vm = nullptr)  = 0 ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr)  = 0 ;
 // 	virtual Vector getForces() = 0 ;
-    virtual void applyBoundaryCondition ( Assembly * a ) ;
+    virtual void applyBoundaryCondition ( Assembly * a, VirtualMachine * vm ) ;
 
     virtual void adjustElementaryMatrix ( double previousTimeStep, double nextTimeStep ) { } ;
 

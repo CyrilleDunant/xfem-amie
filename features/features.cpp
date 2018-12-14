@@ -4416,7 +4416,7 @@ bool FeatureTree::solve()
     if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint && contactsConverged() /*&& deltaTime > POINT_TOLERANCE*/) 
     {
             
-        if(largeStrainSteps++ > 512)
+        if(largeStrainSteps++ > 4096)
         {
             nlcount = 0 ;
             largeStrainSteps = -1 ;
@@ -4432,7 +4432,7 @@ bool FeatureTree::solve()
                 {
                     if(i.getPosition()%100 == 0)
                         std::cerr << "\rupdating jacobian matrices... " << i.getPosition() +1 << "/"<< i.size()<< std::flush ;
-                    bool lp = !i->getState().prepare(extrapolatedDisplacements) ;
+                    bool lp = !i->getState().prepare(extrapolatedDisplacements, &vm) ;
                     nlcount += lp ;
                 }
             }
@@ -4445,7 +4445,7 @@ bool FeatureTree::solve()
             {
                 if(i.getPosition()%100 == 0)
                     std::cerr << "\rupdating jacobian matrices... " << i.getPosition() +1 << "/"<< i.size()<< std::flush ;
-                bool lp = !i->getState().prepare(extrapolatedDisplacements) ;
+                bool lp = !i->getState().prepare(extrapolatedDisplacements, &vm) ;
                 nlcount += lp ;
             }
         }
@@ -4476,7 +4476,7 @@ bool FeatureTree::solve()
                 if(i.getPosition()%100 == 0)
                     std::cerr << "\rupdating elementary matrices and induced BCs... " << i.getPosition() +1 << "/"<< i.size()<< std::flush ;
                 i->getElementaryMatrix(&vm) ;
-                i->applyBoundaryCondition ( K ) ;
+                i->applyBoundaryCondition ( K, &vm ) ;
             }
         }
         
@@ -4485,6 +4485,7 @@ bool FeatureTree::solve()
         if(!contacts.empty())
         {
             std::cerr << "\nApplying Contact conditions " << std::flush ;
+
             if(largeStrainConverged)
             {
                 std::cerr << " (stepping) " << std::flush ;
@@ -4510,7 +4511,7 @@ bool FeatureTree::solve()
             if(i.getPosition()%100 == 0)
                 std::cerr << "\rupdating elementary matrices and induced BCs... " << i.getPosition() +1 << "/"<< i.size()<< std::flush ;
             i->getElementaryMatrix(&vm) ;
-            i->applyBoundaryCondition ( K ) ;
+            i->applyBoundaryCondition ( K, &vm ) ;
         }
     }
     
@@ -4531,12 +4532,12 @@ bool FeatureTree::solve()
 
         if ( dtree )
         {
-            boundaryCondition[i]->apply ( K, dtree ) ;
+            boundaryCondition[i]->apply ( K, dtree, &vm ) ;
         }
 
         if ( dtree3D )
         {
-            boundaryCondition[i]->apply ( K, dtree3D ) ;
+            boundaryCondition[i]->apply ( K, dtree3D, &vm ) ;
         }
     }
     gettimeofday ( &time1, nullptr );
@@ -5689,7 +5690,14 @@ bool FeatureTree::stepElements()
                 break ;
             }
         }
+//         if(foundCheckPoint)
+//         {
+//             for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
+//                 (*i)->reInitialise();
+//         }
     }
+
+    
     
     stateConverged = foundCheckPoint && maxScore < maxTolerance && contactsStateConverged;
     
