@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 	bool renew = parser.getFlag("--renew-base") ;
 	std::string dir = parser.getString("--output-directory") ;
 
-        Sample rect(nullptr, 0.04,0.04,0,0) ;
+        RectangularFeature rect(nullptr, 0.04,0.04,0,0) ;
 	rect.setBehaviour(new Stiffness( 10e9, 0.2 ) ) ;
         
 	EllipsoidalInclusion inc(&rect, Point(0.02,0.0195),Point(0.02,0.02),Point(0.01,-0.01)) ;

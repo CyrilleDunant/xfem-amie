@@ -15,19 +15,19 @@
 
 using namespace Amie ;
 
-Sample::Sample(Feature * father, double x, double y, double originX, double originY) : Rectangle(x, y, originX, originY), Feature(father)
+RectangularFeature::RectangularFeature(Feature * father, double x, double y, double originX, double originY) : Rectangle(x, y, originX, originY), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = nullptr ;
 }
 
-Sample::Sample( double x, double y, double originX, double originY) : Rectangle(x, y, originX, originY), Feature(nullptr)
+RectangularFeature::RectangularFeature( double x, double y, double originX, double originY) : Rectangle(x, y, originX, originY), Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = nullptr ;
 }
 
-std::vector<DelaunayTriangle *> Sample::getElements2D( FeatureTree * dt) 
+std::vector<DelaunayTriangle *> RectangularFeature::getElements2D( FeatureTree * dt) 
 {
 	std::vector<DelaunayTriangle *>  ret ;
 	std::vector<DelaunayTriangle *>  temp = dt->get2DMesh()->getConflictingElements(this->getPrimitive()) ;
@@ -50,7 +50,7 @@ std::vector<DelaunayTriangle *> Sample::getElements2D( FeatureTree * dt)
 	return ret ;
 }
 
-bool Sample::interacts(Feature * f, double d) const
+bool RectangularFeature::interacts(Feature * f, double d) const
 {
 	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
 		if(f->inBoundary(*(*i), d))
@@ -58,7 +58,7 @@ bool Sample::interacts(Feature * f, double d) const
 	return false ;
 }
 
-void Sample::sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
+void RectangularFeature::sample(double linearDensity, double surfaceDensityFactor, Sampler * sampler)
 {
     this->sampleSurface(linearDensity, surfaceDensityFactor, sampler) ;
 }

@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 	test = test.substr(test.rfind('/')+1, std::string::npos) ;
 	test = test.substr(0, test.length()-4) ;
 	
-	Sample sample(0.01,0.01,0,0) ;
+	   RectangularFeature sample(0.01,0.01,0,0) ;
 	sample.setBehaviour(behaviour) ;
 
 	FeatureTree F(&sample) ;

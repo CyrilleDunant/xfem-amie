@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
     serpentine.addMaterialLaw(&radiationDamage);
 
 //creation of sample and its dimensions
-    Sample box(nullptr, 0.02,0.02,0.,0.) ;//0.025
+    RectangularFeature box(nullptr, 0.02,0.02,0.,0.) ;//0.025
     box.setBehaviour(&paste) ;
 
     int sampling = 1 ;//25

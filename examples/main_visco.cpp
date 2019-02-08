@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 	std::vector<double> densities ;                               
 	std::fstream loads(argv[3])   ;  
 
-	Sample box(nullptr, 0.08,0.08,0.,0.) ;
+	   RectangularFeature box(nullptr, 0.08,0.08,0.,0.) ;
 	  ///////////////////////////////////////////////////
       // Modele et Materiaux      ///////////////////////
       ///////////////////////////////////////////////////

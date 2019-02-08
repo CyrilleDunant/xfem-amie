@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     paste.addMaterialLaw(&weightLoss);
     paste.addMaterialLaw(&dryingShrinkage);
 
-    Sample box(nullptr, 0.0635,0.0127,0.0635/2,0.) ;
+    RectangularFeature box(nullptr, 0.0635,0.0127,0.0635/2,0.) ;
     box.setBehaviour(&paste);
 
     FeatureTree F(&box) ;

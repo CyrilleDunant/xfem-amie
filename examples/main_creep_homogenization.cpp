@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
   ///////////////////////////////////////////////////
   // Geometrie du maillage///////////////////////////
   ///////////////////////////////////////////////////
-  Sample samplers(nullptr, 1.,1.,0.,0.) ;
+        RectangularFeature samplers(nullptr, 1.,1.,0.,0.) ;
   FeatureTree F(&samplers) ;
   F.setSamplingNumber(60) ;
   F.setOrder(LINEAR_TIME_LINEAR) ;

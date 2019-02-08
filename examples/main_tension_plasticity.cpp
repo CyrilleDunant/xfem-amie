@@ -144,7 +144,7 @@ MultiTriangleWriter writer ( "triangles_stiff_head", "triangles_stiff_layers", n
 MultiTriangleWriter writerc ( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
 MultiTriangleWriter writerr ( "triangles_relaxed_head", "triangles_relaxed_layers", nullptr ) ;
 
-void step ( size_t nsteps, Sample * samplef )
+void step ( size_t nsteps, RectangularFeature * samplef )
 {
 
     int tries = 0 ;
@@ -152,11 +152,18 @@ void step ( size_t nsteps, Sample * samplef )
     bool relaxed = false ;
     bool go_on = true ;
     bool setbc = true ;
+    
+
 
     std::fstream ldfile ;
     ldfile.open("loadStrain_m.txt", std::ios_base::in|std::ios_base::out|std::ios_base::trunc) ;
     featureTree->step() ;
-    ldfile << 1 <<"  " << 0 << "  " << 0 << "  " << 0 << "  " << 0 << "  " << 0 <<  "  " << 0 << "  " << 0 << "  "  << 0 << "  " << 1 <<  std::endl ;
+    ldfile << 1 <<"  " << 0 << "  " << 0 << "  " << 0 << "  " << 0 << "  " << 0 <<  "  " << 0 << "  " << 0 << "  "  << 0 << "  " << 1 <<  "  " << 0 <<  "  " << 0 << "  " << 0 << "  "  << 0 << "  " <<std::endl ;
+    
+    int centrecache = featureTree->get2DMesh()->generateCache(new Circle(0.0025, 0, 0)) ;
+    Point p(0,0) ;
+    DelaunayTriangle * centreElement = featureTree->get2DMesh()->getUniqueConflictingElement(&p) ;
+    
     writer.reset ( featureTree ) ;
     writer.getField ( TWFT_CRITERION ) ;
     writer.getField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
@@ -193,10 +200,10 @@ void step ( size_t nsteps, Sample * samplef )
         }
         else if(go_on)
         {
-            if(v < 30)
-                loadr->setData(loadr->getData()+2e-6/**.005*/) ; //e-4*.25 is mostly OK
-            else
-                loadr->setData(loadr->getData()+1e-4/**.005*/) ; //e-4*.25 is mostly OK
+//             if(v < 30)
+                loadr->setData(loadr->getData()+1e-5/**.005*/) ; //e-4*.25 is mostly OK
+//             else
+//                 loadr->setData(loadr->getData()+2e-4/**.005*/) ; //e-4*.25 is mostly OK
             if(!setbc)
             {
                 featureTree->addBoundaryCondition( loadr );
@@ -212,10 +219,10 @@ void step ( size_t nsteps, Sample * samplef )
         else
             nsteps++ ;
 
-        if(false &&go_on && (tries+1)%every == 0 && tries)
-            featureTree->thresholdScoreMet = 0.00001 ;
-        else
-            featureTree->thresholdScoreMet = 0.01 ;
+//         if(false &&go_on && (tries+1)%every == 0 && tries)
+//             featureTree->thresholdScoreMet = 0.00001 ;
+//         else
+//             featureTree->thresholdScoreMet = 0.01 ;
 
         double volume = 0 ;
         double xavg = 0 ;
@@ -227,11 +234,12 @@ void step ( size_t nsteps, Sample * samplef )
         Vector istemp(2); //= featureTree->getAverageField ( PRINCIPAL_IMPOSED_STRESS_FIELD ) ;
         Vector etemp(2) ;//= featureTree->getAverageField ( PRINCIPAL_MECHANICAL_STRAIN_FIELD ) ;
         Vector ietemp(2); //= featureTree->getAverageField ( PRINCIPAL_IMPOSED_STRAIN_FIELD ) ;
-        Point p(0.000,0.000) ;
-        featureTree->get2DMesh()->getField ( PRINCIPAL_REAL_STRESS_FIELD, p, stemp ) ;
-        featureTree->get2DMesh()->getField ( PRINCIPAL_IMPOSED_STRESS_FIELD, p, istemp ) ;
-        featureTree->get2DMesh()->getField ( PRINCIPAL_MECHANICAL_STRAIN_FIELD,  p, etemp ) ;
-        featureTree->get2DMesh()->getField ( PRINCIPAL_IMPOSED_STRAIN_FIELD,  p, ietemp ) ;
+        Vector astemp = featureTree->getAverageField ( PRINCIPAL_REAL_STRESS_FIELD ) ;
+        Vector aetemp = featureTree->getAverageField ( PRINCIPAL_TOTAL_STRAIN_FIELD ) ;
+        stemp = featureTree->get2DMesh()->getSmoothedField ( PRINCIPAL_REAL_STRESS_FIELD, centrecache, centreElement,0. ) ;
+        istemp = featureTree->get2DMesh()->getSmoothedField ( PRINCIPAL_IMPOSED_STRESS_FIELD, centrecache, centreElement,0.  ) ;
+        etemp = featureTree->get2DMesh()->getSmoothedField ( PRINCIPAL_MECHANICAL_STRAIN_FIELD, centrecache, centreElement,0.  ) ;
+        ietemp = featureTree->get2DMesh()->getSmoothedField ( PRINCIPAL_IMPOSED_STRAIN_FIELD, centrecache, centreElement,0.  ) ;
 
         displacements.push_back ( etemp[1] );
         displacementsx.push_back ( etemp[0] );
@@ -243,12 +251,26 @@ void step ( size_t nsteps, Sample * samplef )
         std::cout << "average epsilon22 : " << etemp[1]*1e6 << std::endl ;
         std::cout << std::endl ;
 
-        ldfile << go_on << "  " << stemp[0]/1e6 << "  " << stemp[1]/1e6 << "  " << etemp[0]*1e6 << "  " << etemp[1]*1e6 <<  "  "
-               << istemp[0]/1e6 << "  " << istemp[1]/1e6 << "  "  << ietemp[0]*1e6 << "  " << ietemp[1]*1e6 << "  " << featureTree->getIterationCount() << std::endl ;
+        ldfile << go_on << "  "                                 //1
+               << stemp[0]/1e6 << "  "                          //2
+               << stemp[1]/1e6 << "  "                          //3
+               << etemp[0]*1e6 << "  "                          //4
+               << etemp[1]*1e6 <<  "  "                         //5
+               << istemp[0]/1e6 << "  "                         //6
+               << istemp[1]/1e6 << "  "                         //7
+               << ietemp[0]*1e6 << "  "                         //8
+               << ietemp[1]*1e6 << "  "                         //9
+               << featureTree->getIterationCount() << "  "      //10
+               << astemp[0]/1e6 << "  "                         //11
+               << astemp[1]/1e6 << "  "                         //12
+               << aetemp[0]*1e6 << "  "                         //13
+               << aetemp[1]*1e6 << std::endl ;                  //14
 
 
 //         }
 
+               if(v%5 == 0)
+               {
 // 	if (!relaxed)
 // 	{
         writer.reset ( featureTree ) ;
@@ -291,6 +313,7 @@ void step ( size_t nsteps, Sample * samplef )
 //             writer.getField ( TWFT_DAMAGE ) ;
             writerr.append() ;
         }
+               }
 
     }
     ldfile.close() ;
@@ -389,7 +412,7 @@ int main ( int argc, char *argv[] )
     double E = 30e9 ; //70e9 ;
 
 
-    Sample samplef(0.005, 0.021,  0, 0) ;
+    RectangularFeature samplef(0.005, 0.021,  0, 0) ;
 // 	Sample samplef(0.01, 0.01,  0, 0) ;
 //     Sample samplef ( 100, 100,  50, 50 ) ;
 
@@ -409,7 +432,7 @@ int main ( int argc, char *argv[] )
     t0.isVirtualFeature = true ;
     t1.isVirtualFeature = true ;
 
-    Sample r0 ( 0.0015, 0.009,+0.001+0.0015*.5, 0 ) ;
+    RectangularFeature r0 ( 0.0015, 0.009,+0.001+0.0015*.5, 0 ) ;
     r0.setBehaviour ( new  VoidForm() ) ;
     F.addFeature ( &samplef, &r0 );
 
@@ -421,7 +444,7 @@ int main ( int argc, char *argv[] )
     i1.setBehaviour ( new  VoidForm() ) ;
     F.addFeature ( &samplef, &i1 );
 
-    Sample r1 ( 0.0015, 0.009,-0.001-0.0015*.5, 0 ) ;
+    RectangularFeature r1 ( 0.0015, 0.009,-0.001-0.0015*.5, 0 ) ;
     r1.setBehaviour ( new  VoidForm() ) ;
     F.addFeature ( &samplef, &r1 );
 
@@ -463,20 +486,25 @@ int main ( int argc, char *argv[] )
 // 	F.addBoundaryCondition(loadt);
 
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA, BOTTOM ) ) ;
-    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI,BOTTOM ) ) ;
-    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, TOP ) ) ;
+//     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA, TPO ) ) ;
+    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI,BOTTOM_LEFT ) ) ;
+    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, TOP_LEFT ) ) ;
 //     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,TOP_LEFT ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
 
+
     F.setOrder ( LINEAR ) ;
+    //Sample samplef(0.005, 0.021,  0, 0) ;    
+    F.addRefinementZone(new Circle(0.003,0,0));
+    F.addRefinementZone(new Circle(0.0015,0,0));
 // F.addPoint(new Point(0, 0)) ;
 
     F.setMaxIterationsPerStep ( 1000 );
-    F.thresholdScoreMet = 0.001 ;
+    F.thresholdScoreMet = 0.0001 ;
 
 
-    step ( 2500, &samplef ) ;
+    step ( 60, &samplef ) ;
 
 
     return 0 ;

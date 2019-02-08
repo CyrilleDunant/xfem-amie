@@ -193,7 +193,7 @@ FeatureTree::FeatureTree ( Feature *first, double fraction, int layer, size_t gr
     samplingNumber = 0 ;
     previousSamplingNumber = 0 ;
     samplingRestriction = 0 ;
-    surfaceSamplingFactor = 2. ;
+    surfaceSamplingFactor = 1.3 ;
     minimumMeshDensity =  0.005 ;
 
 
@@ -258,7 +258,7 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     samplingNumber = 0 ;
     previousSamplingNumber = 0 ;
     samplingRestriction = 0 ;
-    surfaceSamplingFactor = 2. ;
+    surfaceSamplingFactor = 1.3 ;
     minimumMeshDensity = 0.005 ;
 
 
@@ -1336,6 +1336,9 @@ void FeatureTree::stitch()
 
     for(auto & bc : boundaryCondition)
         bc->clearCache() ;
+    
+    
+    
 
     if ( is2D() )
     {
@@ -1458,6 +1461,33 @@ void FeatureTree::stitch()
     else if ( instants.size() > 2 && elemOrder >= CONSTANT_TIME_LINEAR && is3D() )
         dtree3D->extrude(instants);
 
+    
+//     Vector extrapolatedDisplacements ;
+//     VirtualMachine vm ;
+//     if ( dtree )
+//     {
+//         std::cerr << "updating jacobian matrices... " << std::flush ;
+//         for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+//         {
+//             for ( auto i = j->second->begin() ; i != j->second->end() ; i++ )
+//             {
+//                 if(i.getPosition()%100 == 0)
+//                     std::cerr << "\rupdating jacobian matrices... " << i.getPosition() +1 << "/"<< i.size()<< std::flush ;
+//                 bool lp = !i->getState().prepare(extrapolatedDisplacements, &vm) ;
+//             }
+//         }
+// 
+//     }
+//     else if(dtree3D)
+//     {
+//         std::cerr << "updating jacobian matrices...... " << std::flush ;
+//         for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
+//         {
+//             if(i.getPosition()%100 == 0)
+//                 std::cerr << "\rupdating jacobian matrices... " << i.getPosition() +1 << "/"<< i.size()<< std::flush ;
+//             bool lp = !i->getState().prepare(extrapolatedDisplacements, &vm) ;
+//         }
+//     } 
 }
 
 void FeatureTree::setSamplingNumber ( double news )
@@ -3912,7 +3942,7 @@ void FeatureTree::setDiscretizationParameters ( ConfigTreeItem * config, ConfigT
     std::vector<ConfigTreeItem *> zones = config->getAllChildren ( "refinement_zone" ) ;
     for ( size_t i = 0 ; i < zones.size() ; i++ )
     {
-        Sample * s = zones[i]->getSample() ;
+        RectangularFeature * s = zones[i]->getSample() ;
         addRefinementZone ( dynamic_cast<Rectangle *> ( s ) ) ;
     }
 
@@ -4413,10 +4443,10 @@ bool FeatureTree::solve()
     Vector extrapolatedDisplacements = K->extrapolate() ;
     int nlcount = 0 ;
     largeStrainConverged = true ;
-    if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint && contactsConverged() /*&& deltaTime > POINT_TOLERANCE*/) 
+    if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint && contactsConverged() /*&& deltaTime > POINT_TOLERANCE*/ ) 
     {
             
-        if(largeStrainSteps++ > 4096)
+        if(largeStrainSteps++ > 2048)
         {
             nlcount = 0 ;
             largeStrainSteps = -1 ;

@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	bool renew = parser.getFlag("--renew-base") ;
 	std::string dir = parser.getString("--output-directory") ;
 
-        Sample rect(nullptr, 0.1,0.1,0,0) ;
+        RectangularFeature rect(nullptr, 0.1,0.1,0,0) ;
 	rect.setBehaviour(new Stiffness( 10e9, 0.2 ) ) ;
         
 	FeatureTree f(&rect) ;

@@ -94,7 +94,7 @@ int main( int argc, char *argv[] )
     timeval time0, time1, time2 ;
     gettimeofday ( &time0, nullptr );
 
-    Sample box(0.1,0.1,0,0) ;
+    RectangularFeature box(0.1,0.1,0,0) ;
     box.setBehaviour( paste ) ;
 
     FeatureTree F(&box) ;

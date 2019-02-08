@@ -29,8 +29,8 @@ int main(int argc, char *argv[])
 
   // creates a 3D box of width, height and depth = 0.04, and centered on the point 0,0,0
   // (length are in meters)
-  Sample boxd( 0.31, 0.31, 0.0,0.0) ;
-	Sample boxm( 0.31, 0.31, 0.0,0.0) ;
+    RectangularFeature boxd( 0.31, 0.31, 0.0,0.0) ;
+	   RectangularFeature boxm( 0.31, 0.31, 0.0,0.0) ;
 	Inclusion elementd( 0.15, 0.0,0.0) ;
 	Inclusion elementm( 0.15, 0.0,0.0) ;
 	Pore pored(0.11,0.0,0.0) ;

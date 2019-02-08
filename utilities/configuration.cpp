@@ -495,13 +495,13 @@ std::string ConfigTreeItem::getStringData(std::string path, std::string defaultV
     return defaultValue ;
 }
 
-Sample * ConfigTreeItem::getSample(std::vector<ExternalMaterialLaw *> common)
+RectangularFeature * ConfigTreeItem::getSample(std::vector<ExternalMaterialLaw *> common)
 {
     double sampleWidth = getData("width",1) ;
     double sampleHeight = getData("height",1) ;
     double sampleCenterX = getData("center.x",0) ;
     double sampleCenterY = getData("center.y",0) ;
-    Sample * ret = new Sample(nullptr, sampleWidth, sampleHeight, sampleCenterX, sampleCenterY) ;
+    RectangularFeature * ret = new RectangularFeature(nullptr, sampleWidth, sampleHeight, sampleCenterX, sampleCenterY) ;
     if(hasChild("behaviour"))
     {
         ret->setBehaviour( getChild("behaviour")->getBehaviour( SPACE_TWO_DIMENSIONAL, common ) ) ;

@@ -193,7 +193,7 @@ int main ( int argc, char *argv[] )
     DamageModel * linear = new SpaceTimeIsotropicLinearDamage(1.0) ;
     DamageModel * linearq = new IsotropicLinearDamage() ;
  
-    Sample sample ( nullptr, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;   
+    RectangularFeature sample ( nullptr, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;   
     
 //     sample.setBehaviour (new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, mcft->getCopy(), linear->getCopy() )); 
     sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mcft->getCopy(), linear->getCopy())); 

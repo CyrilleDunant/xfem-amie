@@ -142,7 +142,7 @@ MultiTriangleWriter writerr ( "triangles_relaxed_head", "triangles_relaxed_layer
 
 
 
-void step ( size_t nsteps, Sample * samplef )
+void step ( size_t nsteps, RectangularFeature * samplef )
 {
 
     int tries = 0 ;
@@ -293,7 +293,7 @@ int main ( int argc, char *argv[] )
     double nu = .3 ;
 
 
-    Sample samplef(0.035, 0.0279,  0, 0) ;
+    RectangularFeature samplef(0.035, 0.0279,  0, 0) ;
 
     FeatureTree F ( &samplef ) ;
     featureTree = &F ;
@@ -303,7 +303,7 @@ int main ( int argc, char *argv[] )
     StiffnessAndFracture  * pg = new StiffnessAndFracture(E, nu, new NonLocalDeviatoricVonMises(.400, mradius),new PrandtlGrauertPlasticStrain(),SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
     Stiffness  * sf = new Stiffness(E, nu) ;
 
-    samplef.setBehaviour(pr);
+    samplef.setBehaviour(pg);
 
 //     F.addBoundaryCondition ( loadr );
 //     F.addBoundaryCondition ( loadf );

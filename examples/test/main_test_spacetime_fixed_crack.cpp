@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 	else
 		out.open(outdir+"/test_spacetime_fixed_crack_current", std::ios::out) ;
 
-        Sample rect(nullptr, 0.01,0.01,0,0) ;
+        RectangularFeature rect(nullptr, 0.01,0.01,0,0) ;
         SpaceTimeLimitSurfaceFractureCriterion * tension = new SpaceTimeLimitSurfaceFractureCriterion( "sqrt ( stress_1 * stres_1 + stress_2 * stress_2 )", "1e6", "", FRAME_PRINCIPAL, true ) ;
         SpaceTimeFiberBasedFixedCrack * dam = new SpaceTimeFiberBasedFixedCrack( 0.01, 1e-6, 0.99999, REAL_STRESS_FIELD, false, false ) ;
 

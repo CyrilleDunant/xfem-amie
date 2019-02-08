@@ -35,7 +35,7 @@ int main( int argc, char *argv[] )
     Matrix C = Tensor::cauchyGreen( 10e9, 0.2, SPACE_TWO_DIMENSIONAL, PLANE_STRAIN, YOUNG_POISSON ) ;
     Vector v(3) ; v[0] = 0.01 ; v[1] = 0.01 ;
 
-    Sample box(0.1,0.1,0,0) ;
+    RectangularFeature box(0.1,0.1,0,0) ;
     box.setBehaviour( new Stiffness(C) ) ;
 
     FeatureTree F(&box) ;

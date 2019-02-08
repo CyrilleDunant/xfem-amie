@@ -201,7 +201,7 @@ public:
     Function getFunction() const ;
 
     /** Translates the current item in a 2D sample*/
-    Sample * getSample( std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>() ) ;
+    RectangularFeature * getSample( std::vector<ExternalMaterialLaw *> common = std::vector<ExternalMaterialLaw *>() ) ;
 
     /** Translates the current item in a Sampler*/
     Sampler * getSampler() const ;

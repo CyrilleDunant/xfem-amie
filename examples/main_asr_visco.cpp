@@ -29,7 +29,7 @@
 
 using namespace Amie ;
 
-Sample box(nullptr, 0.08, 0.08,0.0,0.0) ;
+RectangularFeature box(nullptr, 0.08, 0.08,0.0,0.0) ;
 
 int findIndexOfAggregate( DelaunayTriangle * tri, std::vector<Inclusion *> aggregates, FeatureTree * f)
 {

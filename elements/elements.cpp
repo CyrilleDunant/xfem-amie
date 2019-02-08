@@ -650,6 +650,12 @@ const GaussPointArray & TriElement::genGaussPoints()
 {
     if(getCachedGaussPoints())
         return *getCachedGaussPoints() ;
+    
+    if(!shapefunc)
+    {
+        setCachedGaussPoints(new GaussPointArray())  ;
+        return *getCachedGaussPoints() ;
+    }
 
     size_t ordre = 0;
     std::valarray< std::pair<Point, double> > fin ;

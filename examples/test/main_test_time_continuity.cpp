@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 	std::string outdir = parser.getString("--output-directory") ;
 
 
-        Sample rect(nullptr, 0.01,0.01,0,0) ;
+        RectangularFeature rect(nullptr, 0.01,0.01,0,0) ;
 	Matrix C = PasteBehaviour(true, false, 10e9).param ;
 	rect.setBehaviour(new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C, C, C*25)) ;
 

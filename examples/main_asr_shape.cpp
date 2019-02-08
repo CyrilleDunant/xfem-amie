@@ -47,8 +47,8 @@ double placed_area = 0 ;
 
 double stress = 15e6 ;
 
-Sample sample(nullptr, 0.07, 0.07, 0.0, 0.0) ;
-Sample placing(nullptr, 0.07, 0.07, 0.0, 0.0) ;
+RectangularFeature sample(nullptr, 0.07, 0.07, 0.0, 0.0) ;
+RectangularFeature placing(nullptr, 0.07, 0.07, 0.0, 0.0) ;
 
 bool firstRun = true ;
 
@@ -940,7 +940,7 @@ EllipsoidalInclusion * rotate(EllipsoidalInclusion * ell, double alpha)
 	
 }
 
-bool tintersects(std::vector<TriangularInclusion *> triinc, int index, Sample * box)
+bool tintersects(std::vector<TriangularInclusion *> triinc, int index, RectangularFeature * box)
 {
 	if(triinc[index]->getPrimitive()->intersects(box->getPrimitive()))
 	{
@@ -965,7 +965,7 @@ bool tintersects(std::vector<TriangularInclusion *> triinc, int index, Sample * 
 	return false ;
 }
 
-bool tintersects(std::vector<RectangularInclusion *> recinc, int index, Sample * box)
+bool tintersects(std::vector<RectangularInclusion *> recinc, int index, RectangularFeature * box)
 {
 	if(recinc[index]->getPrimitive()->intersects(box->getPrimitive()))
 	{
@@ -990,7 +990,7 @@ bool tintersects(std::vector<RectangularInclusion *> recinc, int index, Sample *
 	return false ;
 }
 
-bool tintersects(std::vector<EllipsoidalInclusion *> ellinc, int index, Sample * box)
+bool tintersects(std::vector<EllipsoidalInclusion *> ellinc, int index, RectangularFeature * box)
 {
 	if(ellinc[index]->getPrimitive()->intersects(box->getPrimitive()))
 	{
@@ -1015,7 +1015,7 @@ bool tintersects(std::vector<EllipsoidalInclusion *> ellinc, int index, Sample *
 	return false ;
 }
 
-bool rotateUntilNoIntersection(std::vector<TriangularInclusion *> & triinc, int index, Sample * box)
+bool rotateUntilNoIntersection(std::vector<TriangularInclusion *> & triinc, int index, RectangularFeature * box)
 {
 	std::default_random_engine generator ;
 	std::uniform_real_distribution<double> alpha(0.001*M_PI, 0.01*M_PI) ;
@@ -1037,7 +1037,7 @@ bool rotateUntilNoIntersection(std::vector<TriangularInclusion *> & triinc, int 
 		return true ;
 }
 
-bool rotateUntilNoIntersection(std::vector<RectangularInclusion *> & recinc, int index, Sample * box)
+bool rotateUntilNoIntersection(std::vector<RectangularInclusion *> & recinc, int index, RectangularFeature * box)
 {
 	std::default_random_engine generator ;
 	std::uniform_real_distribution<double> alpha(0.15*M_PI, 0.95*M_PI) ;
@@ -1059,7 +1059,7 @@ bool rotateUntilNoIntersection(std::vector<RectangularInclusion *> & recinc, int
 		return true ;
 }
 
-bool rotateUntilNoIntersection(std::vector<EllipsoidalInclusion *> & ellinc, int index, Sample * box)
+bool rotateUntilNoIntersection(std::vector<EllipsoidalInclusion *> & ellinc, int index, RectangularFeature * box)
 {
 	std::default_random_engine generator ;
 	std::uniform_real_distribution<double> alpha(0.15*M_PI, 0.95*M_PI) ;

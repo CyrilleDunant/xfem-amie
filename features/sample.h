@@ -18,7 +18,7 @@ namespace Amie
 {
 
 /** \brief rectangular Feature with sides aligned to the axes*/
-class Sample final:  public Rectangle,  public Feature
+class RectangularFeature final:  public Rectangle,  public Feature
 {
 public:
 
@@ -30,7 +30,7 @@ public:
     * @param originX center x
     * @param originY center y
     */
-    Sample(Feature *father, double x, double y, double originX, double originY) ;
+    RectangularFeature(Feature *father, double x, double y, double originX, double originY) ;
 
     /** \brief Construct Sample from dimensions and center
     *
@@ -39,7 +39,7 @@ public:
     * @param originX center x
     * @param originY center y
     */
-    Sample(double x, double y, double originX, double originY) ;
+    RectangularFeature(double x, double y, double originX, double originY) ;
 
     /** \brief return true if the boundary overlaps that of the argument*/
     virtual bool interacts(Feature * f, double d) const ;

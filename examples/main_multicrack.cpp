@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 
 	double width = 0.12;
 	double height = 0.0025;
-	Sample sample(width, height , 0,0) ;
+	   RectangularFeature sample(width, height , 0,0) ;
     Point tb(width*.5-1e-5, 0) ;
 
 	featureTree = new FeatureTree(&sample) ;

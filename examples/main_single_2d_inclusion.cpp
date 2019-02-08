@@ -102,7 +102,7 @@ double partitionScore(const std::vector<int> & triplet)
 //  -10 -15
 int main(int argc, char *argv[])
 {
-    Sample samplers(nullptr, 300,200,0,0) ;
+    RectangularFeature samplers(nullptr, 300,200,0,0) ;
 
     FeatureTree F(&samplers) ;
     featureTree = &F ;

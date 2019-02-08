@@ -49,6 +49,7 @@ namespace Amie
         double currentError = 0 ;
         bool active = true ;
         double threshold = 1e-5 ;
+        int counter = 0 ;
         
     public: 
         ContactBoundaryCondition(Geometry * geo) ;

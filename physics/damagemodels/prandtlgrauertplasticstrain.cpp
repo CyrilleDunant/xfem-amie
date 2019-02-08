@@ -23,9 +23,10 @@ PrandtlGrauertPlasticStrain::PrandtlGrauertPlasticStrain(double c_psi, double ep
     v.push_back(ETA);
     param = nullptr ;
     compressivePlasticVariable = 0 ;
-    damageDensityTolerance = 2e-2 ;
+    damageDensityTolerance = 2e-3 ;
     tensilePlasticVariable = 0 ;
-    forceDeviatoric=true ;
+    thresholdDamageDensity = 1.-damageDensityTolerance ;
+    forceDeviatoric=false ;
     inCompression = false ;
     inTension = false ;
     newtonIteration = false ;
@@ -397,8 +398,8 @@ void PrandtlGrauertPlasticStrain::step( ElementState &s , double maxscore)
 
 Matrix PrandtlGrauertPlasticStrain::apply(const Matrix & m, const Point & p , const IntegrableEntity * e, int g) const
 {
-//     if(fractured())
-//         return m*1e-6 ;
+    if(fractured())
+        return m*1e-6 ;
     return m*(1.-getDamage()) ;
 }
 
@@ -451,12 +452,12 @@ Vector PrandtlGrauertPlasticStrain::getImposedStrain(const Point & p) const
     if(v.size() == 3 && !param)
         return Vector(0., 6) ;
 
-//     if(fractured())
-//     {
-//         if(v.size() == 2)
-//             return Vector(0., 3) ;
-//         return Vector(0., 6) ;
-//     }
+    if(fractured())
+    {
+        if(v.size() == 2)
+            return Vector(0., 3) ;
+        return Vector(0., 6) ;
+    }
 // 	if(inCompression )
     return  imposedStrain*getState()[0]+previousCompressiveImposedStrain ;
 
@@ -473,7 +474,7 @@ double PrandtlGrauertPlasticStrain::getDamage() const
     if(currentPlaticVariable >= kappa_0*factor)
     {
 // 		return std::max((currentPlaticVariable-kappa_0)/eps_f,0.) ;
-        return 1.-exp(-(currentPlaticVariable-kappa_0*factor)/(eps_f*800)) ;
+        return std::max(1.-exp(-(currentPlaticVariable-kappa_0*factor)/(eps_f)), 0.) ;
     }
     return 0 ;
 }
@@ -488,9 +489,9 @@ double PrandtlGrauertPlasticStrain::getPlasticity() const
 
 bool PrandtlGrauertPlasticStrain::fractured(int direction) const
 {
-//     if(fraction < 0)
-    return false ;
-//     return broken || getDamage() >= thresholdDamageDensity ;
+    if(fraction < 0)
+        return false ;
+    return broken || getDamage() >= thresholdDamageDensity ;
 }
 
 void PrandtlGrauertPlasticStrain::postProcess()
@@ -504,7 +505,8 @@ void PrandtlGrauertPlasticStrain::postProcess()
                                       imposedStrain[2]*imposedStrain[2] ) ;
         imposedStrain = 0 ;                               
 
-
+        if(getDamage() >= thresholdDamageDensity)
+            broken = true ;
     }
     else if(converged && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
     {

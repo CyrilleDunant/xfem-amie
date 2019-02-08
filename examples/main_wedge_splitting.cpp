@@ -36,9 +36,9 @@ double width = 0.045 ;
 double depth = 0.03 ;//2.5 ;
 double nnotch = 0.085 ;
 double nwidth = 0.0025 ;
-Sample box(nullptr, length, length,0.,length*0.5) ;
-Sample top(nullptr, width, depth, 0.0, length - depth*0.5) ;
-Sample notch(nullptr,nwidth, nnotch, 0.0, length - depth - nnotch*0.5) ;
+RectangularFeature box(nullptr, length, length,0.,length*0.5) ;
+RectangularFeature top(nullptr, width, depth, 0.0, length - depth*0.5) ;
+RectangularFeature notch(nullptr,nwidth, nnotch, 0.0, length - depth - nnotch*0.5) ;
 
 int main(int argc, char *argv[])
 {
@@ -59,15 +59,15 @@ int main(int argc, char *argv[])
 
 	Rectangle * placement= new Rectangle(width,nnotch*1.1, 0., nnotch*0.552) ;
 
-	Sample left(nullptr, (length-width)*.5, length, (length-width)*.25-length*.5, 0) ;
+	   RectangularFeature left(nullptr, (length-width)*.5, length, (length-width)*.25-length*.5, 0) ;
 	left.isVirtualFeature  = true ;
 	left.setBehaviour(&pastenodamage) ;
 	
-	Sample middle(nullptr, length, depth+nnotch*0.9, 0., length-(depth+nnotch*0.9)*0.5) ;
+	   RectangularFeature middle(nullptr, length, depth+nnotch*0.9, 0., length-(depth+nnotch*0.9)*0.5) ;
 	middle.isVirtualFeature = true ;
 	middle.setBehaviour(&pastenodamage) ;
 
-	Sample right(nullptr, (length-width)*.5, nnotch*2., length*.5-(length-width)*.25, nnotch) ;
+	   RectangularFeature right(nullptr, (length-width)*.5, nnotch*2., length*.5-(length-width)*.25, nnotch) ;
 	right.isVirtualFeature  = true ;
 	right.setBehaviour(&pastenodamage) ;
 

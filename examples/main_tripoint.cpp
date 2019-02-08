@@ -307,78 +307,78 @@ int main ( int argc, char *argv[] )
     Matrix m0_steel_effective = Tensor::cauchyGreen ( E_steel_effective,nu_steel, SPACE_TWO_DIMENSIONAL, PLANE_STRAIN, YOUNG_POISSON ) ;
 
 
-    Sample sample ( nullptr, sampleLength*.5, sampleHeight+2.*plateHeight, halfSampleOffset, 0 ) ;
-    Sample samplebulk ( nullptr, sampleLength*.5, sampleHeight+2.*plateHeight, halfSampleOffset, 0 ) ;
-    Sample samplestirrupbulk ( nullptr, sampleLength*.5, sampleHeight+2.*plateHeight, halfSampleOffset, 0 ) ;
+    RectangularFeature sample ( nullptr, sampleLength*.5, sampleHeight+2.*plateHeight, halfSampleOffset, 0 ) ;
+    RectangularFeature samplebulk ( nullptr, sampleLength*.5, sampleHeight+2.*plateHeight, halfSampleOffset, 0 ) ;
+    RectangularFeature samplestirrupbulk ( nullptr, sampleLength*.5, sampleHeight+2.*plateHeight, halfSampleOffset, 0 ) ;
 
-    Sample topsupport ( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
+    RectangularFeature topsupport ( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
     topsupport.setBehaviour ( new Stiffness ( m0_steel ) ) ;
 
-    Sample topsupportbulk ( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
+    RectangularFeature topsupportbulk ( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
     topsupportbulk.setBehaviour ( new Stiffness ( m0_steel ) ) ;
 
-    Sample topsupportstirrupbulk ( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
+    RectangularFeature topsupportstirrupbulk ( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
     topsupportstirrupbulk.setBehaviour ( new Stiffness ( m0_steel ) ) ;
 
-    Sample toprightvoid ( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth ) *.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
+    RectangularFeature toprightvoid ( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth ) *.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
     toprightvoid.setBehaviour ( new VoidForm() ) ;
 
-    Sample toprightvoidbulk ( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth ) *.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
+    RectangularFeature toprightvoidbulk ( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth ) *.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
     toprightvoidbulk.setBehaviour ( new VoidForm() ) ;
     
-    Sample toprightvoidstirrupbulk ( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth ) *.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
+    RectangularFeature toprightvoidstirrupbulk ( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth ) *.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
     toprightvoidstirrupbulk.setBehaviour ( new VoidForm() ) ;
 
-    Sample baseright ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
+    RectangularFeature baseright ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
     baseright.setBehaviour ( new Stiffness ( m0_steel ) ) ;
 // 	baseright.isVirtualFeature = true ;
 
-    Sample baserightbulk ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
+    RectangularFeature baserightbulk ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
     baserightbulk.setBehaviour ( new Stiffness ( m0_steel ) ) ;
 
-    Sample baserightstirrupbulk ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
+    RectangularFeature baserightstirrupbulk ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
     baserightstirrupbulk.setBehaviour ( new Stiffness ( m0_steel ) ) ;
 
-    Sample bottomcentervoid ( supportLever - platewidth*.5, plateHeight, ( supportLever - platewidth*.5 ) *.5, -sampleHeight*.5 - plateHeight*.5 ) ;
+    RectangularFeature bottomcentervoid ( supportLever - platewidth*.5, plateHeight, ( supportLever - platewidth*.5 ) *.5, -sampleHeight*.5 - plateHeight*.5 ) ;
     bottomcentervoid.setBehaviour ( new VoidForm() ) ;
     bottomcentervoid.isVirtualFeature = true ;
 
-    Sample rightbottomvoid ( supportMidPointToEndClearance - platewidth*.5, plateHeight, sampleLength*.5 - ( supportMidPointToEndClearance - platewidth*.5 ) *.5,  -sampleHeight*.5 - plateHeight*.5 ) ;
+    RectangularFeature rightbottomvoid ( supportMidPointToEndClearance - platewidth*.5, plateHeight, sampleLength*.5 - ( supportMidPointToEndClearance - platewidth*.5 ) *.5,  -sampleHeight*.5 - plateHeight*.5 ) ;
     rightbottomvoid.setBehaviour ( new VoidForm() ) ;
     rightbottomvoid.isVirtualFeature = true ;
 
-    Sample bottomcentervoidbulk ( supportLever - platewidth*.5, plateHeight, ( supportLever - platewidth*.5 ) *.5, -sampleHeight*.5 - plateHeight*.5 ) ;
+    RectangularFeature bottomcentervoidbulk ( supportLever - platewidth*.5, plateHeight, ( supportLever - platewidth*.5 ) *.5, -sampleHeight*.5 - plateHeight*.5 ) ;
     bottomcentervoidbulk.setBehaviour ( new VoidForm() ) ;
 
 
-    Sample rightbottomvoidbulk ( supportMidPointToEndClearance - platewidth*.5, plateHeight, sampleLength*.5 - ( supportMidPointToEndClearance - platewidth*.5 ) *.5,  -sampleHeight*.5 - plateHeight*.5 ) ;
+    RectangularFeature rightbottomvoidbulk ( supportMidPointToEndClearance - platewidth*.5, plateHeight, sampleLength*.5 - ( supportMidPointToEndClearance - platewidth*.5 ) *.5,  -sampleHeight*.5 - plateHeight*.5 ) ;
     rightbottomvoidbulk.setBehaviour ( new VoidForm() ) ;
 
 
     double rebarcenter = ( sampleLength*.5 - rebarEndCover ) *.5 ;
     double rebarlength = ( sampleLength - rebarEndCover*2. ) *.5 ;
-    Sample rebar0 ( &sample, rebarlength, rebarDiametre , rebarcenter,  -sampleHeight*.5 + 0.064 ) ;
+    RectangularFeature rebar0 ( &sample, rebarlength, rebarDiametre , rebarcenter,  -sampleHeight*.5 + 0.064 ) ;
     rebar0.setBehaviour ( new StiffnessAndFracture ( m0_steel_effective*softeningFactor, new VonMises ( 490e6 ) ) );
 // 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
-    Sample rebar1 ( &sample, rebarlength, rebarDiametre, rebarcenter,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
+    RectangularFeature rebar1 ( &sample, rebarlength, rebarDiametre, rebarcenter,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
     rebar1.setBehaviour ( new StiffnessAndFracture ( m0_steel_effective*softeningFactor, new VonMises ( 490e6 ) ) );
 // 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
-    Sample rebar2 ( &sample, rebarlength, rebarDiametre, rebarcenter,  sampleHeight*.5 - 0.064 ) ;
+    RectangularFeature rebar2 ( &sample, rebarlength, rebarDiametre, rebarcenter,  sampleHeight*.5 - 0.064 ) ;
     rebar2.setBehaviour ( new StiffnessAndFracture ( m0_steel_effective*softeningFactor, new VonMises ( 490e6 ) ) );
 // 	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
-    Sample rebar3 ( &sample, rebarlength, rebarDiametre, rebarcenter,  sampleHeight*.5 - 0.064 - 0.085 ) ;
+    RectangularFeature rebar3 ( &sample, rebarlength, rebarDiametre, rebarcenter,  sampleHeight*.5 - 0.064 - 0.085 ) ;
     rebar3.setBehaviour ( new StiffnessAndFracture ( m0_steel_effective*softeningFactor, new VonMises ( 490e6 ) ) );
 // 	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
 
-    std::vector<Sample*> stirrups ;
+    std::vector<RectangularFeature*> stirrups ;
 
     for ( size_t i = 0 ;  i < 7 ; i++ )
     {
-        stirrups.push_back ( new Sample ( 0.0084261498, sampleHeight - 2.* ( 0.064 ), 0.175 + i*0.35, 0. ) );
+        stirrups.push_back ( new RectangularFeature ( 0.0084261498, sampleHeight - 2.* ( 0.064 ), 0.175 + i*0.35, 0. ) );
         stirrups.back()->setBehaviour ( new StiffnessAndFracture ( m0_steel, new VonMises ( 490e6 ) ) );
         stirrups.back()->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius ( 0.01 );
     }

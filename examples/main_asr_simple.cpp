@@ -605,7 +605,7 @@ int main(int argc, char *argv[])
     m0_paste[2][1] = 0 ;
     m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ;
 
-    Sample sample(nullptr, 0.04, 0.04, 0, 0) ;
+    RectangularFeature sample(nullptr, 0.04, 0.04, 0, 0) ;
 
     FeatureTree F(&sample) ;
     featureTree = &F ;

@@ -590,11 +590,11 @@ int main(int argc, char *argv[])
 	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
 
-	Sample sample(nullptr, 3.9*.5, 1.2, 0,0) ;
+	   RectangularFeature sample(nullptr, 3.9*.5, 1.2, 0,0) ;
 	
-	Sample rebar0(1, 0.025, (3.9*.5)*.5,  -1.2*.5+0.064) ; 
+	   RectangularFeature rebar0(1, 0.025, (3.9*.5)*.5,  -1.2*.5+0.064) ; 
 	rebar0.setBehaviour(new Stiffness(m0_steel*0.15));
-	Sample rebar1(1, 0.025, (3.9*.5)*.5,  -1.2*.5+0.064+0.085) ; 
+	   RectangularFeature rebar1(1, 0.025, (3.9*.5)*.5,  -1.2*.5+0.064+0.085) ; 
 	rebar1.setBehaviour(new Stiffness(m0_steel*0.15));
 	
 	FeatureTree F(&sample) ;

@@ -57,7 +57,7 @@ public:
      *
      * @param numDof number of degrees of freedom
      */
-    PrandtlGrauertPlasticStrain(double c_psi = 0.05, double eps_f = 0.0057, double kappa_0 = 0) ;
+    PrandtlGrauertPlasticStrain(double c_psi = 0.05, double eps_f = 0.0057, double kappa_0 = 2) ;
 
     virtual ~PrandtlGrauertPlasticStrain();
 

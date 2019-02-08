@@ -582,6 +582,8 @@ bool ContactBoundaryCondition::verifyConvergence() const
 {
     if(!active)
         return true ;
+    if(counter >= 512)
+        return true ;
     Vector disps(2) ;
     VirtualMachine vm ;
     
@@ -678,6 +680,22 @@ double ContactBoundaryCondition::error() const
 
 void ContactBoundaryCondition::postProcess()
 {
+    bool verif = verifyConvergence();
+    if(verif && counter < 512)
+    {
+        counter++ ;
+    }
+    else if(!verif && counter == 512)
+    {
+        counter = 0 ;
+        std::cout << "contact non-convergence, resetting counter, error = " << currentError <<std::endl ;
+    }
+    else if(verif)
+    {
+        counter = 0 ;
+    }
+    else
+        counter = 0 ;
 //    if(conv)
 //    {
 //        double max = 0 ;

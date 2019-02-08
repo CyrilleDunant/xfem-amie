@@ -2433,7 +2433,8 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
         vm = new VirtualMachine() ;
     }
 
-    getState().updateInverseJacobianCache(Point( 1./3.,1./3.)) ;   
+    if(!getState().JinvCache)
+        getState().updateInverseJacobianCache(Point( 1./3.,1./3.)) ;   
 //     std::cout <<"\n -> "<< getGaussPoints().gaussPoints.size() << std::endl ;
     
     std::valarray<Matrix> Jinv((*getState().JinvCache),  getGaussPoints().gaussPoints.size()) ;

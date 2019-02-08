@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 	std::string outdir = parser.getString("--output-directory") ;
 
 
-        Sample rect(nullptr, 0.01,0.01,0,0) ;
+        RectangularFeature rect(nullptr, 0.01,0.01,0,0) ;
 	Matrix C = PasteBehaviour(true, false, 10e9).param ;
 	Point t1(0.0001, 1e6) ;
 	Point t2(0.00015, 0.5e6) ;

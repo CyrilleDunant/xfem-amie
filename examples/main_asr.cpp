@@ -147,7 +147,7 @@ int main( int argc, char *argv[] )
     double fact  = atof( argv[3] )*8.*restraintDepth/basesize*(1.+0.3)  ;
     double fact0 = atof( argv[4] )*8.*restraintDepth/basesize*(1.+0.3)  ;
 
-    Sample sample( nullptr, basesize + restraintDepth, basesize + restraintDepth, 0, 0 ) ;
+    RectangularFeature sample( nullptr, basesize + restraintDepth, basesize + restraintDepth, 0, 0 ) ;
 
     FeatureTree F( &sample ) ;
     featureTree = &F ;
@@ -174,7 +174,7 @@ int main( int argc, char *argv[] )
 
     std::vector<Feature *> blocks ;
 
-    Sample *voidtop = new Sample( nullptr, restraintDepth * .5, 
+    RectangularFeature *voidtop = new RectangularFeature( nullptr, restraintDepth * .5, 
                                            restraintDepth * .5, 
                                            sample.getCenter().getX() - basesize*.5 - restraintDepth * .25, 
                                            sample.getCenter().getY() + basesize*.5 + restraintDepth * .25) ;
@@ -183,7 +183,7 @@ int main( int argc, char *argv[] )
     F.addFeature( &sample, voidtop );
 //     F.setSamplingFactor(voidtop, 8.);
 
-    Sample *voidbottom = new Sample( nullptr, restraintDepth * .5, 
+    RectangularFeature *voidbottom = new RectangularFeature( nullptr, restraintDepth * .5, 
                                               restraintDepth * .5, 
                                               sample.getCenter().getX() - basesize*.5 - restraintDepth * .25, 
                                               sample.getCenter().getY() - basesize*.5 - restraintDepth * .25 ) ;
@@ -192,7 +192,7 @@ int main( int argc, char *argv[] )
     F.addFeature( &sample, voidbottom );
 //     F.setSamplingFactor(voidbottom, 8.);
 
-    Sample *voidleft = new Sample( nullptr, restraintDepth * .5, 
+    RectangularFeature *voidleft = new RectangularFeature( nullptr, restraintDepth * .5, 
                                             restraintDepth * .5, 
                                             sample.getCenter().getX() + basesize*.5 + restraintDepth * .25, 
                                             sample.getCenter().getY() + basesize*.5 + restraintDepth * .25 ) ;
@@ -201,7 +201,7 @@ int main( int argc, char *argv[] )
     F.addFeature( &sample, voidleft );
 //     F.setSamplingFactor(voidleft, 8.);
 
-    Sample *voidright = new Sample( nullptr, restraintDepth * .5, 
+    RectangularFeature *voidright = new RectangularFeature( nullptr, restraintDepth * .5, 
                                              restraintDepth * .5, 
                                              sample.getCenter().getX() + basesize*.5 + restraintDepth * .25, 
                                              sample.getCenter().getY() - basesize*.5 - restraintDepth * .25 ) ;
@@ -213,7 +213,7 @@ int main( int argc, char *argv[] )
     //width are  1100000000 3340000000  4360000000      done: 
     //length are 1220000000 2180000000  3400000000      next: 
 
-    Sample *blocktop = new Sample( nullptr, basesize, 
+    RectangularFeature *blocktop = new RectangularFeature( nullptr, basesize, 
 				            restraintDepth * .5, 
 				            sample.getCenter().getX(), 
 				            sample.getCenter().getY() + basesize*.5 + restraintDepth * .25 ) ;
@@ -228,7 +228,7 @@ int main( int argc, char *argv[] )
 
     F.addFeature( &sample, blocktop );
 
-    Sample *blockbottom = new Sample( nullptr, basesize, 
+    RectangularFeature *blockbottom = new RectangularFeature( nullptr, basesize, 
                                                restraintDepth * .5, 
                                                sample.getCenter().getX(), 
                                                sample.getCenter().getY() - basesize*.5 - restraintDepth * .25 ) ;
@@ -237,7 +237,7 @@ int main( int argc, char *argv[] )
 
     F.addFeature( &sample, blockbottom );
 
-    Sample *blockleft = new Sample( nullptr, restraintDepth * .5, 
+    RectangularFeature *blockleft = new RectangularFeature( nullptr, restraintDepth * .5, 
                                              basesize, 
                                              sample.getCenter().getX() - ( basesize )*.5 - restraintDepth * .25, 
                                              sample.getCenter().getY() ) ;
@@ -247,7 +247,7 @@ int main( int argc, char *argv[] )
 
     F.addFeature( &sample, blockleft );
 
-    Sample *blockright = new Sample( nullptr, restraintDepth * .5, 
+    RectangularFeature *blockright = new RectangularFeature( nullptr, restraintDepth * .5, 
                                               basesize, 
                                               sample.getCenter().getX() + ( basesize )*.5 + restraintDepth * .25, 
                                               sample.getCenter().getY() ) ;

@@ -184,7 +184,7 @@ int main ( int argc, char *argv[] )
     double cstress = -38.0e6;
     planeType pt = PLANE_STRESS;
 
-    Sample samplef(0.3, 0.6,  0.15, 0.3) ;
+    RectangularFeature samplef(0.3, 0.6,  0.15, 0.3) ;
 
     FeatureTree F ( &samplef ) ;
     featureTree = &F ;

@@ -613,7 +613,7 @@ std::vector<std::vector<PolygonalSample *> > PSDGenerator::get2DSourceVoronoiPol
 
 std::vector<std::vector<Feature *> > PSDGenerator::get2DVoronoiPolygons(FeatureTree * F, std::vector<VoronoiGrain> & grains, size_t n, double minDist, double border, size_t nmax, bool copy, double delta, size_t seed)
 {
-    Sample * sample = dynamic_cast<Sample *>(F->getFeature(0)) ;
+    RectangularFeature * sample = dynamic_cast<RectangularFeature *>(F->getFeature(0)) ;
     Rectangle * placement = new Rectangle( sample->width()+minDist*2.+border*2., sample->height()+minDist*2.+border*2., sample->getCenter().getX(), sample->getCenter().getY() ) ;
     double realn = placement->area()/(minDist*minDist*M_PI) ;
     std::vector<std::vector<PolygonalSample *> > poly = PSDGenerator::get2DSourceVoronoiPolygons( placement, grains, (n==0?realn : n), minDist, delta, seed) ;
@@ -757,7 +757,7 @@ std::vector<Inclusion *> PSDGenerator::get2DMortar(FeatureTree * F, Form * behav
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > PSDGenerator::get2DExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> incs, StiffnessWithImposedStrain * behaviour, double radius, size_t n, size_t max, int maxPerAgg)
 {
     Feature * box = F->getFeature(0) ;
-    Sample * sample = dynamic_cast<Sample *>(box) ;
+    RectangularFeature * sample = dynamic_cast<RectangularFeature *>(box) ;
     double w = sample->width()*0.5-radius*60 ;
     double h = sample->height()*0.5-radius*60 ;
     std::default_random_engine gen ;
@@ -830,7 +830,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > PSDGenerator::get2DExpansi
 std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion *> > PSDGenerator::get2DGrowingExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> incs, ViscoelasticityAndImposedDeformation * behaviour, Function radius, double rmax, size_t n, size_t max, int maxPerAgg)
 {
     Feature * box = F->getFeature(0) ;
-    Sample * sample = dynamic_cast<Sample *>(box) ;
+    RectangularFeature * sample = dynamic_cast<RectangularFeature *>(box) ;
     double w = sample->width()*0.5 - 2*rmax ;
     double h = sample->height()*0.5 - 2*rmax ;
     std::default_random_engine gen ;

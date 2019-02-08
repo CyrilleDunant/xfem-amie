@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 	std::string outdir = parser.getString("--output-directory") ;
 
 
-        Sample rect(nullptr, 0.01,0.01,0,0) ;
+        RectangularFeature rect(nullptr, 0.01,0.01,0,0) ;
 	SpaceTimeMultiSurfaceFractureCriterion * crit = new SpaceTimeMultiSurfaceFractureCriterion() ;
         SpaceTimeLimitSurfaceFractureCriterion * tension = new SpaceTimeLimitSurfaceFractureCriterion( "max stress_1 stress_2", "tensile_strength", "tensile_strength", FRAME_PRINCIPAL, true ) ;
         SpaceTimeLimitSurfaceFractureCriterion * compression = new SpaceTimeLimitSurfaceFractureCriterion( "max ( stress_1 * -1 ) ( stress_2 * -1 )", "compressive_strength", "compressive_strength", FRAME_PRINCIPAL, false ) ;

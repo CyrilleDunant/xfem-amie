@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
 	out.open(filename.c_str(), std::ios::out) ;
 
 
-        Sample sample(nullptr, check ? 0.1 : 0.2,0.1,0,0) ;
+        RectangularFeature sample(nullptr, check ? 0.1 : 0.2,0.1,0,0) ;
 
 	Matrix stiffness = Stiffness(young, 0.2).param ;
 
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 
 	if(!check)
 	{
-		Sample * notch = new Sample( nullptr, 0.002, 0.04, 0., 0.05 ) ;
+		      RectangularFeature * notch = new RectangularFeature( nullptr, 0.002, 0.04, 0., 0.05 ) ;
 		notch->setBehaviour( new VoidForm() ) ;
 		F.addFeature(&sample, notch ) ;
 		F.setSamplingFactor( notch, 1.5 ) ;

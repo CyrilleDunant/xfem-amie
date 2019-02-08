@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 	std::srand( parser.getValue("--seed") ) ;
 	std::string outdir = parser.getString("--output-directory") ;
 
-        Sample rect(nullptr, 0.04,0.04,0,0) ;
+        RectangularFeature rect(nullptr, 0.04,0.04,0,0) ;
 	rect.setBehaviour(new WeibullDistributedElasticStiffness(20e9, 0.2, 0.2) ) ;
 
 	FeatureTree f(&rect) ;
