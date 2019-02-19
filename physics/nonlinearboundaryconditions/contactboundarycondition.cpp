@@ -18,12 +18,13 @@ namespace Amie
     
 ContactBoundaryCondition::ContactBoundaryCondition(Geometry * geo) : baseGeometry(geo), conv(false)
 {
-
+    counter = 0 ;
 }
 
 void ContactBoundaryCondition::setScale(double s)
 {
     scale = s;
+    counter = 0 ;
 }
 
 void ContactBoundaryCondition::initialise(Mesh<DelaunayTriangle,DelaunayTreeItem> * mesh)
@@ -105,14 +106,14 @@ void ContactBoundaryCondition::initialise(Mesh<DelaunayTriangle,DelaunayTreeItem
         double nbasenorm1 = nbase1.norm() ;
         if(nbasenorm0  < POINT_TOLERANCE)
         {
-           nbase0 =  proj0 - (*pt->first.first*.95-baseGeometry->getCenter()*.05) ;
+           nbase0 =  proj0 - (*pt->first.first*.9-baseGeometry->getCenter()*.10) ;
            nbasenorm0 = nbase0.norm() ;
            inSign0 = -.1 ;
         }
         
         if(nbasenorm1  < POINT_TOLERANCE)
         {
-           nbase1 =  proj1 - (*pt->first.second*.95-baseGeometry->getCenter()*.05) ;
+           nbase1 =  proj1 - (*pt->first.second*.9-baseGeometry->getCenter()*.10) ;
            nbasenorm1 = nbase1.norm() ;
            inSign1 = -.1 ;
         }
@@ -192,6 +193,7 @@ void ContactBoundaryCondition::reInitialise()
     normalVectors.clear() ;
     referenceX.clear() ;
     referenceY.clear() ;
+    counter = 0 ;
     
     Vector disps(2) ;
     VirtualMachine vm ;
@@ -311,14 +313,14 @@ void ContactBoundaryCondition::reInitialise()
         double nbasenorm1 = nbase1.norm() ;
         if(nbasenorm0  < POINT_TOLERANCE)
         {
-           nbase0 =  proj0 - (movedPoint0*.95-baseGeometry->getCenter()*.05) ;
+           nbase0 =  proj0 - (movedPoint0*.9-baseGeometry->getCenter()*.10) ;
            nbasenorm0 = nbase0.norm() ;
            inSign0 = -1 ;
         }
         
         if(nbasenorm1  < POINT_TOLERANCE)
         {
-           nbase1 =  proj1 - (movedPoint1*.95-baseGeometry->getCenter()*.05) ;
+           nbase1 =  proj1 - (movedPoint1*.9-baseGeometry->getCenter()*.10) ;
            nbasenorm1 = nbase1.norm() ;
            inSign1 = -1 ;
         }
@@ -451,7 +453,12 @@ void ContactBoundaryCondition::update()
 //     std::cout << maxerr << std::endl ;
     
     double fac = 1 ;
-    double acc = 25. ;
+    Vector istrain = affectedElements.begin()->second->getBehaviour()->getImposedStrain(Point(0,0,0)) ;
+    double istrainNorm = istrain[0]*istrain[0]+istrain[1]*istrain[1] ;
+    if(istrain.size() > 3)
+        istrainNorm += istrain[2]*istrain[2] ;
+    istrainNorm = pow(istrainNorm, 0.7) ;
+    double acc = (1.+istrainNorm)*affectedElements.begin()->second->getBehaviour()->getTensor(Point(0,0,0))[0][0];
 //     if(maxerr*acc > 0.002)
 //     {
 //         fac *= 0.002/(maxerr*acc) ;
@@ -476,14 +483,20 @@ void ContactBoundaryCondition::update()
             if(errorsX.find(pt->first) == errorsX.end() )
             {
                 double nerr = smoothErrorX[pt->first] ;
+                double nerrSign = std::abs(nerr)/nerr ;
+                if(std::abs(nerr) < 1e-12)
+                    nerrSign  =1 ;
                 errorsX[pt->first] = nerr ;
                 currentError += nerr*nerr ;
-                stiffnessesY[pt->first] += acc*fac*nerr ;
+                stiffnessesX[pt->first] += acc*fac*log(std::abs(nerr)+1)*nerrSign ;
                 
                 nerr = smoothErrorY[pt->first] ;
+                nerrSign = std::abs(nerr)/nerr ;
+                if(std::abs(nerr) < 1e-12)
+                    nerrSign  =1 ;
                 errorsY[pt->first] = nerr ;
                 currentError += nerr*nerr ;
-                stiffnessesY[pt->first] += acc*fac*nerr ;
+                stiffnessesY[pt->first] += acc*fac*log(std::abs(nerr)+1)*nerrSign ;
 
                 continue ;
             }
@@ -491,6 +504,9 @@ void ContactBoundaryCondition::update()
             if(previousErrorsX.find(pt->first) == previousErrorsX.end())
             {
                 double nerr = smoothErrorX[pt->first] ;
+                double nerrSign = std::abs(nerr)/nerr ;
+                if(std::abs(nerr) < 1e-12)
+                    nerrSign  =1 ;
                 double perr = errorsX[pt->first] ;  
                 previousErrorsX[pt->first] = perr;
                 errorsX[pt->first] = nerr ;
@@ -498,9 +514,12 @@ void ContactBoundaryCondition::update()
                 double pstiff = stiffnessesX[pt->first] ;                
                 previousStiffnessesX[pt->first] = pstiff ;
                 //Newton
-                stiffnessesX[pt->first] += acc*fac*nerr ;
+                stiffnessesX[pt->first] += acc*fac*log(std::abs(nerr)+1)*nerrSign ;
                 
                 nerr = smoothErrorY[pt->first] ;
+                nerrSign = std::abs(nerr)/nerr ;
+                if(std::abs(nerr) < 1e-12)
+                    nerrSign  =1 ;
                 perr = errorsY[pt->first] ;  
                 previousErrorsY[pt->first] = perr;
                 errorsY[pt->first] = nerr ;
@@ -508,7 +527,7 @@ void ContactBoundaryCondition::update()
                 pstiff = stiffnessesY[pt->first] ;                
                 previousStiffnessesY[pt->first] = pstiff ;
                 //Newton
-                stiffnessesY[pt->first] += acc*fac*nerr ;
+                stiffnessesY[pt->first] += acc*fac*log(std::abs(nerr)+1)*nerrSign ;
                 
 //                 stiffnesses[pt->first] = stiffnesses[pt->first]*.75 + pstiff*.25 ;
                 
@@ -516,6 +535,9 @@ void ContactBoundaryCondition::update()
             }   
               
             double nerr = smoothErrorX[pt->first] ;
+            double nerrSign = std::abs(nerr)/nerr ;
+            if(std::abs(nerr) < 1e-12)
+                nerrSign  =1 ;
             double pstiff = stiffnessesX[pt->first] ;               
             double perr = errorsX[pt->first] ;  
          
@@ -523,7 +545,7 @@ void ContactBoundaryCondition::update()
            
             previousErrorsX[pt->first] = perr ;
 
-            stiffnessesX[pt->first] += acc*fac*nerr-(nerr-perr)*0.1*acc*fac*std::abs(nerr);
+            stiffnessesX[pt->first] += acc*fac*log(std::abs(nerr)+1)*nerrSign;//-(nerr-perr)*0.1*acc*fac*std::abs(nerr);
 //             stiffnesses[pt->first] = stiffnesses[pt->first]*.75 + pstiff*.25 ;
 
 //             std::cout << stiffnesses[pt->first] << std::endl ;
@@ -531,6 +553,9 @@ void ContactBoundaryCondition::update()
             currentError += nerr*nerr ;
             
             nerr = smoothErrorY[pt->first] ;
+            nerrSign = std::abs(nerr)/nerr ;
+            if(std::abs(nerr) < 1e-12)
+                nerrSign  =1 ;
             pstiff = stiffnessesY[pt->first] ;               
             perr = errorsY[pt->first] ;  
          
@@ -538,7 +563,7 @@ void ContactBoundaryCondition::update()
            
             previousErrorsY[pt->first] = perr ;
 
-            stiffnessesY[pt->first] += acc*fac*nerr-(nerr-perr)*0.1*acc*fac*std::abs(nerr);
+            stiffnessesY[pt->first] += acc*fac*log(std::abs(nerr)+1)*nerrSign;//-(nerr-perr)*0.1*acc*fac*std::abs(nerr);
 //             stiffnesses[pt->first] = stiffnesses[pt->first]*.75 + pstiff*.25 ;
 
 //             std::cout << stiffnesses[pt->first] << std::endl ;
@@ -582,7 +607,7 @@ bool ContactBoundaryCondition::verifyConvergence() const
 {
     if(!active)
         return true ;
-    if(counter >= 512)
+    if(counter == countermax)
         return true ;
     Vector disps(2) ;
     VirtualMachine vm ;
@@ -680,12 +705,13 @@ double ContactBoundaryCondition::error() const
 
 void ContactBoundaryCondition::postProcess()
 {
+//     std::cout << counter <<std::endl ;
     bool verif = verifyConvergence();
-    if(verif && counter < 512)
+    if(!verif && counter < countermax)
     {
         counter++ ;
     }
-    else if(!verif && counter == 512)
+    else if(counter == countermax)
     {
         counter = 0 ;
         std::cout << "contact non-convergence, resetting counter, error = " << currentError <<std::endl ;
@@ -694,8 +720,7 @@ void ContactBoundaryCondition::postProcess()
     {
         counter = 0 ;
     }
-    else
-        counter = 0 ;
+
 //    if(conv)
 //    {
 //        double max = 0 ;
@@ -755,11 +780,11 @@ void ContactBoundaryCondition::applyBoundaryConditions( Assembly * a, Mesh<Delau
 //                 continue ;
 //             }
             double dx = std::abs(referenceX[pt.first.first]- pt.first.first->getX()-disps[0]) ;
-            double forcex  = /*0.1**/std::pow(dx,0.1)*stiffnessesX[pt.first.first]*scale  + 1e-1*max;
+            double forcex  = std::pow(dx,.01)*stiffnessesX[pt.first.first]*scale  /*+ 1e-1*max*/;//dx*stiffnessesX[pt.first.first]*scale ; ///*0.1**/
             if(forcex > 0)
                 forcex = 0 ;
             double dy = std::abs(referenceY[pt.first.first]- pt.first.first->getY()-disps[1]) ;
-            double forcey  = /*0.1**/std::pow(dy,0.1)*stiffnessesY[pt.first.first]*scale + 1e-1*max;
+            double forcey  = std::pow(dy,.01)*stiffnessesY[pt.first.first]*scale /*+ 1e-1*max*/;//dy*stiffnessesY[pt.first.first]*scale;///*0.1**/
             if(forcey > 0)
                 forcey = 0 ;    
 //             std::cout << (*pt.first.first).getY() << "  "<< force << "  "<< errors[pt.first.first]<< "  "<< currentError<< std::endl ;
@@ -790,13 +815,13 @@ void ContactBoundaryCondition::applyBoundaryConditions( Assembly * a, Mesh<Delau
 //             if(!baseGeometry->in(*pt.first.first+disps))
 //                 continue ;
             double dx = std::abs(referenceX[pt.first.second]- pt.first.second->getX()-disps[0]) ;
-            double forcex  = /*0.1**/std::pow(dx,0.1)*stiffnessesX[pt.first.second]*scale + 1e-1*max;
+            double forcex  = std::pow(dx,.01)*stiffnessesX[pt.first.second]*scale  /*+ 1e-1*max*/;//dx*stiffnessesX[pt.first.second]*scale ; ///*0.1**/
             if(forcex > 0)
                 forcex = 0 ;
             double dy = std::abs(referenceY[pt.first.second]- pt.first.second->getY()-disps[1]) ;
-            double forcey  = /*0.1**/std::pow(dy,0.1)*stiffnessesY[pt.first.second]*scale+ 1e-1*max;
+            double forcey  = std::pow(dy,.01)*stiffnessesY[pt.first.second]*scale /*+ 1e-1*max*/;//dy*stiffnessesY[pt.first.second]*scale;///*0.1**/
             if(forcey > 0)
-                forcey = 0 ;  
+                forcey = 0 ; 
 
             int JinvSize = 3 ;
             if ( pt.second->spaceDimensions() == SPACE_THREE_DIMENSIONAL && pt.second->timePlanes() > 1 )

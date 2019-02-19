@@ -48,8 +48,9 @@ namespace Amie
         double scale = 1. ;
         double currentError = 0 ;
         bool active = true ;
-        double threshold = 1e-5 ;
+        double threshold = 1e-6 ;
         int counter = 0 ;
+        int countermax = 32000 ;
         
     public: 
         ContactBoundaryCondition(Geometry * geo) ;

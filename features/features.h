@@ -111,7 +111,7 @@ protected:
 //
 
     State state ;
-    
+    bool lastConverged = false ;
     
     
 protected:
@@ -253,7 +253,7 @@ protected:
 
     void setElementBehaviours() ;
     void updateElementBehaviours() ;
-    bool solve() ;
+    bool solve(bool largeStrainLoop, bool contactLoop) ;
     bool stepElements() ;
     bool stepInternal(bool guided, bool xfemIteration) ;
     void stepXfem() ;

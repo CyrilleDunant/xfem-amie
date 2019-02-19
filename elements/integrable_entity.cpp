@@ -628,7 +628,7 @@ void ElementState::getExternalFieldAtGaussPoints ( Vector & nodalValues, int ext
 void ElementState::updateInverseJacobianCache(const Point & p, VirtualMachine * vm)
 {
 
-    if(!JinvCache || parent->isMoved() || (JinvCache && JinvCache->numRows() != parent->spaceDimensions()+(parent->timePlanes()>1)))
+    if(!JinvCache || parent->isMoved() || (JinvCache && (int)JinvCache->numRows() != parent->spaceDimensions()+(parent->timePlanes()>1)))
     {
         delete JinvCache ;
         JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
@@ -3537,7 +3537,7 @@ bool ElementState::prepare(const Vector &extrapolatedDisplacements, VirtualMachi
     if (parent->getBehaviour()->type == VOID_BEHAVIOUR)
         return true ;
         
-    size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+//     size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 //     if(localExtrapolatedDisplacements.size() != parent->getBoundingPoints().size() *ndofs)
 //         localExtrapolatedDisplacements.resize( parent->getBoundingPoints().size() *ndofs, 0.) ;
     

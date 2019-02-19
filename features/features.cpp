@@ -4380,7 +4380,7 @@ void FeatureTree::elasticStep()
     Vector lastx ( K->getDisplacements() ) ;
     K->clear() ;
     assemble() ;
-    solve() ;
+    solve(false, false) ;
     bool prevElastic = elastic ;
     elastic = true ;
     stepElements() ;
@@ -4428,7 +4428,7 @@ bool FeatureTree::contactsConverged()
 }
 
 
-bool FeatureTree::solve()
+bool FeatureTree::solve( bool largeStrainLoop, bool contactLoop)
 {
     if ( enrichmentChange || needMeshing )
     {
@@ -4440,25 +4440,47 @@ bool FeatureTree::solve()
     VirtualMachine vm ;
 
     gettimeofday ( &time0, nullptr );
-    Vector extrapolatedDisplacements = K->extrapolate() ;
-    int nlcount = 0 ;
-    largeStrainConverged = true ;
-    if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint && contactsConverged() /*&& deltaTime > POINT_TOLERANCE*/ ) 
-    {
-            
-        if(largeStrainSteps++ > 2048)
-        {
-            nlcount = 0 ;
-            largeStrainSteps = -1 ;
-            std::cout << "large strain error... " << std::endl ;
-        }
-        else if ( dtree )
-        {
 
-            std::cerr << "updating jacobian matrices... " << std::flush ;
-            for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+
+//     if(foundCheckPoint)
+//         std::cout << std::endl ;
+    
+    if(largeStrainLoop)
+    {
+        largeStrainConverged = true ;    
+        Vector extrapolatedDisplacements = K->extrapolate() ;
+        int nlcount = 0 ;
+        
+        if(extrapolatedDisplacements.size() && largeStrains && foundCheckPoint) 
+        {
+//             std::cout <<"*"<<std::flush ;
+                
+            if(largeStrainSteps++ > 2048)
             {
-                for ( auto i = j->second->begin() ; i != j->second->end() ; i++ )
+                nlcount = 0 ;
+                largeStrainSteps = -1 ;
+                std::cout << "large strain error... " << std::endl ;
+            }
+            else if ( dtree )
+            {
+
+                std::cerr << "updating jacobian matrices... " << std::flush ;
+                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+                {
+                    for ( auto i = j->second->begin() ; i != j->second->end() ; i++ )
+                    {
+                        if(i.getPosition()%100 == 0)
+                            std::cerr << "\rupdating jacobian matrices... " << i.getPosition() +1 << "/"<< i.size()<< std::flush ;
+                        bool lp = !i->getState().prepare(extrapolatedDisplacements, &vm) ;
+                        nlcount += lp ;
+                    }
+                }
+
+            }
+            else if(dtree3D)
+            {
+                std::cerr << "updating jacobian matrices...... " << std::flush ;
+                for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
                 {
                     if(i.getPosition()%100 == 0)
                         std::cerr << "\rupdating jacobian matrices... " << i.getPosition() +1 << "/"<< i.size()<< std::flush ;
@@ -4466,34 +4488,24 @@ bool FeatureTree::solve()
                     nlcount += lp ;
                 }
             }
-
         }
-        else if(dtree3D)
+        
+        if(nlcount == 0)
         {
-            std::cerr << "updating jacobian matrices...... " << std::flush ;
-            for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
-            {
-                if(i.getPosition()%100 == 0)
-                    std::cerr << "\rupdating jacobian matrices... " << i.getPosition() +1 << "/"<< i.size()<< std::flush ;
-                bool lp = !i->getState().prepare(extrapolatedDisplacements, &vm) ;
-                nlcount += lp ;
-            }
+            largeStrainSteps = -1 ;
+            largeStrainConverged = true ;
         }
+        else 
+        largeStrainConverged = false ; 
+        
+        if(largeStrains)
+        std::cerr << " large displacement changes: " << nlcount <<std::endl ;
     }
-    
-    if(nlcount == 0)
-    {
-         largeStrainSteps = -1 ;
-         largeStrainConverged = true ;
-    }
-    else
-       largeStrainConverged = false ; 
     
     gettimeofday ( &time1, nullptr );
     double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
     std::cerr << "...done. Time (s) " << delta / 1e6 << std::endl ;
-    if(largeStrains)
-        std::cerr << " large displacement changes: " << nlcount <<std::endl ;
+    
     
     if ( dtree )
     {
@@ -4510,17 +4522,22 @@ bool FeatureTree::solve()
             }
         }
         
-        
-        
-        if(!contacts.empty())
+
+        if(!contacts.empty() && contactLoop)
         {
             std::cerr << "\nApplying Contact conditions " << std::flush ;
 
-            if(largeStrainConverged)
-            {
-                std::cerr << " (stepping) " << std::flush ;
-                stepContacts() ;
+
+            std::cerr << " (stepping) " << std::flush ;
+//             std::cout <<";"<<std::flush ;
+            
+
+            for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
+            {  
+                (*i)->postProcess();
             }
+            
+            stepContacts() ;
             
             double err = 0 ;
             for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
@@ -4542,7 +4559,31 @@ bool FeatureTree::solve()
                 std::cerr << "\rupdating elementary matrices and induced BCs... " << i.getPosition() +1 << "/"<< i.size()<< std::flush ;
             i->getElementaryMatrix(&vm) ;
             i->applyBoundaryCondition ( K, &vm ) ;
+            
+            
         }
+        
+//         if(!contacts.empty() && contactLoop)
+//         {
+//             std::cerr << "\nApplying Contact conditions " << std::flush ;
+// 
+//             if(largeStrainConverged)
+//             {
+//                 std::cerr << " (stepping) " << std::flush ;
+//                 std::cout <<";"<<std::flush ;
+//                 stepContacts() ;
+//             }
+//             
+//             double err = 0 ;
+//             for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
+//             {  
+//                 (*i)->applyBoundaryConditions ( K, dtree3D ) ;
+//                 err = std::max((*i)->error(), err) ;
+//             }
+//             std::cerr << err << std::flush ;
+// 
+//         }
+
     }
     
     gettimeofday ( &time1, nullptr );
@@ -4724,7 +4765,7 @@ bool FeatureTree::solve()
 
     std::cerr << " ...done" << std::endl ;
 //     std::cout << largeStrains << "  " << largeStrainConverged << "  " << contactsConverged() << std::endl ;
-    return  ((largeStrains && largeStrainConverged ) || !largeStrains ) && solverConvergence&& contactsConverged();
+    return  ((largeStrains && largeStrainConverged ) || !largeStrains || !largeStrainLoop) && solverConvergence && (contactsConverged() || !contactLoop);
 }
 
 void FeatureTree::stepXfem()
@@ -5710,22 +5751,7 @@ bool FeatureTree::stepElements()
     }
     
     contactsStateConverged = true ;
-    if(!contacts.empty())
-    {
-        for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
-        {  
-            if(!(*i)->verifyConvergence())
-            {
-                contactsStateConverged = false ;
-                break ;
-            }
-        }
-//         if(foundCheckPoint)
-//         {
-//             for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
-//                 (*i)->reInitialise();
-//         }
-    }
+
 
     
     
@@ -5921,16 +5947,31 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
     if ( !solved )
     { 
         bool elasticInit = ft->elastic ;
+        bool checkpointInit = ft->foundCheckPoint ;
         ft->elastic = true ;
         bool go = true ;
         while (go)
         {
             ft->assemble();
-            go = !ft->solve() ;
+            ft->foundCheckPoint = checkpointInit ;
+            go = !ft->solve(true, false) ;
             ft->stepElements() ; 
         }
+        go = true ;
+
+  
+        while (go)
+        {
+            ft->assemble();
+            ft->foundCheckPoint = checkpointInit ;
+            go = !ft->solve(false, true) ;
+            ft->stepElements() ; 
+        }
+
+        ft->solve(false, false) ;
         solved = true ;
         ft->elastic = elasticInit ;
+        ft->foundCheckPoint = checkpointInit ;
     }
     if ( s == SOLVED )
     {
@@ -6172,6 +6213,11 @@ bool FeatureTree::stepInternal(bool guided, bool xfemIteration)
 
             if(foundCheckPoint && contactsStateConverged && !(enrichmentChange || behaviourChanged() ) )
                 needexit = true ;
+//             if(foundCheckPoint)
+//             {
+//                 for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
+//                     (*i)->reInitialise();
+//             }
         }
         else
         {
@@ -6425,12 +6471,17 @@ void FeatureTree::updateMesh()
 bool FeatureTree::step(bool guided)
 {   
 
+    if(lastConverged)
+        updateContacts() ;
+
     if(structuredMesh)
         dtree3D->step(deltaTime) ;
     
     if((solverConverged() && stateConverged && maxScore < thresholdScoreMet))
         iterationCounter = 0 ;
     bool ret = stepInternal(guided, true) ;
+    
+   lastConverged = ret ; 
     
     return ret ;
 }

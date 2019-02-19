@@ -308,7 +308,7 @@ int main ( int argc, char *argv[] )
 //     F.addBoundaryCondition ( loadr );
 //     F.addBoundaryCondition ( loadf );
 //     F.addBoundaryCondition ( contact );
-    F.largeStrains = false ;
+    F.largeStrains = true ;
 //     loadr->setActive(true);
 // 	F.addBoundaryCondition(loadt);
 //     transform(&rect, TRANSLATE, Point(-0.024/200, 0.)) ;

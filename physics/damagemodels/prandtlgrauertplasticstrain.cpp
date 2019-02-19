@@ -32,7 +32,7 @@ PrandtlGrauertPlasticStrain::PrandtlGrauertPlasticStrain(double c_psi, double ep
     newtonIteration = false ;
     es = nullptr ;
     broken = false ;
-    factor = 0 ;
+    factor = 1. ;
 
 }
 
@@ -471,6 +471,8 @@ double PrandtlGrauertPlasticStrain::getDamage() const
     //return std::min(topdamage*state[0]+bottomdamage*(1.-state[0]) + factor, 1.);
 
     double currentPlaticVariable = getPlasticity() ;
+//     if(currentPlaticVariable >  0.5)
+//         std::cout << currentPlaticVariable << "  " << kappa_0*factor << std::endl ;
     if(currentPlaticVariable >= kappa_0*factor)
     {
 // 		return std::max((currentPlaticVariable-kappa_0)/eps_f,0.) ;
