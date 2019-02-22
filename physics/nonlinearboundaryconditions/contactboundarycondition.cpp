@@ -458,7 +458,7 @@ void ContactBoundaryCondition::update()
     if(istrain.size() > 3)
         istrainNorm += istrain[2]*istrain[2] ;
     istrainNorm = pow(istrainNorm, 0.7) ;
-    double acc = (1.+istrainNorm)*affectedElements.begin()->second->getBehaviour()->getTensor(Point(0,0,0))[0][0];
+    double acc = (1.+istrainNorm)*pow(affectedElements.begin()->second->getBehaviour()->getTensor(Point(0,0,0))[0][0], 1.2);
 //     if(maxerr*acc > 0.002)
 //     {
 //         fac *= 0.002/(maxerr*acc) ;
@@ -715,6 +715,7 @@ void ContactBoundaryCondition::postProcess()
     {
         counter = 0 ;
         std::cout << "contact non-convergence, resetting counter, error = " << currentError <<std::endl ;
+        print();
     }
     else if(verif)
     {

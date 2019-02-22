@@ -4499,7 +4499,7 @@ bool FeatureTree::solve( bool largeStrainLoop, bool contactLoop)
         largeStrainConverged = false ; 
         
         if(largeStrains)
-        std::cerr << " large displacement changes: " << nlcount <<std::endl ;
+            std::cerr << " large displacement changes: " << nlcount <<std::endl ;
     }
     
     gettimeofday ( &time1, nullptr );
@@ -4531,13 +4531,17 @@ bool FeatureTree::solve( bool largeStrainLoop, bool contactLoop)
             std::cerr << " (stepping) " << std::flush ;
 //             std::cout <<";"<<std::flush ;
             
-
-            for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
-            {  
-                (*i)->postProcess();
-            }
             
-            stepContacts() ;
+//             if(foundCheckPoint)
+//             {
+                           
+                for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
+                {  
+                    (*i)->postProcess();
+                }
+                stepContacts() ; 
+//             } 
+
             
             double err = 0 ;
             for ( auto i = contacts.begin() ; i != contacts.end() ; i++ )
@@ -4765,7 +4769,7 @@ bool FeatureTree::solve( bool largeStrainLoop, bool contactLoop)
 
     std::cerr << " ...done" << std::endl ;
 //     std::cout << largeStrains << "  " << largeStrainConverged << "  " << contactsConverged() << std::endl ;
-    return  ((largeStrains && largeStrainConverged ) || !largeStrains || !largeStrainLoop) && solverConvergence && (contactsConverged() || !contactLoop);
+    return  ((largeStrains && largeStrainConverged ) || !largeStrains || !largeStrainLoop) && solverConvergence && (contactsConverged() || !contactLoop /*|| !foundCheckPoint*/);
 }
 
 void FeatureTree::stepXfem()
@@ -6471,8 +6475,8 @@ void FeatureTree::updateMesh()
 bool FeatureTree::step(bool guided)
 {   
 
-    if(lastConverged)
-        updateContacts() ;
+//     if(lastConverged)
+//         updateContacts() ;
 
     if(structuredMesh)
         dtree3D->step(deltaTime) ;

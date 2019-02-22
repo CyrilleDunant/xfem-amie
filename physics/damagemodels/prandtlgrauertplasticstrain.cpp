@@ -23,7 +23,7 @@ PrandtlGrauertPlasticStrain::PrandtlGrauertPlasticStrain(double c_psi, double ep
     v.push_back(ETA);
     param = nullptr ;
     compressivePlasticVariable = 0 ;
-    damageDensityTolerance = 2e-3 ;
+    damageDensityTolerance = 2e-2 ;
     tensilePlasticVariable = 0 ;
     thresholdDamageDensity = 1.-damageDensityTolerance ;
     forceDeviatoric=false ;
