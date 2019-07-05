@@ -322,84 +322,95 @@ void step ( size_t nsteps, RectangularFeature * samplef )
 
 int main ( int argc, char *argv[] )
 {
-//     double nu = 0.25 ;
-//     double nu_mat = .01 ;
-//     InclusionGeometryType t = INCLUSION_IS_SPHERE ;
-//     Stiffness * agg = new Stiffness(3.2, nu, SPACE_THREE_DIMENSIONAL) ;
-//     Stiffness * paste = new Stiffness(3.2e-8, nu_mat, SPACE_THREE_DIMENSIONAL) ;
-//     
-//     double a = 1. ; double b = 1./10  ; double c = 1./10 ;
-//     
-//     Phase matrix(paste,0, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
-//     Phase aggregate(agg, 1.-0, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
-//     
-//     
-//     BiphasicSelfConsistentComposite hint (matrix, aggregate) ;
+    double nu = 0.25 ;
+    double nu_mat = .01 ;
+    InclusionGeometryType t = INCLUSION_IS_SPHERE ;
+    Stiffness * agg = new Stiffness(3.2, nu, SPACE_THREE_DIMENSIONAL) ;
+    Stiffness * paste = new Stiffness(0, nu_mat, SPACE_THREE_DIMENSIONAL) ;
+    
+    double a = 10. ; double b = 1.  ; double c = 1. ;
+    
+    Phase matrix(paste,0, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+    Phase aggregate(agg, 1.-0, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+    
+    
+    BiphasicSelfConsistentComposite hint (matrix, aggregate) ;
 //     hint.apply() ;
-//     double dphi = .1 ;
+    double dphi = .005 ;
 //     Matrix dC = hint.C ;
 //     Matrix dC1 = hint.C ;
-//     for(double soft = .0 ; soft <= .6 ; soft += dphi)
-//     {
-// 
-//         Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
-//         Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
-// 
-//         
-//         Matrix C = BiphasicSelfConsistentComposite(matrix , aggregate, hint).getBehaviour()->getTensor(Point()) ;
+
+        
+//         Matrix C = BiphasicSelfConsistentComposite(Phase(paste,0.499, SPACE_THREE_DIMENSIONAL, t, a, b, c) , Phase(agg, 0.501, SPACE_THREE_DIMENSIONAL, t, a, b, c), hint).getBehaviour()->getTensor(Point()) ;
 //     //       Matrix C =   ReussMatrixInclusionComposite(aggregate,matrix).getBehaviour()->getTensor(Point())  ;
 //         double nu_eff = C[0][1]/((C[0][0]+C[0][1])) ;
 //         double E_eff = C[0][0]*(1.+nu_eff)*(1.-2.*nu_eff)/(1.-nu_eff) ;
+//         std::cerr << 0.5 <<"  "<< E_eff*10 <<"  " <<nu_eff << std::endl ;
+//         exit(0) ;
+// //     
+    for(double soft = 0 ; soft < .45 ; soft += .1)
+    {
+
+        Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+        Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+
+        
+        Matrix C = BiphasicSelfConsistentComposite(matrix , aggregate, hint).getBehaviour()->getTensor(Point()) ;
+    //       Matrix C =   ReussMatrixInclusionComposite(aggregate,matrix).getBehaviour()->getTensor(Point())  ;
+        double nu_eff = C[0][1]/((C[0][0]+C[0][1])) ;
+        double E_eff = C[0][0]*(1.+nu_eff)*(1.-2.*nu_eff)/(1.-nu_eff) ;
 //         std::cout << soft <<"  "<< E_eff*10 <<"  " <<nu_eff << std::endl ;
-//         
-//     //     C.print() ;
-//     //     dC1 = dC ;
-//     //     dC = C-hint.C ;
-//         hint.C = C;
-//     } 
+        
+    //     C.print() ;
+    //     dC1 = dC ;
+    //     dC = C-hint.C ;
+        hint.C = C;
+    } 
+    
+    for(double soft = .45 ; soft < .55 ; soft += .01)
+    {
+
+        Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+        Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+
+        
+        Matrix C = BiphasicSelfConsistentComposite(matrix , aggregate, hint).getBehaviour()->getTensor(Point()) ;
+    //       Matrix C =   ReussMatrixInclusionComposite(aggregate,matrix).getBehaviour()->getTensor(Point())  ;
+        double nu_eff = C[0][1]/((C[0][0]+C[0][1])) ;
+        double E_eff = C[0][0]*(1.+nu_eff)*(1.-2.*nu_eff)/(1.-nu_eff) ;
+//         std::cout << soft <<"  "<< E_eff*10 <<"  " <<nu_eff << std::endl ;
+        
+    //     C.print() ;
+    //     dC1 = dC ;
+    //     dC = C-hint.C ;
+        hint.C = C;
+    } 
+
 //     dphi= 0.01 ;
-//     for(double soft = .6 ; soft <= .85 ; soft += dphi)
-//     {
-// 
-//         Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
-//         Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
-// 
-//         
-//         Matrix C = BiphasicSelfConsistentComposite(matrix , aggregate, hint).getBehaviour()->getTensor(Point()) ;
-//     //       Matrix C =   ReussMatrixInclusionComposite(aggregate,matrix).getBehaviour()->getTensor(Point())  ;
-//         double nu_eff = C[0][1]/((C[0][0]+C[0][1])) ;
-//         double E_eff = C[0][0]*(1.+nu_eff)*(1.-2.*nu_eff)/(1.-nu_eff) ;
+    for(double soft = .55 ; soft <= 1 ; soft += .1)
+    {
+
+        Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+        Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+
+        
+        Matrix C = BiphasicSelfConsistentComposite(matrix , aggregate, hint).getBehaviour()->getTensor(Point()) ;
+    //       Matrix C =   ReussMatrixInclusionComposite(aggregate,matrix).getBehaviour()->getTensor(Point())  ;
+        double nu_eff = C[0][1]/((C[0][0]+C[0][1])) ;
+        double E_eff = C[0][0]*(1.+nu_eff)*(1.-2.*nu_eff)/(1.-nu_eff) ;
 //         std::cout << soft <<"  "<< E_eff*10 <<"  " <<nu_eff << std::endl ;
-//         
-//     //     C.print() ;
-//     //     dC1 = dC ;
-//     //     dC = C-hint.C ;
-//         hint.C = C;
-//     } 
-//     dphi= 0.01 ;
-//     for(double soft = .85 ; soft <= 1.01 ; soft += dphi)
-//     {
-// 
-//         Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
-//         Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
-// 
-//         
-//         Matrix C = BiphasicSelfConsistentComposite(matrix , aggregate, hint).getBehaviour()->getTensor(Point()) ;
-//     //       Matrix C =   ReussMatrixInclusionComposite(aggregate,matrix).getBehaviour()->getTensor(Point())  ;
-//         double nu_eff = C[0][1]/((C[0][0]+C[0][1])) ;
-//         double E_eff = C[0][0]*(1.+nu_eff)*(1.-2.*nu_eff)/(1.-nu_eff) ;
-//         std::cout << soft <<"  "<< E_eff*10 <<"  " <<nu_eff << std::endl ;
-//         
-//     //     C.print() ;
-//     //     dC1 = dC ;
-//     //     dC = C-hint.C ;
-//         hint.C = C;
-//     } 
-//   
-//   
-//   delete agg ;
-//   delete paste ;
-//   exit(0) ;
+        
+    //     C.print() ;
+    //     dC1 = dC ;
+    //     dC = C-hint.C ;
+        hint.C = C;
+    } 
+
+  
+  
+  delete agg ;
+  delete paste ;
+  exit(0) ;
 
 
     double compressionCrit = -32.6e6 ;

@@ -33,6 +33,18 @@ Matrix Composite::I4( const Matrix &C )
 
 Matrix makeIsotropic(const Matrix & S)
 {
+    bool isIsotropic = true ;
+    for(size_t i = 1 ; i < S.numRows() && isIsotropic; i++)
+    {
+        for(size_t j = i+1 ; j < S.numCols() && isIsotropic; j++)
+        {
+            if(std::abs(S[i][j]-S[j][i]) > 1e-12)
+                isIsotropic = false ;
+        }
+    }
+    
+    if(isIsotropic)
+        return S;
     double r, s, t ;
     r = 0.5 ;
     s = (sqrt(5)+1)*.25 ;
@@ -439,6 +451,8 @@ void Composite::invertTensor( Matrix &m )
     {
         if(std::abs(m[i][i] ) > 1e-16)
             m[i][i] = 1. / m[i][i] ;
+        else
+            m[i][i] = 0 ;
     }
 }
 
@@ -500,11 +514,20 @@ void MatrixInclusionComposite::apply()
         matrix.A =  I  ;
     }
 
+    inclusion.A = makeIsotropic(inclusion.A) ;
+    if(matrix.volume > 1e-32)
+        matrix.A = ( I - inclusion.A * inclusion.volume ) / matrix.volume ;
+    else
+    {
+        matrix.A =  I  ;
+    }
 
-    C =  ( matrix.A * matrix.volume ) * matrix.C  + ( inclusion.A * inclusion.volume ) * inclusion.C;
+
+    C =  ( matrix.A * matrix.volume ) * matrix.C + ( inclusion.A * inclusion.volume ) * inclusion.C ;
     
     beta.resize( matrix.beta.size(), 0. );
     beta = matrix.A * matrix.volume * matrix.beta ;
+    
 //     std::cout <<" a = "<< matrix.A[0][0] <<  " * " << matrix.volume << " * " << matrix.beta[0] << std::endl ;
     beta += inclusion.A * inclusion.volume * inclusion.beta ;
 //     std::cout <<" b = "<< inclusion.A[0][0] <<" * " << inclusion.volume << " * "<< inclusion.beta[0] <<" = "<<beta[0] << std::endl ;
@@ -612,8 +635,8 @@ MoriTanakaMatrixInclusionComposite::MoriTanakaMatrixInclusionComposite( const Ph
 void MoriTanakaMatrixInclusionComposite::getStrainConcentrationTensor()
 {
 
-    if(matrix.C.array().max() > 1e-16)
-    {
+//     if(matrix.C.array().max() > 1e-32)
+//     {
         Matrix I = Composite::I4( C ) ;
         Matrix S = Composite::eshelby( matrix.C ) ;
         if(matrix.t == INCLUSION_IS_ELLIPSOID)
@@ -626,11 +649,11 @@ void MoriTanakaMatrixInclusionComposite::getStrainConcentrationTensor()
         B += I ;
         
         Composite::invertTensor( B ) ;
-    }
-    else
-    {
-        B = matrix.C ;
-    }
+//     }
+//     else
+//     {
+//         B = matrix.C ;
+//     }
 
 
 }
@@ -752,56 +775,104 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
     Matrix I = Composite::I4( Sp ) ;
     double nc1 = std::inner_product(&matrix.C.array()[0], &matrix.C.array()[matrix.C.array().size()], &matrix.C.array()[0], double(0)) ;
     double nc2 = std::inner_product(&inclusion.C.array()[0], &inclusion.C.array()[inclusion.C.array().size()], &inclusion.C.array()[0], double(0)) ;
-    double maxnorm = std::max(nc1, nc2) ;
+    double maxnorm = sqrt(std::max(nc1, nc2)) ;
     Matrix Gp = inclusion.C ;
 
-    double minerr = error ;    
-    fictious.C = inclusion.C ;
-
+//     std::cout << matrix.C.array()[0] << "  " << inclusion.C.array()[0] << std::endl ;
+    double minerr = 1e9 ;    
+    fictious.C = inclusion.C*inclusion.volume+matrix.C*matrix.volume;
+    Matrix S = fictious.C ;
+    Matrix G = fictious.C ;
     int count = 0 ;
+    Matrix A0 = S ;
+    Matrix A1 = S ;
+    Matrix del = S ;
+    
+    double numat = matrix.C[0][1]/((matrix.C[0][0]+matrix.C[0][1])) ;
+    if(isnanf(numat))
+        numat = 0 ;
+    double Emat = matrix.C[0][0]*(1.+numat)*(1.-2.*numat)/(1.-numat) ;
+    
+    double nuinc = inclusion.C[0][1]/((inclusion.C[0][0]+inclusion.C[0][1])) ;
+    if(isnanf(nuinc))
+        nuinc = 0 ;
+    double Einc = inclusion.C[0][0]*(1.+nuinc)*(1.-2.*nuinc)/(1.-nuinc) ;
+    
+    size_t sz = 20 ;
+    Vector deltav(sz) ;
+    for(size_t i = 0 ;  i < deltav.size() ; i++)
+        deltav[i] = ((double)i+.5)/sz ;
+    Vector nu_eff(deltav.size()*deltav.size()) ;
+    Vector E_eff(deltav.size()*deltav.size()) ;
+    
+    int nullcount = 0 ;
 
-    do 
-    {
-        fictious.volume = matrix.volume ;
-        MoriTanakaMatrixInclusionComposite mtFictiousSecond(fictious, inclusion) ;
-        mtFictiousSecond.apply() ;
-        fictious.volume = inclusion.volume ;
-        MoriTanakaMatrixInclusionComposite mtFictiousFirst(fictious, matrix) ;
-        mtFictiousFirst.apply() ;
-        Matrix A0 = mtFictiousFirst.MatrixInclusionComposite::inclusion.A ;
-        Matrix A1 = mtFictiousSecond.MatrixInclusionComposite::inclusion.A ;
+    double mv = matrix.volume ;
+    double iv = inclusion.volume ;
+    size_t i = 0 ;
+//     for(size_t i = 0 ;  i < deltav.size() ; i++)
+//     {
+//     for(size_t j = 0 ;  j < deltav.size() ; j++)
+//     {   
 
-        Matrix G = A0 * matrix.volume + A1 * inclusion.volume ;
-        Composite::invertTensor( G ) ;
-        G *= A1 ;
-        G = makeIsotropic(G) ;
-        Matrix S = G ;
-        Matrix del = inclusion.C - matrix.C  ;
-        G *= del * inclusion.volume ; 
-        G += matrix.C  ;
-        Vector K = fictious.C.array() - G.array() ;
-        error = std::abs(K).max()/maxnorm ;
+        count = 0 ;
+        double lminerror = 1e9 ;
+        fictious.C = Tensor::cauchyGreen(std::make_pair(/*Einc*deltav[i], 0.4999*deltav[j]*/1e-3, 0.499), SPACE_THREE_DIMENSIONAL);
         
-        if(count == 0 || ((error < minerr) && G[0][0] > std::min(matrix.C[0][0], inclusion.C[0][0]) && G[0][0] < matrix.C[0][0]*matrix.volume+ inclusion.C[0][0]*inclusion.volume))
+        do
         {
+            fictious.volume = mv ;
+            inclusion.volume = iv ;
+            MoriTanakaMatrixInclusionComposite mtFictiousSecond(fictious, inclusion) ;
+            mtFictiousSecond.apply() ;
+            fictious.volume = iv ;
+            matrix.volume = mv ;
+            MoriTanakaMatrixInclusionComposite mtFictiousFirst(fictious, matrix) ;
+            mtFictiousFirst.apply() ;
+            A0 = mtFictiousFirst.MatrixInclusionComposite::inclusion.A ;
+            A1 = mtFictiousSecond.MatrixInclusionComposite::inclusion.A ;
+
+            G = A0 * matrix.volume + A1 * inclusion.volume ;
+            Composite::invertTensor( G ) ;
+            G *= A1 ;
+            
+            G = makeIsotropic(G) ;
+            S = G ;
+            del = inclusion.C - matrix.C ;
+            G *= del * inclusion.volume ; 
+            G += matrix.C  ;
+            Vector K = fictious.C.array() - G.array() ;
+            error = std::inner_product(&K[0], &K[K.size()], &K[0], double(0))/maxnorm ;
+            
+            if(error < lminerror)
+            {
+                lminerror = error ;
+            }
+
             Gp = G ;
             Sp = S ;
-            minerr = error ;
-        }
+            fictious.C = G ;
 
-        fictious.C = G ;
+        } while( (++count < 512 && lminerror > 1e-48) ) ;
     
 
-    } while( ++count < 512 && minerr > 1e-18) ; 
+        minerr = lminerror ;       
+        size_t idx = 0;//i*deltav.size()+j ;
+        nu_eff[idx] = Gp[0][1]/((Gp[0][0]+Gp[0][1])) ;
+        E_eff[idx] = Gp[0][0]*(1.+nu_eff[idx])*(1.-2.*nu_eff[idx])/(1.-nu_eff[idx]) ;
+        bool isNull = (nu_eff[idx]>0.499 || nu_eff[idx]<0) && E_eff[idx] < 1e-12 ;
+
+        nullcount += isNull ;
+
+//     }
+//     }
+    std::cerr << matrix.volume <<"  " <<std::flush ;
+    for(size_t i = 0 ;  i < E_eff.size() ; i++)
+        std::cerr << E_eff[i]*10 <<"  " <<nu_eff[i] << "  "  <<std::flush ;
+    std::cerr << nullcount <<std::endl ;
     
-    fictious.C = Gp ;
-    fictious.volume = inclusion.volume ;
-    MoriTanakaMatrixInclusionComposite mtFictiousFirst(fictious, matrix) ;
-    mtFictiousFirst.apply() ;
-    fictious.volume = matrix.volume ;
-    MoriTanakaMatrixInclusionComposite mtFictiousSecond(fictious, inclusion) ;
-    mtFictiousSecond.apply() ;
-    std::cerr << mtFictiousFirst.inclusion.A[0][0] << "  "<< mtFictiousSecond.inclusion.A[0][0] <<"  "<< inclusion.volume<< "  "<< matrix.volume << "  " << fictious.C[0][0] << "  "<< minerr << std::endl ;
+//     exit(0) ;
+    fictious.C = Tensor::cauchyGreen(std::make_pair(E_eff.max(), nu_eff.min()), SPACE_THREE_DIMENSIONAL); ;
 
     B = I - Sp * inclusion.volume ;
     Composite::invertTensor( B ) ;
