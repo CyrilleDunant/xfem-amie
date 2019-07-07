@@ -506,14 +506,7 @@ void MatrixInclusionComposite::apply()
     inclusion.A = B * inclusion.volume + I * matrix.volume ;
     Composite::invertTensor( inclusion.A ) ;
     inclusion.A *= B ;
-    inclusion.A = makeIsotropic(inclusion.A) ;
-    if(matrix.volume > 1e-16)
-        matrix.A = ( I - inclusion.A * inclusion.volume ) / matrix.volume ;
-    else
-    {
-        matrix.A =  I  ;
-    }
-
+    
     inclusion.A = makeIsotropic(inclusion.A) ;
     if(matrix.volume > 1e-32)
         matrix.A = ( I - inclusion.A * inclusion.volume ) / matrix.volume ;
@@ -780,7 +773,7 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
 
 //     std::cout << matrix.C.array()[0] << "  " << inclusion.C.array()[0] << std::endl ;
     double minerr = 1e9 ;    
-    fictious.C = inclusion.C*inclusion.volume+matrix.C*matrix.volume;
+    fictious.C = (inclusion.C*inclusion.volume+matrix.C*matrix.volume)*.5;
     Matrix S = fictious.C ;
     Matrix G = fictious.C ;
     int count = 0 ;
@@ -798,7 +791,7 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
         nuinc = 0 ;
     double Einc = inclusion.C[0][0]*(1.+nuinc)*(1.-2.*nuinc)/(1.-nuinc) ;
     
-    size_t sz = 20 ;
+    size_t sz = 1 ;
     Vector deltav(sz) ;
     for(size_t i = 0 ;  i < deltav.size() ; i++)
         deltav[i] = ((double)i+.5)/sz ;
@@ -817,21 +810,21 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
 
         count = 0 ;
         double lminerror = 1e9 ;
-        fictious.C = Tensor::cauchyGreen(std::make_pair(/*Einc*deltav[i], 0.4999*deltav[j]*/1e-3, 0.499), SPACE_THREE_DIMENSIONAL);
+//         fictious.C = Tensor::cauchyGreen(std::make_pair(/*Einc*deltav[i], 0.4999*deltav[j]*/1e-3, 0.499), SPACE_THREE_DIMENSIONAL);
         
         do
         {
             fictious.volume = mv ;
             inclusion.volume = iv ;
-            MoriTanakaMatrixInclusionComposite mtFictiousSecond(fictious, inclusion) ;
+            DiluteMatrixInclusionComposite mtFictiousSecond(fictious, inclusion) ;
             mtFictiousSecond.apply() ;
             fictious.volume = iv ;
             matrix.volume = mv ;
-            MoriTanakaMatrixInclusionComposite mtFictiousFirst(fictious, matrix) ;
+            DiluteMatrixInclusionComposite mtFictiousFirst(fictious, matrix) ;
             mtFictiousFirst.apply() ;
             A0 = mtFictiousFirst.MatrixInclusionComposite::inclusion.A ;
             A1 = mtFictiousSecond.MatrixInclusionComposite::inclusion.A ;
-
+            
             G = A0 * matrix.volume + A1 * inclusion.volume ;
             Composite::invertTensor( G ) ;
             G *= A1 ;
@@ -847,10 +840,12 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
             if(error < lminerror)
             {
                 lminerror = error ;
+                Gp = G ;
+                Sp = S ;
             }
 
-            Gp = G ;
-            Sp = S ;
+//             Gp = G ;
+//             Sp = S ;
             fictious.C = G ;
 
         } while( (++count < 512 && lminerror > 1e-48) ) ;

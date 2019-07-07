@@ -324,7 +324,7 @@ int main ( int argc, char *argv[] )
 {
     double nu = 0.25 ;
     double nu_mat = .01 ;
-    InclusionGeometryType t = INCLUSION_IS_SPHERE ;
+    InclusionGeometryType t = INCLUSION_IS_ELLIPSOID ;
     Stiffness * agg = new Stiffness(3.2, nu, SPACE_THREE_DIMENSIONAL) ;
     Stiffness * paste = new Stiffness(0, nu_mat, SPACE_THREE_DIMENSIONAL) ;
     
@@ -348,7 +348,7 @@ int main ( int argc, char *argv[] )
 //         std::cerr << 0.5 <<"  "<< E_eff*10 <<"  " <<nu_eff << std::endl ;
 //         exit(0) ;
 // //     
-    for(double soft = 0 ; soft < .45 ; soft += .1)
+    for(double soft = 0 ; soft < .3 ; soft += .1)
     {
 
         Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
@@ -367,7 +367,7 @@ int main ( int argc, char *argv[] )
         hint.C = C;
     } 
     
-    for(double soft = .45 ; soft < .55 ; soft += .01)
+    for(double soft = .3 ; soft < .75 ; soft += .01)
     {
 
         Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
@@ -387,7 +387,7 @@ int main ( int argc, char *argv[] )
     } 
 
 //     dphi= 0.01 ;
-    for(double soft = .55 ; soft <= 1 ; soft += .1)
+    for(double soft = .75 ; soft <= 1 ; soft += .1)
     {
 
         Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
