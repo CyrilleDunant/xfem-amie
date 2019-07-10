@@ -325,10 +325,10 @@ int main ( int argc, char *argv[] )
     double nu = 0.25 ;
     double nu_mat = .01 ;
     InclusionGeometryType t = INCLUSION_IS_ELLIPSOID ;
-    Stiffness * agg = new Stiffness(3.2, nu, SPACE_THREE_DIMENSIONAL) ;
-    Stiffness * paste = new Stiffness(0, nu_mat, SPACE_THREE_DIMENSIONAL) ;
+    Stiffness * agg = new Stiffness(1, nu, SPACE_THREE_DIMENSIONAL) ;
+    Stiffness * paste = new Stiffness(0.1e-3, nu_mat, SPACE_THREE_DIMENSIONAL) ;
     
-    double a = 10. ; double b = 1.  ; double c = 1. ;
+    double a = 6. ; double b = 1.  ; double c = 1. ;
     
     Phase matrix(paste,0, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
     Phase aggregate(agg, 1.-0, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
@@ -348,26 +348,26 @@ int main ( int argc, char *argv[] )
 //         std::cerr << 0.5 <<"  "<< E_eff*10 <<"  " <<nu_eff << std::endl ;
 //         exit(0) ;
 // //     
-    for(double soft = 0 ; soft < .3 ; soft += .1)
-    {
-
-        Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
-        Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
-
-        
-        Matrix C = BiphasicSelfConsistentComposite(matrix , aggregate, hint).getBehaviour()->getTensor(Point()) ;
-    //       Matrix C =   ReussMatrixInclusionComposite(aggregate,matrix).getBehaviour()->getTensor(Point())  ;
-        double nu_eff = C[0][1]/((C[0][0]+C[0][1])) ;
-        double E_eff = C[0][0]*(1.+nu_eff)*(1.-2.*nu_eff)/(1.-nu_eff) ;
-//         std::cout << soft <<"  "<< E_eff*10 <<"  " <<nu_eff << std::endl ;
-        
-    //     C.print() ;
-    //     dC1 = dC ;
-    //     dC = C-hint.C ;
-        hint.C = C;
-    } 
+//     for(double soft = 0 ; soft < .3 ; soft += .01)
+//     {
+// 
+//         Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+//         Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+// 
+//         
+//         Matrix C = BiphasicSelfConsistentComposite(matrix , aggregate, hint).getBehaviour()->getTensor(Point()) ;
+//     //       Matrix C =   ReussMatrixInclusionComposite(aggregate,matrix).getBehaviour()->getTensor(Point())  ;
+//         double nu_eff = C[0][1]/((C[0][0]+C[0][1])) ;
+//         double E_eff = C[0][0]*(1.+nu_eff)*(1.-2.*nu_eff)/(1.-nu_eff) ;
+// //         std::cout << soft <<"  "<< E_eff*10 <<"  " <<nu_eff << std::endl ;
+//         
+//     //     C.print() ;
+//     //     dC1 = dC ;
+//     //     dC = C-hint.C ;
+//         hint.C = C;
+//     } 
     
-    for(double soft = .3 ; soft < .75 ; soft += .01)
+    for(double soft = 0.4 ; soft < 1. ; soft += .01)
     {
 
         Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
@@ -387,24 +387,24 @@ int main ( int argc, char *argv[] )
     } 
 
 //     dphi= 0.01 ;
-    for(double soft = .75 ; soft <= 1 ; soft += .1)
-    {
-
-        Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
-        Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
-
-        
-        Matrix C = BiphasicSelfConsistentComposite(matrix , aggregate, hint).getBehaviour()->getTensor(Point()) ;
-    //       Matrix C =   ReussMatrixInclusionComposite(aggregate,matrix).getBehaviour()->getTensor(Point())  ;
-        double nu_eff = C[0][1]/((C[0][0]+C[0][1])) ;
-        double E_eff = C[0][0]*(1.+nu_eff)*(1.-2.*nu_eff)/(1.-nu_eff) ;
-//         std::cout << soft <<"  "<< E_eff*10 <<"  " <<nu_eff << std::endl ;
-        
-    //     C.print() ;
-    //     dC1 = dC ;
-    //     dC = C-hint.C ;
-        hint.C = C;
-    } 
+//     for(double soft = .75 ; soft <= 1 ; soft += .1)
+//     {
+// 
+//         Phase matrix(paste,soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+//         Phase aggregate(agg, 1.-soft, SPACE_THREE_DIMENSIONAL, t, a, b, c) ;
+// 
+//         
+//         Matrix C = BiphasicSelfConsistentComposite(matrix , aggregate, hint).getBehaviour()->getTensor(Point()) ;
+//     //       Matrix C =   ReussMatrixInclusionComposite(aggregate,matrix).getBehaviour()->getTensor(Point())  ;
+//         double nu_eff = C[0][1]/((C[0][0]+C[0][1])) ;
+//         double E_eff = C[0][0]*(1.+nu_eff)*(1.-2.*nu_eff)/(1.-nu_eff) ;
+// //         std::cout << soft <<"  "<< E_eff*10 <<"  " <<nu_eff << std::endl ;
+//         
+//     //     C.print() ;
+//     //     dC1 = dC ;
+//     //     dC = C-hint.C ;
+//         hint.C = C;
+//     } 
 
   
   

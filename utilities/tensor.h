@@ -103,13 +103,14 @@ public:
 	static Matrix orthotropicCauchyGreen( Vector data, SymmetryType sym, bool force = false ) ;
 	static Matrix isotropicTransverseCauchyGreen(double E_1, double E_2, double G_12,  double nu_12, double nu_23, SpaceDimensionality dim, planeType pt) ;
 	static Vector rotate2ndOrderTensor2D( const Vector & tensor, double angle ) ;
-	static Vector rotate2ndOrderTensor3D( const Vector & tensor, Point angle, double tol = -1 ) ;
+	static Vector rotate2ndOrderTensor3D( const Vector & tensor, const Point & angle, double tol = -1 ) ;
     
     static Matrix rotate2ndOrderTensor2D( const Matrix & tensor, double angle ) ;
     
 	static Matrix rotate4thOrderTensor2D( const Matrix & tensor, double angle, double tol = -1 ) ;
-	static Matrix rotate4thOrderEshelbyTensor3D( const Matrix & tensor, Point angle, double tol = -1 ) ;
+	static Matrix rotate4thOrderEshelbyTensor3D( const Matrix & tensor, const Point &angle, double tol = -1 ) ;
     static Matrix rotate4thOrderStiffnessTensor3D( const Matrix & tensor, double phi, double theta, double psi, double tol  = -1 ) ;
+    static Matrix rotate4thOrderStiffnessTensor3D( const Matrix & tensor, const Point &angle, double tol = -1) ;
 	static Matrix to2D( Matrix & tensor, planeType pt, Variable var = ZETA) ;
 	static Matrix invert4thOrderTensor3D( const Matrix & tensor, SymmetryType sym = SYMMETRY_CUBIC ) ;
 		

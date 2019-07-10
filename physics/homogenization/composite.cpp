@@ -31,20 +31,20 @@ Matrix Composite::I4( const Matrix &C )
 }
 
 
-Matrix makeIsotropic(const Matrix & S)
+Matrix makeEshelbyIsotropic(const Matrix & S)
 {
-    bool isIsotropic = true ;
-    for(size_t i = 1 ; i < S.numRows() && isIsotropic; i++)
-    {
-        for(size_t j = i+1 ; j < S.numCols() && isIsotropic; j++)
-        {
-            if(std::abs(S[i][j]-S[j][i]) > 1e-12)
-                isIsotropic = false ;
-        }
-    }
-    
-    if(isIsotropic)
-        return S;
+//     bool isIsotropic = true ;
+//     for(size_t i = 1 ; i < S.numRows() && isIsotropic; i++)
+//     {
+//         for(size_t j = i+1 ; j < S.numCols() && isIsotropic; j++)
+//         {
+//             if(std::abs(S[i][j]-S[j][i]) > 1e-12)
+//                 isIsotropic = false ;
+//         }
+//     }
+//     
+//     if(isIsotropic)
+//         return S;
     double r, s, t ;
     r = 0.5 ;
     s = (sqrt(5)+1)*.25 ;
@@ -72,6 +72,7 @@ Matrix makeIsotropic(const Matrix & S)
     Matrix y(S.numRows(), S.numCols()) ;
     Matrix tmp(S.numRows(), S.numCols()) ;
 
+//     double n0 = S.froebeniusNorm() ;
     for(size_t i = 0 ; i < directions.size() ;i++)
     {
         da = Tensor::rotate4thOrderEshelbyTensor3D(S, directions[i]) ;
@@ -80,8 +81,57 @@ Matrix makeIsotropic(const Matrix & S)
         accc = (tmp- acc) - y ;
         acc = tmp ;
     }       
+//     double n1 = acc.froebeniusNorm() ;
+//     std::cout << n0 << " " << n1 << std::endl;
     
     return acc/directions.size();
+}
+
+Matrix makeStiffnessIsotropic(const Matrix & S)
+{
+
+    double r, s, t ;
+    r = 0.5 ;
+    s = (sqrt(5)+1)*.25 ;
+    t = (sqrt(5)-1)*.25 ;
+    std::valarray<Vector> directions = {/*{ r,  s,  t},//1
+                                        { r, -s,  t},//2
+                                        {-r,  s,  t},//3
+                                        {-r, -s,  t},//4
+                                        { t,  r,  s},//5
+                                        { t, -r,  s},//6
+                                        {-t,  r,  s},//7
+                                        {-t, -r,  s},//8
+                                        { s,  t,  r},//9
+                                        { s, -t,  r},//10
+                                        {-s,  t,  r},//11
+                                        {-s, -t,  r},//*/
+                                        { 1,  0,  0},//
+                                        { 0,  1,  0},//
+                                        { 0,  0,  1}} ;
+    Matrix acc(S.numRows(), S.numCols()) ;
+    
+    Matrix accc(S.numRows(), S.numCols()) ;
+    Matrix da(S.numRows(), S.numCols()) ;
+    Matrix y(S.numRows(), S.numCols()) ;
+    Matrix tmp(S.numRows(), S.numCols()) ;
+    
+
+    for(size_t i = 0 ; i < directions.size() ;i++)
+    {
+        da = Tensor::rotate4thOrderStiffnessTensor3D(S, acos(directions[i][0]), acos(directions[i][1]), acos(directions[i][2])) ;
+        y = da - accc ;
+        tmp = acc+y ;
+        accc = (tmp- acc) - y ;
+        acc = tmp ;
+    }       
+    
+    y = S - accc ;
+    tmp = acc+y ;
+    accc = (tmp- acc) - y ;
+    acc = tmp ;
+    
+    return acc/(directions.size()+1);
 }
 
 Matrix makeIsotropic(const Matrix & S, const std::vector<Point> & points)
@@ -106,6 +156,28 @@ Matrix makeIsotropic(const Matrix & S, const std::vector<Point> & points)
     
     
 }
+
+Matrix makeStiffnessIsotropic(const Matrix & S, const std::vector<Point> & points)
+{
+    Matrix acc(S.numRows(), S.numCols()) ;
+    Matrix accc(S.numRows(), S.numCols()) ;
+    Matrix da(S.numRows(), S.numCols()) ;
+    Matrix y(S.numRows(), S.numCols()) ;
+    Matrix tmp(S.numRows(), S.numCols()) ;
+    
+    for(size_t i = 0 ; i < points.size() ;i++)
+    {
+        da = Tensor::rotate4thOrderStiffnessTensor3D(S, acos(points[i].getX()), acos(points[i].getY()), acos(points[i].getZ())) ;
+        y = da - accc ;
+        tmp = acc+y ;
+        accc = (tmp- acc) - y ;
+        acc = tmp ;
+    }       
+
+    return acc/(points.size());
+    
+}
+
 
 Matrix  Composite::eshelbyEllipsoid(const Matrix & C, double a, double b, double c)
 {
@@ -449,10 +521,10 @@ void Composite::invertTensor( Matrix &m )
 
     for( size_t i = 3 ; i < m.numCols() ; i++ )
     {
-        if(std::abs(m[i][i] ) > 1e-16)
+        if(std::abs(m[i][i] ) > 1e-48)
             m[i][i] = 1. / m[i][i] ;
         else
-            m[i][i] = 0 ;
+            m[i][i] = 1e48 ;
     }
 }
 
@@ -505,9 +577,8 @@ void MatrixInclusionComposite::apply()
 
     inclusion.A = B * inclusion.volume + I * matrix.volume ;
     Composite::invertTensor( inclusion.A ) ;
-    inclusion.A *= B ;
+    inclusion.A = inclusion.A*B ;
     
-    inclusion.A = makeIsotropic(inclusion.A) ;
     if(matrix.volume > 1e-32)
         matrix.A = ( I - inclusion.A * inclusion.volume ) / matrix.volume ;
     else
@@ -556,7 +627,7 @@ void DiluteMatrixInclusionComposite::getStrainConcentrationTensor()
     Matrix I = Composite::I4( mori.B ) ;
     B = I - ( mori.B * inclusion.volume ) ;
     Composite::invertTensor( B ) ;
-    B *= mori.B * matrix.volume ;
+    B = B*mori.B * matrix.volume ;
 }
 
 
@@ -636,9 +707,10 @@ void MoriTanakaMatrixInclusionComposite::getStrainConcentrationTensor()
             S = Composite::eshelbyEllipsoid( matrix.C, matrix.a, matrix.b, matrix.c ) ;
         if(matrix.t == INCLUSION_IS_CYLINDER)
             S = Composite::eshelbyCylinder( matrix.C, matrix.a, matrix.b) ;
+//         S = makeEshelbyIsotropic(S) ;
         B = matrix.C ;
         Composite::invertTensor( B ) ;
-        B *= S * ( inclusion.C - matrix.C ) ;
+        B = S * B * ( inclusion.C - matrix.C ) ;
         B += I ;
         
         Composite::invertTensor( B ) ;
@@ -680,7 +752,7 @@ void InverseMoriTanakaMatrixInclusionComposite::getStrainConcentrationTensor()
         {
             S = Composite::eshelbyCylinder( inclusion.C, inclusion.a, inclusion.b) ;
         }
-
+//         S = makeEshelbyIsotropic(S) ;
 
         B = inclusion.C ;
         Composite::invertTensor( B ) ;
@@ -773,23 +845,14 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
 
 //     std::cout << matrix.C.array()[0] << "  " << inclusion.C.array()[0] << std::endl ;
     double minerr = 1e9 ;    
-    fictious.C = (inclusion.C*inclusion.volume+matrix.C*matrix.volume)*.5;
+    fictious.C = inclusion.C; //MoriTanakaMatrixInclusionComposite(Phase(matrix),Phase(inclusion)).getBehaviour()->getTensor(Point());
+//     fictious.C.print();
     Matrix S = fictious.C ;
     Matrix G = fictious.C ;
     int count = 0 ;
     Matrix A0 = S ;
     Matrix A1 = S ;
     Matrix del = S ;
-    
-    double numat = matrix.C[0][1]/((matrix.C[0][0]+matrix.C[0][1])) ;
-    if(isnanf(numat))
-        numat = 0 ;
-    double Emat = matrix.C[0][0]*(1.+numat)*(1.-2.*numat)/(1.-numat) ;
-    
-    double nuinc = inclusion.C[0][1]/((inclusion.C[0][0]+inclusion.C[0][1])) ;
-    if(isnanf(nuinc))
-        nuinc = 0 ;
-    double Einc = inclusion.C[0][0]*(1.+nuinc)*(1.-2.*nuinc)/(1.-nuinc) ;
     
     size_t sz = 1 ;
     Vector deltav(sz) ;
@@ -798,76 +861,61 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
     Vector nu_eff(deltav.size()*deltav.size()) ;
     Vector E_eff(deltav.size()*deltav.size()) ;
     
-    int nullcount = 0 ;
-
     double mv = matrix.volume ;
     double iv = inclusion.volume ;
-    size_t i = 0 ;
-//     for(size_t i = 0 ;  i < deltav.size() ; i++)
-//     {
-//     for(size_t j = 0 ;  j < deltav.size() ; j++)
-//     {   
 
-        count = 0 ;
-        double lminerror = 1e9 ;
-//         fictious.C = Tensor::cauchyGreen(std::make_pair(/*Einc*deltav[i], 0.4999*deltav[j]*/1e-3, 0.499), SPACE_THREE_DIMENSIONAL);
-        
-        do
-        {
-            fictious.volume = mv ;
-            inclusion.volume = iv ;
-            DiluteMatrixInclusionComposite mtFictiousSecond(fictious, inclusion) ;
-            mtFictiousSecond.apply() ;
-            fictious.volume = iv ;
-            matrix.volume = mv ;
-            DiluteMatrixInclusionComposite mtFictiousFirst(fictious, matrix) ;
-            mtFictiousFirst.apply() ;
-            A0 = mtFictiousFirst.MatrixInclusionComposite::inclusion.A ;
-            A1 = mtFictiousSecond.MatrixInclusionComposite::inclusion.A ;
-            
-            G = A0 * matrix.volume + A1 * inclusion.volume ;
-            Composite::invertTensor( G ) ;
-            G *= A1 ;
-            
-            G = makeIsotropic(G) ;
-            S = G ;
-            del = inclusion.C - matrix.C ;
-            G *= del * inclusion.volume ; 
-            G += matrix.C  ;
-            Vector K = fictious.C.array() - G.array() ;
-            error = std::inner_product(&K[0], &K[K.size()], &K[0], double(0))/maxnorm ;
-            
-            if(error < lminerror)
-            {
-                lminerror = error ;
-                Gp = G ;
-                Sp = S ;
-            }
-
-//             Gp = G ;
-//             Sp = S ;
-            fictious.C = G ;
-
-        } while( (++count < 512 && lminerror > 1e-48) ) ;
+    count = 0 ;
+    double lminerror = 1e9 ;
     
+    do
+    {
+        fictious.volume = mv ;
+        inclusion.volume = iv ;
+        DiluteMatrixInclusionComposite mtFictiousSecond(fictious, inclusion) ;
+        mtFictiousSecond.apply() ;
+        fictious.volume = iv ;
+        matrix.volume = mv ;
+        DiluteMatrixInclusionComposite mtFictiousFirst(fictious, matrix) ;
+        mtFictiousFirst.apply() ;
+        A0 = mtFictiousFirst.MatrixInclusionComposite::inclusion.A ;
+        A1 = mtFictiousSecond.MatrixInclusionComposite::inclusion.A ;
+        
+        G = A0 * matrix.volume + A1 * inclusion.volume ;
+//         G = makeStiffnessIsotropic(G) ;
+        Composite::invertTensor( G ) ;
+        G = A1*G ;
+//         G = makeStiffnessIsotropic(G) ;
+//         G = makeEshelbyIsotropic(G) ;
+        S = G ;
+        G = (inclusion.C - matrix.C)*G*inclusion.volume ; 
+        G += matrix.C  ;
+        Vector K = fictious.C.array() - G.array() ;
+        error = std::inner_product(&K[0], &K[K.size()], &K[0], double(0))/maxnorm ;
+        G = makeStiffnessIsotropic(G) ;
+        if(error < lminerror)
+        {
+            lminerror = error ;
+            Gp = G ;
+            Sp = S ;
+        }
+//         G = makeEshelbyIsotropic(G) ;
 
-        minerr = lminerror ;       
-        size_t idx = 0;//i*deltav.size()+j ;
-        nu_eff[idx] = Gp[0][1]/((Gp[0][0]+Gp[0][1])) ;
-        E_eff[idx] = Gp[0][0]*(1.+nu_eff[idx])*(1.-2.*nu_eff[idx])/(1.-nu_eff[idx]) ;
-        bool isNull = (nu_eff[idx]>0.499 || nu_eff[idx]<0) && E_eff[idx] < 1e-12 ;
+        fictious.C = G;
 
-        nullcount += isNull ;
+    } while( (++count < 1024 && lminerror > 1e-32) || count < 4) ;
 
-//     }
-//     }
+    minerr = lminerror ;       
+    size_t idx = 0;//i*deltav.size()+j ;
+    nu_eff[idx] = Gp[1][0]/(Gp[1][1]+Gp[1][0]) ;
+    E_eff[idx] = Gp[1][1]*(1.+nu_eff[idx])*(1.-2.*nu_eff[idx])/(1.-nu_eff[idx]) ;
+
+
     std::cerr << matrix.volume <<"  " <<std::flush ;
     for(size_t i = 0 ;  i < E_eff.size() ; i++)
-        std::cerr << E_eff[i]*10 <<"  " <<nu_eff[i] << "  "  <<std::flush ;
-    std::cerr << nullcount <<std::endl ;
-    
-//     exit(0) ;
-    fictious.C = Tensor::cauchyGreen(std::make_pair(E_eff.max(), nu_eff.min()), SPACE_THREE_DIMENSIONAL); ;
+        std::cerr << E_eff[i]*32 <<"  " <<nu_eff[i] << "  "  <<std::flush ;
+    std::cerr << std::endl ;
+
+    fictious.C = Gp; 
 
     B = I - Sp * inclusion.volume ;
     Composite::invertTensor( B ) ;
